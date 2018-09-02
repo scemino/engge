@@ -62,8 +62,8 @@ class GGEngine;
 class EngineShortcutsInputEventHandler : public InputEventHandler
 {
   public:
-    EngineShortcutsInputEventHandler(gg::GGEngine &engine)
-        : _engine(engine)
+    EngineShortcutsInputEventHandler(gg::GGEngine &engine, sf::RenderWindow &window)
+        : _engine(engine), _window(window)
     {
     }
 
@@ -88,6 +88,18 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
                 break;
             }
             break;
+        case sf::Event::MouseMoved:
+        {
+            auto pos = sf::Mouse::getPosition(_window);
+            auto worldPos = (sf::Vector2i)_window.mapPixelToCoords(pos);
+            auto &objects = _engine.getRoom().getObjects();
+            for (auto &obj : objects)
+            {
+                auto rect = obj.get()->getRealHotspot();
+                obj.get()->setHotspotVisible(rect.contains(worldPos));
+            }
+        }
+        break;
         default:
             break;
         }
@@ -95,5 +107,6 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
 
   private:
     gg::GGEngine &_engine;
+    sf::RenderWindow &_window;
 };
 } // namespace gg

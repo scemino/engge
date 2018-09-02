@@ -1,6 +1,7 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
+#include <regex>
 #include "GGRoom.h"
 #include <nlohmann/json.hpp>
 
@@ -35,6 +36,18 @@ static sf::Vector2i _parsePos(const std::string &text)
     return sf::Vector2i(x, y);
 }
 
+static sf::IntRect _parseRect(const std::string &text)
+{
+    auto re = std::regex("\\{\\{(\\-?\\d+),(\\-?\\d+)\\},\\{(\\-?\\d+),(\\-?\\d+)\\}\\}");
+    std::smatch matches;
+    std::regex_search(text, matches, re);
+    auto left = std::atoi(matches[1].str().c_str());
+    auto top = std::atoi(matches[2].str().c_str());
+    auto right = std::atoi(matches[3].str().c_str());
+    auto bottom = std::atoi(matches[4].str().c_str());
+    return sf::IntRect(left, top, right - left, bottom - top);
+}
+
 static void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices, int roomHeight)
 {
     int i = 1;
@@ -64,7 +77,7 @@ GGRoom::GGRoom(TextureManager &textureManager, const GGEngineSettings &settings)
     : _textureManager(textureManager),
       _settings(settings),
       _showDrawWalkboxes(false),
-      _showObjects(false)
+      _showObjects(true)
 {
 }
 
@@ -133,7 +146,6 @@ void GGRoom::load(const char *name)
     // layers
     for (auto jLayer : jWimpy["layers"])
     {
-        // RoomLayer layer(_textureManager);
         RoomLayer layer;
         auto zsort = jLayer["zsort"].get<int>();
         layer.setZsort(zsort);
@@ -197,7 +209,7 @@ void GGRoom::load(const char *name)
         // name
         auto name = jObject["name"].get<std::string>();
         object->setName(name);
-        auto& texture = _textureManager.get(sheet);
+        auto &texture = _textureManager.get(sheet);
         printf("Read object %s\n", object->getName().c_str());
         // zsort
         object->setZOrder(jObject["zsort"].get<int>());
@@ -205,8 +217,12 @@ void GGRoom::load(const char *name)
         object->setProp(jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1);
         // position
         auto pos = _parsePos(jObject["pos"].get<std::string>());
+        auto usePos = _parsePos(jObject["usepos"].get<std::string>());
         auto useDir = _toDirection(jObject["usedir"].get<std::string>());
         object->setUseDirection(useDir);
+        // hotspot
+        auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
+        object->setHotspot(hotspot);
 
         sf::IntRect rect;
         // animations
@@ -216,6 +232,10 @@ void GGRoom::load(const char *name)
             {
                 auto animName = jAnim["name"].get<std::string>();
                 auto anim = std::make_unique<GGAnim>(texture, animName);
+                if (!jAnim["fps"].is_null())
+                {
+                    anim->setFps(jAnim["fps"].get<int>());
+                }
                 for (auto jFrame : jAnim["frames"])
                 {
                     auto n = jFrame.get<std::string>();
@@ -233,6 +253,7 @@ void GGRoom::load(const char *name)
             // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
             {
                 object->setPosition(pos.x, _roomSize.y - pos.y);
+                object->setUsePosition(usePos.x, usePos.y);
             }
             for (auto &anim : object->getAnims())
             {

@@ -3,39 +3,6 @@
 
 namespace gg
 {
-// class _PlayState : public Function
-// {
-//   private:
-//     GGObject &_object;
-//     sf::Clock _clock;
-//     sf::Time _time;
-//     const int _animIndex;
-
-//   public:
-//     _PlayState(GGObject &object, int animIndex)
-//         : _object(object), _time(sf::milliseconds(100)), _animIndex(animIndex)
-//     {
-//         _object.setStateAnimIndex(_animIndex, 0);
-//     }
-
-//     bool isElapsed() override
-//     {
-//         return _object.getStateAnimIndex(_animIndex) == (_object.getStateAnimLength(_animIndex) - 1);
-//     }
-
-//     void operator()() override
-//     {
-//         if (_clock.getElapsedTime() > _time)
-//         {
-//             auto index = _object.getStateAnimIndex(_animIndex);
-//             auto length = _object.getStateAnimLength(_animIndex);
-//             index = (index + 1) % length;
-//             _object.setStateAnimIndex(_animIndex, index);
-//             _time = _clock.getElapsedTime() + sf::milliseconds(50);
-//         }
-//     }
-// };
-
 class _AlphaTo : public TimeFunction
 {
     GGObject &_object;
@@ -152,19 +119,16 @@ class _FadeSound : public TimeFunction
     }
 };
 
-sf::RectangleShape fadeShape;
-
 GGEngine::GGEngine(const GGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
-      _room(_textureManager, settings)
+      _room(_textureManager, settings),
+      _fadeAlpha(0)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
     printf("seed: %u\n", seed);
     srand(seed);
-    fadeShape.setSize(sf::Vector2f(320, 200));
-    _fadeAlpha = 0;
 }
 
 GGEngine::~GGEngine()
@@ -240,12 +204,15 @@ void GGEngine::stopSound(SoundId &sound)
 
 void GGEngine::draw(sf::RenderWindow &window) const
 {
-    fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     _room.draw(window);
     for (auto &actor : _actors)
     {
         actor->draw(window);
     }
+    
+    sf::RectangleShape fadeShape;
+    fadeShape.setSize(sf::Vector2f(320, 200));
+    fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
 }
 

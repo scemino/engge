@@ -14,7 +14,7 @@ int main()
 
     gg::Game game(engine);
     game.getInputEventHandlers().push_back(std::make_unique<gg::PanInputEventHandler>(game.getWindow()));
-    game.getInputEventHandlers().push_back(std::make_unique<gg::EngineShortcutsInputEventHandler>(engine));
+    game.getInputEventHandlers().push_back(std::make_unique<gg::EngineShortcutsInputEventHandler>(engine, game.getWindow()));
     game.run();
 
     return 0;

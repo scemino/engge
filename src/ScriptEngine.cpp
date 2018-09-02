@@ -154,6 +154,33 @@ static SQInteger _alpha(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _objectHotspot(HSQUIRRELVM v)
+{
+    SQInteger left = 0;
+    SQInteger top = 0;
+    SQInteger right = 0;
+    SQInteger bottom = 0;
+    if (SQ_FAILED(sq_getinteger(v, 3, &left)))
+    {
+        return sq_throwerror(v, _SC("failed to get left\n"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 4, &top)))
+    {
+        return sq_throwerror(v, _SC("failed to get top\n"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 5, &right)))
+    {
+        return sq_throwerror(v, _SC("failed to get right\n"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 6, &bottom)))
+    {
+        return sq_throwerror(v, _SC("failed to get bottom\n"));
+    }
+    GGObject *obj = _getObject(v, 2);
+    obj->setHotspot(sf::IntRect(left,top,right-left,bottom-top));
+    return 0;
+}
+
 static SQInteger _play_state(HSQUIRRELVM v)
 {
     SQInteger index;
@@ -188,6 +215,15 @@ static SQInteger _actorPlayAnimation(HSQUIRRELVM v)
     GGActor *actor = _getActor(v, 2);
     sq_getstring(v, 3, &name);
     actor->getCostume().setState(name);
+    return 0;
+}
+
+static SQInteger _actorAt(HSQUIRRELVM v)
+{
+    GGActor *actor = _getActor(v, 2);
+    GGObject *obj = _getObject(v, 3);
+    auto pos = obj->getPosition();
+    // TODO: actor->setPosition(pos);
     return 0;
 }
 
@@ -508,10 +544,12 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_state, "objectState");
     registerGlobalFunction(_play_state, "playObjectState");
     registerGlobalFunction(_alpha, "objectAlpha");
+    registerGlobalFunction(_objectHotspot, "objectHotspot");
     registerGlobalFunction(_createActor, "createActor");
     registerGlobalFunction(_actorCostume, "actorCostume");
     registerGlobalFunction(_actorLockFacing, "actorLockFacing");
     registerGlobalFunction(_actorPlayAnimation, "actorPlayAnimation");
+    registerGlobalFunction(_actorAt, "actorAt");
 }
 
 ScriptEngine::~ScriptEngine()

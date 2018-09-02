@@ -2,8 +2,8 @@
 
 namespace gg
 {
-GGAnim::GGAnim(const sf::Texture& texture, const std::string &name)
-    : _sprite(texture), _name(name), _fps(10), _index(0)
+GGAnim::GGAnim(const sf::Texture &texture, const std::string &name)
+    : _sprite(texture), _name(name), _fps(10), _index(0), _state(AnimState::Play)
 {
 }
 
@@ -13,6 +13,9 @@ GGAnim::~GGAnim()
 
 void GGAnim::update(const sf::Time &elapsed)
 {
+    if (_state == AnimState::Pause)
+        return;
+
     _time += elapsed;
     if (_time.asSeconds() > (1.f / _fps))
     {
