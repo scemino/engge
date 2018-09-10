@@ -1,14 +1,16 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "Game.h"
+#include "GGEngine.h"
 
 namespace gg
 {
 class PanInputEventHandler : public InputEventHandler
 {
   public:
-    PanInputEventHandler(sf::RenderWindow &window)
-        : _window(window),
+    PanInputEventHandler(GGEngine &engine, sf::RenderWindow &window)
+        : _engine(engine),
+          _window(window),
           _view(sf::FloatRect(0, 0, 320, 180)),
           _isPressed(false)
     {
@@ -37,11 +39,12 @@ class PanInputEventHandler : public InputEventHandler
                 break;
             auto pos2 = sf::Mouse::getPosition(_window);
             auto delta = pos2 - _pos;
-            if (abs(delta.x) < 100)
+            if (abs(delta.x) < 50)
             {
-                _view.move(-delta.x, -delta.y);
+                // _view.move(-delta.x, -delta.y);
+                _engine.moveCamera(-delta.x, -delta.y);
             }
-            _window.setView(_view);
+            // _window.setView(_view);
             _pos = pos2;
         }
         break;
@@ -51,6 +54,7 @@ class PanInputEventHandler : public InputEventHandler
     }
 
   private:
+    GGEngine &_engine;
     sf::RenderWindow &_window;
     sf::View _view;
     bool _isPressed;

@@ -24,12 +24,12 @@ void GGAnim::update(const sf::Time &elapsed)
 
         auto &sourceRect = _sourceRects[_index];
         _sprite.setTextureRect(_rects[_index]);
-        _sprite.setOrigin(sourceRect.width / 2, sourceRect.height / 2);
+        // _sprite.setOrigin(sourceRect.width / 2, sourceRect.height / 2);
     }
 }
 
-void GGAnim::draw(sf::RenderWindow &window) const
+void GGAnim::draw(sf::RenderWindow &window, const sf::RenderStates& states) const
 {
-    window.draw(_sprite);
+    window.draw(_sprite, states);
 }
 } // namespace gg

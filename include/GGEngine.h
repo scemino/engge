@@ -28,6 +28,12 @@ public:
   GGEngine(const GGEngineSettings &settings);
   ~GGEngine();
 
+  void setCameraAt(float x, float y);
+  void moveCamera(float x, float y);
+  // sf::Vector2f getCameraAt() const { return _view.getCenter(); }
+  sf::Vector2f getCameraAt() const { return _cameraPos;; }
+  void cameraPanTo(float x, float y, float timeInSec);
+  void setWindow(sf::RenderWindow &window) { _pWindow = &window; }
   const GGEngineSettings &getSettings() const { return _settings; }
   TextureManager &getTextureManager() { return _textureManager; }
   GGRoom &getRoom() { return _room; }
@@ -62,5 +68,7 @@ private:
   sf::SoundBuffer _buffer;
   sf::Sound _sound;
   sf::Uint8 _fadeAlpha;
+  sf::RenderWindow *_pWindow;
+  sf::Vector2f _cameraPos;
 };
 } // namespace gg

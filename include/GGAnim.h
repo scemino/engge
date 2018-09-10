@@ -28,7 +28,7 @@ public:
   void setFps(int fps) { _fps = fps; }
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window) const;
+  void draw(sf::RenderWindow &window, const sf::RenderStates& states) const;
   
   void reset() { _index = 0; }
   void play() { _state = AnimState::Play; }

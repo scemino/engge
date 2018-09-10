@@ -1,5 +1,9 @@
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
+#include <fstream>
+#include <regex>
 #include "GGEngine.h"
-#include <squirrel3/squirrel.h>
+#include "GGFont.h"
 
 namespace gg
 {
@@ -59,21 +63,51 @@ class _FadeTo : public TimeFunction
     }
 };
 
+class _CameraPanTo : public TimeFunction
+{
+    GGEngine &_engine;
+    sf::Vector2f _posInit;
+    sf::Vector2f _pos;
+    sf::Vector2f _posDest;
+    sf::Vector2f _delta;
+
+  public:
+    _CameraPanTo(GGEngine &engine, const sf::Vector2f &dest, const sf::Time &time)
+        : TimeFunction(time),
+          _engine(engine),
+          _posInit(engine.getCameraAt()),
+          _pos(engine.getCameraAt()),
+          _posDest(dest),
+          _delta(_posDest - _pos)
+    {
+    }
+
+    void operator()() override
+    {
+        _engine.setCameraAt(_pos.x, _pos.y);
+        if (!isElapsed())
+        {
+            _pos = _posInit + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
+        }
+    }
+};
 class _OffsetTo : public TimeFunction
 {
     GGObject &_object;
     sf::Vector2f _dest;
+    sf::Vector2f _initPos;
     sf::Vector2f _delta;
     sf::Vector2f _pos;
-    sf::Vector2f _initPos;
 
   public:
     _OffsetTo(GGObject &object, float x, float y, const sf::Time &time)
-        : TimeFunction(time), _object(object), _dest(x, y)
+        : TimeFunction(time),
+          _object(object),
+          _dest(x, y),
+          _initPos(object.getPosition()),
+          _delta(_dest - _initPos),
+          _pos(object.getPosition())
     {
-        _pos = object.getPosition();
-        _initPos = _pos;
-        _delta = _dest - _initPos;
     }
 
     void operator()() override
@@ -119,20 +153,43 @@ class _FadeSound : public TimeFunction
     }
 };
 
+GGFont g_ggfont;
+
 GGEngine::GGEngine(const GGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
       _room(_textureManager, settings),
-      _fadeAlpha(0)
+      _fadeAlpha(0),
+      _pWindow(nullptr)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
     printf("seed: %u\n", seed);
     srand(seed);
+
+    g_ggfont.setTextureManager(&_textureManager);
+    g_ggfont.setSettings(&_settings);
+    g_ggfont.load("FontModernSheet");
 }
 
 GGEngine::~GGEngine()
 {
+}
+
+void GGEngine::setCameraAt(float x, float y)
+{
+    _cameraPos = sf::Vector2f(x, y);
+}
+
+void GGEngine::moveCamera(float x, float y)
+{
+    _cameraPos += sf::Vector2f(x, y);
+}
+
+void GGEngine::cameraPanTo(float x, float y, float timeInSec)
+{
+    auto cameraPanTo = std::make_unique<_CameraPanTo>(*this, sf::Vector2f(x, y), sf::seconds(timeInSec));
+    addFunction(std::move(cameraPanTo));
 }
 
 void GGEngine::update(const sf::Time &elapsed)
@@ -204,16 +261,23 @@ void GGEngine::stopSound(SoundId &sound)
 
 void GGEngine::draw(sf::RenderWindow &window) const
 {
-    _room.draw(window);
+    // auto cameraPos = _view.getCenter();
+    auto cameraPos = _cameraPos;
+    _room.draw(window, cameraPos);
     for (auto &actor : _actors)
     {
         actor->draw(window);
     }
-    
+
     sf::RectangleShape fadeShape;
     fadeShape.setSize(sf::Vector2f(320, 200));
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
+
+    // g_ggfont.draw("I could really go for some Wiener Schnitzel after the long walk out here.", window);
+    std::stringstream s;
+    s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
+    g_ggfont.draw(s.str(), window);
 }
 
 void GGEngine::offsetTo(GGObject &object, float x, float y, float time)

@@ -18,6 +18,8 @@ public:
   const GGCostume &getCostume() const { return _costume; }
   //   void setUseDirection(UseDirection direction) { _direction = direction; }
   //   UseDirection getUseDirection() const { return _direction; }
+  void move(float x, float y);
+  void setPosition(float x, float y);
 
   void draw(sf::RenderWindow &window) const;
   void update(const sf::Time &time);
@@ -26,5 +28,6 @@ private:
   const GGEngineSettings &_settings;
   //   UseDirection _direction;
   GGCostume _costume;
+  sf::Transform _transform;
 };
 } // namespace gg

@@ -7,6 +7,7 @@ Game::Game(GGEngine &engine)
 {
     _window.setSize(sf::Vector2u(1024, 768));
     _window.setFramerateLimit(60);
+    _engine.setWindow(_window);
 }
 
 Game::~Game()

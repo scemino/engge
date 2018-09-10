@@ -15,6 +15,19 @@ enum class Facing
   FACE_RIGHT
 };
 
+class CostumeAnim
+{
+public:
+  CostumeAnim(const std::string &name);
+  ~CostumeAnim();
+  const std::string &getName() const { return _name; }
+  std::vector<GGLayer*> &getLayers() { return _layers; }
+
+private:
+  std::string _name;
+  std::vector<GGLayer*> _layers;
+};
+
 class GGCostume : public NonCopyable
 {
 public:
@@ -23,12 +36,12 @@ public:
 
   void loadCostume(const std::string &name);
   const std::string &getSheet() const { return _sheet; }
-  const std::vector<GGLayer> &getAnim(const std::string &name) const { return *_animations.at(name).get(); }
+  const std::vector<GGLayer> &getAnim(const std::string &name) const;
   void lockFacing(Facing facing);
-  void setState(const std::string& name);
-  void setAnim(const std::string& name);
+  void setState(const std::string &name);
+  void setAnim(const std::string &name);
 
-  void draw(sf::RenderWindow &window) const;
+  void draw(sf::RenderWindow &window, const sf::RenderStates states) const;
   void update(const sf::Time &elapsed);
 
 private:
@@ -37,8 +50,8 @@ private:
 private:
   const GGEngineSettings &_settings;
   std::string _sheet;
-  std::map<std::string, std::unique_ptr<std::vector<GGLayer>>> _animations;
-  std::vector<GGLayer> *_pCurrentAnim;
+  std::vector<std::unique_ptr<CostumeAnim>> _animations;
+  CostumeAnim *_pCurrentAnim;
   std::vector<sf::Sprite> _sprites;
   sf::Texture _texture;
   Facing _facing;

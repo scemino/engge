@@ -1,22 +1,24 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "GGCostume.h"
+#include "_GGUtil.h"
 
 namespace gg
 {
-// TODO: share
-static sf::IntRect _toRect(const nlohmann::json &json)
+CostumeAnim::CostumeAnim(const std::string &name)
+    : _name(name)
 {
-    sf::IntRect rect;
-    rect.left = json["x"].get<int>();
-    rect.top = json["y"].get<int>();
-    rect.width = json["w"].get<int>();
-    rect.height = json["h"].get<int>();
-    return rect;
+}
+
+CostumeAnim::~CostumeAnim()
+{
 }
 
 GGCostume::GGCostume(const GGEngineSettings &settings)
-    : _settings(settings), _facing(Facing::FACE_FRONT), _anim("stand")
+    : _settings(settings),
+      _pCurrentAnim(nullptr),
+      _facing(Facing::FACE_FRONT),
+      _anim("stand")
 {
 }
 
@@ -62,8 +64,8 @@ void GGCostume::loadCostume(const std::string &path)
     _animations.clear();
     for (auto j : json["animations"])
     {
-        auto layers = new std::vector<GGLayer>();
         auto name = j["name"].get<std::string>();
+        auto anim = new CostumeAnim(name);
         for (auto jLayer : j["layers"])
         {
             auto layer = new GGLayer();
@@ -86,10 +88,11 @@ void GGCostume::loadCostume(const std::string &path)
                     layer->getSourceFrames().push_back(_toRect(jf["spriteSourceSize"]));
                 }
             }
-            layers->push_back(*layer);
+            anim->getLayers().push_back(layer);
         }
-        printf("foudn anim: %s\n", name.c_str());
-        _animations.insert(std::make_pair(name, std::unique_ptr<std::vector<GGLayer>>(layers)));
+        printf("found anim: %s\n", name.c_str());
+
+        _animations.push_back(std::unique_ptr<CostumeAnim>(anim));
     }
 }
 
@@ -117,36 +120,42 @@ void GGCostume::updateAnim()
 
 void GGCostume::setAnim(const std::string &name)
 {
-    auto iter = _animations.find(name);
-    if (iter == _animations.end())
-        return;
-    _pCurrentAnim = iter->second.get();
+    for (auto &anim : _animations)
+    {
+        if (anim.get()->getName() == name)
+        {
+            _pCurrentAnim = anim.get();
+            return;
+        }
+    }
 }
 
 void GGCostume::update(const sf::Time &elapsed)
 {
-    for (int i = 0; i < _pCurrentAnim->size(); i++)
+    if (!_pCurrentAnim)
+        return;
+    for (int i = 0; i < _pCurrentAnim->getLayers().size(); i++)
     {
-        (*_pCurrentAnim)[i].update(elapsed);
+        _pCurrentAnim->getLayers()[i]->update(elapsed);
     }
 
     _sprites.clear();
-    for (int i = 0; i < _pCurrentAnim->size(); i++)
+    for (int i = 0; i < _pCurrentAnim->getLayers().size(); i++)
     {
-        auto frame = (*_pCurrentAnim)[i].getIndex();
-        auto &rect = (*_pCurrentAnim)[i].getFrames()[frame];
-        auto &sourceRect = (*_pCurrentAnim)[i].getSourceFrames()[frame];
+        auto frame = _pCurrentAnim->getLayers()[i]->getIndex();
+        auto &rect = _pCurrentAnim->getLayers()[i]->getFrames()[frame];
+        auto &sourceRect = _pCurrentAnim->getLayers()[i]->getSourceFrames()[frame];
         sf::Sprite sprite(_texture, rect);
         sprite.setOrigin(-sourceRect.left, -sourceRect.top);
         _sprites.push_back(sprite);
     }
 }
 
-void GGCostume::draw(sf::RenderWindow &window) const
+void GGCostume::draw(sf::RenderWindow &window, const sf::RenderStates states) const
 {
     for (auto sprite : _sprites)
     {
-        window.draw(sprite);
+        window.draw(sprite, states);
     }
 }
 } // namespace gg

@@ -6,11 +6,11 @@ GGObject::GGObject()
     : _pAnim(nullptr),
       _isVisible(true),
       _zorder(0),
-      _direction(UseDirection::DIR_FRONT),
+      _direction(UseDirection::Front),
       _prop(false),
       _color(sf::Color::White),
-      _scale(1.f),
-      _isHotspotVisible(false)
+      _isHotspotVisible(false),
+      _angle(0)
 {
 }
 
@@ -38,24 +38,24 @@ void GGObject::setAnim(const std::string &name)
     auto &anim = *(it->get());
     _pAnim = &anim;
     auto &sprite = _pAnim->getSprite();
-    sprite.setPosition(_pos);
+    // sprite.setPosition(_pos);
     sprite.setColor(_color);
-    sprite.setScale(_scale, _scale);
+    // sprite.setScale(_scale, _scale);
 }
 
 void GGObject::move(float x, float y)
 {
-    _pos += sf::Vector2f(x, y);
+    _transform.move(x, y);
 }
 
 void GGObject::setPosition(float x, float y)
 {
-    _pos = sf::Vector2f(x, y);
+    _transform.setPosition(x, y);
 }
 
-const sf::Vector2f &GGObject::getPosition() const
+sf::Vector2f GGObject::getPosition() const
 {
-    return _pos;
+    return _transform.getPosition();
 }
 
 void GGObject::setUsePosition(float x, float y)
@@ -71,6 +71,10 @@ const sf::Vector2f &GGObject::getUsePosition() const
 void GGObject::setColor(const sf::Color &color)
 {
     _color = color;
+    if (_pAnim)
+    {
+        _pAnim->getSprite().setColor(color);
+    }
 }
 
 const sf::Color &GGObject::getColor() const
@@ -80,7 +84,7 @@ const sf::Color &GGObject::getColor() const
 
 void GGObject::setScale(float s)
 {
-    _scale = s;
+    _transform.scale(s, s);
 }
 
 void GGObject::update(const sf::Time &elapsed)
@@ -93,7 +97,8 @@ void GGObject::update(const sf::Time &elapsed)
 
 void GGObject::drawHotspot(sf::RenderWindow &window) const
 {
-    if (!_isHotspotVisible) return;
+    if (!_isHotspotVisible)
+        return;
     auto rect = getHotspot();
     auto pos = getPosition();
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
@@ -107,7 +112,7 @@ void GGObject::drawHotspot(sf::RenderWindow &window) const
     vl.setPosition(pos.x + _usePos.x, pos.y - _usePos.y - 2);
     vl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
     window.draw(vl);
-    
+
     sf::RectangleShape hl(sf::Vector2f(5, 1));
     hl.setPosition(pos.x + _usePos.x - 2, pos.y - _usePos.y);
     hl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
@@ -116,9 +121,11 @@ void GGObject::drawHotspot(sf::RenderWindow &window) const
 
 void GGObject::draw(sf::RenderWindow &window) const
 {
+    sf::RenderStates states;
+    states.transform = _transform.getTransform();
     if (_isVisible && _pAnim)
     {
-        _pAnim->draw(window);
+        _pAnim->draw(window, states);
     }
     drawHotspot(window);
 }

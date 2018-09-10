@@ -9,10 +9,10 @@ namespace gg
 {
 enum class UseDirection
 {
-  DIR_FRONT,
-  DIR_BACK,
-  DIR_LEFT,
-  DIR_RIGHT
+  Front,
+  Back,
+  Left,
+  Right
 };
 
 class GGObject
@@ -44,14 +44,17 @@ public:
 
   void move(float x, float y);
   void setPosition(float x, float y);
-  const sf::Vector2f &getPosition() const;
+  sf::Vector2f getPosition() const;
   void setUsePosition(float x, float y);
   const sf::Vector2f &getUsePosition() const;
+  void setRotation(float angle) { _transform.setRotation(angle); }
+  const float getRotation() const { return _transform.getRotation(); }
 
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;
 
   void setVisible(bool isVisible) { _isVisible = isVisible; }
+  bool isVisible() const { return _isVisible; }
   void setScale(float s);
 
   void setHotspotVisible(bool isHotspotVisible) { _isHotspotVisible = isHotspotVisible; }
@@ -71,11 +74,11 @@ private:
   int _zorder;
   UseDirection _direction;
   bool _prop;
-  sf::Vector2f _pos;
   sf::Vector2f _usePos;
   sf::Color _color;
-  float _scale;
   sf::IntRect _hotspot;
   bool _isHotspotVisible;
+  sf::Transformable _transform;
+  float _angle;
 };
 } // namespace gg

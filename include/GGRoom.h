@@ -18,22 +18,23 @@ public:
 
   void load(const char *name);
   std::vector<std::unique_ptr<GGObject>> &getObjects() { return _objects; }
-  GGObject &getObject(const std::string &name);
+  const std::string &getSheet() const { return _sheet; }
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window) const;
-  
+  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+
   void showDrawWalkboxes(bool show) { _showDrawWalkboxes = show; }
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
   void showObjects(bool show) { _showObjects = show; }
   bool areObjectsVisible() const { return _showObjects; }
+  GGObject &createObject(const std::vector<std::string> &anims);
   void showLayers(bool show) { _showLayers = show; }
   bool areLayersVisible() const { return _showLayers; }
 
 private:
-  void drawBackgrounds(sf::RenderWindow &window) const;
-  void drawBackgroundLayers(sf::RenderWindow &window) const;
-  void drawForegroundLayers(sf::RenderWindow &window) const;
+  void drawBackgrounds(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
+  void drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
   void drawObjects(sf::RenderWindow &window) const;
   void drawWalkboxes(sf::RenderWindow &window) const;
 
@@ -49,5 +50,6 @@ private:
   bool _showDrawWalkboxes;
   bool _showObjects;
   bool _showLayers;
+  std::string _sheet;
 };
 } // namespace gg

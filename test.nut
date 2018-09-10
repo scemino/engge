@@ -283,23 +283,114 @@ function test()
     while(1);
 }
 
+function trainPassby(Bridge) 
+{
+    objectOffset(Bridge.bridgeTrain, -100, 0)
+    objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10)
+    playSound("BridgeTrain.ogg")
+ }
+
+ function flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
+ local timeOff, timeOn, fadeIn, fadeOut
+ objectAlpha(obj, randomfrom(0.0, 1.0))
+ do {
+    timeOff = random(offRange1, offRange2)
+    breaktime(timeOff)
+    fadeIn = random(fadeRange1, fadeRange2)
+    objectAlphaTo(obj, maxFade, fadeIn)
+    breaktime(fadeIn)
+    timeOn = random(onRange1, onRange2)
+    breaktime(timeOn)
+    fadeOut = random(fadeRange1, fadeRange2)
+    objectAlphaTo(obj, minFade, fadeOut)
+    breaktime(fadeOut)
+ } while(1)
+}
+
+function animateFirefly(obj) {
+ startthread(flashAlphaObject, obj, 1, 4, 0.5, 2, 0.1, 0.35)
+ }
+
+ function createFirefly(x) {
+    local firefly = 0
+    local zsort = 68
+    local y = random(78,168)
+    local direction = randomfrom(-360,360)
+    if (y < 108) {
+        firefly = createObject("firefly_large")
+        zsort = random(68,78)
+    } else
+        if (y < 218) {
+        firefly = createObject("firefly_small")
+        zsort = 117
+    } else
+        if (x > 628 && x < 874) {		
+        firefly = createObject("firefly_tiny")
+        zsort = 668
+    }
+    if (firefly) {
+        objectRotateTo(firefly, direction, 12)
+        // objectRotateTo(firefly, direction, 12, LOOPING)
+        objectAt(firefly, x, y)
+        objectSort(firefly, zsort)
+        return firefly
+    }
+ }
+
 function test2() 
 {
-    local r = loadRoom("MansionEntry")
+    local Bridge = loadRoom("Bridge")
+    objectState(Bridge.bridgeBody, GONE)
+    objectState(Bridge.bridgeBottle, GONE)
+    objectState(Bridge.bridgeChainsaw, GONE)
+
+    local star = 0
+    for (local i = 1; i <= 28; i += 1) {
+        star = Bridge["bridgeStar"+i]
+        // objectParallaxLayer(star, 5)
+        
+        startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
+    }	
+    for (local i = 1; i <= 5; i += 1) {
+        star = Bridge["bridgeStarB"+i]
+        // objectParallaxLayer(star, 5)
+        
+        startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+    }
+
+    for (local x = 0; x < 960; x += random(20, 40)) 
+    {		
+        local firefly = createFirefly(x)
+        if (firefly) {
+            startthread(animateFirefly, firefly)
+        }		
+    }
+    local willie = createActor()
+    actorAt(willie, Bridge.willieSpot)
+    actorCostume(willie, "WilliePassedOutAnimation")
+    actorLockFacing(willie, FACE_RIGHT)
+    actorPlayAnimation(willie, "awake")
+
+    cameraAt(700,86)
+    roomFade(FADE_IN, 2)
+    breaktime(6)
+    // cameraPanTo(210, 86, 12)
+    startthread(trainPassby, Bridge)
+    
+    breaktime(2)
+    breaktime(12.0)
+    actorPlayAnimation(willie, "drink")
     // hideAll(r)
 
     breaktime(200.0)
 }
 
-// local willie = createActor()
-// actorCostume(willie, "BorisAnimation")
-// actorLockFacing(willie, FACE_RIGHT)
-// actorPlayAnimation(willie, "walk")
+local room = loadRoom("Bridge")
+// local shadowAttacker = createObject("AlleywaySheet", [ "shadow_attacking_1", "shadow_attacking_2", "shadow_attacking_3", "shadow_attacking_4", "shadow_attacking_5", "shadow_attacking_6", "shadow_attacking_5", "shadow_attacking_4", "shadow_attacking_3", "shadow_attacking_2", "shadow_attacking_1" ])
 
 // loopMusic("GenTown_StartScreen_LOOP");
 // startthread(flashRadioLight)
-// local tid = startthread(@(n1,n2) print("\nfoo: "+(n1+n2)+"\n"), 5,2)
-startthread(test2)
+//startthread(test2)
 
 // startthread(animateLock)
 // for (local i = 1 ; i <= 10 ; i++) 
