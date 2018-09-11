@@ -6,6 +6,8 @@
 #include "GGRoom.h"
 #include "GGActor.h"
 #include "TextureManager.h"
+#include "GGTextDatabase.h"
+#include "GGFont.h"
 #include "NonCopyable.h"
 
 namespace gg
@@ -30,13 +32,13 @@ public:
 
   void setCameraAt(float x, float y);
   void moveCamera(float x, float y);
-  // sf::Vector2f getCameraAt() const { return _view.getCenter(); }
-  sf::Vector2f getCameraAt() const { return _cameraPos;; }
+  sf::Vector2f getCameraAt() const { return _cameraPos; }
   void cameraPanTo(float x, float y, float timeInSec);
   void setWindow(sf::RenderWindow &window) { _pWindow = &window; }
   const GGEngineSettings &getSettings() const { return _settings; }
   TextureManager &getTextureManager() { return _textureManager; }
   GGRoom &getRoom() { return _room; }
+  GGFont &getFont() { return _font; }
 
   void addActor(GGActor &actor) { _actors.push_back(std::unique_ptr<GGActor>(&actor)); }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
@@ -52,6 +54,7 @@ public:
   void playState(GGObject &object, int index);
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
+  std::string getText(int id) { return _textDb.getText(id); }
 
   void setFadeAlpha(sf::Uint8 fade) { _fadeAlpha = fade; }
   sf::Uint8 getFadeAlpha() const { return _fadeAlpha; }
@@ -70,5 +73,7 @@ private:
   sf::Uint8 _fadeAlpha;
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;
+  GGTextDatabase _textDb;
+  GGFont _font;
 };
 } // namespace gg

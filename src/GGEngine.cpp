@@ -2,6 +2,7 @@
 #include <sstream> // stringstream
 #include <fstream>
 #include <regex>
+#include <string>
 #include "GGEngine.h"
 #include "GGFont.h"
 
@@ -153,8 +154,6 @@ class _FadeSound : public TimeFunction
     }
 };
 
-GGFont g_ggfont;
-
 GGEngine::GGEngine(const GGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
@@ -167,9 +166,13 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
     printf("seed: %u\n", seed);
     srand(seed);
 
-    g_ggfont.setTextureManager(&_textureManager);
-    g_ggfont.setSettings(&_settings);
-    g_ggfont.load("FontModernSheet");
+    _font.setTextureManager(&_textureManager);
+    _font.setSettings(&_settings);
+    _font.load("FontModernSheet");
+
+    std::string path(settings.getGamePath());
+    path.append("ThimbleweedText_en.tsv");
+    _textDb.load(path);
 }
 
 GGEngine::~GGEngine()
@@ -261,7 +264,6 @@ void GGEngine::stopSound(SoundId &sound)
 
 void GGEngine::draw(sf::RenderWindow &window) const
 {
-    // auto cameraPos = _view.getCenter();
     auto cameraPos = _cameraPos;
     _room.draw(window, cameraPos);
     for (auto &actor : _actors)
@@ -274,10 +276,9 @@ void GGEngine::draw(sf::RenderWindow &window) const
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
 
-    // g_ggfont.draw("I could really go for some Wiener Schnitzel after the long walk out here.", window);
-    std::stringstream s;
-    s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
-    g_ggfont.draw(s.str(), window);
+    // std::stringstream s;
+    // s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
+    // g_ggfont.draw(s.str(), window);
 }
 
 void GGEngine::offsetTo(GGObject &object, float x, float y, float time)

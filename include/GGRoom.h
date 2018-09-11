@@ -28,6 +28,7 @@ public:
   void showObjects(bool show) { _showObjects = show; }
   bool areObjectsVisible() const { return _showObjects; }
   GGObject &createObject(const std::vector<std::string> &anims);
+  GGTextObject &createTextObject(const std::string &name, GGFont& font);
   void showLayers(bool show) { _showLayers = show; }
   bool areLayersVisible() const { return _showLayers; }
 

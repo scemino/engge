@@ -16,6 +16,8 @@ public:
   void setCostume(const std::string &name);
   GGCostume &getCostume() { return _costume; }
   const GGCostume &getCostume() const { return _costume; }
+  void setTalkColor(sf::Color color) { _color = color; }
+  sf::Color getTalkColor() { return _color; }
   //   void setUseDirection(UseDirection direction) { _direction = direction; }
   //   UseDirection getUseDirection() const { return _direction; }
   void move(float x, float y);
@@ -29,5 +31,6 @@ private:
   //   UseDirection _direction;
   GGCostume _costume;
   sf::Transform _transform;
+  sf::Color _color;
 };
 } // namespace gg

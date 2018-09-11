@@ -4,6 +4,7 @@
 #include "NonCopyable.h"
 #include "TextureManager.h"
 #include "GGAnim.h"
+#include "GGFont.h"
 
 namespace gg
 {
@@ -61,7 +62,7 @@ public:
   bool isHotspotVisible() { return _isHotspotVisible; }
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window) const;
+  virtual void draw(sf::RenderWindow &window);
 
 private:
   void drawHotspot(sf::RenderWindow &window) const;
@@ -80,5 +81,19 @@ private:
   bool _isHotspotVisible;
   sf::Transformable _transform;
   float _angle;
+};
+
+class GGTextObject : public GGObject
+{
+public:
+  explicit GGTextObject(GGFont &font);
+  void setText(const std::string &text) { _text = text; }
+
+private:
+  virtual void draw(sf::RenderWindow &window);
+
+private:
+  GGFont &_font;
+  std::string _text;
 };
 } // namespace gg

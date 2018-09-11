@@ -415,6 +415,15 @@ static SQInteger _actorUsePos(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _actorTalkColors(HSQUIRRELVM v)
+{
+    auto actor = _getActor(v, 2);
+    SQInteger color;
+    sq_getinteger(v, 3, &color);
+    actor->setTalkColor(sf::Color(color << 8 | 0xff));
+    return 0;
+}
+
 static SQInteger _cameraAt(HSQUIRRELVM v)
 {
     SQInteger x, y;
@@ -488,6 +497,34 @@ static void _set_object_slot(HSQUIRRELVM v, const SQChar *name, GGObject &object
     sq_newslot(v, -3, SQFalse);
 }
 
+static SQInteger _translate(HSQUIRRELVM v)
+{
+    const SQChar* idText;
+    sq_getstring(v, 2, &idText);
+    std::string s(idText);
+    s = s.substr(1);
+    auto id = std::atoi(s.c_str());
+    auto text = g_pEngine->getText(id);
+    sq_pushstring(v,text.c_str(),-1);
+    return 1;
+}
+
+static SQInteger _createTextObject(HSQUIRRELVM v)
+{
+    const SQChar *name;
+    const SQChar *text;
+    sq_getstring(v, 2, &name);
+    std::string n(name);
+    auto &obj = g_pEngine->getRoom().createTextObject(name, g_pEngine->getFont());
+
+    sq_getstring(v, 3, &text);
+    std::string s(text);
+    obj.setText(s);
+
+    _push_object(v, obj);
+    return 1;
+}
+
 static SQInteger _createObject(HSQUIRRELVM v)
 {
     auto numArgs = sq_gettop(v) - 1;
@@ -502,28 +539,27 @@ static SQInteger _createObject(HSQUIRRELVM v)
         }
         auto &obj = g_pEngine->getRoom().createObject(anims);
         _push_object(v, obj);
+        return 1;
     }
-    else
+
+    HSQOBJECT obj;
+    const SQChar *name;
+    sq_getstring(v, 2, &name);
+    sq_getstackobj(v, 3, &obj);
+    if (sq_isarray(obj))
     {
-        HSQOBJECT obj;
-        const SQChar *name;
-        sq_getstring(v, 2, &name);
-        sq_getstackobj(v, 3, &obj);
-        if (sq_isarray(obj))
+        std::vector<std::string> anims;
+        sq_push(v, 3);
+        sq_pushnull(v); //null iterator
+        while (SQ_SUCCEEDED(sq_next(v, -2)))
         {
-            std::vector<std::string> anims;
-            sq_push(v, 3);
-            sq_pushnull(v); //null iterator
-            while (SQ_SUCCEEDED(sq_next(v, -2)))
-            {
-                sq_getstring(v, -1, &name);
-                anims.push_back(name);
-                sq_pop(v, 2);
-            }
-            sq_pop(v, 1); //pops the null iterator
-            auto &obj = g_pEngine->getRoom().createObject(anims);
-            _push_object(v, obj);
+            sq_getstring(v, -1, &name);
+            anims.push_back(name);
+            sq_pop(v, 2);
         }
+        sq_pop(v, 1); //pops the null iterator
+        auto &obj = g_pEngine->getRoom().createObject(anims);
+        _push_object(v, obj);
     }
     return 1;
 }
@@ -805,6 +841,8 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_objectSort, "objectSort");
     registerGlobalFunction(_objectRotateTo, "objectRotateTo");
     registerGlobalFunction(_createObject, "createObject");
+    registerGlobalFunction(_createTextObject, "createTextObject");
+    registerGlobalFunction(_translate, "translate");
 
     registerGlobalFunction(_createActor, "createActor");
     registerGlobalFunction(_actorCostume, "actorCostume");
@@ -814,6 +852,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_actorAt, "actorAt");
     registerGlobalFunction(_sayLine, "sayLine");
     registerGlobalFunction(_actorUsePos, "actorUsePos");
+    registerGlobalFunction(_actorTalkColors, "actorTalkColors");
     registerGlobalFunction(_cameraAt, "cameraAt");
     registerGlobalFunction(_cameraPanTo, "cameraPanTo");
 }

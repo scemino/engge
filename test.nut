@@ -385,7 +385,17 @@ function test2()
     breaktime(200.0)
 }
 
-local room = loadRoom("Bridge")
+// local room = loadRoom("Bridge")
+local text = createTextObject("sayline", translate("@25545"))
+//  objectScale(text, 0.5)
+//  objectColor(text, 0x30AAFF)
+//  objectAlpha(text, 0.0)
+ objectAt(text, 320,180)
+ 
+ objectAlphaTo(text, 1.0, 1.0)
+ breaktime(3.0)
+ objectAlphaTo(text, 0.0, 1.0)
+ breaktime(1.0)
 // local shadowAttacker = createObject("AlleywaySheet", [ "shadow_attacking_1", "shadow_attacking_2", "shadow_attacking_3", "shadow_attacking_4", "shadow_attacking_5", "shadow_attacking_6", "shadow_attacking_5", "shadow_attacking_4", "shadow_attacking_3", "shadow_attacking_2", "shadow_attacking_1" ])
 
 // loopMusic("GenTown_StartScreen_LOOP");

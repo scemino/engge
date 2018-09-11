@@ -119,7 +119,7 @@ void GGObject::drawHotspot(sf::RenderWindow &window) const
     window.draw(hl);
 }
 
-void GGObject::draw(sf::RenderWindow &window) const
+void GGObject::draw(sf::RenderWindow &window)
 {
     sf::RenderStates states;
     states.transform = _transform.getTransform();
@@ -128,6 +128,17 @@ void GGObject::draw(sf::RenderWindow &window) const
         _pAnim->draw(window, states);
     }
     drawHotspot(window);
+}
+
+GGTextObject::GGTextObject(GGFont &font)
+: _font(font)
+{
+    _font.load("FontModernSheet");
+}
+
+void GGTextObject::draw(sf::RenderWindow &window)
+{
+    _font.draw(_text, window);
 }
 
 } // namespace gg

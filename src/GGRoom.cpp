@@ -264,6 +264,14 @@ void GGRoom::load(const char *name)
     }
 }
 
+GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont& font)
+{
+    auto object = std::make_unique<GGTextObject>(font);
+    auto &obj = *object.get();
+    _objects.push_back(std::move(object));
+    return obj;
+}
+
 GGObject &GGRoom::createObject(const std::vector<std::string> &anims)
 {
     auto &texture = _textureManager.get(_sheet);
@@ -385,9 +393,9 @@ void GGRoom::update(const sf::Time &elapsed)
 
 void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
-    drawBackgroundLayers(window, cameraPos);
+    // drawBackgroundLayers(window, cameraPos);
     drawBackgrounds(window, cameraPos);
-    // drawObjects(window);
+    drawObjects(window);
     // drawForegroundLayers(window, cameraX);
     drawWalkboxes(window);
 }
