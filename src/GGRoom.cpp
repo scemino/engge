@@ -264,12 +264,20 @@ void GGRoom::load(const char *name)
     }
 }
 
-GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont& font)
+GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont &font)
 {
     auto object = std::make_unique<GGTextObject>(font);
     auto &obj = *object.get();
     _objects.push_back(std::move(object));
     return obj;
+}
+
+void GGRoom::deleteObject(Object &object)
+{
+    auto const& it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<GGObject> &ptr) {
+        return ptr.get() == &object;
+    });
+    _objects.erase(it);
 }
 
 GGObject &GGRoom::createObject(const std::vector<std::string> &anims)

@@ -525,6 +525,13 @@ static SQInteger _createTextObject(HSQUIRRELVM v)
     return 1;
 }
 
+static SQInteger _deleteObject(HSQUIRRELVM v)
+{
+    auto* obj = _getObject(v,2);
+    g_pEngine->getRoom().deleteObject(*obj);
+    return 0;
+}
+
 static SQInteger _createObject(HSQUIRRELVM v)
 {
     auto numArgs = sq_gettop(v) - 1;
@@ -842,6 +849,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_objectRotateTo, "objectRotateTo");
     registerGlobalFunction(_createObject, "createObject");
     registerGlobalFunction(_createTextObject, "createTextObject");
+    registerGlobalFunction(_deleteObject, "deleteObject");
     registerGlobalFunction(_translate, "translate");
 
     registerGlobalFunction(_createActor, "createActor");
