@@ -88,11 +88,9 @@ void GGRoom::load(const char *name)
                 sf::Sprite s;
                 s.setTexture(_textureManager.get(_sheet));
                 s.setTextureRect(rect);
-                if (layer.getZsort() < 0)
-                {
-                    s.setPosition(sf::Vector2f(offsetX, _roomSize.y - rect.height));
-                    offsetX += rect.width;
-                }
+                const auto &sourceRect = _toRect(json["frames"][layerName]["spriteSourceSize"]);
+                s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
+                offsetX += rect.width;
                 layer.getSprites().push_back(s);
             }
         }
@@ -105,10 +103,8 @@ void GGRoom::load(const char *name)
             sf::Sprite s;
             s.setTexture(_textureManager.get(_sheet));
             s.setTextureRect(rect);
-            if (layer.getZsort() < 0)
-            {
-                s.setPosition(sf::Vector2f(0, _roomSize.y - rect.height));
-            }
+            const auto &sourceRect = _toRect(json["frames"][layerName]["spriteSourceSize"]);
+            s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
             layer.getSprites().push_back(s);
         }
         if (jLayer["parallax"].is_string())
@@ -175,11 +171,8 @@ void GGRoom::load(const char *name)
                     auto n = jFrame.get<std::string>();
                     if (json["frames"][n].is_null())
                         continue;
-                    auto frame = json["frames"][n]["frame"];
-                    sf::IntRect r = _toRect(frame);
-                    anim->getRects().push_back(r);
-                    auto spriteSourceSize = json["frames"][n]["spriteSourceSize"];
-                    anim->getSourceRects().push_back(_toRect(spriteSourceSize));
+                    anim->getRects().push_back(_toRect(json["frames"][n]["frame"]));
+                    anim->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
                 }
                 object->getAnims().push_back(std::move(anim));
             }
@@ -272,9 +265,9 @@ GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont &font)
     return obj;
 }
 
-void GGRoom::deleteObject(Object &object)
+void GGRoom::deleteObject(GGObject &object)
 {
-    auto const& it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<GGObject> &ptr) {
+    auto const &it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<GGObject> &ptr) {
         return ptr.get() == &object;
     });
     _objects.erase(it);
@@ -320,25 +313,25 @@ GGObject &GGRoom::createObject(const std::vector<std::string> &anims)
     return obj;
 }
 
-void GGRoom::drawWalkboxes(sf::RenderWindow &window) const
+void GGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
 {
     if (!_showDrawWalkboxes)
         return;
 
     for (auto &walkbox : _walkboxes)
     {
-        walkbox.draw(window);
+        walkbox.draw(window, states);
     }
 }
 
-void GGRoom::drawObjects(sf::RenderWindow &window) const
+void GGRoom::drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     if (!_showObjects)
         return;
 
     for (auto &obj : _objects)
     {
-        obj.get()->draw(window);
+        obj.get()->draw(window, cameraPos);
     }
 }
 
@@ -352,25 +345,28 @@ void GGRoom::drawBackgrounds(sf::RenderWindow &window, const sf::Vector2f &camer
     }
 }
 
+void GGRoom::drawLayer(const RoomLayer &layer, sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+{
+    for (const auto &s : layer.getSprites())
+    {
+        auto sprite(s);
+        auto parallax = layer.getParallax();
+        auto pos = (160.f - cameraPos.x) * parallax.x - 160.f;
+        sprite.move(pos, -cameraPos.y);
+        window.draw(sprite);
+    }
+}
+
 void GGRoom::drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     if (!_showLayers)
         return;
 
-    for (auto &layer : _layers)
+    for (const auto &layer : _layers)
     {
         if (layer.getZsort() < 0)
             continue;
-        for (auto &s : layer.getSprites())
-        {
-            auto sprite(s);
-            auto parallax = layer.getParallax();
-            auto pos = (_roomSize.x / 2.0f - cameraPos.x) * parallax.x - _roomSize.x / 2.0f;
-            auto rect = sprite.getTextureRect();
-            sprite.setOrigin(-rect.width / 2, 0);
-            sprite.move(pos, -cameraPos.y);
-            window.draw(sprite);
-        }
+        drawLayer(layer, window, cameraPos);
     }
 }
 
@@ -379,18 +375,11 @@ void GGRoom::drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &
     if (!_showLayers)
         return;
 
-    for (auto &layer : _layers)
+    for (const auto &layer : _layers)
     {
         if (layer.getZsort() >= 0)
             continue;
-        for (auto &s : layer.getSprites())
-        {
-            auto sprite(s);
-            auto parallax = layer.getParallax();
-            auto pos = -((cameraPos.x - (_roomSize.x / 2.0f)) * parallax.x) - (_roomSize.x / 2.0f);
-            sprite.setPosition(pos, -cameraPos.y);
-            window.draw(sprite);
-        }
+        drawLayer(layer, window, cameraPos);
     }
 }
 
@@ -401,10 +390,13 @@ void GGRoom::update(const sf::Time &elapsed)
 
 void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
-    // drawBackgroundLayers(window, cameraPos);
+    sf::RenderStates states;
+    states.transform.translate(-cameraPos);
+    
+    drawBackgroundLayers(window, cameraPos);
     drawBackgrounds(window, cameraPos);
-    drawObjects(window);
-    // drawForegroundLayers(window, cameraX);
-    drawWalkboxes(window);
+    drawObjects(window, cameraPos);
+    drawForegroundLayers(window, cameraPos);
+    drawWalkboxes(window, states);
 }
 } // namespace gg

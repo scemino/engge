@@ -58,7 +58,7 @@ void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderS
     for (auto i = 0; i < rects.size(); i++)
     {
         auto rect = rects[i];
-        auto sourceRect = sourceRects[i];
+        const auto& sourceRect = sourceRects[i];
         _sprite.setScale(scale, scale);
         _sprite.setTextureRect(rect);
         _sprite.setOrigin(-sourceRect.left, -sourceRect.top);

@@ -4,6 +4,7 @@
 #include "TextureManager.h"
 #include "GGEngineSettings.h"
 #include "GGObject.h"
+#include "GGTextObject.h"
 #include "Walkbox.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
@@ -28,17 +29,19 @@ public:
   void showObjects(bool show) { _showObjects = show; }
   bool areObjectsVisible() const { return _showObjects; }
   GGObject &createObject(const std::vector<std::string> &anims);
-  GGTextObject &createTextObject(const std::string &name, GGFont& font);
-  void deleteObject(GGObject& textObject);
+  GGTextObject &createTextObject(const std::string &name, GGFont &font);
+  void deleteObject(GGObject &textObject);
   void showLayers(bool show) { _showLayers = show; }
   bool areLayersVisible() const { return _showLayers; }
+  sf::Vector2i getRoomSize() const { return _roomSize; }
 
 private:
   void drawBackgrounds(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
   void drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
-  void drawObjects(sf::RenderWindow &window) const;
-  void drawWalkboxes(sf::RenderWindow &window) const;
+  void drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
+  void drawLayer(const RoomLayer &layer, sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
 
 private:
   TextureManager &_textureManager;

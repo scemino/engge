@@ -11,7 +11,7 @@ Walkbox::~Walkbox()
 {
 }
 
-void Walkbox::draw(sf::RenderWindow &window) const
+void Walkbox::draw(sf::RenderWindow &window, sf::RenderStates states) const
 {
     sf::VertexArray triangle(sf::LinesStrip, _polygon.size() + 1);
     for (int i = 0; i < _polygon.size(); ++i)
@@ -25,6 +25,6 @@ void Walkbox::draw(sf::RenderWindow &window) const
         triangle[_polygon.size()].position = sf::Vector2f(vertex.x, vertex.y);
         triangle[_polygon.size()].color = sf::Color::Green;
     }
-    window.draw(triangle);
+    window.draw(triangle, states);
 }
 } // namespace gg

@@ -261,7 +261,7 @@ static SQInteger _objectOffset(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("failed to get y\n"));
     }
-    obj->setPosition(x, y);
+    obj->move(x, y);
     return 0;
 }
 
@@ -429,7 +429,7 @@ static SQInteger _cameraAt(HSQUIRRELVM v)
     SQInteger x, y;
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
-    g_pEngine->setCameraAt(x, y);
+    g_pEngine->setCameraAt(x - 160, y - 90);
     return 0;
 }
 
@@ -441,7 +441,7 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
     sq_getfloat(v, 4, &t);
-    g_pEngine->cameraPanTo(x, y, t);
+    g_pEngine->cameraPanTo(x - 160, y - 90, t);
     return 0;
 }
 
@@ -499,13 +499,13 @@ static void _set_object_slot(HSQUIRRELVM v, const SQChar *name, GGObject &object
 
 static SQInteger _translate(HSQUIRRELVM v)
 {
-    const SQChar* idText;
+    const SQChar *idText;
     sq_getstring(v, 2, &idText);
     std::string s(idText);
     s = s.substr(1);
     auto id = std::atoi(s.c_str());
     auto text = g_pEngine->getText(id);
-    sq_pushstring(v,text.c_str(),-1);
+    sq_pushstring(v, text.c_str(), -1);
     return 1;
 }
 
@@ -527,7 +527,7 @@ static SQInteger _createTextObject(HSQUIRRELVM v)
 
 static SQInteger _deleteObject(HSQUIRRELVM v)
 {
-    auto* obj = _getObject(v,2);
+    auto *obj = _getObject(v, 2);
     g_pEngine->getRoom().deleteObject(*obj);
     return 0;
 }

@@ -136,7 +136,7 @@ function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlpha
     }
 }
 
-function test() 
+function doOpening() 
 {
     local r = loadRoom("Opening")
     hideAll(r)
@@ -337,7 +337,7 @@ function animateFirefly(obj) {
     }
  }
 
-function test2() 
+function doOpening2() 
 {
     local Bridge = loadRoom("Bridge")
     objectState(Bridge.bridgeBody, GONE)
@@ -385,32 +385,4 @@ function test2()
     breaktime(200.0)
 }
 
-// local room = loadRoom("Bridge")
-local text = createTextObject("sayline", translate("@25545"))
-//  objectScale(text, 0.5)
-//  objectColor(text, 0x30AAFF)
-//  objectAlpha(text, 0.0)
- objectAt(text, 320,180)
- 
- objectAlphaTo(text, 1.0, 1.0)
- breaktime(3.0)
- objectAlphaTo(text, 0.0, 1.0)
- breaktime(1.0)
- deleteObject(text)
-// local shadowAttacker = createObject("AlleywaySheet", [ "shadow_attacking_1", "shadow_attacking_2", "shadow_attacking_3", "shadow_attacking_4", "shadow_attacking_5", "shadow_attacking_6", "shadow_attacking_5", "shadow_attacking_4", "shadow_attacking_3", "shadow_attacking_2", "shadow_attacking_1" ])
-
-// loopMusic("GenTown_StartScreen_LOOP");
-// startthread(flashRadioLight)
-//startthread(test2)
-
-// startthread(animateLock)
-// for (local i = 1 ; i <= 10 ; i++) 
-// {
-//     startthread(bounceImage);
-// }
-// for (local i = 1; i <= 5; i ++) {
-//     startthread(animateBirdObject)
-//  }
-//  for (local i = 1; i <= 5; i += 1) {
-//  startthread(animateBirdObject, 2)
-//  }
+startthread(doOpening2)

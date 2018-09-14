@@ -24,7 +24,8 @@ void GGAnim::update(const sf::Time &elapsed)
 
         auto &sourceRect = _sourceRects[_index];
         _sprite.setTextureRect(_rects[_index]);
-        // _sprite.setOrigin(sourceRect.width / 2, sourceRect.height / 2);
+        // _sprite.setOrigin(-sourceRect.left, -sourceRect.top);
+        _sprite.setOrigin(sourceRect.width / 2, sourceRect.height / 2);
     }
 }
 

@@ -38,9 +38,7 @@ void GGObject::setAnim(const std::string &name)
     auto &anim = *(it->get());
     _pAnim = &anim;
     auto &sprite = _pAnim->getSprite();
-    // sprite.setPosition(_pos);
     sprite.setColor(_color);
-    // sprite.setScale(_scale, _scale);
 }
 
 void GGObject::move(float x, float y)
@@ -95,7 +93,7 @@ void GGObject::update(const sf::Time &elapsed)
     }
 }
 
-void GGObject::drawHotspot(sf::RenderWindow &window) const
+void GGObject::drawHotspot(sf::RenderWindow &window, sf::RenderStates states) const
 {
     if (!_isHotspotVisible)
         return;
@@ -106,39 +104,33 @@ void GGObject::drawHotspot(sf::RenderWindow &window) const
     s.setOutlineThickness(1);
     s.setOutlineColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
     s.setFillColor(sf::Color::Transparent);
-    window.draw(s);
+    window.draw(s, states);
 
     sf::RectangleShape vl(sf::Vector2f(1, 5));
     vl.setPosition(pos.x + _usePos.x, pos.y - _usePos.y - 2);
     vl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
-    window.draw(vl);
+    window.draw(vl, states);
 
     sf::RectangleShape hl(sf::Vector2f(5, 1));
     hl.setPosition(pos.x + _usePos.x - 2, pos.y - _usePos.y);
     hl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
-    window.draw(hl);
+    window.draw(hl, states);
 }
 
-void GGObject::draw(sf::RenderWindow &window)
+void GGObject::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos)
 {
     sf::RenderStates states;
     states.transform = _transform.getTransform();
+    states.transform.translate(-cameraPos.x, -cameraPos.y);
+    if (getName() == "bridgeTrain")
+    {
+        sf::Vector2f point = states.transform.transformPoint(0, 0);
+        printf("pos: %f,%f\n", point.x, point.y);
+    }
     if (_isVisible && _pAnim)
     {
         _pAnim->draw(window, states);
     }
-    drawHotspot(window);
+    drawHotspot(window, states);
 }
-
-GGTextObject::GGTextObject(GGFont &font)
-: _font(font)
-{
-    _font.load("FontModernSheet");
-}
-
-void GGTextObject::draw(sf::RenderWindow &window)
-{
-    _font.draw(_text, window);
-}
-
 } // namespace gg

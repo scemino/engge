@@ -187,6 +187,15 @@ void GGEngine::setCameraAt(float x, float y)
 void GGEngine::moveCamera(float x, float y)
 {
     _cameraPos += sf::Vector2f(x, y);
+    if (_cameraPos.x < 0)
+        _cameraPos.x = 0;
+    if (_cameraPos.y < 0)
+        _cameraPos.y = 0;
+    const auto &size = _room.getRoomSize();
+    if (_cameraPos.x > size.x - 320)
+        _cameraPos.x = size.x - 320;
+    if (_cameraPos.y > size.y - 180)
+        _cameraPos.y = size.y - 180;
 }
 
 void GGEngine::cameraPanTo(float x, float y, float timeInSec)
@@ -283,7 +292,8 @@ void GGEngine::draw(sf::RenderWindow &window) const
 
 void GGEngine::offsetTo(GGObject &object, float x, float y, float time)
 {
-    auto offsetTo = std::unique_ptr<_OffsetTo>(new _OffsetTo(object, x, y, sf::seconds(time)));
+    const auto &pos = object.getPosition();
+    auto offsetTo = std::unique_ptr<_OffsetTo>(new _OffsetTo(object, pos.x + x, pos.y + y, sf::seconds(time)));
     addFunction(std::move(offsetTo));
 }
 
