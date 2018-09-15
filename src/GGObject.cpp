@@ -10,7 +10,8 @@ GGObject::GGObject()
       _prop(false),
       _color(sf::Color::White),
       _isHotspotVisible(false),
-      _angle(0)
+      _angle(0),
+      _isTouchable(true)
 {
 }
 
@@ -41,14 +42,14 @@ void GGObject::setAnim(const std::string &name)
     sprite.setColor(_color);
 }
 
-void GGObject::move(float x, float y)
+void GGObject::move(const sf::Vector2f &offset)
 {
-    _transform.move(x, y);
+    _transform.move(offset);
 }
 
-void GGObject::setPosition(float x, float y)
+void GGObject::setPosition(const sf::Vector2f &pos)
 {
-    _transform.setPosition(x, y);
+    _transform.setPosition(pos);
 }
 
 sf::Vector2f GGObject::getPosition() const
@@ -56,12 +57,12 @@ sf::Vector2f GGObject::getPosition() const
     return _transform.getPosition();
 }
 
-void GGObject::setUsePosition(float x, float y)
+void GGObject::setUsePosition(const sf::Vector2f &pos)
 {
-    _usePos = sf::Vector2f(x, y);
+    _usePos = sf::Vector2f(pos);
 }
 
-const sf::Vector2f &GGObject::getUsePosition() const
+sf::Vector2f GGObject::getUsePosition() const
 {
     return _usePos;
 }
@@ -121,7 +122,7 @@ void GGObject::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) con
 {
     sf::RenderStates states;
     states.transform = _transform.getTransform();
-    states.transform.translate(-cameraPos.x, -cameraPos.y);
+    states.transform.translate(-cameraPos);
     if (_isVisible && _pAnim)
     {
         _pAnim->draw(window, states);

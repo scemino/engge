@@ -1,5 +1,5 @@
-#include <iomanip> // setprecision
-#include <sstream> // stringstream
+#include <iomanip>
+#include <sstream>
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -86,7 +86,7 @@ class _CameraPanTo : public TimeFunction
 
     void operator()() override
     {
-        _engine.setCameraAt(_pos.x, _pos.y);
+        _engine.setCameraAt(_pos);
         if (!isElapsed())
         {
             _pos = _posInit + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
@@ -102,10 +102,10 @@ class _OffsetTo : public TimeFunction
     sf::Vector2f _pos;
 
   public:
-    _OffsetTo(GGObject &object, float x, float y, const sf::Time &time)
+    _OffsetTo(GGObject &object, sf::Vector2f destination, sf::Time time)
         : TimeFunction(time),
           _object(object),
-          _dest(x, y),
+          _dest(destination),
           _initPos(object.getPosition()),
           _delta(_dest - _initPos),
           _pos(object.getPosition())
@@ -114,7 +114,7 @@ class _OffsetTo : public TimeFunction
 
     void operator()() override
     {
-        _object.setPosition(_pos.x, _pos.y);
+        _object.setPosition(_pos);
         if (!isElapsed())
         {
             _pos = _initPos + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
@@ -180,14 +180,14 @@ GGEngine::~GGEngine()
 {
 }
 
-void GGEngine::setCameraAt(float x, float y)
+void GGEngine::setCameraAt(const sf::Vector2f& at)
 {
-    _cameraPos = sf::Vector2f(x, y);
+    _cameraPos = at;
 }
 
-void GGEngine::moveCamera(float x, float y)
+void GGEngine::moveCamera(const sf::Vector2f& offset)
 {
-    _cameraPos += sf::Vector2f(x, y);
+    _cameraPos += offset;
     if (_cameraPos.x < 0)
         _cameraPos.x = 0;
     if (_cameraPos.y < 0)
@@ -199,9 +199,9 @@ void GGEngine::moveCamera(float x, float y)
         _cameraPos.y = size.y - 180;
 }
 
-void GGEngine::cameraPanTo(float x, float y, float timeInSec)
+void GGEngine::cameraPanTo(const sf::Vector2f& pos, const sf::Time& time)
 {
-    auto cameraPanTo = std::make_unique<_CameraPanTo>(*this, sf::Vector2f(x, y), sf::seconds(timeInSec));
+    auto cameraPanTo = std::make_unique<_CameraPanTo>(*this, pos, time);
     addFunction(std::move(cameraPanTo));
 }
 
@@ -254,10 +254,9 @@ SoundId *GGEngine::playSound(const std::string &name, bool loop)
     return sound;
 }
 
-void GGEngine::fadeOutSound(SoundId &id, float time)
+void GGEngine::fadeOutSound(SoundId &id, const sf::Time& time)
 {
-    auto t = sf::seconds(time);
-    auto fadeSound = std::unique_ptr<_FadeSound>(new _FadeSound(*this, id, 0.0f, t));
+    auto fadeSound = std::unique_ptr<_FadeSound>(new _FadeSound(*this, id, 0.0f, time));
     addFunction(std::move(fadeSound));
 }
 
@@ -265,11 +264,6 @@ void GGEngine::stopSound(SoundId &sound)
 {
     std::cout << "stopSound" << std::endl;
     sound.sound.stop();
-    // auto it = std::find_if(_sounds.begin(), _sounds.end(), [sound](std::unique_ptr<SoundId> &ptr)
-    // {
-    //     return ptr.get() == &sound;
-    // });
-    // _sounds.erase(it);
 }
 
 void GGEngine::draw(sf::RenderWindow &window) const
@@ -291,28 +285,27 @@ void GGEngine::draw(sf::RenderWindow &window) const
     // _font.draw(s.str(), window);
 }
 
-void GGEngine::offsetTo(GGObject &object, float x, float y, float time)
+void GGEngine::offsetTo(GGObject &object, const sf::Vector2f& offset, const sf::Time& time)
 {
     const auto &pos = object.getPosition();
-    auto offsetTo = std::unique_ptr<_OffsetTo>(new _OffsetTo(object, pos.x + x, pos.y + y, sf::seconds(time)));
+    auto offsetTo = std::unique_ptr<_OffsetTo>(new _OffsetTo(object, pos + offset, time));
     addFunction(std::move(offsetTo));
 }
 
-void GGEngine::alphaTo(GGObject &object, float a, float time)
+void GGEngine::alphaTo(GGObject &object, float a, const sf::Time& time)
 {
-    auto alphaTo = std::unique_ptr<_AlphaTo>(new _AlphaTo(object, a, sf::seconds(time)));
+    auto alphaTo = std::unique_ptr<_AlphaTo>(new _AlphaTo(object, a, time));
     addFunction(std::move(alphaTo));
 }
 
-void GGEngine::fadeTo(float a, float time)
+void GGEngine::fadeTo(float a, const sf::Time& time)
 {
-    auto fadeTo = std::unique_ptr<_FadeTo>(new _FadeTo(*this, a, sf::seconds(time)));
+    auto fadeTo = std::unique_ptr<_FadeTo>(new _FadeTo(*this, a, time));
     addFunction(std::move(fadeTo));
 }
 
 void GGEngine::playState(GGObject &object, int index)
 {
     object.setStateAnimIndex(index);
-    // addFunction(std::unique_ptr<_PlayState>(new _PlayState(object, index)));
 }
 } // namespace gg

@@ -41,10 +41,8 @@ class PanInputEventHandler : public InputEventHandler
             auto delta = pos2 - _pos;
             if (abs(delta.x) < 50)
             {
-                // _view.move(-delta.x, -delta.y);
-                _engine.moveCamera(-delta.x, -delta.y);
+                _engine.moveCamera(-(sf::Vector2f)delta);
             }
-            // _window.setView(_view);
             _pos = pos2;
         }
         break;

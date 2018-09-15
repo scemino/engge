@@ -17,7 +17,7 @@ enum class UseDirection
   Right
 };
 
-class GGObject: public GGEntity
+class GGObject : public GGEntity
 {
 public:
   GGObject();
@@ -28,6 +28,9 @@ public:
 
   void setProp(bool prop) { _prop = prop; }
   bool getProp() const { return _prop; }
+
+  void setTouchable(bool isTouchable) { _isTouchable = isTouchable; }
+  bool isTouchable() const { return _isTouchable; }
 
   void setUseDirection(UseDirection direction) { _direction = direction; }
   UseDirection getUseDirection() const { return _direction; }
@@ -44,11 +47,11 @@ public:
   void setStateAnimIndex(int animIndex);
   void setAnim(const std::string &name);
 
-  void move(float x, float y);
-  void setPosition(float x, float y);
+  void move(const sf::Vector2f &offset);
+  void setPosition(const sf::Vector2f &pos);
   sf::Vector2f getPosition() const;
-  void setUsePosition(float x, float y);
-  const sf::Vector2f &getUsePosition() const;
+  void setUsePosition(const sf::Vector2f &pos);
+  sf::Vector2f getUsePosition() const;
   void setRotation(float angle) { _transform.setRotation(angle); }
   const float getRotation() const { return _transform.getRotation(); }
 
@@ -82,5 +85,6 @@ private:
   bool _isHotspotVisible;
   sf::Transformable _transform;
   float _angle;
+  bool _isTouchable;
 };
 } // namespace gg

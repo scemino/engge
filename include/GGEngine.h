@@ -30,15 +30,19 @@ public:
   GGEngine(const GGEngineSettings &settings);
   ~GGEngine();
 
-  void setCameraAt(float x, float y);
-  void moveCamera(float x, float y);
+  void setCameraAt(const sf::Vector2f& at);
+  void moveCamera(const sf::Vector2f& offset);
   sf::Vector2f getCameraAt() const { return _cameraPos; }
-  void cameraPanTo(float x, float y, float timeInSec);
+  void cameraPanTo(const sf::Vector2f& pos, const sf::Time& time);
+
   void setWindow(sf::RenderWindow &window) { _pWindow = &window; }
   const GGEngineSettings &getSettings() const { return _settings; }
   TextureManager &getTextureManager() { return _textureManager; }
   GGRoom &getRoom() { return _room; }
   GGFont &getFont() { return _font; }
+  std::string getText(int id) { return _textDb.getText(id); }
+  void setFadeAlpha(sf::Uint8 fade) { _fadeAlpha = fade; }
+  sf::Uint8 getFadeAlpha() const { return _fadeAlpha; }
 
   void addActor(GGActor &actor) { _actors.push_back(std::unique_ptr<GGActor>(&actor)); }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
@@ -46,18 +50,15 @@ public:
   void loopMusic(const std::string &name);
   SoundId *playSound(const std::string &name, bool loop);
   void stopSound(SoundId &sound);
-  void fadeOutSound(SoundId &id, float time);
+  void fadeOutSound(SoundId &id, const sf::Time& time);
 
-  void fadeTo(float a, float time);
-  void offsetTo(GGObject &object, float x, float y, float time);
-  void alphaTo(GGObject &object, float x, float time);
+  void fadeTo(float alpha, const sf::Time& time);
+  void offsetTo(GGObject &object, const sf::Vector2f& offset, const sf::Time& time);
+  void alphaTo(GGObject &object, float alpha, const sf::Time& time);
   void playState(GGObject &object, int index);
-  void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window) const;
-  std::string getText(int id) { return _textDb.getText(id); }
 
-  void setFadeAlpha(sf::Uint8 fade) { _fadeAlpha = fade; }
-  sf::Uint8 getFadeAlpha() const { return _fadeAlpha; }
+  void update(const sf::Time& elapsed);
+  void draw(sf::RenderWindow &window) const;
 
 private:
   const GGEngineSettings &_settings;

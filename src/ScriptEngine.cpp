@@ -1,5 +1,6 @@
 #include <string>
 #include <memory>
+#include <iostream>
 #include <squirrel3/squirrel.h>
 #include <squirrel3/sqstdio.h>
 #include <squirrel3/sqstdaux.h>
@@ -35,12 +36,12 @@ class _BreakHereFunction : public Function
     {
         if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
         {
-            printf("_BreakHereFunction: thread not suspended\n");
+            std::cerr << "_BreakHereFunction: thread not suspended" << std::endl;
             sqstd_printcallstack(_vm);
         }
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
-            printf("_BreakHereFunction: failed to wakeup: %p\n", _vm);
+            std::cerr << "_BreakHereFunction: failed to wakeup: " << _vm << std::endl;
             sqstd_printcallstack(_vm);
         }
     }
@@ -63,12 +64,12 @@ class _BreakTimeFunction : public TimeFunction
         {
             if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
             {
-                printf("_BreakTimeFunction: thread not suspended\n");
+                std::cerr << "_BreakTimeFunction: thread not suspended" << std::endl;
                 sqstd_printcallstack(_vm);
             }
             if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
             {
-                printf("_BreakTimeFunction: failed to wakeup: %p\n", _vm);
+                std::cerr << "_BreakTimeFunction: failed to wakeup: " << _vm << std::endl;
                 sqstd_printcallstack(_vm);
             }
         }
@@ -107,7 +108,7 @@ class _ObjectRotateToFunction : public TimeFunction
 
 void _errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
 {
-    printf("%s %s (%lld,%lld)\n", desc, source, line, column);
+    std::cerr << desc << source << '(' << line << ',' << column << ')' << std::endl;
 }
 
 void _printfunc(HSQUIRRELVM v, const SQChar *s, ...)
@@ -217,7 +218,7 @@ static SQInteger _objectAlphaTo(HSQUIRRELVM v)
     if (SQ_FAILED(sq_getfloat(v, 4, &time)))
         time = 1.f;
     auto a = (sf::Uint8)(alpha * 255);
-    g_pEngine->alphaTo(*obj, a, time);
+    g_pEngine->alphaTo(*obj, a, sf::seconds(time));
     return 0;
 }
 
@@ -261,7 +262,7 @@ static SQInteger _objectOffset(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("failed to get y\n"));
     }
-    obj->move(x, y);
+    obj->move(sf::Vector2f(x, y));
     return 0;
 }
 
@@ -301,7 +302,7 @@ static SQInteger _objectOffsetTo(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("failed to get t\n"));
     }
-    g_pEngine->offsetTo(*obj, x, y, t);
+    g_pEngine->offsetTo(*obj, sf::Vector2f(x, y), sf::seconds(t));
     return 0;
 }
 
@@ -310,7 +311,7 @@ static SQInteger _play_state(HSQUIRRELVM v)
     SQInteger index;
     GGObject *obj = _getObject(v, 2);
     sq_getinteger(v, 3, &index);
-    printf("push playState: %lld\n", index);
+    std::cout << "push playState: " << index << std::endl;
     g_pEngine->playState(*obj, index);
     return 0;
 }
@@ -366,7 +367,7 @@ static SQInteger _objectAt(HSQUIRRELVM v)
     GGObject *obj = _getObject(v, 2);
     sq_getinteger(v, 3, &x);
     sq_getinteger(v, 4, &y);
-    obj->setPosition(x, y);
+    obj->setPosition(sf::Vector2f(x, y));
     return 0;
 }
 
@@ -415,6 +416,15 @@ static SQInteger _objectParallaxLayer(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _objectTouchable(HSQUIRRELVM v)
+{
+    SQBool isTouchable;
+    GGObject *obj = _getObject(v, 2);
+    sq_getbool(v, 3, &isTouchable);
+    obj->setTouchable(isTouchable);
+    return 0;
+}
+
 static SQInteger _actorUsePos(HSQUIRRELVM v)
 {
     GGActor *actor = _getActor(v, 2);
@@ -438,7 +448,7 @@ static SQInteger _cameraAt(HSQUIRRELVM v)
     SQInteger x, y;
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
-    g_pEngine->setCameraAt(x - 160, y - 90);
+    g_pEngine->setCameraAt(sf::Vector2f(x - 160, y - 90));
     return 0;
 }
 
@@ -450,7 +460,7 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
     sq_getfloat(v, 4, &t);
-    g_pEngine->cameraPanTo(x - 160, y - 90, t);
+    g_pEngine->cameraPanTo(sf::Vector2f(x - 160, y - 90), sf::seconds(t));
     return 0;
 }
 
@@ -474,7 +484,6 @@ static SQInteger _hidden(HSQUIRRELVM v)
 
 static SQInteger _break_here(HSQUIRRELVM v)
 {
-    // printf("push BreakHereFunction\n");
     auto result = sq_suspendvm(v);
     g_pEngine->addFunction(std::unique_ptr<_BreakHereFunction>(new _BreakHereFunction(v)));
     return result;
@@ -484,7 +493,6 @@ static SQInteger _break_time(HSQUIRRELVM v)
 {
     SQFloat time = 0;
     sq_getfloat(v, 2, &time);
-    // printf("push BreakTimeFunction\n");
     auto result = sq_suspendvm(v);
     g_pEngine->addFunction(std::unique_ptr<_BreakTimeFunction>(new _BreakTimeFunction(v, sf::seconds(time))));
     return result;
@@ -500,7 +508,6 @@ static void _push_object(HSQUIRRELVM v, GGObject &object)
 
 static void _set_object_slot(HSQUIRRELVM v, const SQChar *name, GGObject &object)
 {
-    printf("set room object: %s\n", name);
     sq_pushstring(v, name, -1);
     _push_object(v, object);
     sq_newslot(v, -3, SQFalse);
@@ -759,7 +766,7 @@ SQInteger _fadeOutSound(HSQUIRRELVM v)
         return 0;
     float t;
     sq_getfloat(v, 3, &t);
-    g_pEngine->fadeOutSound(*pSound, t);
+    g_pEngine->fadeOutSound(*pSound, sf::seconds(t));
     return 0;
 }
 
@@ -771,11 +778,11 @@ SQInteger _roomFade(HSQUIRRELVM v)
     sq_getfloat(v, 3, &t);
     if (type == 0)
     {
-        g_pEngine->fadeTo(0, t);
+        g_pEngine->fadeTo(0, sf::seconds(t));
     }
     else
     {
-        g_pEngine->fadeTo(255, t);
+        g_pEngine->fadeTo(255, sf::seconds(t));
     }
     return 0;
 }
@@ -801,7 +808,6 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 {
     g_pEngine = &engine;
     v = sq_open(1024);
-    printf("start main thread: %p\n", v);
     sq_seterrorhandler(v);
     sq_setcompilererrorhandler(v, _errorHandler);
     sq_setprintfunc(v, _printfunc, _errorfunc); //sets the print function
@@ -856,6 +862,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_objectSort, "objectSort");
     registerGlobalFunction(_objectRotateTo, "objectRotateTo");
     registerGlobalFunction(_objectParallaxLayer, "objectParallaxLayer");
+    registerGlobalFunction(_objectTouchable, "objectTouchable");
     registerGlobalFunction(_createObject, "createObject");
     registerGlobalFunction(_createTextObject, "createTextObject");
     registerGlobalFunction(_deleteObject, "deleteObject");
@@ -909,10 +916,10 @@ void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *fname)
 
 void ScriptEngine::executeScript(const std::string &name)
 {
-    printf("execute %s\n", name.c_str());
+    std::cout << "execute " << name << std::endl;
     if (SQ_FAILED(sqstd_dofile(v, name.c_str(), SQFalse, SQTrue)))
     {
-        printf("failed to execute %s\n", name.c_str());
+        std::cerr << "failed to execute " << name << std::endl;
         return;
     }
 }

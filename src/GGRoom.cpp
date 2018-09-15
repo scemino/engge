@@ -158,8 +158,8 @@ void GGRoom::load(const char *name)
 
         // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
         {
-            object->setPosition(pos.x, _roomSize.y - pos.y);
-            object->setUsePosition(usePos.x, usePos.y);
+            object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
+            object->setUsePosition((sf::Vector2f)usePos);
         }
 
         sf::IntRect rect;

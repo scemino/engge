@@ -50,7 +50,7 @@ private:
   std::vector<Walkbox> _walkboxes;
   std::vector<RoomLayer> _layers;
   std::vector<RoomScaling> _scalings;
-  std::vector<GGEntity*> _entities;
+  std::vector<GGEntity *> _entities;
   sf::Vector2i _roomSize;
   bool _showDrawWalkboxes;
   bool _showObjects;
