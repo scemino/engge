@@ -1,3 +1,4 @@
+#include <iostream>
 #include "TextureManager.h"
 
 namespace gg
@@ -13,7 +14,7 @@ TextureManager::~TextureManager()
 
 void TextureManager::load(const std::string &id)
 {
-    printf("Load texture %s\n", id.c_str());
+    std::cout << "Load texture " << id << std::endl;
     std::string path(_settings.getGamePath());
     path.append(id).append(".png");
     std::unique_ptr<sf::Texture> texture(new sf::Texture());

@@ -25,14 +25,13 @@ void GGFont::setTextureManager(TextureManager *textureManager)
 
 void GGFont::load(const std::string &path)
 {
-    _sprite.setTexture(_textureManager->get(path));
-
+    _path = path;
     _jsonFilename = _settings->getGamePath();
     _jsonFilename.append(path);
     _jsonFilename.append(".json");
 }
 
-void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states)
+void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states) const
 {
     nlohmann::json json;
     std::ifstream i(_jsonFilename);
@@ -58,9 +57,11 @@ void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderS
     for (auto i = 0; i < rects.size(); i++)
     {
         auto rect = rects[i];
-        const auto& sourceRect = sourceRects[i];
+        const auto &sourceRect = sourceRects[i];
+        sf::Sprite _sprite;
         _sprite.setScale(scale, scale);
         _sprite.setTextureRect(rect);
+        _sprite.setTexture(_textureManager->get(_path));
         _sprite.setOrigin(-sourceRect.left, -sourceRect.top);
         _sprite.setColor(sf::Color(0x3ea4b5ff));
         _sprite.setPosition(x, 0);

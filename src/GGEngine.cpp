@@ -1,6 +1,7 @@
 #include <iomanip> // setprecision
 #include <sstream> // stringstream
 #include <fstream>
+#include <iostream>
 #include <regex>
 #include <string>
 #include "GGEngine.h"
@@ -163,7 +164,7 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
-    printf("seed: %u\n", seed);
+    std::cout << "seed: " << seed << std::endl;
     srand(seed);
 
     _font.setTextureManager(&_textureManager);
@@ -229,7 +230,7 @@ void GGEngine::loopMusic(const std::string &name)
     path.append(name).append(".ogg");
     if (!_music.openFromFile(path))
     {
-        printf("Can't load the music\n");
+        std::cerr << "Can't load the music" << std::endl;
         return;
     }
     _music.setLoop(true);
@@ -243,7 +244,7 @@ SoundId *GGEngine::playSound(const std::string &name, bool loop)
     auto sound = new SoundId();
     if (!sound->buffer.loadFromFile(path))
     {
-        printf("Can't load the sound\n");
+        std::cerr << "Can't load the sound" << std::endl;
         return nullptr;
     }
     _sounds.push_back(std::unique_ptr<SoundId>(sound));
@@ -262,7 +263,7 @@ void GGEngine::fadeOutSound(SoundId &id, float time)
 
 void GGEngine::stopSound(SoundId &sound)
 {
-    printf("stopSound\n");
+    std::cout << "stopSound" << std::endl;
     sound.sound.stop();
     // auto it = std::find_if(_sounds.begin(), _sounds.end(), [sound](std::unique_ptr<SoundId> &ptr)
     // {
@@ -287,7 +288,7 @@ void GGEngine::draw(sf::RenderWindow &window) const
 
     // std::stringstream s;
     // s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
-    // g_ggfont.draw(s.str(), window);
+    // _font.draw(s.str(), window);
 }
 
 void GGEngine::offsetTo(GGObject &object, float x, float y, float time)

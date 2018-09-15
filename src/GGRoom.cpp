@@ -1,6 +1,7 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
+#include <iostream>
 #include "GGRoom.h"
 #include "_GGUtil.h"
 #include <nlohmann/json.hpp>
@@ -26,7 +27,7 @@ void GGRoom::load(const char *name)
     std::string wimpyFilename;
     std::string path(_settings.getGamePath());
     wimpyFilename.append(path).append(name).append(".wimpy");
-    printf("Load room %s\n", wimpyFilename.c_str());
+    std::cout << "Load room " << wimpyFilename << std::endl;
     nlohmann::json jWimpy;
     {
         std::ifstream i(wimpyFilename);
@@ -50,6 +51,7 @@ void GGRoom::load(const char *name)
     if (jWimpy["background"].is_array())
     {
         int xOff = 0;
+        RoomLayer layer;
         for (auto &bg : jWimpy["background"])
         {
             auto frame = json["frames"][bg.get<std::string>()]["frame"];
@@ -57,9 +59,11 @@ void GGRoom::load(const char *name)
             sprite.move(xOff, 0);
             sprite.setTexture(_textureManager.get(_sheet));
             sprite.setTextureRect(_toRect(frame));
-            _backgrounds.push_back(sprite);
+            // _backgrounds.push_back(sprite);
             xOff += sprite.getTextureRect().width;
+            layer.getSprites().push_back(sprite);
         }
+        _layers.push_back(layer);
     }
     else if (jWimpy["background"].is_string())
     {
@@ -67,7 +71,10 @@ void GGRoom::load(const char *name)
         auto sprite = sf::Sprite();
         sprite.setTexture(_textureManager.get(_sheet));
         sprite.setTextureRect(_toRect(frame));
-        _backgrounds.push_back(sprite);
+        // _backgrounds.push_back(sprite);
+        RoomLayer layer;
+        layer.getSprites().push_back(sprite);
+        _layers.push_back(layer);
     }
 
     // layers
@@ -75,14 +82,14 @@ void GGRoom::load(const char *name)
     {
         RoomLayer layer;
         auto zsort = jLayer["zsort"].get<int>();
-        layer.setZsort(zsort);
+        layer.setZOrder(zsort);
         if (jLayer["name"].is_array())
         {
             float offsetX = 0;
             for (auto jName : jLayer["name"])
             {
                 auto layerName = jName.get<std::string>();
-                layer.getNames().push_back(layerName);
+                // layer.getNames().push_back(layerName);
 
                 const auto &rect = _toRect(json["frames"][layerName]["frame"]);
                 sf::Sprite s;
@@ -97,7 +104,7 @@ void GGRoom::load(const char *name)
         else
         {
             auto layerName = jLayer["name"].get<std::string>();
-            layer.getNames().push_back(layerName);
+            // layer.getNames().push_back(layerName);
 
             const auto &rect = _toRect(json["frames"][layerName]["frame"]);
             sf::Sprite s;
@@ -110,18 +117,19 @@ void GGRoom::load(const char *name)
         if (jLayer["parallax"].is_string())
         {
             auto parallax = _parsePos(jLayer["parallax"].get<std::string>());
-            layer.setParallax(static_cast<sf::Vector2f>(parallax));
+            layer.setParallax(sf::Vector2f(parallax));
         }
         else
         {
             auto parallax = jLayer["parallax"].get<float>();
             layer.setParallax(sf::Vector2f(parallax, 0));
         }
+        std::cout << "Read layer zsort: " << layer.getZOrder() << std::endl;
         _layers.push_back(layer);
     }
     // sort layers
     auto cmpLayers = [](RoomLayer &a, RoomLayer &b) {
-        return a.getZsort() > b.getZsort();
+        return a.getZOrder() > b.getZOrder();
     };
     std::sort(_layers.begin(), _layers.end(), cmpLayers);
 
@@ -134,9 +142,9 @@ void GGRoom::load(const char *name)
         // name
         auto name = jObject["name"].get<std::string>();
         object->setName(name);
-        printf("Read object %s\n", object->getName().c_str());
         // zsort
         object->setZOrder(jObject["zsort"].get<int>());
+        std::cout << "Read object " << object->getName() << ", zsort: " << object->getZOrder() << std::endl;
         // prop
         object->setProp(jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1);
         // position
@@ -335,16 +343,6 @@ void GGRoom::drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos
     }
 }
 
-void GGRoom::drawBackgrounds(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
-{
-    for (auto &bg : _backgrounds)
-    {
-        sf::Sprite b(bg);
-        b.move(-cameraPos);
-        window.draw(b);
-    }
-}
-
 void GGRoom::drawLayer(const RoomLayer &layer, sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     for (const auto &s : layer.getSprites())
@@ -364,9 +362,9 @@ void GGRoom::drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &
 
     for (const auto &layer : _layers)
     {
-        if (layer.getZsort() < 0)
+        if (layer.getZOrder() < 0)
             continue;
-        drawLayer(layer, window, cameraPos);
+        layer.draw(window, cameraPos);
     }
 }
 
@@ -377,26 +375,42 @@ void GGRoom::drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &
 
     for (const auto &layer : _layers)
     {
-        if (layer.getZsort() >= 0)
+        if (layer.getZOrder() >= 0)
             continue;
-        drawLayer(layer, window, cameraPos);
+        layer.draw(window, cameraPos);
     }
 }
 
 void GGRoom::update(const sf::Time &elapsed)
 {
     std::for_each(_objects.begin(), _objects.end(), [elapsed](std::unique_ptr<GGObject> &obj) { obj.get()->update(elapsed); });
+
+    _entities.clear();
+    for(auto& layer : _layers){
+        _entities.push_back(&layer);
+    }
+    for(auto& object : _objects){
+        _entities.push_back(object.get());
+    }
+    auto cmpEntities = [](GGEntity* a, GGEntity* b) {
+        return a->getZOrder() > b->getZOrder();
+    };
+    std::sort(_entities.begin(), _entities.end(), cmpEntities);
 }
 
 void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
     states.transform.translate(-cameraPos);
-    
-    drawBackgroundLayers(window, cameraPos);
-    drawBackgrounds(window, cameraPos);
-    drawObjects(window, cameraPos);
-    drawForegroundLayers(window, cameraPos);
-    drawWalkboxes(window, states);
+
+    for(const auto& entity : _entities)
+    {
+        entity->draw(window, cameraPos);
+    }
+
+    // drawBackgroundLayers(window, cameraPos);
+    // drawObjects(window, cameraPos);
+    // drawForegroundLayers(window, cameraPos);
+    // drawWalkboxes(window, states);
 }
 } // namespace gg

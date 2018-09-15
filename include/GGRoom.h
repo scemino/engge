@@ -36,7 +36,6 @@ public:
   sf::Vector2i getRoomSize() const { return _roomSize; }
 
 private:
-  void drawBackgrounds(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
   void drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
   void drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
@@ -51,6 +50,7 @@ private:
   std::vector<Walkbox> _walkboxes;
   std::vector<RoomLayer> _layers;
   std::vector<RoomScaling> _scalings;
+  std::vector<GGEntity*> _entities;
   sf::Vector2i _roomSize;
   bool _showDrawWalkboxes;
   bool _showObjects;

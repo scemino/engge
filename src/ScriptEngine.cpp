@@ -406,6 +406,15 @@ static SQInteger _objectRotateTo(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _objectParallaxLayer(HSQUIRRELVM v)
+{
+    SQInteger layer;
+    GGObject *obj = _getObject(v, 2);
+    sq_getinteger(v, 3, &layer);
+    obj->setZOrder(layer);
+    return 0;
+}
+
 static SQInteger _actorUsePos(HSQUIRRELVM v)
 {
     GGActor *actor = _getActor(v, 2);
@@ -621,7 +630,6 @@ static SQInteger _start_thread(HSQUIRRELVM v)
 
     // create thread and store it on the stack
     auto thread = sq_newthread(v, 1024);
-    printf("startThread: %p\n", thread);
     sq_setcompilererrorhandler(thread, _errorHandler);
     sq_setprintfunc(thread, _printfunc, _errorfunc); //sets the print function
     HSQOBJECT thread_obj;
@@ -847,6 +855,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_objectPosY, "_objectPosY");
     registerGlobalFunction(_objectSort, "objectSort");
     registerGlobalFunction(_objectRotateTo, "objectRotateTo");
+    registerGlobalFunction(_objectParallaxLayer, "objectParallaxLayer");
     registerGlobalFunction(_createObject, "createObject");
     registerGlobalFunction(_createTextObject, "createTextObject");
     registerGlobalFunction(_deleteObject, "deleteObject");

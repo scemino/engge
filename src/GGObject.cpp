@@ -117,16 +117,11 @@ void GGObject::drawHotspot(sf::RenderWindow &window, sf::RenderStates states) co
     window.draw(hl, states);
 }
 
-void GGObject::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos)
+void GGObject::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
     states.transform = _transform.getTransform();
     states.transform.translate(-cameraPos.x, -cameraPos.y);
-    if (getName() == "bridgeTrain")
-    {
-        sf::Vector2f point = states.transform.transformPoint(0, 0);
-        printf("pos: %f,%f\n", point.x, point.y);
-    }
     if (_isVisible && _pAnim)
     {
         _pAnim->draw(window, states);

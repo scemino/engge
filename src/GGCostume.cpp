@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include "GGCostume.h"
 #include "_GGUtil.h"
@@ -90,7 +91,7 @@ void GGCostume::loadCostume(const std::string &path)
             }
             anim->getLayers().push_back(layer);
         }
-        printf("found anim: %s\n", name.c_str());
+        std::cout << "found anim: " << name << std::endl;
 
         _animations.push_back(std::unique_ptr<CostumeAnim>(anim));
     }

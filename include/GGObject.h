@@ -5,6 +5,7 @@
 #include "TextureManager.h"
 #include "GGAnim.h"
 #include "GGFont.h"
+#include "GGEntity.h"
 
 namespace gg
 {
@@ -16,14 +17,14 @@ enum class UseDirection
   Right
 };
 
-class GGObject
+class GGObject: public GGEntity
 {
 public:
   GGObject();
   ~GGObject();
 
   void setZOrder(int zorder) { _zorder = zorder; }
-  int getZOrder() const { return _zorder; }
+  virtual int getZOrder() const { return _zorder; }
 
   void setProp(bool prop) { _prop = prop; }
   bool getProp() const { return _prop; }
@@ -62,7 +63,7 @@ public:
   bool isHotspotVisible() { return _isHotspotVisible; }
 
   void update(const sf::Time &elapsed);
-  virtual void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos);
+  virtual void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
 
 private:
   void drawHotspot(sf::RenderWindow &window, sf::RenderStates states) const;

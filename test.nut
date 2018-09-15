@@ -343,17 +343,21 @@ function doOpening2()
     objectState(Bridge.bridgeBody, GONE)
     objectState(Bridge.bridgeBottle, GONE)
     objectState(Bridge.bridgeChainsaw, GONE)
+    objectParallaxLayer(Bridge.bridgeTrain, 2)
+    objectParallaxLayer(Bridge.frontWavingReeds1, -2)
+    objectParallaxLayer(Bridge.frontWavingReeds2, -2)
+    objectParallaxLayer(Bridge.frontWavingReeds3, -2)
 
     local star = 0
     for (local i = 1; i <= 28; i += 1) {
         star = Bridge["bridgeStar"+i]
-        // objectParallaxLayer(star, 5)
+        objectParallaxLayer(star, 5)
         
         startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
     }	
     for (local i = 1; i <= 5; i += 1) {
         star = Bridge["bridgeStarB"+i]
-        // objectParallaxLayer(star, 5)
+        objectParallaxLayer(star, 5)
         
         startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
     }
@@ -374,7 +378,7 @@ function doOpening2()
     cameraAt(700,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
-    // cameraPanTo(210, 86, 12)
+    cameraPanTo(210, 86, 12)
     startthread(trainPassby, Bridge)
     
     breaktime(2)
