@@ -11,9 +11,9 @@ public:
   ~GGLayer();
 
   std::vector<sf::IntRect> &getFrames() { return _frames; }
-  const std::vector<sf::IntRect> &getFrames() const { return _frames; }
+
   std::vector<sf::IntRect> &getSourceFrames() { return _sourceFrames; }
-  const std::vector<sf::IntRect> &getSourceFrames() const { return _sourceFrames; }
+
   int getFps() const { return _fps; }
   void setFps(int fps) { _fps = fps; }
   int getFlags() const { return _flags; }

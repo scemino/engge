@@ -16,7 +16,7 @@ class PanInputEventHandler : public InputEventHandler
     {
     }
 
-    virtual void run(sf::Event event)
+    void run(sf::Event event) override
     {
         switch (event.type)
         {
@@ -69,7 +69,7 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
     {
     }
 
-    virtual void run(sf::Event event)
+    void run(sf::Event event) override
     {
         switch (event.type)
         {
@@ -97,8 +97,8 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
             auto &objects = _engine.getRoom().getObjects();
             for (auto &obj : objects)
             {
-                auto rect = obj.get()->getRealHotspot();
-                obj.get()->setHotspotVisible(rect.contains(worldPos));
+                auto rect = obj->getRealHotspot();
+                obj->setHotspotVisible(rect.contains(worldPos));
             }
         }
         break;

@@ -4,9 +4,7 @@
 
 namespace gg
 {
-GGTextDatabase::GGTextDatabase()
-{
-}
+GGTextDatabase::GGTextDatabase() = default;
 
 void GGTextDatabase::load(const std::string &path)
 {
@@ -19,7 +17,8 @@ void GGTextDatabase::load(const std::string &path)
         if (!std::regex_search(line, matches, re))
             continue;
 
-        auto num = std::atoi(matches[1].str().c_str());
+        char *end;
+        auto num = std::strtol(matches[1].str().c_str(), &end, 10);
         auto text = matches[2].str();
         _texts.insert(std::make_pair(num, text));
     }

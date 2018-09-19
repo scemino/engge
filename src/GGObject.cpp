@@ -1,4 +1,5 @@
 #include "GGObject.h"
+#include "Screen.h"
 
 namespace gg
 {
@@ -15,27 +16,40 @@ GGObject::GGObject()
 {
 }
 
-GGObject::~GGObject()
-{
-}
+GGObject::~GGObject() = default;
 
 sf::IntRect GGObject::getRealHotspot() const
 {
     auto rect = getHotspot();
     auto pos = getPosition();
-    return sf::IntRect(pos.x + rect.left, pos.y + rect.top, rect.width, rect.height);
+    return sf::IntRect(static_cast<int>(pos.x + rect.left), static_cast<int>(pos.y + rect.top), rect.width, rect.height);
 }
 
 void GGObject::setStateAnimIndex(int animIndex)
 {
     std::ostringstream s;
     s << "state" << animIndex;
-    setAnim(s.str());
+    setAnimation(s.str());
 }
 
-void GGObject::setAnim(const std::string &name)
+int GGObject::getStateAnimIndex()
 {
-    auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<GGAnim> &anim) { return anim.get()->getName() == name; });
+    if (_pAnim == nullptr)
+        return -1;
+    if (_pAnim->getName().find("state") == std::string::npos)
+        return -1;
+    return std::strtol(_pAnim->getName().c_str(), nullptr, 10);
+}
+
+void GGObject::setAnimation(const std::string &name)
+{
+    auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<GGAnimation> &animation) { return animation->getName() == name; });
+    if (it == _anims.end())
+    {
+        _pAnim = nullptr;
+        return;
+    }
+
     auto &anim = *(it->get());
     _pAnim = &anim;
     auto &sprite = _pAnim->getSprite();
@@ -129,4 +143,10 @@ void GGObject::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) con
     }
     drawHotspot(window, states);
 }
+
+std::ostream &operator<<(std::ostream &os, const GGObject &obj)
+{
+    return os << obj.getName() << " (" << obj.getPosition().x << "," << obj.getPosition().y << ":" << obj.getZOrder() << ")";
+}
+
 } // namespace gg

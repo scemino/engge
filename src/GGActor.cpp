@@ -7,19 +7,17 @@ GGActor::GGActor(TextureManager &textureManager)
 {
 }
 
-GGActor::~GGActor()
+GGActor::~GGActor() = default;
+
+void GGActor::move(const sf::Vector2f &offset)
 {
+    _transform.translate(offset);
 }
 
-void GGActor::move(float x, float y)
-{
-    _transform.translate(x, y);
-}
-
-void GGActor::setPosition(float x, float y)
+void GGActor::setPosition(const sf::Vector2f &pos)
 {
     _transform = sf::Transform::Identity;
-    _transform.translate(x, y);
+    _transform.translate(pos);
 }
 
 void GGActor::setCostume(const std::string &name)
@@ -29,10 +27,11 @@ void GGActor::setCostume(const std::string &name)
     _costume.loadCostume(path);
 }
 
-void GGActor::draw(sf::RenderWindow &window) const
+void GGActor::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
     states.transform = _transform;
+    states.transform.translate(-cameraPos);
     _costume.draw(window, states);
 }
 

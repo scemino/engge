@@ -2,9 +2,10 @@
 #include <memory>
 #include <algorithm>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include "GGRoom.h"
 #include "_GGUtil.h"
-#include <nlohmann/json.hpp>
+#include "Screen.h"
 
 namespace gg
 {
@@ -17,50 +18,23 @@ GGRoom::GGRoom(TextureManager &textureManager, const GGEngineSettings &settings)
 {
 }
 
-GGRoom::~GGRoom()
+GGRoom::~GGRoom() = default;
+
+void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
 {
-}
-
-void GGRoom::load(const char *name)
-{
-    // load wimpy file
-    std::string wimpyFilename;
-    std::string path(_settings.getGamePath());
-    wimpyFilename.append(path).append(name).append(".wimpy");
-    std::cout << "Load room " << wimpyFilename << std::endl;
-    nlohmann::json jWimpy;
-    {
-        std::ifstream i(wimpyFilename);
-        i >> jWimpy;
-    }
-
-    _sheet = jWimpy["sheet"].get<std::string>();
-    _roomSize = _parsePos(jWimpy["roomsize"].get<std::string>());
-
-    // load json file
-    std::string jsonFilename;
-    path = _settings.getGamePath();
-    jsonFilename.append(path).append(_sheet).append(".json");
-    nlohmann::json json;
-    {
-        std::ifstream i(jsonFilename);
-        i >> json;
-    }
-
-    // backgrounds
+    int width = 0;
     if (jWimpy["background"].is_array())
     {
-        int xOff = 0;
         RoomLayer layer;
         for (auto &bg : jWimpy["background"])
         {
             auto frame = json["frames"][bg.get<std::string>()]["frame"];
             auto sprite = sf::Sprite();
-            sprite.move(xOff, 0);
+            sprite.move(width, 0);
             sprite.setTexture(_textureManager.get(_sheet));
             sprite.setTextureRect(_toRect(frame));
             // _backgrounds.push_back(sprite);
-            xOff += sprite.getTextureRect().width;
+            width += sprite.getTextureRect().width;
             layer.getSprites().push_back(sprite);
         }
         _layers.push_back(layer);
@@ -76,8 +50,18 @@ void GGRoom::load(const char *name)
         layer.getSprites().push_back(sprite);
         _layers.push_back(layer);
     }
+    // room width seems to be not enough :S
+    if (width > _roomSize.x)
+    {
+        _roomSize.x = width;
+    }
+}
 
-    // layers
+void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
+{
+    if (jWimpy["layers"].is_null())
+        return;
+
     for (auto jLayer : jWimpy["layers"])
     {
         RoomLayer layer;
@@ -86,7 +70,7 @@ void GGRoom::load(const char *name)
         if (jLayer["name"].is_array())
         {
             float offsetX = 0;
-            for (auto jName : jLayer["name"])
+            for (const auto &jName : jLayer["name"])
             {
                 auto layerName = jName.get<std::string>();
                 // layer.getNames().push_back(layerName);
@@ -132,79 +116,11 @@ void GGRoom::load(const char *name)
         return a.getZOrder() > b.getZOrder();
     };
     std::sort(_layers.begin(), _layers.end(), cmpLayers);
+}
 
-    auto &texture = _textureManager.get(_sheet);
-
-    // objects
-    for (auto jObject : jWimpy["objects"])
-    {
-        auto object = std::make_unique<GGObject>();
-        // name
-        auto name = jObject["name"].get<std::string>();
-        object->setName(name);
-        // zsort
-        object->setZOrder(jObject["zsort"].get<int>());
-        std::cout << "Read object " << object->getName() << ", zsort: " << object->getZOrder() << std::endl;
-        // prop
-        object->setProp(jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1);
-        // position
-        auto pos = _parsePos(jObject["pos"].get<std::string>());
-        auto usePos = _parsePos(jObject["usepos"].get<std::string>());
-        auto useDir = _toDirection(jObject["usedir"].get<std::string>());
-        object->setUseDirection(useDir);
-        // hotspot
-        auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
-        object->setHotspot(hotspot);
-
-        // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
-        {
-            object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
-            object->setUsePosition((sf::Vector2f)usePos);
-        }
-
-        sf::IntRect rect;
-        // animations
-        if (!jObject["animations"].empty())
-        {
-            for (auto jAnim : jObject["animations"])
-            {
-                auto animName = jAnim["name"].get<std::string>();
-                auto anim = std::make_unique<GGAnim>(texture, animName);
-                if (!jAnim["fps"].is_null())
-                {
-                    anim->setFps(jAnim["fps"].get<int>());
-                }
-                for (auto jFrame : jAnim["frames"])
-                {
-                    auto n = jFrame.get<std::string>();
-                    if (json["frames"][n].is_null())
-                        continue;
-                    anim->getRects().push_back(_toRect(json["frames"][n]["frame"]));
-                    anim->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
-                }
-                object->getAnims().push_back(std::move(anim));
-            }
-
-            for (auto &anim : object->getAnims())
-            {
-                if (anim.get()->getRects().size() > 0)
-                {
-                    object.get()->setAnim(anim.get()->getName());
-                    break;
-                }
-            }
-        }
-        _objects.push_back(std::move(object));
-    }
-
-    // sort objects
-    auto cmpObjs = [](std::unique_ptr<GGObject> &a, std::unique_ptr<GGObject> &b) {
-        return a.get()->getZOrder() > b.get()->getZOrder();
-    };
-    std::sort(_objects.begin(), _objects.end(), cmpObjs);
-
-    // read scalings
-    if (jWimpy["scalings"].is_array() && jWimpy["scalings"].size() > 0)
+void GGRoom::loadScalings(nlohmann::json jWimpy, nlohmann::json json)
+{
+    if (jWimpy["scalings"].is_array() && !jWimpy["scalings"].empty())
     {
         if (jWimpy["scalings"][0].is_string())
         {
@@ -217,9 +133,9 @@ void GGRoom::load(const char *name)
                 }
                 auto value = jScaling.get<std::string>();
                 auto index = value.find('@');
-                auto scale = atof(value.substr(0, index - 1).c_str());
-                auto yPos = atof(value.substr(index + 1).c_str());
-                Scaling s;
+                auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
+                Scaling s{};
                 s.scale = scale;
                 s.yPos = yPos;
                 scaling.getScalings().push_back(s);
@@ -239,9 +155,9 @@ void GGRoom::load(const char *name)
                     }
                     auto value = jSubScaling.get<std::string>();
                     auto index = value.find('@');
-                    auto scale = atof(value.substr(0, index - 1).c_str());
-                    auto yPos = atof(value.substr(index + 1).c_str());
-                    Scaling s;
+                    auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                    auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
+                    Scaling s{};
                     s.scale = scale;
                     s.yPos = yPos;
                     scaling.getScalings().push_back(s);
@@ -250,8 +166,10 @@ void GGRoom::load(const char *name)
             }
         }
     }
+}
 
-    // read walkboxes
+void GGRoom::loadWalkboxes(nlohmann::json jWimpy, nlohmann::json json)
+{
     for (auto jWalkbox : jWimpy["walkboxes"])
     {
         std::vector<sf::Vector2i> vertices;
@@ -261,14 +179,119 @@ void GGRoom::load(const char *name)
         }
         auto polygon = jWalkbox["polygon"].get<std::string>();
         _parsePolygon(polygon, vertices, _roomSize.y);
-        _walkboxes.push_back(Walkbox(vertices));
+        _walkboxes.emplace_back(vertices);
     }
+}
+
+void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
+{
+    auto &texture = _textureManager.get(_sheet);
+
+    for (auto jObject : jWimpy["objects"])
+    {
+        auto object = std::make_unique<GGObject>();
+        // name
+        auto objectName = jObject["name"].get<std::string>();
+        object->setName(objectName);
+        // zsort
+        object->setZOrder(jObject["zsort"].get<int>());
+        // prop
+        object->setProp(jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1);
+        // position
+        auto pos = _parsePos(jObject["pos"].get<std::string>());
+        auto usePos = _parsePos(jObject["usepos"].get<std::string>());
+        auto useDir = _toDirection(jObject["usedir"].get<std::string>());
+        object->setUseDirection(useDir);
+        // hotspot
+        auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
+        object->setHotspot(hotspot);
+
+        // object->setVisible(jObject["prop"].empty() || jObject["prop"].get<int>() == 0);
+        // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
+        {
+            object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
+            object->setUsePosition((sf::Vector2f)usePos);
+        }
+
+        // animations
+        if (!jObject["animations"].empty())
+        {
+            for (auto jAnimation : jObject["animations"])
+            {
+                auto animName = jAnimation["name"].get<std::string>();
+                auto anim = std::make_unique<GGAnimation>(texture, animName);
+                if (!jAnimation["fps"].is_null())
+                {
+                    anim->setFps(jAnimation["fps"].get<int>());
+                }
+                for (const auto &jFrame : jAnimation["frames"])
+                {
+                    auto n = jFrame.get<std::string>();
+                    if (json["frames"][n].is_null())
+                        continue;
+                    anim->getRects().push_back(_toRect(json["frames"][n]["frame"]));
+                    anim->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
+                }
+                anim->reset();
+                object->getAnims().push_back(std::move(anim));
+            }
+
+            for (auto &animation : object->getAnims())
+            {
+                if (!animation->getRects().empty())
+                {
+                    object->setAnimation(animation->getName());
+                    break;
+                }
+            }
+        }
+        std::cout << "Object " << *object << std::endl;
+        _objects.push_back(std::move(object));
+    }
+
+    // sort objects
+    auto cmpObjects = [](std::unique_ptr<GGObject> &a, std::unique_ptr<GGObject> &b) {
+        return a->getZOrder() > b->getZOrder();
+    };
+    std::sort(_objects.begin(), _objects.end(), cmpObjects);
+}
+
+void GGRoom::load(const char *name)
+{
+    // load wimpy file
+    std::string wimpyFilename;
+    wimpyFilename.append(_settings.getGamePath()).append(name).append(".wimpy");
+    std::cout << "Load room " << wimpyFilename << std::endl;
+
+    nlohmann::json jWimpy;
+    {
+        std::ifstream i(wimpyFilename);
+        i >> jWimpy;
+    }
+
+    _sheet = jWimpy["sheet"].get<std::string>();
+    _roomSize = _parsePos(jWimpy["roomsize"].get<std::string>());
+
+    // load json file
+    std::string jsonFilename;
+    jsonFilename.append(_settings.getGamePath()).append(_sheet).append(".json");
+    nlohmann::json json;
+    {
+        std::ifstream i(jsonFilename);
+        i >> json;
+    }
+
+    loadBackgrounds(jWimpy, json);
+    loadLayers(jWimpy, json);
+    loadObjects(jWimpy, json);
+    loadScalings(jWimpy, json);
+    loadWalkboxes(jWimpy, json);
 }
 
 GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont &font)
 {
     auto object = std::make_unique<GGTextObject>(font);
-    auto &obj = *object.get();
+    auto &obj = *object;
     _objects.push_back(std::move(object));
     return obj;
 }
@@ -283,11 +306,16 @@ void GGRoom::deleteObject(GGObject &object)
 
 GGObject &GGRoom::createObject(const std::vector<std::string> &anims)
 {
-    auto &texture = _textureManager.get(_sheet);
+    return createObject(_sheet, anims);
+}
+
+GGObject &GGRoom::createObject(const std::string &sheet, const std::vector<std::string> &anims)
+{
+    auto &texture = _textureManager.get(sheet);
 
     // load json file
     std::string jsonFilename;
-    jsonFilename.append(_settings.getGamePath()).append(_sheet).append(".json");
+    jsonFilename.append(_settings.getGamePath()).append(sheet).append(".json");
     nlohmann::json json;
     {
         std::ifstream i(jsonFilename);
@@ -295,28 +323,29 @@ GGObject &GGRoom::createObject(const std::vector<std::string> &anims)
     }
 
     auto object = std::make_unique<GGObject>();
-    auto anim = std::make_unique<GGAnim>(texture, "");
-    for (auto n : anims)
+    auto animation = std::make_unique<GGAnimation>(texture, "state0");
+    for (const auto &n : anims)
     {
         if (json["frames"][n].is_null())
             continue;
         auto frame = json["frames"][n]["frame"];
         auto r = _toRect(frame);
-        anim->getRects().push_back(r);
+        animation->getRects().push_back(r);
         auto spriteSourceSize = json["frames"][n]["spriteSourceSize"];
-        anim->getSourceRects().push_back(_toRect(spriteSourceSize));
+        animation->getSourceRects().push_back(_toRect(spriteSourceSize));
     }
-    object->getAnims().push_back(std::move(anim));
+    animation->reset();
+    object->getAnims().push_back(std::move(animation));
 
     for (auto &anim : object->getAnims())
     {
-        if (anim.get()->getRects().size() > 0)
+        if (!anim->getRects().empty())
         {
-            object.get()->setAnim(anim.get()->getName());
+            object->setAnimation(anim->getName());
             break;
         }
     }
-    auto &obj = *object.get();
+    auto &obj = *object;
     _objects.push_back(std::move(object));
     return obj;
 }
@@ -339,19 +368,7 @@ void GGRoom::drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos
 
     for (auto &obj : _objects)
     {
-        obj.get()->draw(window, cameraPos);
-    }
-}
-
-void GGRoom::drawLayer(const RoomLayer &layer, sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
-{
-    for (const auto &s : layer.getSprites())
-    {
-        auto sprite(s);
-        auto parallax = layer.getParallax();
-        auto pos = (160.f - cameraPos.x) * parallax.x - 160.f;
-        sprite.move(pos, -cameraPos.y);
-        window.draw(sprite);
+        obj->draw(window, cameraPos);
     }
 }
 
@@ -383,19 +400,12 @@ void GGRoom::drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &
 
 void GGRoom::update(const sf::Time &elapsed)
 {
-    std::for_each(_objects.begin(), _objects.end(), [elapsed](std::unique_ptr<GGObject> &obj) { obj.get()->update(elapsed); });
+    std::for_each(_objects.begin(), _objects.end(),
+                  [elapsed](std::unique_ptr<GGObject> &obj) { obj->update(elapsed); });
 
-    _entities.clear();
-    for(auto& layer : _layers){
-        _entities.push_back(&layer);
-    }
-    for(auto& object : _objects){
-        _entities.push_back(object.get());
-    }
-    auto cmpEntities = [](GGEntity* a, GGEntity* b) {
+    std::sort(_objects.begin(), _objects.end(), [](std::unique_ptr<GGObject> &a, std::unique_ptr<GGObject> &b) {
         return a->getZOrder() > b->getZOrder();
-    };
-    std::sort(_entities.begin(), _entities.end(), cmpEntities);
+    });
 }
 
 void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
@@ -403,14 +413,10 @@ void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     sf::RenderStates states;
     states.transform.translate(-cameraPos);
 
-    for(const auto& entity : _entities)
-    {
-        entity->draw(window, cameraPos);
-    }
+    drawBackgroundLayers(window, cameraPos);
+    drawObjects(window, cameraPos);
+    drawForegroundLayers(window, cameraPos);
 
-    // drawBackgroundLayers(window, cameraPos);
-    // drawObjects(window, cameraPos);
-    // drawForegroundLayers(window, cameraPos);
-    // drawWalkboxes(window, states);
+    drawWalkboxes(window, states);
 }
 } // namespace gg

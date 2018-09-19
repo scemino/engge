@@ -1,9 +1,10 @@
 #pragma once
 #include <sstream>
+#include <iostream>
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
-#include "GGAnim.h"
+#include "GGAnimation.h"
 #include "GGFont.h"
 #include "GGEntity.h"
 
@@ -24,7 +25,7 @@ public:
   ~GGObject();
 
   void setZOrder(int zorder) { _zorder = zorder; }
-  virtual int getZOrder() const { return _zorder; }
+  int getZOrder() const override { return _zorder; }
 
   void setProp(bool prop) { _prop = prop; }
   bool getProp() const { return _prop; }
@@ -42,10 +43,11 @@ public:
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
 
-  std::vector<std::unique_ptr<GGAnim>> &getAnims() { return _anims; }
+  std::vector<std::unique_ptr<GGAnimation>> &getAnims() { return _anims; }
 
   void setStateAnimIndex(int animIndex);
-  void setAnim(const std::string &name);
+  int getStateAnimIndex();
+  void setAnimation(const std::string &name);
 
   void move(const sf::Vector2f &offset);
   void setPosition(const sf::Vector2f &pos);
@@ -66,14 +68,17 @@ public:
   bool isHotspotVisible() { return _isHotspotVisible; }
 
   void update(const sf::Time &elapsed);
-  virtual void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+
+  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const GGObject &obj);
 
 private:
   void drawHotspot(sf::RenderWindow &window, sf::RenderStates states) const;
 
 private:
-  std::vector<std::unique_ptr<GGAnim>> _anims;
-  GGAnim *_pAnim;
+  std::vector<std::unique_ptr<GGAnimation>> _anims;
+  GGAnimation *_pAnim;
   bool _isVisible;
   std::string _name;
   int _zorder;

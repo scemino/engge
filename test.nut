@@ -7,9 +7,9 @@ function bounceImage()
     local image = createObject("RaySheet",["bstand_body1"]);
     local x = random(0, 1280);
     local y = random(0, 720);
-    image.scale(0.5);
+    scale(image, 0.5);
 
-    // image.objectAlpha(0.0, 2);
+    // objectAlpha(image, 0.0, 2);
 
     do
     {
@@ -32,42 +32,37 @@ function bounceImage()
     while(1);
 }
 
-function animateBirdObject() 
+function animateBirdObject(dist, delay = 0) 
 {
-    local dist=2, delay = 0;
-    // print("animateBirdObject\n");
-    delay = delay + random(0.1, 5.0);
-    // print("delay: "+delay+"\n");
-    breaktime(delay);
-    
+    delay = delay + random(0.1, 5.0)
+    breaktime(delay)
     local bird = createObject("VistaSheet", [ "rfly_body1", "rfly_body2", "rfly_body3", "rfly_body4" ])
-    bird.loopobjectState();
-
-    local speed = 0;
-    local yOffset = 0;
-    bird.at(-20, 0);
+    local speed = 0
+    local yOffset = 0
+    // objectLit(bird, YES)
+    objectSort(bird, 250)
+    objectAt(bird, -20, 0)
     if (dist == 1) {
-        speed = 8;
-        bird.scale(0.5);
-    } else if (dist == 2) {
-        speed = 15;
-        bird.scale(0.25);
+        speed = 8
+        objectScale(bird, 0.5)
+    } else 
+    if (dist == 2) {
+        speed = 15
+        objectScale(bird, 0.25)
     }
     do {
-        local yStart = random(100,160);
+        local yStart = random(100,160)
         
-        bird.at(0, 180 - yStart);
-        //loopObjectobjectState(bird, 0)
-        yOffset = random(-80,80);
+        objectOffset(bird, 0, yStart)
+        playObjectState(bird, 0)
+        yOffset = random(-80,80)
         if (dist == 2) {
-            yOffset = yOffset*0.25;
+            yOffset = yOffset*0.25
         }
-        // print("yoff: "+(yStart+yOffset)+"\n");
-        bird.offsetTo(430, 180 - (yStart + yOffset), random((speed*0.90)));
-        breaktime(speed*1.10);
-        breaktime(random(5.0, 10.0));
-    }
-    while(1);
+        objectOffsetTo(bird, 430, (yStart + yOffset), random((speed*0.90), (speed*1.10)))
+        breaktime(speed*1.10)	
+        breaktime(random(5.0, 10.0))
+    } while(1)
  }
 
 function animateLock() 
@@ -89,19 +84,16 @@ function animateLock()
     while(1);
 }
 
-function flashRadioLight() 
+function flashRadioLight(room) 
 {
-    local background = createObject("StartScreenSheet", ["background"])
-    local image = createObject("StartScreenSheet",["radio_tower_light_on"])
-    image.at(37, 180-158-1)
-    do 
-    {
+    objectAlpha(room.startScreenRadioLight, 1.0)
+    objectState(room.startScreenRadioLight, ON)
+    do {
         breaktime(1)
-        image.objectAlpha(1.0, 0.25)
+        objectAlphaTo(room.startScreenRadioLight, 1.0, 0.25)
         breaktime(1)
-        image.objectAlpha(0.0, 0.25)
-    }
-    while(1);
+        objectAlphaTo(room.startScreenRadioLight, 0.0, 0.25)
+    } while(1)
 }
 
 local isRunning=true
@@ -251,9 +243,9 @@ function doOpening()
     objectHidden(r.openingReeds3, NO)
     objectHidden(r.openingReeds4, NO)
     objectHidden(r.openingReeds5, NO)
-    objectHidden( r.openingReeds6, NO)
-    objectHidden( r.openingReeds7, NO)
-    objectHidden( r.openingReeds8, NO)
+    objectHidden(r.openingReeds6, NO)
+    objectHidden(r.openingReeds7, NO)
+    objectHidden(r.openingReeds8, NO)
     objectHidden(r.openingReeds9, NO)
 
     roomFade(FADE_IN, 5.0)
@@ -275,12 +267,6 @@ function doOpening()
     roomFade(FADE_OUT, 2.0)
     breaktime(3.0)
     hideAll(r)
-
-    do 
-    {
-        breaktime(1)
-    }
-    while(1);
 }
 
 function trainPassby(Bridge) 
@@ -378,7 +364,7 @@ function doOpening2()
     cameraAt(700,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
-    cameraPanTo(210, 86, 12)
+    // cameraPanTo(210, 86, 12)
     startthread(trainPassby, Bridge)
     
     breaktime(2)
@@ -389,4 +375,19 @@ function doOpening2()
     breaktime(200.0)
 }
 
+function intro()
+{
+    local r = loadRoom("StartScreen")
+    startthread(flashRadioLight,r)
+
+    for (local i = 1; i <= 3; i += 1) {
+        startthread(animateBirdObject, 1, 15)
+    }
+    for (local i = 1; i <= 5; i += 1) {
+        startthread(animateBirdObject, 2)
+    }
+}
+
+// intro();
+// startthread(doOpening)
 startthread(doOpening2)

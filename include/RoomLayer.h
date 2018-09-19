@@ -2,6 +2,7 @@
 #include <vector>
 #include "SFML/Graphics.hpp"
 #include "GGEntity.h"
+#include "Screen.h"
 
 namespace gg
 {
@@ -9,7 +10,7 @@ class RoomLayer : public GGEntity
 {
 public:
   RoomLayer() : _zsort(0), _parallax(1, 0) {}
-  ~RoomLayer() {}
+  ~RoomLayer() = default;
 
   std::vector<sf::Sprite> &getSprites() { return _sprites; }
   const std::vector<sf::Sprite> &getSprites() const { return _sprites; }
@@ -18,22 +19,21 @@ public:
   const sf::Vector2f &getParallax() const { return _parallax; }
 
   void setZOrder(int zsort) { _zsort = zsort; }
-  int getZOrder() const { return _zsort; }
+  int getZOrder() const override { return _zsort; }
 
-  virtual void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override
   {
     for (const auto &s : getSprites())
     {
       auto sprite(s);
       auto parallax = getParallax();
-      auto pos = (160.f - cameraPos.x) * parallax.x - 160.f;
+      auto pos = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
       sprite.move(pos, -cameraPos.y);
       window.draw(sprite);
     }
   }
 
 private:
-  std::vector<std::string> _names;
   std::vector<sf::Sprite> _sprites;
   sf::Vector2f _parallax;
   int _zsort;

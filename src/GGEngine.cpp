@@ -1,3 +1,5 @@
+#include <memory>
+
 #include <iomanip>
 #include <sstream>
 #include <fstream>
@@ -5,6 +7,7 @@
 #include <regex>
 #include <string>
 #include "GGEngine.h"
+#include "Screen.h"
 #include "GGFont.h"
 
 namespace gg
@@ -13,18 +16,18 @@ class _AlphaTo : public TimeFunction
 {
     GGObject &_object;
     sf::Color _color;
-    sf::Uint8 _alpha;
-    sf::Uint8 _alphaDest;
+    float _alpha;
+    float _alphaDestination;
     float _delta;
 
   public:
-    _AlphaTo(GGObject &object, sf::Uint8 alphaDest, const sf::Time &time)
-        : TimeFunction(time), _object(object)
+    _AlphaTo(GGObject &object, float alphaDestination, const sf::Time &time)
+        : TimeFunction(time), _object(object),
+          _color(object.getColor()),
+          _alpha(_color.a),
+          _alphaDestination(alphaDestination),
+          _delta(_alphaDestination - _alpha)
     {
-        _color = object.getColor();
-        _alpha = _color.a;
-        _alphaDest = alphaDest;
-        _delta = _alphaDest - _alpha;
     }
 
     void operator()() override
@@ -46,12 +49,12 @@ class _FadeTo : public TimeFunction
     float _delta;
 
   public:
-    _FadeTo(GGEngine &engine, sf::Uint8 alphaDest, const sf::Time &time)
+    _FadeTo(GGEngine &engine, sf::Uint8 alphaDestination, const sf::Time &time)
         : TimeFunction(time), _engine(engine)
     {
         _alpha = engine.getFadeAlpha();
         _alphaInit = _alpha;
-        _alphaDest = alphaDest;
+        _alphaDest = alphaDestination;
         _delta = _alphaDest - _alpha;
     }
 
@@ -60,7 +63,8 @@ class _FadeTo : public TimeFunction
         _engine.setFadeAlpha(_alpha);
         if (!isElapsed())
         {
-            _alpha = _alphaInit + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
+            _alpha = static_cast<sf::Uint8>(_alphaInit +
+                                            (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta);
         }
     }
 };
@@ -70,17 +74,17 @@ class _CameraPanTo : public TimeFunction
     GGEngine &_engine;
     sf::Vector2f _posInit;
     sf::Vector2f _pos;
-    sf::Vector2f _posDest;
+    sf::Vector2f _posDestination;
     sf::Vector2f _delta;
 
   public:
-    _CameraPanTo(GGEngine &engine, const sf::Vector2f &dest, const sf::Time &time)
+    _CameraPanTo(GGEngine &engine, const sf::Vector2f &destination, const sf::Time &time)
         : TimeFunction(time),
           _engine(engine),
           _posInit(engine.getCameraAt()),
           _pos(engine.getCameraAt()),
-          _posDest(dest),
-          _delta(_posDest - _pos)
+          _posDestination(destination),
+          _delta(_posDestination - _pos)
     {
     }
 
@@ -93,6 +97,7 @@ class _CameraPanTo : public TimeFunction
         }
     }
 };
+
 class _OffsetTo : public TimeFunction
 {
     GGObject &_object;
@@ -128,19 +133,19 @@ class _FadeSound : public TimeFunction
     SoundId &_sound;
     const float _initVolume;
     float _volume;
-    float _volumeDest;
+    float _volumeDestination;
     float _delta;
 
   public:
-    _FadeSound(GGEngine &engine, SoundId &sound, float volumeDest, const sf::Time &time)
+    _FadeSound(GGEngine &engine, SoundId &sound, float volumeDestination, const sf::Time &time)
         : TimeFunction(time), _engine(engine), _sound(sound), _initVolume(sound.sound.getVolume())
     {
         _volume = _initVolume;
-        _volumeDest = volumeDest;
-        _delta = _volumeDest - _volume;
+        _volumeDestination = volumeDestination;
+        _delta = _volumeDestination - _volume;
     }
 
-    virtual ~_FadeSound()
+    ~_FadeSound() override
     {
         _engine.stopSound(_sound);
     }
@@ -176,16 +181,14 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
     _textDb.load(path);
 }
 
-GGEngine::~GGEngine()
-{
-}
+GGEngine::~GGEngine() = default;
 
-void GGEngine::setCameraAt(const sf::Vector2f& at)
+void GGEngine::setCameraAt(const sf::Vector2f &at)
 {
     _cameraPos = at;
 }
 
-void GGEngine::moveCamera(const sf::Vector2f& offset)
+void GGEngine::moveCamera(const sf::Vector2f &offset)
 {
     _cameraPos += offset;
     if (_cameraPos.x < 0)
@@ -199,7 +202,7 @@ void GGEngine::moveCamera(const sf::Vector2f& offset)
         _cameraPos.y = size.y - 180;
 }
 
-void GGEngine::cameraPanTo(const sf::Vector2f& pos, const sf::Time& time)
+void GGEngine::cameraPanTo(const sf::Vector2f &pos, const sf::Time &time)
 {
     auto cameraPanTo = std::make_unique<_CameraPanTo>(*this, pos, time);
     addFunction(std::move(cameraPanTo));
@@ -216,10 +219,12 @@ void GGEngine::update(const sf::Time &elapsed)
     {
         (*function)();
     }
-    _functions.erase(std::remove_if(_functions.begin(), _functions.end(), [](std::unique_ptr<Function> &f) { return f->isElapsed(); }), _functions.end());
+    _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
+                                    [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
+                     _functions.end());
     for (auto &actor : _actors)
     {
-        actor.get()->update(elapsed);
+        actor->update(elapsed);
     }
     _room.update(elapsed);
 }
@@ -254,9 +259,9 @@ SoundId *GGEngine::playSound(const std::string &name, bool loop)
     return sound;
 }
 
-void GGEngine::fadeOutSound(SoundId &id, const sf::Time& time)
+void GGEngine::fadeOutSound(SoundId &id, const sf::Time &time)
 {
-    auto fadeSound = std::unique_ptr<_FadeSound>(new _FadeSound(*this, id, 0.0f, time));
+    auto fadeSound = std::make_unique<_FadeSound>(*this, id, 0.0f, time);
     addFunction(std::move(fadeSound));
 }
 
@@ -272,11 +277,11 @@ void GGEngine::draw(sf::RenderWindow &window) const
     _room.draw(window, cameraPos);
     for (auto &actor : _actors)
     {
-        actor->draw(window);
+        actor->draw(window, cameraPos);
     }
 
     sf::RectangleShape fadeShape;
-    fadeShape.setSize(sf::Vector2f(320, 200));
+    fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
 
@@ -285,22 +290,22 @@ void GGEngine::draw(sf::RenderWindow &window) const
     // _font.draw(s.str(), window);
 }
 
-void GGEngine::offsetTo(GGObject &object, const sf::Vector2f& offset, const sf::Time& time)
+void GGEngine::offsetTo(GGObject &object, const sf::Vector2f &offset, const sf::Time &time)
 {
     const auto &pos = object.getPosition();
-    auto offsetTo = std::unique_ptr<_OffsetTo>(new _OffsetTo(object, pos + offset, time));
+    auto offsetTo = std::make_unique<_OffsetTo>(object, pos + offset, time);
     addFunction(std::move(offsetTo));
 }
 
-void GGEngine::alphaTo(GGObject &object, float a, const sf::Time& time)
+void GGEngine::alphaTo(GGObject &object, sf::Uint8 a, const sf::Time &time)
 {
-    auto alphaTo = std::unique_ptr<_AlphaTo>(new _AlphaTo(object, a, time));
+    auto alphaTo = std::make_unique<_AlphaTo>(object, a, time);
     addFunction(std::move(alphaTo));
 }
 
-void GGEngine::fadeTo(float a, const sf::Time& time)
+void GGEngine::fadeTo(float a, const sf::Time &time)
 {
-    auto fadeTo = std::unique_ptr<_FadeTo>(new _FadeTo(*this, a, time));
+    auto fadeTo = std::make_unique<_FadeTo>(*this, a, time);
     addFunction(std::move(fadeTo));
 }
 

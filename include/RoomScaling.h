@@ -13,14 +13,13 @@ struct Scaling
 class RoomScaling
 {
   public:
-    explicit RoomScaling() {}
-    ~RoomScaling() {}
+    RoomScaling() = default;
+    ~RoomScaling() = default;
 
     const std::string &getTrigger() const { return _trigger; }
     void setTrigger(const std::string &trigger) { _trigger = trigger; }
 
     std::vector<Scaling> &getScalings() { return _scalings; }
-    const std::vector<Scaling> &getScalings() const { return _scalings; }
 
   private:
     std::string _trigger;

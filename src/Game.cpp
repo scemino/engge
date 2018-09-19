@@ -1,18 +1,17 @@
 #include "Game.h"
+#include "Screen.h"
 
 namespace gg
 {
 Game::Game(GGEngine &engine)
-    : _engine(engine), _window(sf::VideoMode(320, 180), "Engge")
+    : _engine(engine), _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge")
 {
     _window.setSize(sf::Vector2u(1024, 768));
     _window.setFramerateLimit(60);
     _engine.setWindow(_window);
 }
 
-Game::~Game()
-{
-}
+Game::~Game() = default;
 
 void Game::run()
 {
@@ -28,7 +27,7 @@ void Game::run()
 
 void Game::processEvents()
 {
-    sf::Event event;
+    sf::Event event{};
     while (_window.pollEvent(event))
     {
         for (auto &eh : _inputEventHandlers)

@@ -5,13 +5,9 @@
 
 namespace gg
 {
-GGFont::GGFont()
-{
-}
+GGFont::GGFont() = default;
 
-GGFont::~GGFont()
-{
-}
+GGFont::~GGFont() = default;
 
 void GGFont::setSettings(const GGEngineSettings *settings)
 {
@@ -34,8 +30,8 @@ void GGFont::load(const std::string &path)
 void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states) const
 {
     nlohmann::json json;
-    std::ifstream i(_jsonFilename);
-    i >> json;
+    std::ifstream input(_jsonFilename);
+    input >> json;
 
     std::vector<sf::IntRect> rects;
     std::vector<sf::IntRect> sourceRects;

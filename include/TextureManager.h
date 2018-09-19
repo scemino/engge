@@ -13,7 +13,7 @@ private:
   const GGEngineSettings &_settings;
 
 public:
-  TextureManager(const GGEngineSettings &settings);
+  explicit TextureManager(const GGEngineSettings &settings);
   ~TextureManager();
   const sf::Texture &get(const std::string &id);
   const GGEngineSettings &getSettings() { return _settings; }

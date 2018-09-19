@@ -6,20 +6,20 @@ namespace gg
 {
 class GGFont
 {
-  public:
-    GGFont();
-    ~GGFont();
+public:
+  GGFont();
+  ~GGFont();
 
-    void setSettings(const GGEngineSettings *settings);
-    void setTextureManager(TextureManager *textureManager);
+  void setSettings(const GGEngineSettings *settings);
+  void setTextureManager(TextureManager *textureManager);
 
-    void load(const std::string &path);
-    void draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states = sf::RenderStates::Default) const;
+  void load(const std::string &path);
+  void draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states = sf::RenderStates::Default) const;
 
-  private:
-    const GGEngineSettings *_settings;
-    TextureManager *_textureManager;
-    std::string _path;
-    std::string _jsonFilename;
+private:
+  const GGEngineSettings *_settings;
+  TextureManager *_textureManager;
+  std::string _path;
+  std::string _jsonFilename;
 };
 } // namespace gg

@@ -1,3 +1,5 @@
+#include <memory>
+
 #include <string>
 #include <memory>
 #include <iostream>
@@ -9,6 +11,7 @@
 #include <squirrel3/sqstdmath.h>
 #include <squirrel3/sqstdsystem.h>
 #include "GGEngine.h"
+#include "Screen.h"
 #include "ScriptEngine.h"
 
 #ifdef SQUNICODE
@@ -27,7 +30,7 @@ class _BreakHereFunction : public Function
     HSQUIRRELVM _vm;
 
   public:
-    _BreakHereFunction(HSQUIRRELVM vm)
+    explicit _BreakHereFunction(HSQUIRRELVM vm)
         : _vm(vm)
     {
     }
@@ -80,12 +83,12 @@ class _ObjectRotateToFunction : public TimeFunction
 {
   private:
     GGObject &_object;
-    int _rotate;
-    int _rotateInit;
+    float _rotate;
+    float _rotateInit;
     float _delta;
 
   public:
-    _ObjectRotateToFunction(GGObject &object, int rotate, sf::Time time)
+    _ObjectRotateToFunction(GGObject &object, float rotate, sf::Time time)
         : TimeFunction(time),
           _object(object),
           _rotate(_object.getRotation()),
@@ -245,7 +248,8 @@ static SQInteger _objectHotspot(HSQUIRRELVM v)
         return sq_throwerror(v, _SC("failed to get bottom\n"));
     }
     GGObject *obj = _getObject(v, 2);
-    obj->setHotspot(sf::IntRect(left, top, right - left, bottom - top));
+    obj->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
+                                static_cast<int>(bottom - top)));
     return 0;
 }
 
@@ -272,16 +276,16 @@ static SQInteger _objectState(HSQUIRRELVM v)
     auto numArgs = sq_gettop(v) - 2;
     if (numArgs == 1)
     {
-        sq_pushbool(v, obj->isVisible());
+        sq_pushinteger(v, obj->getStateAnimIndex());
         return 1;
     }
-    else
-    {
-        SQBool isVisible;
-        sq_getbool(v, 3, &isVisible);
-        obj->setVisible(isVisible);
-        return 0;
-    }
+
+    SQInteger state;
+    sq_getinteger(v, 3, &state);
+    obj->setStateAnimIndex(state);
+    std::cout << obj->getName() << "setStateAnimIndex(" << state << ")" << std::endl;
+
+    return 0;
 }
 
 static SQInteger _objectOffsetTo(HSQUIRRELVM v)
@@ -311,8 +315,7 @@ static SQInteger _play_state(HSQUIRRELVM v)
     SQInteger index;
     GGObject *obj = _getObject(v, 2);
     sq_getinteger(v, 3, &index);
-    std::cout << "push playState: " << index << std::endl;
-    g_pEngine->playState(*obj, index);
+    g_pEngine->playState(*obj, static_cast<int>(index));
     return 0;
 }
 
@@ -348,7 +351,7 @@ static SQInteger _actorAt(HSQUIRRELVM v)
     GGActor *actor = _getActor(v, 2);
     GGObject *obj = _getObject(v, 3);
     auto pos = obj->getPosition();
-    actor->setPosition(pos.x, pos.y);
+    actor->setPosition(pos);
     return 0;
 }
 
@@ -371,11 +374,20 @@ static SQInteger _objectAt(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _objectScale(HSQUIRRELVM v)
+{
+    SQFloat scale;
+    GGObject *obj = _getObject(v, 2);
+    sq_getfloat(v, 3, &scale);
+    obj->setScale(scale);
+    return 0;
+}
+
 static SQInteger _objectPosX(HSQUIRRELVM v)
 {
     GGObject *obj = _getObject(v, 2);
     auto pos = obj->getPosition();
-    sq_pushinteger(v, pos.x);
+    sq_pushinteger(v, static_cast<SQInteger>(pos.x));
     return 1;
 }
 
@@ -383,16 +395,16 @@ static SQInteger _objectPosY(HSQUIRRELVM v)
 {
     GGObject *obj = _getObject(v, 2);
     auto pos = obj->getPosition();
-    sq_pushinteger(v, pos.y);
+    sq_pushinteger(v, static_cast<SQInteger>(pos.y));
     return 1;
 }
 
 static SQInteger _objectSort(HSQUIRRELVM v)
 {
-    SQInteger zorder;
+    SQInteger zOrder;
     GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &zorder);
-    obj->setZOrder(zorder);
+    sq_getinteger(v, 3, &zOrder);
+    obj->setZOrder(static_cast<int>(zOrder));
     return 0;
 }
 
@@ -412,7 +424,7 @@ static SQInteger _objectParallaxLayer(HSQUIRRELVM v)
     SQInteger layer;
     GGObject *obj = _getObject(v, 2);
     sq_getinteger(v, 3, &layer);
-    obj->setZOrder(layer);
+    obj->setZOrder(static_cast<int>(layer));
     return 0;
 }
 
@@ -421,7 +433,7 @@ static SQInteger _objectTouchable(HSQUIRRELVM v)
     SQBool isTouchable;
     GGObject *obj = _getObject(v, 2);
     sq_getbool(v, 3, &isTouchable);
-    obj->setTouchable(isTouchable);
+    obj->setTouchable(static_cast<bool>(isTouchable));
     return 0;
 }
 
@@ -430,7 +442,7 @@ static SQInteger _actorUsePos(HSQUIRRELVM v)
     GGActor *actor = _getActor(v, 2);
     GGObject *obj = _getObject(v, 3);
     auto pos = obj->getUsePosition();
-    actor->setPosition(pos.x, pos.y);
+    actor->setPosition(pos);
     return 0;
 }
 
@@ -439,7 +451,7 @@ static SQInteger _actorTalkColors(HSQUIRRELVM v)
     auto actor = _getActor(v, 2);
     SQInteger color;
     sq_getinteger(v, 3, &color);
-    actor->setTalkColor(sf::Color(color << 8 | 0xff));
+    actor->setTalkColor(sf::Color(static_cast<sf::Uint32>(color << 8 | 0xff)));
     return 0;
 }
 
@@ -448,7 +460,7 @@ static SQInteger _cameraAt(HSQUIRRELVM v)
     SQInteger x, y;
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
-    g_pEngine->setCameraAt(sf::Vector2f(x - 160, y - 90));
+    g_pEngine->setCameraAt(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight));
     return 0;
 }
 
@@ -456,22 +468,22 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
 {
     SQInteger x, y;
     SQFloat t;
-    sf::View view(sf::FloatRect(0, 0, 320, 180));
+    sf::View view(sf::FloatRect(0, 0, Screen::Width, Screen::Height));
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
     sq_getfloat(v, 4, &t);
-    g_pEngine->cameraPanTo(sf::Vector2f(x - 160, y - 90), sf::seconds(t));
+    g_pEngine->cameraPanTo(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t));
     return 0;
 }
 
-static SQInteger _state(HSQUIRRELVM v)
-{
-    SQInteger index;
-    GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &index);
-    obj->setStateAnimIndex(index);
-    return 0;
-}
+// static SQInteger _state(HSQUIRRELVM v)
+// {
+//     SQInteger index;
+//     GGObject *obj = _getObject(v, 2);
+//     sq_getinteger(v, 3, &index);
+//     obj->setStateAnimIndex(index);
+//     return 0;
+// }
 
 static SQInteger _hidden(HSQUIRRELVM v)
 {
@@ -485,7 +497,7 @@ static SQInteger _hidden(HSQUIRRELVM v)
 static SQInteger _break_here(HSQUIRRELVM v)
 {
     auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::unique_ptr<_BreakHereFunction>(new _BreakHereFunction(v)));
+    g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(v));
     return result;
 }
 
@@ -494,7 +506,7 @@ static SQInteger _break_time(HSQUIRRELVM v)
     SQFloat time = 0;
     sq_getfloat(v, 2, &time);
     auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::unique_ptr<_BreakTimeFunction>(new _BreakTimeFunction(v, sf::seconds(time))));
+    g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
     return result;
 }
 
@@ -519,7 +531,8 @@ static SQInteger _translate(HSQUIRRELVM v)
     sq_getstring(v, 2, &idText);
     std::string s(idText);
     s = s.substr(1);
-    auto id = std::atoi(s.c_str());
+    SQChar *end;
+    auto id = std::strtol(s.c_str(), &end, 10);
     auto text = g_pEngine->getText(id);
     sq_pushstring(v, text.c_str(), -1);
     return 1;
@@ -558,7 +571,7 @@ static SQInteger _createObject(HSQUIRRELVM v)
         {
             const SQChar *animName;
             sq_getstring(v, 2 + i, &animName);
-            anims.push_back(animName);
+            anims.emplace_back(animName);
         }
         auto &obj = g_pEngine->getRoom().createObject(anims);
         _push_object(v, obj);
@@ -566,23 +579,24 @@ static SQInteger _createObject(HSQUIRRELVM v)
     }
 
     HSQOBJECT obj;
-    const SQChar *name;
-    sq_getstring(v, 2, &name);
+    const SQChar *sheet;
+    sq_getstring(v, 2, &sheet);
     sq_getstackobj(v, 3, &obj);
     if (sq_isarray(obj))
     {
+        const SQChar *name;
         std::vector<std::string> anims;
         sq_push(v, 3);
         sq_pushnull(v); //null iterator
         while (SQ_SUCCEEDED(sq_next(v, -2)))
         {
             sq_getstring(v, -1, &name);
-            anims.push_back(name);
+            anims.emplace_back(name);
             sq_pop(v, 2);
         }
         sq_pop(v, 1); //pops the null iterator
-        auto &obj = g_pEngine->getRoom().createObject(anims);
-        _push_object(v, obj);
+        auto &object = g_pEngine->getRoom().createObject(sheet, anims);
+        _push_object(v, object);
     }
     return 1;
 }
@@ -597,7 +611,7 @@ static SQInteger _loadRoom(HSQUIRRELVM v)
     sq_newtable(v);
     for (auto &obj : room.getObjects())
     {
-        _set_object_slot(v, obj.get()->getName().c_str(), *obj.get());
+        _set_object_slot(v, obj->getName().c_str(), *obj);
     }
 
     return 1;
@@ -689,7 +703,7 @@ static SQInteger _start_thread(HSQUIRRELVM v)
 SQInteger _int_rand(SQInteger min, SQInteger max)
 {
     max++;
-    auto value = (rand() % (max - min)) + min;
+    auto value = rand() % (max - min) + min;
     return value;
 }
 
@@ -728,7 +742,7 @@ SQInteger _randomOdds(HSQUIRRELVM v)
     SQFloat value = 0;
     sq_getfloat(v, 2, &value);
     auto rnd = float_rand(0, 1);
-    sq_pushbool(v, rnd <= value);
+    sq_pushbool(v, static_cast<SQBool>(rnd <= value));
     return 1;
 }
 
@@ -822,6 +836,8 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerBoolConstant(_SC("YES"), true);
     registerBoolConstant(_SC("GONE"), false);
     registerBoolConstant(_SC("HERE"), true);
+    registerConstant(_SC("OFF"), 0);
+    registerConstant(_SC("ON"), 1);
     registerConstant(_SC("FADE_IN"), 0);
     registerConstant(_SC("FADE_OUT"), 1);
     registerConstant(_SC("FACE_FRONT"), 0);
@@ -848,7 +864,6 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_isObject, "isObject");
     registerGlobalFunction(_hidden, "objectHidden");
     registerGlobalFunction(_scale, "scale");
-    registerGlobalFunction(_state, "objectState");
     registerGlobalFunction(_play_state, "playObjectState");
     registerGlobalFunction(_objectAlpha, "objectAlpha");
     registerGlobalFunction(_objectAlphaTo, "objectAlphaTo");
@@ -856,6 +871,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_objectOffset, "objectOffset");
     registerGlobalFunction(_objectOffsetTo, "objectOffsetTo");
     registerGlobalFunction(_objectState, "objectState");
+    registerGlobalFunction(_objectScale, "objectScale");
     registerGlobalFunction(_objectAt, "objectAt");
     registerGlobalFunction(_objectPosX, "_objectPosX");
     registerGlobalFunction(_objectPosY, "_objectPosY");
@@ -891,7 +907,7 @@ void ScriptEngine::registerBoolConstant(const SQChar *name, bool value)
 {
     sq_pushconsttable(v);
     sq_pushstring(v, name, -1);
-    sq_pushbool(v, value);
+    sq_pushbool(v, static_cast<SQBool>(value));
     sq_newslot(v, -3, SQTrue);
     sq_pop(v, 1);
 }
@@ -905,10 +921,10 @@ void ScriptEngine::registerConstant(const SQChar *name, SQInteger value)
     sq_pop(v, 1);
 }
 
-void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *fname)
+void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName)
 {
     sq_pushroottable(v);
-    sq_pushstring(v, fname, -1);
+    sq_pushstring(v, functionName, -1);
     sq_newclosure(v, f, 0); //create a new function
     sq_newslot(v, -3, SQFalse);
     sq_pop(v, 1); //pops the root table

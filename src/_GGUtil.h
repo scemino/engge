@@ -69,4 +69,4 @@ static void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &ve
         vertices.push_back(sf::Vector2i(x, roomHeight - y));
     } while (text.length() - 1 != endPos);
 }
-}
+} // namespace gg

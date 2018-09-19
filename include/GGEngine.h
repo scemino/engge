@@ -15,7 +15,8 @@ namespace gg
 class SoundId
 {
 public:
-  SoundId() {}
+  SoundId() = default;
+
   ~SoundId()
   {
     sound.stop();
@@ -27,16 +28,16 @@ public:
 class GGEngine : public NonCopyable
 {
 public:
-  GGEngine(const GGEngineSettings &settings);
+  explicit GGEngine(const GGEngineSettings &settings);
   ~GGEngine();
 
-  void setCameraAt(const sf::Vector2f& at);
-  void moveCamera(const sf::Vector2f& offset);
+  void setCameraAt(const sf::Vector2f &at);
+  void moveCamera(const sf::Vector2f &offset);
   sf::Vector2f getCameraAt() const { return _cameraPos; }
-  void cameraPanTo(const sf::Vector2f& pos, const sf::Time& time);
+  void cameraPanTo(const sf::Vector2f &pos, const sf::Time &time);
 
   void setWindow(sf::RenderWindow &window) { _pWindow = &window; }
-  const GGEngineSettings &getSettings() const { return _settings; }
+
   TextureManager &getTextureManager() { return _textureManager; }
   GGRoom &getRoom() { return _room; }
   GGFont &getFont() { return _font; }
@@ -50,14 +51,14 @@ public:
   void loopMusic(const std::string &name);
   SoundId *playSound(const std::string &name, bool loop);
   void stopSound(SoundId &sound);
-  void fadeOutSound(SoundId &id, const sf::Time& time);
+  void fadeOutSound(SoundId &id, const sf::Time &time);
 
-  void fadeTo(float alpha, const sf::Time& time);
-  void offsetTo(GGObject &object, const sf::Vector2f& offset, const sf::Time& time);
-  void alphaTo(GGObject &object, float alpha, const sf::Time& time);
+  void fadeTo(float alpha, const sf::Time &time);
+  void offsetTo(GGObject &object, const sf::Vector2f &offset, const sf::Time &time);
+  void alphaTo(GGObject &object, sf::Uint8 alpha, const sf::Time &time);
   void playState(GGObject &object, int index);
 
-  void update(const sf::Time& elapsed);
+  void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
 
 private:
@@ -69,8 +70,6 @@ private:
   std::vector<std::unique_ptr<Function>> _functions;
   std::vector<std::unique_ptr<SoundId>> _sounds;
   sf::Music _music;
-  sf::SoundBuffer _buffer;
-  sf::Sound _sound;
   sf::Uint8 _fadeAlpha;
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;

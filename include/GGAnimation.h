@@ -10,27 +10,25 @@ enum class AnimState
   Play
 };
 
-class GGAnim
+class GGAnimation
 {
 public:
-  explicit GGAnim(const sf::Texture &texture, const std::string &name);
-  ~GGAnim();
+  explicit GGAnimation(const sf::Texture &texture, const std::string &name);
+  ~GGAnimation();
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
 
   std::vector<sf::IntRect> &getRects() { return _rects; }
-  const std::vector<sf::IntRect> &getRects() const { return _rects; }
   std::vector<sf::IntRect> &getSourceRects() { return _sourceRects; }
-  const std::vector<sf::IntRect> &getSourceRects() const { return _sourceRects; }
 
   int getFps() const { return _fps; }
   void setFps(int fps) { _fps = fps; }
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window, const sf::RenderStates& states) const;
-  
-  void reset() { _index = 0; }
+  void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
+
+  void reset();
   void play() { _state = AnimState::Play; }
   void pause() { _state = AnimState::Pause; }
 

@@ -11,15 +11,12 @@ private:
   HSQUIRRELVM v;
 
 public:
-  ScriptEngine(GGEngine &engine);
+  explicit ScriptEngine(GGEngine &engine);
   ~ScriptEngine();
 
   void registerBoolConstant(const SQChar *name, bool value);
   void registerConstant(const SQChar *name, SQInteger value);
-  void registerGlobalFunction(SQFUNCTION f, const SQChar *fname);
+  void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName);
   void executeScript(const std::string &name);
-
-private:
-  void _register_object();
 };
 } // namespace gg

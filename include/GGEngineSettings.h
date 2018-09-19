@@ -1,3 +1,6 @@
+#include <utility>
+#include <string>
+
 #pragma once
 
 namespace gg
@@ -5,14 +8,14 @@ namespace gg
 class GGEngineSettings
 {
 private:
-  const char *_gamePath;
+  const std::string _gamePath;
 
 public:
-  GGEngineSettings(const char *gamePath)
-      : _gamePath(gamePath)
+  explicit GGEngineSettings(std::string gamePath)
+      : _gamePath(std::move(gamePath))
   {
   }
 
-  const char *getGamePath() const { return _gamePath; }
+  const std::string &getGamePath() const { return _gamePath; }
 };
 } // namespace gg

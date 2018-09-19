@@ -20,10 +20,10 @@ public:
   sf::Color getTalkColor() { return _color; }
   //   void setUseDirection(UseDirection direction) { _direction = direction; }
   //   UseDirection getUseDirection() const { return _direction; }
-  void move(float x, float y);
-  void setPosition(float x, float y);
+  void move(const sf::Vector2f &offset);
+  void setPosition(const sf::Vector2f &pos);
 
-  void draw(sf::RenderWindow &window) const;
+  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void update(const sf::Time &time);
 
 private:
