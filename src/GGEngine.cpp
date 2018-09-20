@@ -12,154 +12,6 @@
 
 namespace gg
 {
-class _AlphaTo : public TimeFunction
-{
-    GGObject &_object;
-    sf::Color _color;
-    float _alpha;
-    float _alphaDestination;
-    float _delta;
-
-  public:
-    _AlphaTo(GGObject &object, float alphaDestination, const sf::Time &time)
-        : TimeFunction(time), _object(object),
-          _color(object.getColor()),
-          _alpha(_color.a),
-          _alphaDestination(alphaDestination),
-          _delta(_alphaDestination - _alpha)
-    {
-    }
-
-    void operator()() override
-    {
-        _object.setColor(sf::Color(_color.r, _color.g, _color.b, _alpha));
-        if (!isElapsed())
-        {
-            _alpha = _color.a + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
-        }
-    }
-};
-
-class _FadeTo : public TimeFunction
-{
-    GGEngine &_engine;
-    sf::Uint8 _alpha;
-    sf::Uint8 _alphaInit;
-    sf::Uint8 _alphaDest;
-    float _delta;
-
-  public:
-    _FadeTo(GGEngine &engine, sf::Uint8 alphaDestination, const sf::Time &time)
-        : TimeFunction(time), _engine(engine)
-    {
-        _alpha = engine.getFadeAlpha();
-        _alphaInit = _alpha;
-        _alphaDest = alphaDestination;
-        _delta = _alphaDest - _alpha;
-    }
-
-    void operator()() override
-    {
-        _engine.setFadeAlpha(_alpha);
-        if (!isElapsed())
-        {
-            _alpha = static_cast<sf::Uint8>(_alphaInit +
-                                            (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta);
-        }
-    }
-};
-
-class _CameraPanTo : public TimeFunction
-{
-    GGEngine &_engine;
-    sf::Vector2f _posInit;
-    sf::Vector2f _pos;
-    sf::Vector2f _posDestination;
-    sf::Vector2f _delta;
-
-  public:
-    _CameraPanTo(GGEngine &engine, const sf::Vector2f &destination, const sf::Time &time)
-        : TimeFunction(time),
-          _engine(engine),
-          _posInit(engine.getCameraAt()),
-          _pos(engine.getCameraAt()),
-          _posDestination(destination),
-          _delta(_posDestination - _pos)
-    {
-    }
-
-    void operator()() override
-    {
-        _engine.setCameraAt(_pos);
-        if (!isElapsed())
-        {
-            _pos = _posInit + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
-        }
-    }
-};
-
-class _OffsetTo : public TimeFunction
-{
-    GGObject &_object;
-    sf::Vector2f _dest;
-    sf::Vector2f _initPos;
-    sf::Vector2f _delta;
-    sf::Vector2f _pos;
-
-  public:
-    _OffsetTo(GGObject &object, sf::Vector2f destination, sf::Time time)
-        : TimeFunction(time),
-          _object(object),
-          _dest(destination),
-          _initPos(object.getPosition()),
-          _delta(_dest - _initPos),
-          _pos(object.getPosition())
-    {
-    }
-
-    void operator()() override
-    {
-        _object.setPosition(_pos);
-        if (!isElapsed())
-        {
-            _pos = _initPos + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
-        }
-    }
-};
-
-class _FadeSound : public TimeFunction
-{
-    GGEngine &_engine;
-    SoundId &_sound;
-    const float _initVolume;
-    float _volume;
-    float _volumeDestination;
-    float _delta;
-
-  public:
-    _FadeSound(GGEngine &engine, SoundId &sound, float volumeDestination, const sf::Time &time)
-        : TimeFunction(time), _engine(engine), _sound(sound), _initVolume(sound.sound.getVolume())
-    {
-        _volume = _initVolume;
-        _volumeDestination = volumeDestination;
-        _delta = _volumeDestination - _volume;
-    }
-
-    ~_FadeSound() override
-    {
-        _engine.stopSound(_sound);
-    }
-
-    void operator()() override
-    {
-        _sound.sound.setVolume(_volume);
-        if (!isElapsed())
-        {
-            _volume = _initVolume + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
-        }
-    }
-};
-
 GGEngine::GGEngine(const GGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
@@ -200,12 +52,6 @@ void GGEngine::moveCamera(const sf::Vector2f &offset)
         _cameraPos.x = size.x - 320;
     if (_cameraPos.y > size.y - 180)
         _cameraPos.y = size.y - 180;
-}
-
-void GGEngine::cameraPanTo(const sf::Vector2f &pos, const sf::Time &time)
-{
-    auto cameraPanTo = std::make_unique<_CameraPanTo>(*this, pos, time);
-    addFunction(std::move(cameraPanTo));
 }
 
 void GGEngine::update(const sf::Time &elapsed)
@@ -259,12 +105,6 @@ SoundId *GGEngine::playSound(const std::string &name, bool loop)
     return sound;
 }
 
-void GGEngine::fadeOutSound(SoundId &id, const sf::Time &time)
-{
-    auto fadeSound = std::make_unique<_FadeSound>(*this, id, 0.0f, time);
-    addFunction(std::move(fadeSound));
-}
-
 void GGEngine::stopSound(SoundId &sound)
 {
     std::cout << "stopSound" << std::endl;
@@ -288,25 +128,6 @@ void GGEngine::draw(sf::RenderWindow &window) const
     // std::stringstream s;
     // s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
     // _font.draw(s.str(), window);
-}
-
-void GGEngine::offsetTo(GGObject &object, const sf::Vector2f &offset, const sf::Time &time)
-{
-    const auto &pos = object.getPosition();
-    auto offsetTo = std::make_unique<_OffsetTo>(object, pos + offset, time);
-    addFunction(std::move(offsetTo));
-}
-
-void GGEngine::alphaTo(GGObject &object, sf::Uint8 a, const sf::Time &time)
-{
-    auto alphaTo = std::make_unique<_AlphaTo>(object, a, time);
-    addFunction(std::move(alphaTo));
-}
-
-void GGEngine::fadeTo(float a, const sf::Time &time)
-{
-    auto fadeTo = std::make_unique<_FadeTo>(*this, a, time);
-    addFunction(std::move(fadeTo));
 }
 
 void GGEngine::playState(GGObject &object, int index)

@@ -34,7 +34,6 @@ public:
   void setCameraAt(const sf::Vector2f &at);
   void moveCamera(const sf::Vector2f &offset);
   sf::Vector2f getCameraAt() const { return _cameraPos; }
-  void cameraPanTo(const sf::Vector2f &pos, const sf::Time &time);
 
   void setWindow(sf::RenderWindow &window) { _pWindow = &window; }
 
@@ -51,11 +50,7 @@ public:
   void loopMusic(const std::string &name);
   SoundId *playSound(const std::string &name, bool loop);
   void stopSound(SoundId &sound);
-  void fadeOutSound(SoundId &id, const sf::Time &time);
 
-  void fadeTo(float alpha, const sf::Time &time);
-  void offsetTo(GGObject &object, const sf::Vector2f &offset, const sf::Time &time);
-  void alphaTo(GGObject &object, sf::Uint8 alpha, const sf::Time &time);
   void playState(GGObject &object, int index);
 
   void update(const sf::Time &elapsed);

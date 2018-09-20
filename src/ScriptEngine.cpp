@@ -79,34 +79,37 @@ class _BreakTimeFunction : public TimeFunction
     }
 };
 
-class _ObjectRotateToFunction : public TimeFunction
+template <typename Value>
+class _ChangeProperty : public TimeFunction
 {
-  private:
-    GGObject &_object;
-    float _rotate;
-    float _rotateInit;
-    float _delta;
-
   public:
-    _ObjectRotateToFunction(GGObject &object, float rotate, sf::Time time)
+    _ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time)
         : TimeFunction(time),
-          _object(object),
-          _rotate(_object.getRotation()),
-          _rotateInit(_object.getRotation()),
-          _delta(rotate - _rotateInit)
+          _get(get),
+          _set(set),
+          _destination(destination),
+          _init(get()),
+          _delta(_destination - _init),
+          _current(_init)
     {
-    }
-
-    bool isElapsed() override
-    {
-        return false;
     }
 
     void operator()() override
     {
-        _object.setRotation(_rotate);
-        _rotate = _rotateInit + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
+        _set(_current);
+        if (!isElapsed())
+        {
+            _current = _init + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
+        }
     }
+
+  private:
+    std::function<Value()> _get;
+    std::function<void(const Value &)> _set;
+    Value _destination;
+    Value _init;
+    Value _delta;
+    Value _current;
 };
 
 void _errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
@@ -221,7 +224,19 @@ static SQInteger _objectAlphaTo(HSQUIRRELVM v)
     if (SQ_FAILED(sq_getfloat(v, 4, &time)))
         time = 1.f;
     auto a = (sf::Uint8)(alpha * 255);
-    g_pEngine->alphaTo(*obj, a, sf::seconds(time));
+
+    auto getAlpha = [](const GGObject& o) {
+        return o.getColor().a;
+    };
+    auto setAlpha = [](GGObject& o, sf::Uint8 a) {
+        const auto& c = o.getColor();
+        return o.setColor(sf::Color(c.r,c.g,c.g,a));
+    };
+    auto getalpha = std::bind(getAlpha, std::cref(*obj));
+    auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
+    auto alphaTo = std::make_unique<_ChangeProperty<sf::Uint8>>(getalpha, setalpha, a, sf::seconds(time));
+    g_pEngine->addFunction(std::move(alphaTo));
+
     return 0;
 }
 
@@ -306,7 +321,11 @@ static SQInteger _objectOffsetTo(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("failed to get t\n"));
     }
-    g_pEngine->offsetTo(*obj, sf::Vector2f(x, y), sf::seconds(t));
+    auto get = std::bind(&GGObject::getPosition, obj);
+    auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
+    auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t));
+    g_pEngine->addFunction(std::move(offsetTo));
+
     return 0;
 }
 
@@ -415,7 +434,11 @@ static SQInteger _objectRotateTo(HSQUIRRELVM v)
     GGObject *obj = _getObject(v, 2);
     sq_getinteger(v, 3, &dir);
     sq_getinteger(v, 4, &t);
-    g_pEngine->addFunction(std::make_unique<_ObjectRotateToFunction>(*obj, dir, sf::seconds(t)));
+
+    auto get = std::bind(&GGObject::getRotation, obj);
+    auto set = std::bind(&GGObject::setRotation, obj, std::placeholders::_1);
+    auto rotateTo = std::make_unique<_ChangeProperty<float>>(get, set, dir, sf::seconds(t));
+    g_pEngine->addFunction(std::move(rotateTo));
     return 0;
 }
 
@@ -472,7 +495,12 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
     sq_getinteger(v, 2, &x);
     sq_getinteger(v, 3, &y);
     sq_getfloat(v, 4, &t);
-    g_pEngine->cameraPanTo(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t));
+
+    auto get = std::bind(&GGEngine::getCameraAt, g_pEngine);
+    auto set = std::bind(&GGEngine::setCameraAt, g_pEngine, std::placeholders::_1);
+
+    auto cameraPanTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t));
+    g_pEngine->addFunction(std::move(cameraPanTo));
     return 0;
 }
 
@@ -780,8 +808,20 @@ SQInteger _fadeOutSound(HSQUIRRELVM v)
         return 0;
     float t;
     sq_getfloat(v, 3, &t);
-    g_pEngine->fadeOutSound(*pSound, sf::seconds(t));
+
+    auto get = std::bind(&sf::Sound::getVolume, &pSound->sound);
+    auto set = std::bind(&sf::Sound::setVolume, &pSound->sound, std::placeholders::_1);
+    auto fadeTo = std::make_unique<_ChangeProperty<float>>(get, set, 0.f, sf::seconds(t));
     return 0;
+}
+
+static void _fadeTo(float a, const sf::Time &time)
+{
+    sf::Uint8 alpha = static_cast<sf::Uint8>(a*255);
+    auto get = std::bind(&GGEngine::getFadeAlpha, g_pEngine);
+    auto set = std::bind(&GGEngine::setFadeAlpha, g_pEngine, std::placeholders::_1);
+    auto fadeTo = std::make_unique<_ChangeProperty<sf::Uint8>>(get, set, alpha, time);
+    g_pEngine->addFunction(std::move(fadeTo));
 }
 
 SQInteger _roomFade(HSQUIRRELVM v)
@@ -792,11 +832,11 @@ SQInteger _roomFade(HSQUIRRELVM v)
     sq_getfloat(v, 3, &t);
     if (type == 0)
     {
-        g_pEngine->fadeTo(0, sf::seconds(t));
+        _fadeTo(0, sf::seconds(t));
     }
     else
     {
-        g_pEngine->fadeTo(255, sf::seconds(t));
+        _fadeTo(255, sf::seconds(t));
     }
     return 0;
 }
