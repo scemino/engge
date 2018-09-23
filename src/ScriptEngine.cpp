@@ -112,9 +112,29 @@ class _ChangeProperty : public TimeFunction
     Value _current;
 };
 
-void _errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
+static void _errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
 {
     std::cerr << desc << source << '(' << line << ',' << column << ')' << std::endl;
+}
+
+static SQInteger _aux_printerror(HSQUIRRELVM v)
+{
+    auto pf = sq_geterrorfunc(v);
+    if (!pf)
+        return 0;
+
+    if (sq_gettop(v) < 1)
+        return 0;
+
+    const SQChar *error = nullptr;
+    if (SQ_FAILED(sq_getstring(v, 2, &error)))
+    {
+        error = "unknown";
+    }
+    pf(v, _SC("\nAn error occured in the script: %s\n"), error);
+    sqstd_printcallstack(v);
+
+    return 0;
 }
 
 void _printfunc(HSQUIRRELVM v, const SQChar *s, ...)
@@ -171,6 +191,14 @@ static GGActor *_getActor(HSQUIRRELVM v, int index)
     return actor;
 }
 
+static void _pushActor(HSQUIRRELVM v, GGActor *pActor)
+{
+    sq_newtable(v);
+    sq_pushstring(v, _SC("instance"), -1);
+    sq_pushuserpointer(v, pActor);
+    sq_newslot(v, -3, SQFalse);
+}
+
 static SQInteger _isObject(HSQUIRRELVM v)
 {
     auto type = sq_gettype(v, 2);
@@ -188,7 +216,10 @@ static SQInteger _isObject(HSQUIRRELVM v)
 static SQInteger _scale(HSQUIRRELVM v)
 {
     SQFloat s = 0;
-    sq_getfloat(v, 3, &s);
+    if (SQ_FAILED(sq_getfloat(v, 3, &s)))
+    {
+        return sq_throwerror(v, _SC("failed to get scale"));
+    }
     GGObject *self = _getObject(v, 2);
     self->setScale(s);
     return 0;
@@ -200,7 +231,7 @@ static SQInteger _objectAlpha(HSQUIRRELVM v)
     SQFloat alpha = 0;
     if (SQ_FAILED(sq_getfloat(v, 3, &alpha)))
     {
-        return sq_throwerror(v, _SC("failed to get alpha\n"));
+        return sq_throwerror(v, _SC("failed to get alpha"));
     }
     alpha = alpha > 1.f ? 1.f : alpha;
     alpha = alpha < 0.f ? 0.f : alpha;
@@ -216,7 +247,7 @@ static SQInteger _objectAlphaTo(HSQUIRRELVM v)
     SQFloat alpha = 0;
     if (SQ_FAILED(sq_getfloat(v, 3, &alpha)))
     {
-        return sq_throwerror(v, _SC("failed to get alpha\n"));
+        return sq_throwerror(v, _SC("failed to get alpha"));
     }
     alpha = alpha > 1.f ? 1.f : alpha;
     alpha = alpha < 0.f ? 0.f : alpha;
@@ -225,12 +256,12 @@ static SQInteger _objectAlphaTo(HSQUIRRELVM v)
         time = 1.f;
     auto a = (sf::Uint8)(alpha * 255);
 
-    auto getAlpha = [](const GGObject& o) {
+    auto getAlpha = [](const GGObject &o) {
         return o.getColor().a;
     };
-    auto setAlpha = [](GGObject& o, sf::Uint8 a) {
-        const auto& c = o.getColor();
-        return o.setColor(sf::Color(c.r,c.g,c.g,a));
+    auto setAlpha = [](GGObject &o, sf::Uint8 a) {
+        const auto &c = o.getColor();
+        return o.setColor(sf::Color(c.r, c.g, c.g, a));
     };
     auto getalpha = std::bind(getAlpha, std::cref(*obj));
     auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
@@ -248,19 +279,19 @@ static SQInteger _objectHotspot(HSQUIRRELVM v)
     SQInteger bottom = 0;
     if (SQ_FAILED(sq_getinteger(v, 3, &left)))
     {
-        return sq_throwerror(v, _SC("failed to get left\n"));
+        return sq_throwerror(v, _SC("failed to get left"));
     }
     if (SQ_FAILED(sq_getinteger(v, 4, &top)))
     {
-        return sq_throwerror(v, _SC("failed to get top\n"));
+        return sq_throwerror(v, _SC("failed to get top"));
     }
     if (SQ_FAILED(sq_getinteger(v, 5, &right)))
     {
-        return sq_throwerror(v, _SC("failed to get right\n"));
+        return sq_throwerror(v, _SC("failed to get right"));
     }
     if (SQ_FAILED(sq_getinteger(v, 6, &bottom)))
     {
-        return sq_throwerror(v, _SC("failed to get bottom\n"));
+        return sq_throwerror(v, _SC("failed to get bottom"));
     }
     GGObject *obj = _getObject(v, 2);
     obj->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
@@ -275,11 +306,11 @@ static SQInteger _objectOffset(HSQUIRRELVM v)
     GGObject *obj = _getObject(v, 2);
     if (SQ_FAILED(sq_getinteger(v, 3, &x)))
     {
-        return sq_throwerror(v, _SC("failed to get x\n"));
+        return sq_throwerror(v, _SC("failed to get x"));
     }
     if (SQ_FAILED(sq_getinteger(v, 4, &y)))
     {
-        return sq_throwerror(v, _SC("failed to get y\n"));
+        return sq_throwerror(v, _SC("failed to get y"));
     }
     obj->move(sf::Vector2f(x, y));
     return 0;
@@ -296,7 +327,10 @@ static SQInteger _objectState(HSQUIRRELVM v)
     }
 
     SQInteger state;
-    sq_getinteger(v, 3, &state);
+    if (SQ_FAILED(sq_getinteger(v, 3, &state)))
+    {
+        return sq_throwerror(v, _SC("failed to get state"));
+    }
     obj->setStateAnimIndex(state);
     std::cout << obj->getName() << "setStateAnimIndex(" << state << ")" << std::endl;
 
@@ -311,15 +345,42 @@ static SQInteger _objectOffsetTo(HSQUIRRELVM v)
     GGObject *obj = _getObject(v, 2);
     if (SQ_FAILED(sq_getinteger(v, 3, &x)))
     {
-        return sq_throwerror(v, _SC("failed to get x\n"));
+        return sq_throwerror(v, _SC("failed to get x"));
     }
     if (SQ_FAILED(sq_getinteger(v, 4, &y)))
     {
-        return sq_throwerror(v, _SC("failed to get y\n"));
+        return sq_throwerror(v, _SC("failed to get y"));
     }
     if (SQ_FAILED(sq_getfloat(v, 5, &t)))
     {
-        return sq_throwerror(v, _SC("failed to get t\n"));
+        return sq_throwerror(v, _SC("failed to get t"));
+    }
+    auto get = std::bind(&GGObject::getPosition, obj);
+    auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
+    auto destination = obj->getPosition() + sf::Vector2f(x, y);
+    auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t));
+    g_pEngine->addFunction(std::move(offsetTo));
+
+    return 0;
+}
+
+static SQInteger _objectMoveTo(HSQUIRRELVM v)
+{
+    SQInteger x = 0;
+    SQInteger y = 0;
+    SQFloat t = 0;
+    GGObject *obj = _getObject(v, 2);
+    if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+    {
+        return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+    {
+        return sq_throwerror(v, _SC("failed to get y"));
+    }
+    if (SQ_FAILED(sq_getfloat(v, 5, &t)))
+    {
+        return sq_throwerror(v, _SC("failed to get t"));
     }
     auto get = std::bind(&GGObject::getPosition, obj);
     auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
@@ -333,7 +394,10 @@ static SQInteger _play_state(HSQUIRRELVM v)
 {
     SQInteger index;
     GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &index);
+    if (SQ_FAILED(sq_getinteger(v, 3, &index)))
+    {
+        return sq_throwerror(v, _SC("failed to get state"));
+    }
     g_pEngine->playState(*obj, static_cast<int>(index));
     return 0;
 }
@@ -342,7 +406,10 @@ static SQInteger _actorCostume(HSQUIRRELVM v)
 {
     const SQChar *name;
     GGActor *actor = _getActor(v, 2);
-    sq_getstring(v, 3, &name);
+    if (SQ_FAILED(sq_getstring(v, 3, &name)))
+    {
+        return sq_throwerror(v, _SC("failed to get name"));
+    }
     actor->setCostume(name);
     return 0;
 }
@@ -351,7 +418,10 @@ static SQInteger _actorLockFacing(HSQUIRRELVM v)
 {
     SQInteger facing;
     GGActor *actor = _getActor(v, 2);
-    sq_getinteger(v, 3, &facing);
+    if (SQ_FAILED(sq_getinteger(v, 3, &facing)))
+    {
+        return sq_throwerror(v, _SC("failed to get facing"));
+    }
     actor->getCostume().lockFacing((Facing)facing);
     return 0;
 }
@@ -360,7 +430,10 @@ static SQInteger _actorPlayAnimation(HSQUIRRELVM v)
 {
     const SQChar *name;
     GGActor *actor = _getActor(v, 2);
-    sq_getstring(v, 3, &name);
+    if (SQ_FAILED(sq_getstring(v, 3, &name)))
+    {
+        return sq_throwerror(v, _SC("failed to get name"));
+    }
     actor->getCostume().setState(name);
     return 0;
 }
@@ -378,7 +451,10 @@ static SQInteger _sayLine(HSQUIRRELVM v)
 {
     GGActor *actor = _getActor(v, 2);
     const SQChar *text;
-    sq_getstring(v, 3, &text);
+    if (SQ_FAILED(sq_getstring(v, 3, &text)))
+    {
+        return sq_throwerror(v, _SC("failed to get text"));
+    }
     // TOSO: actor->say(text);
     return 0;
 }
@@ -387,8 +463,14 @@ static SQInteger _objectAt(HSQUIRRELVM v)
 {
     SQInteger x, y;
     GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &x);
-    sq_getinteger(v, 4, &y);
+    if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+    {
+        return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+    {
+        return sq_throwerror(v, _SC("failed to get y"));
+    }
     obj->setPosition(sf::Vector2f(x, y));
     return 0;
 }
@@ -397,7 +479,10 @@ static SQInteger _objectScale(HSQUIRRELVM v)
 {
     SQFloat scale;
     GGObject *obj = _getObject(v, 2);
-    sq_getfloat(v, 3, &scale);
+    if (SQ_FAILED(sq_getfloat(v, 3, &scale)))
+    {
+        return sq_throwerror(v, _SC("failed to get scale"));
+    }
     obj->setScale(scale);
     return 0;
 }
@@ -422,8 +507,23 @@ static SQInteger _objectSort(HSQUIRRELVM v)
 {
     SQInteger zOrder;
     GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &zOrder);
+    if (SQ_FAILED(sq_getinteger(v, 3, &zOrder)))
+    {
+        return sq_throwerror(v, _SC("failed to get zOrder"));
+    }
     obj->setZOrder(static_cast<int>(zOrder));
+    return 0;
+}
+
+static SQInteger _objectRotate(HSQUIRRELVM v)
+{
+    SQInteger angle;
+    GGObject *obj = _getObject(v, 2);
+    if (SQ_FAILED(sq_getinteger(v, 3, &angle)))
+    {
+        return sq_throwerror(v, _SC("failed to get angle"));
+    }
+    obj->setRotation(static_cast<float>(angle));
     return 0;
 }
 
@@ -432,8 +532,14 @@ static SQInteger _objectRotateTo(HSQUIRRELVM v)
     SQInteger dir;
     SQInteger t;
     GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &dir);
-    sq_getinteger(v, 4, &t);
+    if (SQ_FAILED(sq_getinteger(v, 3, &dir)))
+    {
+        return sq_throwerror(v, _SC("failed to get direction"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 4, &t)))
+    {
+        return sq_throwerror(v, _SC("failed to get time"));
+    }
 
     auto get = std::bind(&GGObject::getRotation, obj);
     auto set = std::bind(&GGObject::setRotation, obj, std::placeholders::_1);
@@ -446,7 +552,10 @@ static SQInteger _objectParallaxLayer(HSQUIRRELVM v)
 {
     SQInteger layer;
     GGObject *obj = _getObject(v, 2);
-    sq_getinteger(v, 3, &layer);
+    if (SQ_FAILED(sq_getinteger(v, 3, &layer)))
+    {
+        return sq_throwerror(v, _SC("failed to get layer number"));
+    }
     obj->setZOrder(static_cast<int>(layer));
     return 0;
 }
@@ -455,8 +564,91 @@ static SQInteger _objectTouchable(HSQUIRRELVM v)
 {
     SQBool isTouchable;
     GGObject *obj = _getObject(v, 2);
-    sq_getbool(v, 3, &isTouchable);
+    if (SQ_FAILED(sq_getbool(v, 3, &isTouchable)))
+    {
+        return sq_throwerror(v, _SC("failed to get isTouchable parameter"));
+    }
     obj->setTouchable(static_cast<bool>(isTouchable));
+    return 0;
+}
+
+static SQInteger _objectLit(HSQUIRRELVM v)
+{
+    SQBool isLit;
+    GGObject *obj = _getObject(v, 2);
+    if (SQ_FAILED(sq_getbool(v, 3, &isLit)))
+    {
+        return sq_throwerror(v, _SC("failed to get isLit parameter"));
+    }
+    obj->setLit(static_cast<bool>(isLit));
+    return 0;
+}
+
+static SQInteger _objectOwner(HSQUIRRELVM v)
+{
+    GGObject *obj = _getObject(v, 2);
+    _pushActor(v, obj->getOwner());
+    return 1;
+}
+
+static SQInteger _objectUsePos(HSQUIRRELVM v)
+{
+    GGObject *obj = _getObject(v, 2);
+    SQInteger x, y, dir;
+    if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+    {
+        return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+    {
+        return sq_throwerror(v, _SC("failed to get y"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 5, &dir)))
+    {
+        return sq_throwerror(v, _SC("failed to get direction"));
+    }
+    obj->setUsePosition(sf::Vector2f(x, y));
+    obj->setUseDirection(static_cast<UseDirection>(dir));
+    return 0;
+}
+
+static SQInteger _objectColor(HSQUIRRELVM v)
+{
+    GGObject *obj = _getObject(v, 2);
+    SQInteger color;
+    if (SQ_FAILED(sq_getinteger(v, 3, &color)))
+    {
+        return sq_throwerror(v, _SC("failed to get color"));
+    }
+    sf::Uint8 r, g, b;
+    r = (color & 0x00FF0000) >> 16;
+    g = (color & 0x0000FF00) >> 8;
+    b = (color & 0x000000FF);
+    obj->setColor(sf::Color(r, g, b));
+    return 0;
+}
+
+static SQInteger _objectIcon(HSQUIRRELVM v)
+{
+    GGObject *obj = _getObject(v, 2);
+    const SQChar *icon;
+    if (SQ_FAILED(sq_getstring(v, 3, &icon)))
+    {
+        return sq_throwerror(v, _SC("failed to get icon"));
+    }
+    // TODO: obj->setIcon(icon);
+    return 0;
+}
+
+static SQInteger _objectFPS(HSQUIRRELVM v)
+{
+    GGObject *obj = _getObject(v, 2);
+    SQInteger fps;
+    if (SQ_FAILED(sq_getinteger(v, 3, &fps)))
+    {
+        return sq_throwerror(v, _SC("failed to get fps"));
+    }
+    // TODO: obj->setFps(icon);
     return 0;
 }
 
@@ -473,7 +665,10 @@ static SQInteger _actorTalkColors(HSQUIRRELVM v)
 {
     auto actor = _getActor(v, 2);
     SQInteger color;
-    sq_getinteger(v, 3, &color);
+    if (SQ_FAILED(sq_getinteger(v, 3, &color)))
+    {
+        return sq_throwerror(v, _SC("failed to get fps"));
+    }
     actor->setTalkColor(sf::Color(static_cast<sf::Uint32>(color << 8 | 0xff)));
     return 0;
 }
@@ -481,8 +676,14 @@ static SQInteger _actorTalkColors(HSQUIRRELVM v)
 static SQInteger _cameraAt(HSQUIRRELVM v)
 {
     SQInteger x, y;
-    sq_getinteger(v, 2, &x);
-    sq_getinteger(v, 3, &y);
+    if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+    {
+        return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+    {
+        return sq_throwerror(v, _SC("failed to get y"));
+    }
     g_pEngine->setCameraAt(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight));
     return 0;
 }
@@ -492,9 +693,18 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
     SQInteger x, y;
     SQFloat t;
     sf::View view(sf::FloatRect(0, 0, Screen::Width, Screen::Height));
-    sq_getinteger(v, 2, &x);
-    sq_getinteger(v, 3, &y);
-    sq_getfloat(v, 4, &t);
+    if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+    {
+        return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+    {
+        return sq_throwerror(v, _SC("failed to get y"));
+    }
+    if (SQ_FAILED(sq_getfloat(v, 4, &t)))
+    {
+        return sq_throwerror(v, _SC("failed to get time"));
+    }
 
     auto get = std::bind(&GGEngine::getCameraAt, g_pEngine);
     auto set = std::bind(&GGEngine::setCameraAt, g_pEngine, std::placeholders::_1);
@@ -504,20 +714,14 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
     return 0;
 }
 
-// static SQInteger _state(HSQUIRRELVM v)
-// {
-//     SQInteger index;
-//     GGObject *obj = _getObject(v, 2);
-//     sq_getinteger(v, 3, &index);
-//     obj->setStateAnimIndex(index);
-//     return 0;
-// }
-
-static SQInteger _hidden(HSQUIRRELVM v)
+static SQInteger _objectHidden(HSQUIRRELVM v)
 {
     SQBool hidden;
     GGObject *obj = _getObject(v, 2);
-    sq_getbool(v, 3, &hidden);
+    if (SQ_FAILED(sq_getbool(v, 3, &hidden)))
+    {
+        return sq_throwerror(v, _SC("failed to get hidden"));
+    }
     obj->setVisible(!hidden);
     return 0;
 }
@@ -532,7 +736,10 @@ static SQInteger _break_here(HSQUIRRELVM v)
 static SQInteger _break_time(HSQUIRRELVM v)
 {
     SQFloat time = 0;
-    sq_getfloat(v, 2, &time);
+    if (SQ_FAILED(sq_getfloat(v, 2, &time)))
+    {
+        return sq_throwerror(v, _SC("failed to get time"));
+    }
     auto result = sq_suspendvm(v);
     g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
     return result;
@@ -556,11 +763,13 @@ static void _set_object_slot(HSQUIRRELVM v, const SQChar *name, GGObject &object
 static SQInteger _translate(HSQUIRRELVM v)
 {
     const SQChar *idText;
-    sq_getstring(v, 2, &idText);
+    if (SQ_FAILED(sq_getstring(v, 2, &idText)))
+    {
+        return sq_throwerror(v, _SC("failed to get idText"));
+    }
     std::string s(idText);
     s = s.substr(1);
-    SQChar *end;
-    auto id = std::strtol(s.c_str(), &end, 10);
+    auto id = std::strtol(s.c_str(), nullptr, 10);
     auto text = g_pEngine->getText(id);
     sq_pushstring(v, text.c_str(), -1);
     return 1;
@@ -570,11 +779,17 @@ static SQInteger _createTextObject(HSQUIRRELVM v)
 {
     const SQChar *name;
     const SQChar *text;
-    sq_getstring(v, 2, &name);
+    if (SQ_FAILED(sq_getstring(v, 2, &name)))
+    {
+        return sq_throwerror(v, _SC("failed to get name"));
+    }
     std::string n(name);
     auto &obj = g_pEngine->getRoom().createTextObject(name, g_pEngine->getFont());
 
-    sq_getstring(v, 3, &text);
+    if (SQ_FAILED(sq_getstring(v, 3, &text)))
+    {
+        return sq_throwerror(v, _SC("failed to get text"));
+    }
     std::string s(text);
     obj.setText(s);
 
@@ -632,7 +847,10 @@ static SQInteger _createObject(HSQUIRRELVM v)
 static SQInteger _loadRoom(HSQUIRRELVM v)
 {
     const SQChar *name;
-    sq_getstring(v, 2, &name);
+    if (SQ_FAILED(sq_getstring(v, 2, &name)))
+    {
+        return sq_throwerror(v, _SC("failed to get room name"));
+    }
     auto &room = g_pEngine->getRoom();
     room.load(name);
 
@@ -648,13 +866,8 @@ static SQInteger _loadRoom(HSQUIRRELVM v)
 static SQInteger _createActor(HSQUIRRELVM v)
 {
     auto pActor = new GGActor(g_pEngine->getTextureManager());
-    sq_newtable(v);
-    sq_pushstring(v, _SC("instance"), -1);
-    sq_pushuserpointer(v, pActor);
-    sq_newslot(v, -3, SQFalse);
-
+    _pushActor(v, pActor);
     g_pEngine->addActor(*pActor);
-
     return 1;
 }
 
@@ -662,7 +875,7 @@ static SQInteger _stop_thread(HSQUIRRELVM v)
 {
     HSQOBJECT thread_obj;
     sq_resetobject(&thread_obj);
-    if (sq_getstackobj(v, 2, &thread_obj) < 0)
+    if (SQ_FAILED(sq_getstackobj(v, 2, &thread_obj)))
     {
         return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
     }
@@ -679,8 +892,6 @@ static SQInteger _start_thread(HSQUIRRELVM v)
 
     // create thread and store it on the stack
     auto thread = sq_newthread(v, 1024);
-    sq_setcompilererrorhandler(thread, _errorHandler);
-    sq_setprintfunc(thread, _printfunc, _errorfunc); //sets the print function
     HSQOBJECT thread_obj;
     sq_resetobject(&thread_obj);
     if (SQ_FAILED(sq_getstackobj(v, -1, &thread_obj)))
@@ -717,7 +928,7 @@ static SQInteger _start_thread(HSQUIRRELVM v)
     }
     if (SQ_FAILED(sq_call(thread, 1 + args.size(), SQFalse, SQTrue)))
     {
-        sq_throwerror(v, _SC("call failed\n"));
+        sq_throwerror(v, _SC("call failed"));
         sq_pop(thread, 1); // pop the compiled closure
         return SQ_ERROR;
     }
@@ -768,7 +979,10 @@ SQInteger _random(HSQUIRRELVM v)
 SQInteger _randomOdds(HSQUIRRELVM v)
 {
     SQFloat value = 0;
-    sq_getfloat(v, 2, &value);
+    if (SQ_FAILED(sq_getfloat(v, 2, &value)))
+    {
+        return sq_throwerror(v, _SC("failed to get value"));
+    }
     auto rnd = float_rand(0, 1);
     sq_pushbool(v, static_cast<SQBool>(rnd <= value));
     return 1;
@@ -785,7 +999,10 @@ SQInteger _randomFrom(HSQUIRRELVM v)
 SQInteger _loopMusic(HSQUIRRELVM v)
 {
     const SQChar *filename;
-    sq_getstring(v, 2, &filename);
+    if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+    {
+        return sq_throwerror(v, _SC("failed to get filename"));
+    }
     g_pEngine->loopMusic(filename);
     return 0;
 }
@@ -793,8 +1010,11 @@ SQInteger _loopMusic(HSQUIRRELVM v)
 SQInteger _loopSound(HSQUIRRELVM v)
 {
     const SQChar *filename;
-    sq_getstring(v, 2, &filename);
-    SQUserPointer ptr = g_pEngine->playSound(filename, true);
+    if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+    {
+        return sq_throwerror(v, _SC("failed to get filename"));
+    }
+    auto ptr = g_pEngine->playSound(filename, true);
     sq_pushuserpointer(v, ptr);
     return 1;
 }
@@ -802,12 +1022,18 @@ SQInteger _loopSound(HSQUIRRELVM v)
 SQInteger _fadeOutSound(HSQUIRRELVM v)
 {
     SQUserPointer ptr;
-    sq_getuserpointer(v, 2, &ptr);
+    if (SQ_FAILED(sq_getuserpointer(v, 2, &ptr)))
+    {
+        return sq_throwerror(v, _SC("failed to get sound"));
+    }
     auto pSound = static_cast<SoundId *>(ptr);
     if (pSound == nullptr)
         return 0;
     float t;
-    sq_getfloat(v, 3, &t);
+    if (SQ_FAILED(sq_getfloat(v, 3, &t)))
+    {
+        return sq_throwerror(v, _SC("failed to get fadeOut time"));
+    }
 
     auto get = std::bind(&sf::Sound::getVolume, &pSound->sound);
     auto set = std::bind(&sf::Sound::setVolume, &pSound->sound, std::placeholders::_1);
@@ -817,7 +1043,7 @@ SQInteger _fadeOutSound(HSQUIRRELVM v)
 
 static void _fadeTo(float a, const sf::Time &time)
 {
-    sf::Uint8 alpha = static_cast<sf::Uint8>(a*255);
+    auto alpha = static_cast<sf::Uint8>(a * 255);
     auto get = std::bind(&GGEngine::getFadeAlpha, g_pEngine);
     auto set = std::bind(&GGEngine::setFadeAlpha, g_pEngine, std::placeholders::_1);
     auto fadeTo = std::make_unique<_ChangeProperty<sf::Uint8>>(get, set, alpha, time);
@@ -828,23 +1054,25 @@ SQInteger _roomFade(HSQUIRRELVM v)
 {
     SQInteger type;
     SQFloat t;
-    sq_getinteger(v, 2, &type);
-    sq_getfloat(v, 3, &t);
-    if (type == 0)
+    if (SQ_FAILED(sq_getinteger(v, 2, &type)))
     {
-        _fadeTo(0, sf::seconds(t));
+        return sq_throwerror(v, _SC("failed to get type"));
     }
-    else
+    if (SQ_FAILED(sq_getfloat(v, 3, &t)))
     {
-        _fadeTo(255, sf::seconds(t));
+        return sq_throwerror(v, _SC("failed to get time"));
     }
+    _fadeTo(type == 0 ? 0 : 255, sf::seconds(t));
     return 0;
 }
 
 SQInteger _playSound(HSQUIRRELVM v)
 {
     const SQChar *filename;
-    sq_getstring(v, 2, &filename);
+    if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+    {
+        return sq_throwerror(v, _SC("failed to get filename"));
+    }
     SQUserPointer ptr = g_pEngine->playSound(filename, false);
     sq_pushuserpointer(v, ptr);
     return 0;
@@ -853,7 +1081,10 @@ SQInteger _playSound(HSQUIRRELVM v)
 SQInteger _stopSound(HSQUIRRELVM v)
 {
     SoundId *soundId;
-    sq_getuserpointer(v, 2, (SQUserPointer *)&soundId);
+    if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&soundId)))
+    {
+        return sq_throwerror(v, _SC("failed to get sound"));
+    }
     g_pEngine->stopSound(*soundId);
     return 0;
 }
@@ -862,8 +1093,9 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 {
     g_pEngine = &engine;
     v = sq_open(1024);
-    sq_seterrorhandler(v);
     sq_setcompilererrorhandler(v, _errorHandler);
+    sq_newclosure(v, _aux_printerror, 0);
+    sq_seterrorhandler(v);
     sq_setprintfunc(v, _printfunc, _errorfunc); //sets the print function
 
     sq_pushroottable(v);
@@ -874,8 +1106,8 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     sqstd_register_stringlib(v);
     registerBoolConstant(_SC("NO"), false);
     registerBoolConstant(_SC("YES"), true);
-    registerBoolConstant(_SC("GONE"), false);
-    registerBoolConstant(_SC("HERE"), true);
+    registerConstant(_SC("GONE"), 1);
+    registerConstant(_SC("HERE"), 0);
     registerConstant(_SC("OFF"), 0);
     registerConstant(_SC("ON"), 1);
     registerConstant(_SC("FADE_IN"), 0);
@@ -902,23 +1134,32 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_loadRoom, "loadRoom");
 
     registerGlobalFunction(_isObject, "isObject");
-    registerGlobalFunction(_hidden, "objectHidden");
     registerGlobalFunction(_scale, "scale");
     registerGlobalFunction(_play_state, "playObjectState");
+    registerGlobalFunction(_objectHidden, "objectHidden");
     registerGlobalFunction(_objectAlpha, "objectAlpha");
     registerGlobalFunction(_objectAlphaTo, "objectAlphaTo");
     registerGlobalFunction(_objectHotspot, "objectHotspot");
     registerGlobalFunction(_objectOffset, "objectOffset");
     registerGlobalFunction(_objectOffsetTo, "objectOffsetTo");
+    registerGlobalFunction(_objectMoveTo, "objectMoveTo");
     registerGlobalFunction(_objectState, "objectState");
     registerGlobalFunction(_objectScale, "objectScale");
     registerGlobalFunction(_objectAt, "objectAt");
     registerGlobalFunction(_objectPosX, "_objectPosX");
     registerGlobalFunction(_objectPosY, "_objectPosY");
     registerGlobalFunction(_objectSort, "objectSort");
+    registerGlobalFunction(_objectRotate, "objectRotate");
     registerGlobalFunction(_objectRotateTo, "objectRotateTo");
     registerGlobalFunction(_objectParallaxLayer, "objectParallaxLayer");
     registerGlobalFunction(_objectTouchable, "objectTouchable");
+    registerGlobalFunction(_objectLit, "objectLit");
+    registerGlobalFunction(_objectOwner, "objectOwner");
+    registerGlobalFunction(_objectUsePos, "objectUsePos");
+    registerGlobalFunction(_objectColor, "objectColor");
+    registerGlobalFunction(_objectIcon, "objectIcon");
+    registerGlobalFunction(_objectFPS, "objectFPS");
+    // TODO: objectValidUsePos, objectBumperCycle, objectRenderOffset, objectDependentOn, objectCenter
     registerGlobalFunction(_createObject, "createObject");
     registerGlobalFunction(_createTextObject, "createTextObject");
     registerGlobalFunction(_deleteObject, "deleteObject");
@@ -961,11 +1202,12 @@ void ScriptEngine::registerConstant(const SQChar *name, SQInteger value)
     sq_pop(v, 1);
 }
 
-void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName)
+void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck, const SQChar *typemask)
 {
     sq_pushroottable(v);
     sq_pushstring(v, functionName, -1);
     sq_newclosure(v, f, 0); //create a new function
+    sq_setparamscheck(v, nparamscheck, typemask);
     sq_newslot(v, -3, SQFalse);
     sq_pop(v, 1); //pops the root table
 }

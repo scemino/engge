@@ -10,7 +10,7 @@ class Function : public NonCopyable
 public:
   virtual bool isElapsed() { return true; }
   virtual void operator()() {}
-  virtual ~Function() {}
+  virtual ~Function() = default;
 };
 
 class TimeFunction : public Function
@@ -20,11 +20,12 @@ protected:
   sf::Time _time;
 
 public:
-  TimeFunction(const sf::Time &time)
+  explicit TimeFunction(const sf::Time &time)
       : _time(time)
   {
   }
-  virtual ~TimeFunction() {}
+
+  ~TimeFunction() override = default;
 
   bool isElapsed() override
   {

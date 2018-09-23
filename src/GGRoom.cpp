@@ -33,7 +33,6 @@ void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
             sprite.move(width, 0);
             sprite.setTexture(_textureManager.get(_sheet));
             sprite.setTextureRect(_toRect(frame));
-            // _backgrounds.push_back(sprite);
             width += sprite.getTextureRect().width;
             layer.getSprites().push_back(sprite);
         }
@@ -45,7 +44,6 @@ void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
         auto sprite = sf::Sprite();
         sprite.setTexture(_textureManager.get(_sheet));
         sprite.setTextureRect(_toRect(frame));
-        // _backgrounds.push_back(sprite);
         RoomLayer layer;
         layer.getSprites().push_back(sprite);
         _layers.push_back(layer);
@@ -106,7 +104,7 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
         else
         {
             auto parallax = jLayer["parallax"].get<float>();
-            layer.setParallax(sf::Vector2f(parallax, 0));
+            layer.setParallax(sf::Vector2f(parallax, 1));
         }
         std::cout << "Read layer zsort: " << layer.getZOrder() << std::endl;
         _layers.push_back(layer);
@@ -118,7 +116,7 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
     std::sort(_layers.begin(), _layers.end(), cmpLayers);
 }
 
-void GGRoom::loadScalings(nlohmann::json jWimpy, nlohmann::json json)
+void GGRoom::loadScalings(nlohmann::json jWimpy)
 {
     if (jWimpy["scalings"].is_array() && !jWimpy["scalings"].empty())
     {
@@ -168,7 +166,7 @@ void GGRoom::loadScalings(nlohmann::json jWimpy, nlohmann::json json)
     }
 }
 
-void GGRoom::loadWalkboxes(nlohmann::json jWimpy, nlohmann::json json)
+void GGRoom::loadWalkboxes(nlohmann::json jWimpy)
 {
     for (auto jWalkbox : jWimpy["walkboxes"])
     {
@@ -206,6 +204,7 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
         object->setHotspot(hotspot);
 
+        bool isProp = !jObject["prop"].empty() && jObject["prop"].get<int>() == 1;
         // object->setVisible(jObject["prop"].empty() || jObject["prop"].get<int>() == 0);
         // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
         {
@@ -284,8 +283,8 @@ void GGRoom::load(const char *name)
     loadBackgrounds(jWimpy, json);
     loadLayers(jWimpy, json);
     loadObjects(jWimpy, json);
-    loadScalings(jWimpy, json);
-    loadWalkboxes(jWimpy, json);
+    loadScalings(jWimpy);
+    loadWalkboxes(jWimpy);
 }
 
 GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont &font)

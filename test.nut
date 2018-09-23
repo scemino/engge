@@ -1,18 +1,20 @@
- function hideAll(r) {
-    foreach(obj in r) { if (isObject(obj)) { objectHidden(obj, YES) }}
- }
+function hideAll(r) {
+    foreach (obj in r) {
+        if (isObject(obj)) {
+            objectHidden(obj, YES)
+        }
+    }
+}
 
-function bounceImage()
-{
-    local image = createObject("RaySheet",["bstand_body1"]);
+function bounceImage() {
+    local image = createObject("RaySheet", ["bstand_body1"]);
     local x = random(0, 1280);
     local y = random(0, 720);
     scale(image, 0.5);
 
     // objectAlpha(image, 0.0, 2);
 
-    do
-    {
+    do {
         local steps = random(100, 150);
 
         local end_x = random(0, 320);
@@ -21,22 +23,19 @@ function bounceImage()
         local dx = (end_x - x) / steps;
         local dy = (end_y - y) / steps;
 
-        for (local i = 0; i < steps; i++)
-        {
+        for (local i = 0; i < steps; i++) {
             x += dx;
             y += dy;
             image.at(x, y);
             breaktime(0.01);
         }
-    }
-    while(1);
+    } while (1);
 }
 
-function animateBirdObject(dist, delay = 0) 
-{
+function animateBirdObject(dist, delay = 0) {
     delay = delay + random(0.1, 5.0)
     breaktime(delay)
-    local bird = createObject("VistaSheet", [ "rfly_body1", "rfly_body2", "rfly_body3", "rfly_body4" ])
+    local bird = createObject("VistaSheet", ["rfly_body1", "rfly_body2", "rfly_body3", "rfly_body4"])
     local speed = 0
     local yOffset = 0
     // objectLit(bird, YES)
@@ -45,33 +44,30 @@ function animateBirdObject(dist, delay = 0)
     if (dist == 1) {
         speed = 8
         objectScale(bird, 0.5)
-    } else 
-    if (dist == 2) {
+    } else if (dist == 2) {
         speed = 15
         objectScale(bird, 0.25)
     }
     do {
-        local yStart = random(100,160)
-        
+        local yStart = random(100, 160)
+
         objectOffset(bird, 0, yStart)
         playObjectState(bird, 0)
-        yOffset = random(-80,80)
+        yOffset = random(-80, 80)
         if (dist == 2) {
-            yOffset = yOffset*0.25
+            yOffset = yOffset * 0.25
         }
-        objectOffsetTo(bird, 430, (yStart + yOffset), random((speed*0.90), (speed*1.10)))
-        breaktime(speed*1.10)	
+        objectOffsetTo(bird, 430, (yStart + yOffset), random((speed * 0.90), (speed * 1.10)))
+        breaktime(speed * 1.10)
         breaktime(random(5.0, 10.0))
-    } while(1)
- }
+    } while (1)
+}
 
-function animateLock() 
-{
-    local lock = createObject("OpeningSheet", [ "lock1","lock2","lock3","lock4","lock5","lock4","lock3","lock2","lock1"])
-    print("lock: "+NO+"\n");
-    print("lock: "+YES+"\n");
-    do 
-    {
+function animateLock() {
+    local lock = createObject("OpeningSheet", ["lock1", "lock2", "lock3", "lock4", "lock5", "lock4", "lock3", "lock2", "lock1"])
+    print("lock: " + NO + "\n");
+    print("lock: " + YES + "\n");
+    do {
         lock.playObjectState(0);
         breaktime(2);
         lock.playObjectState(0);
@@ -80,12 +76,10 @@ function animateLock()
         breaktime(1);
         lock.objectHidden(NO)
         breaktime(random(2.0, 5.0));
-    }
-    while(1);
+    } while (1);
 }
 
-function flashRadioLight(room) 
-{
+function flashRadioLight(room) {
     objectAlpha(room.startScreenRadioLight, 1.0)
     objectState(room.startScreenRadioLight, ON)
     do {
@@ -93,30 +87,24 @@ function flashRadioLight(room)
         objectAlphaTo(room.startScreenRadioLight, 1.0, 0.25)
         breaktime(1)
         objectAlphaTo(room.startScreenRadioLight, 0.0, 0.25)
-    } while(1)
+    } while (1)
 }
 
-local isRunning=true
-
-function playTowerLight(openingLight)
-{
-    do 
-    {
+function playTowerLight(openingLight) {
+    do {
         objectState(openingLight, 1)
         playSound("TowerLight.wav")
-        breaktime(2.5)  
+        breaktime(2.5)
         objectState(openingLight, 0)
         playSound("TowerLight2.wav")
         breaktime(1.0)
-    } while(isRunning)
+    } while (isRunning)
 }
 
-function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlphaRange2) 
-{
+function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlphaRange2) {
     local timeOff, timeOn, fadeIn, fadeOut
     objectAlpha(obj, randomfrom(objectAlphaRange1, objectAlphaRange2))
-    if (randomOdds(1.0)) 
-    {
+    if (randomOdds(1.0)) {
         do {
             fadeIn = random(fadeRange1, fadeRange2)
             objectAlpha(obj, objectAlphaRange2, fadeIn)
@@ -124,12 +112,11 @@ function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlpha
             fadeOut = random(fadeRange1, fadeRange2)
             objectAlpha(obj, objectAlphaRange1, fadeOut)
             breaktime(fadeOut)
-        } while(1)
+        } while (1)
     }
 }
 
-function doOpening() 
-{
+function doOpening() {
     local r = loadRoom("Opening")
     hideAll(r)
 
@@ -151,18 +138,18 @@ function doOpening()
 
     print("Show stars\n");
     for (local i = 1; i <= 3; i += 1) {
-        local star = r["openingStar"+i]
+        local star = r["openingStar" + i]
         objectHidden(star, NO)
-        print("start openingStar"+i+"\n")
-        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.5, 1))
-        print("star: "+star.tid+"\n");
-    }	
+        print("start openingStar" + i + "\n")
+        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5, 1.0), random(0.5, 1))
+        print("star: " + star.tid + "\n");
+    }
     for (local i = 4; i <= 16; i += 1) {
-        local star = r["openingStar"+i]
+        local star = r["openingStar" + i]
         objectHidden(star, NO)
-        print("start openingStar"+i+"\n")
-        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.1, 0.5))
-        print("star: "+star.tid+"\n");
+        print("start openingStar" + i + "\n")
+        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5, 1.0), random(0.1, 0.5))
+        print("star: " + star.tid + "\n");
     }
 
     print("Show stars done !\n");
@@ -171,20 +158,19 @@ function doOpening()
 
     local tid = startthread(playTowerLight, r.openingLight)
     breaktime(10.0)
-    
+
     fadeOutSound(sid, 3.0)
-    isRunning=false
+    //local isRunning=false
     roomFade(FADE_OUT, 3.0)
     breaktime(3.0)
     hideAll(r)
 
-    for (local i = 1; i <= 16; i += 1)
-    {
-        local star = r["openingStar"+i]
-        print("star2: "+star.tid+"\n");
+    for (local i = 1; i <= 16; i += 1) {
+        local star = r["openingStar" + i]
+        print("star2: " + star.tid + "\n");
         objectHidden(star, YES)
         stopthread(star.tid)
-    }	
+    }
 
     objectHidden(r.openingFenceBackground, NO)
     objectHidden(r.openingChain, NO)
@@ -218,7 +204,7 @@ function doOpening()
     fadeOutSound(soundFenceLockRattle, 3.0)
     roomFade(FADE_OUT, 3.0)
 
-     breaktime(1.0)
+    breaktime(1.0)
 
     playObjectState(r.openingLock, 1)
 
@@ -257,8 +243,8 @@ function doOpening()
     breaktime(5.0)
     playSound("Gunshot.wav")
     // stopSound(soundCricketsLoop)
-    fadeOutSound(soundCricketsLoop,0.1)
-    
+    fadeOutSound(soundCricketsLoop, 0.1)
+
     objectHidden(r.openingBulletHole, NO)
     breaktime(3.0)
     playSound("MetalClank.wav")
@@ -269,48 +255,45 @@ function doOpening()
     hideAll(r)
 }
 
-function trainPassby(Bridge) 
-{
+function trainPassby(Bridge) {
     objectOffset(Bridge.bridgeTrain, -100, 0)
     objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10)
     playSound("BridgeTrain.ogg")
- }
+}
 
- function flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
- local timeOff, timeOn, fadeIn, fadeOut
- objectAlpha(obj, randomfrom(0.0, 1.0))
- do {
-    timeOff = random(offRange1, offRange2)
-    breaktime(timeOff)
-    fadeIn = random(fadeRange1, fadeRange2)
-    objectAlphaTo(obj, maxFade, fadeIn)
-    breaktime(fadeIn)
-    timeOn = random(onRange1, onRange2)
-    breaktime(timeOn)
-    fadeOut = random(fadeRange1, fadeRange2)
-    objectAlphaTo(obj, minFade, fadeOut)
-    breaktime(fadeOut)
- } while(1)
+function flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
+    local timeOff, timeOn, fadeIn, fadeOut
+    objectAlpha(obj, randomfrom(0.0, 1.0))
+    do {
+        timeOff = random(offRange1, offRange2)
+        breaktime(timeOff)
+        fadeIn = random(fadeRange1, fadeRange2)
+        objectAlphaTo(obj, maxFade, fadeIn)
+        breaktime(fadeIn)
+        timeOn = random(onRange1, onRange2)
+        breaktime(timeOn)
+        fadeOut = random(fadeRange1, fadeRange2)
+        objectAlphaTo(obj, minFade, fadeOut)
+        breaktime(fadeOut)
+    } while (1)
 }
 
 function animateFirefly(obj) {
- startthread(flashAlphaObject, obj, 1, 4, 0.5, 2, 0.1, 0.35)
- }
+    startthread(flashAlphaObject, obj, 1, 4, 0.5, 2, 0.1, 0.35)
+}
 
- function createFirefly(x) {
+function createFirefly(x) {
     local firefly = 0
     local zsort = 68
-    local y = random(78,168)
-    local direction = randomfrom(-360,360)
+    local y = random(78, 168)
+    local direction = randomfrom(-360, 360)
     if (y < 108) {
         firefly = createObject("firefly_large")
-        zsort = random(68,78)
-    } else
-        if (y < 218) {
+        zsort = random(68, 78)
+    } else if (y < 218) {
         firefly = createObject("firefly_small")
         zsort = 117
-    } else
-        if (x > 628 && x < 874) {		
+    } else if (x > 628 && x < 874) {
         firefly = createObject("firefly_tiny")
         zsort = 668
     }
@@ -321,10 +304,9 @@ function animateFirefly(obj) {
         objectSort(firefly, zsort)
         return firefly
     }
- }
+}
 
-function doOpening2() 
-{
+function doOpening2() {
     local Bridge = loadRoom("Bridge")
     objectState(Bridge.bridgeBody, GONE)
     objectState(Bridge.bridgeBottle, GONE)
@@ -336,24 +318,23 @@ function doOpening2()
 
     local star = 0
     for (local i = 1; i <= 28; i += 1) {
-        star = Bridge["bridgeStar"+i]
+        star = Bridge["bridgeStar" + i]
         objectParallaxLayer(star, 5)
-        
-        startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
-    }	
+
+        startthread(twinkleStar, star, 0.01, 0.1, random(0, 0.3), random(0.6, 1))
+    }
     for (local i = 1; i <= 5; i += 1) {
-        star = Bridge["bridgeStarB"+i]
+        star = Bridge["bridgeStarB" + i]
         objectParallaxLayer(star, 5)
-        
+
         startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
     }
 
-    for (local x = 0; x < 960; x += random(20, 40)) 
-    {		
+    for (local x = 0; x < 960; x += random(20, 40)) {
         local firefly = createFirefly(x)
         if (firefly) {
             startthread(animateFirefly, firefly)
-        }		
+        }
     }
     local willie = createActor()
     actorAt(willie, Bridge.willieSpot)
@@ -361,12 +342,12 @@ function doOpening2()
     actorLockFacing(willie, FACE_RIGHT)
     actorPlayAnimation(willie, "awake")
 
-    cameraAt(700,86)
+    cameraAt(700, 86)
     roomFade(FADE_IN, 2)
     breaktime(6)
-    // cameraPanTo(210, 86, 12)
+    cameraPanTo(210, 86, 12)
     startthread(trainPassby, Bridge)
-    
+
     breaktime(2)
     breaktime(12.0)
     actorPlayAnimation(willie, "drink")
@@ -375,10 +356,9 @@ function doOpening2()
     breaktime(200.0)
 }
 
-function intro()
-{
+function intro() {
     local r = loadRoom("StartScreen")
-    startthread(flashRadioLight,r)
+    startthread(flashRadioLight, r)
 
     for (local i = 1; i <= 3; i += 1) {
         startthread(animateBirdObject, 1, 15)
@@ -391,3 +371,13 @@ function intro()
 // intro();
 // startthread(doOpening)
 startthread(doOpening2)
+// loadRoom("AStreet")
+// loadRoom("Bridge")
+// loadRoom("MansionEntry")
+// loadRoom("MansionExterior")
+// loadRoom("SheriffsOffice")
+// loadRoom("QuickiePal")
+// loadRoom("QuickiePalOutside")
+// loadRoom("Cemetery")
+// loadRoom("HotelLobby")
+// loadRoom("Alleyway")

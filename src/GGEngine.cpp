@@ -134,4 +134,8 @@ void GGEngine::playState(GGObject &object, int index)
 {
     object.setStateAnimIndex(index);
 }
+
+SoundId::~SoundId() {
+    sound.stop();
+}
 } // namespace gg

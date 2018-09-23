@@ -9,7 +9,7 @@ namespace gg
 class RoomLayer : public GGEntity
 {
 public:
-  RoomLayer() : _zsort(0), _parallax(1, 0) {}
+  RoomLayer();
   ~RoomLayer() = default;
 
   std::vector<sf::Sprite> &getSprites() { return _sprites; }
@@ -21,17 +21,7 @@ public:
   void setZOrder(int zsort) { _zsort = zsort; }
   int getZOrder() const override { return _zsort; }
 
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override
-  {
-    for (const auto &s : getSprites())
-    {
-      auto sprite(s);
-      auto parallax = getParallax();
-      auto pos = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
-      sprite.move(pos, -cameraPos.y);
-      window.draw(sprite);
-    }
-  }
+  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
 
 private:
   std::vector<sf::Sprite> _sprites;

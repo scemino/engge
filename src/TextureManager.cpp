@@ -8,9 +8,7 @@ TextureManager::TextureManager(const GGEngineSettings &settings)
 {
 }
 
-TextureManager::~TextureManager()
-{
-}
+TextureManager::~TextureManager() = default;
 
 void TextureManager::load(const std::string &id)
 {
@@ -20,16 +18,16 @@ void TextureManager::load(const std::string &id)
     std::unique_ptr<sf::Texture> texture(new sf::Texture());
     texture->loadFromFile(path);
 
-    TextureMap.insert(std::make_pair(id, std::move(texture)));
+    _textureMap.insert(std::make_pair(id, std::move(texture)));
 }
 
 const sf::Texture &TextureManager::get(const std::string &id)
 {
-    auto found = TextureMap.find(id);
-    if (found == TextureMap.end())
+    auto found = _textureMap.find(id);
+    if (found == _textureMap.end())
     {
         load(id);
-        found = TextureMap.find(id);
+        found = _textureMap.find(id);
     }
     return *found->second;
 }

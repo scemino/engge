@@ -17,7 +17,7 @@ public:
 class Game : public NonCopyable
 {
 public:
-  Game(GGEngine &engine);
+  explicit Game(GGEngine &engine);
   ~Game();
   void run();
 

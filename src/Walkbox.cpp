@@ -7,9 +7,7 @@ Walkbox::Walkbox(const std::vector<sf::Vector2i> &polygon)
 {
 }
 
-Walkbox::~Walkbox()
-{
-}
+Walkbox::~Walkbox() = default;
 
 void Walkbox::draw(sf::RenderWindow &window, sf::RenderStates states) const
 {

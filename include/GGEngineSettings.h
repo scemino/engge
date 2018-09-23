@@ -1,7 +1,6 @@
+#pragma once
 #include <utility>
 #include <string>
-
-#pragma once
 
 namespace gg
 {

@@ -36,8 +36,8 @@ void GGAnimation::update(const sf::Time &elapsed)
 
         auto &sourceRect = _sourceRects[_index];
         _sprite.setTextureRect(_rects[_index]);
-        _sprite.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
-        // _sprite.setOrigin(sf::Vector2f(sourceRect.width / 2.f, sourceRect.height / 2.f));
+        // _sprite.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
+        _sprite.setOrigin(sf::Vector2f(sourceRect.width / 2.f, sourceRect.height / 2.f));
     }
 }
 

@@ -35,8 +35,6 @@ public:
   ~GGCostume();
 
   void loadCostume(const std::string &name);
-  const std::string &getSheet() const { return _sheet; }
-  const std::vector<GGLayer> &getAnim(const std::string &name) const;
   void lockFacing(Facing facing);
   void setState(const std::string &name);
   void setAnimation(const std::string &name);
@@ -51,10 +49,10 @@ private:
   const GGEngineSettings &_settings;
   std::string _sheet;
   std::vector<std::unique_ptr<CostumeAnimation>> _animations;
-  CostumeAnimation *_pCurrentAnim;
+  CostumeAnimation *_pCurrentAnimation;
   std::vector<sf::Sprite> _sprites;
   sf::Texture _texture;
   Facing _facing;
-  std::string _anim;
+  std::string _animation;
 };
 } // namespace gg

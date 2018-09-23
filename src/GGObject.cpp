@@ -12,7 +12,8 @@ GGObject::GGObject()
       _color(sf::Color::White),
       _isHotspotVisible(false),
       _angle(0),
-      _isTouchable(true)
+      _isTouchable(true),
+      _pOwner(nullptr)
 {
 }
 

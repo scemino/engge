@@ -45,8 +45,8 @@ private:
   
   void loadLayers(nlohmann::json jWimpy, nlohmann::json json);
   void loadObjects(nlohmann::json jWimpy, nlohmann::json json);
-  void loadScalings(nlohmann::json jWimpy, nlohmann::json json);
-  void loadWalkboxes(nlohmann::json jWimpy, nlohmann::json json);
+  void loadScalings(nlohmann::json jWimpy);
+  void loadWalkboxes(nlohmann::json jWimpy);
   void loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json);
 
 private:

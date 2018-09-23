@@ -15,9 +15,9 @@ CostumeAnimation::~CostumeAnimation() = default;
 
 GGCostume::GGCostume(const GGEngineSettings &settings)
     : _settings(settings),
-      _pCurrentAnim(nullptr),
+      _pCurrentAnimation(nullptr),
       _facing(Facing::FACE_FRONT),
-      _anim("stand")
+      _animation("stand")
 {
 }
 
@@ -31,7 +31,7 @@ void GGCostume::lockFacing(Facing facing)
 
 void GGCostume::setState(const std::string &name)
 {
-    _anim = name;
+    _animation = name;
     updateAnimation();
 }
 
@@ -95,7 +95,7 @@ void GGCostume::loadCostume(const std::string &path)
 
 void GGCostume::updateAnimation()
 {
-    std::string name(_anim);
+    std::string name(_animation);
     name.append("_");
     switch (_facing)
     {
@@ -121,7 +121,7 @@ void GGCostume::setAnimation(const std::string &name)
     {
         if (animation->getName() == name)
         {
-            _pCurrentAnim = animation.get();
+            _pCurrentAnimation = animation.get();
             return;
         }
     }
@@ -129,15 +129,15 @@ void GGCostume::setAnimation(const std::string &name)
 
 void GGCostume::update(const sf::Time &elapsed)
 {
-    if (!_pCurrentAnim)
+    if (!_pCurrentAnimation)
         return;
-    for (auto &i : _pCurrentAnim->getLayers())
+    for (auto &i : _pCurrentAnimation->getLayers())
     {
         i->update(elapsed);
     }
 
     _sprites.clear();
-    for (auto &layer : _pCurrentAnim->getLayers())
+    for (auto &layer : _pCurrentAnimation->getLayers())
     {
         auto frame = layer->getIndex();
         auto &rect = layer->getFrames()[frame];

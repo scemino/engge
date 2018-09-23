@@ -318,7 +318,7 @@ SQUIRREL_API SQRESULT sq_getweakrefval(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQRESULT sq_clear(HSQUIRRELVM v,SQInteger idx);
 
 /*calls*/
-SQUIRREL_API SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror);
+SQUIRREL_API SQRESULT sq_call(HSQUIRRELVM v, unsigned long params, SQBool retval, SQBool raiseerror);
 SQUIRREL_API SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror);
 SQUIRREL_API const SQChar *sq_getlocal(HSQUIRRELVM v,SQUnsignedInteger level,SQUnsignedInteger idx);
 SQUIRREL_API SQRESULT sq_getcallee(HSQUIRRELVM v);

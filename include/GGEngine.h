@@ -17,10 +17,7 @@ class SoundId
 public:
   SoundId() = default;
 
-  ~SoundId()
-  {
-    sound.stop();
-  }
+  ~SoundId();
   sf::SoundBuffer buffer;
   sf::Sound sound;
 };

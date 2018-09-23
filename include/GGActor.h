@@ -10,7 +10,7 @@ namespace gg
 class GGActor : public NonCopyable
 {
 public:
-  GGActor(TextureManager &textureManager);
+  explicit GGActor(TextureManager &textureManager);
   ~GGActor();
 
   void setCostume(const std::string &name);

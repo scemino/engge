@@ -7,6 +7,7 @@
 #include "GGAnimation.h"
 #include "GGFont.h"
 #include "GGEntity.h"
+#include "GGActor.h"
 
 namespace gg
 {
@@ -32,6 +33,9 @@ public:
 
   void setTouchable(bool isTouchable) { _isTouchable = isTouchable; }
   bool isTouchable() const { return _isTouchable; }
+
+  void setLit(bool isLit) { _isLit = isLit; }
+  bool isLit() const { return _isLit; }
 
   void setUseDirection(UseDirection direction) { _direction = direction; }
   UseDirection getUseDirection() const { return _direction; }
@@ -67,6 +71,11 @@ public:
   void setHotspotVisible(bool isHotspotVisible) { _isHotspotVisible = isHotspotVisible; }
   bool isHotspotVisible() { return _isHotspotVisible; }
 
+  GGActor *getOwner() { return _pOwner; }
+  void setOwner(GGActor* pActor) { _pOwner = pActor; }
+
+  // TODO: void setIcon(const std::string& icon);
+
   void update(const sf::Time &elapsed);
 
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
@@ -91,5 +100,7 @@ private:
   sf::Transformable _transform;
   float _angle;
   bool _isTouchable;
+  bool _isLit;
+  GGActor* _pOwner;
 };
 } // namespace gg
