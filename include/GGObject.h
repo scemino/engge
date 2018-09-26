@@ -56,6 +56,7 @@ public:
   void move(const sf::Vector2f &offset);
   void setPosition(const sf::Vector2f &pos);
   sf::Vector2f getPosition() const;
+
   void setUsePosition(const sf::Vector2f &pos);
   sf::Vector2f getUsePosition() const;
   void setRotation(float angle) { _transform.setRotation(angle); }
@@ -72,7 +73,7 @@ public:
   bool isHotspotVisible() { return _isHotspotVisible; }
 
   GGActor *getOwner() { return _pOwner; }
-  void setOwner(GGActor* pActor) { _pOwner = pActor; }
+  void setOwner(GGActor *pActor) { _pOwner = pActor; }
 
   // TODO: void setIcon(const std::string& icon);
 
@@ -101,6 +102,6 @@ private:
   float _angle;
   bool _isTouchable;
   bool _isLit;
-  GGActor* _pOwner;
+  GGActor *_pOwner;
 };
 } // namespace gg

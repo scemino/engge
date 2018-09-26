@@ -79,6 +79,7 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
                 s.setTextureRect(rect);
                 const auto &sourceRect = _toRect(json["frames"][layerName]["spriteSourceSize"]);
                 s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
+                s.move(sf::Vector2f(offsetX, 0));
                 offsetX += rect.width;
                 layer.getSprites().push_back(s);
             }
@@ -99,7 +100,7 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
         if (jLayer["parallax"].is_string())
         {
             auto parallax = _parsePos(jLayer["parallax"].get<std::string>());
-            layer.setParallax(sf::Vector2f(parallax));
+            layer.setParallax(parallax);
         }
         else
         {
@@ -205,11 +206,12 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         object->setHotspot(hotspot);
 
         bool isProp = !jObject["prop"].empty() && jObject["prop"].get<int>() == 1;
+        bool isSpot = !jObject["spot"].empty() && jObject["spot"].get<int>() == 1;
         // object->setVisible(jObject["prop"].empty() || jObject["prop"].get<int>() == 0);
         // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
         {
             object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
-            object->setUsePosition((sf::Vector2f)usePos);
+            object->setUsePosition(usePos);
         }
 
         // animations
@@ -269,7 +271,7 @@ void GGRoom::load(const char *name)
     }
 
     _sheet = jWimpy["sheet"].get<std::string>();
-    _roomSize = _parsePos(jWimpy["roomsize"].get<std::string>());
+    _roomSize = (sf::Vector2i)_parsePos(jWimpy["roomsize"].get<std::string>());
 
     // load json file
     std::string jsonFilename;

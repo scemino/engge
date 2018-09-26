@@ -6,13 +6,6 @@
 
 namespace gg
 {
-CostumeAnimation::CostumeAnimation(const std::string &name)
-    : _name(name)
-{
-}
-
-CostumeAnimation::~CostumeAnimation() = default;
-
 GGCostume::GGCostume(const GGEngineSettings &settings)
     : _settings(settings),
       _pCurrentAnimation(nullptr),
@@ -62,7 +55,7 @@ void GGCostume::loadCostume(const std::string &path)
     for (auto j : json["animations"])
     {
         auto name = j["name"].get<std::string>();
-        auto anim = new CostumeAnimation(name);
+        auto anim = new GGCostumeAnimation(name, _texture);
         for (auto jLayer : j["layers"])
         {
             auto layer = new GGLayer();
@@ -89,7 +82,7 @@ void GGCostume::loadCostume(const std::string &path)
         }
         std::cout << "found animation: " << name << std::endl;
 
-        _animations.push_back(std::unique_ptr<CostumeAnimation>(anim));
+        _animations.push_back(std::unique_ptr<GGCostumeAnimation>(anim));
     }
 }
 
@@ -131,28 +124,15 @@ void GGCostume::update(const sf::Time &elapsed)
 {
     if (!_pCurrentAnimation)
         return;
-    for (auto &i : _pCurrentAnimation->getLayers())
-    {
-        i->update(elapsed);
-    }
-
-    _sprites.clear();
-    for (auto &layer : _pCurrentAnimation->getLayers())
-    {
-        auto frame = layer->getIndex();
-        auto &rect = layer->getFrames()[frame];
-        auto &sourceRect = layer->getSourceFrames()[frame];
-        sf::Sprite sprite(_texture, rect);
-        sprite.setOrigin(-sourceRect.left, -sourceRect.top);
-        _sprites.push_back(sprite);
-    }
+    _pCurrentAnimation->update(elapsed);
 }
+
+
 
 void GGCostume::draw(sf::RenderWindow &window, const sf::RenderStates &states) const
 {
-    for (const auto &sprite : _sprites)
-    {
-        window.draw(sprite, states);
-    }
+    if (!_pCurrentAnimation)
+        return;
+    _pCurrentAnimation->draw(window, states);
 }
 } // namespace gg

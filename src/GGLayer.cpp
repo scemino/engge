@@ -9,13 +9,19 @@ GGLayer::GGLayer()
 
 GGLayer::~GGLayer() = default;
 
-void GGLayer::update(const sf::Time &elapsed)
+bool GGLayer::update(const sf::Time &elapsed)
 {
     _time += elapsed;
     if (_time.asSeconds() > (1.f / _fps))
     {
         _time = sf::seconds(0);
-        _index = static_cast<int>((_index + 1) % _frames.size());
+        _index = _index + 1;
+        if (_index == _frames.size())
+        {
+            _index = 0;
+            return true;
+        }
     }
+    return false;
 }
 } // namespace gg

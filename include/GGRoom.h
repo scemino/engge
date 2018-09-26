@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "squirrel3/squirrel.h"
 #include <nlohmann/json.hpp>
 #include "NonCopyable.h"
 #include "TextureManager.h"
@@ -22,6 +23,8 @@ public:
   std::vector<std::unique_ptr<GGObject>> &getObjects() { return _objects; }
   const std::string &getSheet() const { return _sheet; }
 
+  void setSquirrelObject(HSQOBJECT *pObject) { _pSquirrelObject = pObject; }
+
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
 
@@ -42,7 +45,7 @@ private:
   void drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
   void drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
-  
+
   void loadLayers(nlohmann::json jWimpy, nlohmann::json json);
   void loadObjects(nlohmann::json jWimpy, nlohmann::json json);
   void loadScalings(nlohmann::json jWimpy);
@@ -62,5 +65,6 @@ private:
   bool _showObjects;
   bool _showLayers;
   std::string _sheet;
+  HSQOBJECT *_pSquirrelObject;
 };
 } // namespace gg

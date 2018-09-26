@@ -255,12 +255,6 @@ function doOpening() {
     hideAll(r)
 }
 
-function trainPassby(Bridge) {
-    objectOffset(Bridge.bridgeTrain, -100, 0)
-    objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10)
-    playSound("BridgeTrain.ogg")
-}
-
 function flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
     local timeOff, timeOn, fadeIn, fadeOut
     objectAlpha(obj, randomfrom(0.0, 1.0))
@@ -306,56 +300,6 @@ function createFirefly(x) {
     }
 }
 
-function doOpening2() {
-    local Bridge = loadRoom("Bridge")
-    objectState(Bridge.bridgeBody, GONE)
-    objectState(Bridge.bridgeBottle, GONE)
-    objectState(Bridge.bridgeChainsaw, GONE)
-    objectParallaxLayer(Bridge.bridgeTrain, 2)
-    objectParallaxLayer(Bridge.frontWavingReeds1, -2)
-    objectParallaxLayer(Bridge.frontWavingReeds2, -2)
-    objectParallaxLayer(Bridge.frontWavingReeds3, -2)
-
-    local star = 0
-    for (local i = 1; i <= 28; i += 1) {
-        star = Bridge["bridgeStar" + i]
-        objectParallaxLayer(star, 5)
-
-        startthread(twinkleStar, star, 0.01, 0.1, random(0, 0.3), random(0.6, 1))
-    }
-    for (local i = 1; i <= 5; i += 1) {
-        star = Bridge["bridgeStarB" + i]
-        objectParallaxLayer(star, 5)
-
-        startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
-    }
-
-    for (local x = 0; x < 960; x += random(20, 40)) {
-        local firefly = createFirefly(x)
-        if (firefly) {
-            startthread(animateFirefly, firefly)
-        }
-    }
-    local willie = createActor()
-    actorAt(willie, Bridge.willieSpot)
-    actorCostume(willie, "WilliePassedOutAnimation")
-    actorLockFacing(willie, FACE_RIGHT)
-    actorPlayAnimation(willie, "awake")
-
-    cameraAt(700, 86)
-    roomFade(FADE_IN, 2)
-    breaktime(6)
-    cameraPanTo(210, 86, 12)
-    startthread(trainPassby, Bridge)
-
-    breaktime(2)
-    breaktime(12.0)
-    actorPlayAnimation(willie, "drink")
-    // hideAll(r)
-
-    breaktime(200.0)
-}
-
 function intro() {
     local r = loadRoom("StartScreen")
     startthread(flashRadioLight, r)
@@ -368,9 +312,127 @@ function intro() {
     }
 }
 
+soundBridgeTrain <- defineSound("BridgeTrain.ogg")				
+
+Bridge <- 
+{
+ background = "Bridge"
+ speck_of_dust = YES, speck_of_dust_collected = NO
+
+ no_cell_reception = YES
+
+ _lightObject1 = 0
+
+ _returnEntryNewOpening = NO
+ _watchForIdleTID = 0
+ _watchSwitchIconTID = 0
+ _willieSnoringTID = 0
+ _spookySoundSID = 0
+
+ selectActorHint = NO
+
+ agent_takes_picture = 0
+ otheragent_save_x = 0
+ otheragent_save_y = 0
+ otheragent_save_dir = 0
+
+ bridgeDragMark =
+ {
+   name = "@25710"
+   initState = GONE
+ }
+
+ trainPassby = function() {
+   objectOffset(Bridge.bridgeTrain, -100, 0)
+   objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10)
+   playSound(soundBridgeTrain)
+ }
+
+ enter = function() {
+   print("hello "+Bridge.bridgeDragMark.name+"\n")
+ }
+
+}
+
+defineRoom(Bridge)
+
+willie <- { 
+ _key = "willie"
+}
+createActor(willie)
+actorRenderOffset(willie, 0, 45)
+
+boris <- {
+ _key = "boris"
+}
+createActor(boris)
+actorRenderOffset(boris, 0, 45)
+
+function newOpeningScene() {
+    
+    cameraInRoom(Bridge)
+    objectState(Bridge.bridgeBody, GONE)
+    objectState(Bridge.bridgeBottle, GONE)
+    objectState(Bridge.bridgeChainsaw, GONE)
+    objectParallaxLayer(Bridge.bridgeTrain, 2)
+    objectParallaxLayer(Bridge.frontWavingReeds1, -2)
+    objectParallaxLayer(Bridge.frontWavingReeds2, -2)
+    objectParallaxLayer(Bridge.frontWavingReeds3, -2)
+
+
+    // local star = 0
+    // for (local i = 1; i <= 28; i += 1) {
+    //     star = Bridge["bridgeStar" + i]
+    //     objectParallaxLayer(star, 5)
+
+    //     startthread(twinkleStar, star, 0.01, 0.1, random(0, 0.3), random(0.6, 1))
+    // }
+    // for (local i = 1; i <= 5; i += 1) {
+    //     star = Bridge["bridgeStarB" + i]
+    //     objectParallaxLayer(star, 5)
+
+    //     startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+    // }
+
+    // for (local x = 0; x < 960; x += random(20, 40)) {
+    //     local firefly = createFirefly(x)
+    //     if (firefly) {
+    //         startthread(animateFirefly, firefly)
+    //     }
+    // }
+    actorAt(willie, Bridge.willieSpot)
+    actorCostume(willie, "WilliePassedOutAnimation")
+    actorLockFacing(willie, FACE_RIGHT)
+    actorPlayAnimation(willie, "awake")
+    actorAt(boris, Bridge.borisStartSpot)
+    actorCostume(boris, "BorisAnimation")
+    actorLockFacing(boris, FACE_RIGHT)
+    // actorFace(boris, FACE_RIGHT)
+
+    // cameraAt(700, 86)
+    // roomFade(FADE_IN, 2)
+    // breaktime(6)
+    // cameraPanTo(210, 86, 12)
+    // startthread(Bridge.trainPassby)
+
+    breaktime(2)
+    // breaktime(12.0)
+    actorPlayAnimation(willie, "drink")
+    breakwhileanimating(willie)
+    actorPlayAnimation(willie, "awake")
+    breaktime(2)
+    // selectActor(boris)
+    actorWalkTo(boris, Bridge.bridgeGateBack)
+    // breakwhilewalking(boris)
+    // cameraFollow(boris)
+
+    breaktime(200.0)
+}
+
+startthread(newOpeningScene)
+
 // intro();
 // startthread(doOpening)
-startthread(doOpening2)
 // loadRoom("AStreet")
 // loadRoom("Bridge")
 // loadRoom("MansionEntry")

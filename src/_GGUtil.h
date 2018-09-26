@@ -35,12 +35,12 @@ static UseDirection _toDirection(const std::string &text)
     return UseDirection::Front;
 }
 
-static sf::Vector2i _parsePos(const std::string &text)
+static sf::Vector2f _parsePos(const std::string &text)
 {
     auto commaPos = text.find_first_of(',');
-    auto x = atoi(text.substr(1, commaPos - 1).c_str());
-    auto y = atoi(text.substr(commaPos + 1, text.length() - 1).c_str());
-    return sf::Vector2i(x, y);
+    auto x = atof(text.substr(1, commaPos - 1).c_str());
+    auto y = atof(text.substr(commaPos + 1, text.length() - 1).c_str());
+    return sf::Vector2f(x, y);
 }
 
 static sf::IntRect _parseRect(const std::string &text)

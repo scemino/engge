@@ -15,9 +15,9 @@ namespace gg
 GGEngine::GGEngine(const GGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
-      _room(_textureManager, settings),
       _fadeAlpha(0),
-      _pWindow(nullptr)
+      _pWindow(nullptr),
+      _pRoom(nullptr)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -47,7 +47,9 @@ void GGEngine::moveCamera(const sf::Vector2f &offset)
         _cameraPos.x = 0;
     if (_cameraPos.y < 0)
         _cameraPos.y = 0;
-    const auto &size = _room.getRoomSize();
+    if (!_pRoom)
+        return;
+    const auto &size = _pRoom->getRoomSize();
     if (_cameraPos.x > size.x - 320)
         _cameraPos.x = size.x - 320;
     if (_cameraPos.y > size.y - 180)
@@ -72,7 +74,8 @@ void GGEngine::update(const sf::Time &elapsed)
     {
         actor->update(elapsed);
     }
-    _room.update(elapsed);
+    if(!_pRoom) return;
+    _pRoom->update(elapsed);
 }
 
 void GGEngine::loopMusic(const std::string &name)
@@ -105,6 +108,21 @@ SoundId *GGEngine::playSound(const std::string &name, bool loop)
     return sound;
 }
 
+SoundId *GGEngine::defineSound(const std::string &name)
+{
+    std::string path(_settings.getGamePath());
+    path.append(name);
+    auto sound = new SoundId();
+    if (!sound->buffer.loadFromFile(path))
+    {
+        std::cerr << "Can't load the sound" << std::endl;
+        return nullptr;
+    }
+    _sounds.push_back(std::unique_ptr<SoundId>(sound));
+    sound->sound.setBuffer(sound->buffer);
+    return sound;
+}
+
 void GGEngine::stopSound(SoundId &sound)
 {
     std::cout << "stopSound" << std::endl;
@@ -114,7 +132,8 @@ void GGEngine::stopSound(SoundId &sound)
 void GGEngine::draw(sf::RenderWindow &window) const
 {
     auto cameraPos = _cameraPos;
-    _room.draw(window, cameraPos);
+    if(!_pRoom) return;
+    _pRoom->draw(window, cameraPos);
     for (auto &actor : _actors)
     {
         actor->draw(window, cameraPos);
@@ -135,7 +154,8 @@ void GGEngine::playState(GGObject &object, int index)
     object.setStateAnimIndex(index);
 }
 
-SoundId::~SoundId() {
+SoundId::~SoundId()
+{
     sound.stop();
 }
 } // namespace gg

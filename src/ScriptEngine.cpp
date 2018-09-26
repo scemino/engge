@@ -50,6 +50,39 @@ class _BreakHereFunction : public Function
     }
 };
 
+class _BreakWhileAnimatingFunction : public Function
+{
+  private:
+    HSQUIRRELVM _vm;
+    GGActor &_actor;
+
+  public:
+    explicit _BreakWhileAnimatingFunction(HSQUIRRELVM vm, GGActor &actor)
+        : _vm(vm), _actor(actor)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        bool isPlaying = _actor.getCostume().getAnimation()->isPlaying();
+        return !isPlaying;
+    }
+
+    void operator()() override
+    {
+        if (!isElapsed())
+            return;
+
+        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
+            return;
+        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
+        {
+            std::cerr << "_BreakWhileAnimatingFunction: failed to wakeup: " << _vm << std::endl;
+            sqstd_printcallstack(_vm);
+        }
+    }
+};
+
 class _BreakTimeFunction : public TimeFunction
 {
   private:
@@ -155,47 +188,58 @@ void _errorfunc(HSQUIRRELVM v, const SQChar *s, ...)
 
 static GGObject *_getObject(HSQUIRRELVM v, int index)
 {
-    GGObject *obj = nullptr;
-    const SQChar *name;
-
-    sq_push(v, index);
-    sq_pushnull(v); //null iterator
-    while (SQ_SUCCEEDED(sq_next(v, -2)))
+    HSQOBJECT object;
+    if (SQ_FAILED(sq_getstackobj(v, index, &object)))
     {
-        //here -1 is the value and -2 is the key
-        sq_getstring(v, -2, &name);
-        sq_getuserpointer(v, -1, (SQUserPointer *)&obj);
-        sq_pop(v, 2); //pops key and val before the nex iteration
+        return nullptr;
     }
-
-    sq_pop(v, 1); //pops the null iterator
-    return obj;
+    sq_pushobject(v, object);
+    sq_pushstring(v, _SC("instance"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return nullptr;
+    }
+    GGObject *pObj = nullptr;
+    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
+    {
+        sq_pop(v, 2);
+        return nullptr;
+    }
+    sq_pop(v, 2);
+    return pObj;
 }
 
 static GGActor *_getActor(HSQUIRRELVM v, int index)
 {
-    GGActor *actor = nullptr;
-    const SQChar *name;
-
-    sq_push(v, index);
-    sq_pushnull(v); //null iterator
-    while (SQ_SUCCEEDED(sq_next(v, -2)))
+    HSQOBJECT object;
+    if (SQ_FAILED(sq_getstackobj(v, index, &object)))
     {
-        //here -1 is the value and -2 is the key
-        sq_getstring(v, -2, &name);
-        sq_getuserpointer(v, -1, (SQUserPointer *)&actor);
-        sq_pop(v, 2); //pops key and val before the nex iteration
+        return nullptr;
     }
-
-    sq_pop(v, 1); //pops the null iterator
-    return actor;
+    sq_pushobject(v, object);
+    sq_pushstring(v, _SC("instance"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return nullptr;
+    }
+    GGActor *pActor = nullptr;
+    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pActor)))
+    {
+        sq_pop(v, 2);
+        return nullptr;
+    }
+    sq_pop(v, 2);
+    return pActor;
 }
 
-static void _pushActor(HSQUIRRELVM v, GGActor *pActor)
+template <class T>
+static void _pushObject(HSQUIRRELVM v, T &object)
 {
     sq_newtable(v);
     sq_pushstring(v, _SC("instance"), -1);
-    sq_pushuserpointer(v, pActor);
+    sq_pushuserpointer(v, &object);
     sq_newslot(v, -3, SQFalse);
 }
 
@@ -390,7 +434,7 @@ static SQInteger _objectMoveTo(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _play_state(HSQUIRRELVM v)
+static SQInteger _playState(HSQUIRRELVM v)
 {
     SQInteger index;
     GGObject *obj = _getObject(v, 2);
@@ -428,22 +472,48 @@ static SQInteger _actorLockFacing(HSQUIRRELVM v)
 
 static SQInteger _actorPlayAnimation(HSQUIRRELVM v)
 {
-    const SQChar *name;
-    GGActor *actor = _getActor(v, 2);
+    const SQChar *name = nullptr;
+    GGActor *pActor = _getActor(v, 2);
     if (SQ_FAILED(sq_getstring(v, 3, &name)))
     {
         return sq_throwerror(v, _SC("failed to get name"));
     }
-    actor->getCostume().setState(name);
+    std::cout << "Play anim " << name << std::endl;
+    pActor->getCostume().setState(name);
+    pActor->getCostume().getAnimation()->play();
     return 0;
+}
+
+static SQInteger _breakwhileanimating(HSQUIRRELVM v)
+{
+    auto *pActor = _getActor(v, 2);
+    auto result = sq_suspendvm(v);
+    g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(v, *pActor));
+    return result;
 }
 
 static SQInteger _actorAt(HSQUIRRELVM v)
 {
-    GGActor *actor = _getActor(v, 2);
-    GGObject *obj = _getObject(v, 3);
-    auto pos = obj->getPosition();
-    actor->setPosition(pos);
+    auto *pActor = _getActor(v, 2);
+    auto *pObj = _getObject(v, 3);
+    auto pos = pObj->getPosition();
+    pActor->setPosition(sf::Vector2f(pos.x - Screen::HalfWidth, pos.y - Screen::HalfHeight));
+    return 0;
+}
+
+static SQInteger _actorRenderOffset(HSQUIRRELVM v)
+{
+    auto *pActor = _getActor(v, 2);
+    SQInteger x, y;
+    if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+    {
+        return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+    {
+        return sq_throwerror(v, _SC("failed to get y"));
+    }
+    pActor->setRenderOffset(sf::Vector2i(x, y));
     return 0;
 }
 
@@ -563,7 +633,7 @@ static SQInteger _objectParallaxLayer(HSQUIRRELVM v)
 static SQInteger _objectTouchable(HSQUIRRELVM v)
 {
     SQBool isTouchable;
-    GGObject *obj = _getObject(v, 2);
+    auto *obj = _getObject(v, 2);
     if (SQ_FAILED(sq_getbool(v, 3, &isTouchable)))
     {
         return sq_throwerror(v, _SC("failed to get isTouchable parameter"));
@@ -575,7 +645,7 @@ static SQInteger _objectTouchable(HSQUIRRELVM v)
 static SQInteger _objectLit(HSQUIRRELVM v)
 {
     SQBool isLit;
-    GGObject *obj = _getObject(v, 2);
+    auto *obj = _getObject(v, 2);
     if (SQ_FAILED(sq_getbool(v, 3, &isLit)))
     {
         return sq_throwerror(v, _SC("failed to get isLit parameter"));
@@ -586,14 +656,14 @@ static SQInteger _objectLit(HSQUIRRELVM v)
 
 static SQInteger _objectOwner(HSQUIRRELVM v)
 {
-    GGObject *obj = _getObject(v, 2);
-    _pushActor(v, obj->getOwner());
+    auto *obj = _getObject(v, 2);
+    _pushObject(v, *obj->getOwner());
     return 1;
 }
 
 static SQInteger _objectUsePos(HSQUIRRELVM v)
 {
-    GGObject *obj = _getObject(v, 2);
+    auto *obj = _getObject(v, 2);
     SQInteger x, y, dir;
     if (SQ_FAILED(sq_getinteger(v, 3, &x)))
     {
@@ -673,6 +743,21 @@ static SQInteger _actorTalkColors(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _actorWalkTo(HSQUIRRELVM v)
+{
+    auto *pActor = _getActor(v, 2);
+    auto *pObject = _getObject(v, 3);
+
+    auto get = std::bind(&GGActor::getPosition, pActor);
+    auto set = std::bind(&GGActor::setPosition, pActor, std::placeholders::_1);
+    auto destination = pObject->getPosition();
+    auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(4));
+    pActor->getCostume().setState("walk");
+    pActor->getCostume().getAnimation()->play();
+    g_pEngine->addFunction(std::move(offsetTo));
+    return 0;
+}
+
 static SQInteger _cameraAt(HSQUIRRELVM v)
 {
     SQInteger x, y;
@@ -726,14 +811,14 @@ static SQInteger _objectHidden(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _break_here(HSQUIRRELVM v)
+static SQInteger _breakHere(HSQUIRRELVM v)
 {
     auto result = sq_suspendvm(v);
     g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(v));
     return result;
 }
 
-static SQInteger _break_time(HSQUIRRELVM v)
+static SQInteger _breakTime(HSQUIRRELVM v)
 {
     SQFloat time = 0;
     if (SQ_FAILED(sq_getfloat(v, 2, &time)))
@@ -743,21 +828,6 @@ static SQInteger _break_time(HSQUIRRELVM v)
     auto result = sq_suspendvm(v);
     g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
     return result;
-}
-
-static void _push_object(HSQUIRRELVM v, GGObject &object)
-{
-    sq_newtable(v);
-    sq_pushstring(v, _SC("instance"), -1);
-    sq_pushuserpointer(v, &object);
-    sq_newslot(v, -3, SQFalse);
-}
-
-static void _set_object_slot(HSQUIRRELVM v, const SQChar *name, GGObject &object)
-{
-    sq_pushstring(v, name, -1);
-    _push_object(v, object);
-    sq_newslot(v, -3, SQFalse);
 }
 
 static SQInteger _translate(HSQUIRRELVM v)
@@ -793,7 +863,7 @@ static SQInteger _createTextObject(HSQUIRRELVM v)
     std::string s(text);
     obj.setText(s);
 
-    _push_object(v, obj);
+    _pushObject(v, obj);
     return 1;
 }
 
@@ -817,7 +887,7 @@ static SQInteger _createObject(HSQUIRRELVM v)
             anims.emplace_back(animName);
         }
         auto &obj = g_pEngine->getRoom().createObject(anims);
-        _push_object(v, obj);
+        _pushObject(v, obj);
         return 1;
     }
 
@@ -839,39 +909,29 @@ static SQInteger _createObject(HSQUIRRELVM v)
         }
         sq_pop(v, 1); //pops the null iterator
         auto &object = g_pEngine->getRoom().createObject(sheet, anims);
-        _push_object(v, object);
+        _pushObject(v, object);
     }
-    return 1;
-}
-
-static SQInteger _loadRoom(HSQUIRRELVM v)
-{
-    const SQChar *name;
-    if (SQ_FAILED(sq_getstring(v, 2, &name)))
-    {
-        return sq_throwerror(v, _SC("failed to get room name"));
-    }
-    auto &room = g_pEngine->getRoom();
-    room.load(name);
-
-    sq_newtable(v);
-    for (auto &obj : room.getObjects())
-    {
-        _set_object_slot(v, obj->getName().c_str(), *obj);
-    }
-
     return 1;
 }
 
 static SQInteger _createActor(HSQUIRRELVM v)
 {
+    HSQOBJECT table;
+    sq_resetobject(&table);
+    sq_getstackobj(v, 2, &table);
+
+    // define instance
     auto pActor = new GGActor(g_pEngine->getTextureManager());
-    _pushActor(v, pActor);
+    sq_pushobject(v, table);
+    sq_pushstring(v, _SC("instance"), -1);
+    sq_pushuserpointer(v, pActor);
+    sq_newslot(v, -3, SQFalse);
+
     g_pEngine->addActor(*pActor);
     return 1;
 }
 
-static SQInteger _stop_thread(HSQUIRRELVM v)
+static SQInteger _stopThread(HSQUIRRELVM v)
 {
     HSQOBJECT thread_obj;
     sq_resetobject(&thread_obj);
@@ -886,7 +946,7 @@ static SQInteger _stop_thread(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _start_thread(HSQUIRRELVM v)
+static SQInteger _startThread(HSQUIRRELVM v)
 {
     SQInteger size = sq_gettop(v);
 
@@ -1007,6 +1067,18 @@ SQInteger _loopMusic(HSQUIRRELVM v)
     return 0;
 }
 
+SQInteger _defineSound(HSQUIRRELVM v)
+{
+    const SQChar *filename;
+    if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+    {
+        return sq_throwerror(v, _SC("failed to get filename"));
+    }
+    auto sound = g_pEngine->defineSound(filename);
+    sq_pushuserpointer(v, sound);
+    return 1;
+}
+
 SQInteger _loopSound(HSQUIRRELVM v)
 {
     const SQChar *filename;
@@ -1066,12 +1138,113 @@ SQInteger _roomFade(HSQUIRRELVM v)
     return 0;
 }
 
+static void _setObjectSlot(HSQUIRRELVM v, const SQChar *name, GGObject &object)
+{
+    sq_pushstring(v, name, -1);
+    _pushObject(v, object);
+    sq_newslot(v, -3, SQFalse);
+}
+
+SQInteger _defineRoom(HSQUIRRELVM v)
+{
+    auto pRoom = new GGRoom(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+    HSQOBJECT table;
+    sq_getstackobj(v, 2, &table);
+    pRoom->setSquirrelObject(&table);
+
+    // loadRoom
+    sq_pushobject(v, table);
+    sq_pushstring(v, _SC("background"), 10);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        return sq_throwerror(v, _SC("can't find background entry"));
+    }
+    const SQChar *name;
+    sq_getstring(v, -1, &name);
+    sq_pop(v, 2);
+    pRoom->load(name);
+
+    // define instance
+    sq_pushobject(v, table);
+    sq_pushstring(v, _SC("instance"), -1);
+    sq_pushuserpointer(v, pRoom);
+    sq_newslot(v, -3, SQFalse);
+
+    // define room objects
+    for (auto &obj : pRoom->getObjects())
+    {
+        sq_pushobject(v, table);
+        sq_pushstring(v, obj->getName().data(), obj->getName().length());
+        if (SQ_FAILED(sq_get(v, -2)))
+        {
+            _setObjectSlot(v, obj->getName().data(), *obj);
+        }
+        else
+        {
+            HSQOBJECT object;
+            sq_getstackobj(v, -1, &object);
+            sq_pop(v, 2);
+            sq_pushobject(v, object);
+            sq_pushstring(v, _SC("instance"), -1);
+            sq_pushuserpointer(v, &obj);
+            sq_newslot(v, -3, SQFalse);
+            sq_pop(v, 1);
+        }
+    }
+
+    g_pEngine->addRoom(*pRoom);
+    return 0;
+}
+
+SQInteger _cameraInRoom(HSQUIRRELVM v)
+{
+    HSQOBJECT table;
+    sq_getstackobj(v, 2, &table);
+
+    // get room instance
+    sq_pushobject(v, table);
+    sq_pushstring(v, _SC("instance"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        return sq_throwerror(v, _SC("can't find instance entry"));
+    }
+    const SQChar *name;
+    GGRoom *pRoom = nullptr;
+    sq_getuserpointer(v, -1, (SQUserPointer *)&pRoom);
+    sq_pop(v, 2);
+
+    // set camera in room
+    g_pEngine->setRoom(pRoom);
+
+    // call enter room function
+    sq_pushobject(v, table);
+    sq_pushstring(v, "enter", 5);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        return sq_throwerror(v, _SC("can't find enter function"));
+    }
+
+    sq_remove(v, -2);
+    sq_pushobject(v, table);
+    if (SQ_FAILED(sq_call(v, 1, SQTrue, SQTrue)))
+    {
+        return sq_throwerror(v, _SC("function enter call failed"));
+    }
+    return 0;
+}
+
 SQInteger _playSound(HSQUIRRELVM v)
 {
     const SQChar *filename;
     if (SQ_FAILED(sq_getstring(v, 2, &filename)))
     {
-        return sq_throwerror(v, _SC("failed to get filename"));
+        SoundId *pSound;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        pSound->sound.play();
+        return 0;
     }
     SQUserPointer ptr = g_pEngine->playSound(filename, false);
     sq_pushuserpointer(v, ptr);
@@ -1122,20 +1295,24 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     // registerGlobalFunction(_dump, "dump");
     registerGlobalFunction(_loopMusic, "loopMusic");
     registerGlobalFunction(_loopSound, "loopSound");
+    registerGlobalFunction(_defineSound, "defineSound");
     registerGlobalFunction(_playSound, "playSound");
     registerGlobalFunction(_stopSound, "stopSound");
     registerGlobalFunction(_fadeOutSound, "fadeOutSound");
-    registerGlobalFunction(_roomFade, "roomFade");
 
-    registerGlobalFunction(_start_thread, "startthread");
-    registerGlobalFunction(_stop_thread, "stopthread");
-    registerGlobalFunction(_break_here, "breakhere");
-    registerGlobalFunction(_break_time, "breaktime");
-    registerGlobalFunction(_loadRoom, "loadRoom");
+    registerGlobalFunction(_roomFade, "roomFade");
+    registerGlobalFunction(_defineRoom, "defineRoom");
+    registerGlobalFunction(_cameraInRoom, "cameraInRoom");
+
+    registerGlobalFunction(_startThread, "startthread");
+    registerGlobalFunction(_stopThread, "stopthread");
+    registerGlobalFunction(_breakHere, "breakhere");
+    registerGlobalFunction(_breakTime, "breaktime");
+    registerGlobalFunction(_breakwhileanimating, "breakwhileanimating");
 
     registerGlobalFunction(_isObject, "isObject");
     registerGlobalFunction(_scale, "scale");
-    registerGlobalFunction(_play_state, "playObjectState");
+    registerGlobalFunction(_playState, "playObjectState");
     registerGlobalFunction(_objectHidden, "objectHidden");
     registerGlobalFunction(_objectAlpha, "objectAlpha");
     registerGlobalFunction(_objectAlphaTo, "objectAlphaTo");
@@ -1171,9 +1348,11 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_actorLockFacing, "actorLockFacing");
     registerGlobalFunction(_actorPlayAnimation, "actorPlayAnimation");
     registerGlobalFunction(_actorAt, "actorAt");
+    registerGlobalFunction(_actorRenderOffset, "actorRenderOffset");
     registerGlobalFunction(_sayLine, "sayLine");
     registerGlobalFunction(_actorUsePos, "actorUsePos");
     registerGlobalFunction(_actorTalkColors, "actorTalkColors");
+    registerGlobalFunction(_actorWalkTo, "actorWalkTo");
     registerGlobalFunction(_cameraAt, "cameraAt");
     registerGlobalFunction(_cameraPanTo, "cameraPanTo");
 }

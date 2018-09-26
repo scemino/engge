@@ -31,7 +31,7 @@ void GGActor::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) cons
 {
     sf::RenderStates states;
     states.transform = _transform;
-    states.transform.translate(-cameraPos);
+    states.transform.translate(-cameraPos - (sf::Vector2f)_renderOffset);
     _costume.draw(window, states);
 }
 
