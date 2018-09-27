@@ -29,7 +29,7 @@ public:
   void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
 
   void reset();
-  void play() { _state = AnimState::Play; }
+  void play(bool loop = false);
   void pause() { _state = AnimState::Pause; }
 
   sf::Sprite &getSprite() { return _sprite; }
@@ -44,5 +44,6 @@ private:
   sf::Time _time;
   size_t _index;
   AnimState _state;
+  bool _loop;
 };
 } // namespace gg

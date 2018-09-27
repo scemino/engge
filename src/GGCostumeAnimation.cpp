@@ -3,17 +3,23 @@
 namespace gg
 {
 GGCostumeAnimation::GGCostumeAnimation(const std::string &name, sf::Texture &texture)
-    : _texture(texture), _name(name), _state(AnimationState::Pause)
+    : _texture(texture), _name(name), _state(AnimationState::Pause), _loop(false)
 {
 }
 
 GGCostumeAnimation::~GGCostumeAnimation() = default;
 
+void GGCostumeAnimation::play(bool loop)
+{
+    _loop = loop;
+    _state = AnimationState::Play;
+}
+
 void GGCostumeAnimation::update(const sf::Time &elapsed)
 {
     if (!isPlaying())
         return;
-    bool isFinished = true;
+    bool isFinished = !_loop;
     for (auto &layer : _layers)
     {
         isFinished &= layer->update(elapsed);
@@ -28,6 +34,9 @@ void GGCostumeAnimation::draw(sf::RenderWindow &window, const sf::RenderStates &
 {
     for (auto &layer : _layers)
     {
+        if (!layer->getVisible())
+            continue;
+
         auto frame = layer->getIndex();
         auto &rect = layer->getFrames()[frame];
         auto &sourceRect = layer->getSourceFrames()[frame];

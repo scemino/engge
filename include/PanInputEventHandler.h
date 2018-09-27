@@ -11,7 +11,7 @@ class PanInputEventHandler : public InputEventHandler
     PanInputEventHandler(GGEngine &engine, sf::RenderWindow &window)
         : _engine(engine),
           _window(window),
-          _view(sf::FloatRect(0, 0, 320, 180)),
+          _view(sf::FloatRect(0, 0, Screen::Width, Screen::Height)),
           _isPressed(false)
     {
     }

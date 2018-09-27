@@ -454,7 +454,24 @@ static SQInteger _actorCostume(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("failed to get name"));
     }
-    actor->setCostume(name);
+    const SQChar *pSheet = nullptr;
+    sq_getstring(v, 4, &pSheet);
+    actor->setCostume(name, pSheet ? pSheet : "");
+    return 0;
+}
+
+static SQInteger _actorAnimationNames(HSQUIRRELVM v)
+{
+    const SQChar *head;
+    const SQChar *stand;
+    const SQChar *walk;
+    const SQChar *reach;
+    GGActor *pActor = _getActor(v, 2);
+    sq_getstring(v, 3, &head);
+    sq_getstring(v, 4, &stand);
+    sq_getstring(v, 5, &walk);
+    sq_getstring(v, 6, &reach);
+    pActor->setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "", reach ? reach : "");
     return 0;
 }
 
@@ -472,15 +489,17 @@ static SQInteger _actorLockFacing(HSQUIRRELVM v)
 
 static SQInteger _actorPlayAnimation(HSQUIRRELVM v)
 {
-    const SQChar *name = nullptr;
+    const SQChar *animation = nullptr;
     GGActor *pActor = _getActor(v, 2);
-    if (SQ_FAILED(sq_getstring(v, 3, &name)))
+    if (SQ_FAILED(sq_getstring(v, 3, &animation)))
     {
-        return sq_throwerror(v, _SC("failed to get name"));
+        return sq_throwerror(v, _SC("failed to get animation"));
     }
-    std::cout << "Play anim " << name << std::endl;
-    pActor->getCostume().setState(name);
-    pActor->getCostume().getAnimation()->play();
+    SQBool loop = false;
+    sq_getbool(v, 4, &loop);
+    std::cout << "Play anim " << animation << (loop ? " (loop)" : "") << std::endl;
+    pActor->getCostume().setState(animation);
+    pActor->getCostume().getAnimation()->play(loop);
     return 0;
 }
 
@@ -743,6 +762,57 @@ static SQInteger _actorTalkColors(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _actorDistanceTo(HSQUIRRELVM v)
+{
+    auto actor = _getActor(v, 2);
+    auto object = _getObject(v, 3);
+    auto pos = actor->getPosition() - object->getPosition();
+    auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
+    sq_pushinteger(v, dist);
+    return 1;
+}
+
+static SQInteger _actorDistanceWithin(HSQUIRRELVM v)
+{
+    auto actor = _getActor(v, 2);
+    auto object = _getObject(v, 3);
+    SQInteger distance;
+    if (SQ_FAILED(sq_getinteger(v, 4, &distance)))
+    {
+        return sq_throwerror(v, _SC("failed to get distance"));
+    }
+    auto pos = actor->getPosition() - object->getPosition();
+    auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
+    sq_pushbool(v, dist < distance);
+    return 1;
+}
+
+static SQInteger _actorAlpha(HSQUIRRELVM v)
+{
+    auto actor = _getActor(v, 2);
+    SQFloat transparency;
+    if (SQ_FAILED(sq_getfloat(v, 3, &transparency)))
+    {
+        return sq_throwerror(v, _SC("failed to get transparency"));
+    }
+    auto alpha = static_cast<sf::Uint8>(transparency * 255);
+    actor->setColor(sf::Color(static_cast<sf::Uint32>(actor->getColor().toInteger() << 8 | alpha)));
+    return 0;
+}
+
+static SQInteger _actorColor(HSQUIRRELVM v)
+{
+    auto actor = _getActor(v, 2);
+    SQInteger color;
+    if (SQ_FAILED(sq_getinteger(v, 3, &color)))
+    {
+        return sq_throwerror(v, _SC("failed to get fps"));
+    }
+    auto alpha = actor->getColor().toInteger() & 0x000000FF;
+    actor->setColor(sf::Color(static_cast<sf::Uint32>(color << 8 | alpha)));
+    return 0;
+}
+
 static SQInteger _actorWalkTo(HSQUIRRELVM v)
 {
     auto *pActor = _getActor(v, 2);
@@ -750,12 +820,38 @@ static SQInteger _actorWalkTo(HSQUIRRELVM v)
 
     auto get = std::bind(&GGActor::getPosition, pActor);
     auto set = std::bind(&GGActor::setPosition, pActor, std::placeholders::_1);
+    
+    // yes I known this is not enough, I need to take into account the walkbox
     auto destination = pObject->getPosition();
     auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(4));
     pActor->getCostume().setState("walk");
-    pActor->getCostume().getAnimation()->play();
+    pActor->getCostume().getAnimation()->play(true);
+    offsetTo->callWhenElapsed([pActor]{ pActor->getCostume().setState("stand"); });
     g_pEngine->addFunction(std::move(offsetTo));
+    
     return 0;
+}
+
+static SQInteger _actorShowHideLayer(HSQUIRRELVM v, bool isVisible)
+{
+    auto *pActor = _getActor(v, 2);
+    const SQChar *layerName;
+    if (SQ_FAILED(sq_getstring(v, 3, &layerName)))
+    {
+        return sq_throwerror(v, _SC("failed to get layerName"));
+    }
+    pActor->getCostume().setLayerVisible(layerName, isVisible);
+    return 0;
+}
+
+static SQInteger _actorHideLayer(HSQUIRRELVM v)
+{
+    return _actorShowHideLayer(v, false);
+}
+
+static SQInteger _actorShowLayer(HSQUIRRELVM v)
+{
+    return _actorShowHideLayer(v, true);
 }
 
 static SQInteger _cameraAt(HSQUIRRELVM v)
@@ -777,7 +873,6 @@ static SQInteger _cameraPanTo(HSQUIRRELVM v)
 {
     SQInteger x, y;
     SQFloat t;
-    sf::View view(sf::FloatRect(0, 0, Screen::Width, Screen::Height));
     if (SQ_FAILED(sq_getinteger(v, 2, &x)))
     {
         return sq_throwerror(v, _SC("failed to get x"));
@@ -1336,7 +1431,6 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_objectColor, "objectColor");
     registerGlobalFunction(_objectIcon, "objectIcon");
     registerGlobalFunction(_objectFPS, "objectFPS");
-    // TODO: objectValidUsePos, objectBumperCycle, objectRenderOffset, objectDependentOn, objectCenter
     registerGlobalFunction(_createObject, "createObject");
     registerGlobalFunction(_createTextObject, "createTextObject");
     registerGlobalFunction(_deleteObject, "deleteObject");
@@ -1344,6 +1438,13 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 
     registerGlobalFunction(_createActor, "createActor");
     registerGlobalFunction(_actorCostume, "actorCostume");
+    registerGlobalFunction(_actorShowLayer, "actorShowLayer");
+    registerGlobalFunction(_actorHideLayer, "actorHideLayer");
+    registerGlobalFunction(_actorAlpha, "actorAlpha");
+    registerGlobalFunction(_actorDistanceTo, "actorDistanceTo");
+    registerGlobalFunction(_actorDistanceWithin, "actorDistanceWithin");
+    registerGlobalFunction(_actorColor, "actorColor");
+    registerGlobalFunction(_actorAnimationNames, "actorAnimationNames");
     registerGlobalFunction(_actorLockFacing, "actorLockFacing");
     registerGlobalFunction(_actorLockFacing, "actorLockFacing");
     registerGlobalFunction(_actorPlayAnimation, "actorPlayAnimation");

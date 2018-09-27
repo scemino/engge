@@ -3,7 +3,8 @@
 namespace gg
 {
 GGLayer::GGLayer()
-    : _index(0)
+    : _index(0),
+     _isVisible(true)
 {
 }
 

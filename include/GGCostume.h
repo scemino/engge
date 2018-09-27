@@ -1,8 +1,10 @@
 #pragma once
 #include <sstream>
+#include <set>
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "GGEngineSettings.h"
+#include "TextureManager.h"
 #include "GGCostumeAnimation.h"
 
 namespace gg
@@ -18,15 +20,16 @@ enum class Facing
 class GGCostume : public NonCopyable
 {
 public:
-  explicit GGCostume(const GGEngineSettings &settings);
+  explicit GGCostume(TextureManager& textureManager);
   ~GGCostume();
 
-  void loadCostume(const std::string &name);
+  void loadCostume(const std::string &name, const std::string &sheet="");
   void lockFacing(Facing facing);
   void setState(const std::string &name);
   void setAnimation(const std::string &name);
-  const GGCostumeAnimation *getAnimation() const { return _pCurrentAnimation; }
-  GGCostumeAnimation *getAnimation() { return _pCurrentAnimation; }
+  const GGCostumeAnimation *getAnimation() const { return _pCurrentAnimation.get(); }
+  GGCostumeAnimation *getAnimation() { return _pCurrentAnimation.get(); }
+  void setLayerVisible(const std::string& name, bool isVisible);
 
   void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
   void update(const sf::Time &elapsed);
@@ -36,11 +39,13 @@ private:
 
 private:
   const GGEngineSettings &_settings;
+  TextureManager& _textureManager;
+  std::string _path;
   std::string _sheet;
-  std::vector<std::unique_ptr<GGCostumeAnimation>> _animations;
-  GGCostumeAnimation *_pCurrentAnimation;
+  std::unique_ptr<GGCostumeAnimation> _pCurrentAnimation;
   sf::Texture _texture;
   Facing _facing;
   std::string _animation;
+  std::set<std::string> _hiddenLayers;
 };
 } // namespace gg

@@ -20,7 +20,7 @@ class GGCostumeAnimation
     const std::string &getName() const { return _name; }
     std::vector<GGLayer *> &getLayers() { return _layers; }
 
-    void play() { _state = AnimationState::Play; }
+    void play(bool loop = false);
     void pause() { _state = AnimationState::Pause; }
     bool isPlaying() const { return _state == AnimationState::Play; }
 
@@ -32,5 +32,6 @@ class GGCostumeAnimation
     std::string _name;
     std::vector<GGLayer *> _layers;
     AnimationState _state;
+    bool _loop;
 };
 } // namespace gg

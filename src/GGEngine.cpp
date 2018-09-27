@@ -50,10 +50,10 @@ void GGEngine::moveCamera(const sf::Vector2f &offset)
     if (!_pRoom)
         return;
     const auto &size = _pRoom->getRoomSize();
-    if (_cameraPos.x > size.x - 320)
-        _cameraPos.x = size.x - 320;
-    if (_cameraPos.y > size.y - 180)
-        _cameraPos.y = size.y - 180;
+    if (_cameraPos.x > size.x - Screen::Width)
+        _cameraPos.x = size.x - Screen::Width;
+    if (_cameraPos.y > size.y - Screen::Height)
+        _cameraPos.y = size.y - Screen::Height;
 }
 
 void GGEngine::update(const sf::Time &elapsed)

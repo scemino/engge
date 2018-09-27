@@ -406,6 +406,7 @@ function newOpeningScene() {
     actorPlayAnimation(willie, "awake")
     actorAt(boris, Bridge.borisStartSpot)
     actorCostume(boris, "BorisAnimation")
+    actorHideLayer(boris, "splash")
     actorLockFacing(boris, FACE_RIGHT)
     // actorFace(boris, FACE_RIGHT)
 
@@ -440,6 +441,11 @@ startthread(newOpeningScene)
 // loadRoom("SheriffsOffice")
 // loadRoom("QuickiePal")
 // loadRoom("QuickiePalOutside")
-// loadRoom("Cemetery")
+// Cemetery <- 
+// {
+//  background = "Cemetery"
+// }
+// defineRoom(Cemetery)
+// cameraInRoom(Cemetery)
 // loadRoom("HotelLobby")
 // loadRoom("Alleyway")

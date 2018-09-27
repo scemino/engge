@@ -18,10 +18,11 @@ class TimeFunction : public Function
 protected:
   sf::Clock _clock;
   sf::Time _time;
+  std::function<void()> _function;
 
 public:
   explicit TimeFunction(const sf::Time &time)
-      : _time(time)
+      : _time(time), _function([](){})
   {
   }
 
@@ -29,7 +30,11 @@ public:
 
   bool isElapsed() override
   {
-    return _clock.getElapsedTime() > _time;
+    auto isElapsed = _clock.getElapsedTime() > _time;
+    if(isElapsed) _function();
+    return isElapsed;
   }
+
+  void callWhenElapsed(std::function<void()> function) { _function = function; }
 };
 } // namespace gg

@@ -6,8 +6,9 @@
 
 namespace gg
 {
-GGCostume::GGCostume(const GGEngineSettings &settings)
-    : _settings(settings),
+GGCostume::GGCostume(TextureManager &textureManager)
+    : _settings(textureManager.getSettings()),
+      _textureManager(textureManager),
       _pCurrentAnimation(nullptr),
       _facing(Facing::FACE_FRONT),
       _animation("stand")
@@ -15,6 +16,16 @@ GGCostume::GGCostume(const GGEngineSettings &settings)
 }
 
 GGCostume::~GGCostume() = default;
+
+void GGCostume::setLayerVisible(const std::string &name, bool isVisible)
+{
+    if (!isVisible)
+    {
+        _hiddenLayers.emplace(name);
+        return;
+    }
+    _hiddenLayers.erase(name);
+}
 
 void GGCostume::lockFacing(Facing facing)
 {
@@ -28,15 +39,24 @@ void GGCostume::setState(const std::string &name)
     updateAnimation();
 }
 
-void GGCostume::loadCostume(const std::string &path)
+void GGCostume::loadCostume(const std::string &path, const std::string &sheet)
+{
+    _path = path;
+    _sheet = sheet;
+}
+
+void GGCostume::setAnimation(const std::string &animName)
 {
     nlohmann::json json;
     nlohmann::json jSheet;
     {
-        std::ifstream i(path);
+        std::ifstream i(_path);
         i >> json;
     }
-    _sheet = json["sheet"].get<std::string>();
+    if (_sheet.empty())
+    {
+        _sheet = json["sheet"].get<std::string>();
+    }
 
     std::string sheetPath(_settings.getGamePath());
     sheetPath.append(_sheet).append(".json");
@@ -46,22 +66,24 @@ void GGCostume::loadCostume(const std::string &path)
     }
 
     // load texture
-    std::string sheetPng(_settings.getGamePath());
-    sheetPng.append(_sheet).append(".png");
-    _texture.loadFromFile(sheetPng);
+    _texture = _textureManager.get(_sheet);
 
-    // create animations
-    _animations.clear();
+    // find animation matching name
     for (auto j : json["animations"])
     {
         auto name = j["name"].get<std::string>();
-        auto anim = new GGCostumeAnimation(name, _texture);
+        if (animName != name)
+            continue;
+
+        _pCurrentAnimation = std::make_unique<GGCostumeAnimation>(name, _texture);
         for (auto jLayer : j["layers"])
         {
             auto layer = new GGLayer();
             auto fps = jLayer["fps"].is_null() ? 10 : jLayer["fps"].get<int>();
             layer->setFps(fps);
             auto layerName = jLayer["name"].get<std::string>();
+            layer->setVisible(_hiddenLayers.find(layerName)==_hiddenLayers.end());
+            layer->setName(layerName);
             for (const auto &jFrame : jLayer["frames"])
             {
                 auto frameName = jFrame.get<std::string>();
@@ -78,11 +100,9 @@ void GGCostume::loadCostume(const std::string &path)
                     layer->getSourceFrames().push_back(_toRect(jf["spriteSourceSize"]));
                 }
             }
-            anim->getLayers().push_back(layer);
+            _pCurrentAnimation->getLayers().push_back(layer);
         }
         std::cout << "found animation: " << name << std::endl;
-
-        _animations.push_back(std::unique_ptr<GGCostumeAnimation>(anim));
     }
 }
 
@@ -108,26 +128,12 @@ void GGCostume::updateAnimation()
     setAnimation(name);
 }
 
-void GGCostume::setAnimation(const std::string &name)
-{
-    for (auto &animation : _animations)
-    {
-        if (animation->getName() == name)
-        {
-            _pCurrentAnimation = animation.get();
-            return;
-        }
-    }
-}
-
 void GGCostume::update(const sf::Time &elapsed)
 {
     if (!_pCurrentAnimation)
         return;
     _pCurrentAnimation->update(elapsed);
 }
-
-
 
 void GGCostume::draw(sf::RenderWindow &window, const sf::RenderStates &states) const
 {

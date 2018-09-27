@@ -11,13 +11,19 @@ GGAnimation::GGAnimation(const sf::Texture &texture, const std::string &name)
 GGAnimation::~GGAnimation() = default;
 
 void GGAnimation::reset()
-{ 
-    _index = 0; 
+{
+    _index = 0;
     if (_rects.empty())
         return;
     auto &sourceRect = _sourceRects[_index];
     _sprite.setTextureRect(_rects[_index]);
     _sprite.setOrigin(-sourceRect.left, -sourceRect.top);
+}
+
+void GGAnimation::play(bool loop)
+{
+    _loop = loop;
+    _state = AnimState::Play;
 }
 
 void GGAnimation::update(const sf::Time &elapsed)
