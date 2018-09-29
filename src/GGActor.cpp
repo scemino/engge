@@ -6,11 +6,11 @@ GGActor::GGActor(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _costume(textureManager),
       _color(sf::Color::White),
-      _headAnimName("head"),
-      _standAnimName("stand"),
-      _walkAnimName("walk"),
-      _reachAnimName("reach")
+      _talkColor(sf::Color::White)
 {
+    _font.setSettings(&_settings);
+    _font.setTextureManager(&textureManager);
+    _font.load("FontModernSheet");
 }
 
 GGActor::~GGActor() = default;
@@ -39,30 +39,12 @@ void GGActor::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) cons
     states.transform = _transform;
     states.transform.translate(-cameraPos - (sf::Vector2f)_renderOffset);
     _costume.draw(window, states);
+    if(_sayText.empty()) return;
+    _font.draw(_sayText, window, _talkColor, states);
 }
 
 void GGActor::update(const sf::Time &time)
 {
     _costume.update(time);
-}
-
-void GGActor::setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim)
-{
-    if (!headAnim.empty())
-    {
-        _headAnimName = headAnim;
-    }
-    if (!standAnim.empty())
-    {
-        _standAnimName = standAnim;
-    }
-    if (!walkAnim.empty())
-    {
-        _walkAnimName = walkAnim;
-    }
-    if (!reachAnim.empty())
-    {
-        _reachAnimName = reachAnim;
-    }
 }
 } // namespace gg

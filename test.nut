@@ -1,3 +1,6 @@
+const talkColorBoris		= 0x3ea4b5
+const talkColorWillie		= 0xc69c6d
+
 function hideAll(r) {
     foreach (obj in r) {
         if (isObject(obj)) {
@@ -406,7 +409,17 @@ function newOpeningScene() {
     actorPlayAnimation(willie, "awake")
     actorAt(boris, Bridge.borisStartSpot)
     actorCostume(boris, "BorisAnimation")
+    actorTalkColors(boris, talkColorBoris)
+
     actorHideLayer(boris, "splash")
+    actorHideLayer(boris, "eyes_left")
+    actorHideLayer(boris, "eyes_right")
+    actorHideLayer(boris, "blink")
+    
+    // actorHideLayer(boris, "head6")
+    // actorHideLayer(boris, "head5")
+    // actorHideLayer(boris, "head4")
+    // actorHideLayer(boris, "head3")
     actorLockFacing(boris, FACE_RIGHT)
     // actorFace(boris, FACE_RIGHT)
 
@@ -416,16 +429,30 @@ function newOpeningScene() {
     // cameraPanTo(210, 86, 12)
     // startthread(Bridge.trainPassby)
 
-    breaktime(2)
+    // breaktime(2)
     // breaktime(12.0)
-    actorPlayAnimation(willie, "drink")
-    breakwhileanimating(willie)
-    actorPlayAnimation(willie, "awake")
-    breaktime(2)
+    // actorAt(boris, Bridge.bridgeGateBack)
+    // actorLockFacing(boris, FACE_FRONT)
+    // actorPlayAnimation(boris, "talk")
+    // actorPlayAnimation(willie, "drink")
+    // breakwhileanimating(willie)
+    // actorPlayAnimation(willie, "awake")
+    // breaktime(2)
     // selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
-    // breakwhilewalking(boris)
+    // actorAt(boris, Bridge.bridgeGateBack)
+    breakwhilewalking(boris)
     // cameraFollow(boris)
+    actorLockFacing(boris, FACE_FRONT)
+    actorPlayAnimation(willie, "stand")
+    breaktime(1.0)
+    actorShowLayer(boris, "blink")
+    breaktime(0.1)
+    actorHideLayer(boris, "blink")
+    sayLine(boris, "@25541", "@25542")
+    
+    
+    // breakwhiletalking(boris)
 
     breaktime(200.0)
 }

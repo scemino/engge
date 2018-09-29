@@ -27,7 +27,7 @@ void GGFont::load(const std::string &path)
     _jsonFilename.append(".json");
 }
 
-void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states) const
+void GGFont::draw(const std::string &text, sf::RenderTarget &target, const sf::Color& color, sf::RenderStates states) const
 {
     nlohmann::json json;
     std::ifstream input(_jsonFilename);
@@ -59,7 +59,7 @@ void GGFont::draw(const std::string &text, sf::RenderTarget &target, sf::RenderS
         _sprite.setTextureRect(rect);
         _sprite.setTexture(_textureManager->get(_path));
         _sprite.setOrigin(-sourceRect.left, -sourceRect.top);
-        _sprite.setColor(sf::Color(0x3ea4b5ff));
+        _sprite.setColor(color);
         _sprite.setPosition(x, 0);
         target.draw(_sprite, states);
         x += std::max(rect.width * scale, 10.f * scale);

@@ -4,6 +4,7 @@
 #include "NonCopyable.h"
 #include "TextureManager.h"
 #include "GGCostume.h"
+#include "GGFont.h"
 
 namespace gg
 {
@@ -13,6 +14,9 @@ public:
   explicit GGActor(TextureManager &textureManager);
   ~GGActor();
 
+  void setName(const std::string &name) { _name = name; }
+  const std::string &getName() const { return _name; }
+
   void setCostume(const std::string &name, const std::string &sheet = "");
   GGCostume &getCostume() { return _costume; }
   const GGCostume &getCostume() const { return _costume; }
@@ -21,6 +25,7 @@ public:
   sf::Color getTalkColor() { return _talkColor; }
   void setColor(sf::Color color) { _color = color; }
   sf::Color getColor() { return _color; }
+  void say(const std::string &text) { _sayText = text; }
 
   void move(const sf::Vector2f &offset);
   sf::Vector2f getPosition() const { return _transform.transformPoint(0, 0); }
@@ -30,18 +35,15 @@ public:
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void update(const sf::Time &time);
 
-  void setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim);
-
 private:
   const GGEngineSettings &_settings;
   GGCostume _costume;
+  std::string _name;
   sf::Transform _transform;
   sf::Color _color;
   sf::Color _talkColor;
   sf::Vector2i _renderOffset;
-  std::string _headAnimName;
-  std::string _standAnimName;
-  std::string _walkAnimName;
-  std::string _reachAnimName;
+  GGFont _font;
+  std::string _sayText;
 };
 } // namespace gg

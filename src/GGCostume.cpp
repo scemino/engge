@@ -11,7 +11,12 @@ GGCostume::GGCostume(TextureManager &textureManager)
       _textureManager(textureManager),
       _pCurrentAnimation(nullptr),
       _facing(Facing::FACE_FRONT),
-      _animation("stand")
+      _animation("stand"),
+      _headAnimName("head"),
+      _standAnimName("stand"),
+      _walkAnimName("walk"),
+      _reachAnimName("reach"),
+      _headIndex(0)
 {
 }
 
@@ -22,9 +27,17 @@ void GGCostume::setLayerVisible(const std::string &name, bool isVisible)
     if (!isVisible)
     {
         _hiddenLayers.emplace(name);
-        return;
-    }
+    }else{
     _hiddenLayers.erase(name);
+    }
+    if(_pCurrentAnimation==nullptr) return;
+    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](GGLayer *pLayer) {
+        return pLayer->getName() == name;
+    });
+    if (it != _pCurrentAnimation->getLayers().end())
+    {
+        (*it)->setVisible(isVisible);
+    }
 }
 
 void GGCostume::lockFacing(Facing facing)
@@ -72,6 +85,7 @@ void GGCostume::setAnimation(const std::string &animName)
     for (auto j : json["animations"])
     {
         auto name = j["name"].get<std::string>();
+        std::cout << "Anim: " << name << std::endl;
         if (animName != name)
             continue;
 
@@ -82,7 +96,7 @@ void GGCostume::setAnimation(const std::string &animName)
             auto fps = jLayer["fps"].is_null() ? 10 : jLayer["fps"].get<int>();
             layer->setFps(fps);
             auto layerName = jLayer["name"].get<std::string>();
-            layer->setVisible(_hiddenLayers.find(layerName)==_hiddenLayers.end());
+            layer->setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
             layer->setName(layerName);
             for (const auto &jFrame : jLayer["frames"])
             {
@@ -99,6 +113,10 @@ void GGCostume::setAnimation(const std::string &animName)
                     layer->getFrames().push_back(_toRect(jf["frame"]));
                     layer->getSourceFrames().push_back(_toRect(jf["spriteSourceSize"]));
                 }
+            }
+            for (const auto &jOffset : jLayer["offsets"])
+            {
+                layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.get<std::string>()));
             }
             _pCurrentAnimation->getLayers().push_back(layer);
         }
@@ -140,5 +158,44 @@ void GGCostume::draw(sf::RenderWindow &window, const sf::RenderStates &states) c
     if (!_pCurrentAnimation)
         return;
     _pCurrentAnimation->draw(window, states);
+}
+
+void GGCostume::setHeadIndex(int index)
+{
+    _headIndex = index;
+    for (int i = 0; i < 6; i++)
+    {
+        std::ostringstream s;
+        s << _headAnimName << (i + 1);
+        // std::cout << "setLayerVisible(" << s.str() << "," << (_headIndex == i) << ")" << std::endl;
+        auto layerName = s.str();
+        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](GGLayer *pLayer) {
+            return pLayer->getName() == layerName;
+        });
+        if (it != _pCurrentAnimation->getLayers().end())
+        {
+            (*it)->setVisible(_headIndex == i);
+        }
+    }
+}
+
+void GGCostume::setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim)
+{
+    if (!headAnim.empty())
+    {
+        _headAnimName = headAnim;
+    }
+    if (!standAnim.empty())
+    {
+        _standAnimName = standAnim;
+    }
+    if (!walkAnim.empty())
+    {
+        _walkAnimName = walkAnim;
+    }
+    if (!reachAnim.empty())
+    {
+        _reachAnimName = reachAnim;
+    }
 }
 } // namespace gg

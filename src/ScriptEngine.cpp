@@ -13,6 +13,7 @@
 #include "GGEngine.h"
 #include "Screen.h"
 #include "ScriptEngine.h"
+#include "GGLip.h"
 
 #ifdef SQUNICODE
 #define scvprintf vfwprintf
@@ -66,6 +67,44 @@ class _BreakWhileAnimatingFunction : public Function
     {
         bool isPlaying = _actor.getCostume().getAnimation()->isPlaying();
         return !isPlaying;
+    }
+
+    void operator()() override
+    {
+        if (!isElapsed())
+            return;
+
+        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
+            return;
+        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
+        {
+            std::cerr << "_BreakWhileAnimatingFunction: failed to wakeup: " << _vm << std::endl;
+            sqstd_printcallstack(_vm);
+        }
+    }
+};
+
+class _BreakWhileWalkingFunction : public Function
+{
+  private:
+    HSQUIRRELVM _vm;
+    GGActor &_actor;
+
+  public:
+    explicit _BreakWhileWalkingFunction(HSQUIRRELVM vm, GGActor &actor)
+        : _vm(vm), _actor(actor)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        auto name = _actor.getCostume().getAnimationName();
+        bool isElapsed = name != "walk";
+        if (isElapsed)
+        {
+            int tmp = 42;
+        }
+        return isElapsed;
     }
 
     void operator()() override
@@ -143,6 +182,39 @@ class _ChangeProperty : public TimeFunction
     Value _init;
     Value _delta;
     Value _current;
+};
+
+class _TalkAnim : public TimeFunction
+{
+  public:
+    _TalkAnim(GGActor &actor, std::unique_ptr<GGLip> lip)
+        : TimeFunction((lip->getData().end() - 1)->time),
+          _actor(actor),
+          _lip(std::move(lip)),
+          _index(0)
+    {
+    }
+
+    void operator()() override
+    {
+        if (isElapsed()){
+            _actor.say("");
+            return;
+        }
+        auto time = _lip->getData()[_index + 1].time;
+        if (_clock.getElapsedTime() > time)
+        {
+            _index = _index + 1;
+        }
+        auto index = _lip->getData()[_index].letter - 'A';
+        // TODO: what is the correspondance between letter and head index ?
+        _actor.getCostume().setHeadIndex(index % 6);
+    }
+
+  private:
+    GGActor &_actor;
+    std::unique_ptr<GGLip> _lip;
+    int _index;
 };
 
 static void _errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
@@ -471,7 +543,7 @@ static SQInteger _actorAnimationNames(HSQUIRRELVM v)
     sq_getstring(v, 4, &stand);
     sq_getstring(v, 5, &walk);
     sq_getstring(v, 6, &reach);
-    pActor->setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "", reach ? reach : "");
+    pActor->getCostume().setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "", reach ? reach : "");
     return 0;
 }
 
@@ -511,12 +583,20 @@ static SQInteger _breakwhileanimating(HSQUIRRELVM v)
     return result;
 }
 
+static SQInteger _breakwhilewalking(HSQUIRRELVM v)
+{
+    auto *pActor = _getActor(v, 2);
+    auto result = sq_suspendvm(v);
+    g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(v, *pActor));
+    return result;
+}
+
 static SQInteger _actorAt(HSQUIRRELVM v)
 {
     auto *pActor = _getActor(v, 2);
     auto *pObj = _getObject(v, 3);
     auto pos = pObj->getPosition();
-    pActor->setPosition(sf::Vector2f(pos.x - Screen::HalfWidth, pos.y - Screen::HalfHeight));
+    pActor->setPosition(pos);
     return 0;
 }
 
@@ -536,15 +616,44 @@ static SQInteger _actorRenderOffset(HSQUIRRELVM v)
     return 0;
 }
 
+std::string str_toupper(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c) { return std::toupper(c); } // correct
+    );
+    return s;
+}
+
 static SQInteger _sayLine(HSQUIRRELVM v)
 {
     GGActor *actor = _getActor(v, 2);
-    const SQChar *text;
-    if (SQ_FAILED(sq_getstring(v, 3, &text)))
+    auto numArgs = sq_gettop(v) - 1;
+    std::vector<int> ids;
+
+    // TODO: say the other lines
+    const SQChar *idText;
+    if (SQ_FAILED(sq_getstring(v, 3, &idText)))
     {
         return sq_throwerror(v, _SC("failed to get text"));
     }
-    // TOSO: actor->say(text);
+
+    std::string s(idText);
+    s = s.substr(1);
+    auto id = std::strtol(s.c_str(), nullptr, 10);
+    std::cout << "Play anim talk (loop)" << std::endl;
+
+    std::string path;
+    std::string name = str_toupper(actor->getName()).append("_").append(s);
+    path.append(g_pEngine->getSettings().getGamePath()).append(name).append(".lip");
+    auto lip = std::make_unique<GGLip>();
+    std::cout << "load lip " << path << std::endl;
+    lip->load(path);
+
+    g_pEngine->playSound(name + ".ogg", false);
+
+    g_pEngine->addFunction(std::make_unique<_TalkAnim>(*actor, std::move(lip)));
+    auto text = g_pEngine->getText(id);
+    actor->say(text);
     return 0;
 }
 
@@ -820,15 +929,18 @@ static SQInteger _actorWalkTo(HSQUIRRELVM v)
 
     auto get = std::bind(&GGActor::getPosition, pActor);
     auto set = std::bind(&GGActor::setPosition, pActor, std::placeholders::_1);
-    
+
     // yes I known this is not enough, I need to take into account the walkbox
     auto destination = pObject->getPosition();
     auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(4));
+    std::cout << "Play anim walk (loop)" << std::endl;
     pActor->getCostume().setState("walk");
     pActor->getCostume().getAnimation()->play(true);
-    offsetTo->callWhenElapsed([pActor]{ pActor->getCostume().setState("stand"); });
+    offsetTo->callWhenElapsed([pActor] { 
+        std::cout << "Play anim stand" << std::endl;
+        pActor->getCostume().setState("stand"); });
     g_pEngine->addFunction(std::move(offsetTo));
-    
+
     return 0;
 }
 
@@ -1015,8 +1127,22 @@ static SQInteger _createActor(HSQUIRRELVM v)
     sq_resetobject(&table);
     sq_getstackobj(v, 2, &table);
 
+    sq_pushobject(v, table);
+    sq_pushstring(v, _SC("_key"), 4);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        return sq_throwerror(v, _SC("can't find _key entry"));
+    }
+    const SQChar *key;
+    if (SQ_FAILED(sq_getstring(v, -1, &key)))
+    {
+        return sq_throwerror(v, _SC("can't find _key entry"));
+    }
+    sq_pop(v, 2);
+
     // define instance
     auto pActor = new GGActor(g_pEngine->getTextureManager());
+    pActor->setName(key);
     sq_pushobject(v, table);
     sq_pushstring(v, _SC("instance"), -1);
     sq_pushuserpointer(v, pActor);
@@ -1404,6 +1530,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_breakHere, "breakhere");
     registerGlobalFunction(_breakTime, "breaktime");
     registerGlobalFunction(_breakwhileanimating, "breakwhileanimating");
+    registerGlobalFunction(_breakwhilewalking, "breakwhilewalking");
 
     registerGlobalFunction(_isObject, "isObject");
     registerGlobalFunction(_scale, "scale");

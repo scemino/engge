@@ -14,7 +14,7 @@ public:
   void setTextureManager(TextureManager *textureManager);
 
   void load(const std::string &path);
-  void draw(const std::string &text, sf::RenderTarget &target, sf::RenderStates states = sf::RenderStates::Default) const;
+  void draw(const std::string &text, sf::RenderTarget &target, const sf::Color& color, sf::RenderStates states = sf::RenderStates::Default) const;
 
 private:
   const GGEngineSettings *_settings;

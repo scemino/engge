@@ -40,8 +40,13 @@ void GGCostumeAnimation::draw(sf::RenderWindow &window, const sf::RenderStates &
         auto frame = layer->getIndex();
         auto &rect = layer->getFrames()[frame];
         auto &sourceRect = layer->getSourceFrames()[frame];
+        sf::Vector2i offset;
+        if (!layer->getOffsets().empty())
+        {
+            offset = layer->getOffsets()[frame];
+        }
         sf::Sprite sprite(_texture, rect);
-        sprite.setOrigin(-sourceRect.left, -sourceRect.top);
+        sprite.setOrigin(-sourceRect.left + offset.x, -sourceRect.top + offset.y);
 
         window.draw(sprite, states);
     }
