@@ -371,6 +371,36 @@ boris <- {
 createActor(boris)
 actorRenderOffset(boris, 0, 45)
 
+function actorEyesLook(actor, dir) {
+ if (actor) {
+ if (is_actor(dir)) {
+ local x = actorPosX(actor) - actorPosX(dir)
+ if (x > -10 && x < 10) {
+ dir = FACE_FRONT
+ } else
+ if (x < 0) {
+ dir = FACE_RIGHT
+ } else {
+ dir = FACE_LEFT
+ }
+ } else	
+ if (is_object(dir)) {
+ local x = actorPosX(actor) - objectPosX(dir)
+ if (x > -10 && x < 10) {
+ dir = FACE_FRONT
+ } else
+ if (x < 0) {
+ dir = FACE_RIGHT
+ } else {
+ dir = FACE_LEFT
+ }
+ }	
+ if (dir == FACE_RIGHT) actorPlayAnimation(actor, "eyes_right")
+ if (dir == FACE_LEFT) actorPlayAnimation(actor, "eyes_left")
+ if (dir == FACE_FRONT) actorPlayAnimation(actor, "eyes_front")
+ }
+}
+
 function newOpeningScene() {
     
     cameraInRoom(Bridge)
@@ -450,11 +480,27 @@ function newOpeningScene() {
     breaktime(0.1)
     actorHideLayer(boris, "blink")
     sayLine(boris, "@25541", "@25542")
+    breakwhiletalking(boris)
     
+    // actorBlinks(boris, OFF)
+    actorEyesLook(boris, DIR_RIGHT)
+    breaktime(0.5)
+    actorEyesLook(boris, DIR_FRONT)
+    breaktime(0.15)
+    actorEyesLook(boris, DIR_LEFT)
+    breaktime(0.5)
+    actorEyesLook(boris, DIR_FRONT)
+    breaktime(0.15)
+    actorEyesLook(boris, DIR_RIGHT)
+    breaktime(0.5)
+    actorEyesLook(boris, DIR_FRONT)
+    breaktime(0.25)
+    //  actorBlinks(boris, ON)
     
-    // breakwhiletalking(boris)
-
-    breaktime(200.0)
+    sayLine(boris, "@25543")
+    breakwhiletalking(boris)
+    breaktime(0.5)
+    sayLine(boris, "@25544")
 }
 
 startthread(newOpeningScene)

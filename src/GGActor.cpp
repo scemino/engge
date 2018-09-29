@@ -6,7 +6,8 @@ GGActor::GGActor(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _costume(textureManager),
       _color(sf::Color::White),
-      _talkColor(sf::Color::White)
+      _talkColor(sf::Color::White),
+      _zorder(0)
 {
     _font.setSettings(&_settings);
     _font.setTextureManager(&textureManager);
