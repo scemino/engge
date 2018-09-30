@@ -167,13 +167,6 @@ static SQInteger _isObject(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _isActor(HSQUIRRELVM v)
-{
-    auto actor = _getEntity<GGActor>(v, 2);
-    sq_pushbool(v, actor ? SQTrue : SQFalse);
-    return 1;
-}
-
 ScriptEngine::ScriptEngine(GGEngine &engine)
 {
     g_pEngine = &engine;
@@ -230,7 +223,6 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 
     registerGlobalFunction(_isObject, "isObject");
     registerGlobalFunction(_isObject, "is_object");
-    registerGlobalFunction(_isActor, "is_actor");
 
     registerGlobalFunction(_scale, "scale");
     registerGlobalFunction(_playState, "playObjectState");
@@ -262,24 +254,36 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_deleteObject, "deleteObject");
     registerGlobalFunction(_translate, "translate");
 
-    registerGlobalFunction(_createActor, "createActor");
-    registerGlobalFunction(_actorCostume, "actorCostume");
-    registerGlobalFunction(_actorShowLayer, "actorShowLayer");
-    registerGlobalFunction(_actorHideLayer, "actorHideLayer");
     registerGlobalFunction(_actorAlpha, "actorAlpha");
+    registerGlobalFunction(_actorAnimationNames, "actorAnimationNames");
+    registerGlobalFunction(_actorAt, "actorAt");
+    registerGlobalFunction(_actorColor, "actorColor");
+    registerGlobalFunction(_actorCostume, "actorCostume");
     registerGlobalFunction(_actorDistanceTo, "actorDistanceTo");
     registerGlobalFunction(_actorDistanceWithin, "actorDistanceWithin");
-    registerGlobalFunction(_actorColor, "actorColor");
-    registerGlobalFunction(_actorAnimationNames, "actorAnimationNames");
-    registerGlobalFunction(_actorLockFacing, "actorLockFacing");
+    registerGlobalFunction(_actorFace, "actorFace");
+    registerGlobalFunction(_actorHidden, "actorHidden");
+    registerGlobalFunction(_actorHideLayer, "actorHideLayer");
+    registerGlobalFunction(_actorInTrigger, "actorInTrigger");
     registerGlobalFunction(_actorLockFacing, "actorLockFacing");
     registerGlobalFunction(_actorPlayAnimation, "actorPlayAnimation");
-    registerGlobalFunction(_actorAt, "actorAt");
+    registerGlobalFunction(_actorPosX, "actorPosX");
+    registerGlobalFunction(_actorPosY, "actorPosY");
     registerGlobalFunction(_actorRenderOffset, "actorRenderOffset");
-    registerGlobalFunction(_sayLine, "sayLine");
-    registerGlobalFunction(_actorUsePos, "actorUsePos");
+    registerGlobalFunction(_actorShowLayer, "actorShowLayer");
     registerGlobalFunction(_actorTalkColors, "actorTalkColors");
+    registerGlobalFunction(_actorTalking, "actorTalking");
+    registerGlobalFunction(_actorTalkOffset, "actorTalkOffset");
+    registerGlobalFunction(_actorUsePos, "actorUsePos");
+    registerGlobalFunction(_actorUseWalkboxes, "actorUseWalkboxes");
+    registerGlobalFunction(_actorWalkForward, "actorWalkForward");
     registerGlobalFunction(_actorWalkTo, "actorWalkTo");
+    registerGlobalFunction(_createActor, "createActor");
+    registerGlobalFunction(_currentActor, "currentActor");
+    registerGlobalFunction(_isActor, "is_actor");
+    registerGlobalFunction(_masterActorArray, "masterActorArray");
+    registerGlobalFunction(_sayLine, "sayLine");
+    registerGlobalFunction(_triggerActors, "triggerActors");
 
     registerGlobalFunction(_cameraAt, "cameraAt");
     registerGlobalFunction(_cameraPanTo, "cameraPanTo");

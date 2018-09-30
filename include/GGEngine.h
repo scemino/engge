@@ -44,9 +44,11 @@ public:
   void setFadeAlpha(sf::Uint8 fade) { _fadeAlpha = fade; }
   sf::Uint8 getFadeAlpha() const { return _fadeAlpha; }
 
-  void addActor(GGActor &actor) { _actors.push_back(std::unique_ptr<GGActor>(&actor)); }
+  void addActor(std::unique_ptr<GGActor> actor) { _actors.push_back(std::move(actor)); }
   void addRoom(GGRoom &room) { _rooms.push_back(std::unique_ptr<GGRoom>(&room)); }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
+
+  std::vector<std::unique_ptr<GGActor>> &getActors() { return _actors; }
 
   void loopMusic(const std::string &name);
   SoundId *defineSound(const std::string &name);
@@ -57,6 +59,9 @@ public:
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
+
+  void setCurrentActor(GGActor *pCurrentActor) { _pCurrentActor = pCurrentActor; }
+  GGActor *getCurrentActor() { return _pCurrentActor; }
 
 private:
   const GGEngineSettings &_settings;
@@ -73,5 +78,6 @@ private:
   sf::Vector2f _cameraPos;
   GGTextDatabase _textDb;
   GGFont _font;
+  GGActor *_pCurrentActor;
 };
 } // namespace gg

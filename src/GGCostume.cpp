@@ -40,8 +40,15 @@ void GGCostume::setLayerVisible(const std::string &name, bool isVisible)
     }
 }
 
+void GGCostume::setFacing(Facing facing)
+{
+    _facing = facing;
+    updateAnimation();
+}
+
 void GGCostume::lockFacing(Facing facing)
 {
+    // TODO: lock
     _facing = facing;
     updateAnimation();
 }

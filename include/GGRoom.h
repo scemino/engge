@@ -30,6 +30,7 @@ public:
 
   void showDrawWalkboxes(bool show) { _showDrawWalkboxes = show; }
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
+  const std::vector<Walkbox> &getWalkboxes() const { return _walkboxes; }
   void showObjects(bool show) { _showObjects = show; }
   bool areObjectsVisible() const { return _showObjects; }
   GGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
@@ -56,7 +57,6 @@ private:
   TextureManager &_textureManager;
   const GGEngineSettings &_settings;
   std::vector<std::unique_ptr<GGObject>> _objects;
-  // std::vector<sf::Sprite> _backgrounds;
   std::vector<Walkbox> _walkboxes;
   std::vector<RoomLayer> _layers;
   std::vector<RoomScaling> _scalings;

@@ -70,6 +70,7 @@ static SQInteger _objectAlphaTo(HSQUIRRELVM v)
 
 static SQInteger _objectHotspot(HSQUIRRELVM v)
 {
+    // TODO: with actor
     SQInteger left = 0;
     SQInteger top = 0;
     SQInteger right = 0;

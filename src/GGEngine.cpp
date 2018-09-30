@@ -17,7 +17,8 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _textureManager(settings),
       _fadeAlpha(0),
       _pWindow(nullptr),
-      _pRoom(nullptr)
+      _pRoom(nullptr),
+      _pCurrentActor(nullptr)
 {
     time_t t;
     auto seed = (unsigned)time(&t);

@@ -25,4 +25,16 @@ void Walkbox::draw(sf::RenderWindow &window, sf::RenderStates states) const
     }
     window.draw(triangle, states);
 }
+
+bool Walkbox::contains(sf::Vector2f pos) const
+{
+    int i, j, c = 0;
+    for (i = 0, j = _polygon.size() - 1; i < _polygon.size(); j = i++)
+    {
+        if (((_polygon[i].y > pos.y) != (_polygon[j].y > pos.y)) &&
+            (pos.x < (_polygon[j].x - _polygon[i].x) * (pos.y - _polygon[i].y) / (_polygon[j].y - _polygon[i].y) + _polygon[i].x))
+            c = !c;
+    }
+    return c!=0;
+}
 } // namespace gg
