@@ -22,6 +22,38 @@ public:
   sf::Sound sound;
 };
 
+struct Verb
+{
+  std::string id;
+  std::string image;
+  std::string func;
+  std::string text;
+  std::string key;
+};
+
+class VerbSlot
+{
+public:
+  void setVerb(int index, const Verb &verb) { _verbs[index] = verb; }
+  const Verb &getVerb(int index) const { return _verbs[index]; }
+
+private:
+  std::array<Verb, 10> _verbs;
+};
+
+struct VerbUiColors
+{
+  sf::Color sentence;
+  sf::Color verbNormal;
+  sf::Color verbNormalTint;
+  sf::Color verbHighlight;
+  sf::Color verbHighlightTint;
+  sf::Color dialogNormal;
+  sf::Color dialogHighlight;
+  sf::Color inventoryFrame;
+  sf::Color inventoryBackground;
+};
+
 class GGEngine : public NonCopyable
 {
 public:
@@ -63,6 +95,20 @@ public:
   void setCurrentActor(GGActor *pCurrentActor) { _pCurrentActor = pCurrentActor; }
   GGActor *getCurrentActor() { return _pCurrentActor; }
 
+  void setVerb(int characterSlot, int verbSlot, const Verb &verb) { _verbSlots[characterSlot].setVerb(verbSlot, verb); }
+  void setVerbUiColors(int characterSlot, VerbUiColors colors) { _verbUiColors[characterSlot] = colors; }
+
+  void setInputActive(bool active)
+  {
+    _inputActive = active;
+    _showCursor = active;
+  }
+  void inputSilentOff() { _inputActive = false; }
+  bool getInputActive() const { return _inputActive; }
+
+private:
+  sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
+
 private:
   const GGEngineSettings &_settings;
   TextureManager _textureManager;
@@ -79,5 +125,10 @@ private:
   GGTextDatabase _textDb;
   GGFont _font;
   GGActor *_pCurrentActor;
+  std::array<VerbSlot, 6> _verbSlots;
+  std::array<VerbUiColors, 6> _verbUiColors;
+  sf::Texture _verbTexture;
+  bool _inputActive;
+  bool _showCursor;
 };
 } // namespace gg

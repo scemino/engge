@@ -262,14 +262,35 @@ static SQInteger _actorLockFacing(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _actorPlayAnimation(HSQUIRRELVM v)
+static SQInteger _actorBlinkRate(HSQUIRRELVM v)
 {
-    const SQChar *animation = nullptr;
     GGActor *pActor = _getActor(v, 2);
     if (!pActor)
     {
         return sq_throwerror(v, _SC("failed to get actor"));
     }
+    SQFloat min = 0;
+    if (SQ_FAILED(sq_getfloat(v, 3, &min)))
+    {
+        return sq_throwerror(v, _SC("failed to get min"));
+    }
+    SQFloat max = 0;
+    if (SQ_FAILED(sq_getfloat(v, 4, &max)))
+    {
+        return sq_throwerror(v, _SC("failed to get max"));
+    }
+    // TODO: blink rate
+    return 0;
+}
+
+static SQInteger _actorPlayAnimation(HSQUIRRELVM v)
+{
+    GGActor *pActor = _getActor(v, 2);
+    if (!pActor)
+    {
+        return sq_throwerror(v, _SC("failed to get actor"));
+    }
+    const SQChar *animation = nullptr;
     if (SQ_FAILED(sq_getstring(v, 3, &animation)))
     {
         return sq_throwerror(v, _SC("failed to get animation"));
@@ -611,4 +632,118 @@ static SQInteger _triggerActors(HSQUIRRELVM v)
     return 1;
 }
 
-// TODO: static SQInteger verbUIColors(HSQUIRRELVM v)
+static sf::Color _fromRgbInt(SQInteger color)
+{
+    sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+    return c;
+}
+
+static SQInteger _readFieldInt(HSQUIRRELVM v, const SQChar *name, SQInteger &field)
+{
+    sq_pushstring(v, name, -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return SQ_ERROR;
+    }
+
+    field = 0;
+    if (SQ_FAILED(sq_getinteger(v, -1, &field)))
+    {
+        sq_pop(v, 2);
+        return SQ_ERROR;
+    }
+    sq_pop(v, 1);
+    return SQ_OK;
+}
+
+static SQInteger _verbUIColors(HSQUIRRELVM v)
+{
+    SQInteger actorSlot;
+    if (SQ_FAILED(sq_getinteger(v, 2, &actorSlot)))
+    {
+        return sq_throwerror(v, _SC("failed to get actor slot"));
+    }
+
+    HSQOBJECT table;
+    if (SQ_FAILED(sq_getstackobj(v, 4, &table)))
+    {
+        return sq_throwerror(v, _SC("failed to get verb definitionTable"));
+    }
+    if (!sq_istable(table))
+    {
+        return sq_throwerror(v, _SC("failed to get verb definitionTable"));
+    }
+
+    sq_pushobject(v, table);
+
+    // sentence
+    SQInteger sentence = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("sentence"), sentence)))
+    {
+        return sq_throwerror(v, _SC("failed to get sentence"));
+    }
+
+    SQInteger verbNormal = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("verbNormal"), verbNormal)))
+    {
+        return sq_throwerror(v, _SC("failed to get verbNormal"));
+    }
+
+    SQInteger verbNormalTint = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("verbNormalTint"), verbNormalTint)))
+    {
+        return sq_throwerror(v, _SC("failed to get verbNormal"));
+    }
+
+    SQInteger verbHighlight = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("verbHighlight"), verbHighlight)))
+    {
+        return sq_throwerror(v, _SC("failed to get verbHighlight"));
+    }
+
+    SQInteger verbHighlightTint = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("verbHighlightTint"), verbHighlightTint)))
+    {
+        return sq_throwerror(v, _SC("failed to get verbHighlightTint"));
+    }
+
+    SQInteger dialogNormal = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("dialogNormal"), dialogNormal)))
+    {
+        return sq_throwerror(v, _SC("failed to get dialogNormal"));
+    }
+
+    SQInteger dialogHighlight = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("dialogHighlight"), dialogHighlight)))
+    {
+        return sq_throwerror(v, _SC("failed to get dialogHighlight"));
+    }
+
+    SQInteger inventoryFrame = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("inventoryFrame"), inventoryFrame)))
+    {
+        return sq_throwerror(v, _SC("failed to get inventoryFrame"));
+    }
+
+    SQInteger inventoryBackground = 0;
+    if (SQ_FAILED(_readFieldInt(v, _SC("inventoryBackground"), inventoryBackground)))
+    {
+        return sq_throwerror(v, _SC("failed to get inventoryBackground"));
+    }
+
+    sq_pop(v, 2);
+
+    VerbUiColors colors;
+    colors.sentence = _fromRgbInt(sentence);
+    colors.verbNormal = _fromRgbInt(verbNormal);
+    colors.verbNormalTint = _fromRgbInt(verbNormalTint);
+    colors.verbHighlight = _fromRgbInt(verbHighlight);
+    colors.verbHighlightTint = _fromRgbInt(verbHighlightTint);
+    colors.dialogNormal = _fromRgbInt(dialogNormal);
+    colors.dialogHighlight = _fromRgbInt(dialogHighlight);
+    colors.inventoryFrame = _fromRgbInt(inventoryFrame);
+    colors.inventoryBackground = _fromRgbInt(sentence);
+    g_pEngine->setVerbUiColors(actorSlot - 1, colors);
+    return 0;
+}

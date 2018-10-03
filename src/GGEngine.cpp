@@ -9,6 +9,7 @@
 #include "GGEngine.h"
 #include "Screen.h"
 #include "GGFont.h"
+#include "_GGUtil.h"
 
 namespace gg
 {
@@ -18,7 +19,10 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _fadeAlpha(0),
       _pWindow(nullptr),
       _pRoom(nullptr),
-      _pCurrentActor(nullptr)
+      _pCurrentActor(nullptr),
+      _verbTexture(_textureManager.get("VerbSheet")),
+      _inputActive(false),
+      _showCursor(false)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -35,6 +39,25 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
 }
 
 GGEngine::~GGEngine() = default;
+
+sf::IntRect GGEngine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
+{
+    // load json file
+    std::string jsonFilename;
+    jsonFilename.append(_settings.getGamePath()).append("VerbSheet.json");
+    nlohmann::json json;
+    {
+        std::ifstream i(jsonFilename);
+        i >> json;
+    }
+
+    std::ostringstream s;
+    s << name << (isRetro ? "_retro" : "") << "_" << lang;
+    auto jVerb = json["frames"][s.str().c_str()];
+    if (jVerb.is_null())
+        return sf::IntRect();
+    return _toRect(jVerb["frame"]);
+}
 
 void GGEngine::setCameraAt(const sf::Vector2f &at)
 {
@@ -75,7 +98,8 @@ void GGEngine::update(const sf::Time &elapsed)
     {
         actor->update(elapsed);
     }
-    if(!_pRoom) return;
+    if (!_pRoom)
+        return;
     _pRoom->update(elapsed);
 }
 
@@ -133,7 +157,8 @@ void GGEngine::stopSound(SoundId &sound)
 void GGEngine::draw(sf::RenderWindow &window) const
 {
     auto cameraPos = _cameraPos;
-    if(!_pRoom) return;
+    if (!_pRoom)
+        return;
     _pRoom->draw(window, cameraPos);
     for (auto &actor : _actors)
     {
@@ -144,6 +169,34 @@ void GGEngine::draw(sf::RenderWindow &window) const
     fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
+
+    // draw verbs
+    if (_inputActive && !_verbSlots[0].getVerb(0).id.empty())
+    {
+        sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 3.f / 3.f);
+        for (int i = 0; i < 9; i++)
+        {
+            auto verb = _verbSlots[0].getVerb(i + 1);
+            auto rect = getVerbRect(verb.id);
+            sf::VertexArray triangle(sf::Quads, 4);
+
+            auto x = (i / 3) * size.x;
+            auto y = Screen::Height - size.y * 3 + (i % 3) * size.y;
+            triangle[0].position = sf::Vector2f(x, y);
+            triangle[1].position = sf::Vector2f(x + size.x, y);
+            triangle[2].position = sf::Vector2f(x + size.x, y + size.y);
+            triangle[3].position = sf::Vector2f(x, y + size.y);
+            triangle[0].texCoords = sf::Vector2f(rect.left, rect.top);
+            triangle[1].texCoords = sf::Vector2f(rect.left + rect.width, rect.top);
+            triangle[2].texCoords = sf::Vector2f(rect.left + rect.width, rect.top + rect.height);
+            triangle[3].texCoords = sf::Vector2f(rect.left, rect.top + rect.height);
+
+            sf::RenderStates states;
+            states.texture = &_verbTexture;
+
+            window.draw(triangle, states);
+        }
+    }
 
     // std::stringstream s;
     // s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;

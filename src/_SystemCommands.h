@@ -1,3 +1,5 @@
+#include <time.h>
+
 class _BreakHereFunction : public Function
 {
   private:
@@ -273,4 +275,54 @@ static SQInteger _breakTime(HSQUIRRELVM v)
     auto result = sq_suspendvm(v);
     g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
     return result;
+}
+
+static SQInteger _getUserPref(HSQUIRRELVM v)
+{
+    const SQChar *key;
+    if (SQ_FAILED(sq_getstring(v, 2, &key)))
+    {
+        return sq_throwerror(v, _SC("failed to get key"));
+    }
+    const SQChar *defaultValue;
+    if (SQ_FAILED(sq_getstring(v, 3, &defaultValue)))
+    {
+        return sq_throwerror(v, _SC("failed to get defaultValue"));
+    }
+    // TODO: get here the value from the preferences file
+    sq_pushstring(v, defaultValue, -1);
+    return 1;
+}
+
+static SQInteger _inputOff(HSQUIRRELVM v)
+{
+    g_pEngine->setInputActive(false);
+    return 0;
+}
+
+static SQInteger _inputOn(HSQUIRRELVM v)
+{
+    g_pEngine->setInputActive(true);
+    return 0;
+}
+
+static SQInteger _inputSilentOff(HSQUIRRELVM v)
+{
+    g_pEngine->inputSilentOff();
+    return 0;
+}
+
+static SQInteger _isInputOn(HSQUIRRELVM v)
+{
+    bool isActive = g_pEngine->getInputActive();
+    sq_push(v, isActive ? SQTrue : SQFalse);
+    return 1;
+}
+
+static SQInteger _systemTime(HSQUIRRELVM v)
+{
+    time_t t;
+    time(&t);
+    sq_pushinteger(v, t);
+    return 1;
 }

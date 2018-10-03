@@ -184,6 +184,16 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     sqstd_register_stringlib(v);
     registerBoolConstant(_SC("NO"), false);
     registerBoolConstant(_SC("YES"), true);
+    registerStringConstant(_SC("VERB_CLOSE"), _SC("close"));
+    registerStringConstant(_SC("VERB_GIVE"), _SC("give"));
+    registerStringConstant(_SC("VERB_LOOKAT"), _SC("lookat"));
+    registerStringConstant(_SC("VERB_OPEN"), _SC("open"));
+    registerStringConstant(_SC("VERB_PICKUP"), _SC("pickup"));
+    registerStringConstant(_SC("VERB_PULL"), _SC("pull"));
+    registerStringConstant(_SC("VERB_PUSH"), _SC("push"));
+    registerStringConstant(_SC("VERB_TALKTO"), _SC("talkto"));
+    registerStringConstant(_SC("VERB_USE"), _SC("use"));
+    registerStringConstant(_SC("VERB_WALKTO"), _SC("walkto"));
     registerConstant(_SC("GONE"), 1);
     registerConstant(_SC("HERE"), 0);
     registerConstant(_SC("OFF"), 0);
@@ -257,6 +267,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_actorAlpha, "actorAlpha");
     registerGlobalFunction(_actorAnimationNames, "actorAnimationNames");
     registerGlobalFunction(_actorAt, "actorAt");
+    registerGlobalFunction(_actorBlinkRate, "actorBlinkRate");
     registerGlobalFunction(_actorColor, "actorColor");
     registerGlobalFunction(_actorCostume, "actorCostume");
     registerGlobalFunction(_actorDistanceTo, "actorDistanceTo");
@@ -287,6 +298,14 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 
     registerGlobalFunction(_cameraAt, "cameraAt");
     registerGlobalFunction(_cameraPanTo, "cameraPanTo");
+    registerGlobalFunction(_setVerb, "setVerb");
+    registerGlobalFunction(_verbUIColors, "verbUIColors");
+    registerGlobalFunction(_getUserPref, "getUserPref");
+    registerGlobalFunction(_systemTime, "systemTime");
+    registerGlobalFunction(_inputOff, "inputOff");
+    registerGlobalFunction(_inputOn, "inputOn");
+    registerGlobalFunction(_inputSilentOff, "inputSilentOff");
+    registerGlobalFunction(_isInputOn, "isInputOn");
 }
 
 ScriptEngine::~ScriptEngine()
@@ -300,6 +319,15 @@ void ScriptEngine::registerBoolConstant(const SQChar *name, bool value)
     sq_pushconsttable(v);
     sq_pushstring(v, name, -1);
     sq_pushbool(v, static_cast<SQBool>(value));
+    sq_newslot(v, -3, SQTrue);
+    sq_pop(v, 1);
+}
+
+void ScriptEngine::registerStringConstant(const SQChar *name, const SQChar *value)
+{
+    sq_pushconsttable(v);
+    sq_pushstring(v, name, -1);
+    sq_pushstring(v, value, -1);
     sq_newslot(v, -3, SQTrue);
     sq_pop(v, 1);
 }

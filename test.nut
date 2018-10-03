@@ -9,6 +9,27 @@ function hideAll(r) {
     }
 }
 
+function actorBlinks(actor, state) {
+ if (state) {
+ actorBlinkRate(actor, 2.0,5.0)
+ } else {
+ actorBlinkRate(actor, 0.0,0.0)
+ }
+}
+
+function defineVerbs(slot) {
+ setVerb(slot, 0, { verb = VERB_WALKTO, image = "walkto", func = "verbWalkTo", text = "@30011", key = getUserPref("keyWalkTo", "") })
+ setVerb(slot, 1, { verb = VERB_OPEN, image = "open",  func = "verbOpen", text = "@30012", key = getUserPref("keyOpen", "@30013") })
+ setVerb(slot, 2, { verb = VERB_CLOSE, image = "close",  func = "verbClose", text = "@30014", key = getUserPref("keyClose", "@30015") })
+ setVerb(slot, 3, { verb = VERB_GIVE, image = "give",  func = "verbGive", text = "@30016", key = getUserPref("keyGiveTo", "@30017") })
+ setVerb(slot, 4, { verb = VERB_PICKUP, image = "pickup",  func = "verbPickUp", text = "@30018", key = getUserPref("keyPickup", "@30019") })
+ setVerb(slot, 5, { verb = VERB_LOOKAT, image = "lookat",  func = "verbLookAt", text = "@30020", key = getUserPref("keyLookAt", "@30021") })
+ setVerb(slot, 6, { verb = VERB_TALKTO, image = "talkto",  func = "verbTalkTo", text = "@30022", key = getUserPref("keyTalkTo", "@30023") })
+ setVerb(slot, 7, { verb = VERB_PUSH, image = "push",  func = "verbPush", text = "@30024", key = getUserPref("keyPush", "@30025") })
+ setVerb(slot, 8, { verb = VERB_PULL, image = "pull",  func = "verbPull", text = "@30026", key = getUserPref("keyPull", "@30027") })
+ setVerb(slot, 9, { verb = VERB_USE, image = "use",  func = "verbUse", text = "@30028", key = getUserPref("keyUse", "@30029") })
+}
+
 function bounceImage() {
     local image = createObject("RaySheet", ["bstand_body1"]);
     local x = random(0, 1280);
@@ -370,6 +391,7 @@ boris <- {
 }
 createActor(boris)
 actorRenderOffset(boris, 0, 45)
+defineVerbs(1)
 
 function actorEyesLook(actor, dir) {
  if (actor) {
@@ -442,9 +464,7 @@ function newOpeningScene() {
     actorTalkColors(boris, talkColorBoris)
 
     actorHideLayer(boris, "splash")
-    actorHideLayer(boris, "eyes_left")
-    actorHideLayer(boris, "eyes_right")
-    actorHideLayer(boris, "blink")
+    // actorHideLayer(boris, "blink")
     
     // actorHideLayer(boris, "head6")
     // actorHideLayer(boris, "head5")
@@ -469,20 +489,17 @@ function newOpeningScene() {
     // actorPlayAnimation(willie, "awake")
     // breaktime(2)
     // selectActor(boris)
+    actorLockFacing(boris, FACE_FRONT)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     // actorAt(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
     // cameraFollow(boris)
     actorLockFacing(boris, FACE_FRONT)
     actorPlayAnimation(willie, "stand")
-    breaktime(1.0)
-    actorShowLayer(boris, "blink")
-    breaktime(0.1)
-    actorHideLayer(boris, "blink")
     sayLine(boris, "@25541", "@25542")
     breakwhiletalking(boris)
     
-    // actorBlinks(boris, OFF)
+    actorBlinks(boris, OFF)
     actorEyesLook(boris, DIR_RIGHT)
     breaktime(0.5)
     actorEyesLook(boris, DIR_FRONT)
@@ -495,7 +512,7 @@ function newOpeningScene() {
     breaktime(0.5)
     actorEyesLook(boris, DIR_FRONT)
     breaktime(0.25)
-    //  actorBlinks(boris, ON)
+     actorBlinks(boris, ON)
     
     sayLine(boris, "@25543")
     breakwhiletalking(boris)

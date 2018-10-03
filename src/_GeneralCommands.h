@@ -132,6 +132,103 @@ static SQInteger _cameraInRoom(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _setVerb(HSQUIRRELVM v)
+{
+    SQInteger actorSlot;
+    if (SQ_FAILED(sq_getinteger(v, 2, &actorSlot)))
+    {
+        return sq_throwerror(v, _SC("failed to get actor slot"));
+    }
+    SQInteger verbSlot;
+    if (SQ_FAILED(sq_getinteger(v, 3, &verbSlot)))
+    {
+        return sq_throwerror(v, _SC("failed to get verb slot"));
+    }
+    HSQOBJECT table;
+    if (SQ_FAILED(sq_getstackobj(v, 4, &table)))
+    {
+        return sq_throwerror(v, _SC("failed to get verb definitionTable"));
+    }
+    if (!sq_istable(table))
+    {
+        return sq_throwerror(v, _SC("failed to get verb definitionTable"));
+    }
+
+    sq_pushobject(v, table);
+    // id
+    sq_pushstring(v, _SC("verb"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get verb"));
+    }
+
+    const SQChar *id = nullptr;
+    if (SQ_FAILED(sq_getstring(v, -1, &id)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get verb"));
+    }
+    sq_pop(v, 1);
+
+    // image
+    sq_pushstring(v, _SC("image"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get image"));
+    }
+
+    const SQChar *image = nullptr;
+    if (SQ_FAILED(sq_getstring(v, -1, &image)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get image"));
+    }
+    sq_pop(v, 1);
+
+    // text
+    sq_pushstring(v, _SC("text"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get text"));
+    }
+
+    const SQChar *text = nullptr;
+    if (SQ_FAILED(sq_getstring(v, -1, &text)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get text"));
+    }
+    sq_pop(v, 1);
+
+    // key
+    sq_pushstring(v, _SC("key"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get key"));
+    }
+
+    const SQChar *key = nullptr;
+    if (SQ_FAILED(sq_getstring(v, -1, &key)))
+    {
+        sq_pop(v, 2);
+        return sq_throwerror(v, _SC("failed to get key"));
+    }
+    sq_pop(v, 2);
+
+    VerbSlot slot;
+    Verb verb;
+    verb.id = id;
+    verb.image = image;
+    verb.text = text;
+    verb.key = key;
+    g_pEngine->setVerb(actorSlot - 1, verbSlot, verb);
+    return 0;
+}
+
 static SQInteger _translate(HSQUIRRELVM v)
 {
     const SQChar *idText;
@@ -146,4 +243,3 @@ static SQInteger _translate(HSQUIRRELVM v)
     sq_pushstring(v, text.c_str(), -1);
     return 1;
 }
-

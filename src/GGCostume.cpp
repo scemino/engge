@@ -18,6 +18,9 @@ GGCostume::GGCostume(TextureManager &textureManager)
       _reachAnimName("reach"),
       _headIndex(0)
 {
+    _hiddenLayers.emplace("blink");
+    _hiddenLayers.emplace("eyes_left");
+    _hiddenLayers.emplace("eyes_right");
 }
 
 GGCostume::~GGCostume() = default;
@@ -27,10 +30,13 @@ void GGCostume::setLayerVisible(const std::string &name, bool isVisible)
     if (!isVisible)
     {
         _hiddenLayers.emplace(name);
-    }else{
-    _hiddenLayers.erase(name);
     }
-    if(_pCurrentAnimation==nullptr) return;
+    else
+    {
+        _hiddenLayers.erase(name);
+    }
+    if (_pCurrentAnimation == nullptr)
+        return;
     auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](GGLayer *pLayer) {
         return pLayer->getName() == name;
     });
@@ -105,6 +111,10 @@ void GGCostume::setAnimation(const std::string &animName)
             auto layerName = jLayer["name"].get<std::string>();
             layer->setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
             layer->setName(layerName);
+            if (!jLayer["flags"].is_null())
+            {
+                layer->setFlags(jLayer["flags"].get<int>());
+            }
             for (const auto &jFrame : jLayer["frames"])
             {
                 auto frameName = jFrame.get<std::string>();
@@ -131,8 +141,27 @@ void GGCostume::setAnimation(const std::string &animName)
     }
 }
 
+static bool _startsWith(const std::string &str, const std::string &prefix)
+{
+    return str.length() >= prefix.length() && 0 == str.compare(0, prefix.length(), prefix);
+}
+
 void GGCostume::updateAnimation()
 {
+    // special case for eyes... bof
+    if (_pCurrentAnimation && _startsWith(_animation, "eyes_"))
+    {
+        auto &layers = _pCurrentAnimation->getLayers();
+        for (auto layer : layers)
+        {
+            if (!_startsWith(layer->getName(), "eyes_"))
+                continue;
+            setLayerVisible(layer->getName(), false);
+        }
+        setLayerVisible(_animation, true);
+        return;
+    }
+
     std::string name(_animation);
     name.append("_");
     switch (_facing)

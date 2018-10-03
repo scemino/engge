@@ -15,8 +15,9 @@ public:
   ~ScriptEngine();
 
   void registerBoolConstant(const SQChar *name, bool value);
+  void registerStringConstant(const SQChar *name, const SQChar *value);
   void registerConstant(const SQChar *name, SQInteger value);
-  void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar * typemask = nullptr);
+  void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
   void executeScript(const std::string &name);
 };
 } // namespace gg
