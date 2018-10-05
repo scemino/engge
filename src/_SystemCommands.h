@@ -14,10 +14,7 @@ class _BreakHereFunction : public Function
     void operator()() override
     {
         if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-        {
-            std::cerr << "_BreakHereFunction: thread not suspended" << std::endl;
-            sqstd_printcallstack(_vm);
-        }
+            return;
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
             std::cerr << "_BreakHereFunction: failed to wakeup: " << _vm << std::endl;
@@ -141,10 +138,7 @@ class _BreakTimeFunction : public TimeFunction
         if (isElapsed())
         {
             if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-            {
-                std::cerr << "_BreakTimeFunction: thread not suspended" << std::endl;
-                sqstd_printcallstack(_vm);
-            }
+                return;
             if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
             {
                 std::cerr << "_BreakTimeFunction: failed to wakeup: " << _vm << std::endl;
@@ -198,10 +192,7 @@ static SQInteger _stopThread(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
     }
-    sq_release(thread_obj._unVal.pThread, &thread_obj);
-    sq_pop(thread_obj._unVal.pThread, 1);
-    sq_suspendvm(thread_obj._unVal.pThread);
-    // sq_close(thread_obj._unVal.pThread);
+    sq_release(v, &thread_obj);
     return 0;
 }
 
@@ -254,7 +245,7 @@ static SQInteger _startThread(HSQUIRRELVM v)
 
     sq_addref(v, &thread_obj);
     sq_pushobject(v, thread_obj);
-
+    
     return 1;
 }
 
@@ -316,6 +307,17 @@ static SQInteger _isInputOn(HSQUIRRELVM v)
 {
     bool isActive = g_pEngine->getInputActive();
     sq_push(v, isActive ? SQTrue : SQFalse);
+    return 1;
+}
+
+static SQInteger _inputVerbs(HSQUIRRELVM v)
+{
+    SQInteger on;
+    if (SQ_FAILED(sq_getinteger(v, 2, &on)))
+    {
+        return sq_throwerror(v, _SC("failed to get isActive"));
+    }
+    // TODO: g_pEngine->setInputVerbs(on);
     return 1;
 }
 

@@ -19,5 +19,11 @@ public:
   void registerConstant(const SQChar *name, SQInteger value);
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
   void executeScript(const std::string &name);
+
+private:
+  static SQInteger aux_printerror(HSQUIRRELVM v);
+  static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
+  static void printfunc(HSQUIRRELVM v, const SQChar *s, ...);
+  static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 };
 } // namespace gg

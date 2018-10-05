@@ -14,7 +14,8 @@ GGRoom::GGRoom(TextureManager &textureManager, const GGEngineSettings &settings)
       _settings(settings),
       _showDrawWalkboxes(false),
       _showObjects(true),
-      _showLayers(true)
+      _showLayers(true),
+      _pSquirrelObject(nullptr)
 {
 }
 

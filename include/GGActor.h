@@ -10,6 +10,7 @@
 
 namespace gg
 {
+class GGRoom;
 class GGActor : public GGEntity
 {
 public:
@@ -47,6 +48,12 @@ public:
   void setPosition(const sf::Vector2f &pos);
   void setRenderOffset(const sf::Vector2i &offset) { _renderOffset = offset; }
 
+  GGRoom *getRoom() const { return _pRoom; }
+  void setRoom(GGRoom *pRoom) { _pRoom = pRoom; }
+
+  void setHotspot(const sf::IntRect &hotspot) { _hotspot = hotspot; }
+  const sf::IntRect &getHotspot() const { return _hotspot; }
+
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
   void update(const sf::Time &time);
 
@@ -64,5 +71,7 @@ private:
   HSQOBJECT _table;
   bool _isVisible;
   bool _use;
+  GGRoom *_pRoom;
+  sf::IntRect _hotspot;
 };
 } // namespace gg

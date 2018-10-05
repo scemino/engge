@@ -24,6 +24,7 @@ public:
   const std::string &getSheet() const { return _sheet; }
 
   void setSquirrelObject(HSQOBJECT *pObject) { _pSquirrelObject = pObject; }
+  HSQOBJECT* getSquirrelObject() { return _pSquirrelObject; }
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;

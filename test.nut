@@ -382,16 +382,48 @@ defineRoom(Bridge)
 
 willie <- { 
  _key = "willie"
+ dialog = null
 }
 createActor(willie)
 actorRenderOffset(willie, 0, 45)
 
+function williePassedOutCostume()
+{
+ actorCostume(willie, "WilliePassedOutAnimation")
+ actorUseWalkboxes(willie, NO)
+ actorLockFacing(willie, FACE_RIGHT)
+ objectHotspot(willie, -28,0,20,50)
+}
+
 boris <- {
- _key = "boris"
+    _key = "boris"
+    name = "@30072"
+    fullname = "@30073"
+    icon = "icon_boris"
+    detective = NO
+    function showHideLayers() {
+        actorHideLayer(boris, "splash")
+    }
+    function defaultClickedAt(x, y) {	
+    }
 }
 createActor(boris)
 actorRenderOffset(boris, 0, 45)
 defineVerbs(1)
+
+function borisCostume()
+{
+ actorCostume(boris, "BorisAnimation")
+//  actorWalkSpeed(boris, 30, 15)
+ actorRenderOffset(boris, 0, 45)
+ actorTalkColors(boris, talkColorBoris)
+//  actorTalkOffset(boris, 0, defaultTextOffset)
+ actorHidden(boris, OFF)
+//  objectLit(boris, 1)
+//  footstepsNormal(boris)
+ boris.showHideLayers()
+}
+borisCostume()
 
 function actorEyesLook(actor, dir) {
  if (actor) {
@@ -426,79 +458,40 @@ function actorEyesLook(actor, dir) {
 function newOpeningScene() {
     
     cameraInRoom(Bridge)
+
+    // Bridge.bridgeGate.gate_state = CLOSED
     objectState(Bridge.bridgeBody, GONE)
     objectState(Bridge.bridgeBottle, GONE)
     objectState(Bridge.bridgeChainsaw, GONE)
-    objectParallaxLayer(Bridge.bridgeTrain, 2)
-    objectParallaxLayer(Bridge.frontWavingReeds1, -2)
-    objectParallaxLayer(Bridge.frontWavingReeds2, -2)
-    objectParallaxLayer(Bridge.frontWavingReeds3, -2)
-
-
-    // local star = 0
-    // for (local i = 1; i <= 28; i += 1) {
-    //     star = Bridge["bridgeStar" + i]
-    //     objectParallaxLayer(star, 5)
-
-    //     startthread(twinkleStar, star, 0.01, 0.1, random(0, 0.3), random(0.6, 1))
-    // }
-    // for (local i = 1; i <= 5; i += 1) {
-    //     star = Bridge["bridgeStarB" + i]
-    //     objectParallaxLayer(star, 5)
-
-    //     startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
-    // }
-
-    // for (local x = 0; x < 960; x += random(20, 40)) {
-    //     local firefly = createFirefly(x)
-    //     if (firefly) {
-    //         startthread(animateFirefly, firefly)
-    //     }
-    // }
+    objectTouchable(Bridge.bridgeGateBack, YES)
+    objectTouchable(Bridge.bridgeGate, NO)
+    williePassedOutCostume()
     actorAt(willie, Bridge.willieSpot)
-    actorCostume(willie, "WilliePassedOutAnimation")
-    actorLockFacing(willie, FACE_RIGHT)
+    actorUsePos(willie, Bridge.willieTalkSpot)
+    willie.dialog = "WillieBorisDialog"
     actorPlayAnimation(willie, "awake")
-    actorAt(boris, Bridge.borisStartSpot)
-    actorCostume(boris, "BorisAnimation")
-    actorTalkColors(boris, talkColorBoris)
-
-    actorHideLayer(boris, "splash")
-    // actorHideLayer(boris, "blink")
-    
-    // actorHideLayer(boris, "head6")
-    // actorHideLayer(boris, "head5")
-    // actorHideLayer(boris, "head4")
-    // actorHideLayer(boris, "head3")
-    actorLockFacing(boris, FACE_RIGHT)
-    // actorFace(boris, FACE_RIGHT)
-
-    // cameraAt(700, 86)
-    // roomFade(FADE_IN, 2)
+    objectState(Bridge.willieObject, HERE)
+    objectTouchable(Bridge.willieObject, YES)
+    cameraAt(700,86)
+    roomFade(FADE_IN, 2)
     // breaktime(6)
-    // cameraPanTo(210, 86, 12)
-    // startthread(Bridge.trainPassby)
-
-    // breaktime(2)
-    // breaktime(12.0)
-    // actorAt(boris, Bridge.bridgeGateBack)
-    // actorLockFacing(boris, FACE_FRONT)
-    // actorPlayAnimation(boris, "talk")
-    // actorPlayAnimation(willie, "drink")
-    // breakwhileanimating(willie)
-    // actorPlayAnimation(willie, "awake")
-    // breaktime(2)
-    // selectActor(boris)
-    actorLockFacing(boris, FACE_FRONT)
+    cameraPanTo(210, 86, 6)
+    startthread(Bridge.trainPassby)
+    breaktime(2)
+    breaktime(12.0)
+    actorPlayAnimation(willie, "drink")
+    breakwhileanimating(willie)
+    actorPlayAnimation(willie, "awake")
+    breaktime(2)
+    selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
-    // actorAt(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
-    // cameraFollow(boris)
-    actorLockFacing(boris, FACE_FRONT)
-    actorPlayAnimation(willie, "stand")
-    sayLine(boris, "@25541", "@25542")
+    // // cameraFollow(boris)
+    breaktime(1.0)
+    sayLine(boris, "@25541", 
+    "@25542")
     breakwhiletalking(boris)
-    
+
     actorBlinks(boris, OFF)
     actorEyesLook(boris, DIR_RIGHT)
     breaktime(0.5)
@@ -512,15 +505,23 @@ function newOpeningScene() {
     breaktime(0.5)
     actorEyesLook(boris, DIR_FRONT)
     breaktime(0.25)
-     actorBlinks(boris, ON)
+    actorBlinks(boris, ON)
     
     sayLine(boris, "@25543")
     breakwhiletalking(boris)
     breaktime(0.5)
     sayLine(boris, "@25544")
+
+    inputVerbs(ON)
+    inputOn()
+    print("end :D\n")
 }
 
-startthread(newOpeningScene)
+local tid = startthread(newOpeningScene)
+print("thread: "+tid+"\n")
+breakhere(1)
+print("stop thread\n")
+stopthread(tid)
 
 // intro();
 // startthread(doOpening)

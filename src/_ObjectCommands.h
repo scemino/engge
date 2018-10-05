@@ -70,11 +70,24 @@ static SQInteger _objectAlphaTo(HSQUIRRELVM v)
 
 static SQInteger _objectHotspot(HSQUIRRELVM v)
 {
+    auto numArgs = sq_gettop(v) - 1;
+
     // TODO: with actor
     SQInteger left = 0;
     SQInteger top = 0;
     SQInteger right = 0;
     SQInteger bottom = 0;
+
+    GGObject *obj = _getObject(v, 2);
+    GGActor *actor = nullptr;
+    if (!obj)
+    {
+        actor = _getActor(v, 2);
+        if (!actor)
+        {
+            return sq_throwerror(v, _SC("failed to get object or actor"));
+        }
+    }
     if (SQ_FAILED(sq_getinteger(v, 3, &left)))
     {
         return sq_throwerror(v, _SC("failed to get left"));
@@ -91,13 +104,17 @@ static SQInteger _objectHotspot(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("failed to get bottom"));
     }
-    GGObject *obj = _getObject(v, 2);
-    if (!obj)
+
+    if (obj)
     {
-        return sq_throwerror(v, _SC("failed to get object"));
+        obj->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
+                                    static_cast<int>(bottom - top)));
     }
-    obj->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
-                                static_cast<int>(bottom - top)));
+    else
+    {
+        actor->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
+                                      static_cast<int>(bottom - top)));
+    }
     return 0;
 }
 
@@ -565,4 +582,3 @@ static SQInteger _createObject(HSQUIRRELVM v)
     }
     return 1;
 }
-

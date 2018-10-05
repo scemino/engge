@@ -58,47 +58,6 @@ class _ChangeProperty : public TimeFunction
     Value _current;
 };
 
-static void _errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
-{
-    std::cerr << desc << source << '(' << line << ',' << column << ')' << std::endl;
-}
-
-static SQInteger _aux_printerror(HSQUIRRELVM v)
-{
-    auto pf = sq_geterrorfunc(v);
-    if (!pf)
-        return 0;
-
-    if (sq_gettop(v) < 1)
-        return 0;
-
-    const SQChar *error = nullptr;
-    if (SQ_FAILED(sq_getstring(v, 2, &error)))
-    {
-        error = "unknown";
-    }
-    pf(v, _SC("\nAn error occured in the script: %s\n"), error);
-    sqstd_printcallstack(v);
-
-    return 0;
-}
-
-void _printfunc(HSQUIRRELVM v, const SQChar *s, ...)
-{
-    va_list vl;
-    va_start(vl, s);
-    scvprintf(stdout, s, vl);
-    va_end(vl);
-}
-
-void _errorfunc(HSQUIRRELVM v, const SQChar *s, ...)
-{
-    va_list vl;
-    va_start(vl, s);
-    scvprintf(stderr, s, vl);
-    va_end(vl);
-}
-
 template <typename TEntity>
 static TEntity *_getEntity(HSQUIRRELVM v, SQInteger index)
 {
@@ -139,6 +98,11 @@ static GGObject *_getObject(HSQUIRRELVM v, int index)
     return _getEntity<GGObject>(v, index);
 }
 
+static GGRoom *_getRoom(HSQUIRRELVM v, int index)
+{
+    return _getEntity<GGRoom>(v, index);
+}
+
 static GGActor *_getActor(HSQUIRRELVM v, int index)
 {
     return _getEntity<GGActor>(v, index);
@@ -171,10 +135,10 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 {
     g_pEngine = &engine;
     v = sq_open(1024);
-    sq_setcompilererrorhandler(v, _errorHandler);
-    sq_newclosure(v, _aux_printerror, 0);
+    sq_setcompilererrorhandler(v, errorHandler);
+    sq_newclosure(v, aux_printerror, 0);
     sq_seterrorhandler(v);
-    sq_setprintfunc(v, _printfunc, _errorfunc); //sets the print function
+    sq_setprintfunc(v, printfunc, errorfunc); //sets the print function
 
     sq_pushroottable(v);
     sqstd_register_bloblib(v);
@@ -194,10 +158,14 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerStringConstant(_SC("VERB_TALKTO"), _SC("talkto"));
     registerStringConstant(_SC("VERB_USE"), _SC("use"));
     registerStringConstant(_SC("VERB_WALKTO"), _SC("walkto"));
-    registerConstant(_SC("GONE"), 1);
+    registerConstant(_SC("GONE"), 4);
     registerConstant(_SC("HERE"), 0);
     registerConstant(_SC("OFF"), 0);
     registerConstant(_SC("ON"), 1);
+    registerConstant(_SC("OPEN"), 1);
+    registerConstant(_SC("CLOSED"), 0);
+    registerConstant(_SC("FULL"), 0);
+    registerConstant(_SC("EMPTY"), 1);
     registerConstant(_SC("FADE_IN"), 0);
     registerConstant(_SC("FADE_OUT"), 1);
     registerConstant(_SC("FACE_FRONT"), 0);
@@ -281,6 +249,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_actorPosX, "actorPosX");
     registerGlobalFunction(_actorPosY, "actorPosY");
     registerGlobalFunction(_actorRenderOffset, "actorRenderOffset");
+    registerGlobalFunction(_actorRoom, "actorRoom");
     registerGlobalFunction(_actorShowLayer, "actorShowLayer");
     registerGlobalFunction(_actorTalkColors, "actorTalkColors");
     registerGlobalFunction(_actorTalking, "actorTalking");
@@ -294,6 +263,7 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_isActor, "is_actor");
     registerGlobalFunction(_masterActorArray, "masterActorArray");
     registerGlobalFunction(_sayLine, "sayLine");
+    registerGlobalFunction(_selectActor, "selectActor");
     registerGlobalFunction(_triggerActors, "triggerActors");
 
     registerGlobalFunction(_cameraAt, "cameraAt");
@@ -306,6 +276,48 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerGlobalFunction(_inputOn, "inputOn");
     registerGlobalFunction(_inputSilentOff, "inputSilentOff");
     registerGlobalFunction(_isInputOn, "isInputOn");
+    registerGlobalFunction(_inputVerbs, "inputVerbs");
+}
+
+SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
+{
+    auto pf = sq_geterrorfunc(v);
+    if (!pf)
+        return 0;
+
+    if (sq_gettop(v) < 1)
+        return 0;
+
+    const SQChar *error = nullptr;
+    if (SQ_FAILED(sq_getstring(v, 2, &error)))
+    {
+        error = "unknown";
+    }
+    pf(v, _SC("\nAn error occured in the script: %s\n"), error);
+    sqstd_printcallstack(v);
+
+    return 0;
+}
+
+void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
+{
+    std::cerr << desc << source << '(' << line << ',' << column << ')' << std::endl;
+}
+
+void ScriptEngine::errorfunc(HSQUIRRELVM v, const SQChar *s, ...)
+{
+    va_list vl;
+    va_start(vl, s);
+    scvprintf(stderr, s, vl);
+    va_end(vl);
+}
+
+void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...)
+{
+    va_list vl;
+    va_start(vl, s);
+    scvprintf(stdout, s, vl);
+    va_end(vl);
 }
 
 ScriptEngine::~ScriptEngine()

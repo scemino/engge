@@ -70,19 +70,56 @@ static SQInteger _actorAnimationNames(HSQUIRRELVM v)
 
 static SQInteger _actorAt(HSQUIRRELVM v)
 {
-    auto *pActor = _getActor(v, 2);
-    if (!pActor)
+    auto numArgs = sq_gettop(v) - 1;
+    if (numArgs == 2)
     {
-        return sq_throwerror(v, _SC("failed to get actor"));
+        auto *pActor = _getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        auto *pObj = _getObject(v, 3);
+        if (!pObj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        auto pos = pObj->getPosition();
+        pActor->setPosition(pos);
+        return 0;
     }
-    auto *pObj = _getObject(v, 3);
-    if (!pObj)
+
+    if (numArgs == 5)
     {
-        return sq_throwerror(v, _SC("failed to get object"));
+        auto *pActor = _getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        auto *pRoom = _getRoom(v, 3);
+        if (!pRoom)
+        {
+            return sq_throwerror(v, _SC("failed to get roomTable"));
+        }
+        SQInteger x, y, dir;
+        if (SQ_FAILED(sq_getinteger(v, 4, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 5, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 6, &dir)))
+        {
+            return sq_throwerror(v, _SC("failed to get direction"));
+        }
+        pActor->setPosition((sf::Vector2f)sf::Vector2i(x, y));
+        pActor->getCostume().setFacing((Facing)dir);
+        pActor->setRoom(pRoom);
+        return 0;
     }
-    auto pos = pObj->getPosition();
-    pActor->setPosition(pos);
-    return 0;
+
+    return sq_throwerror(v, _SC("invalid number of arguments"));
 }
 
 static SQInteger _actorColor(HSQUIRRELVM v)
@@ -345,7 +382,13 @@ static SQInteger _actorRenderOffset(HSQUIRRELVM v)
     return 0;
 }
 
-// TODO: static SQInteger _actorRoom(HSQUIRRELVM v)
+static SQInteger _actorRoom(HSQUIRRELVM v)
+{
+    auto *pActor = _getActor(v, 2);
+    auto pRoomTable = pActor->getRoom()->getSquirrelObject();
+    sq_pushobject(v, *pRoomTable);
+    return 1;
+}
 
 static SQInteger _actorShowLayer(HSQUIRRELVM v)
 {
