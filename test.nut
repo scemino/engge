@@ -520,8 +520,8 @@ function newOpeningScene() {
 local tid = startthread(newOpeningScene)
 print("thread: "+tid+"\n")
 breakhere(1)
-print("stop thread\n")
-stopthread(tid)
+// print("stop thread\n")
+// stopthread(tid)
 
 // intro();
 // startthread(doOpening)

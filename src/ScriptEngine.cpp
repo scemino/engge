@@ -1,19 +1,16 @@
-#include <memory>
-
-#include <string>
-#include <memory>
-#include <iostream>
 #include <squirrel3/squirrel.h>
 #include <squirrel3/sqstdio.h>
 #include <squirrel3/sqstdaux.h>
-#include <squirrel3/sqstdblob.h>
 #include <squirrel3/sqstdstring.h>
 #include <squirrel3/sqstdmath.h>
-#include <squirrel3/sqstdsystem.h>
 #include "GGEngine.h"
-#include "Screen.h"
 #include "ScriptEngine.h"
-#include "GGLip.h"
+#include "_SystemCommands.h"
+#include "_GeneralCommands.h"
+#include "_ObjectCommands.h"
+#include "_ActorCommands.h"
+#include "_RoomCommands.h"
+#include "_SoundCommands.h"
 
 #ifdef SQUNICODE
 #define scvprintf vfwprintf
@@ -23,117 +20,9 @@
 
 namespace gg
 {
-static GGEngine *g_pEngine;
-
-template <typename Value>
-class _ChangeProperty : public TimeFunction
-{
-  public:
-    _ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time)
-        : TimeFunction(time),
-          _get(get),
-          _set(set),
-          _destination(destination),
-          _init(get()),
-          _delta(_destination - _init),
-          _current(_init)
-    {
-    }
-
-    void operator()() override
-    {
-        _set(_current);
-        if (!isElapsed())
-        {
-            _current = _init + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
-        }
-    }
-
-  private:
-    std::function<Value()> _get;
-    std::function<void(const Value &)> _set;
-    Value _destination;
-    Value _init;
-    Value _delta;
-    Value _current;
-};
-
-template <typename TEntity>
-static TEntity *_getEntity(HSQUIRRELVM v, SQInteger index)
-{
-    auto type = sq_gettype(v, index);
-    // is it a table?
-    if (type != OT_TABLE)
-    {
-        sq_pushbool(v, SQFalse);
-        return nullptr;
-    }
-
-    HSQOBJECT object;
-    if (SQ_FAILED(sq_getstackobj(v, index, &object)))
-    {
-        return nullptr;
-    }
-
-    sq_pushobject(v, object);
-    sq_pushstring(v, _SC("instance"), -1);
-    if (SQ_FAILED(sq_get(v, -2)))
-    {
-        sq_pop(v, 2);
-        return nullptr;
-    }
-
-    GGEntity *pObj = nullptr;
-    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
-    {
-        sq_pop(v, 2);
-        return nullptr;
-    }
-
-    return dynamic_cast<TEntity *>(pObj);
-}
-
-static GGObject *_getObject(HSQUIRRELVM v, int index)
-{
-    return _getEntity<GGObject>(v, index);
-}
-
-static GGRoom *_getRoom(HSQUIRRELVM v, int index)
-{
-    return _getEntity<GGRoom>(v, index);
-}
-
-static GGActor *_getActor(HSQUIRRELVM v, int index)
-{
-    return _getEntity<GGActor>(v, index);
-}
-
-template <class T>
-static void _pushObject(HSQUIRRELVM v, T &object)
-{
-    sq_newtable(v);
-    sq_pushstring(v, _SC("instance"), -1);
-    sq_pushuserpointer(v, &object);
-    sq_newslot(v, -3, SQFalse);
-}
-
-#include "_SystemCommands.h"
-#include "_GeneralCommands.h"
-#include "_ObjectCommands.h"
-#include "_ActorCommands.h"
-#include "_RoomCommands.h"
-#include "_SoundCommands.h"
-
-static SQInteger _isObject(HSQUIRRELVM v)
-{
-    auto object = _getEntity<GGObject>(v, 2);
-    sq_pushbool(v, object ? SQTrue : SQFalse);
-    return 1;
-}
-
 ScriptEngine::ScriptEngine(GGEngine &engine)
+    : _engine(engine)
 {
-    g_pEngine = &engine;
     v = sq_open(1024);
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
@@ -141,9 +30,6 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     sq_setprintfunc(v, printfunc, errorfunc); //sets the print function
 
     sq_pushroottable(v);
-    sqstd_register_bloblib(v);
-    sqstd_register_iolib(v);
-    sqstd_register_systemlib(v);
     sqstd_register_mathlib(v);
     sqstd_register_stringlib(v);
     registerBoolConstant(_SC("NO"), false);
@@ -176,107 +62,39 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerConstant(_SC("DIR_BACK"), 1);
     registerConstant(_SC("DIR_LEFT"), 2);
     registerConstant(_SC("DIR_RIGHT"), 3);
-    registerGlobalFunction(_random, "random");
-    registerGlobalFunction(_randomFrom, "randomfrom");
-    registerGlobalFunction(_randomOdds, "randomOdds");
 
-    registerGlobalFunction(_loopMusic, "loopMusic");
-    registerGlobalFunction(_loopSound, "loopSound");
-    registerGlobalFunction(_defineSound, "defineSound");
-    registerGlobalFunction(_playSound, "playSound");
-    registerGlobalFunction(_stopSound, "stopSound");
-    registerGlobalFunction(_fadeOutSound, "fadeOutSound");
+    addPack<_ActorPack>();
+    addPack<_GeneralPack>();
+    addPack<_ObjectPack>();
+    addPack<_RoomPack>();
+    addPack<_SoundPack>();
+    addPack<_SystemPack>();
+}
 
-    registerGlobalFunction(_roomFade, "roomFade");
-    registerGlobalFunction(_defineRoom, "defineRoom");
-    registerGlobalFunction(_cameraInRoom, "cameraInRoom");
+ScriptEngine::~ScriptEngine()
+{
+    sq_pop(v, 1);
+    sq_close(v);
+}
 
-    registerGlobalFunction(_startThread, "startthread");
-    registerGlobalFunction(_stopThread, "stopthread");
-    registerGlobalFunction(_breakHere, "breakhere");
-    registerGlobalFunction(_breakTime, "breaktime");
-    registerGlobalFunction(_breakwhileanimating, "breakwhileanimating");
-    registerGlobalFunction(_breakwhilewalking, "breakwhilewalking");
-    registerGlobalFunction(_breakwhiletalking, "breakwhiletalking");
+GGEngine &ScriptEngine::getEngine()
+{
+    return _engine;
+}
 
-    registerGlobalFunction(_isObject, "isObject");
-    registerGlobalFunction(_isObject, "is_object");
+GGObject *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getEntity<GGObject>(v, index);
+}
 
-    registerGlobalFunction(_scale, "scale");
-    registerGlobalFunction(_playState, "playObjectState");
-    registerGlobalFunction(_objectHidden, "objectHidden");
-    registerGlobalFunction(_objectAlpha, "objectAlpha");
-    registerGlobalFunction(_objectAlphaTo, "objectAlphaTo");
-    registerGlobalFunction(_objectHotspot, "objectHotspot");
-    registerGlobalFunction(_objectOffset, "objectOffset");
-    registerGlobalFunction(_objectOffsetTo, "objectOffsetTo");
-    registerGlobalFunction(_objectMoveTo, "objectMoveTo");
-    registerGlobalFunction(_objectState, "objectState");
-    registerGlobalFunction(_objectScale, "objectScale");
-    registerGlobalFunction(_objectAt, "objectAt");
-    registerGlobalFunction(_objectPosX, "_objectPosX");
-    registerGlobalFunction(_objectPosY, "_objectPosY");
-    registerGlobalFunction(_objectSort, "objectSort");
-    registerGlobalFunction(_objectRotate, "objectRotate");
-    registerGlobalFunction(_objectRotateTo, "objectRotateTo");
-    registerGlobalFunction(_objectParallaxLayer, "objectParallaxLayer");
-    registerGlobalFunction(_objectTouchable, "objectTouchable");
-    registerGlobalFunction(_objectLit, "objectLit");
-    registerGlobalFunction(_objectOwner, "objectOwner");
-    registerGlobalFunction(_objectUsePos, "objectUsePos");
-    registerGlobalFunction(_objectColor, "objectColor");
-    registerGlobalFunction(_objectIcon, "objectIcon");
-    registerGlobalFunction(_objectFPS, "objectFPS");
-    registerGlobalFunction(_createObject, "createObject");
-    registerGlobalFunction(_createTextObject, "createTextObject");
-    registerGlobalFunction(_deleteObject, "deleteObject");
-    registerGlobalFunction(_translate, "translate");
+GGRoom *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getEntity<GGRoom>(v, index);
+}
 
-    registerGlobalFunction(_actorAlpha, "actorAlpha");
-    registerGlobalFunction(_actorAnimationNames, "actorAnimationNames");
-    registerGlobalFunction(_actorAt, "actorAt");
-    registerGlobalFunction(_actorBlinkRate, "actorBlinkRate");
-    registerGlobalFunction(_actorColor, "actorColor");
-    registerGlobalFunction(_actorCostume, "actorCostume");
-    registerGlobalFunction(_actorDistanceTo, "actorDistanceTo");
-    registerGlobalFunction(_actorDistanceWithin, "actorDistanceWithin");
-    registerGlobalFunction(_actorFace, "actorFace");
-    registerGlobalFunction(_actorHidden, "actorHidden");
-    registerGlobalFunction(_actorHideLayer, "actorHideLayer");
-    registerGlobalFunction(_actorInTrigger, "actorInTrigger");
-    registerGlobalFunction(_actorLockFacing, "actorLockFacing");
-    registerGlobalFunction(_actorPlayAnimation, "actorPlayAnimation");
-    registerGlobalFunction(_actorPosX, "actorPosX");
-    registerGlobalFunction(_actorPosY, "actorPosY");
-    registerGlobalFunction(_actorRenderOffset, "actorRenderOffset");
-    registerGlobalFunction(_actorRoom, "actorRoom");
-    registerGlobalFunction(_actorShowLayer, "actorShowLayer");
-    registerGlobalFunction(_actorTalkColors, "actorTalkColors");
-    registerGlobalFunction(_actorTalking, "actorTalking");
-    registerGlobalFunction(_actorTalkOffset, "actorTalkOffset");
-    registerGlobalFunction(_actorUsePos, "actorUsePos");
-    registerGlobalFunction(_actorUseWalkboxes, "actorUseWalkboxes");
-    registerGlobalFunction(_actorWalkForward, "actorWalkForward");
-    registerGlobalFunction(_actorWalkTo, "actorWalkTo");
-    registerGlobalFunction(_createActor, "createActor");
-    registerGlobalFunction(_currentActor, "currentActor");
-    registerGlobalFunction(_isActor, "is_actor");
-    registerGlobalFunction(_masterActorArray, "masterActorArray");
-    registerGlobalFunction(_sayLine, "sayLine");
-    registerGlobalFunction(_selectActor, "selectActor");
-    registerGlobalFunction(_triggerActors, "triggerActors");
-
-    registerGlobalFunction(_cameraAt, "cameraAt");
-    registerGlobalFunction(_cameraPanTo, "cameraPanTo");
-    registerGlobalFunction(_setVerb, "setVerb");
-    registerGlobalFunction(_verbUIColors, "verbUIColors");
-    registerGlobalFunction(_getUserPref, "getUserPref");
-    registerGlobalFunction(_systemTime, "systemTime");
-    registerGlobalFunction(_inputOff, "inputOff");
-    registerGlobalFunction(_inputOn, "inputOn");
-    registerGlobalFunction(_inputSilentOff, "inputSilentOff");
-    registerGlobalFunction(_isInputOn, "isInputOn");
-    registerGlobalFunction(_inputVerbs, "inputVerbs");
+GGActor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getEntity<GGActor>(v, index);
 }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
@@ -320,17 +138,11 @@ void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...)
     va_end(vl);
 }
 
-ScriptEngine::~ScriptEngine()
-{
-    sq_pop(v, 1);
-    sq_close(v);
-}
-
 void ScriptEngine::registerBoolConstant(const SQChar *name, bool value)
 {
     sq_pushconsttable(v);
     sq_pushstring(v, name, -1);
-    sq_pushbool(v, static_cast<SQBool>(value));
+    sq_pushbool(v, value ? SQTrue : SQFalse);
     sq_newslot(v, -3, SQTrue);
     sq_pop(v, 1);
 }

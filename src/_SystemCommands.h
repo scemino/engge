@@ -1,5 +1,11 @@
+#pragma once
 #include <time.h>
+#include <squirrel3/squirrel.h>
+#include "Function.h"
+#include "GGActor.h"
 
+namespace gg
+{
 class _BreakHereFunction : public Function
 {
   private:
@@ -148,183 +154,212 @@ class _BreakTimeFunction : public TimeFunction
     }
 };
 
-static SQInteger _breakwhileanimating(HSQUIRRELVM v)
+class _SystemPack : public Pack
 {
-    auto *pActor = _getActor(v, 2);
-    if (!pActor)
-    {
-        return sq_throwerror(v, _SC("failed to get actor"));
-    }
-    auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(v, *pActor));
-    return result;
-}
+  private:
+    static GGEngine *g_pEngine;
 
-static SQInteger _breakwhilewalking(HSQUIRRELVM v)
-{
-    auto *pActor = _getActor(v, 2);
-    if (!pActor)
+  private:
+    void addTo(ScriptEngine &engine) const override
     {
-        return sq_throwerror(v, _SC("failed to get actor"));
-    }
-    auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(v, *pActor));
-    return result;
-}
-
-static SQInteger _breakwhiletalking(HSQUIRRELVM v)
-{
-    auto *pActor = _getActor(v, 2);
-    if (!pActor)
-    {
-        return sq_throwerror(v, _SC("failed to get actor"));
-    }
-    auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(v, *pActor));
-    return result;
-}
-
-static SQInteger _stopThread(HSQUIRRELVM v)
-{
-    HSQOBJECT thread_obj;
-    sq_resetobject(&thread_obj);
-    if (SQ_FAILED(sq_getstackobj(v, 2, &thread_obj)))
-    {
-        return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
-    }
-    sq_release(v, &thread_obj);
-    return 0;
-}
-
-static SQInteger _startThread(HSQUIRRELVM v)
-{
-    SQInteger size = sq_gettop(v);
-
-    // create thread and store it on the stack
-    auto thread = sq_newthread(v, 1024);
-    HSQOBJECT thread_obj;
-    sq_resetobject(&thread_obj);
-    if (SQ_FAILED(sq_getstackobj(v, -1, &thread_obj)))
-    {
-        return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        g_pEngine = &engine.getEngine();
+        engine.registerGlobalFunction(breakhere, "breakhere");
+        engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
+        engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
+        engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
+        engine.registerGlobalFunction(stopthread, "stopthread");
+        engine.registerGlobalFunction(startthread, "startthread");
+        engine.registerGlobalFunction(breaktime, "breaktime");
+        engine.registerGlobalFunction(getUserPref, "getUserPref");
+        engine.registerGlobalFunction(inputOff, "inputOff");
+        engine.registerGlobalFunction(inputOn, "inputOn");
+        engine.registerGlobalFunction(isInputOn, "isInputOn");
+        engine.registerGlobalFunction(inputVerbs, "inputVerbs");
+        engine.registerGlobalFunction(systemTime, "systemTime");
     }
 
-    std::vector<HSQOBJECT> args;
-    for (auto i = 0; i < size - 2; i++)
+    static SQInteger breakhere(HSQUIRRELVM v)
     {
-        HSQOBJECT arg;
-        sq_resetobject(&arg);
-        if (SQ_FAILED(sq_getstackobj(v, 3 + i, &arg)))
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(v));
+        return result;
+    }
+
+    static SQInteger breakwhileanimating(HSQUIRRELVM v)
+    {
+        auto *pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
         {
-            return sq_throwerror(v, _SC("Couldn't get coroutine args from stack"));
+            return sq_throwerror(v, _SC("failed to get actor"));
         }
-        args.push_back(arg);
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(v, *pActor));
+        return result;
     }
 
-    // get the closure
-    HSQOBJECT closureObj;
-    sq_resetobject(&closureObj);
-    if (SQ_FAILED(sq_getstackobj(v, 2, &closureObj)))
+    static SQInteger breakwhilewalking(HSQUIRRELVM v)
     {
-        return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        auto *pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(v, *pActor));
+        return result;
     }
 
-    // call the closure in the thread
-    sq_pushobject(thread, closureObj);
-    sq_pushroottable(thread);
-    for (auto arg : args)
+    static SQInteger breakwhiletalking(HSQUIRRELVM v)
     {
-        sq_pushobject(thread, arg);
+        auto *pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(v, *pActor));
+        return result;
     }
-    if (SQ_FAILED(sq_call(thread, 1 + args.size(), SQFalse, SQTrue)))
+
+    static SQInteger stopthread(HSQUIRRELVM v)
     {
-        sq_throwerror(v, _SC("call failed"));
-        sq_pop(thread, 1); // pop the compiled closure
-        return SQ_ERROR;
+        HSQOBJECT thread_obj;
+        sq_resetobject(&thread_obj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &thread_obj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+        sq_release(v, &thread_obj);
+        return 0;
     }
 
-    sq_addref(v, &thread_obj);
-    sq_pushobject(v, thread_obj);
-    
-    return 1;
-}
-
-static SQInteger _breakHere(HSQUIRRELVM v)
-{
-    auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(v));
-    return result;
-}
-
-static SQInteger _breakTime(HSQUIRRELVM v)
-{
-    SQFloat time = 0;
-    if (SQ_FAILED(sq_getfloat(v, 2, &time)))
+    static SQInteger startthread(HSQUIRRELVM v)
     {
-        return sq_throwerror(v, _SC("failed to get time"));
-    }
-    auto result = sq_suspendvm(v);
-    g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
-    return result;
-}
+        SQInteger size = sq_gettop(v);
 
-static SQInteger _getUserPref(HSQUIRRELVM v)
-{
-    const SQChar *key;
-    if (SQ_FAILED(sq_getstring(v, 2, &key)))
+        // create thread and store it on the stack
+        auto thread = sq_newthread(v, 1024);
+        HSQOBJECT thread_obj;
+        sq_resetobject(&thread_obj);
+        if (SQ_FAILED(sq_getstackobj(v, -1, &thread_obj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+
+        std::vector<HSQOBJECT> args;
+        for (auto i = 0; i < size - 2; i++)
+        {
+            HSQOBJECT arg;
+            sq_resetobject(&arg);
+            if (SQ_FAILED(sq_getstackobj(v, 3 + i, &arg)))
+            {
+                return sq_throwerror(v, _SC("Couldn't get coroutine args from stack"));
+            }
+            args.push_back(arg);
+        }
+
+        // get the closure
+        HSQOBJECT closureObj;
+        sq_resetobject(&closureObj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &closureObj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+
+        // call the closure in the thread
+        sq_pushobject(thread, closureObj);
+        sq_pushroottable(thread);
+        for (auto arg : args)
+        {
+            sq_pushobject(thread, arg);
+        }
+        if (SQ_FAILED(sq_call(thread, 1 + args.size(), SQFalse, SQTrue)))
+        {
+            sq_throwerror(v, _SC("call failed"));
+            sq_pop(thread, 1); // pop the compiled closure
+            return SQ_ERROR;
+        }
+
+        sq_addref(v, &thread_obj);
+        sq_pushobject(v, thread_obj);
+
+        return 1;
+    }
+
+    static SQInteger breaktime(HSQUIRRELVM v)
     {
-        return sq_throwerror(v, _SC("failed to get key"));
+        SQFloat time = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &time)))
+        {
+            return sq_throwerror(v, _SC("failed to get time"));
+        }
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
+        return result;
     }
-    const SQChar *defaultValue;
-    if (SQ_FAILED(sq_getstring(v, 3, &defaultValue)))
+
+    static SQInteger getUserPref(HSQUIRRELVM v)
     {
-        return sq_throwerror(v, _SC("failed to get defaultValue"));
+        const SQChar *key;
+        if (SQ_FAILED(sq_getstring(v, 2, &key)))
+        {
+            return sq_throwerror(v, _SC("failed to get key"));
+        }
+        const SQChar *defaultValue;
+        if (SQ_FAILED(sq_getstring(v, 3, &defaultValue)))
+        {
+            return sq_throwerror(v, _SC("failed to get defaultValue"));
+        }
+        // TODO: get here the value from the preferences file
+        sq_pushstring(v, defaultValue, -1);
+        return 1;
     }
-    // TODO: get here the value from the preferences file
-    sq_pushstring(v, defaultValue, -1);
-    return 1;
-}
 
-static SQInteger _inputOff(HSQUIRRELVM v)
-{
-    g_pEngine->setInputActive(false);
-    return 0;
-}
-
-static SQInteger _inputOn(HSQUIRRELVM v)
-{
-    g_pEngine->setInputActive(true);
-    return 0;
-}
-
-static SQInteger _inputSilentOff(HSQUIRRELVM v)
-{
-    g_pEngine->inputSilentOff();
-    return 0;
-}
-
-static SQInteger _isInputOn(HSQUIRRELVM v)
-{
-    bool isActive = g_pEngine->getInputActive();
-    sq_push(v, isActive ? SQTrue : SQFalse);
-    return 1;
-}
-
-static SQInteger _inputVerbs(HSQUIRRELVM v)
-{
-    SQInteger on;
-    if (SQ_FAILED(sq_getinteger(v, 2, &on)))
+    static SQInteger inputOff(HSQUIRRELVM v)
     {
-        return sq_throwerror(v, _SC("failed to get isActive"));
+        g_pEngine->setInputActive(false);
+        return 0;
     }
-    // TODO: g_pEngine->setInputVerbs(on);
-    return 1;
-}
 
-static SQInteger _systemTime(HSQUIRRELVM v)
-{
-    time_t t;
-    time(&t);
-    sq_pushinteger(v, t);
-    return 1;
-}
+    static SQInteger inputOn(HSQUIRRELVM v)
+    {
+        g_pEngine->setInputActive(true);
+        return 0;
+    }
+
+    static SQInteger inputSilentOff(HSQUIRRELVM v)
+    {
+        g_pEngine->inputSilentOff();
+        return 0;
+    }
+
+    static SQInteger isInputOn(HSQUIRRELVM v)
+    {
+        bool isActive = g_pEngine->getInputActive();
+        sq_push(v, isActive ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger inputVerbs(HSQUIRRELVM v)
+    {
+        SQInteger on;
+        if (SQ_FAILED(sq_getinteger(v, 2, &on)))
+        {
+            return sq_throwerror(v, _SC("failed to get isActive"));
+        }
+        // TODO: g_pEngine->setInputVerbs(on);
+        return 1;
+    }
+
+    static SQInteger systemTime(HSQUIRRELVM v)
+    {
+        time_t t;
+        time(&t);
+        sq_pushinteger(v, t);
+        return 1;
+    }
+};
+
+GGEngine *_SystemPack::g_pEngine = nullptr;
+
+} // namespace gg

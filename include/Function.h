@@ -37,4 +37,37 @@ public:
 
   void callWhenElapsed(std::function<void()> function) { _function = function; }
 };
+
+template <typename Value>
+class _ChangeProperty : public TimeFunction
+{
+  public:
+    _ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time)
+        : TimeFunction(time),
+          _get(get),
+          _set(set),
+          _destination(destination),
+          _init(get()),
+          _delta(_destination - _init),
+          _current(_init)
+    {
+    }
+
+    void operator()() override
+    {
+        _set(_current);
+        if (!isElapsed())
+        {
+            _current = _init + (_clock.getElapsedTime().asSeconds() / _time.asSeconds()) * _delta;
+        }
+    }
+
+  private:
+    std::function<Value()> _get;
+    std::function<void(const Value &)> _set;
+    Value _destination;
+    Value _init;
+    Value _delta;
+    Value _current;
+};
 } // namespace gg
