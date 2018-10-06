@@ -13,19 +13,14 @@ public:
 };
 class ScriptEngine
 {
-private:
-  GGEngine &_engine;
-  HSQUIRRELVM v;
-  std::vector<std::unique_ptr<Pack>> _packs;
-
 public:
   explicit ScriptEngine(GGEngine &engine);
   ~ScriptEngine();
 
   GGEngine &getEngine();
-  void registerBoolConstant(const SQChar *name, bool value);
-  void registerStringConstant(const SQChar *name, const SQChar *value);
-  void registerConstant(const SQChar *name, SQInteger value);
+
+  template <typename TConstant>
+  void registerConstant(const SQChar *name, TConstant value);
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
   void executeScript(const std::string &name);
 
@@ -47,6 +42,11 @@ private:
   static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
   static void printfunc(HSQUIRRELVM v, const SQChar *s, ...);
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
+
+private:
+  GGEngine &_engine;
+  HSQUIRRELVM v;
+  std::vector<std::unique_ptr<Pack>> _packs;
 };
 
 template <typename TEntity>
@@ -97,7 +97,7 @@ template <typename TPack>
 void ScriptEngine::addPack()
 {
   auto pack = std::make_unique<TPack>();
-  auto pPack = (Pack*)pack.get();
+  auto pPack = (Pack *)pack.get();
   pPack->addTo(*this);
   _packs.push_back(std::move(pack));
 }

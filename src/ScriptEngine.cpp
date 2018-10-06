@@ -3,7 +3,6 @@
 #include <squirrel3/sqstdaux.h>
 #include <squirrel3/sqstdstring.h>
 #include <squirrel3/sqstdmath.h>
-#include "GGEngine.h"
 #include "ScriptEngine.h"
 #include "_SystemCommands.h"
 #include "_GeneralCommands.h"
@@ -20,6 +19,36 @@
 
 namespace gg
 {
+template <>
+void ScriptEngine::registerConstant(const SQChar *name, bool value)
+{
+    sq_pushconsttable(v);
+    sq_pushstring(v, name, -1);
+    sq_pushbool(v, value ? SQTrue : SQFalse);
+    sq_newslot(v, -3, SQTrue);
+    sq_pop(v, 1);
+}
+
+template <>
+void ScriptEngine::registerConstant(const SQChar *name, int value)
+{
+    sq_pushconsttable(v);
+    sq_pushstring(v, name, -1);
+    sq_pushinteger(v, value);
+    sq_newslot(v, -3, SQTrue);
+    sq_pop(v, 1);
+}
+
+template <>
+void ScriptEngine::registerConstant(const SQChar *name, const SQChar *value)
+{
+    sq_pushconsttable(v);
+    sq_pushstring(v, name, -1);
+    sq_pushstring(v, value, -1);
+    sq_newslot(v, -3, SQTrue);
+    sq_pop(v, 1);
+}
+
 ScriptEngine::ScriptEngine(GGEngine &engine)
     : _engine(engine)
 {
@@ -32,19 +61,19 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     sq_pushroottable(v);
     sqstd_register_mathlib(v);
     sqstd_register_stringlib(v);
-    registerBoolConstant(_SC("NO"), false);
-    registerBoolConstant(_SC("YES"), true);
-    registerStringConstant(_SC("VERB_CLOSE"), _SC("close"));
-    registerStringConstant(_SC("VERB_GIVE"), _SC("give"));
-    registerStringConstant(_SC("VERB_LOOKAT"), _SC("lookat"));
-    registerStringConstant(_SC("VERB_OPEN"), _SC("open"));
-    registerStringConstant(_SC("VERB_PICKUP"), _SC("pickup"));
-    registerStringConstant(_SC("VERB_PULL"), _SC("pull"));
-    registerStringConstant(_SC("VERB_PUSH"), _SC("push"));
-    registerStringConstant(_SC("VERB_TALKTO"), _SC("talkto"));
-    registerStringConstant(_SC("VERB_USE"), _SC("use"));
-    registerStringConstant(_SC("VERB_WALKTO"), _SC("walkto"));
-    registerConstant(_SC("GONE"), 4);
+    registerConstant(_SC("NO"), false);
+    registerConstant(_SC("YES"), true);
+    registerConstant(_SC("VERB_CLOSE"), _SC("close"));
+    registerConstant(_SC("VERB_GIVE"), _SC("give"));
+    registerConstant(_SC("VERB_LOOKAT"), _SC("lookat"));
+    registerConstant(_SC("VERB_OPEN"), _SC("open"));
+    registerConstant(_SC("VERB_PICKUP"), _SC("pickup"));
+    registerConstant(_SC("VERB_PULL"), _SC("pull"));
+    registerConstant(_SC("VERB_PUSH"), _SC("push"));
+    registerConstant(_SC("VERB_TALKTO"), _SC("talkto"));
+    registerConstant(_SC("VERB_USE"), _SC("use"));
+    registerConstant(_SC("VERB_WALKTO"), _SC("walkto"));
+    registerConstant(_SC("GONE"), 1);
     registerConstant(_SC("HERE"), 0);
     registerConstant(_SC("OFF"), 0);
     registerConstant(_SC("ON"), 1);
@@ -136,33 +165,6 @@ void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...)
     va_start(vl, s);
     scvprintf(stdout, s, vl);
     va_end(vl);
-}
-
-void ScriptEngine::registerBoolConstant(const SQChar *name, bool value)
-{
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
-    sq_pushbool(v, value ? SQTrue : SQFalse);
-    sq_newslot(v, -3, SQTrue);
-    sq_pop(v, 1);
-}
-
-void ScriptEngine::registerStringConstant(const SQChar *name, const SQChar *value)
-{
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
-    sq_pushstring(v, value, -1);
-    sq_newslot(v, -3, SQTrue);
-    sq_pop(v, 1);
-}
-
-void ScriptEngine::registerConstant(const SQChar *name, SQInteger value)
-{
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
-    sq_pushinteger(v, value);
-    sq_newslot(v, -3, SQTrue);
-    sq_pop(v, 1);
 }
 
 void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck, const SQChar *typemask)
