@@ -39,10 +39,10 @@ public:
 };
 
 template <typename Value>
-class _ChangeProperty : public TimeFunction
+class ChangeProperty : public TimeFunction
 {
   public:
-    _ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time)
+    ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time)
         : TimeFunction(time),
           _get(get),
           _set(set),

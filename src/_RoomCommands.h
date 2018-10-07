@@ -19,10 +19,9 @@ class _RoomPack : public Pack
 
     static void _fadeTo(float a, const sf::Time &time)
     {
-        auto alpha = static_cast<sf::Uint8>(a * 255);
         auto get = std::bind(&GGEngine::getFadeAlpha, g_pEngine);
         auto set = std::bind(&GGEngine::setFadeAlpha, g_pEngine, std::placeholders::_1);
-        auto fadeTo = std::make_unique<_ChangeProperty<sf::Uint8>>(get, set, alpha, time);
+        auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, a, time);
         g_pEngine->addFunction(std::move(fadeTo));
     }
 
@@ -38,7 +37,7 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get time"));
         }
-        _fadeTo(type == 0 ? 0 : 255, sf::seconds(t));
+        _fadeTo(type == 0 ? 0.f : 1.f, sf::seconds(t));
         return 0;
     }
 

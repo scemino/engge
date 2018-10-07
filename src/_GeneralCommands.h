@@ -57,7 +57,7 @@ class _GeneralPack : public Pack
         auto get = std::bind(&GGEngine::getCameraAt, g_pEngine);
         auto set = std::bind(&GGEngine::setCameraAt, g_pEngine, std::placeholders::_1);
 
-        auto cameraPanTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t));
+        auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t));
         g_pEngine->addFunction(std::move(cameraPanTo));
         return 0;
     }

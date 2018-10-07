@@ -116,7 +116,7 @@ class _ObjectPack : public Pack
         };
         auto getalpha = std::bind(getAlpha, std::cref(*obj));
         auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
-        auto alphaTo = std::make_unique<_ChangeProperty<sf::Uint8>>(getalpha, setalpha, a, sf::seconds(time));
+        auto alphaTo = std::make_unique<ChangeProperty<sf::Uint8>>(getalpha, setalpha, a, sf::seconds(time));
         g_pEngine->addFunction(std::move(alphaTo));
 
         return 0;
@@ -243,7 +243,7 @@ class _ObjectPack : public Pack
         auto get = std::bind(&GGObject::getPosition, obj);
         auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
         auto destination = obj->getPosition() + sf::Vector2f(x, y);
-        auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t));
+        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t));
         g_pEngine->addFunction(std::move(offsetTo));
 
         return 0;
@@ -273,7 +273,7 @@ class _ObjectPack : public Pack
         }
         auto get = std::bind(&GGObject::getPosition, obj);
         auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
-        auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t));
+        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t));
         g_pEngine->addFunction(std::move(offsetTo));
 
         return 0;
@@ -407,7 +407,7 @@ class _ObjectPack : public Pack
 
         auto get = std::bind(&GGObject::getRotation, obj);
         auto set = std::bind(&GGObject::setRotation, obj, std::placeholders::_1);
-        auto rotateTo = std::make_unique<_ChangeProperty<float>>(get, set, dir, sf::seconds(t));
+        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t));
         g_pEngine->addFunction(std::move(rotateTo));
         return 0;
     }

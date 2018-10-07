@@ -474,7 +474,7 @@ function newOpeningScene() {
     objectTouchable(Bridge.willieObject, YES)
     cameraAt(700,86)
     roomFade(FADE_IN, 2)
-    // breaktime(6)
+    breaktime(6)
     cameraPanTo(210, 86, 6)
     startthread(Bridge.trainPassby)
     breaktime(2)

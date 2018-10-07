@@ -16,7 +16,7 @@ namespace gg
 GGEngine::GGEngine(const GGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
-      _fadeAlpha(0),
+      _fadeAlpha(255),
       _pWindow(nullptr),
       _pRoom(nullptr),
       _pCurrentActor(nullptr),

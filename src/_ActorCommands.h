@@ -540,7 +540,7 @@ class _ActorPack : public Pack
         auto set = std::bind(&GGActor::setPosition, pActor, std::placeholders::_1);
 
         // yes I known this is not enough, I need to take into account the walkbox
-        auto offsetTo = std::make_unique<_ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(4));
+        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(4));
         std::cout << "Play anim walk (loop)" << std::endl;
         pActor->getCostume().setState("walk");
         pActor->getCostume().getAnimation()->play(true);

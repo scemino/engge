@@ -74,7 +74,7 @@ class _SoundPack : public Pack
 
         auto get = std::bind(&sf::Sound::getVolume, &pSound->sound);
         auto set = std::bind(&sf::Sound::setVolume, &pSound->sound, std::placeholders::_1);
-        auto fadeTo = std::make_unique<_ChangeProperty<float>>(get, set, 0.f, sf::seconds(t));
+        auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 0.f, sf::seconds(t));
         return 0;
     }
 

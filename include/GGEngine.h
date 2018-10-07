@@ -73,8 +73,8 @@ public:
   void setRoom(GGRoom *room) { _pRoom = room; }
   GGFont &getFont() { return _font; }
   std::string getText(int id) { return _textDb.getText(id); }
-  void setFadeAlpha(sf::Uint8 fade) { _fadeAlpha = fade; }
-  sf::Uint8 getFadeAlpha() const { return _fadeAlpha; }
+  void setFadeAlpha(float fade) { _fadeAlpha = static_cast<uint8_t>(fade * 255); }
+  float getFadeAlpha() const { return _fadeAlpha / 255.f; }
 
   void addActor(std::unique_ptr<GGActor> actor) { _actors.push_back(std::move(actor)); }
   void addRoom(GGRoom &room) { _rooms.push_back(std::unique_ptr<GGRoom>(&room)); }
