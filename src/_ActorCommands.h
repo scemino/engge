@@ -79,6 +79,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(createActor, "createActor");
         engine.registerGlobalFunction(currentActor, "currentActor");
         engine.registerGlobalFunction(isActor, "isActor");
+        engine.registerGlobalFunction(isActor, "is_actor");
         engine.registerGlobalFunction(masterActorArray, "masterActorArray");
         engine.registerGlobalFunction(sayLine, "sayLine");
         engine.registerGlobalFunction(selectActor, "selectActor");

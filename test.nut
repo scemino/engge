@@ -465,6 +465,24 @@ function newOpeningScene() {
     objectState(Bridge.bridgeChainsaw, GONE)
     objectTouchable(Bridge.bridgeGateBack, YES)
     objectTouchable(Bridge.bridgeGate, NO)
+    objectParallaxLayer(Bridge.bridgeWater, 1)
+    objectParallaxLayer(Bridge.bridgeTrain, 2)
+    objectParallaxLayer(Bridge.frontWavingReeds1, -2)
+    objectParallaxLayer(Bridge.frontWavingReeds2, -2)
+    objectParallaxLayer(Bridge.frontWavingReeds3, -2)
+    
+    local star = 0
+    for (local i = 1; i <= 28; i += 1) {
+        star = Bridge["bridgeStar"+i]
+        objectParallaxLayer(star, 5)
+        startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
+    }
+    for (local i = 1; i <= 5; i += 1) {
+        star = Bridge["bridgeStarB"+i]
+        objectParallaxLayer(star, 5)
+        startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+    }
+    objectOffset(Bridge.bridgeTrain, -100, 0)	
     williePassedOutCostume()
     actorAt(willie, Bridge.willieSpot)
     actorUsePos(willie, Bridge.willieTalkSpot)

@@ -425,6 +425,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get layer number"));
         }
         obj->setZOrder(static_cast<int>(layer));
+        g_pEngine->getRoom().setAsParallaxLayer(obj);
         return 0;
     }
 

@@ -24,7 +24,7 @@ public:
   const std::string &getSheet() const { return _sheet; }
 
   void setSquirrelObject(HSQOBJECT *pObject) { _pSquirrelObject = pObject; }
-  HSQOBJECT* getSquirrelObject() { return _pSquirrelObject; }
+  HSQOBJECT *getSquirrelObject() { return _pSquirrelObject; }
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
@@ -41,6 +41,7 @@ public:
   void showLayers(bool show) { _showLayers = show; }
   bool areLayersVisible() const { return _showLayers; }
   sf::Vector2i getRoomSize() const { return _roomSize; }
+  void setAsParallaxLayer(GGEntity *pEntity) { _parallaxLayers.push_back(pEntity); }
 
 private:
   void drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
@@ -59,7 +60,8 @@ private:
   const GGEngineSettings &_settings;
   std::vector<std::unique_ptr<GGObject>> _objects;
   std::vector<Walkbox> _walkboxes;
-  std::vector<RoomLayer> _layers;
+  std::vector<GGEntity *> _parallaxLayers;
+  std::vector<std::unique_ptr<RoomLayer>> _layers;
   std::vector<RoomScaling> _scalings;
   sf::Vector2i _roomSize;
   bool _showDrawWalkboxes;

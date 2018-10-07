@@ -26,7 +26,7 @@ void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
     int width = 0;
     if (jWimpy["background"].is_array())
     {
-        RoomLayer layer;
+        auto layer = std::make_unique<RoomLayer>();
         for (auto &bg : jWimpy["background"])
         {
             auto frame = json["frames"][bg.get<std::string>()]["frame"];
@@ -35,9 +35,10 @@ void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
             sprite.setTexture(_textureManager.get(_sheet));
             sprite.setTextureRect(_toRect(frame));
             width += sprite.getTextureRect().width;
-            layer.getSprites().push_back(sprite);
+            layer->getSprites().push_back(sprite);
         }
-        _layers.push_back(layer);
+        setAsParallaxLayer(layer.get());
+        _layers.push_back(std::move(layer));
     }
     else if (jWimpy["background"].is_string())
     {
@@ -45,9 +46,10 @@ void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
         auto sprite = sf::Sprite();
         sprite.setTexture(_textureManager.get(_sheet));
         sprite.setTextureRect(_toRect(frame));
-        RoomLayer layer;
-        layer.getSprites().push_back(sprite);
-        _layers.push_back(layer);
+        auto layer = std::make_unique<RoomLayer>();
+        layer->getSprites().push_back(sprite);
+        setAsParallaxLayer(layer.get());
+        _layers.push_back(std::move(layer));
     }
     // room width seems to be not enough :S
     if (width > _roomSize.x)
@@ -63,9 +65,9 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
 
     for (auto jLayer : jWimpy["layers"])
     {
-        RoomLayer layer;
+        auto layer = std::make_unique<RoomLayer>();
         auto zsort = jLayer["zsort"].get<int>();
-        layer.setZOrder(zsort);
+        layer->setZOrder(zsort);
         if (jLayer["name"].is_array())
         {
             float offsetX = 0;
@@ -82,7 +84,7 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
                 s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
                 s.move(sf::Vector2f(offsetX, 0));
                 offsetX += rect.width;
-                layer.getSprites().push_back(s);
+                layer->getSprites().push_back(s);
             }
         }
         else
@@ -96,26 +98,22 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
             s.setTextureRect(rect);
             const auto &sourceRect = _toRect(json["frames"][layerName]["spriteSourceSize"]);
             s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
-            layer.getSprites().push_back(s);
+            layer->getSprites().push_back(s);
         }
         if (jLayer["parallax"].is_string())
         {
             auto parallax = _parsePos(jLayer["parallax"].get<std::string>());
-            layer.setParallax(parallax);
+            layer->setParallax(parallax);
         }
         else
         {
             auto parallax = jLayer["parallax"].get<float>();
-            layer.setParallax(sf::Vector2f(parallax, 1));
+            layer->setParallax(sf::Vector2f(parallax, 1));
         }
-        std::cout << "Read layer zsort: " << layer.getZOrder() << std::endl;
-        _layers.push_back(layer);
+        std::cout << "Read layer zsort: " << layer->getZOrder() << std::endl;
+        setAsParallaxLayer(layer.get());
+        _layers.push_back(std::move(layer));
     }
-    // sort layers
-    auto cmpLayers = [](RoomLayer &a, RoomLayer &b) {
-        return a.getZOrder() > b.getZOrder();
-    };
-    std::sort(_layers.begin(), _layers.end(), cmpLayers);
 }
 
 void GGRoom::loadScalings(nlohmann::json jWimpy)
@@ -370,6 +368,10 @@ void GGRoom::drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos
 
     for (auto &obj : _objects)
     {
+        auto pObj = obj.get();
+        auto it = std::find(_parallaxLayers.begin(), _parallaxLayers.end(), pObj);
+        if (it != _parallaxLayers.end())
+            continue;
         obj->draw(window, cameraPos);
     }
 }
@@ -379,11 +381,11 @@ void GGRoom::drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &
     if (!_showLayers)
         return;
 
-    for (const auto &layer : _layers)
+    for (const auto &layer : _parallaxLayers)
     {
-        if (layer.getZOrder() < 0)
+        if (layer->getZOrder() < 0)
             continue;
-        layer.draw(window, cameraPos);
+        layer->draw(window, cameraPos);
     }
 }
 
@@ -392,11 +394,11 @@ void GGRoom::drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &
     if (!_showLayers)
         return;
 
-    for (const auto &layer : _layers)
+    for (const auto &layer : _parallaxLayers)
     {
-        if (layer.getZOrder() >= 0)
+        if (layer->getZOrder() >= 0)
             continue;
-        layer.draw(window, cameraPos);
+        layer->draw(window, cameraPos);
     }
 }
 
@@ -408,6 +410,12 @@ void GGRoom::update(const sf::Time &elapsed)
     std::sort(_objects.begin(), _objects.end(), [](std::unique_ptr<GGObject> &a, std::unique_ptr<GGObject> &b) {
         return a->getZOrder() > b->getZOrder();
     });
+
+    // sort layers
+    auto cmpLayers = [](GGEntity *a, GGEntity *b) {
+        return a->getZOrder() > b->getZOrder();
+    };
+    std::sort(_parallaxLayers.begin(), _parallaxLayers.end(), cmpLayers);
 }
 
 void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
