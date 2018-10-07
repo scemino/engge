@@ -37,6 +37,8 @@ public:
   template <class T>
   static void pushObject(HSQUIRRELVM v, T &object);
 
+  static std::function<float(float)> getInterpolationMethod(InterpolationMethod index);
+
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
   static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);

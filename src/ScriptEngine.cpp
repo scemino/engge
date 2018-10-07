@@ -91,6 +91,12 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerConstant(_SC("DIR_BACK"), 1);
     registerConstant(_SC("DIR_LEFT"), 2);
     registerConstant(_SC("DIR_RIGHT"), 3);
+    registerConstant(_SC("LINEAR"), 0);
+    registerConstant(_SC("EASE_IN"), 1);
+    registerConstant(_SC("EASE_INOUT"), 2);
+    registerConstant(_SC("EASE_OUT"), 3);
+    registerConstant(_SC("SLOW_EASE_IN"), 4);
+    registerConstant(_SC("SLOW_EASE_OUT"), 5);
 
     addPack<_ActorPack>();
     addPack<_GeneralPack>();
@@ -184,6 +190,21 @@ void ScriptEngine::executeScript(const std::string &name)
     {
         std::cerr << "failed to execute " << name << std::endl;
         return;
+    }
+}
+
+std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMethod index)
+{
+    switch (index)
+    {
+    case InterpolationMethod::EaseIn:
+        return Interpolations::easeIn;
+    case InterpolationMethod::EaseInOut:
+        return Interpolations::easeInOut;
+    case InterpolationMethod::EaseOut:
+        return Interpolations::easeOut;
+    default:
+        return Interpolations::linear;
     }
 }
 } // namespace gg

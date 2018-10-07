@@ -368,7 +368,7 @@ Bridge <-
 
  trainPassby = function() {
    objectOffset(Bridge.bridgeTrain, -100, 0)
-   objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10)
+   objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10, LINEAR)
    playSound(soundBridgeTrain)
  }
 
@@ -465,6 +465,8 @@ function newOpeningScene() {
     objectState(Bridge.bridgeChainsaw, GONE)
     objectTouchable(Bridge.bridgeGateBack, YES)
     objectTouchable(Bridge.bridgeGate, NO)
+    objectSort(Bridge.bridgeStump, 86)		
+    loopObjectState(Bridge.bridgeSewerDrip, 0)							
     objectParallaxLayer(Bridge.bridgeWater, 1)
     objectParallaxLayer(Bridge.bridgeTrain, 2)
     objectParallaxLayer(Bridge.frontWavingReeds1, -2)
@@ -493,7 +495,7 @@ function newOpeningScene() {
     cameraAt(700,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
-    cameraPanTo(210, 86, 6)
+    cameraPanTo(210, 86, 12, EASE_INOUT)
     startthread(Bridge.trainPassby)
     breaktime(2)
     breaktime(12.0)

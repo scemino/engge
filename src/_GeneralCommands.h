@@ -39,7 +39,7 @@ class _GeneralPack : public Pack
 
     static SQInteger cameraPanTo(HSQUIRRELVM v)
     {
-        SQInteger x, y;
+        SQInteger x, y, interpolation;
         SQFloat t;
         if (SQ_FAILED(sq_getinteger(v, 2, &x)))
         {
@@ -53,11 +53,15 @@ class _GeneralPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get time"));
         }
-
+        if (SQ_FAILED(sq_getinteger(v, 5, &interpolation)))
+        {
+            interpolation = 0;
+        }
         auto get = std::bind(&GGEngine::getCameraAt, g_pEngine);
         auto set = std::bind(&GGEngine::setCameraAt, g_pEngine, std::placeholders::_1);
+        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
-        auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t));
+        auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(cameraPanTo));
         return 0;
     }

@@ -14,6 +14,7 @@ class _ObjectPack : public Pack
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(scale, "scale");
         engine.registerGlobalFunction(playState, "playObjectState");
+        engine.registerGlobalFunction(playState, "loopObjectState");
         engine.registerGlobalFunction(isObject, "is_object");
         engine.registerGlobalFunction(isObject, "isObject");
 
@@ -104,8 +105,17 @@ class _ObjectPack : public Pack
         alpha = alpha < 0.f ? 0.f : alpha;
         SQFloat time = 0;
         if (SQ_FAILED(sq_getfloat(v, 4, &time)))
-            time = 1.f;
+        {
+            return sq_throwerror(v, _SC("failed to get time"));
+        }
+        SQInteger interpolation;
+        if (SQ_FAILED(sq_getinteger(v, 5, &interpolation)))
+        {
+            interpolation = 0;
+        }
+
         auto a = (sf::Uint8)(alpha * 255);
+        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
         auto getAlpha = [](const GGObject &o) {
             return o.getColor().a;
@@ -116,7 +126,7 @@ class _ObjectPack : public Pack
         };
         auto getalpha = std::bind(getAlpha, std::cref(*obj));
         auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
-        auto alphaTo = std::make_unique<ChangeProperty<sf::Uint8>>(getalpha, setalpha, a, sf::seconds(time));
+        auto alphaTo = std::make_unique<ChangeProperty<sf::Uint8>>(getalpha, setalpha, a, sf::seconds(time), method);
         g_pEngine->addFunction(std::move(alphaTo));
 
         return 0;
@@ -240,10 +250,16 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get t"));
         }
+         SQInteger interpolation;
+        if (SQ_FAILED(sq_getinteger(v, 6, &interpolation)))
+        {
+            interpolation = 0;
+        }
+        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&GGObject::getPosition, obj);
         auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
         auto destination = obj->getPosition() + sf::Vector2f(x, y);
-        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t));
+        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 
         return 0;
@@ -271,9 +287,15 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get t"));
         }
+        SQInteger interpolation;
+        if (SQ_FAILED(sq_getinteger(v, 6, &interpolation)))
+        {
+            interpolation = 0;
+        }
+        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&GGObject::getPosition, obj);
         auto set = std::bind(&GGObject::setPosition, obj, std::placeholders::_1);
-        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t));
+        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 
         return 0;
@@ -404,10 +426,15 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get time"));
         }
-
+        SQInteger interpolation;
+        if (SQ_FAILED(sq_getinteger(v, 5, &interpolation)))
+        {
+            interpolation = 0;
+        }
+        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&GGObject::getRotation, obj);
         auto set = std::bind(&GGObject::setRotation, obj, std::placeholders::_1);
-        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t));
+        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(rotateTo));
         return 0;
     }
