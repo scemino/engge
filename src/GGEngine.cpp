@@ -116,34 +116,34 @@ void GGEngine::loopMusic(const std::string &name)
     _music.play();
 }
 
-SoundId *GGEngine::playSound(const std::string &name, bool loop)
+std::shared_ptr<SoundId> GGEngine::playSound(const std::string &name, bool loop)
 {
     std::string path(_settings.getGamePath());
     path.append(name);
-    auto sound = new SoundId();
+    auto sound = std::make_shared<SoundId>();
     if (!sound->buffer.loadFromFile(path))
     {
         std::cerr << "Can't load the sound" << std::endl;
         return nullptr;
     }
-    _sounds.push_back(std::unique_ptr<SoundId>(sound));
+    _sounds.push_back(sound);
     sound->sound.setBuffer(sound->buffer);
     sound->sound.setLoop(loop);
     sound->sound.play();
     return sound;
 }
 
-SoundId *GGEngine::defineSound(const std::string &name)
+std::shared_ptr<SoundId> GGEngine::defineSound(const std::string &name)
 {
     std::string path(_settings.getGamePath());
     path.append(name);
-    auto sound = new SoundId();
+    auto sound = std::make_shared<SoundId>();
     if (!sound->buffer.loadFromFile(path))
     {
         std::cerr << "Can't load the sound" << std::endl;
         return nullptr;
     }
-    _sounds.push_back(std::unique_ptr<SoundId>(sound));
+    _sounds.push_back(sound);
     sound->sound.setBuffer(sound->buffer);
     return sound;
 }

@@ -40,7 +40,7 @@ class _SoundPack : public Pack
             return sq_throwerror(v, _SC("failed to get filename"));
         }
         auto sound = g_pEngine->defineSound(filename);
-        sq_pushuserpointer(v, sound);
+        sq_pushuserpointer(v, sound.get());
         return 1;
     }
 
@@ -52,7 +52,7 @@ class _SoundPack : public Pack
             return sq_throwerror(v, _SC("failed to get filename"));
         }
         auto ptr = g_pEngine->playSound(filename, true);
-        sq_pushuserpointer(v, ptr);
+        sq_pushuserpointer(v, ptr.get());
         return 1;
     }
 
@@ -91,7 +91,7 @@ class _SoundPack : public Pack
             pSound->sound.play();
             return 0;
         }
-        SQUserPointer ptr = g_pEngine->playSound(filename, false);
+        SQUserPointer ptr = g_pEngine->playSound(filename, false).get();
         sq_pushuserpointer(v, ptr);
         return 0;
     }

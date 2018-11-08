@@ -7,16 +7,15 @@
 int main()
 {
     gg::GGEngineSettings settings("./resources/");
-    gg::GGEngine engine(settings);
+    auto engine = std::make_unique<gg::GGEngine>(settings);
 
-    gg::Game game(engine);
+    auto game = std::make_unique<gg::Game>(*engine);
+    auto scriptEngine = std::make_unique<gg::ScriptEngine>(*engine);
+    scriptEngine->executeScript("test.nut");
 
-    gg::ScriptEngine scriptEngine(engine);
-    scriptEngine.executeScript("test.nut");
-
-    game.getInputEventHandlers().push_back(std::make_unique<gg::PanInputEventHandler>(engine, game.getWindow()));
-    game.getInputEventHandlers().push_back(std::make_unique<gg::EngineShortcutsInputEventHandler>(engine, game.getWindow()));
-    game.run();
+    game->getInputEventHandlers().push_back(std::make_unique<gg::PanInputEventHandler>(*engine.get(), game->getWindow()));
+    game->getInputEventHandlers().push_back(std::make_unique<gg::EngineShortcutsInputEventHandler>(*engine.get(), game->getWindow()));
+    game->run();
 
     return 0;
 }

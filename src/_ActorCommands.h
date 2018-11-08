@@ -325,16 +325,14 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
+
         const auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
-        for (const auto &walkbox : walkboxes)
+        auto inWalkbox = std::any_of(std::begin(walkboxes), std::end(walkboxes), [actor](const Walkbox &w) 
         {
-            if (walkbox.contains(actor->getPosition()))
-            {
-                sq_pushbool(v, SQTrue);
-                return 1;
-            }
-        }
-        sq_pushbool(v, SQFalse);
+            return w.contains(actor->getPosition());
+        });
+
+        sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);
         return 1;
     }
 
@@ -669,7 +667,6 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         auto numArgs = sq_gettop(v) - 1;
-        std::vector<int> ids;
 
         // TODO: say the other lines
         const SQChar *idText;

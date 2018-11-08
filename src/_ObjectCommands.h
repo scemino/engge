@@ -600,7 +600,6 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get name"));
         }
-        std::string n(name);
         auto &obj = g_pEngine->getRoom().createTextObject(name, g_pEngine->getFont());
 
         if (SQ_FAILED(sq_getstring(v, 3, &text)))

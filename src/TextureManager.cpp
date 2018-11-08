@@ -15,10 +15,10 @@ void TextureManager::load(const std::string &id)
     std::cout << "Load texture " << id << std::endl;
     std::string path(_settings.getGamePath());
     path.append(id).append(".png");
-    std::unique_ptr<sf::Texture> texture(new sf::Texture());
+    auto texture = std::make_shared<sf::Texture>();
     texture->loadFromFile(path);
 
-    _textureMap.insert(std::make_pair(id, std::move(texture)));
+    _textureMap.insert(std::make_pair(id, texture));
 }
 
 const sf::Texture &TextureManager::get(const std::string &id)

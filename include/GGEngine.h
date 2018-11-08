@@ -83,8 +83,8 @@ public:
   std::vector<std::unique_ptr<GGActor>> &getActors() { return _actors; }
 
   void loopMusic(const std::string &name);
-  SoundId *defineSound(const std::string &name);
-  SoundId *playSound(const std::string &name, bool loop);
+  std::shared_ptr<SoundId> defineSound(const std::string &name);
+  std::shared_ptr<SoundId> playSound(const std::string &name, bool loop);
   void stopSound(SoundId &sound);
 
   void playState(GGObject &object, int index);
@@ -117,7 +117,7 @@ private:
   std::vector<std::unique_ptr<GGRoom>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
-  std::vector<std::unique_ptr<SoundId>> _sounds;
+  std::vector<std::shared_ptr<SoundId>> _sounds;
   sf::Music _music;
   sf::Uint8 _fadeAlpha;
   sf::RenderWindow *_pWindow;

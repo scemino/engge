@@ -135,7 +135,6 @@ class _GeneralPack : public Pack
         {
             return sq_throwerror(v, _SC("can't find instance entry"));
         }
-        const SQChar *name;
         GGRoom *pRoom = nullptr;
         sq_getuserpointer(v, -1, (SQUserPointer *)&pRoom);
         sq_pop(v, 2);

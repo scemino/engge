@@ -9,7 +9,7 @@ namespace gg
 class TextureManager : public NonCopyable
 {
 private:
-  std::map<std::string, std::unique_ptr<sf::Texture>> _textureMap;
+  std::map<std::string, std::shared_ptr<sf::Texture>> _textureMap;
   const GGEngineSettings &_settings;
 
 public:
