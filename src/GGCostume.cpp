@@ -189,11 +189,11 @@ void GGCostume::update(const sf::Time &elapsed)
     _pCurrentAnimation->update(elapsed);
 }
 
-void GGCostume::draw(sf::RenderWindow &window, const sf::RenderStates &states) const
+void GGCostume::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_pCurrentAnimation)
         return;
-    _pCurrentAnimation->draw(window, states);
+    target.draw(*_pCurrentAnimation, states);
 }
 
 void GGCostume::setHeadIndex(int index)

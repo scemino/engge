@@ -37,14 +37,11 @@ void GGActor::setCostume(const std::string &name, const std::string& sheet)
     _costume.loadCostume(path, sheet);
 }
 
-void GGActor::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    sf::RenderStates states;
-    states.transform = _transform;
-    states.transform.translate(-cameraPos - (sf::Vector2f)_renderOffset);
-    _costume.draw(window, states);
+    target.draw(_costume, states);
     if(_sayText.empty()) return;
-    _font.draw(_sayText, window, _talkColor, states);
+    _font.draw(_sayText, target, _talkColor, states);
 }
 
 void GGActor::update(const sf::Time &time)

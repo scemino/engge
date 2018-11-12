@@ -6,7 +6,7 @@
 
 namespace gg
 {
-class RoomLayer : public GGEntity
+class RoomLayer
 {
 public:
   RoomLayer();
@@ -19,12 +19,17 @@ public:
   const sf::Vector2f &getParallax() const { return _parallax; }
 
   void setZOrder(int zsort) { _zsort = zsort; }
-  int getZOrder() const override { return _zsort; }
+  int getZOrder() const { return _zsort; }
 
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
+  void addEntity(GGEntity &entity);
+  void removeEntity(GGEntity &entity);
+
+  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void update(const sf::Time &elapsed);
 
 private:
   std::vector<sf::Sprite> _sprites;
+  std::vector<std::reference_wrapper<GGEntity>> _entities;
   sf::Vector2f _parallax;
   int _zsort;
 };

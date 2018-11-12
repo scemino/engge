@@ -3,10 +3,10 @@
 
 namespace gg
 {
-class GGEntity
+class GGEntity : public sf::Drawable
 {
 public:
-  virtual void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const = 0;
+  virtual void update(const sf::Time &elapsed) {}
   virtual int getZOrder() const = 0;
 };
 } // namespace gg

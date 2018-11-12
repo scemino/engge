@@ -17,7 +17,7 @@ enum class Facing
   FACE_RIGHT
 };
 
-class GGCostume : public NonCopyable
+class GGCostume : public sf::Drawable
 {
 public:
   explicit GGCostume(TextureManager &textureManager);
@@ -36,7 +36,7 @@ public:
 
   void setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim);
 
-  void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void update(const sf::Time &elapsed);
 
 private:

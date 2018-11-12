@@ -10,6 +10,7 @@ class Pack
 {
 public:
   virtual void addTo(ScriptEngine &engine) const = 0;
+  virtual ~Pack() {}
 };
 class ScriptEngine
 {

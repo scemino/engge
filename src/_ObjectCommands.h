@@ -250,7 +250,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get t"));
         }
-         SQInteger interpolation;
+        SQInteger interpolation;
         if (SQ_FAILED(sq_getinteger(v, 6, &interpolation)))
         {
             interpolation = 0;
@@ -451,8 +451,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get layer number"));
         }
-        obj->setZOrder(static_cast<int>(layer));
-        g_pEngine->getRoom().setAsParallaxLayer(obj);
+        g_pEngine->getRoom().setAsParallaxLayer(obj, static_cast<int>(layer));
         return 0;
     }
 

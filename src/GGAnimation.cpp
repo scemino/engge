@@ -47,8 +47,8 @@ void GGAnimation::update(const sf::Time &elapsed)
     }
 }
 
-void GGAnimation::draw(sf::RenderWindow &window, const sf::RenderStates &states) const
+void GGAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    window.draw(_sprite, states);
+    target.draw(_sprite, states);
 }
 } // namespace gg

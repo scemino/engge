@@ -17,7 +17,7 @@ class GGRoom : public NonCopyable
 {
 public:
   GGRoom(TextureManager &textureManager, const GGEngineSettings &settings);
-  ~GGRoom();
+  ~GGRoom() = default;
 
   void load(const char *name);
   std::vector<std::unique_ptr<GGObject>> &getObjects() { return _objects; }
@@ -41,12 +41,9 @@ public:
   void showLayers(bool show) { _showLayers = show; }
   bool areLayersVisible() const { return _showLayers; }
   sf::Vector2i getRoomSize() const { return _roomSize; }
-  void setAsParallaxLayer(GGEntity *pEntity) { _parallaxLayers.push_back(pEntity); }
+  void setAsParallaxLayer(GGEntity *pEntity, int layer);
 
 private:
-  void drawBackgroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
-  void drawForegroundLayers(sf::RenderWindow &window, const sf::Vector2f &cameraX) const;
-  void drawObjects(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
 
   void loadLayers(nlohmann::json jWimpy, nlohmann::json json);
@@ -60,7 +57,6 @@ private:
   const GGEngineSettings &_settings;
   std::vector<std::unique_ptr<GGObject>> _objects;
   std::vector<Walkbox> _walkboxes;
-  std::vector<GGEntity *> _parallaxLayers;
   std::vector<std::unique_ptr<RoomLayer>> _layers;
   std::vector<RoomScaling> _scalings;
   sf::Vector2i _roomSize;

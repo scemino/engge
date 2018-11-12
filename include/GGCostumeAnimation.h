@@ -7,31 +7,33 @@ namespace gg
 {
 enum class AnimationState
 {
-    Pause,
-    Play
+  Pause,
+  Play
 };
 
-class GGCostumeAnimation
+class GGCostumeAnimation : public sf::Drawable
 {
-  public:
-    GGCostumeAnimation(const std::string &name, sf::Texture &texture);
-    ~GGCostumeAnimation();
+public:
+  GGCostumeAnimation(const std::string &name, sf::Texture &texture);
+  ~GGCostumeAnimation();
 
-    const std::string &getName() const { return _name; }
-    std::vector<GGLayer *> &getLayers() { return _layers; }
+  const std::string &getName() const { return _name; }
+  std::vector<GGLayer *> &getLayers() { return _layers; }
 
-    void play(bool loop = false);
-    void pause() { _state = AnimationState::Pause; }
-    bool isPlaying() const { return _state == AnimationState::Play; }
+  void play(bool loop = false);
+  void pause() { _state = AnimationState::Pause; }
+  bool isPlaying() const { return _state == AnimationState::Play; }
 
-    void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
-    void update(const sf::Time &elapsed);
+  void update(const sf::Time &elapsed);
 
-  private:
-    sf::Texture &_texture;
-    std::string _name;
-    std::vector<GGLayer *> _layers;
-    AnimationState _state;
-    bool _loop;
+private:
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+private:
+  sf::Texture &_texture;
+  std::string _name;
+  std::vector<GGLayer *> _layers;
+  AnimationState _state;
+  bool _loop;
 };
 } // namespace gg

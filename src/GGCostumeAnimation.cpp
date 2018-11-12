@@ -30,7 +30,7 @@ void GGCostumeAnimation::update(const sf::Time &elapsed)
     }
 }
 
-void GGCostumeAnimation::draw(sf::RenderWindow &window, const sf::RenderStates &states) const
+void GGCostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     for (auto &layer : _layers)
     {
@@ -48,7 +48,7 @@ void GGCostumeAnimation::draw(sf::RenderWindow &window, const sf::RenderStates &
         sf::Sprite sprite(_texture, rect);
         sprite.setOrigin(-sourceRect.left + offset.x, -sourceRect.top + offset.y);
 
-        window.draw(sprite, states);
+        target.draw(sprite, states);
     }
 }
 } // namespace gg

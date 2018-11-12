@@ -4,7 +4,7 @@
 namespace gg
 {
 Game::Game(GGEngine &engine)
-    : _engine(engine), _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge")
+    : _engine(engine), _window(sf::VideoMode(320, 180), "Engge")
 {
     _window.setSize(sf::Vector2u(1024, 768));
     _window.setFramerateLimit(60);

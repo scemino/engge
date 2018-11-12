@@ -10,7 +10,7 @@ enum class AnimState
   Play
 };
 
-class GGAnimation
+class GGAnimation: public sf::Drawable
 {
 public:
   explicit GGAnimation(const sf::Texture &texture, const std::string &name);
@@ -26,7 +26,6 @@ public:
   void setFps(int fps) { _fps = fps; }
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
 
   void reset();
   void play(bool loop = false);
@@ -34,6 +33,9 @@ public:
 
   sf::Sprite &getSprite() { return _sprite; }
   const sf::Sprite &getSprite() const { return _sprite; }
+
+private:
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   sf::Sprite _sprite;

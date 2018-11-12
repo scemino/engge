@@ -460,6 +460,8 @@ function newOpeningScene() {
     cameraInRoom(Bridge)
 
     // Bridge.bridgeGate.gate_state = CLOSED
+    objectState(Bridge.bridgeLight, ON)
+    // objectState(Bridge.bridgeDragMark, GONE)
     objectState(Bridge.bridgeBody, GONE)
     objectState(Bridge.bridgeBottle, GONE)
     objectState(Bridge.bridgeChainsaw, GONE)
@@ -532,14 +534,14 @@ function newOpeningScene() {
     breaktime(0.5)
     sayLine(boris, "@25544")
 
-    inputVerbs(ON)
-    inputOn()
+    // inputVerbs(ON)
+    // inputOn()
     print("end :D\n")
 }
 
 local tid = startthread(newOpeningScene)
-print("thread: "+tid+"\n")
-breakhere(1)
+// print("thread: "+tid+"\n")
+breakhere(1000)
 // print("stop thread\n")
 // stopthread(tid)
 
@@ -547,16 +549,68 @@ breakhere(1)
 // startthread(doOpening)
 // loadRoom("AStreet")
 // loadRoom("Bridge")
-// loadRoom("MansionEntry")
+
+// AStreet <- 
+// {
+//  background = "AStreet"
+//  enter = function() {
+//  }
+// }
+// defineRoom(AStreet)
+// cameraInRoom(AStreet)
+// roomFade(FADE_IN, 2)
+
+// MansionEntry <- 
+// {
+//  background = "MansionEntry"
+//  enter = function() {
+//  }
+// }
+// defineRoom(MansionEntry)
+// cameraInRoom(MansionEntry)
+// roomFade(FADE_IN, 2)
+
 // loadRoom("MansionExterior")
-// loadRoom("SheriffsOffice")
+
+// SheriffsOffice <- 
+// {
+//  background = "SheriffsOffice"
+//  enter = function() {
+//  }
+// }
+// defineRoom(SheriffsOffice)
+// cameraInRoom(SheriffsOffice)
+// roomFade(FADE_IN, 2)
+
 // loadRoom("QuickiePal")
 // loadRoom("QuickiePalOutside")
+
 // Cemetery <- 
 // {
 //  background = "Cemetery"
+//  enter = function() {
+//  }
 // }
 // defineRoom(Cemetery)
 // cameraInRoom(Cemetery)
-// loadRoom("HotelLobby")
-// loadRoom("Alleyway")
+// roomFade(FADE_IN, 2)
+
+// HotelLobby <- 
+// {
+//  background = "HotelLobby"
+//  enter = function() {
+//  }
+// }
+// defineRoom(HotelLobby)
+// cameraInRoom(HotelLobby)
+// roomFade(FADE_IN, 2)
+
+// Alleyway <- 
+// {
+//  background = "Alleyway"
+//  enter = function() {
+//  }
+// }
+// defineRoom(Alleyway)
+// cameraInRoom(Alleyway)
+// roomFade(FADE_IN, 2)

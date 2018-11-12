@@ -54,8 +54,8 @@ public:
   void setHotspot(const sf::IntRect &hotspot) { _hotspot = hotspot; }
   const sf::IntRect &getHotspot() const { return _hotspot; }
 
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
-  void update(const sf::Time &time);
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void update(const sf::Time &time) override;
 
 private:
   const GGEngineSettings &_settings;

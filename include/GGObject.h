@@ -77,14 +77,13 @@ public:
 
   // TODO: void setIcon(const std::string& icon);
 
-  void update(const sf::Time &elapsed);
-
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const override;
+  void update(const sf::Time &elapsed) override;
 
   friend std::ostream &operator<<(std::ostream &os, const GGObject &obj);
 
 private:
-  void drawHotspot(sf::RenderWindow &window, sf::RenderStates states) const;
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
 private:
   std::vector<std::unique_ptr<GGAnimation>> _anims;

@@ -109,40 +109,40 @@ void GGObject::update(const sf::Time &elapsed)
     }
 }
 
-void GGObject::drawHotspot(sf::RenderWindow &window, sf::RenderStates states) const
+void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_isHotspotVisible)
         return;
     auto rect = getHotspot();
     auto pos = getPosition();
+
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
     s.setPosition(pos.x + rect.left, pos.y + rect.top);
     s.setOutlineThickness(1);
     s.setOutlineColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
     s.setFillColor(sf::Color::Transparent);
-    window.draw(s, states);
+    target.draw(s, states);
 
     sf::RectangleShape vl(sf::Vector2f(1, 5));
     vl.setPosition(pos.x + _usePos.x, pos.y - _usePos.y - 2);
     vl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
-    window.draw(vl, states);
+    target.draw(vl, states);
 
     sf::RectangleShape hl(sf::Vector2f(5, 1));
     hl.setPosition(pos.x + _usePos.x - 2, pos.y - _usePos.y);
     hl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
-    window.draw(hl, states);
+    target.draw(hl, states);
 }
 
-void GGObject::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    sf::RenderStates states;
-    states.transform = _transform.getTransform();
-    states.transform.translate(-cameraPos);
+    states.transform.combine(_transform.getTransform());
+
     if (_isVisible && _pAnim)
     {
-        _pAnim->draw(window, states);
+        target.draw(*_pAnim, states);
     }
-    drawHotspot(window, states);
+    drawHotspot(target, states);
 }
 
 std::ostream &operator<<(std::ostream &os, const GGObject &obj)
