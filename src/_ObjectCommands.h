@@ -122,7 +122,7 @@ class _ObjectPack : public Pack
         };
         auto setAlpha = [](GGObject &o, sf::Uint8 a) {
             const auto &c = o.getColor();
-            return o.setColor(sf::Color(c.r, c.g, c.g, a));
+            return o.setColor(sf::Color(c.r, c.g, c.b, a));
         };
         auto getalpha = std::bind(getAlpha, std::cref(*obj));
         auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
