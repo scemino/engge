@@ -12,7 +12,8 @@ class PanInputEventHandler : public InputEventHandler
         : _engine(engine),
           _window(window),
           _view(sf::FloatRect(0, 0, Screen::Width, Screen::Height)),
-          _isPressed(false)
+          _isMousePressed(false),
+          _isKeyPressed(false)
     {
     }
 
@@ -23,19 +24,19 @@ class PanInputEventHandler : public InputEventHandler
         case sf::Event::MouseButtonPressed:
             if (event.mouseButton.button == sf::Mouse::Button::Left)
             {
-                _isPressed = true;
+                _isMousePressed = true;
                 _pos = sf::Mouse::getPosition();
             }
             break;
         case sf::Event::MouseButtonReleased:
             if (event.mouseButton.button == sf::Mouse::Button::Left)
             {
-                _isPressed = false;
+                _isMousePressed = false;
             }
             break;
         case sf::Event::MouseMoved:
         {
-            if (!_isPressed)
+            if (!_isMousePressed || !_isKeyPressed)
                 break;
             auto pos2 = sf::Mouse::getPosition(_window);
             auto delta = pos2 - _pos;
@@ -44,6 +45,22 @@ class PanInputEventHandler : public InputEventHandler
                 _engine.moveCamera(-(sf::Vector2f)delta);
             }
             _pos = pos2;
+        }
+        break;
+        case sf::Event::KeyReleased:
+        {
+            if (event.key.code == sf::Keyboard::Key::Space)
+            {
+                _isKeyPressed = false;
+            }
+        }
+        break;
+        case sf::Event::KeyPressed:
+        {
+            if (event.key.code == sf::Keyboard::Key::Space)
+            {
+                _isKeyPressed = true;
+            }
         }
         break;
         default:
@@ -55,7 +72,7 @@ class PanInputEventHandler : public InputEventHandler
     GGEngine &_engine;
     sf::RenderWindow &_window;
     sf::View _view;
-    bool _isPressed;
+    bool _isMousePressed, _isKeyPressed;
     sf::Vector2i _pos = sf::Mouse::getPosition();
 };
 
