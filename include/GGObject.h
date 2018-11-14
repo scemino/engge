@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include <iostream>
+#include <optional>
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
@@ -87,7 +88,7 @@ private:
 
 private:
   std::vector<std::unique_ptr<GGAnimation>> _anims;
-  GGAnimation *_pAnim;
+  std::optional<GGAnimation> _pAnim;
   bool _isVisible;
   std::string _name;
   int _zorder;

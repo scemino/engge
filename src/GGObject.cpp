@@ -4,7 +4,7 @@
 namespace gg
 {
 GGObject::GGObject()
-    : _pAnim(nullptr),
+    : _pAnim(std::nullopt),
       _isVisible(true),
       _zorder(0),
       _direction(UseDirection::Front),
@@ -35,7 +35,7 @@ void GGObject::setStateAnimIndex(int animIndex)
 
 int GGObject::getStateAnimIndex()
 {
-    if (_pAnim == nullptr)
+    if (!_pAnim.has_value())
         return -1;
     if (_pAnim->getName().find("state") == std::string::npos)
         return -1;
@@ -47,12 +47,12 @@ void GGObject::setAnimation(const std::string &name)
     auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<GGAnimation> &animation) { return animation->getName() == name; });
     if (it == _anims.end())
     {
-        _pAnim = nullptr;
+        _pAnim = std::nullopt;
         return;
     }
 
     auto &anim = *(it->get());
-    _pAnim = &anim;
+    _pAnim = anim;
     auto &sprite = _pAnim->getSprite();
     sprite.setColor(_color);
 }
@@ -74,7 +74,7 @@ sf::Vector2f GGObject::getPosition() const
 
 void GGObject::setUsePosition(const sf::Vector2f &pos)
 {
-    _usePos = sf::Vector2f(pos);
+    _usePos = pos;
 }
 
 sf::Vector2f GGObject::getUsePosition() const
@@ -98,7 +98,7 @@ const sf::Color &GGObject::getColor() const
 
 void GGObject::setScale(float s)
 {
-    _transform.scale(s, s);
+    _transform.setScale(s, s);
 }
 
 void GGObject::update(const sf::Time &elapsed)
@@ -136,7 +136,7 @@ void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) co
 
 void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    states.transform.combine(_transform.getTransform());
+    states.transform *= _transform.getTransform();
 
     if (_isVisible && _pAnim)
     {
