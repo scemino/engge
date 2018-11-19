@@ -20,6 +20,7 @@ public:
   const std::string &getName() const { return _name; }
 
   std::vector<sf::IntRect> &getRects() { return _rects; }
+  std::vector<sf::Vector2i> &getSizes() { return _sizes; }
   std::vector<sf::IntRect> &getSourceRects() { return _sourceRects; }
 
   int getFps() const { return _fps; }
@@ -41,6 +42,7 @@ private:
   sf::Sprite _sprite;
   std::string _name;
   std::vector<sf::IntRect> _rects;
+  std::vector<sf::Vector2i> _sizes;
   std::vector<sf::IntRect> _sourceRects;
   int _fps;
   sf::Time _time;

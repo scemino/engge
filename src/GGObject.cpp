@@ -114,22 +114,21 @@ void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) co
     if (!_isHotspotVisible)
         return;
     auto rect = getHotspot();
-    auto pos = getPosition();
 
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
-    s.setPosition(pos.x + rect.left, pos.y + rect.top);
+    s.setPosition(rect.left, rect.top);
     s.setOutlineThickness(1);
     s.setOutlineColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
     s.setFillColor(sf::Color::Transparent);
     target.draw(s, states);
 
     sf::RectangleShape vl(sf::Vector2f(1, 5));
-    vl.setPosition(pos.x + _usePos.x, pos.y - _usePos.y - 2);
+    vl.setPosition(_usePos.x, _usePos.y - 2);
     vl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
     target.draw(vl, states);
 
     sf::RectangleShape hl(sf::Vector2f(5, 1));
-    hl.setPosition(pos.x + _usePos.x - 2, pos.y - _usePos.y);
+    hl.setPosition(_usePos.x - 2, _usePos.y);
     hl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
     target.draw(hl, states);
 }

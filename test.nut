@@ -547,70 +547,61 @@ breakhere(1000)
 
 // intro();
 // startthread(doOpening)
-// loadRoom("AStreet")
-// loadRoom("Bridge")
 
-// AStreet <- 
-// {
-//  background = "AStreet"
-//  enter = function() {
-//  }
-// }
-// defineRoom(AStreet)
-// cameraInRoom(AStreet)
-// roomFade(FADE_IN, 2)
+AStreet <- 
+{
+ background = "AStreet"
+ enter = function() {
+ }
+}
+defineRoom(AStreet)
 
-// MansionEntry <- 
-// {
-//  background = "MansionEntry"
-//  enter = function() {
-//  }
-// }
-// defineRoom(MansionEntry)
-// cameraInRoom(MansionEntry)
-// roomFade(FADE_IN, 2)
+MansionEntry <- 
+{
+ background = "MansionEntry"
+ enter = function() {
+ }
+}
+defineRoom(MansionEntry)
 
-// loadRoom("MansionExterior")
+SheriffsOffice <- 
+{
+ background = "SheriffsOffice"
+ enter = function() {
+ }
+}
+defineRoom(SheriffsOffice)
 
-// SheriffsOffice <- 
-// {
-//  background = "SheriffsOffice"
-//  enter = function() {
-//  }
-// }
-// defineRoom(SheriffsOffice)
-// cameraInRoom(SheriffsOffice)
-// roomFade(FADE_IN, 2)
+QuickiePal <- 
+{
+ background = "QuickiePal"
+ enter = function() {
+ }
+}
+defineRoom(QuickiePal)
 
-// loadRoom("QuickiePal")
-// loadRoom("QuickiePalOutside")
+Cemetery <- 
+{
+ background = "Cemetery"
+ enter = function() {
+ }
+}
+defineRoom(Cemetery)
 
-// Cemetery <- 
-// {
-//  background = "Cemetery"
-//  enter = function() {
-//  }
-// }
-// defineRoom(Cemetery)
-// cameraInRoom(Cemetery)
-// roomFade(FADE_IN, 2)
+HotelLobby <- 
+{
+ background = "HotelLobby"
+ enter = function() {
+ }
+}
+defineRoom(HotelLobby)
+Alleyway <- 
+{
+ background = "Alleyway"
+ enter = function() {
+ }
+}
+defineRoom(Alleyway)
 
-// HotelLobby <- 
-// {
-//  background = "HotelLobby"
-//  enter = function() {
-//  }
-// }
-// defineRoom(HotelLobby)
-// cameraInRoom(HotelLobby)
-// roomFade(FADE_IN, 2)
-
-// Alleyway <- 
-// {
-//  background = "Alleyway"
-//  enter = function() {
-//  }
-// }
-// defineRoom(Alleyway)
-// cameraInRoom(Alleyway)
+// cameraInRoom(Bridge)
 // roomFade(FADE_IN, 2)

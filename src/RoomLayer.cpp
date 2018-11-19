@@ -10,6 +10,9 @@ RoomLayer::RoomLayer()
 void RoomLayer::addEntity(GGEntity &entity)
 {
     _entities.push_back(entity);
+    std::sort(std::begin(_entities), std::end(_entities), [](const GGEntity &a, const GGEntity &b) {
+        return a.getZOrder() > b.getZOrder();
+    });
 }
 
 void RoomLayer::removeEntity(GGEntity &entity)
@@ -46,9 +49,6 @@ void RoomLayer::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) co
 void RoomLayer::update(const sf::Time &elapsed)
 {
     std::for_each(std::begin(_entities), std::end(_entities), [elapsed](GGEntity &obj) { obj.update(elapsed); });
-    std::sort(std::begin(_entities), std::end(_entities), [](const GGEntity &a, const GGEntity &b) {
-        return a.getZOrder() > b.getZOrder();
-    });
 }
 
 } // namespace gg

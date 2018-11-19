@@ -15,7 +15,7 @@ class GGActor : public GGEntity
 {
 public:
   explicit GGActor(TextureManager &textureManager);
-  ~GGActor();
+  virtual ~GGActor();
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }

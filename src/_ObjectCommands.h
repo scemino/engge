@@ -320,18 +320,32 @@ class _ObjectPack : public Pack
     static SQInteger objectAt(HSQUIRRELVM v)
     {
         SQInteger x, y;
+        auto numArgs = sq_gettop(v) - 1;
         GGObject *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+        if (numArgs == 2)
         {
-            return sq_throwerror(v, _SC("failed to get x"));
+            GGObject *spot = ScriptEngine::getObject(v, 3);
+            if (!spot)
+            {
+                return sq_throwerror(v, _SC("failed to get spot"));
+            }
+            x = spot->getPosition().x;
+            y = spot->getPosition().y;
         }
-        if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+        else
         {
-            return sq_throwerror(v, _SC("failed to get y"));
+            if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+            {
+                return sq_throwerror(v, _SC("failed to get x"));
+            }
+            if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+            {
+                return sq_throwerror(v, _SC("failed to get y"));
+            }
         }
         obj->setPosition(sf::Vector2f(x, y));
         return 0;

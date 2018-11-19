@@ -14,6 +14,14 @@ static sf::IntRect _toRect(const nlohmann::json &json)
     return rect;
 }
 
+static sf::Vector2i _toSize(const nlohmann::json &json)
+{
+    sf::Vector2i v;
+    v.x = json["w"].get<int>();
+    v.y = json["h"].get<int>();
+    return v;
+}
+
 static UseDirection _toDirection(const std::string &text)
 {
     if (strcmp(text.c_str(), "DIR_FRONT") == 0)

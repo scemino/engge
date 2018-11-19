@@ -101,7 +101,6 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
         else
         {
             auto layerName = jLayer["name"].get<std::string>();
-            // layer.getNames().push_back(layerName);
 
             const auto &rect = _toRect(json["frames"][layerName]["frame"]);
             sf::Sprite s;
@@ -211,7 +210,8 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         // zsort
         object->setZOrder(jObject["zsort"].get<int>());
         // prop
-        object->setProp(jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1);
+        bool isProp = jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1;
+        object->setProp(isProp);
         // position
         auto pos = _parsePos(jObject["pos"].get<std::string>());
         auto usePos = _parsePos(jObject["usepos"].get<std::string>());
@@ -221,7 +221,6 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
         object->setHotspot(hotspot);
 
-        bool isProp = !jObject["prop"].empty() && jObject["prop"].get<int>() == 1;
         bool isSpot = !jObject["spot"].empty() && jObject["spot"].get<int>() == 1;
         // object->setVisible(jObject["prop"].empty() || jObject["prop"].get<int>() == 0);
         // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
@@ -247,6 +246,7 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
                     if (json["frames"][n].is_null())
                         continue;
                     anim->getRects().push_back(_toRect(json["frames"][n]["frame"]));
+                    anim->getSizes().push_back(_toSize(json["frames"][n]["sourceSize"]));
                     anim->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
                 }
                 anim->reset();
@@ -364,6 +364,10 @@ GGObject &GGRoom::createObject(const std::string &sheet, const std::vector<std::
         }
     }
     auto &obj = *object;
+    auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
+        return pLayer->getZOrder() == 0;
+    });
+    itLayer->get()->addEntity(obj);
     _objects.push_back(std::move(object));
     return obj;
 }

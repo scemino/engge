@@ -71,7 +71,7 @@ public:
   void setScale(float s);
 
   void setHotspotVisible(bool isHotspotVisible) { _isHotspotVisible = isHotspotVisible; }
-  bool isHotspotVisible() { return _isHotspotVisible; }
+  bool isHotspotVisible() const { return _isHotspotVisible; }
 
   GGActor *getOwner() { return _pOwner; }
   void setOwner(GGActor *pActor) { _pOwner = pActor; }
