@@ -230,12 +230,21 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
         sq_release(v, &thread_obj);
+        std::cout << "stopthread " << std::endl;
+        sq_suspendvm(thread_obj._unVal.pThread);
         return 0;
     }
 
     static SQInteger startthread(HSQUIRRELVM v)
     {
         SQInteger size = sq_gettop(v);
+
+        HSQOBJECT env_obj;
+        sq_resetobject(&env_obj);
+        if (SQ_FAILED(sq_getstackobj(v, 1, &env_obj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get environment from stack"));
+        }
 
         // create thread and store it on the stack
         auto thread = sq_newthread(v, 1024);
@@ -268,7 +277,7 @@ class _SystemPack : public Pack
 
         // call the closure in the thread
         sq_pushobject(thread, closureObj);
-        sq_pushroottable(thread);
+        sq_pushobject(thread, env_obj);
         for (auto arg : args)
         {
             sq_pushobject(thread, arg);
