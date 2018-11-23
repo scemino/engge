@@ -350,6 +350,7 @@ GGObject &GGRoom::createObject(const std::string &sheet, const std::vector<std::
         auto r = _toRect(frame);
         animation->getRects().push_back(r);
         auto spriteSourceSize = json["frames"][n]["spriteSourceSize"];
+        animation->getSizes().push_back(_toSize(json["frames"][n]["sourceSize"]));
         animation->getSourceRects().push_back(_toRect(spriteSourceSize));
     }
     animation->reset();
