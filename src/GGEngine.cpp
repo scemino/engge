@@ -1,5 +1,4 @@
 #include <memory>
-
 #include <iomanip>
 #include <sstream>
 #include <fstream>
@@ -21,9 +20,9 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _pWindow(nullptr),
       _pRoom(nullptr),
       _pCurrentActor(nullptr),
-      _verbTexture(_textureManager.get("VerbSheet")),
-      _gameSheetTexture(_textureManager.get("GameSheet")),
-      _inventoryItemsTexture(_textureManager.get("InventoryItems")),
+      _verbSheet(_textureManager, settings),
+      _gameSheet(_textureManager, settings),
+      _inventoryItems(_textureManager, settings),
       _inputActive(false),
       _showCursor(false)
 {
@@ -41,27 +40,9 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
     path.append("ThimbleweedText_en.tsv");
     _textDb.load(path);
 
-    // load json verb file
-    std::string jsonFilename;
-    jsonFilename.append(_settings.getGamePath()).append("VerbSheet.json");
-    {
-        std::ifstream i(jsonFilename);
-        i >> _jsonVerb;
-    }
-
-    jsonFilename.clear();
-    jsonFilename.append(_settings.getGamePath()).append("GameSheet.json");
-    {
-        std::ifstream i(jsonFilename);
-        i >> _jsonGameSheet;
-    }
-
-    jsonFilename.clear();
-    jsonFilename.append(_settings.getGamePath()).append("InventoryItems.json");
-    {
-        std::ifstream i(jsonFilename);
-        i >> _jsonInventoryItems;
-    }
+    _verbSheet.load("VerbSheet");
+    _gameSheet.load("GameSheet");
+    _inventoryItems.load("InventoryItems");
 }
 
 GGEngine::~GGEngine() = default;
@@ -70,26 +51,7 @@ sf::IntRect GGEngine::getVerbRect(const std::string &name, std::string lang, boo
 {
     std::ostringstream s;
     s << name << (isRetro ? "_retro" : "") << "_" << lang;
-    auto jVerb = _jsonVerb["frames"][s.str().c_str()];
-    if (jVerb.is_null())
-        return sf::IntRect();
-    return _toRect(jVerb["frame"]);
-}
-
-sf::IntRect GGEngine::getGameSheetRect(const std::string &name) const
-{
-    auto jFrames = _jsonGameSheet["frames"][name.c_str()];
-    if (jFrames.is_null())
-        return sf::IntRect();
-    return _toRect(jFrames["frame"]);
-}
-
-sf::IntRect GGEngine::getInventoryItemsRect(const std::string &name) const
-{
-    auto jFrames = _jsonInventoryItems["frames"][name.c_str()];
-    if (jFrames.is_null())
-        return sf::IntRect();
-    return _toRect(jFrames["frame"]);
+    return _verbSheet.getRect(s.str());
 }
 
 void GGEngine::setCameraAt(const sf::Vector2f &at)
@@ -209,7 +171,7 @@ void GGEngine::draw(sf::RenderWindow &window) const
 void GGEngine::drawVerbs(sf::RenderTarget &target) const
 {
     sf::RenderStates states;
-    states.texture = &_verbTexture;
+    states.texture = &_verbSheet.getTexture();
 
     sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
     auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
@@ -235,37 +197,37 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
             sf::RectangleShape verbShape;
             verbShape.setPosition(left, top);
             verbShape.setSize(verbSize);
-            verbShape.setTexture(&_verbTexture);
+            verbShape.setTexture(&_verbSheet.getTexture());
             verbShape.setTextureRect(rect);
             target.draw(verbShape);
         }
     }
 
     // inventory arrows
-    auto scrollUpFrameRect = getGameSheetRect("scroll_up");
+    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
     sf::RectangleShape scrollUpShape;
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
     scrollUpShape.setPosition(scrollUpPosition);
     scrollUpShape.setSize(scrollUpSize);
-    scrollUpShape.setTexture(&_gameSheetTexture);
+    scrollUpShape.setTexture(&_gameSheet.getTexture());
     scrollUpShape.setTextureRect(scrollUpFrameRect);
     target.draw(scrollUpShape);
 
-    auto scrollDownFrameRect = getGameSheetRect("scroll_down");
+    auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
     sf::RectangleShape scrollDownShape;
     scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
     scrollDownShape.setSize(scrollUpSize);
-    scrollDownShape.setTexture(&_gameSheetTexture);
+    scrollDownShape.setTexture(&_gameSheet.getTexture());
     scrollDownShape.setTextureRect(scrollDownFrameRect);
     target.draw(scrollDownShape);
 
     // inventory frame
-    auto inventoryFrameRect = getGameSheetRect("inventory_frame");
+    auto inventoryFrameRect = _gameSheet.getRect("inventory_frame");
     sf::RectangleShape inventoryShape;
     inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
     inventoryShape.setSize(sf::Vector2f(Screen::Width / 2.f - scrollUpSize.x, 3 * Screen::Height / 14.f));
-    inventoryShape.setTexture(&_gameSheetTexture);
+    inventoryShape.setTexture(&_gameSheet.getTexture());
     inventoryShape.setTextureRect(inventoryFrameRect);
     target.draw(inventoryShape);
 
@@ -274,10 +236,10 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
         auto &objects = _pCurrentActor->getObjects();
         for (auto it = objects.begin(); it != objects.end(); it++)
         {
-            auto rect = getInventoryItemsRect(*it);
+            auto rect = _inventoryItems.getRect(*it);
             inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
             inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
-            inventoryShape.setTexture(&_inventoryItemsTexture);
+            inventoryShape.setTexture(&_inventoryItems.getTexture());
             inventoryShape.setTextureRect(rect);
             target.draw(inventoryShape);
         }

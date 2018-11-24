@@ -10,6 +10,7 @@
 #include "GGFont.h"
 #include "SoundDefinition.h"
 #include "Verb.h"
+#include "SpriteSheet.h"
 #include "NonCopyable.h"
 
 namespace gg
@@ -68,8 +69,6 @@ public:
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
-  sf::IntRect getGameSheetRect(const std::string &name) const;
-  sf::IntRect getInventoryItemsRect(const std::string &name) const;
   void drawVerbs(sf::RenderTarget &target) const;
 
 private:
@@ -91,13 +90,9 @@ private:
   GGActor *_pCurrentActor;
   std::array<VerbSlot, 6> _verbSlots;
   std::array<VerbUiColors, 6> _verbUiColors;
-  sf::Texture _verbTexture;
-  sf::Texture _gameSheetTexture;
-  sf::Texture _inventoryItemsTexture;
   bool _inputActive;
   bool _showCursor;
-  nlohmann::json _jsonVerb;
-  nlohmann::json _jsonGameSheet;
+  SpriteSheet _verbSheet, _gameSheet, _inventoryItems;
   nlohmann::json _jsonInventoryItems;
 };
 } // namespace gg

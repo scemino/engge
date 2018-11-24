@@ -200,6 +200,8 @@ function actorEyesLook(actor, dir) {
 
 function newOpeningScene() {
     // startMusic(musicBridgeA, bridgeMusicPool)
+    inputVerbs(ON)
+    inputOn()
     cameraInRoom(Bridge)
 
     roomFade(FADE_OUT, 0)
