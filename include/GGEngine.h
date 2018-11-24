@@ -8,115 +8,12 @@
 #include "TextureManager.h"
 #include "GGTextDatabase.h"
 #include "GGFont.h"
+#include "SoundDefinition.h"
+#include "Verb.h"
 #include "NonCopyable.h"
 
 namespace gg
 {
-class SoundId;
-
-class SoundDefinition
-{
-  friend class SoundId;
-
-public:
-  SoundDefinition(const std::string &path)
-      : _path(path), _isLoaded(false)
-  {
-  }
-
-  const std::string &getPath() const { return _path; };
-
-  void load()
-  {
-    if (_isLoaded)
-      return;
-    _isLoaded = _buffer.loadFromFile(_path);
-    if (!_isLoaded)
-    {
-      std::cerr << "Can't load the sound" << _path << std::endl;
-    }
-  }
-
-private:
-  std::string _path;
-  bool _isLoaded;
-  sf::SoundBuffer _buffer;
-};
-
-class SoundId
-{
-public:
-  SoundId(SoundDefinition &soundDefinition)
-      : _soundDefinition(soundDefinition)
-  {
-  }
-
-  ~SoundId()
-  {
-    stop();
-  }
-
-  void play(bool loop = false)
-  {
-    _soundDefinition.load();
-    _sound.setBuffer(_soundDefinition._buffer);
-    _sound.setLoop(false);
-    _sound.play();
-  }
-
-  void setVolume(float volume)
-  {
-    std::cout << "setVolume(" << volume << ")" << std::endl; 
-    _sound.setVolume(volume);
-  }
-
-  float getVolume() const
-  {
-    return _sound.getVolume();
-  }
-
-  void stop()
-  {
-    _sound.stop();
-  }
-
-private:
-  SoundDefinition &_soundDefinition;
-  sf::Sound _sound;
-};
-
-struct Verb
-{
-  std::string id;
-  std::string image;
-  std::string func;
-  std::string text;
-  std::string key;
-};
-
-class VerbSlot
-{
-public:
-  void setVerb(int index, const Verb &verb) { _verbs[index] = verb; }
-  const Verb &getVerb(int index) const { return _verbs[index]; }
-
-private:
-  std::array<Verb, 10> _verbs;
-};
-
-struct VerbUiColors
-{
-  sf::Color sentence;
-  sf::Color verbNormal;
-  sf::Color verbNormalTint;
-  sf::Color verbHighlight;
-  sf::Color verbHighlightTint;
-  sf::Color dialogNormal;
-  sf::Color dialogHighlight;
-  sf::Color inventoryFrame;
-  sf::Color inventoryBackground;
-};
-
 class GGEngine : public NonCopyable
 {
 public:
