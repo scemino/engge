@@ -64,6 +64,7 @@ TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
   }
 
   HSQOBJECT object;
+  sq_resetobject(&object);
   if (SQ_FAILED(sq_getstackobj(v, index, &object)))
   {
     return nullptr;

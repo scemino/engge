@@ -12,14 +12,77 @@
 
 namespace gg
 {
+class SoundId;
+
+class SoundDefinition
+{
+  friend class SoundId;
+
+public:
+  SoundDefinition(const std::string &path)
+      : _path(path), _isLoaded(false)
+  {
+  }
+
+  const std::string &getPath() const { return _path; };
+
+  void load()
+  {
+    if (_isLoaded)
+      return;
+    _isLoaded = _buffer.loadFromFile(_path);
+    if (!_isLoaded)
+    {
+      std::cerr << "Can't load the sound" << _path << std::endl;
+    }
+  }
+
+private:
+  std::string _path;
+  bool _isLoaded;
+  sf::SoundBuffer _buffer;
+};
+
 class SoundId
 {
 public:
-  SoundId() = default;
+  SoundId(SoundDefinition &soundDefinition)
+      : _soundDefinition(soundDefinition)
+  {
+  }
 
-  ~SoundId();
-  sf::SoundBuffer buffer;
-  sf::Sound sound;
+  ~SoundId()
+  {
+    stop();
+  }
+
+  void play(bool loop = false)
+  {
+    _soundDefinition.load();
+    _sound.setBuffer(_soundDefinition._buffer);
+    _sound.setLoop(false);
+    _sound.play();
+  }
+
+  void setVolume(float volume)
+  {
+    std::cout << "setVolume(" << volume << ")" << std::endl; 
+    _sound.setVolume(volume);
+  }
+
+  float getVolume() const
+  {
+    return _sound.getVolume();
+  }
+
+  void stop()
+  {
+    _sound.stop();
+  }
+
+private:
+  SoundDefinition &_soundDefinition;
+  sf::Sound _sound;
 };
 
 struct Verb
@@ -83,8 +146,8 @@ public:
   std::vector<std::unique_ptr<GGActor>> &getActors() { return _actors; }
 
   void loopMusic(const std::string &name);
-  std::shared_ptr<SoundId> defineSound(const std::string &name);
-  std::shared_ptr<SoundId> playSound(const std::string &name, bool loop);
+  std::shared_ptr<SoundDefinition> defineSound(const std::string &name);
+  std::shared_ptr<SoundId> playSound(SoundDefinition &soundDefinition, bool loop = false);
   void stopSound(SoundId &sound);
 
   void playState(GGObject &object, int index);
@@ -108,6 +171,9 @@ public:
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
+  sf::IntRect getGameSheetRect(const std::string &name) const;
+  sf::IntRect getInventoryItemsRect(const std::string &name) const;
+  void drawVerbs(sf::RenderTarget &target) const;
 
 private:
   const GGEngineSettings &_settings;
@@ -117,7 +183,8 @@ private:
   std::vector<std::unique_ptr<GGRoom>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
-  std::vector<std::shared_ptr<SoundId>> _sounds;
+  std::vector<std::shared_ptr<SoundDefinition>> _sounds;
+  std::vector<std::shared_ptr<SoundId>> _soundIds;
   sf::Music _music;
   sf::Uint8 _fadeAlpha;
   sf::RenderWindow *_pWindow;
@@ -128,7 +195,12 @@ private:
   std::array<VerbSlot, 6> _verbSlots;
   std::array<VerbUiColors, 6> _verbUiColors;
   sf::Texture _verbTexture;
+  sf::Texture _gameSheetTexture;
+  sf::Texture _inventoryItemsTexture;
   bool _inputActive;
   bool _showCursor;
+  nlohmann::json _jsonVerb;
+  nlohmann::json _jsonGameSheet;
+  nlohmann::json _jsonInventoryItems;
 };
 } // namespace gg

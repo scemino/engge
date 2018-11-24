@@ -687,7 +687,8 @@ class _ActorPack : public Pack
         std::cout << "load lip " << path << std::endl;
         lip->load(path);
 
-        g_pEngine->playSound(name + ".ogg", false);
+        auto soundDefinition = g_pEngine->defineSound(name + ".ogg");
+        g_pEngine->playSound(*soundDefinition);
 
         g_pEngine->addFunction(std::make_unique<_TalkAnim>(*actor, std::move(lip)));
         auto text = g_pEngine->getText(id);

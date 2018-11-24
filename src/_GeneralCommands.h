@@ -144,7 +144,7 @@ class _GeneralPack : public Pack
 
         // call enter room function
         sq_pushobject(v, table);
-        sq_pushstring(v, "enter", 5);
+        sq_pushstring(v, _SC("enter"), -1);
         if (SQ_FAILED(sq_get(v, -2)))
         {
             return sq_throwerror(v, _SC("can't find enter function"));

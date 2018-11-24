@@ -41,6 +41,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectColor, "objectColor");
         engine.registerGlobalFunction(objectIcon, "objectIcon");
         engine.registerGlobalFunction(objectFPS, "objectFPS");
+        engine.registerGlobalFunction(pickupObject, "pickupObject");
         engine.registerGlobalFunction(createObject, "createObject");
         engine.registerGlobalFunction(createTextObject, "createTextObject");
         engine.registerGlobalFunction(deleteObject, "deleteObject");
@@ -602,6 +603,43 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get hidden"));
         }
         obj->setVisible(!hidden);
+        return 0;
+    }
+
+    static SQInteger pickupObject(HSQUIRRELVM v)
+    {
+        HSQOBJECT obj;
+        sq_resetobject(&obj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &obj)))
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        sq_pushobject(v, obj);
+        sq_pushstring(v, _SC("icon"), -1);
+        if (SQ_FAILED(sq_get(v, -2)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get object icon"));
+        }
+
+        const SQChar* icon;
+        if (SQ_FAILED(sq_getstring(v, -1, &icon)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get object icon"));
+        }
+
+        auto actor = ScriptEngine::getActor(v, 3);
+        if (!actor)
+        {
+            actor = g_pEngine->getCurrentActor();
+        }
+        if (!actor)
+        {
+            std::cerr << "There is no actor to pickup object " << icon << std::endl;
+            return 0;
+        }
+        actor->pickupObject(icon);
         return 0;
     }
 

@@ -1,13 +1,18 @@
 const talkColorBoris		= 0x3ea4b5
 const talkColorWillie		= 0xc69c6d
 
-function hideAll(r) {
-    foreach (obj in r) {
-        if (isObject(obj)) {
-            objectHidden(obj, YES)
-        }
-    }
-}
+soundTowerHum <- defineSound("TowerHum.wav")
+soundTowerLight <- defineSound("TowerLight.wav")
+soundFenceLockRattle <- defineSound("FenceLockRattle.ogg")
+soundCricketsLoop <- defineSound("AmbNightCrickets_Loop.ogg")	
+soundGunshot <- defineSound("Gunshot.wav")
+soundMetalClank <- defineSound("MetalClank.wav")
+soundBridgeTrain <- defineSound("BridgeTrain.ogg")				
+soundTowerLight <- defineSound("TowerLight.wav")
+soundTowerLight2 <- defineSound("TowerLight2.wav")
+soundWindBirds <- defineSound("WindBirds.ogg")
+musicStartScreen <- defineSound("GenTown_StartScreen_LOOP.ogg")
+musicBridgeA <- defineSound("Highway_Bridge_A.ogg")
 
 function actorBlinks(actor, state) {
  if (state) {
@@ -56,75 +61,6 @@ function bounceImage() {
     } while (1);
 }
 
-function animateBirdObject(dist, delay = 0) {
-    delay = delay + random(0.1, 5.0)
-    breaktime(delay)
-    local bird = createObject("VistaSheet", ["rfly_body1", "rfly_body2", "rfly_body3", "rfly_body4"])
-    local speed = 0
-    local yOffset = 0
-    // objectLit(bird, YES)
-    objectSort(bird, 250)
-    objectAt(bird, -20, 0)
-    if (dist == 1) {
-        speed = 8
-        objectScale(bird, 0.5)
-    } else if (dist == 2) {
-        speed = 15
-        objectScale(bird, 0.25)
-    }
-    do {
-        local yStart = random(100, 160)
-
-        objectOffset(bird, 0, yStart)
-        playObjectState(bird, 0)
-        yOffset = random(-80, 80)
-        if (dist == 2) {
-            yOffset = yOffset * 0.25
-        }
-        objectOffsetTo(bird, 430, (yStart + yOffset), random((speed * 0.90), (speed * 1.10)))
-        breaktime(speed * 1.10)
-        breaktime(random(5.0, 10.0))
-    } while (1)
-}
-
-function animateLock() {
-    local lock = createObject("OpeningSheet", ["lock1", "lock2", "lock3", "lock4", "lock5", "lock4", "lock3", "lock2", "lock1"])
-    print("lock: " + NO + "\n");
-    print("lock: " + YES + "\n");
-    do {
-        lock.playObjectState(0);
-        breaktime(2);
-        lock.playObjectState(0);
-        breaktime(0.5);
-        lock.objectHidden(YES)
-        breaktime(1);
-        lock.objectHidden(NO)
-        breaktime(random(2.0, 5.0));
-    } while (1);
-}
-
-function flashRadioLight(room) {
-    objectAlpha(room.startScreenRadioLight, 1.0)
-    objectState(room.startScreenRadioLight, ON)
-    do {
-        breaktime(1)
-        objectAlphaTo(room.startScreenRadioLight, 1.0, 0.25)
-        breaktime(1)
-        objectAlphaTo(room.startScreenRadioLight, 0.0, 0.25)
-    } while (1)
-}
-
-function playTowerLight(openingLight) {
-    do {
-        objectState(openingLight, 1)
-        playSound("TowerLight.wav")
-        breaktime(2.5)
-        objectState(openingLight, 0)
-        playSound("TowerLight2.wav")
-        breaktime(1.0)
-    } while (isRunning)
-}
-
 function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlphaRange2) {
     local timeOff, timeOn, fadeIn, fadeOut
     objectAlpha(obj, randomfrom(objectAlphaRange1, objectAlphaRange2))
@@ -139,204 +75,6 @@ function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlpha
         } while (1)
     }
 }
-
-function doOpening() {
-    local r = loadRoom("Opening")
-    hideAll(r)
-
-    breaktime(2.0)
-
-    objectHidden(r.opening1987, NO)
-    scale(r.opening1987, 0.5)
-    roomFade(FADE_IN, 2.0)
-    local sid = loopSound("TowerHum.wav")
-    breaktime(4.0)
-    roomFade(FADE_OUT, 2.0)
-    breaktime(2.0)
-    hideAll(r)
-
-    breaktime(2.0)
-
-    objectHidden(r.openingLightBackground, NO)
-    objectHidden(r.openingLight, NO)
-
-    print("Show stars\n");
-    for (local i = 1; i <= 3; i += 1) {
-        local star = r["openingStar" + i]
-        objectHidden(star, NO)
-        print("start openingStar" + i + "\n")
-        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5, 1.0), random(0.5, 1))
-        print("star: " + star.tid + "\n");
-    }
-    for (local i = 4; i <= 16; i += 1) {
-        local star = r["openingStar" + i]
-        objectHidden(star, NO)
-        print("start openingStar" + i + "\n")
-        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5, 1.0), random(0.1, 0.5))
-        print("star: " + star.tid + "\n");
-    }
-
-    print("Show stars done !\n");
-    roomFade(FADE_IN, 3.0)
-    breaktime(3.0)
-
-    local tid = startthread(playTowerLight, r.openingLight)
-    breaktime(10.0)
-
-    fadeOutSound(sid, 3.0)
-    //local isRunning=false
-    roomFade(FADE_OUT, 3.0)
-    breaktime(3.0)
-    hideAll(r)
-
-    for (local i = 1; i <= 16; i += 1) {
-        local star = r["openingStar" + i]
-        print("star2: " + star.tid + "\n");
-        objectHidden(star, YES)
-        stopthread(star.tid)
-    }
-
-    objectHidden(r.openingFenceBackground, NO)
-    objectHidden(r.openingChain, NO)
-    objectHidden(r.openingLock, NO)
-    objectState(r.openingLock, 0)
-
-    sid = loopSound("WindBirds.ogg", 3.0)
-    roomFade(FADE_IN, 3.0)
-    breaktime(1.0)
-
-    playObjectState(r.openingLock, 1)
-
-    local soundFenceLockRattle = playSound("FenceLockRattle.ogg")
-    breaktime(1.0)
-
-    playObjectState(r.openingLock, 1)
-
-    breaktime(1.0)
-
-    breaktime(1.0)
-
-    playObjectState(r.openingLock, 1)
-
-    breaktime(1.0)
-
-    playObjectState(r.openingLock, 1)
-
-    breaktime(1.0)
-
-    fadeOutSound(sid, 3.0)
-    fadeOutSound(soundFenceLockRattle, 3.0)
-    roomFade(FADE_OUT, 3.0)
-
-    breaktime(1.0)
-
-    playObjectState(r.openingLock, 1)
-
-    breaktime(1.0)
-
-    playObjectState(r.openingLock, 1)
-
-    breaktime(1.0)
-
-    breaktime(1.0)
-    hideAll(r)
-
-    objectHidden(r.openingSignBackground, NO)
-    objectHidden(r.openingSign, NO)
-    objectHidden(r.openingPop, NO)
-    objectHidden(r.openingThimbleweedParkText, NO)
-    objectHidden(r.openingCityLimitText, NO)
-    objectHidden(r.openingElevationText, NO)
-
-    objectHidden(r.openingReeds1, NO)
-    objectHidden(r.openingReeds2, NO)
-    objectHidden(r.openingReeds3, NO)
-    objectHidden(r.openingReeds4, NO)
-    objectHidden(r.openingReeds5, NO)
-    objectHidden(r.openingReeds6, NO)
-    objectHidden(r.openingReeds7, NO)
-    objectHidden(r.openingReeds8, NO)
-    objectHidden(r.openingReeds9, NO)
-
-    roomFade(FADE_IN, 5.0)
-    breaktime(1.0)
-    local soundCricketsLoop = loopSound("AmbNightCrickets_Loop.ogg", 2.0)
-    breaktime(2.0)
-    objectHidden(r.openingBulletHole, YES)
-    objectState(r.openingPop, 0)
-    breaktime(5.0)
-    playSound("Gunshot.wav")
-    // stopSound(soundCricketsLoop)
-    fadeOutSound(soundCricketsLoop, 0.1)
-
-    objectHidden(r.openingBulletHole, NO)
-    breaktime(3.0)
-    playSound("MetalClank.wav")
-    objectState(r.openingPop, 1);
-    breaktime(3.0)
-    roomFade(FADE_OUT, 2.0)
-    breaktime(3.0)
-    hideAll(r)
-}
-
-function flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
-    local timeOff, timeOn, fadeIn, fadeOut
-    objectAlpha(obj, randomfrom(0.0, 1.0))
-    do {
-        timeOff = random(offRange1, offRange2)
-        breaktime(timeOff)
-        fadeIn = random(fadeRange1, fadeRange2)
-        objectAlphaTo(obj, maxFade, fadeIn)
-        breaktime(fadeIn)
-        timeOn = random(onRange1, onRange2)
-        breaktime(timeOn)
-        fadeOut = random(fadeRange1, fadeRange2)
-        objectAlphaTo(obj, minFade, fadeOut)
-        breaktime(fadeOut)
-    } while (1)
-}
-
-function animateFirefly(obj) {
-    startthread(flashAlphaObject, obj, 1, 4, 0.5, 2, 0.1, 0.35)
-}
-
-function createFirefly(x) {
-    local firefly = 0
-    local zsort = 68
-    local y = random(78, 168)
-    local direction = randomfrom(-360, 360)
-    if (y < 108) {
-        firefly = createObject("firefly_large")
-        zsort = random(68, 78)
-    } else if (y < 218) {
-        firefly = createObject("firefly_small")
-        zsort = 117
-    } else if (x > 628 && x < 874) {
-        firefly = createObject("firefly_tiny")
-        zsort = 668
-    }
-    if (firefly) {
-        objectRotateTo(firefly, direction, 12)
-        // objectRotateTo(firefly, direction, 12, LOOPING)
-        objectAt(firefly, x, y)
-        objectSort(firefly, zsort)
-        return firefly
-    }
-}
-
-function intro() {
-    local r = loadRoom("StartScreen")
-    startthread(flashRadioLight, r)
-
-    for (local i = 1; i <= 3; i += 1) {
-        startthread(animateBirdObject, 1, 15)
-    }
-    for (local i = 1; i <= 5; i += 1) {
-        startthread(animateBirdObject, 2)
-    }
-}
-
-soundBridgeTrain <- defineSound("BridgeTrain.ogg")				
 
 Bridge <- 
 {
@@ -364,6 +102,11 @@ Bridge <-
  {
    name = "@25710"
    initState = GONE
+ }
+
+ borisNote =
+ {
+ icon = "safe_combination_note"
  }
 
  trainPassby = function() {
@@ -456,8 +199,11 @@ function actorEyesLook(actor, dir) {
 }
 
 function newOpeningScene() {
-    
+    // startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
+
+    roomFade(FADE_OUT, 0)
+    pickupObject(Bridge.borisNote, boris)
 
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(Bridge.bridgeLight, ON)
@@ -534,19 +280,16 @@ function newOpeningScene() {
     breaktime(0.5)
     sayLine(boris, "@25544")
 
-    // inputVerbs(ON)
-    // inputOn()
+    inputVerbs(ON)
+    inputOn()
     print("end :D\n")
 }
 
 local tid = startthread(newOpeningScene)
 // print("thread: "+tid+"\n")
-breakhere(1000)
+// breakhere(1000)
 // print("stop thread\n")
 // stopthread(tid)
-
-// intro();
-// startthread(doOpening)
 
 AStreet <- 
 {
@@ -580,6 +323,14 @@ QuickiePal <-
 }
 defineRoom(QuickiePal)
 
+QuickiePalOutside <- 
+{
+ background = "QuickiePalOutside"
+ enter = function() {
+ }
+}
+defineRoom(QuickiePalOutside)
+
 Cemetery <- 
 {
  background = "Cemetery"
@@ -595,6 +346,7 @@ HotelLobby <-
  }
 }
 defineRoom(HotelLobby)
+
 Alleyway <- 
 {
  background = "Alleyway"
@@ -603,5 +355,313 @@ Alleyway <-
 }
 defineRoom(Alleyway)
 
-// cameraInRoom(Bridge)
+MansionLibrary <- 
+{
+ background = "MansionLibrary"
+ enter = function() {
+ }
+}
+defineRoom(MansionLibrary)
+
+ChucksOffice <- 
+{
+ background = "ChucksOffice"
+ enter = function() {
+ }
+}
+defineRoom(ChucksOffice)
+
+CircusEntrance <- 
+{
+ background = "CircusEntrance"
+ enter = function() {
+ }
+}
+defineRoom(CircusEntrance)
+
+CoronersOffice <- 
+{
+ background = "CoronersOffice"
+ enter = function() {
+ }
+}
+defineRoom(CoronersOffice)
+
+StartScreen <-
+{
+ background = "StartScreen"
+ _music = 0
+
+ function animateBirdObject(dist, delay = 0) {
+    delay = delay + random(0.1, 5.0)
+    breaktime(delay)
+    local bird = createObject("VistaSheet", [ "rfly_body1", "rfly_body2", "rfly_body3", "rfly_body4" ])
+    local speed = 0
+    local yOffset = 0
+    objectLit(bird, YES)
+    objectSort(bird, 250)
+    objectAt(bird, -20, 0)
+    if (dist == 1) {
+        speed = 8
+        objectScale(bird, 0.5)
+    } else 
+    if (dist == 2) {
+        speed = 15
+        objectScale(bird, 0.25)
+    }
+    do {
+        local yStart = random(100,160)
+        
+        objectOffset(bird, 0, yStart)
+        loopObjectState(bird, 0)
+        yOffset = random(-80,80)
+        if (dist == 2) {
+        yOffset = yOffset*0.25
+        }
+        objectOffsetTo(bird, 430, (yStart + yOffset), random((speed*0.90), (speed*1.10)))
+        breaktime(speed*1.10)	
+        breaktime(random(5.0, 10.0))
+    } while(1)
+ }
+
+ function flashRadioLight() {
+    objectAlpha(startScreenRadioLight, 0.0)
+    objectState(startScreenRadioLight, ON)
+    do {
+        breaktime(1)
+        objectAlphaTo(startScreenRadioLight, 1.0, 0.25)
+        breaktime(1)
+        objectAlphaTo(startScreenRadioLight, 0.0, 0.25)
+    } while(1)
+ }
+
+ enter = function()
+ {
+    ""
+    stopMusic()
+    _music = loopMusic(musicStartScreen)
+    // actorSlotSelectable(OFF)
+
+    startthread(flashRadioLight)
+
+    for (local i = 1; i <= 3; i += 1) {
+    startthread(animateBirdObject, 1, 15)
+    }
+    for (local i = 1; i <= 5; i += 1) {
+    startthread(animateBirdObject, 2)
+    }
+    // setProgress("mainmenu")
+ }
+
+ exit = function()
+ {
+    fadeOutSound(_music, 1.0)
+ }
+}
+defineRoom(StartScreen)
+
+Opening <-
+{
+ background = "Opening"
+//  _dont_hero_track = 1
+
+ function waveReed(reed) {
+ local speed_min = 0.75
+ local speed_max = 1.0
+ objectHidden(reed, NO)
+//  objectShader(reed, YES, GRASS_BACKANDFORTH, random(3.0,5.0), random(speed_min,speed_max), YES)
+ }
+
+ function playOpening(){
+    return startthread(playOpening2);
+ }
+
+ function playOpening3(){
+ do {
+ objectState(openingLight, 1)
+ playSound(soundTowerLight)
+ breaktime(2.5)
+ objectState(openingLight, 0)
+ playSound(soundTowerLight2)
+ breaktime(1.0)
+ }while(1)
+ }
+
+ function playOpening2() {
+ cameraInRoom(Opening)
+
+ breaktime(2.0)
+
+ objectHidden(opening1987, NO)
+ objectScale(opening1987, 0.5)
+ roomFade(FADE_IN, 2.0)
+ local sid = loopSound(soundTowerHum, -1, 1.0)
+ breaktime(4.0)
+ roomFade(FADE_OUT, 2.0)
+ breaktime(2.0)
+ hideAll()
+
+ breaktime(2.0)
+
+ 
+ objectHidden(openingLightBackground, NO)
+ objectHidden(openingLight, NO)
+
+ for (local i = 1; i <= 3; i += 1) {
+ local star = Opening["openingStar"+i]
+ objectHidden(star, NO)
+ 
+ star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.5, 1))
+ }	
+ for (local i = 4; i <= 16; i += 1) {
+ local star = Opening["openingStar"+i]
+ objectHidden(star, NO)
+ 
+ star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.1, 0.5))
+ }	
+
+ roomFade(FADE_IN, 3.0)
+ breaktime(3.0)
+
+ local tid = startthread(playOpening3)
+ breaktime(10.0)
+
+ fadeOutSound(sid, 3.0)
+ stopthread(tid)
+ roomFade(FADE_OUT, 3.0)
+ breaktime(3.0)
+ hideAll()
+
+ for (local i = 1; i <= 16; i += 1) {
+ local star = Opening["openingStar"+i]
+ objectHidden(star, YES)
+ stopthread(star.tid)
+ }	
+
+ 
+ objectHidden(openingFenceBackground, NO)
+ objectHidden(openingChain, NO)
+ objectHidden(openingLock, NO)
+ objectState(openingLock, 0)
+
+ sid = loopSound(soundWindBirds, -1, 3.0)
+ roomFade(FADE_IN, 3.0)
+ breaktime(1.0)
+
+ playObjectState(openingLock, 1)
+
+ playSound(soundFenceLockRattle)
+ breaktime(1.0)
+
+ playObjectState(openingLock, 1)
+
+ breaktime(1.0)
+
+ breaktime(1.0)
+
+ playObjectState(openingLock, 1)
+
+ breaktime(1.0)
+
+ playObjectState(openingLock, 1)
+
+ breaktime(1.0)
+
+ fadeOutSound(sid, 3.0)
+ fadeOutSound(soundFenceLockRattle, 3.0)
+ roomFade(FADE_OUT, 3.0)
+
+ breaktime(1.0)
+
+ playObjectState(openingLock, 1)
+
+ breaktime(1.0)
+
+ playObjectState(openingLock, 1)
+
+ breaktime(1.0)
+
+ breaktime(1.0)
+ hideAll()
+
+ 
+ objectHidden(openingSignBackground, NO)
+ objectHidden(openingSign, NO)
+ objectHidden(openingPop, NO)
+ objectHidden(openingThimbleweedParkText, NO)
+ objectHidden(openingCityLimitText, NO)
+ objectHidden(openingElevationText, NO)
+
+ for (local i = 1; i <= 3; i += 1) {
+ local star = Opening["openingStarA"+i]
+ objectHidden(star, NO)
+ 
+ star.tid <- startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
+ }	
+ for (local i = 1; i <= 1; i += 1) {
+ local star = Opening["openingStarAB"+i]
+ objectHidden(star, NO)
+ 
+ star.tid <- startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+ }	
+
+ waveReed(openingReeds1)
+ waveReed(openingReeds2)
+ waveReed(openingReeds3)
+ waveReed(openingReeds4)
+ waveReed(openingReeds5)
+ waveReed(openingReeds6)
+ waveReed(openingReeds7)
+ waveReed(openingReeds8)
+ waveReed(openingReeds9)
+
+ roomFade(FADE_IN, 5.0)
+ breaktime(1.0)
+ loopSound(soundCricketsLoop, -1, 2.0)
+ breaktime(2.0)
+ objectHidden(openingBulletHole, YES)
+ objectState(openingPop, 0)
+ breaktime(5.0)
+ playSound(soundGunshot)
+ stopSound(soundCricketsLoop)
+ objectHidden(openingBulletHole, NO)
+ breaktime(3.0)
+ playSound(soundMetalClank)
+ objectState(openingPop, 1);
+ breaktime(3.0)
+ roomFade(FADE_OUT, 2.0)
+ breaktime(3.0)
+ hideAll()
+ }
+
+ function hideAll() {
+    foreach(obj in this) { 
+        print("obj: "+obj+"\n")
+        if (isObject(obj)) { 
+            objectHidden(obj, YES) 
+        }
+    }
+ }
+
+ enter = function()
+ {
+    ""
+    hideAll()
+ }
+
+ exit = function()
+ {
+ }
+
+//  openingSign = { name = "" }
+//  openingPop = { name = "" }
+//  openingBulletHole = { name = "" }
+//  opening1987 = { name = "" }
+}
+defineRoom(Opening)
+
+// Opening.playOpening()
+
+// cameraInRoom(QuickiePal)
 // roomFade(FADE_IN, 2)
+

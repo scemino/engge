@@ -33,8 +33,15 @@ public:
   {
     auto isElapsed = _clock.getElapsedTime() > _time;
     if (isElapsed)
+    {
+      onElapsed();
       _function();
+    }
     return isElapsed;
+  }
+
+  virtual void onElapsed()
+  {
   }
 
   void callWhenElapsed(std::function<void()> function) { _function = function; }
@@ -65,6 +72,11 @@ public:
       auto f = _anim(t);
       _current = _init + f * _delta;
     }
+  }
+
+  void onElapsed() override
+  {
+    _set(_destination);
   }
 
 private:

@@ -46,13 +46,29 @@ class _SoundPack : public Pack
 
     static SQInteger loopSound(HSQUIRRELVM v)
     {
-        const SQChar *filename;
-        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        SoundDefinition *pSound = nullptr;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
         {
-            return sq_throwerror(v, _SC("failed to get filename"));
+            return sq_throwerror(v, _SC("failed to get sound"));
         }
-        auto ptr = g_pEngine->playSound(filename, true);
-        sq_pushuserpointer(v, ptr.get());
+        SQInteger loopTimes = -1;
+        sq_getinteger(v, 3, &loopTimes);
+        SQFloat fadeInTime = 0;
+        sq_getfloat(v, 4, &fadeInTime);
+        auto pSoundId = g_pEngine->playSound(*pSound, true);
+        if (loopTimes != -1)
+        {
+            // TODO: loopTimes
+        }
+        if (fadeInTime != 0)
+        {
+            pSoundId->setVolume(0.f);
+            auto get = std::bind(&SoundId::getVolume, pSoundId);
+            auto set = std::bind(&SoundId::setVolume, pSoundId, std::placeholders::_1);
+            auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 100.f, sf::seconds(fadeInTime));
+            g_pEngine->addFunction(std::move(fadeTo));
+        }
+        sq_pushuserpointer(v, (SQUserPointer *)pSoundId.get());
         return 1;
     }
 
@@ -72,28 +88,27 @@ class _SoundPack : public Pack
             return sq_throwerror(v, _SC("failed to get fadeOut time"));
         }
 
-        auto get = std::bind(&sf::Sound::getVolume, &pSound->sound);
-        auto set = std::bind(&sf::Sound::setVolume, &pSound->sound, std::placeholders::_1);
+        auto get = std::bind(&SoundId::getVolume, pSound);
+        auto set = std::bind(&SoundId::setVolume, pSound, std::placeholders::_1);
         auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 0.f, sf::seconds(t));
+        fadeTo->callWhenElapsed([pSound]() {
+            g_pEngine->stopSound(*pSound);
+        });
+        g_pEngine->addFunction(std::move(fadeTo));
         return 0;
     }
 
     static SQInteger playSound(HSQUIRRELVM v)
     {
-        const SQChar *filename;
-        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        SoundDefinition *pSound;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
         {
-            SoundId *pSound;
-            if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
-            {
-                return sq_throwerror(v, _SC("failed to get sound"));
-            }
-            pSound->sound.play();
-            return 0;
+            return sq_throwerror(v, _SC("failed to get sound"));
         }
-        SQUserPointer ptr = g_pEngine->playSound(filename, false).get();
-        sq_pushuserpointer(v, ptr);
-        return 0;
+        auto soundId = g_pEngine->playSound(*pSound);
+        sq_pushuserpointer(v, (SQUserPointer)soundId.get());
+
+        return 1;
     }
 
     static SQInteger stopSound(HSQUIRRELVM v)
@@ -102,6 +117,17 @@ class _SoundPack : public Pack
         if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&soundId)))
         {
             return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        g_pEngine->stopSound(*soundId);
+        return 0;
+    }
+
+    static SQInteger stopMusic(HSQUIRRELVM v)
+    {
+        SoundId *soundId;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&soundId)))
+        {
+            return sq_throwerror(v, _SC("failed to get music"));
         }
         g_pEngine->stopSound(*soundId);
         return 0;

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <math.h>
 #include "GGEngine.h"
 #include "Screen.h"
 #include "GGFont.h"
@@ -21,6 +22,8 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _pRoom(nullptr),
       _pCurrentActor(nullptr),
       _verbTexture(_textureManager.get("VerbSheet")),
+      _gameSheetTexture(_textureManager.get("GameSheet")),
+      _inventoryItemsTexture(_textureManager.get("InventoryItems")),
       _inputActive(false),
       _showCursor(false)
 {
@@ -33,30 +36,60 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
     _font.setSettings(&_settings);
     _font.load("FontModernSheet");
 
+    // load all messages
     std::string path(settings.getGamePath());
     path.append("ThimbleweedText_en.tsv");
     _textDb.load(path);
+
+    // load json verb file
+    std::string jsonFilename;
+    jsonFilename.append(_settings.getGamePath()).append("VerbSheet.json");
+    {
+        std::ifstream i(jsonFilename);
+        i >> _jsonVerb;
+    }
+
+    jsonFilename.clear();
+    jsonFilename.append(_settings.getGamePath()).append("GameSheet.json");
+    {
+        std::ifstream i(jsonFilename);
+        i >> _jsonGameSheet;
+    }
+
+    jsonFilename.clear();
+    jsonFilename.append(_settings.getGamePath()).append("InventoryItems.json");
+    {
+        std::ifstream i(jsonFilename);
+        i >> _jsonInventoryItems;
+    }
 }
 
 GGEngine::~GGEngine() = default;
 
 sf::IntRect GGEngine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
 {
-    // load json file
-    std::string jsonFilename;
-    jsonFilename.append(_settings.getGamePath()).append("VerbSheet.json");
-    nlohmann::json json;
-    {
-        std::ifstream i(jsonFilename);
-        i >> json;
-    }
-
     std::ostringstream s;
     s << name << (isRetro ? "_retro" : "") << "_" << lang;
-    auto jVerb = json["frames"][s.str().c_str()];
+    auto jVerb = _jsonVerb["frames"][s.str().c_str()];
     if (jVerb.is_null())
         return sf::IntRect();
     return _toRect(jVerb["frame"]);
+}
+
+sf::IntRect GGEngine::getGameSheetRect(const std::string &name) const
+{
+    auto jFrames = _jsonGameSheet["frames"][name.c_str()];
+    if (jFrames.is_null())
+        return sf::IntRect();
+    return _toRect(jFrames["frame"]);
+}
+
+sf::IntRect GGEngine::getInventoryItemsRect(const std::string &name) const
+{
+    auto jFrames = _jsonInventoryItems["frames"][name.c_str()];
+    if (jFrames.is_null())
+        return sf::IntRect();
+    return _toRect(jFrames["frame"]);
 }
 
 void GGEngine::setCameraAt(const sf::Vector2f &at)
@@ -116,42 +149,33 @@ void GGEngine::loopMusic(const std::string &name)
     _music.play();
 }
 
-std::shared_ptr<SoundId> GGEngine::playSound(const std::string &name, bool loop)
+std::shared_ptr<SoundDefinition> GGEngine::defineSound(const std::string &name)
 {
     std::string path(_settings.getGamePath());
     path.append(name);
-    auto sound = std::make_shared<SoundId>();
-    if (!sound->buffer.loadFromFile(path))
-    {
-        std::cerr << "Can't load the sound" << std::endl;
-        return nullptr;
-    }
+    auto sound = std::make_shared<SoundDefinition>(path);
     _sounds.push_back(sound);
-    sound->sound.setBuffer(sound->buffer);
-    sound->sound.setLoop(loop);
-    sound->sound.play();
     return sound;
 }
 
-std::shared_ptr<SoundId> GGEngine::defineSound(const std::string &name)
+std::shared_ptr<SoundId> GGEngine::playSound(SoundDefinition &soundDefinition, bool loop)
 {
-    std::string path(_settings.getGamePath());
-    path.append(name);
-    auto sound = std::make_shared<SoundId>();
-    if (!sound->buffer.loadFromFile(path))
-    {
-        std::cerr << "Can't load the sound" << std::endl;
-        return nullptr;
-    }
-    _sounds.push_back(sound);
-    sound->sound.setBuffer(sound->buffer);
-    return sound;
+    auto soundId = std::make_shared<SoundId>(soundDefinition);
+    _soundIds.push_back(soundId);
+    soundId->play(loop);
+    return soundId;
 }
 
 void GGEngine::stopSound(SoundId &sound)
 {
     std::cout << "stopSound" << std::endl;
-    sound.sound.stop();
+    sound.stop();
+    auto it = std::find_if(_soundIds.begin(), _soundIds.end(), [&sound](const std::shared_ptr<SoundId> &id) {
+        return id.get() == &sound;
+    });
+    if (it == _soundIds.end())
+        return;
+    _soundIds.erase(it);
 }
 
 void GGEngine::draw(sf::RenderWindow &window) const
@@ -165,6 +189,7 @@ void GGEngine::draw(sf::RenderWindow &window) const
         window.draw(*actor);
     }
 
+    // draw fade
     sf::RectangleShape fadeShape;
     fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
@@ -173,29 +198,7 @@ void GGEngine::draw(sf::RenderWindow &window) const
     // draw verbs
     if (_inputActive && !_verbSlots[0].getVerb(0).id.empty())
     {
-        sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 3.f / 3.f);
-        for (int i = 0; i < 9; i++)
-        {
-            auto verb = _verbSlots[0].getVerb(i + 1);
-            auto rect = getVerbRect(verb.id);
-            sf::VertexArray triangle(sf::Quads, 4);
-
-            auto x = (i / 3) * size.x;
-            auto y = Screen::Height - size.y * 3 + (i % 3) * size.y;
-            triangle[0].position = sf::Vector2f(x, y);
-            triangle[1].position = sf::Vector2f(x + size.x, y);
-            triangle[2].position = sf::Vector2f(x + size.x, y + size.y);
-            triangle[3].position = sf::Vector2f(x, y + size.y);
-            triangle[0].texCoords = sf::Vector2f(rect.left, rect.top);
-            triangle[1].texCoords = sf::Vector2f(rect.left + rect.width, rect.top);
-            triangle[2].texCoords = sf::Vector2f(rect.left + rect.width, rect.top + rect.height);
-            triangle[3].texCoords = sf::Vector2f(rect.left, rect.top + rect.height);
-
-            sf::RenderStates states;
-            states.texture = &_verbTexture;
-
-            window.draw(triangle, states);
-        }
+        drawVerbs(window);
     }
 
     // std::stringstream s;
@@ -203,13 +206,87 @@ void GGEngine::draw(sf::RenderWindow &window) const
     // _font.draw(s.str(), window);
 }
 
+void GGEngine::drawVerbs(sf::RenderTarget &target) const
+{
+    sf::RenderStates states;
+    states.texture = &_verbTexture;
+
+    sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
+    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
+    for (int x = 0; x < 3; x++)
+    {
+        auto maxW = 0;
+        for (int y = 0; y < 3; y++)
+        {
+            auto verb = _verbSlots[0].getVerb(x * 3 + y + 1);
+            auto rect = getVerbRect(verb.id);
+            maxW = fmax(maxW, rect.width * ratio.x);
+        }
+        auto padding = (size.x - maxW) / 2.f;
+        auto left = padding + x * size.x;
+
+        for (int y = 0; y < 3; y++)
+        {
+            auto top = Screen::Height - size.y * 3 + y * size.y;
+            auto verb = _verbSlots[0].getVerb(x * 3 + y + 1);
+            auto rect = getVerbRect(verb.id);
+            auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
+
+            sf::RectangleShape verbShape;
+            verbShape.setPosition(left, top);
+            verbShape.setSize(verbSize);
+            verbShape.setTexture(&_verbTexture);
+            verbShape.setTextureRect(rect);
+            target.draw(verbShape);
+        }
+    }
+
+    // inventory arrows
+    auto scrollUpFrameRect = getGameSheetRect("scroll_up");
+    sf::RectangleShape scrollUpShape;
+    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
+    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
+    scrollUpShape.setPosition(scrollUpPosition);
+    scrollUpShape.setSize(scrollUpSize);
+    scrollUpShape.setTexture(&_gameSheetTexture);
+    scrollUpShape.setTextureRect(scrollUpFrameRect);
+    target.draw(scrollUpShape);
+
+    auto scrollDownFrameRect = getGameSheetRect("scroll_down");
+    sf::RectangleShape scrollDownShape;
+    scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
+    scrollDownShape.setSize(scrollUpSize);
+    scrollDownShape.setTexture(&_gameSheetTexture);
+    scrollDownShape.setTextureRect(scrollDownFrameRect);
+    target.draw(scrollDownShape);
+
+    // inventory frame
+    auto inventoryFrameRect = getGameSheetRect("inventory_frame");
+    sf::RectangleShape inventoryShape;
+    inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
+    inventoryShape.setSize(sf::Vector2f(Screen::Width / 2.f - scrollUpSize.x, 3 * Screen::Height / 14.f));
+    inventoryShape.setTexture(&_gameSheetTexture);
+    inventoryShape.setTextureRect(inventoryFrameRect);
+    target.draw(inventoryShape);
+
+    if (_pCurrentActor)
+    {
+        auto &objects = _pCurrentActor->getObjects();
+        for (auto it = objects.begin(); it != objects.end(); it++)
+        {
+            auto rect = getInventoryItemsRect(*it);
+            inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
+            inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
+            inventoryShape.setTexture(&_inventoryItemsTexture);
+            inventoryShape.setTextureRect(rect);
+            target.draw(inventoryShape);
+        }
+    }
+}
+
 void GGEngine::playState(GGObject &object, int index)
 {
     object.setStateAnimIndex(index);
 }
 
-SoundId::~SoundId()
-{
-    sound.stop();
-}
 } // namespace gg

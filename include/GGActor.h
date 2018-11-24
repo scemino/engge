@@ -11,6 +11,7 @@
 namespace gg
 {
 class GGRoom;
+class GGObject;
 class GGActor : public GGEntity
 {
 public:
@@ -57,6 +58,9 @@ public:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void update(const sf::Time &time) override;
 
+  void pickupObject(const std::string& icon) { _icons.push_back(icon); }
+  const std::vector<std::string>& getObjects() { return _icons; }
+
 private:
   const GGEngineSettings &_settings;
   GGCostume _costume;
@@ -73,5 +77,6 @@ private:
   bool _use;
   GGRoom *_pRoom;
   sf::IntRect _hotspot;
+  std::vector<std::string> _icons;
 };
 } // namespace gg
