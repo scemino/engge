@@ -277,7 +277,7 @@ class _SystemPack : public Pack
         }
         sq_release(v, &thread_obj);
         std::cout << "stopthread " << std::endl;
-        sq_suspendvm(thread_obj._unVal.pThread);
+        // sq_suspendvm(thread_obj._unVal.pThread);
         return 0;
     }
 
