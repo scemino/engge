@@ -1,6 +1,7 @@
 const talkColorBoris		= 0x3ea4b5
 const talkColorWillie		= 0xc69c6d
 
+// DefineSounds.nut
 soundTowerHum <- defineSound("TowerHum.wav")
 soundTowerLight <- defineSound("TowerLight.wav")
 soundFenceLockRattle <- defineSound("FenceLockRattle.ogg")
@@ -13,6 +14,11 @@ soundTowerLight2 <- defineSound("TowerLight2.wav")
 soundWindBirds <- defineSound("WindBirds.ogg")
 musicStartScreen <- defineSound("GenTown_StartScreen_LOOP.ogg")
 musicBridgeA <- defineSound("Highway_Bridge_A.ogg")
+musicBridgeB <- defineSound("Highway_Bridge_B.ogg")
+musicBridgeC <- defineSound("Highway_Bridge_C.ogg")
+musicBridgeD <- defineSound("Highway_Bridge_D.ogg")
+musicBridgeE <- defineSound("Highway_Bridge_E.ogg")
+
 
 function actorBlinks(actor, state) {
  if (state) {
@@ -104,10 +110,22 @@ Bridge <-
    initState = GONE
  }
 
- borisNote =
- {
+borisNote =
+{
  icon = "safe_combination_note"
- }
+}
+borisWallet =
+{
+ icon = "boris_wallet"
+}
+borisHotelKeycard =
+{
+ icon = "key_card_mauve"
+}
+borisPrototypeToy =
+{
+ icon = "prototype_toy_orange"
+}
 
  trainPassby = function() {
    objectOffset(Bridge.bridgeTrain, -100, 0)
@@ -198,30 +216,159 @@ function actorEyesLook(actor, dir) {
  }
 }
 
-function newOpeningScene() {
-    // startMusic(musicBridgeA, bridgeMusicPool)
-    inputVerbs(ON)
-    inputOn()
-    cameraInRoom(Bridge)
+// Boot.nut
+settings <- { 
+    playFootsteps = YES
+    actorIdleAnimations = YES
+    idleTime = 3*60
+    demo = NO	
+    demoQP = NO
+    selectActorHintTime = 60
+    preloadMusic = NO
+    ambianceSounds = YES
+    starTwinkleRate = 1.0
+    isRon = NO
+    showMusicInfo = YES
+    showAmbianceInfo = YES
+    toilet_paper_over = YES
+}
 
+// Globals.nut
+g <- {
+}
+// MusicHelpers.nut
+_watchMusicTID <- 0
+_playingMusicSID <- 0
+_playingMusic <- 0
+_musicPool <- null
+_nextMusic <- 0
+g.musicSuspended <- NO
+g.musicPlaying <- NO
+g.musicSuspended <- NO
+
+bridgeMusicPool <- [ musicBridgeA, musicBridgeB, musicBridgeC musicBridgeD, musicBridgeE ]
+
+function _startWatchMusicCallback(){
+do {
+ breakwhilesound(_playingMusicSID)
+ if (g.musicSuspended) return
+ if (_musicPool == null) {
+ stopMusic()
+ return
+ }
+ startMusic(0, null, NO)
+ }while(1)
+}
+
+function _startWatchMusic() {
+ _watchMusicTID = stopthread(_watchMusicTID)		
+ if (_musicPool) {
+     _watchMusicTID = startthread(_startWatchMusicCallback)
+ // TODO: _watchMusicTID = startglobalthread(_startWatchMusicCallback)
+ threadpauseable(_watchMusicTID, NO)
+ g.musicPlaying = YES
+ }
+}
+
+function startMusic(music = 0, pool = null, cross_fade = YES) {
+ if (g.musicSuspended == YES) {
+ return
+ }
+ 
+ if (music == 0 && pool == _musicPool && _playingMusic && _watchMusicTID) {
+ return
+ }
+ if (pool && pool != _musicPool) {
+ _nextMusic = 0		
+ }
+ if (pool) {
+ _musicPool = pool
+ }
+ 
+ if (music == 0 && _musicPool) {
+ music = _nextMusic ? _nextMusic : randomfrom(_musicPool)
+ } else {
+ 
+ cross_fade = NO
+ }
+ if (settings.preloadMusic) {
+ 
+ _nextMusic = randomfrom(_musicPool)
+ if (music == _nextMusic) {
+ _nextMusic = randomfrom(_musicPool)
+ }
+ if (music == _nextMusic) {
+ _nextMusic = randomfrom(_musicPool)
+ }
+ if (music == _nextMusic) {
+ _nextMusic = 0		
+ }
+ if (_nextMusic) {
+ if (settings.showMusicInfo) ""
+ loadSound(_nextMusic,YES)
+ }
+ }
+ 
+ if (_playingMusicSID) {
+ if (cross_fade) {
+ fadeOutSound(_playingMusicSID, MUSIC_FADE_TIME)
+ } else {
+ stopSound(_playingMusicSID)
+ }
+ }
+ _playingMusic = 0
+ if (music) {
+ if (cross_fade && _playingMusicSID) {	
+ _playingMusicSID = playMusic(music, 0, MUSIC_FADE_TIME)
+ } else {
+// TODO: _playingMusicSID = playMusic(music)
+ _playingMusicSID = playSound(music)
+ }
+ _playingMusic = music
+ if (settings.showMusicInfo) ""
+ _startWatchMusic()
+ }
+}
+
+// Bridge.nut
+function newOpeningScene() {
     roomFade(FADE_OUT, 0)
+    actorAt(boris, Bridge.borisStartSpot)
+    actorFace(boris, FACE_RIGHT)
     pickupObject(Bridge.borisNote, boris)
+    pickupObject(Bridge.borisWallet, boris)
+    pickupObject(Bridge.borisHotelKeycard, boris)
+    pickupObject(Bridge.borisPrototypeToy, boris)
+
+    startMusic(musicBridgeA, bridgeMusicPool)
+    cameraInRoom(Bridge)
 
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(Bridge.bridgeLight, ON)
-    // objectState(Bridge.bridgeDragMark, GONE)
     objectState(Bridge.bridgeBody, GONE)
     objectState(Bridge.bridgeBottle, GONE)
     objectState(Bridge.bridgeChainsaw, GONE)
     objectTouchable(Bridge.bridgeGateBack, YES)
     objectTouchable(Bridge.bridgeGate, NO)
-    objectSort(Bridge.bridgeStump, 86)		
-    loopObjectState(Bridge.bridgeSewerDrip, 0)							
+    objectSort(Bridge.bridgeStump, 86)	
+
+    objectHidden(Bridge.bridgeEyes, YES)
     objectParallaxLayer(Bridge.bridgeWater, 1)
+    loopObjectState(Bridge.bridgeWater, 0)
+    loopObjectState(Bridge.bridgeShoreline, 0)
+    // TODO: actorSound(bridgeSewerDrip, 2, soundDrip1, soundDrip2, soundDrip3)
+    loopObjectState(Bridge.bridgeSewerDrip, 0)							
     objectParallaxLayer(Bridge.bridgeTrain, 2)
+
+    // TDOO: objectShader(reedsLeft, YES, GRASS_BACKANDFORTH, 3, 0.5, YES)
+    // TDOO: objectShader(reedsRight, YES, GRASS_BACKANDFORTH, 3, 0.5, YES)
+
     objectParallaxLayer(Bridge.frontWavingReeds1, -2)
+    // TODO: objectShader(frontWavingReeds1, YES, GRASS_BACKANDFORTH, 5, 1, YES)
     objectParallaxLayer(Bridge.frontWavingReeds2, -2)
+    // TODO: objectShader(frontWavingReeds2, YES, GRASS_BACKANDFORTH, 6, 1, YES)
     objectParallaxLayer(Bridge.frontWavingReeds3, -2)
+    // TODO: objectShader(frontWavingReeds3, YES, GRASS_BACKANDFORTH, 4, 2, YES)
     
     local star = 0
     for (local i = 1; i <= 28; i += 1) {

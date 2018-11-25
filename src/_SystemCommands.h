@@ -128,6 +128,38 @@ class _BreakWhileTalkingFunction : public Function
     }
 };
 
+class _BreakWhileSoundFunction : public Function
+{
+  private:
+    HSQUIRRELVM _vm;
+    SoundId &_soundId;
+
+  public:
+    explicit _BreakWhileSoundFunction(HSQUIRRELVM vm, SoundId &soundId)
+        : _vm(vm), _soundId(soundId)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        return !_soundId.isPlaying();
+    }
+
+    void operator()() override
+    {
+        if (!isElapsed())
+            return;
+
+        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
+            return;
+        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
+        {
+            std::cerr << "_BreakWhileSoundFunction: failed to wakeup: " << _vm << std::endl;
+            sqstd_printcallstack(_vm);
+        }
+    }
+};
+
 class _BreakTimeFunction : public TimeFunction
 {
   private:
@@ -165,6 +197,7 @@ class _SystemPack : public Pack
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(breakhere, "breakhere");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
+        engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
         engine.registerGlobalFunction(stopthread, "stopthread");
@@ -176,6 +209,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(isInputOn, "isInputOn");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(systemTime, "systemTime");
+        engine.registerGlobalFunction(threadpauseable, "threadpauseable");
     }
 
     static SQInteger breakhere(HSQUIRRELVM v)
@@ -194,6 +228,18 @@ class _SystemPack : public Pack
         }
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(v, *pActor));
+        return result;
+    }
+
+    static SQInteger breakwhilesound(HSQUIRRELVM v)
+    {
+        SoundId *pSound = nullptr;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(v, *pSound));
         return result;
     }
 
@@ -366,6 +412,23 @@ class _SystemPack : public Pack
         time(&t);
         sq_pushinteger(v, t);
         return 1;
+    }
+
+    static SQInteger threadpauseable(HSQUIRRELVM v)
+    {
+        HSQOBJECT thread;
+        sq_resetobject(&thread);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &thread)))
+        {
+            return sq_throwerror(v, _SC("failed to get thread"));
+        }
+        SQBool pauseable;
+        if (SQ_FAILED(sq_getbool(v, 3, &pauseable)))
+        {
+            pauseable = true;
+        }
+        // TODO: set thread pauseable
+        return 0;
     }
 };
 

@@ -233,15 +233,17 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
 
     if (_pCurrentActor)
     {
+        auto x = 0;
         auto &objects = _pCurrentActor->getObjects();
         for (auto it = objects.begin(); it != objects.end(); it++)
         {
             auto rect = _inventoryItems.getRect(*it);
-            inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
+            inventoryShape.setPosition(sf::Vector2f(x + scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
             inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
             inventoryShape.setTexture(&_inventoryItems.getTexture());
             inventoryShape.setTextureRect(rect);
             target.draw(inventoryShape);
+            x += rect.width;
         }
     }
 }

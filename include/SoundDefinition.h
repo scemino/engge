@@ -9,36 +9,37 @@ class SoundId;
 
 class SoundDefinition
 {
-  friend class SoundId;
+    friend class SoundId;
 
-public:
-  SoundDefinition(const std::string &path);
+  public:
+    SoundDefinition(const std::string &path);
 
-  const std::string &getPath() const { return _path; };
+    const std::string &getPath() const { return _path; };
 
-private:
-  void load();
+  private:
+    void load();
 
-private:
-  std::string _path;
-  bool _isLoaded;
-  sf::SoundBuffer _buffer;
+  private:
+    std::string _path;
+    bool _isLoaded;
+    sf::SoundBuffer _buffer;
 };
 
 class SoundId
 {
-public:
-  SoundId(SoundDefinition &soundDefinition);
-  ~SoundId();
+  public:
+    SoundId(SoundDefinition &soundDefinition);
+    ~SoundId();
 
-  void play(bool loop = false);
-  void stop();
+    void play(bool loop = false);
+    void stop();
 
-  void setVolume(float volume);
-  float getVolume() const;
+    void setVolume(float volume);
+    float getVolume() const;
+    bool isPlaying() const { return _sound.getStatus() == sf::SoundSource::Playing; }
 
-private:
-  SoundDefinition &_soundDefinition;
-  sf::Sound _sound;
+  private:
+    SoundDefinition &_soundDefinition;
+    sf::Sound _sound;
 };
-}
+} // namespace gg
