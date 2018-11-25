@@ -18,7 +18,9 @@ musicBridgeB <- defineSound("Highway_Bridge_B.ogg")
 musicBridgeC <- defineSound("Highway_Bridge_C.ogg")
 musicBridgeD <- defineSound("Highway_Bridge_D.ogg")
 musicBridgeE <- defineSound("Highway_Bridge_E.ogg")
-
+soundDrip1 <- defineSound("Drip1.wav")					
+soundDrip2 <- defineSound("Drip2.wav")					
+soundDrip3 <- defineSound("Drip3.wav")					
 
 function actorBlinks(actor, state) {
  if (state) {
@@ -356,7 +358,7 @@ function newOpeningScene() {
     objectParallaxLayer(Bridge.bridgeWater, 1)
     loopObjectState(Bridge.bridgeWater, 0)
     loopObjectState(Bridge.bridgeShoreline, 0)
-    // TODO: actorSound(bridgeSewerDrip, 2, soundDrip1, soundDrip2, soundDrip3)
+    actorSound(Bridge.bridgeSewerDrip, 2, soundDrip1, soundDrip2, soundDrip3)
     loopObjectState(Bridge.bridgeSewerDrip, 0)							
     objectParallaxLayer(Bridge.bridgeTrain, 2)
 

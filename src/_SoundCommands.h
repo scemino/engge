@@ -1,9 +1,50 @@
 #pragma once
+#include <random>
 #include <squirrel3/squirrel.h>
 #include "GGEngine.h"
 
 namespace gg
 {
+class _NoTrigger : public Trigger
+{
+  private:
+    void trig() override
+    {
+    }
+};
+class _SoundTrigger : public Trigger
+{
+  public:
+    _SoundTrigger(GGEngine &engine, const std::vector<SoundDefinition *> &sounds)
+        : _engine(engine), _soundsDefinitions(sounds), _distribution(0, sounds.size() - 1)
+    {
+        _sounds.resize(sounds.size());
+        for (size_t i = 0; i < sounds.size(); i++)
+        {
+            _sounds[i] = nullptr;
+        }
+    }
+
+  private:
+    void trig() override
+    {
+        int i = _distribution(_generator);
+        if (_sounds[i])
+        {
+            _sounds[i]->play();
+            return;
+        }
+        _sounds[i] = _engine.playSound(*_soundsDefinitions[i]);
+    }
+
+  private:
+    GGEngine &_engine;
+    std::vector<SoundDefinition *> _soundsDefinitions;
+    std::vector<std::shared_ptr<SoundId>> _sounds;
+    std::default_random_engine _generator;
+    std::uniform_int_distribution<int> _distribution;
+};
+
 class _SoundPack : public Pack
 {
   private:
@@ -13,12 +54,85 @@ class _SoundPack : public Pack
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
+        engine.registerGlobalFunction(actorSound, "actorSound");
         engine.registerGlobalFunction(loopSound, "loopSound");
         engine.registerGlobalFunction(loopMusic, "loopMusic");
         engine.registerGlobalFunction(defineSound, "defineSound");
         engine.registerGlobalFunction(playSound, "playSound");
         engine.registerGlobalFunction(stopSound, "stopSound");
         engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
+    }
+
+    template <typename T>
+    static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<T *> &array)
+    {
+        T *ptr = nullptr;
+        for (size_t i = 0; i < size; i++)
+        {
+            if (SQ_FAILED(sq_getuserpointer(v, index + i, (SQUserPointer *)&ptr)))
+            {
+                return false;
+            }
+            array.push_back(ptr);
+        }
+        return true;
+    }
+
+    template <typename T>
+    static bool _getArray(HSQUIRRELVM v, SQInteger index, std::vector<T *> &array)
+    {
+        HSQOBJECT paramObj;
+        sq_resetobject(&paramObj);
+        sq_getstackobj(v, index, &paramObj);
+        if (!sq_isarray(paramObj))
+            return false;
+
+        T *ptr = nullptr;
+        sq_push(v, 3);
+        sq_pushnull(v); //null iterator
+        while (SQ_SUCCEEDED(sq_next(v, -2)))
+        {
+            if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&ptr)))
+                return false;
+            array.emplace_back(ptr);
+            sq_pop(v, 2);
+        }
+        sq_pop(v, 1); //pops the null iterator
+        return true;
+    }
+
+    static SQInteger actorSound(HSQUIRRELVM v)
+    {
+        // TODO: actor or object
+        auto obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQInteger triggerNumber;
+        if (SQ_FAILED(sq_getinteger(v, 3, &triggerNumber)))
+        {
+            return sq_throwerror(v, _SC("failed to get triggerNumber"));
+        }
+
+        auto numSounds = sq_gettop(v) - 5;
+        if (numSounds == 0)
+        {
+            obj->setTrigger(triggerNumber, std::make_shared<_NoTrigger>());
+            return 0;
+        }
+
+        std::vector<SoundDefinition *> sounds;
+        if (numSounds > 1 || !_getArray(v, 4, sounds))
+        {
+            if (!_getArray(v, 4, numSounds, sounds))
+            {
+                return sq_throwerror(v, _SC("failed to get sounds"));
+            }
+        }
+
+        obj->setTrigger(triggerNumber, std::make_shared<_SoundTrigger>(*g_pEngine, sounds));
+        return 0;
     }
 
     static SQInteger loopMusic(HSQUIRRELVM v)

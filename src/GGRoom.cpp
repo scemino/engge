@@ -249,6 +249,22 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
                     anim->getSizes().push_back(_toSize(json["frames"][n]["sourceSize"]));
                     anim->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
                 }
+                if (!jAnimation["triggers"].is_null())
+                {
+                    for (const auto &jtrigger : jAnimation["triggers"])
+                    {
+                        if (!jtrigger.is_null())
+                        {
+                            auto name = jtrigger.get<std::string>();
+                            auto trigger = std::atoi(name.data() + 1);
+                            anim->getTriggers().push_back(trigger);
+                        }
+                        else
+                        {
+                            anim->getTriggers().push_back(std::nullopt);
+                        }
+                    }
+                }
                 anim->reset();
                 object->getAnims().push_back(std::move(anim));
             }

@@ -20,6 +20,12 @@ enum class UseDirection
   Right
 };
 
+class Trigger
+{
+public:
+  virtual void trig() = 0;
+};
+
 class GGObject : public GGEntity
 {
 public:
@@ -76,6 +82,8 @@ public:
   GGActor *getOwner() { return _pOwner; }
   void setOwner(GGActor *pActor) { _pOwner = pActor; }
 
+  void setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger);
+  void trig(int triggerNumber);
   // TODO: void setIcon(const std::string& icon);
 
   void update(const sf::Time &elapsed) override;
@@ -103,5 +111,6 @@ private:
   bool _isTouchable;
   bool _isLit;
   GGActor *_pOwner;
+  std::map<int, std::shared_ptr<Trigger>> _triggers;
 };
 } // namespace gg

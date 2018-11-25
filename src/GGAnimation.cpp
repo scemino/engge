@@ -1,4 +1,6 @@
+#include <iostream>
 #include "GGAnimation.h"
+#include "GGObject.h"
 
 namespace gg
 {
@@ -43,6 +45,20 @@ void GGAnimation::update(const sf::Time &elapsed)
         auto size = _sizes[_index];
         _sprite.setTextureRect(_rects[_index]);
         _sprite.setOrigin(sf::Vector2f(size.x / 2.f - sourceRect.left, size.y / 2.f - sourceRect.top));
+
+        updateTrigger();
+    }
+}
+
+void GGAnimation::updateTrigger()
+{
+    if (_triggers.empty())
+        return;
+
+    auto trigger = _triggers[_index];
+    if (trigger.has_value() && _pObject)
+    {
+        _pObject->trig(*trigger);
     }
 }
 

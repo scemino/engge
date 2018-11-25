@@ -53,6 +53,7 @@ void GGObject::setAnimation(const std::string &name)
 
     auto &anim = *(it->get());
     _pAnim = anim;
+    _pAnim->setObject(this);
     auto &sprite = _pAnim->getSprite();
     sprite.setColor(_color);
 }
@@ -142,6 +143,20 @@ void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
         target.draw(*_pAnim, states);
     }
     drawHotspot(target, states);
+}
+
+void GGObject::setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger)
+{
+    _triggers.insert(std::make_pair(triggerNumber, trigger));
+}
+
+void GGObject::trig(int triggerNumber)
+{
+    auto it = _triggers.find(triggerNumber);
+    if (it != _triggers.end())
+    {
+        it->second->trig();
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, const GGObject &obj)
