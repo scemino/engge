@@ -145,20 +145,6 @@ void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     drawHotspot(target, states);
 }
 
-void GGObject::setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger)
-{
-    _triggers.insert(std::make_pair(triggerNumber, trigger));
-}
-
-void GGObject::trig(int triggerNumber)
-{
-    auto it = _triggers.find(triggerNumber);
-    if (it != _triggers.end())
-    {
-        it->second->trig();
-    }
-}
-
 std::ostream &operator<<(std::ostream &os, const GGObject &obj)
 {
     return os << obj.getName() << " (" << obj.getPosition().x << "," << obj.getPosition().y << ":" << obj.getZOrder() << ")";

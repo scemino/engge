@@ -12,7 +12,7 @@ class SoundDefinition
     friend class SoundId;
 
   public:
-    SoundDefinition(const std::string &path);
+    explicit SoundDefinition(const std::string &path);
 
     const std::string &getPath() const { return _path; };
 
@@ -28,7 +28,7 @@ class SoundDefinition
 class SoundId
 {
   public:
-    SoundId(SoundDefinition &soundDefinition);
+    explicit SoundId(SoundDefinition &soundDefinition);
     ~SoundId();
 
     void play(bool loop = false);

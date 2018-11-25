@@ -103,11 +103,10 @@ class _SoundPack : public Pack
 
     static SQInteger actorSound(HSQUIRRELVM v)
     {
-        // TODO: actor or object
-        auto obj = ScriptEngine::getObject(v, 2);
-        if (!obj)
+        auto pEntity = ScriptEngine::getEntity<GGEntity>(v, 2);
+        if (!pEntity)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get actor or object"));
         }
         SQInteger triggerNumber;
         if (SQ_FAILED(sq_getinteger(v, 3, &triggerNumber)))
@@ -118,7 +117,7 @@ class _SoundPack : public Pack
         auto numSounds = sq_gettop(v) - 5;
         if (numSounds == 0)
         {
-            obj->setTrigger(triggerNumber, std::make_shared<_NoTrigger>());
+            pEntity->setTrigger(triggerNumber, std::make_shared<_NoTrigger>());
             return 0;
         }
 
@@ -131,7 +130,7 @@ class _SoundPack : public Pack
             }
         }
 
-        obj->setTrigger(triggerNumber, std::make_shared<_SoundTrigger>(*g_pEngine, sounds));
+        pEntity->setTrigger(triggerNumber, std::make_shared<_SoundTrigger>(*g_pEngine, sounds));
         return 0;
     }
 
