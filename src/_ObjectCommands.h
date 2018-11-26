@@ -206,12 +206,12 @@ class _ObjectPack : public Pack
 
     static SQInteger objectState(HSQUIRRELVM v)
     {
-        GGObject *obj = ScriptEngine::getObject(v, 2);
+        auto obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        auto numArgs = sq_gettop(v) - 2;
+        auto numArgs = sq_gettop(v) - 3;
         if (numArgs == 1)
         {
             sq_pushinteger(v, obj->getStateAnimIndex());

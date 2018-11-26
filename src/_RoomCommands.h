@@ -45,6 +45,9 @@ class _RoomPack : public Pack
     {
         sq_pushstring(v, name, -1);
         ScriptEngine::pushObject(v, object);
+        sq_pushstring(v, _SC("name"), -1);
+        sq_pushstring(v, object.getName().data(), -1);
+        sq_newslot(v, -3, SQFalse);
         sq_newslot(v, -3, SQFalse);
     }
 
@@ -85,11 +88,16 @@ class _RoomPack : public Pack
             else
             {
                 HSQOBJECT object;
+                sq_resetobject(&object);
                 sq_getstackobj(v, -1, &object);
-                sq_pop(v, 2);
+                if (!sq_istable(object))
+                {
+                    return sq_throwerror(v, _SC("object should be a table entry"));
+                }
+
                 sq_pushobject(v, object);
                 sq_pushstring(v, _SC("instance"), -1);
-                sq_pushuserpointer(v, &obj);
+                sq_pushuserpointer(v, obj.get());
                 sq_newslot(v, -3, SQFalse);
                 sq_pop(v, 1);
             }
@@ -102,4 +110,4 @@ class _RoomPack : public Pack
 
 GGEngine *_RoomPack::g_pEngine = nullptr;
 
-}
+} // namespace gg

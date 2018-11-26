@@ -152,7 +152,8 @@ class _GeneralPack : public Pack
 
         sq_remove(v, -2);
         sq_pushobject(v, table);
-        if (SQ_FAILED(sq_call(v, 1, SQTrue, SQTrue)))
+        sq_pushnull(v); // TODO: push here the door
+        if (SQ_FAILED(sq_call(v, 2, SQTrue, SQTrue)))
         {
             return sq_throwerror(v, _SC("function enter call failed"));
         }

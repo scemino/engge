@@ -20,7 +20,69 @@ musicBridgeD <- defineSound("Highway_Bridge_D.ogg")
 musicBridgeE <- defineSound("Highway_Bridge_E.ogg")
 soundDrip1 <- defineSound("Drip1.wav")					
 soundDrip2 <- defineSound("Drip2.wav")					
-soundDrip3 <- defineSound("Drip3.wav")					
+soundDrip3 <- defineSound("Drip3.wav")		
+soundBridgeAmbienceFrog1 <- defineSound("BridgeAmbienceFrog1.wav")
+soundBridgeAmbienceFrog2 <- defineSound("BridgeAmbienceFrog2.wav")
+soundBridgeAmbienceFrog3 <- defineSound("BridgeAmbienceFrog3.wav")
+soundBridgeAmbienceFrog4 <- defineSound("BridgeAmbienceFrog4.wav")
+
+// sound helpers.nut
+const AMBIENT_VOLUME = 0.25
+
+_soundAmbianceSID <- 0
+_soundAmbianceArraySID <- []	
+_soundAmbianceTID <- 0
+_soundAmbianceBedVolume <- 0
+_soundAmbianceSfxVolume <- 0
+
+function watchAmbianceSounds(time, sound_array) {
+ local sid
+ if (sound_array == null) return
+ do {
+ if (time >= 0) {
+ breaktime(random(time*0.5, time*1.5))
+ } else {
+ breakwhilesound(sid)
+ breaktime(random(-time*0.5, -time*1.5))
+ }
+ local sound = randomfrom(sound_array)
+ if (sound) {
+ sid = playSound(sound)
+ soundVolume(sid, _soundAmbianceSfxVolume)
+ if (settings.showAmbianceInfo) ""
+ if (sid) {
+ _soundAmbianceArraySID.push(sid)
+ }
+ }	
+ }while(1)
+}
+
+function startSoundAmbiance(sound, bed_volume = AMBIENT_VOLUME, sfx_volume = 1.0, time = 0, sound_array = null) {
+ if (settings.ambianceSounds == NO) return
+ _soundAmbianceBedVolume = bed_volume
+ _soundAmbianceSfxVolume = sfx_volume
+ if (_soundAmbianceSID) {
+ fadeOutSound(_soundAmbianceSID, 0.25)
+ }
+ foreach (sid in _soundAmbianceArraySID) {
+ fadeOutSound(sid, 0.25)
+ }
+ _soundAmbianceArraySID = []
+ _soundAmbianceTID = stopthread(_soundAmbianceTID)
+ _soundAmbianceSID = loopSound(sound)
+ // TODO: soundVolume(_soundAmbianceSID, _soundAmbianceBedVolume)
+ if (settings.showAmbianceInfo) ""
+ if (time && sound_array) {
+ //TODO: _soundAmbianceTID = startglobalthread(watchAmbianceSounds, time, sound_array)
+ threadpauseable(_soundAmbianceTID, NO)
+ }
+}
+
+function startSoundBridgeAmbiance() {
+ startSoundAmbiance(soundCricketsLoop, AMBIENT_VOLUME, 1.0, 5.0, 
+ [ soundBridgeAmbienceFrog1, soundBridgeAmbienceFrog2, soundBridgeAmbienceFrog3, soundBridgeAmbienceFrog4 ])
+}
+
 
 function actorBlinks(actor, state) {
  if (state) {
@@ -84,8 +146,61 @@ function twinkleStar(obj, fadeRange1, fadeRange2, objectAlphaRange1, objectAlpha
     }
 }
 
+function flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
+ local timeOff, timeOn, fadeIn, fadeOut
+ objectAlpha(obj, randomfrom(0.0, 1.0))
+ do {
+ timeOff = random(offRange1, offRange2)
+ breaktime(timeOff)
+ fadeIn = random(fadeRange1, fadeRange2)
+ objectAlphaTo(obj, maxFade, fadeIn)
+ breaktime(fadeIn)
+ timeOn = random(onRange1, onRange2)
+ breaktime(timeOn)
+ fadeOut = random(fadeRange1, fadeRange2)
+ objectAlphaTo(obj, minFade, fadeOut)
+ breaktime(fadeOut)
+ } while(1)
+}
+
+function animateFirefly(obj) {
+ startthread(flashAlphaObject, obj, 1, 4, 0.5, 2, 0.1, 0.35)
+ }
+
+function createFirefly(x) {
+ local firefly = 0
+ local zsort = 68
+ local y = random(78,168)
+ local direction = randomfrom(-360,360)
+ if (y < 108) {
+ firefly = createObject("firefly_large")
+ zsort = random(68,78)
+ } else
+ if (y < 218) {
+ firefly = createObject("firefly_small")
+ zsort = 117
+ } else
+ if (x > 628 && x < 874) {		
+ firefly = createObject("firefly_tiny")
+ zsort = 668
+ }
+ if (firefly) {
+ //TODO: objectRotateTo(firefly, direction, 12, LOOPING)
+ objectRotateTo(firefly, direction, 12)
+ objectAt(firefly, x, y)
+ objectSort(firefly, zsort)
+ return firefly
+ }
+ }
+
 Bridge <- 
 {
+ bridgeDragMark =
+ {
+   name = "@25710"
+   initState = GONE
+ }
+
  background = "Bridge"
  speck_of_dust = YES, speck_of_dust_collected = NO
 
@@ -106,10 +221,11 @@ Bridge <-
  otheragent_save_y = 0
  otheragent_save_dir = 0
 
- bridgeDragMark =
+ bridgeGate =
  {
-   name = "@25710"
-   initState = GONE
+    name="bridgeGate"
+    gate_state = CLOSED
+    gate_opening = NO
  }
 
 borisNote =
@@ -135,13 +251,182 @@ borisPrototypeToy =
    playSound(soundBridgeTrain)
  }
 
- enter = function() {
-   print("hello "+Bridge.bridgeDragMark.name+"\n")
+ enter = function(door)
+ {
+     print("enter\n")
+     print("bridgeGrateTree: "+Bridge.bridgeGrateTree+"\n")
+     print("state: "+objectState(Bridge.bridgeGrateTree)+"\n")
+ // TODO: setMapLocation( CountyMap.mapBridge )
+ // TODO: if (!settings.demo) {
+ // TODO: musicBridge()
+ // TODO: }
+ 
+ // TODO: setAmbientLight(0x999999);	
+ 
+ // TODO: _lightObject1 = lightSetUp(0xAAAAAA, 719, 43, 0.8, 0, 210, 0.7, 200, 0.85, null, null)
+ if (g.openingScene == 1) {
+// TODO: walkboxHidden("body", NO)
+ // TODO: addTrigger(Bridge.triggerCloseGate, @() { startthread(Bridge.closeGate); removeTrigger(Bridge.triggerCloseGate); })
+ objectTouchable(bridgeHighwayDoorOpening, YES)
+ williePassedOutCostume()
+ actorVolume(willie, 1.0)
+ objectState(Bridge.willieObject, HERE)
+ objectTouchable(Bridge.willieObject, YES)
+ addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
+ addTrigger(Bridge.triggerUnderbrush, Bridge.waitUntilLightOut)
+ if (g.willie_sleeping) {	
+ startthread(Bridge.willieSnoring)
+ actorPlayAnimation(willie, "asleep")
+ actorAnimationNames(willie, { stand = "asleep", walk = "asleep", reach = "asleep" })
+ } else {
+ actorPlayAnimation(willie, "awake")
+ }
+ if (_returnEntryNewOpening) {
+
+
+
+ }
+ _returnEntryNewOpening = YES
+ } else {
+ objectTouchable(bridgeHighwayDoorOpening, NO)
+ objectTouchable(bridgeGateBack, NO)
+ // TODO: walkboxHidden("body", YES)
+ objectState(bridgeRock, GONE)
+ objectState(bridgeBody, HERE)
+ objectTouchable(bridgeBody, YES)
+ objectState(bridgeDragMark, HERE)
+ objectTouchable(bridgeDragMark, YES)
+ objectState(Bridge.willieObject, GONE)
+ }
+ objectSort(Bridge.bridgeStump, 86)									
+ if ((g.easy_mode == YES)) {
+ objectState(bridgeChainsaw, GONE)
+ objectOffset(Bridge.bridgeGrateTree, 27, -34)
+ objectState(Bridge.bridgeGrateTree, ON)
+ objectState(Bridge.bridgeGrateTree, ON)
+ objectTouchable(Bridge.bridgeGrateTree, NO)
+ objectTouchable(Bridge.bridgeStump, YES)
+ objectTouchable(Bridge.bridgeGrateEntryDoor, YES)
  }
 
+ if (!g.in_video_flashback) {
+ startSoundBridgeAmbiance()
+ // TODO: loopObjectSound(soundBridgeAmbienceWaterLoop, Bridge.triggerWater, -1, 0.25)
+ }
+ for (local x = 0; x < 960; x += random(20, 40)) {		
+ local firefly = createFirefly(x)
+ if (firefly) {
+ startthread(animateFirefly, firefly)
+ }		
+ }
+ for (local x = 1150; x < 2140; x += random(30, 50)) {		
+ local firefly = createFirefly(x)
+ if (firefly) {
+ startthread(animateFirefly, firefly)
+ }		
+ }
+
+objectTouchable(Bridge.bridgeGate, YES)
+ Bridge.bridgeGate.gate_opening = NO
+ if (Bridge.bridgeGate.gate_state == OPEN) {
+// TODO:  walkboxHidden("gate", NO)
+ objectOffset(Bridge.bridgeGate, -60, 0)
+ objectOffset(Bridge.bridgeGateBack, -60, 0)
+ } else {
+// TODO:  walkboxHidden("gate", YES)
+ objectOffset(Bridge.bridgeGate, 0, 0)
+ objectOffset(Bridge.bridgeGateBack, 0, 0)
+ }
+ if (door == bridgeHighwayDoor) {
+ actorWalkTo(currentActor, Bridge.pathSpot)
+ }
+ if (objectState(Bridge.bridgeGrateTree) == ON) {		
+ walkboxHidden("fallen_tree", YES)
+  objectSort(Bridge.bridgeGrateTree, 73)
+  objectOffset(Bridge.bridgeGrateTree, 27, -34)
+  } else {																						
+  // TODO: walkboxHidden("fallen_tree", NO)
+  objectSort(Bridge.bridgeGrateTree, 123)
+  objectOffset(Bridge.bridgeGrateTree, 0, 0)
+  }
+
+ // TODO: addTrigger(Bridge.triggerSound1, @() { Bridge.spookySound(Bridge.triggerSound1, randomfrom(soundOwls, soundBridgeAmbienceOwlHoot, soundBridgeAmbienceOwlHoot, soundBridgeAmbienceOwlHoot), 5.0) })
+ // TODO: addTrigger(Bridge.triggerSound4, @() { Bridge.spookySound(Bridge.triggerSound4, randomfrom(soundWolf, soundBridgeAmbienceDogHowl1, soundBridgeAmbienceDogHowl2, soundBridgeAmbienceDogHowl3, soundBridgeAmbienceDogHowl4), 5.0) })
+
+ // TODO: addTrigger(triggerWater, footstepsWater, footstepsNormal)
+ 
+ objectHidden(bridgeEyes, YES)
+ objectParallaxLayer(bridgeWater, 1)
+ loopObjectState(bridgeWater, 0)
+ loopObjectState(bridgeShoreline, 0)
+ actorSound(bridgeSewerDrip, 2, soundDrip1, soundDrip2, soundDrip3)
+ loopObjectState(bridgeSewerDrip, 0)
+ objectParallaxLayer(bridgeTrain, 2)
+
+ // TODO: objectShader(reedsLeft, YES, GRASS_BACKANDFORTH, 3, 0.5, YES)
+ // TODO: objectShader(reedsRight, YES, GRASS_BACKANDFORTH, 3, 0.5, YES)
+
+ objectParallaxLayer(frontWavingReeds1, -2)
+ // TODO: objectShader(frontWavingReeds1, YES, GRASS_BACKANDFORTH, 5, 1, YES)
+ objectParallaxLayer(frontWavingReeds2, -2)
+ // TODO: objectShader(frontWavingReeds2, YES, GRASS_BACKANDFORTH, 6, 1, YES)
+ objectParallaxLayer(frontWavingReeds3, -2)
+ // TODO: objectShader(frontWavingReeds3, YES, GRASS_BACKANDFORTH, 4, 2, YES)
+ 
+ local star = 0
+ for (local i = 1; i <= 28; i += 1) {
+ star = Bridge["bridgeStar"+i]
+ objectParallaxLayer(star, 5)
+ 
+ startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
+ }	
+ for (local i = 1; i <= 5; i += 1) {
+ star = Bridge["bridgeStarB"+i]
+ objectParallaxLayer(star, 5)
+ 
+ startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+ }
+ objectOffset(Bridge.bridgeTrain, -100, 0)	
+
+ // TODO: flashSelectActorIcon(selectActorHint)
+
+ if (g.act4) {
+ objectTouchable(bridgeGrateEntryDoor, NO)
+ }
+
+ if ((g.easy_mode == YES) && !g.openingScene && g.sheriff_counter == 0) {
+ startthread(bodySheriffNag)	
+ }
+ 
+ if (g.openingScene == 1) {
+ // TODO: addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
+ if (objectState(bridgeLight) == OFF) {
+ // TODO: removeTrigger(Bridge.triggerUnderbrush)
+ }
+ }
+
+ if ((g.easy_mode == YES) && g.openingScene) {
+ Tutorial.triggerHint()
+ if (g.hint_stage <= 4) {
+ // TODO: addTrigger(Bridge.trigger1Hints, @(){ Tutorial.completeHint(4) })
+ }
+ if (g.hint_stage <= 5) {
+ // TODO: addTrigger(Bridge.triggerRockHint, @(){ removeTrigger(Bridge.triggerRockHint)
+ sayLine(boris, "@40123","@40124") 
+ }
+ }
+ if (g.hint_stage == 7) {
+ // TODO: addTrigger(Bridge.trigger2Hints, @(){ Tutorial.completeHint(7) })
+ }
+ }
 }
 
 defineRoom(Bridge)
+foreach(obj in Bridge) { 
+    if("name" in obj){
+        print("$$$$$$ obj: "+obj.name+"\n")
+    }
+}
 
 willie <- { 
  _key = "willie"
@@ -237,6 +522,11 @@ settings <- {
 
 // Globals.nut
 g <- {
+    openingScene = 0
+    easy_mode = NO
+    in_video_flashback = NO
+    act4 = NO
+    hint_stage = 1		
 }
 // MusicHelpers.nut
 _watchMusicTID <- 0
@@ -335,55 +625,31 @@ function startMusic(music = 0, pool = null, cross_fade = YES) {
 // Bridge.nut
 function newOpeningScene() {
     roomFade(FADE_OUT, 0)
+    // TODO: actorSlotSelectable(OFF)
+    // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
     actorAt(boris, Bridge.borisStartSpot)
     actorFace(boris, FACE_RIGHT)
     pickupObject(Bridge.borisNote, boris)
     pickupObject(Bridge.borisWallet, boris)
     pickupObject(Bridge.borisHotelKeycard, boris)
     pickupObject(Bridge.borisPrototypeToy, boris)
+    // TODO: setRoomNumber(borisHotelKeycard)
+    // TODO: setKeycardName(borisHotelKeycard)
+    Bridge.speck_of_dust <- NO	
+    // TODO: actorSlotSelectable(ray, OFF)
+    // TODO: actorSlotSelectable(reyes, OFF)
+    
+    // TODO: lot of code
 
     startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
 
-    // Bridge.bridgeGate.gate_state = CLOSED
-    objectState(Bridge.bridgeLight, ON)
+    Bridge.bridgeGate.gate_state = CLOSED
     objectState(Bridge.bridgeBody, GONE)
     objectState(Bridge.bridgeBottle, GONE)
     objectState(Bridge.bridgeChainsaw, GONE)
     objectTouchable(Bridge.bridgeGateBack, YES)
     objectTouchable(Bridge.bridgeGate, NO)
-    objectSort(Bridge.bridgeStump, 86)	
-
-    objectHidden(Bridge.bridgeEyes, YES)
-    objectParallaxLayer(Bridge.bridgeWater, 1)
-    loopObjectState(Bridge.bridgeWater, 0)
-    loopObjectState(Bridge.bridgeShoreline, 0)
-    actorSound(Bridge.bridgeSewerDrip, 2, soundDrip1, soundDrip2, soundDrip3)
-    loopObjectState(Bridge.bridgeSewerDrip, 0)							
-    objectParallaxLayer(Bridge.bridgeTrain, 2)
-
-    // TDOO: objectShader(reedsLeft, YES, GRASS_BACKANDFORTH, 3, 0.5, YES)
-    // TDOO: objectShader(reedsRight, YES, GRASS_BACKANDFORTH, 3, 0.5, YES)
-
-    objectParallaxLayer(Bridge.frontWavingReeds1, -2)
-    // TODO: objectShader(frontWavingReeds1, YES, GRASS_BACKANDFORTH, 5, 1, YES)
-    objectParallaxLayer(Bridge.frontWavingReeds2, -2)
-    // TODO: objectShader(frontWavingReeds2, YES, GRASS_BACKANDFORTH, 6, 1, YES)
-    objectParallaxLayer(Bridge.frontWavingReeds3, -2)
-    // TODO: objectShader(frontWavingReeds3, YES, GRASS_BACKANDFORTH, 4, 2, YES)
-    
-    local star = 0
-    for (local i = 1; i <= 28; i += 1) {
-        star = Bridge["bridgeStar"+i]
-        objectParallaxLayer(star, 5)
-        startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
-    }
-    for (local i = 1; i <= 5; i += 1) {
-        star = Bridge["bridgeStarB"+i]
-        objectParallaxLayer(star, 5)
-        startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
-    }
-    objectOffset(Bridge.bridgeTrain, -100, 0)	
     williePassedOutCostume()
     actorAt(willie, Bridge.willieSpot)
     actorUsePos(willie, Bridge.willieTalkSpot)
@@ -405,7 +671,7 @@ function newOpeningScene() {
     selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
-    // // cameraFollow(boris)
+    // TODO: cameraFollow(boris)
     breaktime(1.0)
     sayLine(boris, "@25541", 
     "@25542")
@@ -804,10 +1070,10 @@ Opening <-
  {
  }
 
-//  openingSign = { name = "" }
-//  openingPop = { name = "" }
-//  openingBulletHole = { name = "" }
-//  opening1987 = { name = "" }
+ openingSign = { name = "" }
+ openingPop = { name = "" }
+ openingBulletHole = { name = "" }
+ opening1987 = { name = "" }
 }
 defineRoom(Opening)
 
