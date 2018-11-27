@@ -195,12 +195,6 @@ function createFirefly(x) {
 
 Bridge <- 
 {
- bridgeDragMark =
- {
-   name = "@25710"
-   initState = GONE
- }
-
  background = "Bridge"
  speck_of_dust = YES, speck_of_dust_collected = NO
 
@@ -221,11 +215,23 @@ Bridge <-
  otheragent_save_y = 0
  otheragent_save_dir = 0
 
+ bridgeDragMark =
+ {
+   name = "@25710"
+   initState = GONE
+ }
+
  bridgeGate =
  {
     name="bridgeGate"
     gate_state = CLOSED
     gate_opening = NO
+ }
+
+ bridgeLight =
+ {
+   name = "@25694"
+   initState = ON
  }
 
 borisNote =

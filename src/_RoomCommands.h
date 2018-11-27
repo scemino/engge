@@ -96,6 +96,15 @@ class _RoomPack : public Pack
                 }
 
                 sq_pushobject(v, object);
+                sq_pushstring(v, _SC("initState"), -1);
+                if (SQ_SUCCEEDED(sq_get(v, -2)))
+                {
+                    SQInteger initState;
+                    sq_getinteger(v, -1, &initState);
+                    obj->setStateAnimIndex(initState);
+                }
+
+                sq_pushobject(v, object);
                 sq_pushstring(v, _SC("instance"), -1);
                 sq_pushuserpointer(v, obj.get());
                 sq_newslot(v, -3, SQFalse);
