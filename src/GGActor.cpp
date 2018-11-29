@@ -1,4 +1,5 @@
 #include "GGActor.h"
+#include "GGRoom.h"
 
 namespace gg
 {
@@ -19,18 +20,28 @@ GGActor::GGActor(TextureManager &textureManager)
 
 GGActor::~GGActor() = default;
 
+int GGActor::getZOrder() const
+{
+    return getRoom()->getRoomSize().y - getPosition().y;
+}
+
+void GGActor::setRoom(GGRoom *pRoom)
+{
+    _pRoom = pRoom;
+    _pRoom->setAsParallaxLayer(this, 0);
+}
+
 void GGActor::move(const sf::Vector2f &offset)
 {
-    _transform.translate(offset);
+    _transform.move(offset);
 }
 
 void GGActor::setPosition(const sf::Vector2f &pos)
 {
-    _transform = sf::Transform::Identity;
-    _transform.translate(pos);
+    _transform.setPosition(pos);
 }
 
-void GGActor::setCostume(const std::string &name, const std::string& sheet)
+void GGActor::setCostume(const std::string &name, const std::string &sheet)
 {
     std::string path(_settings.getGamePath());
     path.append(name).append(".json");
@@ -39,8 +50,14 @@ void GGActor::setCostume(const std::string &name, const std::string& sheet)
 
 void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    auto actorTransform = states.transform;
+    auto transform = _transform;
+    transform.move((sf::Vector2f)-_renderOffset);
+    states.transform *= transform.getTransform();
     target.draw(_costume, states);
-    if(_sayText.empty()) return;
+    if (_sayText.empty())
+        return;
+
     _font.draw(_sayText, target, _talkColor, states);
 }
 

@@ -12,6 +12,7 @@ public:
 
   std::vector<sf::IntRect> &getFrames() { return _frames; }
   std::vector<sf::IntRect> &getSourceFrames() { return _sourceFrames; }
+  std::vector<sf::Vector2i> &getSizes() { return _sizes; }
   std::vector<sf::Vector2i> &getOffsets() { return _offsets; }
 
   void setName(const std::string &name) { _name = name; }
@@ -30,6 +31,7 @@ private:
   std::string _name;
   std::vector<sf::IntRect> _frames;
   std::vector<sf::IntRect> _sourceFrames;
+  std::vector<sf::Vector2i> _sizes;
   std::vector<sf::Vector2i> _offsets;
   int _fps;
   int _flags;

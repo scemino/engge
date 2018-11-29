@@ -222,12 +222,8 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         object->setHotspot(hotspot);
 
         bool isSpot = !jObject["spot"].empty() && jObject["spot"].get<int>() == 1;
-        // object->setVisible(jObject["prop"].empty() || jObject["prop"].get<int>() == 0);
-        // if (!jObject["prop"].empty() && jObject["prop"].get<int>() == 1)
-        {
-            object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
-            object->setUsePosition(usePos);
-        }
+        object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
+        object->setUsePosition(usePos);
 
         // animations
         if (!jObject["animations"].empty())
@@ -278,6 +274,7 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
                 }
             }
         }
+        object->setRoom(this);
         std::cout << "Object " << *object << std::endl;
         itLayer->get()->addEntity(*object);
         _objects.push_back(std::move(object));

@@ -10,9 +10,6 @@ RoomLayer::RoomLayer()
 void RoomLayer::addEntity(GGEntity &entity)
 {
     _entities.push_back(entity);
-    std::sort(std::begin(_entities), std::end(_entities), [](const GGEntity &a, const GGEntity &b) {
-        return a.getZOrder() > b.getZOrder();
-    });
 }
 
 void RoomLayer::removeEntity(GGEntity &entity)
@@ -20,6 +17,8 @@ void RoomLayer::removeEntity(GGEntity &entity)
     auto it = std::find_if(std::cbegin(_entities), std::cend(_entities), [&entity](const std::reference_wrapper<GGEntity> &ref) {
         return &ref.get() == &entity;
     });
+    if (it == std::cend(_entities))
+        return;
     _entities.erase(it);
 }
 
@@ -48,6 +47,9 @@ void RoomLayer::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) co
 
 void RoomLayer::update(const sf::Time &elapsed)
 {
+     std::sort(std::begin(_entities), std::end(_entities), [](const GGEntity &a, const GGEntity &b) {
+        return a.getZOrder() > b.getZOrder();
+    });
     std::for_each(std::begin(_entities), std::end(_entities), [elapsed](GGEntity &obj) { obj.update(elapsed); });
 }
 

@@ -76,6 +76,9 @@ public:
   GGActor *getOwner() { return _pOwner; }
   void setOwner(GGActor *pActor) { _pOwner = pActor; }
 
+  GGRoom *getRoom() { return _pRoom; }
+  void setRoom(GGRoom *pRoom) { _pRoom = pRoom; }
+
   // TODO: void setIcon(const std::string& icon);
 
   void update(const sf::Time &elapsed) override;
@@ -103,5 +106,6 @@ private:
   bool _isTouchable;
   bool _isLit;
   GGActor *_pOwner;
+  GGRoom *_pRoom;
 };
 } // namespace gg

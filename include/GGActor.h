@@ -29,7 +29,7 @@ public:
   void setTable(HSQOBJECT table) { _table = table; }
   HSQOBJECT getTable() const { return _table; }
 
-  int getZOrder() const override { return _zorder; }
+  int getZOrder() const override;
 
   void setCostume(const std::string &name, const std::string &sheet = "");
   GGCostume &getCostume() { return _costume; }
@@ -45,12 +45,12 @@ public:
   sf::Color getColor() { return _color; }
 
   void move(const sf::Vector2f &offset);
-  sf::Vector2f getPosition() const { return _transform.transformPoint(0, 0); }
+  sf::Vector2f getPosition() const { return _transform.getPosition(); }
   void setPosition(const sf::Vector2f &pos);
   void setRenderOffset(const sf::Vector2i &offset) { _renderOffset = offset; }
 
   GGRoom *getRoom() const { return _pRoom; }
-  void setRoom(GGRoom *pRoom) { _pRoom = pRoom; }
+  void setRoom(GGRoom *pRoom);
 
   void setHotspot(const sf::IntRect &hotspot) { _hotspot = hotspot; }
   const sf::IntRect &getHotspot() const { return _hotspot; }
@@ -58,14 +58,14 @@ public:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void update(const sf::Time &time) override;
 
-  void pickupObject(const std::string& icon) { _icons.push_back(icon); }
-  const std::vector<std::string>& getObjects() { return _icons; }
+  void pickupObject(const std::string &icon) { _icons.push_back(icon); }
+  const std::vector<std::string> &getObjects() const { return _icons; }
 
 private:
   const GGEngineSettings &_settings;
   GGCostume _costume;
   std::string _name;
-  sf::Transform _transform;
+  sf::Transformable _transform;
   sf::Color _color;
   sf::Color _talkColor;
   sf::Vector2i _renderOffset, _talkOffset;

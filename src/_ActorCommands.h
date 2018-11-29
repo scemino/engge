@@ -138,8 +138,13 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get object"));
             }
+            auto usePos = pObj->getUsePosition();
             auto pos = pObj->getPosition();
+            pos.x += usePos.x;
+            pos.y -= usePos.y;
+            auto pRoom = pObj->getRoom();
             pActor->setPosition(pos);
+            pActor->setRoom(pRoom);
             return 0;
         }
 
@@ -327,8 +332,7 @@ class _ActorPack : public Pack
         }
 
         const auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
-        auto inWalkbox = std::any_of(std::begin(walkboxes), std::end(walkboxes), [actor](const Walkbox &w) 
-        {
+        auto inWalkbox = std::any_of(std::begin(walkboxes), std::end(walkboxes), [actor](const Walkbox &w) {
             return w.contains(actor->getPosition());
         });
 
@@ -513,7 +517,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         auto pos = obj->getUsePosition();
-        actor->setPosition(pos);
+        // TODO: actor->setUsePosition(pos);
         return 0;
     }
 

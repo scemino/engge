@@ -146,10 +146,6 @@ void GGEngine::draw(sf::RenderWindow &window) const
     if (!_pRoom)
         return;
     _pRoom->draw(window, cameraPos);
-    for (auto &actor : _actors)
-    {
-        window.draw(*actor);
-    }
 
     // draw fade
     sf::RectangleShape fadeShape;

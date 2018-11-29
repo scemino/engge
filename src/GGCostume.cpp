@@ -122,6 +122,7 @@ void GGCostume::setAnimation(const std::string &animName)
                 {
                     layer->getFrames().emplace_back();
                     layer->getSourceFrames().emplace_back();
+                    layer->getSizes().emplace_back();
                 }
                 else
                 {
@@ -129,6 +130,7 @@ void GGCostume::setAnimation(const std::string &animName)
                     auto jf = jFrames[frameName.c_str()];
                     layer->getFrames().push_back(_toRect(jf["frame"]));
                     layer->getSourceFrames().push_back(_toRect(jf["spriteSourceSize"]));
+                    layer->getSizes().push_back(_toSize(jf["sourceSize"]));
                 }
             }
             for (const auto &jOffset : jLayer["offsets"])

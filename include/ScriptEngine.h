@@ -74,14 +74,12 @@ TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
   sq_pushstring(v, _SC("instance"), -1);
   if (SQ_FAILED(sq_get(v, -2)))
   {
-    sq_pop(v, 2);
     return nullptr;
   }
 
   GGEntity *pObj = nullptr;
   if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
   {
-    sq_pop(v, 2);
     return nullptr;
   }
 

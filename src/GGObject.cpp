@@ -13,7 +13,8 @@ GGObject::GGObject()
       _isHotspotVisible(false),
       _angle(0),
       _isTouchable(true),
-      _pOwner(nullptr)
+      _pOwner(nullptr),
+      _pRoom(nullptr)
 {
 }
 
@@ -136,9 +137,10 @@ void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) co
 
 void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    if (!_isVisible) return;
     states.transform *= _transform.getTransform();
 
-    if (_isVisible && _pAnim)
+    if (_pAnim)
     {
         target.draw(*_pAnim, states);
     }
