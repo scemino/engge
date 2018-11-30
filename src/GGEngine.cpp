@@ -191,6 +191,7 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
 
             sf::RectangleShape verbShape;
+            verbShape.setFillColor(_verbUiColors[0].verbNormal);
             verbShape.setPosition(left, top);
             verbShape.setSize(verbSize);
             verbShape.setTexture(&_verbSheet.getTexture());
@@ -204,6 +205,7 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
     sf::RectangleShape scrollUpShape;
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
+    scrollUpShape.setFillColor(_verbUiColors[0].verbNormal);
     scrollUpShape.setPosition(scrollUpPosition);
     scrollUpShape.setSize(scrollUpSize);
     scrollUpShape.setTexture(&_gameSheet.getTexture());
@@ -212,6 +214,7 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
 
     auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
     sf::RectangleShape scrollDownShape;
+    scrollDownShape.setFillColor(_verbUiColors[0].verbNormal);
     scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
     scrollDownShape.setSize(scrollUpSize);
     scrollDownShape.setTexture(&_gameSheet.getTexture());
@@ -219,14 +222,35 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
     target.draw(scrollDownShape);
 
     // inventory frame
-    auto inventoryFrameRect = _gameSheet.getRect("inventory_frame");
+    // auto inventoryFrameRect = _gameSheet.getRect("inventory_frame");
+    // sf::RectangleShape inventoryShape;
+    // inventoryShape.setFillColor(_verbUiColors[0].inventoryFrame);
+    // inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
+    // inventoryShape.setSize(sf::Vector2f(Screen::Width / 2.f - scrollUpSize.x, 3 * Screen::Height / 14.f));
+    // inventoryShape.setTexture(&_gameSheet.getTexture());
+    // inventoryShape.setTextureRect(inventoryFrameRect);
+    // target.draw(inventoryShape);
+
+    auto inventoryFrameRect = _gameSheet.getRect("inventory_background");
     sf::RectangleShape inventoryShape;
-    inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
-    inventoryShape.setSize(sf::Vector2f(Screen::Width / 2.f - scrollUpSize.x, 3 * Screen::Height / 14.f));
+    sf::Color c(_verbUiColors[0].inventoryBackground);
+    c.a = 128;
+    inventoryShape.setFillColor(c);
     inventoryShape.setTexture(&_gameSheet.getTexture());
     inventoryShape.setTextureRect(inventoryFrameRect);
-    target.draw(inventoryShape);
+    auto sizeBack = sf::Vector2f(206.f * Screen::Width / 1920.f, 112.f * Screen::Height / 1080.f);
+    inventoryShape.setSize(sizeBack);
+    auto gapX = 10.f * Screen::Width / 1920.f;
+    auto gapY = 10.f * Screen::Height / 1080.f;
+    for (auto i = 0; i < 8; i++)
+    {
+        auto x = (i % 4) * (sizeBack.x + gapX);
+        auto y = (i / 4) * (sizeBack.y + gapY);
+        inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x, y + Screen::Height - 3 * Screen::Height / 14.f));
+        target.draw(inventoryShape);
+    }
 
+    // draw inventory objects
     if (_pCurrentActor)
     {
         auto x = 0;
@@ -234,6 +258,7 @@ void GGEngine::drawVerbs(sf::RenderTarget &target) const
         for (auto it = objects.begin(); it != objects.end(); it++)
         {
             auto rect = _inventoryItems.getRect(*it);
+            sf::RectangleShape inventoryShape;
             inventoryShape.setPosition(sf::Vector2f(x + scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
             inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
             inventoryShape.setTexture(&_inventoryItems.getTexture());

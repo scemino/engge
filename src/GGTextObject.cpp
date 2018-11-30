@@ -10,6 +10,10 @@ GGTextObject::GGTextObject(GGFont &font)
 
 void GGTextObject::draw(sf::RenderWindow &window)
 {
-    _font.draw(_text, window, sf::Color::White);
+    GGText txt;
+    txt.setFont(_font);
+    txt.setColor(sf::Color::White);
+    txt.setText(_text);
+    window.draw(txt);
 }
 } // namespace gg

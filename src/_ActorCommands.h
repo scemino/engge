@@ -495,7 +495,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get x"));
         }
         SQInteger y;
-        if (SQ_FAILED(sq_getinteger(v, 4, &x)))
+        if (SQ_FAILED(sq_getinteger(v, 4, &y)))
         {
             return sq_throwerror(v, _SC("failed to get y"));
         }
@@ -766,12 +766,14 @@ class _ActorPack : public Pack
         }
 
         HSQOBJECT table;
-        if (SQ_FAILED(sq_getstackobj(v, 4, &table)))
+        if (SQ_FAILED(sq_getstackobj(v, 3, &table)))
         {
             return sq_throwerror(v, _SC("failed to get verb definitionTable"));
         }
         if (!sq_istable(table))
         {
+            const SQChar* tmp;
+            sq_getstring(v, 3, &tmp);
             return sq_throwerror(v, _SC("failed to get verb definitionTable"));
         }
 
@@ -808,17 +810,17 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get verbHighlightTint"));
         }
 
-        SQInteger dialogNormal = 0;
-        if (SQ_FAILED(readFieldInt(v, _SC("dialogNormal"), dialogNormal)))
-        {
-            return sq_throwerror(v, _SC("failed to get dialogNormal"));
-        }
+        // SQInteger dialogNormal = 0;
+        // if (SQ_FAILED(readFieldInt(v, _SC("dialogNormal"), dialogNormal)))
+        // {
+        //     return sq_throwerror(v, _SC("failed to get dialogNormal"));
+        // }
 
-        SQInteger dialogHighlight = 0;
-        if (SQ_FAILED(readFieldInt(v, _SC("dialogHighlight"), dialogHighlight)))
-        {
-            return sq_throwerror(v, _SC("failed to get dialogHighlight"));
-        }
+        // SQInteger dialogHighlight = 0;
+        // if (SQ_FAILED(readFieldInt(v, _SC("dialogHighlight"), dialogHighlight)))
+        // {
+        //     return sq_throwerror(v, _SC("failed to get dialogHighlight"));
+        // }
 
         SQInteger inventoryFrame = 0;
         if (SQ_FAILED(readFieldInt(v, _SC("inventoryFrame"), inventoryFrame)))
@@ -840,10 +842,10 @@ class _ActorPack : public Pack
         colors.verbNormalTint = fromRgbInt(verbNormalTint);
         colors.verbHighlight = fromRgbInt(verbHighlight);
         colors.verbHighlightTint = fromRgbInt(verbHighlightTint);
-        colors.dialogNormal = fromRgbInt(dialogNormal);
-        colors.dialogHighlight = fromRgbInt(dialogHighlight);
+        // colors.dialogNormal = fromRgbInt(dialogNormal);
+        // colors.dialogHighlight = fromRgbInt(dialogHighlight);
         colors.inventoryFrame = fromRgbInt(inventoryFrame);
-        colors.inventoryBackground = fromRgbInt(sentence);
+        colors.inventoryBackground = fromRgbInt(inventoryBackground);
         g_pEngine->setVerbUiColors(actorSlot - 1, colors);
         return 0;
     }

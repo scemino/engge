@@ -58,7 +58,15 @@ void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     if (_sayText.empty())
         return;
 
-    _font.draw(_sayText, target, _talkColor, states);
+    transform = _transform;
+    transform.move((sf::Vector2f)-_talkOffset);
+    states.transform = actorTransform * transform.getTransform();
+
+    GGText text;
+    text.setFont(_font);
+    text.setColor(_talkColor);
+    text.setText(_sayText);
+    target.draw(text, states);
 }
 
 void GGActor::update(const sf::Time &time)

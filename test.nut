@@ -448,6 +448,7 @@ function williePassedOutCostume()
  actorLockFacing(willie, FACE_RIGHT)
  objectHotspot(willie, -28,0,20,50)
 }
+const defaultTextOffset = 90
 
 boris <- {
     _key = "boris"
@@ -464,6 +465,11 @@ boris <- {
 createActor(boris)
 actorRenderOffset(boris, 0, 45)
 defineVerbs(1)
+verbUIColors(1, {	nameid = "boris", sentence = 0xffffff, 
+ verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
+ verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
+ inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
+
 
 function borisCostume()
 {
@@ -471,7 +477,7 @@ function borisCostume()
 //  actorWalkSpeed(boris, 30, 15)
  actorRenderOffset(boris, 0, 45)
  actorTalkColors(boris, talkColorBoris)
-//  actorTalkOffset(boris, 0, defaultTextOffset)
+actorTalkOffset(boris, 0, defaultTextOffset)
  actorHidden(boris, OFF)
 //  objectLit(boris, 1)
 //  footstepsNormal(boris)
