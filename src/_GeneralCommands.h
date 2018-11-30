@@ -18,6 +18,7 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
         engine.registerGlobalFunction(translate, "translate");
         engine.registerGlobalFunction(cameraAt, "cameraAt");
+        engine.registerGlobalFunction(cameraFollow, "cameraFollow");
         engine.registerGlobalFunction(cameraPanTo, "cameraPanTo");
         engine.registerGlobalFunction(setVerb, "setVerb");
     }
@@ -34,6 +35,13 @@ class _GeneralPack : public Pack
             return sq_throwerror(v, _SC("failed to get y"));
         }
         g_pEngine->setCameraAt(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight));
+        return 0;
+    }
+
+    static SQInteger cameraFollow(HSQUIRRELVM v)
+    {
+        auto *pActor = ScriptEngine::getActor(v, 3);
+        g_pEngine->follow(pActor);
         return 0;
     }
 

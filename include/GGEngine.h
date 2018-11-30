@@ -67,6 +67,8 @@ public:
   void inputSilentOff() { _inputActive = false; }
   bool getInputActive() const { return _inputActive; }
 
+  void follow(GGActor *pActor) { _pFollowActor = pActor; }
+
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderTarget &target) const;
@@ -94,5 +96,6 @@ private:
   bool _showCursor;
   SpriteSheet _verbSheet, _gameSheet, _inventoryItems;
   nlohmann::json _jsonInventoryItems;
+  GGActor *_pFollowActor;
 };
 } // namespace gg

@@ -683,7 +683,7 @@ function newOpeningScene() {
     selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
-    // TODO: cameraFollow(boris)
+    cameraFollow(boris)
     breaktime(1.0)
     sayLine(boris, "@25541", 
     "@25542")

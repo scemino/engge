@@ -24,7 +24,8 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _gameSheet(_textureManager, settings),
       _inventoryItems(_textureManager, settings),
       _inputActive(false),
-      _showCursor(false)
+      _showCursor(false),
+      _pFollowActor(nullptr)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -96,6 +97,11 @@ void GGEngine::update(const sf::Time &elapsed)
     if (!_pRoom)
         return;
     _pRoom->update(elapsed);
+    if (_pFollowActor)
+    {
+        auto pos = _pFollowActor->getPosition();
+        _cameraPos = pos - sf::Vector2f(Screen::HalfWidth, Screen::HalfHeight);
+    }
 }
 
 void GGEngine::loopMusic(const std::string &name)
