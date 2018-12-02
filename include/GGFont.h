@@ -29,7 +29,7 @@ private:
   sf::Texture _texture;
 };
 
-class GGText : public sf::Drawable
+class GGText : public sf::Drawable, public sf::Transformable
 {
 public:
   void setFont(const GGFont &font) { _font = font; }

@@ -18,6 +18,15 @@ class VerbSlot
   public:
     void setVerb(int index, const Verb &verb) { _verbs[index] = verb; }
     const Verb &getVerb(int index) const { return _verbs[index]; }
+    size_t getVerbIndex(const std::string &id) const
+    {
+        for (size_t i = 0; i < 10; i++)
+        {
+            if (_verbs[i].id == id)
+                return i;
+        }
+        return -1;
+    }
 
   private:
     std::array<Verb, 10> _verbs;

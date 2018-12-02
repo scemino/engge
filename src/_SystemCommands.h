@@ -207,6 +207,8 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(inputOff, "inputOff");
         engine.registerGlobalFunction(inputOn, "inputOn");
         engine.registerGlobalFunction(isInputOn, "isInputOn");
+        engine.registerGlobalFunction(isString, "is_string");
+        engine.registerGlobalFunction(isTable, "is_table");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(systemTime, "systemTime");
         engine.registerGlobalFunction(threadpauseable, "threadpauseable");
@@ -392,6 +394,34 @@ class _SystemPack : public Pack
     {
         bool isActive = g_pEngine->getInputActive();
         sq_push(v, isActive ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger isTable(HSQUIRRELVM v)
+    {
+        HSQOBJECT object;
+        sq_resetobject(&object);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &object)))
+        {
+            sq_push(v, SQFalse);
+            return 1;
+        }
+
+        sq_push(v, sq_istable(object) ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger isString(HSQUIRRELVM v)
+    {
+        HSQOBJECT object;
+        sq_resetobject(&object);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &object)))
+        {
+            sq_push(v, SQFalse);
+            return 1;
+        }
+
+        sq_push(v, sq_isstring(object) ? SQTrue : SQFalse);
         return 1;
     }
 

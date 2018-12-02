@@ -107,18 +107,6 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
                 break;
             }
             break;
-        case sf::Event::MouseMoved:
-        {
-            auto pos = sf::Mouse::getPosition(_window);
-            auto worldPos = (sf::Vector2i)_window.mapPixelToCoords(pos);
-            auto &objects = _engine.getRoom().getObjects();
-            for (auto &obj : objects)
-            {
-                auto rect = obj->getRealHotspot();
-                obj->setHotspotVisible(rect.contains(worldPos));
-            }
-        }
-        break;
         default:
             break;
         }

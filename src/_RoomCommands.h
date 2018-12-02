@@ -105,6 +105,44 @@ class _RoomPack : public Pack
                 }
 
                 sq_pushobject(v, object);
+                sq_pushstring(v, _SC("initTouchable"), -1);
+                if (SQ_SUCCEEDED(sq_get(v, -2)))
+                {
+                    SQBool initTouchable;
+                    sq_getbool(v, -1, &initTouchable);
+                    obj->setTouchable(initTouchable == SQTrue);
+                }
+
+                sq_pushobject(v, object);
+                sq_pushstring(v, _SC("defaultVerb"), -1);
+                if (SQ_SUCCEEDED(sq_get(v, -2)))
+                {
+                    const SQChar* verb = nullptr;
+                    sq_getstring(v, -1, &verb);
+                    obj->setDefaultVerb(verb);
+                }
+
+                sq_pushobject(v, object);
+                sq_pushstring(v, _SC("name"), -1);
+                if (SQ_SUCCEEDED(sq_get(v, -2)))
+                {
+                    const SQChar *name = nullptr;
+                    sq_getstring(v, -1, &name);
+                    if (strlen(name) > 0 && name[0] == '@')
+                    {
+                        std::string s(name);
+                        s = s.substr(1);
+                        auto id = std::strtol(s.c_str(), nullptr, 10);
+                        auto text = g_pEngine->getText(id);
+                        obj->setName(text);
+                    }
+                    else
+                    {
+                        obj->setName(name);
+                    }
+                }
+
+                sq_pushobject(v, object);
                 sq_pushstring(v, _SC("instance"), -1);
                 sq_pushuserpointer(v, obj.get());
                 sq_newslot(v, -3, SQFalse);

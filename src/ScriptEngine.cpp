@@ -73,10 +73,12 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     registerConstant(_SC("VERB_TALKTO"), _SC("talkto"));
     registerConstant(_SC("VERB_USE"), _SC("use"));
     registerConstant(_SC("VERB_WALKTO"), _SC("walkto"));
-    registerConstant(_SC("GONE"), 1);
     registerConstant(_SC("HERE"), 0);
+    registerConstant(_SC("GONE"), 4);
     registerConstant(_SC("OFF"), 0);
     registerConstant(_SC("ON"), 1);
+    registerConstant(_SC("FULL"), 0);
+    registerConstant(_SC("EMPTY"), 1);
     registerConstant(_SC("OPEN"), 1);
     registerConstant(_SC("CLOSED"), 0);
     registerConstant(_SC("FULL"), 0);

@@ -32,8 +32,23 @@ public:
   void setProp(bool prop) { _prop = prop; }
   bool getProp() const { return _prop; }
 
+  void setSpot(bool spot) { _spot = spot; }
+  bool getSpot() const { return _spot; }
+
+  void setTrigger(bool trigger) { _trigger = trigger; }
+  bool getTrigger() const { return _trigger; }
+
   void setTouchable(bool isTouchable) { _isTouchable = isTouchable; }
-  bool isTouchable() const { return _isTouchable; }
+  bool isTouchable() const
+  {
+    if (_trigger)
+      return false;
+    if (_spot)
+      return false;
+    if (_prop)
+      return false;
+    return _isTouchable;
+  }
 
   void setLit(bool isLit) { _isLit = isLit; }
   bool isLit() const { return _isLit; }
@@ -47,6 +62,9 @@ public:
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
+
+  void setDefaultVerb(const std::string &verb) { _verb = verb; }
+  const std::string &getDefaultVerb() const { return _verb; }
 
   std::vector<std::unique_ptr<GGAnimation>> &getAnims() { return _anims; }
 
@@ -66,12 +84,9 @@ public:
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;
 
-  void setVisible(bool isVisible) { _isVisible = isVisible; }
+  void setVisible(bool isVisible);
   bool isVisible() const { return _isVisible; }
   void setScale(float s);
-
-  void setHotspotVisible(bool isHotspotVisible) { _isHotspotVisible = isHotspotVisible; }
-  bool isHotspotVisible() const { return _isHotspotVisible; }
 
   GGActor *getOwner() { return _pOwner; }
   void setOwner(GGActor *pActor) { _pOwner = pActor; }
@@ -84,10 +99,10 @@ public:
   void update(const sf::Time &elapsed) override;
 
   friend std::ostream &operator<<(std::ostream &os, const GGObject &obj);
+  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
 private:
   std::vector<std::unique_ptr<GGAnimation>> _anims;
@@ -97,15 +112,18 @@ private:
   int _zorder;
   UseDirection _direction;
   bool _prop;
+  bool _spot;
+  bool _trigger;
   sf::Vector2f _usePos;
   sf::Color _color;
   sf::IntRect _hotspot;
-  bool _isHotspotVisible;
   sf::Transformable _transform;
   float _angle;
   bool _isTouchable;
   bool _isLit;
   GGActor *_pOwner;
   GGRoom *_pRoom;
+  int _state;
+  std::string _verb;
 };
 } // namespace gg

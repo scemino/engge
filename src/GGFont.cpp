@@ -45,6 +45,7 @@ sf::IntRect GGFont::getSize(char letter) const
 
 void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    states.transform *= getTransform();
     float scale = 0.2f;
     std::vector<sf::IntRect> rects;
     std::vector<sf::IntRect> sourceRects;

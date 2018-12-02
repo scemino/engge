@@ -220,8 +220,13 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         // hotspot
         auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
         object->setHotspot(hotspot);
+        // spot
+        bool isSpot = jObject["spot"].is_number_integer() && jObject["spot"].get<int>() == 1;
+        object->setSpot(isSpot);
+        // spot
+        bool isTrigger = jObject["trigger"].is_number_integer() && jObject["trigger"].get<int>() == 1;
+        object->setTrigger(isTrigger);
 
-        bool isSpot = !jObject["spot"].empty() && jObject["spot"].get<int>() == 1;
         object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
         object->setUsePosition(usePos);
 

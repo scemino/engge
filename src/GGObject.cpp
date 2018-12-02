@@ -10,15 +10,24 @@ GGObject::GGObject()
       _direction(UseDirection::Front),
       _prop(false),
       _color(sf::Color::White),
-      _isHotspotVisible(false),
       _angle(0),
       _isTouchable(true),
       _pOwner(nullptr),
-      _pRoom(nullptr)
+      _pRoom(nullptr),
+      _state(0)
 {
 }
 
 GGObject::~GGObject() = default;
+
+void GGObject::setVisible(bool isVisible)
+{
+    _isVisible = isVisible;
+    if (!_isVisible)
+    {
+        _isTouchable = false;
+    }
+}
 
 sf::IntRect GGObject::getRealHotspot() const
 {
@@ -31,6 +40,12 @@ void GGObject::setStateAnimIndex(int animIndex)
 {
     std::ostringstream s;
     s << "state" << animIndex;
+    _state = animIndex;
+    if (animIndex == 4)
+    {
+        _isTouchable = false;
+        _isVisible = false;
+    }
     setAnimation(s.str());
 }
 
@@ -113,38 +128,37 @@ void GGObject::update(const sf::Time &elapsed)
 
 void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if (!_isHotspotVisible)
-        return;
+    states.transform *= _transform.getTransform();
     auto rect = getHotspot();
 
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
     s.setPosition(rect.left, rect.top);
     s.setOutlineThickness(1);
-    s.setOutlineColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
+    s.setOutlineColor(sf::Color::Red);
     s.setFillColor(sf::Color::Transparent);
     target.draw(s, states);
 
     sf::RectangleShape vl(sf::Vector2f(1, 5));
     vl.setPosition(_usePos.x, _usePos.y - 2);
-    vl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
+    vl.setFillColor(sf::Color::Red);
     target.draw(vl, states);
 
     sf::RectangleShape hl(sf::Vector2f(5, 1));
     hl.setPosition(_usePos.x - 2, _usePos.y);
-    hl.setFillColor(_isHotspotVisible ? sf::Color::Red : sf::Color::Blue);
+    hl.setFillColor(sf::Color::Red);
     target.draw(hl, states);
 }
 
 void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if (!_isVisible) return;
+    if (!_isVisible)
+        return;
     states.transform *= _transform.getTransform();
 
     if (_pAnim)
     {
         target.draw(*_pAnim, states);
     }
-    drawHotspot(target, states);
 }
 
 std::ostream &operator<<(std::ostream &os, const GGObject &obj)

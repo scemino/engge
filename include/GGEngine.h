@@ -71,7 +71,9 @@ public:
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
-  void drawVerbs(sf::RenderTarget &target) const;
+  void drawVerbs(sf::RenderWindow &window) const;
+  void drawInventory(sf::RenderWindow &window) const;
+  void drawCursor(sf::RenderWindow &window) const;
 
 private:
   const GGEngineSettings &_settings;
@@ -97,5 +99,18 @@ private:
   SpriteSheet _verbSheet, _gameSheet, _inventoryItems;
   nlohmann::json _jsonInventoryItems;
   GGActor *_pFollowActor;
+  sf::IntRect _cursorRect;
+  sf::IntRect _cursorLeftRect;
+  sf::IntRect _cursorRightRect;
+  sf::IntRect _cursorFrontRect;
+  sf::IntRect _cursorBackRect;
+  sf::IntRect _hotspotCursorRect;
+  sf::IntRect _hotspotCursorLeftRect;
+  sf::IntRect _hotspotCursorRightRect;
+  sf::IntRect _hotspotCursorFrontRect;
+  sf::IntRect _hotspotCursorBackRect;
+  sf::IntRect _verbRects[9];
+  GGObject *_pCurrentObject;
+  sf::Vector2f _mousePos;
 };
 } // namespace gg

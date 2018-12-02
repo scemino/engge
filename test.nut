@@ -26,6 +26,15 @@ soundBridgeAmbienceFrog2 <- defineSound("BridgeAmbienceFrog2.wav")
 soundBridgeAmbienceFrog3 <- defineSound("BridgeAmbienceFrog3.wav")
 soundBridgeAmbienceFrog4 <- defineSound("BridgeAmbienceFrog4.wav")
 
+// Boot.nut
+function objectName(obj, name) {
+ if (!is_table(obj)) return name
+ if (!is_string(name)) return "???"
+
+ obj.name <- name
+ return name
+}
+
 // sound helpers.nut
 const AMBIENT_VOLUME = 0.25
 
@@ -215,36 +224,104 @@ Bridge <-
  otheragent_save_y = 0
  otheragent_save_dir = 0
 
- bridgeDragMark =
- {
-   name = "@25710"
-   initState = GONE
- }
+ startLeft = { name = objectName(this, "@25553") }
+ startRight = { name = objectName(this, "@25554") }
 
- bridgeGate =
- {
-    name="bridgeGate"
-    gate_state = CLOSED
-    gate_opening = NO
- }
+borisWallet =
+{
+ icon = "boris_wallet"
+ name = objectName(this, "@25555")
+}
 
- bridgeLight =
+rock =
  {
-   name = "@25694"
-   initState = ON
+ icon = "rock"
+ name = objectName(this, "@25567")
  }
 
 borisNote =
 {
  icon = "safe_combination_note"
-}
-borisWallet =
-{
- icon = "boris_wallet"
+ name = objectName(this, "@25345")
 }
 borisHotelKeycard =
 {
  icon = "key_card_mauve"
+ name = objectName(this, "@25578")
+}
+bridgeGrateEntryDoor =
+ {
+ name = objectName(this, "@25661")
+ initTouchable = NO
+ }
+bridgeGrateTree =
+ {
+    name = objectName(this, "@25668")
+ }
+  bridgeStump =
+ {
+ name = objectName(this, "@25671")
+ initTouchable = NO
+ }
+ bridgeBottle =
+ {
+ name = objectName(this, "@25675")
+ }
+ bridgeFireflyTiny = 
+ {
+ initState = GONE
+ }
+ bridgeFireflySmall = 
+ {
+ initState = GONE
+ }
+ bridgeFireflyLarge = 
+ {
+ initState = GONE
+ }
+ bridgeHighwayDoor = 
+ {
+ name = objectName(this, "@25625")
+ }
+ bridgeGate =
+ {
+    name = objectName(this, "@25207")
+    gate_state = CLOSED
+    gate_opening = NO
+    defaultVerb = VERB_OPEN
+ }
+ bridgeGateBack =
+ {
+    name = objectName(this, "@25207")
+    defaultVerb = VERB_OPEN
+ }
+bridgeChainsaw = 
+ {
+ name = objectName(this, "@25687")
+ }
+ bridgeLight =
+ {
+   name = "@25694"
+   initState = ON
+ }
+bridgeRock =
+ {
+ name = objectName(this, "@25567")
+ }
+ bridgeDragMark =
+ {
+   name = "@25710"
+   initState = GONE
+ }
+ reedsLeft = { name = "" }
+ reedsRight = { name = "" }
+ willieObject =
+ {
+ name = objectName(this, "@30087")
+ }
+bridgeTownSign = 
+{
+    name = objectName(this, "@25147")
 }
 borisPrototypeToy =
 {
@@ -275,11 +352,11 @@ borisPrototypeToy =
  // TODO: addTrigger(Bridge.triggerCloseGate, @() { startthread(Bridge.closeGate); removeTrigger(Bridge.triggerCloseGate); })
  objectTouchable(bridgeHighwayDoorOpening, YES)
  williePassedOutCostume()
- actorVolume(willie, 1.0)
+//  actorVolume(willie, 1.0)
  objectState(Bridge.willieObject, HERE)
  objectTouchable(Bridge.willieObject, YES)
- addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
- addTrigger(Bridge.triggerUnderbrush, Bridge.waitUntilLightOut)
+//  addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
+//  addTrigger(Bridge.triggerUnderbrush, Bridge.waitUntilLightOut)
  if (g.willie_sleeping) {	
  startthread(Bridge.willieSnoring)
  actorPlayAnimation(willie, "asleep")
@@ -535,6 +612,7 @@ settings <- {
 // Globals.nut
 g <- {
     openingScene = 0
+    willie_sleeping = NO
     easy_mode = NO
     in_video_flashback = NO
     act4 = NO
@@ -714,6 +792,7 @@ function newOpeningScene() {
     print("end :D\n")
 }
 
+g.openingScene = 1
 local tid = startthread(newOpeningScene)
 // print("thread: "+tid+"\n")
 // breakhere(1000)
