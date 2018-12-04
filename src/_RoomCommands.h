@@ -51,11 +51,27 @@ class _RoomPack : public Pack
         sq_newslot(v, -3, SQFalse);
     }
 
+    template <typename T>
+    static T _get(HSQUIRRELVM v);
+
+    template <typename T>
+    static void _getField(HSQUIRRELVM v, HSQOBJECT object, const SQChar *name, std::function<void(T)> func)
+    {
+        sq_pushobject(v, object);
+        sq_pushstring(v, _SC(name), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            T value = _get<T>(v);
+            func(value);
+        }
+    }
+
     static SQInteger defineRoom(HSQUIRRELVM v)
     {
         auto pRoom = new GGRoom(g_pEngine->getTextureManager(), g_pEngine->getSettings());
         HSQOBJECT table;
         sq_getstackobj(v, 2, &table);
+        sq_addref(v, &table);
         pRoom->setSquirrelObject(&table);
 
         // loadRoom
@@ -95,42 +111,16 @@ class _RoomPack : public Pack
                     return sq_throwerror(v, _SC("object should be a table entry"));
                 }
 
-                sq_pushobject(v, object);
-                sq_pushstring(v, _SC("initState"), -1);
-                if (SQ_SUCCEEDED(sq_get(v, -2)))
-                {
-                    SQInteger initState;
-                    sq_getinteger(v, -1, &initState);
-                    obj->setStateAnimIndex(initState);
-                }
+                sq_addref(v, &object);
+                obj->setSquirrelObject(&object);
 
-                sq_pushobject(v, object);
-                sq_pushstring(v, _SC("initTouchable"), -1);
-                if (SQ_SUCCEEDED(sq_get(v, -2)))
-                {
-                    SQBool initTouchable;
-                    sq_getbool(v, -1, &initTouchable);
-                    obj->setTouchable(initTouchable == SQTrue);
-                }
-
-                sq_pushobject(v, object);
-                sq_pushstring(v, _SC("defaultVerb"), -1);
-                if (SQ_SUCCEEDED(sq_get(v, -2)))
-                {
-                    const SQChar* verb = nullptr;
-                    sq_getstring(v, -1, &verb);
-                    obj->setDefaultVerb(verb);
-                }
-
-                sq_pushobject(v, object);
-                sq_pushstring(v, _SC("name"), -1);
-                if (SQ_SUCCEEDED(sq_get(v, -2)))
-                {
-                    const SQChar *name = nullptr;
-                    sq_getstring(v, -1, &name);
-                    if (strlen(name) > 0 && name[0] == '@')
+                _getField<SQInteger>(v, object, _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
+                _getField<SQBool>(v, object, _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
+                _getField<const SQChar *>(v, object, _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
+                _getField<const SQChar *>(v, object, _SC("name"), [&obj](const SQChar *value) {
+                    if (strlen(value) > 0 && value[0] == '@')
                     {
-                        std::string s(name);
+                        std::string s(value);
                         s = s.substr(1);
                         auto id = std::strtol(s.c_str(), nullptr, 10);
                         auto text = g_pEngine->getText(id);
@@ -138,9 +128,9 @@ class _RoomPack : public Pack
                     }
                     else
                     {
-                        obj->setName(name);
+                        obj->setName(value);
                     }
-                }
+                });
 
                 sq_pushobject(v, object);
                 sq_pushstring(v, _SC("instance"), -1);
@@ -154,6 +144,30 @@ class _RoomPack : public Pack
         return 0;
     }
 };
+
+template <>
+SQInteger _RoomPack::_get(HSQUIRRELVM v)
+{
+    SQInteger value = 0;
+    sq_getinteger(v, -1, &value);
+    return value;
+}
+
+template <>
+SQBool _RoomPack::_get(HSQUIRRELVM v)
+{
+    SQBool value = false;
+    sq_getbool(v, -1, &value);
+    return value;
+}
+
+template <>
+const SQChar *_RoomPack::_get(HSQUIRRELVM v)
+{
+    const SQChar *value = nullptr;
+    sq_getstring(v, -1, &value);
+    return value;
+}
 
 GGEngine *_RoomPack::g_pEngine = nullptr;
 

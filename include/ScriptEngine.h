@@ -21,7 +21,11 @@ public:
   GGEngine &getEngine();
 
   template <typename TConstant>
+  void pushValue(TConstant value);
+  template <typename TConstant>
   void registerConstant(const SQChar *name, TConstant value);
+  template <typename TConstant>
+  void registerConstants(std::initializer_list<std::tuple<const SQChar*, TConstant>> list);
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
   void executeScript(const std::string &name);
 
@@ -51,57 +55,5 @@ private:
   HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
 };
-
-template <typename TEntity>
-TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
-{
-  auto type = sq_gettype(v, index);
-  // is it a table?
-  if (type != OT_TABLE)
-  {
-    sq_pushbool(v, SQFalse);
-    return nullptr;
-  }
-
-  HSQOBJECT object;
-  sq_resetobject(&object);
-  if (SQ_FAILED(sq_getstackobj(v, index, &object)))
-  {
-    return nullptr;
-  }
-
-  sq_pushobject(v, object);
-  sq_pushstring(v, _SC("instance"), -1);
-  if (SQ_FAILED(sq_get(v, -2)))
-  {
-    return nullptr;
-  }
-
-  GGEntity *pObj = nullptr;
-  if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
-  {
-    return nullptr;
-  }
-
-  return dynamic_cast<TEntity *>(pObj);
-}
-
-template <class T>
-void ScriptEngine::pushObject(HSQUIRRELVM v, T &object)
-{
-  sq_newtable(v);
-  sq_pushstring(v, _SC("instance"), -1);
-  sq_pushuserpointer(v, &object);
-  sq_newslot(v, -3, SQFalse);
-}
-
-template <typename TPack>
-void ScriptEngine::addPack()
-{
-  auto pack = std::make_unique<TPack>();
-  auto pPack = (Pack *)pack.get();
-  pPack->addTo(*this);
-  _packs.push_back(std::move(pack));
-}
 
 } // namespace gg

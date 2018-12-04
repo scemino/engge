@@ -214,13 +214,6 @@ void GGEngine::draw(sf::RenderWindow &window) const
 
 void GGEngine::drawCursor(sf::RenderWindow &window) const
 {
-    if (_pCurrentObject)
-    {
-        sf::RenderStates states;
-        states.transform.translate(-_cameraPos);
-        _pCurrentObject->drawHotspot(window, states);
-    }
-
     auto cursorSize = sf::Vector2f(68.f * Screen::Width / 1284, 68.f * Screen::Height / 772);
     sf::RectangleShape shape;
     shape.setPosition(_mousePos);
@@ -238,6 +231,10 @@ void GGEngine::drawCursor(sf::RenderWindow &window) const
         text.setColor(sf::Color::White);
         text.setText(_pCurrentObject->getName());
         window.draw(text, sf::RenderStates::Default);
+
+        sf::RenderStates states;
+        states.transform.translate(-_cameraPos);
+        _pCurrentObject->drawHotspot(window, states);
     }
 }
 

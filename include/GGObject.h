@@ -26,6 +26,9 @@ public:
   GGObject();
   ~GGObject();
 
+  void setSquirrelObject(HSQOBJECT *pObject) { _pSquirrelObject = pObject; }
+  HSQOBJECT *getSquirrelObject() { return _pSquirrelObject; }
+
   void setZOrder(int zorder) { _zorder = zorder; }
   int getZOrder() const override { return _zorder; }
 
@@ -125,5 +128,6 @@ private:
   GGRoom *_pRoom;
   int _state;
   std::string _verb;
+  HSQOBJECT* _pSquirrelObject;
 };
 } // namespace gg

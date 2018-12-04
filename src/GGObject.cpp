@@ -14,7 +14,8 @@ GGObject::GGObject()
       _isTouchable(true),
       _pOwner(nullptr),
       _pRoom(nullptr),
-      _state(0)
+      _state(0),
+      _pSquirrelObject(nullptr)
 {
 }
 

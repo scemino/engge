@@ -1,8 +1,8 @@
-#include <squirrel3/squirrel.h>
-#include <squirrel3/sqstdio.h>
-#include <squirrel3/sqstdaux.h>
-#include <squirrel3/sqstdstring.h>
-#include <squirrel3/sqstdmath.h>
+#include "squirrel3/squirrel.h"
+#include "squirrel3/sqstdio.h"
+#include "squirrel3/sqstdaux.h"
+#include "squirrel3/sqstdstring.h"
+#include "squirrel3/sqstdmath.h"
 #include "ScriptEngine.h"
 #include "_SystemCommands.h"
 #include "_GeneralCommands.h"
@@ -20,33 +20,102 @@
 namespace gg
 {
 template <>
-void ScriptEngine::registerConstant(const SQChar *name, bool value)
+void ScriptEngine::pushValue(bool value)
 {
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
     sq_pushbool(v, value ? SQTrue : SQFalse);
-    sq_newslot(v, -3, SQTrue);
-    sq_pop(v, 1);
 }
 
 template <>
-void ScriptEngine::registerConstant(const SQChar *name, int value)
+void ScriptEngine::pushValue(int value)
 {
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
     sq_pushinteger(v, value);
+}
+
+template <>
+void ScriptEngine::pushValue(const char *value)
+{
+    sq_pushstring(v, value, -1);
+}
+
+template <>
+void ScriptEngine::pushValue(SQFloat value)
+{
+    sq_pushfloat(v, value);
+}
+
+template <typename TConstant>
+void ScriptEngine::registerConstant(const SQChar *name, TConstant value)
+{
+    sq_pushconsttable(v);
+    sq_pushstring(v, name, -1);
+    pushValue(value);
     sq_newslot(v, -3, SQTrue);
     sq_pop(v, 1);
 }
 
-template <>
-void ScriptEngine::registerConstant(const SQChar *name, const SQChar *value)
+template <typename TConstant>
+void ScriptEngine::registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list)
 {
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
-    sq_pushstring(v, value, -1);
-    sq_newslot(v, -3, SQTrue);
-    sq_pop(v, 1);
+    for (auto t : list)
+    {
+        sq_pushconsttable(v);
+        sq_pushstring(v, std::get<0>(t), -1);
+        pushValue(std::get<1>(t));
+        sq_newslot(v, -3, SQTrue);
+        sq_pop(v, 1);
+    }
+}
+
+template <typename TEntity>
+TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
+{
+    auto type = sq_gettype(v, index);
+    // is it a table?
+    if (type != OT_TABLE)
+    {
+        sq_pushbool(v, SQFalse);
+        return nullptr;
+    }
+
+    HSQOBJECT object;
+    sq_resetobject(&object);
+    if (SQ_FAILED(sq_getstackobj(v, index, &object)))
+    {
+        return nullptr;
+    }
+
+    sq_pushobject(v, object);
+    sq_pushstring(v, _SC("instance"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        return nullptr;
+    }
+
+    GGEntity *pObj = nullptr;
+    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
+    {
+        return nullptr;
+    }
+
+    return dynamic_cast<TEntity *>(pObj);
+}
+
+template <class T>
+void ScriptEngine::pushObject(HSQUIRRELVM v, T &object)
+{
+    sq_newtable(v);
+    sq_pushstring(v, _SC("instance"), -1);
+    sq_pushuserpointer(v, &object);
+    sq_newslot(v, -3, SQFalse);
+}
+
+template <typename TPack>
+void ScriptEngine::addPack()
+{
+    auto pack = std::make_unique<TPack>();
+    auto pPack = (Pack *)pack.get();
+    pPack->addTo(*this);
+    _packs.push_back(std::move(pack));
 }
 
 ScriptEngine::ScriptEngine(GGEngine &engine)
@@ -61,44 +130,44 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     sq_pushroottable(v);
     sqstd_register_mathlib(v);
     sqstd_register_stringlib(v);
-    registerConstant(_SC("NO"), false);
-    registerConstant(_SC("YES"), true);
-    registerConstant(_SC("VERB_CLOSE"), _SC("close"));
-    registerConstant(_SC("VERB_GIVE"), _SC("give"));
-    registerConstant(_SC("VERB_LOOKAT"), _SC("lookat"));
-    registerConstant(_SC("VERB_OPEN"), _SC("open"));
-    registerConstant(_SC("VERB_PICKUP"), _SC("pickup"));
-    registerConstant(_SC("VERB_PULL"), _SC("pull"));
-    registerConstant(_SC("VERB_PUSH"), _SC("push"));
-    registerConstant(_SC("VERB_TALKTO"), _SC("talkto"));
-    registerConstant(_SC("VERB_USE"), _SC("use"));
-    registerConstant(_SC("VERB_WALKTO"), _SC("walkto"));
-    registerConstant(_SC("HERE"), 0);
-    registerConstant(_SC("GONE"), 4);
-    registerConstant(_SC("OFF"), 0);
-    registerConstant(_SC("ON"), 1);
-    registerConstant(_SC("FULL"), 0);
-    registerConstant(_SC("EMPTY"), 1);
-    registerConstant(_SC("OPEN"), 1);
-    registerConstant(_SC("CLOSED"), 0);
-    registerConstant(_SC("FULL"), 0);
-    registerConstant(_SC("EMPTY"), 1);
-    registerConstant(_SC("FADE_IN"), 0);
-    registerConstant(_SC("FADE_OUT"), 1);
-    registerConstant(_SC("FACE_FRONT"), 0);
-    registerConstant(_SC("FACE_BACK"), 1);
-    registerConstant(_SC("FACE_LEFT"), 2);
-    registerConstant(_SC("FACE_RIGHT"), 3);
-    registerConstant(_SC("DIR_FRONT"), 0);
-    registerConstant(_SC("DIR_BACK"), 1);
-    registerConstant(_SC("DIR_LEFT"), 2);
-    registerConstant(_SC("DIR_RIGHT"), 3);
-    registerConstant(_SC("LINEAR"), 0);
-    registerConstant(_SC("EASE_IN"), 1);
-    registerConstant(_SC("EASE_INOUT"), 2);
-    registerConstant(_SC("EASE_OUT"), 3);
-    registerConstant(_SC("SLOW_EASE_IN"), 4);
-    registerConstant(_SC("SLOW_EASE_OUT"), 5);
+    registerConstants<bool>({{"NO", false},
+                             {"YES", true}});
+    registerConstants<const char *>({{"VERB_CLOSE", "close"},
+                                     {"VERB_GIVE", "give"},
+                                     {"VERB_LOOKAT", "lookat"},
+                                     {"VERB_OPEN", "open"},
+                                     {"VERB_PICKUP", "pickup"},
+                                     {"VERB_PULL", "pull"},
+                                     {"VERB_PUSH", "push"},
+                                     {"VERB_TALKTO", "talkto"},
+                                     {"VERB_USE", "use"},
+                                     {"VERB_WALKTO", "walkto"}});
+    registerConstants<int>({{"HERE", 0},
+                            {"GONE", 4},
+                            {"OFF", 0},
+                            {"ON", 1},
+                            {"FULL", 0},
+                            {"EMPTY", 1},
+                            {"OPEN", 1},
+                            {"CLOSED", 0},
+                            {"FULL", 0},
+                            {"EMPTY", 1},
+                            {"FADE_IN", 0},
+                            {"FADE_OUT", 1},
+                            {"FACE_FRONT", 0},
+                            {"FACE_BACK", 1},
+                            {"FACE_LEFT", 2},
+                            {"FACE_RIGHT", 3},
+                            {"DIR_FRONT", 0},
+                            {"DIR_BACK", 1},
+                            {"DIR_LEFT", 2},
+                            {"DIR_RIGHT", 3},
+                            {"LINEAR", 0},
+                            {"EASE_IN", 1},
+                            {"EASE_INOUT", 2},
+                            {"EASE_OUT", 3},
+                            {"SLOW_EASE_IN", 4},
+                            {"SLOW_EASE_OUT", 5}});
 
     addPack<_ActorPack>();
     addPack<_GeneralPack>();
@@ -187,7 +256,6 @@ void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionNa
 
 void ScriptEngine::executeScript(const std::string &name)
 {
-    std::cout << "execute " << name << std::endl;
     if (SQ_FAILED(sqstd_dofile(v, name.c_str(), SQFalse, SQTrue)))
     {
         std::cerr << "failed to execute " << name << std::endl;
