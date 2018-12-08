@@ -15,6 +15,13 @@
 
 namespace gg
 {
+class VerbExecute
+{
+public:
+  virtual ~VerbExecute() = default;
+  virtual void execute(GGObject *pObject, const Verb* pVerb) = 0;
+};
+
 class GGEngine : public NonCopyable
 {
 public:
@@ -38,7 +45,7 @@ public:
   float getFadeAlpha() const { return _fadeAlpha / 255.f; }
 
   void addActor(std::unique_ptr<GGActor> actor) { _actors.push_back(std::move(actor)); }
-  void addRoom(GGRoom &room) { _rooms.push_back(std::unique_ptr<GGRoom>(&room)); }
+  void addRoom(std::unique_ptr<GGRoom> room) { _rooms.push_back(std::move(room)); }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
 
   std::vector<std::unique_ptr<GGActor>> &getActors() { return _actors; }
@@ -47,8 +54,6 @@ public:
   std::shared_ptr<SoundDefinition> defineSound(const std::string &name);
   std::shared_ptr<SoundId> playSound(SoundDefinition &soundDefinition, bool loop = false);
   void stopSound(SoundId &sound);
-
-  void playState(GGObject &object, int index);
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
@@ -68,6 +73,8 @@ public:
   bool getInputActive() const { return _inputActive; }
 
   void follow(GGActor *pActor) { _pFollowActor = pActor; }
+  void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pVerbExecute = std::move(verbExecute); }
+  const Verb *getVerb(const std::string &id) const;
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
@@ -112,5 +119,7 @@ private:
   sf::IntRect _verbRects[9];
   GGObject *_pCurrentObject;
   sf::Vector2f _mousePos;
+  std::unique_ptr<VerbExecute> _pVerbExecute;
+  const Verb* _pVerb;
 };
 } // namespace gg

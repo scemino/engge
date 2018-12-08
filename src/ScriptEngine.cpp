@@ -10,6 +10,7 @@
 #include "_ActorCommands.h"
 #include "_RoomCommands.h"
 #include "_SoundCommands.h"
+#include "_DefaultVerbExecute.h"
 
 #ifdef SQUNICODE
 #define scvprintf vfwprintf
@@ -175,6 +176,9 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
     addPack<_RoomPack>();
     addPack<_SoundPack>();
     addPack<_SystemPack>();
+
+    auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
+    engine.setVerbExecute(std::move(pVerbExecute));
 }
 
 ScriptEngine::~ScriptEngine()

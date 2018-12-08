@@ -59,6 +59,7 @@ class _SoundPack : public Pack
         engine.registerGlobalFunction(loopMusic, "loopMusic");
         engine.registerGlobalFunction(defineSound, "defineSound");
         engine.registerGlobalFunction(playSound, "playSound");
+        engine.registerGlobalFunction(playObjectSound, "playObjectSound");
         engine.registerGlobalFunction(stopSound, "stopSound");
         engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
     }
@@ -209,6 +210,20 @@ class _SoundPack : public Pack
         });
         g_pEngine->addFunction(std::move(fadeTo));
         return 0;
+    }
+
+    static SQInteger playObjectSound(HSQUIRRELVM v)
+    {
+        SoundDefinition *pSound;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        // TODO: other params: object or actor, loopTimes, fadeInTime
+        auto soundId = g_pEngine->playSound(*pSound);
+        sq_pushuserpointer(v, (SQUserPointer)soundId.get());
+
+        return 1;
     }
 
     static SQInteger playSound(HSQUIRRELVM v)

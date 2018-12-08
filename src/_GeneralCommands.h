@@ -239,6 +239,22 @@ class _GeneralPack : public Pack
         }
         sq_pop(v, 1);
 
+        // func
+        sq_pushstring(v, _SC("func"), -1);
+        if (SQ_FAILED(sq_get(v, -2)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get func"));
+        }
+
+        const SQChar *func = nullptr;
+        if (SQ_FAILED(sq_getstring(v, -1, &func)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get func"));
+        }
+        sq_pop(v, 1);
+
         // key
         sq_pushstring(v, _SC("key"), -1);
         if (SQ_FAILED(sq_get(v, -2)))
@@ -258,6 +274,7 @@ class _GeneralPack : public Pack
         VerbSlot slot;
         Verb verb;
         verb.id = id;
+        verb.func = func;
         verb.image = image;
         verb.text = text;
         verb.key = key;

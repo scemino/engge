@@ -1,5 +1,5 @@
 #pragma once
-#include <squirrel3/squirrel.h>
+#include "squirrel3/squirrel.h"
 #include "GGEngine.h"
 
 namespace gg
@@ -68,11 +68,9 @@ class _RoomPack : public Pack
 
     static SQInteger defineRoom(HSQUIRRELVM v)
     {
-        auto pRoom = new GGRoom(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+        auto pRoom = std::make_unique<GGRoom>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
         HSQOBJECT table;
         sq_getstackobj(v, 2, &table);
-        sq_addref(v, &table);
-        pRoom->setSquirrelObject(&table);
 
         // loadRoom
         sq_pushobject(v, table);
@@ -89,58 +87,66 @@ class _RoomPack : public Pack
         // define instance
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("instance"), -1);
-        sq_pushuserpointer(v, pRoom);
+        sq_pushuserpointer(v, pRoom.get());
         sq_newslot(v, -3, SQFalse);
 
         // define room objects
         for (auto &obj : pRoom->getObjects())
         {
             sq_pushobject(v, table);
-            sq_pushstring(v, obj->getName().data(), obj->getName().length());
+            sq_pushstring(v, obj->getName().data(), -1);
             if (SQ_FAILED(sq_get(v, -2)))
             {
                 setObjectSlot(v, obj->getName().data(), *obj);
+                continue;
+            }
+
+            HSQOBJECT object;
+            sq_resetobject(&object);
+            sq_getstackobj(v, -1, &object);
+            if (!sq_istable(object))
+            {
+                return sq_throwerror(v, _SC("object should be a table entry"));
+            }
+
+            _getField<SQInteger>(v, object, _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
+            _getField<SQBool>(v, object, _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
+            _getField<const SQChar *>(v, object, _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
+            _getField<const SQChar *>(v, object, _SC("name"), [&obj](const SQChar *value) {
+                if (strlen(value) > 0 && value[0] == '@')
+                {
+                    std::string s(value);
+                    s = s.substr(1);
+                    auto id = std::strtol(s.c_str(), nullptr, 10);
+                    auto text = g_pEngine->getText(id);
+                    obj->setId(obj->getName());
+                    obj->setName(text);
+                }
+                else
+                {
+                    obj->setId(obj->getName());
+                    obj->setName(value);
+                }
+            });
+
+            sq_pushobject(v, object);
+            sq_pushstring(v, _SC("instance"), -1);
+            sq_pushuserpointer(v, obj.get());
+            sq_newslot(v, -3, SQFalse);
+
+            sq_pushobject(v, object);
+            sq_pushobject(v, table);
+            if (SQ_SUCCEEDED(sq_setdelegate(v, -2)))
+            {
+                std::cout << "sq_setdelegate: " << obj->getName() << " OK" << std::endl;
             }
             else
             {
-                HSQOBJECT object;
-                sq_resetobject(&object);
-                sq_getstackobj(v, -1, &object);
-                if (!sq_istable(object))
-                {
-                    return sq_throwerror(v, _SC("object should be a table entry"));
-                }
-
-                sq_addref(v, &object);
-                obj->setSquirrelObject(&object);
-
-                _getField<SQInteger>(v, object, _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
-                _getField<SQBool>(v, object, _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
-                _getField<const SQChar *>(v, object, _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
-                _getField<const SQChar *>(v, object, _SC("name"), [&obj](const SQChar *value) {
-                    if (strlen(value) > 0 && value[0] == '@')
-                    {
-                        std::string s(value);
-                        s = s.substr(1);
-                        auto id = std::strtol(s.c_str(), nullptr, 10);
-                        auto text = g_pEngine->getText(id);
-                        obj->setName(text);
-                    }
-                    else
-                    {
-                        obj->setName(value);
-                    }
-                });
-
-                sq_pushobject(v, object);
-                sq_pushstring(v, _SC("instance"), -1);
-                sq_pushuserpointer(v, obj.get());
-                sq_newslot(v, -3, SQFalse);
-                sq_pop(v, 1);
+                std::cout << "sq_setdelegate: " << obj->getName() << " failed!" << std::endl;
             }
         }
 
-        g_pEngine->addRoom(*pRoom);
+        g_pEngine->addRoom(std::move(pRoom));
         return 0;
     }
 };

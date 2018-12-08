@@ -12,10 +12,7 @@ namespace gg
 GGRoom::GGRoom(TextureManager &textureManager, const GGEngineSettings &settings)
     : _textureManager(textureManager),
       _settings(settings),
-      _showDrawWalkboxes(false),
-      _showObjects(true),
-      _showLayers(true),
-      _pSquirrelObject(nullptr)
+      _showDrawWalkboxes(false)
 {
 }
 
@@ -294,6 +291,8 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
 
 void GGRoom::load(const char *name)
 {
+    _id = name;
+
     // load wimpy file
     std::string wimpyFilename;
     wimpyFilename.append(_settings.getGamePath()).append(name).append(".wimpy");

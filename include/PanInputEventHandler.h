@@ -96,16 +96,6 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
                 _engine.getRoom().showDrawWalkboxes(!_engine.getRoom().areDrawWalkboxesVisible());
                 break;
             }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::O))
-            {
-                _engine.getRoom().showObjects(!_engine.getRoom().areObjectsVisible());
-                break;
-            }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L))
-            {
-                _engine.getRoom().showLayers(!_engine.getRoom().areLayersVisible());
-                break;
-            }
             break;
         default:
             break;

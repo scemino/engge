@@ -26,9 +26,6 @@ public:
   GGObject();
   ~GGObject();
 
-  void setSquirrelObject(HSQOBJECT *pObject) { _pSquirrelObject = pObject; }
-  HSQOBJECT *getSquirrelObject() { return _pSquirrelObject; }
-
   void setZOrder(int zorder) { _zorder = zorder; }
   int getZOrder() const override { return _zorder; }
 
@@ -65,6 +62,9 @@ public:
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
+
+  void setId(const std::string &id) { _id = id; }
+  const std::string &getId() const { return _id; }
 
   void setDefaultVerb(const std::string &verb) { _verb = verb; }
   const std::string &getDefaultVerb() const { return _verb; }
@@ -111,7 +111,7 @@ private:
   std::vector<std::unique_ptr<GGAnimation>> _anims;
   std::optional<GGAnimation> _pAnim;
   bool _isVisible;
-  std::string _name;
+  std::string _name, _id;
   int _zorder;
   UseDirection _direction;
   bool _prop;
@@ -128,6 +128,5 @@ private:
   GGRoom *_pRoom;
   int _state;
   std::string _verb;
-  HSQOBJECT* _pSquirrelObject;
 };
 } // namespace gg

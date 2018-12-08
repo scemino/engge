@@ -314,7 +314,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get state"));
         }
-        g_pEngine->playState(*obj, static_cast<int>(index));
+        obj->setStateAnimIndex(static_cast<int>(index));
         return 0;
     }
 

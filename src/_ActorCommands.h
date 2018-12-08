@@ -442,8 +442,8 @@ class _ActorPack : public Pack
     static SQInteger actorRoom(HSQUIRRELVM v)
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
-        auto pRoomTable = pActor->getRoom()->getSquirrelObject();
-        sq_pushobject(v, *pRoomTable);
+        // TODO: sq_pushobject(v, *pRoomTable);
+        sq_pushnull(v);
         return 1;
     }
 
@@ -684,15 +684,18 @@ class _ActorPack : public Pack
         auto id = std::strtol(s.c_str(), nullptr, 10);
         std::cout << "Play anim talk (loop)" << std::endl;
 
-        std::string path;
         std::string name = str_toupper(actor->getName()).append("_").append(s);
+        
+        auto soundDefinition = g_pEngine->defineSound(name + ".ogg");
+        if(!soundDefinition) return 0;
+
+        g_pEngine->playSound(*soundDefinition);
+
+        std::string path;
         path.append(g_pEngine->getSettings().getGamePath()).append(name).append(".lip");
         auto lip = std::make_unique<GGLip>();
         std::cout << "load lip " << path << std::endl;
         lip->load(path);
-
-        auto soundDefinition = g_pEngine->defineSound(name + ".ogg");
-        g_pEngine->playSound(*soundDefinition);
 
         g_pEngine->addFunction(std::make_unique<_TalkAnim>(*actor, std::move(lip)));
         auto text = g_pEngine->getText(id);

@@ -14,8 +14,7 @@ GGObject::GGObject()
       _isTouchable(true),
       _pOwner(nullptr),
       _pRoom(nullptr),
-      _state(0),
-      _pSquirrelObject(nullptr)
+      _state(0)
 {
 }
 
@@ -34,7 +33,7 @@ sf::IntRect GGObject::getRealHotspot() const
 {
     auto rect = getHotspot();
     auto pos = getPosition();
-    return sf::IntRect(static_cast<int>(pos.x + rect.left), static_cast<int>(pos.y + rect.top), rect.width, rect.height);
+    return (sf::IntRect)_transform.getTransform().transformRect((sf::FloatRect)rect);
 }
 
 void GGObject::setStateAnimIndex(int animIndex)

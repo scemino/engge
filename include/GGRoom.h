@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include "squirrel3/squirrel.h"
 #include <nlohmann/json.hpp>
 #include "NonCopyable.h"
 #include "TextureManager.h"
@@ -19,12 +18,11 @@ public:
   GGRoom(TextureManager &textureManager, const GGEngineSettings &settings);
   ~GGRoom() = default;
 
+  const std::string &getId() const { return _id; }
+
   void load(const char *name);
   std::vector<std::unique_ptr<GGObject>> &getObjects() { return _objects; }
   const std::string &getSheet() const { return _sheet; }
-
-  void setSquirrelObject(HSQOBJECT *pObject) { _pSquirrelObject = pObject; }
-  HSQOBJECT *getSquirrelObject() { return _pSquirrelObject; }
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
@@ -32,14 +30,10 @@ public:
   void showDrawWalkboxes(bool show) { _showDrawWalkboxes = show; }
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
   const std::vector<Walkbox> &getWalkboxes() const { return _walkboxes; }
-  void showObjects(bool show) { _showObjects = show; }
-  bool areObjectsVisible() const { return _showObjects; }
   GGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   GGObject &createObject(const std::vector<std::string> &anims);
   GGTextObject &createTextObject(const std::string &name, GGFont &font);
   void deleteObject(GGObject &textObject);
-  void showLayers(bool show) { _showLayers = show; }
-  bool areLayersVisible() const { return _showLayers; }
   sf::Vector2i getRoomSize() const { return _roomSize; }
   void setAsParallaxLayer(GGEntity *pEntity, int layer);
 
@@ -61,9 +55,7 @@ private:
   std::vector<RoomScaling> _scalings;
   sf::Vector2i _roomSize;
   bool _showDrawWalkboxes;
-  bool _showObjects;
-  bool _showLayers;
   std::string _sheet;
-  HSQOBJECT *_pSquirrelObject;
+  std::string _id;
 };
 } // namespace gg

@@ -26,7 +26,8 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _inputActive(false),
       _showCursor(false),
       _pFollowActor(nullptr),
-      _pCurrentObject(nullptr)
+      _pCurrentObject(nullptr),
+      _pVerb(nullptr)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -73,6 +74,20 @@ sf::IntRect GGEngine::getVerbRect(const std::string &name, std::string lang, boo
     std::ostringstream s;
     s << name << (isRetro ? "_retro" : "") << "_" << lang;
     return _verbSheet.getRect(s.str());
+}
+
+const Verb *GGEngine::getVerb(const std::string &id) const
+{
+    for (auto i = 0; i < _verbSlots.size(); i++)
+    {
+        const auto &verb = _verbSlots[0].getVerb(i);
+        if (verb.id == id)
+        {
+            return &verb;
+            break;
+        }
+    }
+    return nullptr;
 }
 
 void GGEngine::setCameraAt(const sf::Vector2f &at)
@@ -126,6 +141,7 @@ void GGEngine::update(const sf::Time &elapsed)
     sf::Mouse m;
     _mousePos = _pWindow->mapPixelToCoords(m.getPosition(*_pWindow));
     auto mousePosInRoom = _mousePos + _cameraPos;
+
     _pCurrentObject = nullptr;
     const auto &objects = _pRoom->getObjects();
     auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<GGObject> &pObj) {
@@ -137,6 +153,30 @@ void GGEngine::update(const sf::Time &elapsed)
     if (it != objects.cend())
     {
         _pCurrentObject = it->get();
+    }
+
+    if (m.isButtonPressed(sf::Mouse::Button::Left))
+    {
+        auto verbId = -1;
+        for (auto i = 0; i < 9; i++)
+        {
+            if (_verbRects[i].contains((sf::Vector2i)_mousePos))
+            {
+                verbId = i;
+                break;
+            }
+        }
+
+        if (verbId != -1)
+        {
+            _pVerb = &_verbSlots[0].getVerb(1 + verbId);
+            std::cout << "select verb: " << _pVerb->id << std::endl;
+        }
+
+        if (_pCurrentObject)
+        {
+            _pVerbExecute->execute(_pCurrentObject, _pVerb);
+        }
     }
 }
 
@@ -157,6 +197,12 @@ std::shared_ptr<SoundDefinition> GGEngine::defineSound(const std::string &name)
 {
     std::string path(_settings.getGamePath());
     path.append(name);
+    {
+        std::ifstream infile(path);
+        if (!infile.good())
+            return nullptr;
+    }
+
     auto sound = std::make_shared<SoundDefinition>(path);
     _sounds.push_back(sound);
     return sound;
@@ -368,11 +414,6 @@ void GGEngine::drawInventory(sf::RenderWindow &window) const
             x += rect.width;
         }
     }
-}
-
-void GGEngine::playState(GGObject &object, int index)
-{
-    object.setStateAnimIndex(index);
 }
 
 } // namespace gg

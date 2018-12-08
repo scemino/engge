@@ -1,6 +1,11 @@
 const talkColorBoris		= 0x3ea4b5
 const talkColorWillie		= 0xc69c6d
 
+// Defines.nu
+const HANDLED 		= 1			// This should returned from functions that override system behavior.
+const NOT_HANDLED 	= 0			// This should returned from functions that override system behavior.
+
+
 // DefineSounds.nut
 soundTowerHum <- defineSound("TowerHum.wav")
 soundTowerLight <- defineSound("TowerLight.wav")
@@ -25,6 +30,7 @@ soundBridgeAmbienceFrog1 <- defineSound("BridgeAmbienceFrog1.wav")
 soundBridgeAmbienceFrog2 <- defineSound("BridgeAmbienceFrog2.wav")
 soundBridgeAmbienceFrog3 <- defineSound("BridgeAmbienceFrog3.wav")
 soundBridgeAmbienceFrog4 <- defineSound("BridgeAmbienceFrog4.wav")
+soundGateSlidingOpen <- defineSound("GateSlidingOpen.wav")
 
 // Boot.nut
 function objectName(obj, name) {
@@ -33,6 +39,68 @@ function objectName(obj, name) {
 
  obj.name <- name
  return name
+}
+
+// DefineActors.nut
+const defaultTextOffset = 90
+
+function defineVerbs(slot) {
+ setVerb(slot, 0, { verb = VERB_WALKTO, image = "walkto", func = "verbWalkTo", text = "@30011", key = getUserPref("keyWalkTo", "") })
+ setVerb(slot, 1, { verb = VERB_OPEN, image = "open",  func = "verbOpen", text = "@30012", key = getUserPref("keyOpen", "@30013") })
+ setVerb(slot, 2, { verb = VERB_CLOSE, image = "close",  func = "verbClose", text = "@30014", key = getUserPref("keyClose", "@30015") })
+ setVerb(slot, 3, { verb = VERB_GIVE, image = "give",  func = "verbGive", text = "@30016", key = getUserPref("keyGiveTo", "@30017") })
+ setVerb(slot, 4, { verb = VERB_PICKUP, image = "pickup",  func = "verbPickUp", text = "@30018", key = getUserPref("keyPickup", "@30019") })
+ setVerb(slot, 5, { verb = VERB_LOOKAT, image = "lookat",  func = "verbLookAt", text = "@30020", key = getUserPref("keyLookAt", "@30021") })
+ setVerb(slot, 6, { verb = VERB_TALKTO, image = "talkto",  func = "verbTalkTo", text = "@30022", key = getUserPref("keyTalkTo", "@30023") })
+ setVerb(slot, 7, { verb = VERB_PUSH, image = "push",  func = "verbPush", text = "@30024", key = getUserPref("keyPush", "@30025") })
+ setVerb(slot, 8, { verb = VERB_PULL, image = "pull",  func = "verbPull", text = "@30026", key = getUserPref("keyPull", "@30027") })
+ setVerb(slot, 9, { verb = VERB_USE, image = "use",  func = "verbUse", text = "@30028", key = getUserPref("keyUse", "@30029") })
+}
+
+boris <- {
+    _key = "boris"
+    name = "@30072"
+    fullname = "@30073"
+    icon = "icon_boris"
+    detective = NO
+    function showHideLayers() {
+        actorHideLayer(boris, "splash")
+    }
+    function defaultClickedAt(x, y) {	
+    }
+}
+createActor(boris)
+actorRenderOffset(boris, 0, 45)
+defineVerbs(1)
+verbUIColors(1, {	nameid = "boris", sentence = 0xffffff, 
+ verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
+ verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
+ inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
+
+
+function borisCostume()
+{
+ actorCostume(boris, "BorisAnimation")
+//  actorWalkSpeed(boris, 30, 15)
+ actorRenderOffset(boris, 0, 45)
+ actorTalkColors(boris, talkColorBoris)
+actorTalkOffset(boris, 0, defaultTextOffset)
+ actorHidden(boris, OFF)
+//  objectLit(boris, 1)
+//  footstepsNormal(boris)
+ boris.showHideLayers()
+}
+borisCostume()
+
+currentActor <- boris
+ function isBoris(actor = null) {
+ return ((actor?actor:currentActor) == boris)
+return true
+}
+
+function noReach(actor = null) {
+ if (actor == null) actor = currentActor
+ if (!actorWalking(actor) && !actor.onLadder) actorStand(actor)	
 }
 
 // sound helpers.nut
@@ -99,19 +167,6 @@ function actorBlinks(actor, state) {
  } else {
  actorBlinkRate(actor, 0.0,0.0)
  }
-}
-
-function defineVerbs(slot) {
- setVerb(slot, 0, { verb = VERB_WALKTO, image = "walkto", func = "verbWalkTo", text = "@30011", key = getUserPref("keyWalkTo", "") })
- setVerb(slot, 1, { verb = VERB_OPEN, image = "open",  func = "verbOpen", text = "@30012", key = getUserPref("keyOpen", "@30013") })
- setVerb(slot, 2, { verb = VERB_CLOSE, image = "close",  func = "verbClose", text = "@30014", key = getUserPref("keyClose", "@30015") })
- setVerb(slot, 3, { verb = VERB_GIVE, image = "give",  func = "verbGive", text = "@30016", key = getUserPref("keyGiveTo", "@30017") })
- setVerb(slot, 4, { verb = VERB_PICKUP, image = "pickup",  func = "verbPickUp", text = "@30018", key = getUserPref("keyPickup", "@30019") })
- setVerb(slot, 5, { verb = VERB_LOOKAT, image = "lookat",  func = "verbLookAt", text = "@30020", key = getUserPref("keyLookAt", "@30021") })
- setVerb(slot, 6, { verb = VERB_TALKTO, image = "talkto",  func = "verbTalkTo", text = "@30022", key = getUserPref("keyTalkTo", "@30023") })
- setVerb(slot, 7, { verb = VERB_PUSH, image = "push",  func = "verbPush", text = "@30024", key = getUserPref("keyPush", "@30025") })
- setVerb(slot, 8, { verb = VERB_PULL, image = "pull",  func = "verbPull", text = "@30026", key = getUserPref("keyPull", "@30027") })
- setVerb(slot, 9, { verb = VERB_USE, image = "use",  func = "verbUse", text = "@30028", key = getUserPref("keyUse", "@30029") })
 }
 
 function bounceImage() {
@@ -204,6 +259,7 @@ function createFirefly(x) {
 
 Bridge <- 
 {
+ name = "Bridge"
  background = "Bridge"
  speck_of_dust = YES, speck_of_dust_collected = NO
 
@@ -223,6 +279,44 @@ Bridge <-
  otheragent_save_x = 0
  otheragent_save_y = 0
  otheragent_save_dir = 0
+
+ function openGate() {
+//  Tutorial.stopHints(1)
+ inputOff()
+ Bridge.bridgeGate.gate_opening = YES
+ objectOffsetTo(Bridge.bridgeGate, -60, 0, 2.0, EASE_INOUT)
+ objectTouchable(Bridge.bridgeGate, NO)
+ objectOffsetTo(Bridge.bridgeGateBack, -60, 0, 2.0, EASE_INOUT)
+ objectTouchable(Bridge.bridgeGateBack, NO)
+ playObjectSound(soundGateSlidingOpen, Bridge.bridgeGate)
+ Bridge.bridgeGate.gate_state = OPEN
+ breaktime(1)
+ // TODO: walkboxHidden("gate", NO)
+ Bridge.bridgeGate.gate_opening = NO
+ inputOn()
+ breaktime(1)
+ objectTouchable(Bridge.bridgeGate, YES)
+
+//  Tutorial.completeHint(1)
+ }
+
+ function closeGate() {
+ if (Bridge.bridgeGate.gate_state == CLOSED) {
+ return	
+ }
+ Bridge.bridgeGate.gate_closing = YES
+ Bridge.bridgeGate.gate_state = CLOSED
+ walkboxHidden("gate", YES)
+ playObjectSound(soundGateSlidingClosed, Bridge.bridgeGate)
+ objectOffsetTo(Bridge.bridgeGate, 0, 0, 2.0, EASE_INOUT)
+ objectTouchable(Bridge.bridgeGate, NO)
+ objectOffsetTo(Bridge.bridgeGateBack, 0, 0, 2.0, EASE_INOUT)
+ objectTouchable(Bridge.bridgeGateBack, NO)
+ breaktime(2.0)
+ Bridge.bridgeGate.gate_closing = NO
+ objectTouchable(Bridge.bridgeGate, YES)
+
+ }
 
  startLeft = { name = objectName(this, "@25553") }
  startRight = { name = objectName(this, "@25554") }
@@ -285,15 +379,131 @@ bridgeGrateTree =
  }
  bridgeGate =
  {
-    name = objectName(this, "@25207")
     gate_state = CLOSED
     gate_opening = NO
+    gate_closing = NO
+    name = objectName(this, "@25207")
     defaultVerb = VERB_OPEN
+    verbLookAt = function()
+    {
+        if (g.openingScene == 1) {
+            sayLine(boris, "@25677",
+            "@25678")
+        } else {
+            sayLine("@25679")
+        }
+    }
+    verbOpen = function() 
+    {
+        // if (g.taken_photo || incutscene()) {
+        if (g.taken_photo) {
+            if (gate_state == OPEN) {
+                //  if (isBoris()) {
+                sayLine(boris, "@25680")
+                //  } else {
+                //  sayLineAlreadyOpen(this)
+                //  }
+            } else {
+                startthread(openGate)
+                defaultVerb = VERB_CLOSE
+            }
+        }
+    }
+    verbClose = function() 
+    {
+        if (gate_state == CLOSED && gate_closing == NO) {
+            noReach()
+            if (isBoris()) {
+                sayLine(boris, "@25681")
+            } else {
+                sayLineAlreadyClosed(this)
+            }
+        } else {
+            startthread(closeGate)
+            defaultVerb = VERB_OPEN
+        }
+    }
+    verbPush = function()
+    {
+        if (gate_state == CLOSED) {
+        verbOpen()
+        } else {
+        verbClose()
+        }
+    }
+    verbPull = function()
+    {
+        verbPush()
+    }
+    verbUse = function(obj=null)
+    {
+        verbPush()
+    }
+    objectPreWalk = function(verb, obj1, obj2) {
+        if (verb == VERB_OPEN || verb == VERB_PUSH || verb == VERB_PULL || verb == VERB_USE) {
+            // if (isTesterTronRunning()) return NOT_HANDLED
+            if (g.openingScene == 1) {
+                if (gate_state == OPEN) {
+                    sayLine(boris, "@25682")
+                } else {
+                    sayLine(boris, "@25683")
+                }
+                return HANDLED
+            } else 
+                if (!g.taken_photo) {
+                    sayLine("@25684")
+                return HANDLED
+            }
+        }
+        return NOT_HANDLED
+    }
  }
  bridgeGateBack =
  {
     name = objectName(this, "@25207")
     defaultVerb = VERB_OPEN
+    verbLookAt = function()
+    {
+        if (isBoris()) {
+        sayLine(boris, "@25685")
+        } else {
+        sayLine("@25686")
+        }
+    }
+    verbOpen = function() 
+    {
+        startthread(openGate)
+        defaultVerb = VERB_CLOSE
+    }
+    verbClose = function() 
+    {
+        if (bridgeGate.gate_state == CLOSED) {
+            if (isBoris()) {
+                sayLine(boris, "@25681")
+                } else {
+                sayLineAlreadyClosed(this)
+            }
+        } else {
+            startthread(closeGate)
+            defaultVerb = VERB_OPEN
+        }
+    }
+ verbPush = function()
+ {
+ if (bridgeGate.gate_state == CLOSED) {
+ bridgeGateBack.verbOpen()
+ } else {
+ bridgeGateBack.verbClose()
+ }
+ }
+ verbPull = function()
+ {
+ verbPush()
+ }
+ verbUse = function(obj=null)
+ {
+ verbPush()
+ }
  }
 bridgeChainsaw = 
  {
@@ -303,6 +513,85 @@ bridgeChainsaw =
  {
    name = "@25694"
    initState = ON
+   count = 0
+    verbLookAt = function()
+    {
+        if (objectState(this) == ON) {
+            if (g.openingScene == 1 && borisNote.readNote) {
+                switch(++count) {
+                case 1:
+                sayLine(boris, "@25695")
+                break;
+                case 2:
+                sayLine(boris, "@25696")
+                break;
+                case 3:
+                sayLine(boris, "@25697")
+                break;
+                default:
+                sayLine(boris, "@25698")
+                }
+                } else {
+                if (isBoris()) {
+                sayLine(boris, "@25699")
+                } else {
+                sayLine("@25704")
+                }
+            }				
+        } else {
+            if (isBoris()) {
+            sayLine(boris, "@25700")
+            } else {
+            sayLine("@25701")
+            }
+        }
+    }
+    verbUse = function(obj=null)
+    {
+        noReach()
+        if (g.openingScene == 1) {
+        if (objectState(this) == ON) {
+        sayLine(boris, "@25702")
+        } else {
+        sayLine(boris, "@25703")
+        }
+        } else {
+        if (objectState(this) == ON) {
+        sayLine("@25704")
+        } else {
+        sayLine("@25705")
+        }
+        }
+    }
+    verbOpen = function()
+    {
+        noReach()
+        if (isBoris()) {
+        sayLine(boris, "@25706")
+        } else {
+        sayLineCantOpen(this)
+        }
+    }
+    verbClose = function()
+    {
+        verbUse()
+    }
+    verbPull = function()
+    {
+        if (g.openingScene == 1) {
+            if (objectState(this) == ON) {
+                sayLine(boris, "@30520")
+            } else {
+                verbUse()
+            }
+        } else {
+            verbUse()
+        }
+    }
+    verbPush = function()
+    {
+        verbPull()
+    }
  }
 bridgeRock =
  {
@@ -424,7 +713,7 @@ objectTouchable(Bridge.bridgeGate, YES)
  actorWalkTo(currentActor, Bridge.pathSpot)
  }
  if (objectState(Bridge.bridgeGrateTree) == ON) {		
- walkboxHidden("fallen_tree", YES)
+ // TODO: walkboxHidden("fallen_tree", YES)
   objectSort(Bridge.bridgeGrateTree, 73)
   objectOffset(Bridge.bridgeGrateTree, 27, -34)
   } else {																						
@@ -504,12 +793,6 @@ objectTouchable(Bridge.bridgeGate, YES)
  }
 }
 
-defineRoom(Bridge)
-foreach(obj in Bridge) { 
-    if("name" in obj){
-        print("$$$$$$ obj: "+obj.name+"\n")
-    }
-}
 
 willie <- { 
  _key = "willie"
@@ -525,42 +808,6 @@ function williePassedOutCostume()
  actorLockFacing(willie, FACE_RIGHT)
  objectHotspot(willie, -28,0,20,50)
 }
-const defaultTextOffset = 90
-
-boris <- {
-    _key = "boris"
-    name = "@30072"
-    fullname = "@30073"
-    icon = "icon_boris"
-    detective = NO
-    function showHideLayers() {
-        actorHideLayer(boris, "splash")
-    }
-    function defaultClickedAt(x, y) {	
-    }
-}
-createActor(boris)
-actorRenderOffset(boris, 0, 45)
-defineVerbs(1)
-verbUIColors(1, {	nameid = "boris", sentence = 0xffffff, 
- verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
- verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
- inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
-
-
-function borisCostume()
-{
- actorCostume(boris, "BorisAnimation")
-//  actorWalkSpeed(boris, 30, 15)
- actorRenderOffset(boris, 0, 45)
- actorTalkColors(boris, talkColorBoris)
-actorTalkOffset(boris, 0, defaultTextOffset)
- actorHidden(boris, OFF)
-//  objectLit(boris, 1)
-//  footstepsNormal(boris)
- boris.showHideLayers()
-}
-borisCostume()
 
 function actorEyesLook(actor, dir) {
  if (actor) {
@@ -611,12 +858,13 @@ settings <- {
 
 // Globals.nut
 g <- {
-    openingScene = 0
+    openingScene = 1
     willie_sleeping = NO
     easy_mode = NO
     in_video_flashback = NO
     act4 = NO
-    hint_stage = 1		
+    hint_stage = 1	
+    taken_photo = NO		
 }
 // MusicHelpers.nut
 _watchMusicTID <- 0
@@ -712,100 +960,12 @@ function startMusic(music = 0, pool = null, cross_fade = YES) {
  }
 }
 
-// Bridge.nut
-function newOpeningScene() {
-    roomFade(FADE_OUT, 0)
-    // TODO: actorSlotSelectable(OFF)
-    // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
-    actorAt(boris, Bridge.borisStartSpot)
-    actorFace(boris, FACE_RIGHT)
-    pickupObject(Bridge.borisNote, boris)
-    pickupObject(Bridge.borisWallet, boris)
-    pickupObject(Bridge.borisHotelKeycard, boris)
-    pickupObject(Bridge.borisPrototypeToy, boris)
-    // TODO: setRoomNumber(borisHotelKeycard)
-    // TODO: setKeycardName(borisHotelKeycard)
-    Bridge.speck_of_dust <- NO	
-    // TODO: actorSlotSelectable(ray, OFF)
-    // TODO: actorSlotSelectable(reyes, OFF)
-    
-    // TODO: lot of code
-
-    startMusic(musicBridgeA, bridgeMusicPool)
-    cameraInRoom(Bridge)
-
-    Bridge.bridgeGate.gate_state = CLOSED
-    objectState(Bridge.bridgeBody, GONE)
-    objectState(Bridge.bridgeBottle, GONE)
-    objectState(Bridge.bridgeChainsaw, GONE)
-    objectTouchable(Bridge.bridgeGateBack, YES)
-    objectTouchable(Bridge.bridgeGate, NO)
-    williePassedOutCostume()
-    actorAt(willie, Bridge.willieSpot)
-    actorUsePos(willie, Bridge.willieTalkSpot)
-    willie.dialog = "WillieBorisDialog"
-    actorPlayAnimation(willie, "awake")
-    objectState(Bridge.willieObject, HERE)
-    objectTouchable(Bridge.willieObject, YES)
-    cameraAt(700,86)
-    roomFade(FADE_IN, 2)
-    breaktime(6)
-    cameraPanTo(210, 86, 12, EASE_INOUT)
-    startthread(Bridge.trainPassby)
-    breaktime(2)
-    breaktime(12.0)
-    actorPlayAnimation(willie, "drink")
-    breakwhileanimating(willie)
-    actorPlayAnimation(willie, "awake")
-    breaktime(2)
-    selectActor(boris)
-    actorWalkTo(boris, Bridge.bridgeGateBack)
-    breakwhilewalking(boris)
-    cameraFollow(boris)
-    breaktime(1.0)
-    sayLine(boris, "@25541", 
-    "@25542")
-    breakwhiletalking(boris)
-
-    actorBlinks(boris, OFF)
-    actorEyesLook(boris, DIR_RIGHT)
-    breaktime(0.5)
-    actorEyesLook(boris, DIR_FRONT)
-    breaktime(0.15)
-    actorEyesLook(boris, DIR_LEFT)
-    breaktime(0.5)
-    actorEyesLook(boris, DIR_FRONT)
-    breaktime(0.15)
-    actorEyesLook(boris, DIR_RIGHT)
-    breaktime(0.5)
-    actorEyesLook(boris, DIR_FRONT)
-    breaktime(0.25)
-    actorBlinks(boris, ON)
-    
-    sayLine(boris, "@25543")
-    breakwhiletalking(boris)
-    breaktime(0.5)
-    sayLine(boris, "@25544")
-
-    inputVerbs(ON)
-    inputOn()
-    print("end :D\n")
-}
-
-g.openingScene = 1
-local tid = startthread(newOpeningScene)
-// print("thread: "+tid+"\n")
-// breakhere(1000)
-// print("stop thread\n")
-// stopthread(tid)
-
 AStreet <- 
 {
  background = "AStreet"
  enter = function() {
  }
 }
-defineRoom(AStreet)
 
 MansionEntry <- 
 {
@@ -813,7 +973,6 @@ MansionEntry <-
  enter = function() {
  }
 }
-defineRoom(MansionEntry)
 
 SheriffsOffice <- 
 {
@@ -821,15 +980,12 @@ SheriffsOffice <-
  enter = function() {
  }
 }
-defineRoom(SheriffsOffice)
-
 QuickiePal <- 
 {
  background = "QuickiePal"
  enter = function() {
  }
 }
-defineRoom(QuickiePal)
 
 QuickiePalOutside <- 
 {
@@ -837,7 +993,6 @@ QuickiePalOutside <-
  enter = function() {
  }
 }
-defineRoom(QuickiePalOutside)
 
 Cemetery <- 
 {
@@ -845,7 +1000,6 @@ Cemetery <-
  enter = function() {
  }
 }
-defineRoom(Cemetery)
 
 HotelLobby <- 
 {
@@ -853,7 +1007,6 @@ HotelLobby <-
  enter = function() {
  }
 }
-defineRoom(HotelLobby)
 
 Alleyway <- 
 {
@@ -861,7 +1014,6 @@ Alleyway <-
  enter = function() {
  }
 }
-defineRoom(Alleyway)
 
 MansionLibrary <- 
 {
@@ -869,7 +1021,6 @@ MansionLibrary <-
  enter = function() {
  }
 }
-defineRoom(MansionLibrary)
 
 ChucksOffice <- 
 {
@@ -877,7 +1028,6 @@ ChucksOffice <-
  enter = function() {
  }
 }
-defineRoom(ChucksOffice)
 
 CircusEntrance <- 
 {
@@ -885,7 +1035,6 @@ CircusEntrance <-
  enter = function() {
  }
 }
-defineRoom(CircusEntrance)
 
 CoronersOffice <- 
 {
@@ -893,7 +1042,6 @@ CoronersOffice <-
  enter = function() {
  }
 }
-defineRoom(CoronersOffice)
 
 StartScreen <-
 {
@@ -966,7 +1114,6 @@ StartScreen <-
     fadeOutSound(_music, 1.0)
  }
 }
-defineRoom(StartScreen)
 
 Opening <-
 {
@@ -1144,7 +1291,6 @@ Opening <-
 
  function hideAll() {
     foreach(obj in this) { 
-        print("obj: "+obj+"\n")
         if (isObject(obj)) { 
             objectHidden(obj, YES) 
         }
@@ -1166,10 +1312,108 @@ Opening <-
  openingBulletHole = { name = "" }
  opening1987 = { name = "" }
 }
-defineRoom(Opening)
 
 // Opening.playOpening()
 
 // cameraInRoom(QuickiePal)
 // roomFade(FADE_IN, 2)
 
+defineRoom(Bridge)
+// defineRoom(StartScreen)
+// defineRoom(AStreet)
+// defineRoom(MansionEntry)
+// defineRoom(SheriffsOffice)
+// defineRoom(QuickiePal)
+// defineRoom(QuickiePalOutside)
+// defineRoom(Cemetery)
+// defineRoom(HotelLobby)
+// defineRoom(Alleyway)
+// defineRoom(MansionLibrary)
+// defineRoom(ChucksOffice)
+// defineRoom(CircusEntrance)
+// defineRoom(CoronersOffice)
+// defineRoom(Opening)
+
+function newOpeningScene() {
+    // inputOn()
+    // inputVerbs(ON)
+    roomFade(FADE_OUT, 0)
+    // TODO: actorSlotSelectable(OFF)
+    // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
+    actorAt(boris, Bridge.borisStartSpot)
+    actorFace(boris, FACE_RIGHT)
+    pickupObject(Bridge.borisNote, boris)
+    pickupObject(Bridge.borisWallet, boris)
+    pickupObject(Bridge.borisHotelKeycard, boris)
+    pickupObject(Bridge.borisPrototypeToy, boris)
+    // TODO: setRoomNumber(borisHotelKeycard)
+    // TODO: setKeycardName(borisHotelKeycard)
+    Bridge.speck_of_dust <- NO	
+    // TODO: actorSlotSelectable(ray, OFF)
+    // TODO: actorSlotSelectable(reyes, OFF)
+    
+    // TODO: lot of code
+
+    startMusic(musicBridgeA, bridgeMusicPool)
+    cameraInRoom(Bridge)
+
+    Bridge.bridgeGate.gate_state = CLOSED
+    objectState(Bridge.bridgeBody, GONE)
+    objectState(Bridge.bridgeBottle, GONE)
+    objectState(Bridge.bridgeChainsaw, GONE)
+    objectTouchable(Bridge.bridgeGateBack, YES)
+    objectTouchable(Bridge.bridgeGate, NO)
+    williePassedOutCostume()
+    actorAt(willie, Bridge.willieSpot)
+    actorUsePos(willie, Bridge.willieTalkSpot)
+    willie.dialog = "WillieBorisDialog"
+    actorPlayAnimation(willie, "awake")
+    objectState(Bridge.willieObject, HERE)
+    objectTouchable(Bridge.willieObject, YES)
+    cameraAt(700,86)
+    roomFade(FADE_IN, 2)
+    breaktime(6)
+    cameraPanTo(210, 86, 12, EASE_INOUT)
+    startthread(Bridge.trainPassby)
+    breaktime(2)
+    breaktime(12.0)
+    actorPlayAnimation(willie, "drink")
+    breakwhileanimating(willie)
+    actorPlayAnimation(willie, "awake")
+    breaktime(2)
+    selectActor(boris)
+    actorWalkTo(boris, Bridge.bridgeGateBack)
+    breakwhilewalking(boris)
+    cameraFollow(boris)
+    breaktime(1.0)
+    sayLine(boris, "@25541", 
+    "@25542")
+    breakwhiletalking(boris)
+
+    actorBlinks(boris, OFF)
+    actorEyesLook(boris, DIR_RIGHT)
+    breaktime(0.5)
+    actorEyesLook(boris, DIR_FRONT)
+    breaktime(0.15)
+    actorEyesLook(boris, DIR_LEFT)
+    breaktime(0.5)
+    actorEyesLook(boris, DIR_FRONT)
+    breaktime(0.15)
+    actorEyesLook(boris, DIR_RIGHT)
+    breaktime(0.5)
+    actorEyesLook(boris, DIR_FRONT)
+    breaktime(0.25)
+    actorBlinks(boris, ON)
+    
+    sayLine(boris, "@25543")
+    breakwhiletalking(boris)
+    breaktime(0.5)
+    sayLine(boris, "@25544")
+
+    inputVerbs(ON)
+    inputOn()
+    print("end :D\n")
+}
+
+g.openingScene = 1
+local tid = startthread(newOpeningScene)
