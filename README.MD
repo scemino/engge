@@ -2,7 +2,7 @@
 
 engge is an **experimental** game engine, its purpose is to be able (one day) to run Thimbleweed park.
 
-![engge](https://imgur.com/En75Mzx)
+![engge](https://i.imgur.com/En75Mzx.png)
 
 # Prerequisites
 
