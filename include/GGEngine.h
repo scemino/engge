@@ -50,9 +50,9 @@ public:
 
   std::vector<std::unique_ptr<GGActor>> &getActors() { return _actors; }
 
-  void loopMusic(const std::string &name);
   std::shared_ptr<SoundDefinition> defineSound(const std::string &name);
   std::shared_ptr<SoundId> playSound(SoundDefinition &soundDefinition, bool loop = false);
+  std::shared_ptr<SoundId> loopMusic(SoundDefinition &soundDefinition);
   void stopSound(SoundId &sound);
 
   void update(const sf::Time &elapsed);

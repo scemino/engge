@@ -983,7 +983,7 @@ SheriffsOffice <-
 QuickiePal <- 
 {
  background = "QuickiePal"
- enter = function() {
+ enter = function(door) {
  }
 }
 
@@ -1091,10 +1091,10 @@ StartScreen <-
     } while(1)
  }
 
- enter = function()
+ enter = function(door)
  {
     ""
-    stopMusic()
+    // TODO: stopMusic()
     _music = loopMusic(musicStartScreen)
     // actorSlotSelectable(OFF)
 
@@ -1312,11 +1312,9 @@ Opening <-
  openingBulletHole = { name = "" }
  opening1987 = { name = "" }
 }
-// cameraInRoom(QuickiePal)
-// roomFade(FADE_IN, 2)
 
 defineRoom(Bridge)
-// defineRoom(StartScreen)
+defineRoom(StartScreen)
 // defineRoom(AStreet)
 // defineRoom(MansionEntry)
 // defineRoom(SheriffsOffice)
@@ -1329,8 +1327,10 @@ defineRoom(Bridge)
 // defineRoom(ChucksOffice)
 // defineRoom(CircusEntrance)
 // defineRoom(CoronersOffice)
-defineRoom(Opening)
-Opening.playOpening()
+// defineRoom(Opening)
+// Opening.playOpening()
+// cameraInRoom(StartScreen)
+// roomFade(FADE_IN, 2.0)
 
 function newOpeningScene() {
     // inputOn()
@@ -1416,4 +1416,3 @@ function newOpeningScene() {
 
 g.openingScene = 1
 // local tid = startthread(newOpeningScene)
-// cameraInRoom(StartScreen)

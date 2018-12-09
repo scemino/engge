@@ -138,11 +138,12 @@ class _SoundPack : public Pack
     static SQInteger loopMusic(HSQUIRRELVM v)
     {
         const SQChar *filename;
-        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        SoundDefinition *pSound = nullptr;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
         {
-            return sq_throwerror(v, _SC("failed to get filename"));
+            return sq_throwerror(v, _SC("failed to get music"));
         }
-        g_pEngine->loopMusic(filename);
+        g_pEngine->loopMusic(*pSound);
         return 0;
     }
 

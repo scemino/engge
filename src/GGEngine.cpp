@@ -187,19 +187,6 @@ void GGEngine::update(const sf::Time &elapsed)
     }
 }
 
-void GGEngine::loopMusic(const std::string &name)
-{
-    std::string path(_settings.getGamePath());
-    path.append(name).append(".ogg");
-    if (!_music.openFromFile(path))
-    {
-        std::cerr << "Can't load the music" << std::endl;
-        return;
-    }
-    _music.setLoop(true);
-    _music.play();
-}
-
 std::shared_ptr<SoundDefinition> GGEngine::defineSound(const std::string &name)
 {
     std::string path(_settings.getGamePath());
@@ -220,6 +207,14 @@ std::shared_ptr<SoundId> GGEngine::playSound(SoundDefinition &soundDefinition, b
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     _soundIds.push_back(soundId);
     soundId->play(loop);
+    return soundId;
+}
+
+std::shared_ptr<SoundId> GGEngine::loopMusic(SoundDefinition &soundDefinition)
+{
+    auto soundId = std::make_shared<SoundId>(soundDefinition);
+    _soundIds.push_back(soundId);
+    soundId->play(true);
     return soundId;
 }
 
