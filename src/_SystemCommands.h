@@ -6,38 +6,51 @@
 
 namespace gg
 {
-class _BreakHereFunction : public Function
+class _BreakFunction : public Function
 {
   private:
+    GGEngine &_engine;
     HSQUIRRELVM _vm;
 
   public:
-    explicit _BreakHereFunction(HSQUIRRELVM vm)
-        : _vm(vm)
+    explicit _BreakFunction(GGEngine &engine, HSQUIRRELVM vm)
+        : _engine(engine), _vm(vm)
     {
     }
 
     void operator()() override
     {
+        if (!_engine.isThreadAlive(_vm))
+            return;
+        if (!isElapsed())
+            return;
         if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
             return;
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
-            std::cerr << "_BreakHereFunction: failed to wakeup: " << _vm << std::endl;
+            std::cerr << "_BreakFunction: failed to wakeup: " << _vm << std::endl;
             sqstd_printcallstack(_vm);
         }
     }
 };
 
-class _BreakWhileAnimatingFunction : public Function
+class _BreakHereFunction : public _BreakFunction
+{
+  public:
+    explicit _BreakHereFunction(GGEngine &engine, HSQUIRRELVM vm)
+        : _BreakFunction(engine, vm)
+    {
+    }
+};
+
+class _BreakWhileAnimatingFunction : public _BreakFunction
 {
   private:
-    HSQUIRRELVM _vm;
     GGActor &_actor;
 
   public:
-    explicit _BreakWhileAnimatingFunction(HSQUIRRELVM vm, GGActor &actor)
-        : _vm(vm), _actor(actor)
+    explicit _BreakWhileAnimatingFunction(GGEngine &engine, HSQUIRRELVM vm, GGActor &actor)
+        : _BreakFunction(engine, vm), _actor(actor)
     {
     }
 
@@ -46,31 +59,16 @@ class _BreakWhileAnimatingFunction : public Function
         bool isPlaying = _actor.getCostume().getAnimation()->isPlaying();
         return !isPlaying;
     }
-
-    void operator()() override
-    {
-        if (!isElapsed())
-            return;
-
-        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-            return;
-        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-        {
-            std::cerr << "_BreakWhileAnimatingFunction: failed to wakeup: " << _vm << std::endl;
-            sqstd_printcallstack(_vm);
-        }
-    }
 };
 
-class _BreakWhileWalkingFunction : public Function
+class _BreakWhileWalkingFunction : public _BreakFunction
 {
   private:
-    HSQUIRRELVM _vm;
     GGActor &_actor;
 
   public:
-    explicit _BreakWhileWalkingFunction(HSQUIRRELVM vm, GGActor &actor)
-        : _vm(vm), _actor(actor)
+    explicit _BreakWhileWalkingFunction(GGEngine &engine, HSQUIRRELVM vm, GGActor &actor)
+        : _BreakFunction(engine, vm), _actor(actor)
     {
     }
 
@@ -80,31 +78,16 @@ class _BreakWhileWalkingFunction : public Function
         bool isElapsed = name != "walk";
         return isElapsed;
     }
-
-    void operator()() override
-    {
-        if (!isElapsed())
-            return;
-
-        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-            return;
-        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-        {
-            std::cerr << "_BreakWhileWalkingFunction: failed to wakeup: " << _vm << std::endl;
-            sqstd_printcallstack(_vm);
-        }
-    }
 };
 
-class _BreakWhileTalkingFunction : public Function
+class _BreakWhileTalkingFunction : public _BreakFunction
 {
   private:
-    HSQUIRRELVM _vm;
     GGActor &_actor;
 
   public:
-    explicit _BreakWhileTalkingFunction(HSQUIRRELVM vm, GGActor &actor)
-        : _vm(vm), _actor(actor)
+    explicit _BreakWhileTalkingFunction(GGEngine &engine, HSQUIRRELVM vm, GGActor &actor)
+        : _BreakFunction(engine, vm), _actor(actor)
     {
     }
 
@@ -112,31 +95,16 @@ class _BreakWhileTalkingFunction : public Function
     {
         return !_actor.isTalking();
     }
-
-    void operator()() override
-    {
-        if (!isElapsed())
-            return;
-
-        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-            return;
-        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-        {
-            std::cerr << "_BreakWhileTalkingFunction: failed to wakeup: " << _vm << std::endl;
-            sqstd_printcallstack(_vm);
-        }
-    }
 };
 
-class _BreakWhileSoundFunction : public Function
+class _BreakWhileSoundFunction : public _BreakFunction
 {
   private:
-    HSQUIRRELVM _vm;
     SoundId &_soundId;
 
   public:
-    explicit _BreakWhileSoundFunction(HSQUIRRELVM vm, SoundId &soundId)
-        : _vm(vm), _soundId(soundId)
+    explicit _BreakWhileSoundFunction(GGEngine &engine, HSQUIRRELVM vm, SoundId &soundId)
+        : _BreakFunction(engine, vm), _soundId(soundId)
     {
     }
 
@@ -144,30 +112,17 @@ class _BreakWhileSoundFunction : public Function
     {
         return !_soundId.isPlaying();
     }
-
-    void operator()() override
-    {
-        if (!isElapsed())
-            return;
-
-        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-            return;
-        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-        {
-            std::cerr << "_BreakWhileSoundFunction: failed to wakeup: " << _vm << std::endl;
-            sqstd_printcallstack(_vm);
-        }
-    }
 };
 
 class _BreakTimeFunction : public TimeFunction
 {
   private:
     HSQUIRRELVM _vm;
+    GGEngine &_engine;
 
   public:
-    _BreakTimeFunction(HSQUIRRELVM vm, const sf::Time &time)
-        : TimeFunction(time), _vm(vm)
+    _BreakTimeFunction(GGEngine &engine, HSQUIRRELVM vm, const sf::Time &time)
+        : TimeFunction(time), _vm(vm), _engine(engine)
     {
     }
 
@@ -175,6 +130,8 @@ class _BreakTimeFunction : public TimeFunction
     {
         if (isElapsed())
         {
+            if (!_engine.isThreadAlive(_vm))
+                return;
             if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
                 return;
             if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
@@ -217,7 +174,7 @@ class _SystemPack : public Pack
     static SQInteger breakhere(HSQUIRRELVM v)
     {
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(v));
+        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, v));
         return result;
     }
 
@@ -229,7 +186,7 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(v, *pActor));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
         return result;
     }
 
@@ -241,7 +198,7 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("failed to get sound"));
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(v, *pSound));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, v, *pSound));
         return result;
     }
 
@@ -253,7 +210,7 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(v, *pActor));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(*g_pEngine, v, *pActor));
         return result;
     }
 
@@ -265,21 +222,21 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(v, *pActor));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, v, *pActor));
         return result;
     }
 
     static SQInteger stopthread(HSQUIRRELVM v)
     {
         HSQOBJECT thread_obj;
-        sq_resetobject(&thread_obj);
         if (SQ_FAILED(sq_getstackobj(v, 2, &thread_obj)))
         {
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
+        std::cout << "stopthread " << thread_obj._unVal.pThread << std::endl;
+        g_pEngine->stopThread(thread_obj._unVal.pThread);
         sq_release(v, &thread_obj);
-        std::cout << "stopthread " << std::endl;
-        // sq_suspendvm(thread_obj._unVal.pThread);
+
         return 0;
     }
 
@@ -337,8 +294,12 @@ class _SystemPack : public Pack
             return SQ_ERROR;
         }
 
+        // create a table for a thread
         sq_addref(v, &thread_obj);
         sq_pushobject(v, thread_obj);
+
+        std::cout << "start thread: " << thread_obj._unVal.pThread << std::endl;
+        g_pEngine->addThread(thread_obj._unVal.pThread);
 
         return 1;
     }
@@ -351,7 +312,7 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("failed to get time"));
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(v, sf::seconds(time)));
+        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(*g_pEngine, v, sf::seconds(time)));
         return result;
     }
 

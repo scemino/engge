@@ -19,7 +19,7 @@ class VerbExecute
 {
 public:
   virtual ~VerbExecute() = default;
-  virtual void execute(GGObject *pObject, const Verb* pVerb) = 0;
+  virtual void execute(GGObject *pObject, const Verb *pVerb) = 0;
 };
 
 class GGEngine : public NonCopyable
@@ -76,6 +76,10 @@ public:
   void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pVerbExecute = std::move(verbExecute); }
   const Verb *getVerb(const std::string &id) const;
 
+  void addThread(HSQUIRRELVM thread) { _threads.push_back(thread); }
+  void stopThread(HSQUIRRELVM thread);
+  bool isThreadAlive(HSQUIRRELVM thread) const;
+
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
@@ -120,6 +124,7 @@ private:
   GGObject *_pCurrentObject;
   sf::Vector2f _mousePos;
   std::unique_ptr<VerbExecute> _pVerbExecute;
-  const Verb* _pVerb;
+  const Verb *_pVerb;
+  std::vector<HSQUIRRELVM> _threads;
 };
 } // namespace gg

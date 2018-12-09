@@ -81,7 +81,7 @@ verbUIColors(1, {	nameid = "boris", sentence = 0xffffff,
 function borisCostume()
 {
  actorCostume(boris, "BorisAnimation")
-//  actorWalkSpeed(boris, 30, 15)
+ actorWalkSpeed(boris, 30, 15)
  actorRenderOffset(boris, 0, 45)
  actorTalkColors(boris, talkColorBoris)
 actorTalkOffset(boris, 0, defaultTextOffset)
@@ -1297,7 +1297,7 @@ Opening <-
     }
  }
 
- enter = function()
+ enter = function(door)
  {
     ""
     hideAll()
@@ -1312,9 +1312,6 @@ Opening <-
  openingBulletHole = { name = "" }
  opening1987 = { name = "" }
 }
-
-// Opening.playOpening()
-
 // cameraInRoom(QuickiePal)
 // roomFade(FADE_IN, 2)
 
@@ -1332,11 +1329,13 @@ defineRoom(Bridge)
 // defineRoom(ChucksOffice)
 // defineRoom(CircusEntrance)
 // defineRoom(CoronersOffice)
-// defineRoom(Opening)
+defineRoom(Opening)
+Opening.playOpening()
 
 function newOpeningScene() {
     // inputOn()
     // inputVerbs(ON)
+    //selectActor(boris)
     roomFade(FADE_OUT, 0)
     // TODO: actorSlotSelectable(OFF)
     // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
@@ -1416,4 +1415,5 @@ function newOpeningScene() {
 }
 
 g.openingScene = 1
-local tid = startthread(newOpeningScene)
+// local tid = startthread(newOpeningScene)
+// cameraInRoom(StartScreen)

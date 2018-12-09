@@ -423,4 +423,17 @@ void GGEngine::drawInventory(sf::RenderWindow &window) const
     }
 }
 
+bool GGEngine::isThreadAlive(HSQUIRRELVM thread) const
+{
+    return std::find(_threads.begin(), _threads.end(), thread) != _threads.end();
+}
+
+void GGEngine::stopThread(HSQUIRRELVM thread)
+{
+    auto it = std::find(_threads.begin(), _threads.end(), thread);
+    if (it == _threads.end())
+        return;
+    _threads.erase(it);
+}
+
 } // namespace gg
