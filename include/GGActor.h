@@ -12,6 +12,24 @@ namespace gg
 {
 class GGRoom;
 class GGObject;
+
+class GGActor;
+
+class WalkingState
+{
+public:
+  WalkingState(GGActor &actor);
+
+  void setDestination(const sf::Vector2f &destination);
+  void update(const sf::Time &elapsed);
+  bool isWalking() const { return _isWalking; }
+
+private:
+  GGActor &_actor;
+  sf::Vector2f _destination;
+  bool _isWalking;
+}; // namespace gg
+
 class GGActor : public GGEntity
 {
 public:
@@ -25,9 +43,6 @@ public:
   bool isVisible() const { return _isVisible; }
 
   void useWalkboxes(bool use) { _use = use; }
-
-  void setTable(HSQOBJECT table) { _table = table; }
-  HSQOBJECT getTable() const { return _table; }
 
   int getZOrder() const override;
 
@@ -61,6 +76,14 @@ public:
   void pickupObject(const std::string &icon) { _icons.push_back(icon); }
   const std::vector<std::string> &getObjects() const { return _icons; }
 
+  void setWalkSpeed(const sf::Vector2i &speed) { _speed = speed; }
+  const sf::Vector2i& getWalkSpeed() const { return _speed; }
+  void walkTo(const sf::Vector2f &destination)
+  {
+    _walkingState.setDestination(destination);
+  }
+  bool isWalking() const { return _walkingState.isWalking(); }
+
 private:
   const GGEngineSettings &_settings;
   GGCostume _costume;
@@ -72,11 +95,12 @@ private:
   GGFont _font;
   std::string _sayText;
   int _zorder;
-  HSQOBJECT _table;
   bool _isVisible;
   bool _use;
   GGRoom *_pRoom;
   sf::IntRect _hotspot;
   std::vector<std::string> _icons;
+  WalkingState _walkingState;
+  sf::Vector2i _speed;
 };
 } // namespace gg

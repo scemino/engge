@@ -48,6 +48,8 @@ void GGCostume::setLayerVisible(const std::string &name, bool isVisible)
 
 void GGCostume::setFacing(Facing facing)
 {
+    if (_facing == facing)
+        return;
     _facing = facing;
     updateAnimation();
 }
@@ -55,6 +57,8 @@ void GGCostume::setFacing(Facing facing)
 void GGCostume::lockFacing(Facing facing)
 {
     // TODO: lock
+    if (_facing == facing)
+        return;
     _facing = facing;
     updateAnimation();
 }
@@ -175,7 +179,8 @@ void GGCostume::updateAnimation()
         name.append("front");
         break;
     case Facing::FACE_LEFT:
-        name.append("left");
+        // same as right but inverse
+        name.append("right");
         break;
     case Facing::FACE_RIGHT:
         name.append("right");

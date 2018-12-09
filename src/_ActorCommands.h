@@ -73,9 +73,10 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorTalkOffset, "actorTalkOffset");
         engine.registerGlobalFunction(actorUsePos, "actorUsePos");
         engine.registerGlobalFunction(actorUseWalkboxes, "actorUseWalkboxes");
+        engine.registerGlobalFunction(actorWalking, "actorWalking");
+        engine.registerGlobalFunction(actorWalkSpeed, "actorWalkSpeed");
         engine.registerGlobalFunction(actorWalkTo, "actorWalkTo");
         engine.registerGlobalFunction(actorWalkForward, "actorWalkForward");
-        engine.registerGlobalFunction(actorWalkTo, "actorWalkTo");
         engine.registerGlobalFunction(createActor, "createActor");
         engine.registerGlobalFunction(currentActor, "currentActor");
         engine.registerGlobalFunction(isActor, "isActor");
@@ -537,22 +538,6 @@ class _ActorPack : public Pack
         return 0;
     }
 
-    static void actorWalkTo(GGActor *pActor, sf::Vector2f destination)
-    {
-        auto get = std::bind(&GGActor::getPosition, pActor);
-        auto set = std::bind(&GGActor::setPosition, pActor, std::placeholders::_1);
-
-        // yes I known this is not enough, I need to take into account the walkbox
-        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(4));
-        std::cout << "Play anim walk (loop)" << std::endl;
-        pActor->getCostume().setState("walk");
-        pActor->getCostume().getAnimation()->play(true);
-        offsetTo->callWhenElapsed([pActor] { 
-        std::cout << "Play anim stand" << std::endl;
-        pActor->getCostume().setState("stand"); });
-        g_pEngine->addFunction(std::move(offsetTo));
-    }
-
     static SQInteger actorWalkForward(HSQUIRRELVM v)
     {
         GGActor *actor = ScriptEngine::getActor(v, 2);
@@ -565,11 +550,50 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get distance"));
         }
-        actorWalkTo(actor, actor->getPosition() + sf::Vector2f(distance, 0));
+        actor->walkTo(actor->getPosition() + sf::Vector2f(distance, 0));
         return 0;
     }
-    // TODO: static SQInteger actorWalking(HSQUIRRELVM v)
-    // TODO: static SQInteger actorWalkSpeed(HSQUIRRELVM v)
+
+    static SQInteger actorWalking(HSQUIRRELVM v)
+    {
+        auto numArgs = sq_gettop(v) - 1;
+        GGActor *pActor = nullptr;
+        if (numArgs == 0)
+        {
+            pActor = g_pEngine->getCurrentActor();
+        }
+        else if (numArgs == 1)
+        {
+            pActor = ScriptEngine::getActor(v, 2);
+        }
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        sq_pushroottable(v);
+        sq_pushbool(v, pActor->isWalking() ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger actorWalkSpeed(HSQUIRRELVM v)
+    {
+        auto pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        SQInteger x, y;
+        if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        pActor->setWalkSpeed(sf::Vector2i(x, y));
+        return 0;
+    }
 
     static SQInteger actorWalkTo(HSQUIRRELVM v)
     {
@@ -583,7 +607,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        actorWalkTo(pActor, pObject->getPosition());
+        pActor->walkTo(pObject->getPosition());
 
         return 0;
     }
@@ -612,7 +636,7 @@ class _ActorPack : public Pack
         // define instance
         auto pActor = std::make_unique<GGActor>(g_pEngine->getTextureManager());
         pActor->setName(key);
-        pActor->setTable(table);
+        // pActor->setTable(table);
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pActor.get());
@@ -648,7 +672,8 @@ class _ActorPack : public Pack
         sq_newarray(v, 0);
         for (auto &actor : actors)
         {
-            sq_pushobject(v, actor->getTable());
+            // TODO:
+            // sq_pushobject(v, actor->getTable());
             sq_arrayappend(v, -2);
         }
         return 1;
@@ -685,9 +710,10 @@ class _ActorPack : public Pack
         std::cout << "Play anim talk (loop)" << std::endl;
 
         std::string name = str_toupper(actor->getName()).append("_").append(s);
-        
+
         auto soundDefinition = g_pEngine->defineSound(name + ".ogg");
-        if(!soundDefinition) return 0;
+        if (!soundDefinition)
+            return 0;
 
         g_pEngine->playSound(*soundDefinition);
 
@@ -728,7 +754,8 @@ class _ActorPack : public Pack
         {
             if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
             {
-                sq_pushobject(v, actor->getTable());
+                // TODO:
+                // sq_pushobject(v, actor->getTable());
                 sq_arrayappend(v, -2);
             }
         }
@@ -775,7 +802,7 @@ class _ActorPack : public Pack
         }
         if (!sq_istable(table))
         {
-            const SQChar* tmp;
+            const SQChar *tmp;
             sq_getstring(v, 3, &tmp);
             return sq_throwerror(v, _SC("failed to get verb definitionTable"));
         }

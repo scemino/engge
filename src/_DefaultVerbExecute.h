@@ -70,7 +70,8 @@ class _DefaultVerbExecute : public VerbExecute
                 }
 
                 pVerb = _engine.getVerb(verb);
-                if(!pVerb) return;
+                if (!pVerb)
+                    return;
                 auto func = pVerb->func;
 
                 sq_pop(_vm, 2); //pops the roottable and the function
@@ -84,6 +85,10 @@ class _DefaultVerbExecute : public VerbExecute
                     sq_pushobject(_vm, obj);
                     sq_call(_vm, 1, SQFalse, SQTrue);
                     sq_pop(_vm, 2); //pops the roottable and the function
+                }
+                else if (pVerb->id == "walkto")
+                {
+                    _engine.getCurrentActor()->walkTo(pObject->getPosition());
                 }
             }
         }

@@ -3,6 +3,47 @@
 
 namespace gg
 {
+WalkingState::WalkingState(GGActor &actor)
+    : _actor(actor), _isWalking(false)
+{
+}
+
+void WalkingState::setDestination(const sf::Vector2f &destination)
+{
+    _destination = destination;
+    auto pos = _actor.getPosition();
+    _actor.getCostume().setFacing(((_destination.x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
+    _actor.getCostume().setState("walk");
+    _actor.getCostume().getAnimation()->play(true);
+    _isWalking = true;
+}
+
+void WalkingState::update(const sf::Time &elapsed)
+{
+    if (!_isWalking)
+        return;
+
+    auto pos = _actor.getPosition();
+    auto delta = (_destination - pos);
+    auto speed = _actor.getWalkSpeed();
+    auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
+    if (offset.x > delta.x)
+        offset.x = delta.x;
+    if (offset.x < -delta.x)
+        offset.x = -delta.x;
+    if (offset.y < -delta.y)
+        offset.y = -delta.y;
+    if (offset.y > delta.y)
+        offset.y = delta.y;
+    _actor.setPosition(pos + offset);
+    if (fabs(_destination.x - pos.x) <= 1 && fabs(_destination.y - pos.y) <= 1)
+    {
+        _isWalking = false;
+        std::cout << "Play anim stand" << std::endl;
+        _actor.getCostume().setState("stand");
+    };
+}
+
 GGActor::GGActor(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _costume(textureManager),
@@ -11,7 +52,9 @@ GGActor::GGActor(TextureManager &textureManager)
       _zorder(0),
       _isVisible(true),
       _use(true),
-      _pRoom(nullptr)
+      _pRoom(nullptr),
+      _walkingState(*this),
+      _speed(30, 15)
 {
     _font.setSettings(&_settings);
     _font.setTextureManager(&textureManager);
@@ -69,8 +112,9 @@ void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     target.draw(text, states);
 }
 
-void GGActor::update(const sf::Time &time)
+void GGActor::update(const sf::Time &elapsed)
 {
-    _costume.update(time);
+    _costume.update(elapsed);
+    _walkingState.update(elapsed);
 }
 } // namespace gg

@@ -172,10 +172,17 @@ void GGEngine::update(const sf::Time &elapsed)
             _pVerb = &_verbSlots[0].getVerb(1 + verbId);
             std::cout << "select verb: " << _pVerb->id << std::endl;
         }
-
-        if (_pCurrentObject)
+        // else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
+        // {
+        //     _pCurrentActor->walkTo(_mousePos);
+        // }
+        else if (_pCurrentObject)
         {
             _pVerbExecute->execute(_pCurrentObject, _pVerb);
+        }
+        else
+        {
+            _pVerb = &_verbSlots[0].getVerb(0);
         }
     }
 }
