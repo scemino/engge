@@ -983,7 +983,7 @@ SheriffsOffice <-
 QuickiePal <- 
 {
  background = "QuickiePal"
- enter = function(door) {
+ enter = function() {
  }
 }
 
@@ -1091,7 +1091,7 @@ StartScreen <-
     } while(1)
  }
 
- enter = function(door)
+ enter = function()
  {
     ""
     // TODO: stopMusic()
@@ -1297,7 +1297,7 @@ Opening <-
     }
  }
 
- enter = function(door)
+ enter = function()
  {
     ""
     hideAll()
@@ -1415,4 +1415,4 @@ function newOpeningScene() {
 }
 
 g.openingScene = 1
-// local tid = startthread(newOpeningScene)
+local tid = startthread(newOpeningScene)

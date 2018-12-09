@@ -158,10 +158,17 @@ class _GeneralPack : public Pack
             return sq_throwerror(v, _SC("can't find enter function"));
         }
 
+        SQUnsignedInteger nparams, nfreevars;
+        sq_getclosureinfo(v, -1, &nparams, &nfreevars);
+        std::cout << "enter function found with " << nparams << " parameters" << std::endl;
+
         sq_remove(v, -2);
         sq_pushobject(v, table);
-        sq_pushnull(v); // TODO: push here the door
-        if (SQ_FAILED(sq_call(v, 2, SQTrue, SQTrue)))
+        if (nparams == 2)
+        {
+            sq_pushnull(v); // TODO: push here the door
+        }
+        if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
         {
             return sq_throwerror(v, _SC("function enter call failed"));
         }

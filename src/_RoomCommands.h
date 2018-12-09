@@ -136,14 +136,7 @@ class _RoomPack : public Pack
 
             sq_pushobject(v, object);
             sq_pushobject(v, table);
-            if (SQ_SUCCEEDED(sq_setdelegate(v, -2)))
-            {
-                std::cout << "sq_setdelegate: " << obj->getName() << " OK" << std::endl;
-            }
-            else
-            {
-                std::cout << "sq_setdelegate: " << obj->getName() << " failed!" << std::endl;
-            }
+            sq_setdelegate(v, -2);
         }
 
         g_pEngine->addRoom(std::move(pRoom));
