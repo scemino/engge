@@ -139,12 +139,12 @@ void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) co
     target.draw(s, states);
 
     sf::RectangleShape vl(sf::Vector2f(1, 5));
-    vl.setPosition(_usePos.x, _usePos.y - 2);
+    vl.setPosition(_usePos.x, -_usePos.y - 2);
     vl.setFillColor(sf::Color::Red);
     target.draw(vl, states);
 
     sf::RectangleShape hl(sf::Vector2f(5, 1));
-    hl.setPosition(_usePos.x - 2, _usePos.y);
+    hl.setPosition(_usePos.x - 2, -_usePos.y);
     hl.setFillColor(sf::Color::Red);
     target.draw(hl, states);
 }
