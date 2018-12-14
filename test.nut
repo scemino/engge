@@ -103,7 +103,7 @@ function noReach(actor = null) {
  if (!actorWalking(actor) && !actor.onLadder) actorStand(actor)	
 }
 
-// sound helpers.nut
+// soundhelpers.nut
 const AMBIENT_VOLUME = 0.25
 
 _soundAmbianceSID <- 0
@@ -607,6 +607,14 @@ bridgeRock =
  willieObject =
  {
  name = objectName(this, "@30087")
+ verbWalkTo = function()
+ {
+ }
+ verbDefault = function()
+ {
+ noReach()
+ startDialog("WillieBorisDialog")
+ }
  }
 bridgeTownSign = 
 {

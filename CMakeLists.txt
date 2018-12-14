@@ -11,7 +11,7 @@ set(SOURCES
     src/Game.cpp src/main.cpp src/GGActor.cpp src/GGAnimation.cpp src/GGCostume.cpp src/GGCostumeAnimation.cpp
     src/GGTextDatabase.cpp src/GGEngine.cpp src/GGFont.cpp src/GGLayer.cpp src/GGObject.cpp src/GGRoom.cpp
     src/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/GGTextObject.cpp src/RoomLayer.cpp src/GGLip.cpp
-    src/SoundDefinition.cpp src/SpriteSheet.cpp
+    src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp src/Dialog/Ast.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

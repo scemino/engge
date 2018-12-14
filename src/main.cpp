@@ -3,9 +3,18 @@
 #include "GGEngine.h"
 #include "ScriptEngine.h"
 #include "PanInputEventHandler.h"
+#include "Dialog/_AstDump.h"
 
-int main()
+int main(int argc, char **argv)
 {
+    if (argc == 2)
+    {
+        auto filename = argv[1];
+        std::cout << argc << std::endl;
+        gg::_AstDump::dump(filename);
+        return 0;
+    }
+
     gg::GGEngineSettings settings("./resources/");
     auto engine = std::make_unique<gg::GGEngine>(settings);
 
