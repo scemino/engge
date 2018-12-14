@@ -78,7 +78,7 @@ sf::IntRect GGEngine::getVerbRect(const std::string &name, std::string lang, boo
 
 const Verb *GGEngine::getVerb(const std::string &id) const
 {
-    for (auto i = 0; i < _verbSlots.size(); i++)
+    for (auto i = 0; i < 10; i++)
     {
         const auto &verb = _verbSlots[0].getVerb(i);
         if (verb.id == id)
