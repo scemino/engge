@@ -90,6 +90,19 @@ class _DefaultVerbExecute : public VerbExecute
                 {
                     _engine.getCurrentActor()->walkTo(pObject->getPosition());
                 }
+                else
+                {
+                    sq_pushobject(_vm, obj);
+                    sq_pushstring(_vm, _SC("verbDefault"), -1);
+
+                    if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+                    {
+                        sq_remove(_vm, -2);
+                        sq_pushobject(_vm, obj);
+                        sq_call(_vm, 1, SQFalse, SQTrue);
+                        sq_pop(_vm, 2); //pops the roottable and the function
+                    }
+                }
             }
         }
     }
