@@ -136,8 +136,10 @@ void NGEngine::update(const sf::Time &elapsed)
     {
         actor->update(elapsed);
     }
+
     if (!_pRoom)
         return;
+    
     _pRoom->update(elapsed);
     if (_pFollowActor)
     {
@@ -162,57 +164,54 @@ void NGEngine::update(const sf::Time &elapsed)
         _pCurrentObject = it->get();
     }
 
-    if (m.isButtonPressed(sf::Mouse::Button::Left))
+    if (!m.isButtonPressed(sf::Mouse::Button::Left)) return;
+    
+    int dialog = 0;
+    for (auto dlg : _dialog)
     {
-        int dialog = 0;
-        for (auto dlg : _dialog)
+        if (dlg.id == 0) continue;
+        
+        NGText text;
+        text.setFont(_font);
+        text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
+        text.setText(dlg.text);
+        if (text.getBoundRect().contains(_mousePos))
         {
-            if (dlg.id != 0)
-            {
-                NGText text;
-                text.setFont(_font);
-                text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
-                text.setText(dlg.text);
-                if (text.getBoundRect().contains(_mousePos))
-                {
-                    _pCurrentActor->say(dlg.id);
-                    _dialogManager.selectLabel(dlg.label);
-                    break;
-                }
-                dialog++;
-            }
+            _pCurrentActor->say(dlg.id);
+            _dialogManager.selectLabel(dlg.label);
+            break;
         }
+        dialog++;
+    }
 
-        if (!dialog)
+    if (dialog) return;
+    
+    auto verbId = -1;
+    for (auto i = 0; i < 9; i++)
+    {
+        if (_verbRects[i].contains((sf::Vector2i)_mousePos))
         {
-            auto verbId = -1;
-            for (auto i = 0; i < 9; i++)
-            {
-                if (_verbRects[i].contains((sf::Vector2i)_mousePos))
-                {
-                    verbId = i;
-                    break;
-                }
-            }
-
-            if (verbId != -1)
-            {
-                _pVerb = &_verbSlots[0].getVerb(1 + verbId);
-                std::cout << "select verb: " << _pVerb->id << std::endl;
-            }
-            // else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
-            // {
-            //     _pCurrentActor->walkTo(_mousePos);
-            // }
-            else if (_pCurrentObject)
-            {
-                _pVerbExecute->execute(_pCurrentObject, _pVerb);
-            }
-            else
-            {
-                _pVerb = &_verbSlots[0].getVerb(0);
-            }
+            verbId = i;
+            break;
         }
+    }
+
+    if (verbId != -1)
+    {
+        _pVerb = &_verbSlots[0].getVerb(1 + verbId);
+        std::cout << "select verb: " << _pVerb->id << std::endl;
+    }
+    // else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
+    // {
+    //     _pCurrentActor->walkTo(_mousePos);
+    // }
+    else if (_pCurrentObject)
+    {
+        _pVerbExecute->execute(_pCurrentObject, _pVerb);
+    }
+    else
+    {
+        _pVerb = &_verbSlots[0].getVerb(0);
     }
 }
 
@@ -261,10 +260,9 @@ void NGEngine::stopSound(SoundId &sound)
 
 void NGEngine::draw(sf::RenderWindow &window) const
 {
-    auto cameraPos = _cameraPos;
-    if (!_pRoom)
-        return;
-    _pRoom->draw(window, cameraPos);
+    if (!_pRoom) return;
+
+    _pRoom->draw(window, _cameraPos);
 
     // draw fade
     sf::RectangleShape fadeShape;
@@ -272,27 +270,14 @@ void NGEngine::draw(sf::RenderWindow &window) const
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
 
-    // draw dialog
     bool dialog = drawDialog(window);
-
-    // draw verbs
-    if (!dialog && _inputActive && !_verbSlots[0].getVerb(0).id.empty())
+    if(!dialog)
     {
         drawVerbs(window);
+        drawInventory(window);
     }
 
-    if (_inputActive)
-    {
-        if (!dialog)
-        {
-            drawInventory(window);
-        }
-        drawCursor(window);
-    }
-
-    // std::stringstream s;
-    // s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
-    // _font.draw(s.str(), window);
+    drawCursor(window);
 }
 
 bool NGEngine::drawDialog(sf::RenderWindow &window) const
@@ -303,20 +288,21 @@ bool NGEngine::drawDialog(sf::RenderWindow &window) const
     text.setFont(_font);
     for (auto dlg : _dialog)
     {
-        if (dlg.id != 0)
-        {
-            text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
-            text.setText(dlg.text);
-            text.setColor(text.getBoundRect().contains(_mousePos) ? _verbUiColors[0].dialogHighlight : _verbUiColors[0].dialogNormal);
-            window.draw(text, sf::RenderStates::Default);
-            dialog++;
-        }
+        if (dlg.id == 0) continue;
+        
+        text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
+        text.setText(dlg.text);
+        text.setColor(text.getBoundRect().contains(_mousePos) ? _verbUiColors[0].dialogHighlight : _verbUiColors[0].dialogNormal);
+        window.draw(text, sf::RenderStates::Default);
+        dialog++;
     }
     return dialog > 0;
 }
 
 void NGEngine::drawCursor(sf::RenderWindow &window) const
 {
+    if (!_inputActive) return;
+
     auto cursorSize = sf::Vector2f(68.f * Screen::Width / 1284, 68.f * Screen::Height / 772);
     sf::RectangleShape shape;
     shape.setPosition(_mousePos);
@@ -343,6 +329,9 @@ void NGEngine::drawCursor(sf::RenderWindow &window) const
 
 void NGEngine::drawVerbs(sf::RenderWindow &window) const
 {
+    if(!_inputActive || _verbSlots[0].getVerb(0).id.empty())
+        return;
+
     auto verbId = -1;
     if (_pCurrentObject)
     {
@@ -402,6 +391,8 @@ void NGEngine::drawVerbs(sf::RenderWindow &window) const
 
 void NGEngine::drawInventory(sf::RenderWindow &window) const
 {
+    if (!_inputActive) return;
+
     auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
 
     // inventory arrows
