@@ -3,20 +3,20 @@
 #include <algorithm>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include "GGRoom.h"
-#include "_GGUtil.h"
+#include "NGRoom.h"
+#include "_NGUtil.h"
 #include "Screen.h"
 
-namespace gg
+namespace ng
 {
-GGRoom::GGRoom(TextureManager &textureManager, const GGEngineSettings &settings)
+NGRoom::NGRoom(TextureManager &textureManager, const NGEngineSettings &settings)
     : _textureManager(textureManager),
       _settings(settings),
       _showDrawWalkboxes(false)
 {
 }
 
-void GGRoom::setAsParallaxLayer(GGEntity *pEntity, int layerNum)
+void NGRoom::setAsParallaxLayer(NGEntity *pEntity, int layerNum)
 {
     auto itEndLayers = std::end(_layers);
     auto it = std::find_if(std::begin(_layers), itEndLayers, [layerNum](const std::unique_ptr<RoomLayer> &layer) {
@@ -31,7 +31,7 @@ void GGRoom::setAsParallaxLayer(GGEntity *pEntity, int layerNum)
     it->get()->addEntity(*pEntity);
 }
 
-void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
+void NGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
 {
     int width = 0;
     if (jWimpy["background"].is_array())
@@ -66,7 +66,7 @@ void GGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
     }
 }
 
-void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
+void NGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
 {
     if (jWimpy["layers"].is_null())
         return;
@@ -126,7 +126,7 @@ void GGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
     _layers.push_back(std::move(layer));
 }
 
-void GGRoom::loadScalings(nlohmann::json jWimpy)
+void NGRoom::loadScalings(nlohmann::json jWimpy)
 {
     if (jWimpy["scalings"].is_array() && !jWimpy["scalings"].empty())
     {
@@ -176,7 +176,7 @@ void GGRoom::loadScalings(nlohmann::json jWimpy)
     }
 }
 
-void GGRoom::loadWalkboxes(nlohmann::json jWimpy)
+void NGRoom::loadWalkboxes(nlohmann::json jWimpy)
 {
     for (auto jWalkbox : jWimpy["walkboxes"])
     {
@@ -191,7 +191,7 @@ void GGRoom::loadWalkboxes(nlohmann::json jWimpy)
     }
 }
 
-void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
+void NGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
 {
     auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
@@ -200,7 +200,7 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
 
     for (auto jObject : jWimpy["objects"])
     {
-        auto object = std::make_unique<GGObject>();
+        auto object = std::make_unique<NGObject>();
         // name
         auto objectName = jObject["name"].get<std::string>();
         object->setName(objectName);
@@ -233,7 +233,7 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
             for (auto jAnimation : jObject["animations"])
             {
                 auto animName = jAnimation["name"].get<std::string>();
-                auto anim = std::make_unique<GGAnimation>(texture, animName);
+                auto anim = std::make_unique<NGAnimation>(texture, animName);
                 if (!jAnimation["fps"].is_null())
                 {
                     anim->setFps(jAnimation["fps"].get<int>());
@@ -283,13 +283,13 @@ void GGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
     }
 
     // sort objects
-    auto cmpObjects = [](std::unique_ptr<GGObject> &a, std::unique_ptr<GGObject> &b) {
+    auto cmpObjects = [](std::unique_ptr<NGObject> &a, std::unique_ptr<NGObject> &b) {
         return a->getZOrder() > b->getZOrder();
     };
     std::sort(_objects.begin(), _objects.end(), cmpObjects);
 }
 
-void GGRoom::load(const char *name)
+void NGRoom::load(const char *name)
 {
     _id = name;
 
@@ -323,28 +323,28 @@ void GGRoom::load(const char *name)
     loadWalkboxes(jWimpy);
 }
 
-GGTextObject &GGRoom::createTextObject(const std::string &name, GGFont &font)
+NGTextObject &NGRoom::createTextObject(const std::string &name, NGFont &font)
 {
-    auto object = std::make_unique<GGTextObject>(font);
+    auto object = std::make_unique<NGTextObject>(font);
     auto &obj = *object;
     _objects.push_back(std::move(object));
     return obj;
 }
 
-void GGRoom::deleteObject(GGObject &object)
+void NGRoom::deleteObject(NGObject &object)
 {
-    auto const &it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<GGObject> &ptr) {
+    auto const &it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<NGObject> &ptr) {
         return ptr.get() == &object;
     });
     _objects.erase(it);
 }
 
-GGObject &GGRoom::createObject(const std::vector<std::string> &anims)
+NGObject &NGRoom::createObject(const std::vector<std::string> &anims)
 {
     return createObject(_sheet, anims);
 }
 
-GGObject &GGRoom::createObject(const std::string &sheet, const std::vector<std::string> &anims)
+NGObject &NGRoom::createObject(const std::string &sheet, const std::vector<std::string> &anims)
 {
     auto &texture = _textureManager.get(sheet);
 
@@ -357,8 +357,8 @@ GGObject &GGRoom::createObject(const std::string &sheet, const std::vector<std::
         i >> json;
     }
 
-    auto object = std::make_unique<GGObject>();
-    auto animation = std::make_unique<GGAnimation>(texture, "state0");
+    auto object = std::make_unique<NGObject>();
+    auto animation = std::make_unique<NGAnimation>(texture, "state0");
     for (const auto &n : anims)
     {
         if (json["frames"][n].is_null())
@@ -390,7 +390,7 @@ GGObject &GGRoom::createObject(const std::string &sheet, const std::vector<std::
     return obj;
 }
 
-void GGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
+void NGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
 {
     if (!_showDrawWalkboxes)
         return;
@@ -401,7 +401,7 @@ void GGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) co
     }
 }
 
-void GGRoom::update(const sf::Time &elapsed)
+void NGRoom::update(const sf::Time &elapsed)
 {
     std::for_each(std::begin(_layers), std::end(_layers),
                   [elapsed](std::unique_ptr<RoomLayer> &layer) { layer->update(elapsed); });
@@ -411,7 +411,7 @@ void GGRoom::update(const sf::Time &elapsed)
     });
 }
 
-void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+void NGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
     states.transform.translate(-cameraPos);
@@ -423,4 +423,4 @@ void GGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
     drawWalkboxes(window, states);
 }
-} // namespace gg
+} // namespace ng

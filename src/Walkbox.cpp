@@ -1,6 +1,6 @@
 #include "Walkbox.h"
 
-namespace gg
+namespace ng
 {
 Walkbox::Walkbox(const std::vector<sf::Vector2i> &polygon)
     : _polygon(polygon)
@@ -37,4 +37,4 @@ bool Walkbox::contains(sf::Vector2f pos) const
     }
     return c!=0;
 }
-} // namespace gg
+} // namespace ng

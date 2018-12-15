@@ -4,22 +4,22 @@
 
 // see https://github.com/DanielSWolf/rhubarb-lip-sync for more details
 
-namespace gg
+namespace ng
 {
-struct GGLipData
+struct NGLipData
 {
   public:
     sf::Time time;
     char letter;
 };
 
-class GGLip
+class NGLip
 {
   public:
     void load(const std::string &path);
-    const std::vector<GGLipData> getData() const { return _data; }
+    const std::vector<NGLipData> getData() const { return _data; }
 
   private:
-    std::vector<GGLipData> _data;
+    std::vector<NGLipData> _data;
 };
-} // namespace gg
+} // namespace ng

@@ -2,7 +2,7 @@
 #include <string>
 #include "SFML/Graphics/Color.hpp"
 
-namespace gg
+namespace ng
 {
 struct Verb
 {
@@ -44,4 +44,4 @@ struct VerbUiColors
     sf::Color inventoryFrame;
     sf::Color inventoryBackground;
 };
-} // namespace gg
+} // namespace ng

@@ -1,6 +1,6 @@
 #include "SoundDefinition.h"
 
-namespace gg
+namespace ng
 {
 
 SoundDefinition::SoundDefinition(const std::string &path)
@@ -53,4 +53,4 @@ void SoundId::stop()
     _sound.stop();
 }
 
-} // namespace gg
+} // namespace ng

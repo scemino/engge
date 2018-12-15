@@ -5,12 +5,12 @@
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
-#include "GGAnimation.h"
-#include "GGFont.h"
-#include "GGEntity.h"
-#include "GGActor.h"
+#include "NGAnimation.h"
+#include "NGFont.h"
+#include "NGEntity.h"
+#include "NGActor.h"
 
-namespace gg
+namespace ng
 {
 enum class UseDirection
 {
@@ -20,11 +20,11 @@ enum class UseDirection
   Right
 };
 
-class GGObject : public GGEntity
+class NGObject : public NGEntity
 {
 public:
-  GGObject();
-  ~GGObject();
+  NGObject();
+  ~NGObject();
 
   void setZOrder(int zorder) { _zorder = zorder; }
   int getZOrder() const override { return _zorder; }
@@ -69,7 +69,7 @@ public:
   void setDefaultVerb(const std::string &verb) { _verb = verb; }
   const std::string &getDefaultVerb() const { return _verb; }
 
-  std::vector<std::unique_ptr<GGAnimation>> &getAnims() { return _anims; }
+  std::vector<std::unique_ptr<NGAnimation>> &getAnims() { return _anims; }
 
   void setStateAnimIndex(int animIndex);
   int getStateAnimIndex();
@@ -91,25 +91,25 @@ public:
   bool isVisible() const { return _isVisible; }
   void setScale(float s);
 
-  GGActor *getOwner() { return _pOwner; }
-  void setOwner(GGActor *pActor) { _pOwner = pActor; }
+  NGActor *getOwner() { return _pOwner; }
+  void setOwner(NGActor *pActor) { _pOwner = pActor; }
 
-  GGRoom *getRoom() { return _pRoom; }
-  void setRoom(GGRoom *pRoom) { _pRoom = pRoom; }
+  NGRoom *getRoom() { return _pRoom; }
+  void setRoom(NGRoom *pRoom) { _pRoom = pRoom; }
 
   // TODO: void setIcon(const std::string& icon);
 
   void update(const sf::Time &elapsed) override;
 
-  friend std::ostream &operator<<(std::ostream &os, const GGObject &obj);
+  friend std::ostream &operator<<(std::ostream &os, const NGObject &obj);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  std::vector<std::unique_ptr<GGAnimation>> _anims;
-  std::optional<GGAnimation> _pAnim;
+  std::vector<std::unique_ptr<NGAnimation>> _anims;
+  std::optional<NGAnimation> _pAnim;
   bool _isVisible;
   std::string _name, _id;
   int _zorder;
@@ -124,9 +124,9 @@ private:
   float _angle;
   bool _isTouchable;
   bool _isLit;
-  GGActor *_pOwner;
-  GGRoom *_pRoom;
+  NGActor *_pOwner;
+  NGRoom *_pRoom;
   int _state;
   std::string _verb;
 };
-} // namespace gg
+} // namespace ng

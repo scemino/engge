@@ -1,24 +1,24 @@
 #include <fstream>
-#include "GGFont.h"
-#include "_GGUtil.h"
+#include "NGFont.h"
+#include "_NGUtil.h"
 
-namespace gg
+namespace ng
 {
-GGFont::GGFont() = default;
+NGFont::NGFont() = default;
 
-GGFont::~GGFont() = default;
+NGFont::~NGFont() = default;
 
-void GGFont::setSettings(const GGEngineSettings *settings)
+void NGFont::setSettings(const NGEngineSettings *settings)
 {
     _settings = settings;
 }
 
-void GGFont::setTextureManager(TextureManager *textureManager)
+void NGFont::setTextureManager(TextureManager *textureManager)
 {
     _textureManager = textureManager;
 }
 
-void GGFont::load(const std::string &path)
+void NGFont::load(const std::string &path)
 {
     _path = path;
     _jsonFilename = _settings->getGamePath();
@@ -31,24 +31,24 @@ void GGFont::load(const std::string &path)
     _texture = _textureManager->get(_path);
 }
 
-sf::IntRect GGFont::getRect(char letter) const
+sf::IntRect NGFont::getRect(char letter) const
 {
     const auto &s = std::to_string((int)letter);
     return _toRect(_json["frames"][s]["frame"]);
 }
 
-sf::IntRect GGFont::getSize(char letter) const
+sf::IntRect NGFont::getSize(char letter) const
 {
     const auto &s = std::to_string((int)letter);
     return _toRect(_json["frames"][s]["spriteSourceSize"]);
 }
 
-GGText::GGText()
-    : _alignment(GGTextAlignment::Center)
+NGText::NGText()
+    : _alignment(NGTextAlignment::Center)
 {
 }
 
-sf::FloatRect GGText::getBoundRect() const
+sf::FloatRect NGText::getBoundRect() const
 {
     float width = 0;
     float scale = 0.2f;
@@ -63,7 +63,7 @@ sf::FloatRect GGText::getBoundRect() const
     return getTransform().transformRect(r);
 }
 
-void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void NGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     states.transform *= getTransform();
     float scale = 0.2f;
@@ -78,7 +78,7 @@ void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
         width += std::max(rect.width * scale, 10.f * scale);
     }
 
-    auto x = _alignment == GGTextAlignment::Center ? -width / 2.f : 0.f;
+    auto x = _alignment == NGTextAlignment::Center ? -width / 2.f : 0.f;
     for (auto i = 0; i < rects.size(); i++)
     {
         auto rect = rects[i];
@@ -95,4 +95,4 @@ void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
 }
 
-} // namespace gg
+} // namespace ng

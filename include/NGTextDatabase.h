@@ -2,16 +2,16 @@
 #include <string>
 #include <map>
 
-namespace gg
+namespace ng
 {
-class GGTextDatabase
+class NGTextDatabase
 {
 public:
-  GGTextDatabase();
+  NGTextDatabase();
   void load(const std::string &path);
   std::string getText(int id) { return _texts[id]; }
 
 private:
   std::map<int, std::string> _texts;
 };
-} // namespace gg
+} // namespace ng

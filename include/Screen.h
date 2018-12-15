@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gg
+namespace ng
 {
 class Screen
 {
@@ -10,4 +10,4 @@ public:
   static const int HalfWidth = 320 / 2;
   static const int HalfHeight = 180 / 2;
 };
-} // namespace gg
+} // namespace ng

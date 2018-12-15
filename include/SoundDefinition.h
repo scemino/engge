@@ -3,7 +3,7 @@
 #include <iostream>
 #include "SFML/Audio.hpp"
 
-namespace gg
+namespace ng
 {
 class SoundId;
 
@@ -42,4 +42,4 @@ class SoundId
     SoundDefinition &_soundDefinition;
     sf::Sound _sound;
 };
-} // namespace gg
+} // namespace ng

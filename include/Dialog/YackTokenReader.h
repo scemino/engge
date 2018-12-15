@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 
-namespace gg
+namespace ng
 {
 enum class TokenId
 {
@@ -80,4 +80,4 @@ class YackTokenReader
   private:
     std::ifstream _is;
 };
-} // namespace gg
+} // namespace ng

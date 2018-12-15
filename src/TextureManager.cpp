@@ -1,9 +1,9 @@
 #include <iostream>
 #include "TextureManager.h"
 
-namespace gg
+namespace ng
 {
-TextureManager::TextureManager(const GGEngineSettings &settings)
+TextureManager::TextureManager(const NGEngineSettings &settings)
     : _settings(settings)
 {
 }
@@ -31,4 +31,4 @@ const sf::Texture &TextureManager::get(const std::string &id)
     }
     return *found->second;
 }
-} // namespace gg
+} // namespace ng

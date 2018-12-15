@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include "SFML/Graphics.hpp"
-#include "GGEntity.h"
+#include "NGEntity.h"
 
-namespace gg
+namespace ng
 {
 class Walkbox
 {
@@ -20,4 +20,4 @@ private:
   std::vector<sf::Vector2i> _polygon;
   std::string _name;
 };
-} // namespace gg
+} // namespace ng

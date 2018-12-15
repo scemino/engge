@@ -1,21 +1,21 @@
-#include "GGCostumeAnimation.h"
+#include "NGCostumeAnimation.h"
 
-namespace gg
+namespace ng
 {
-GGCostumeAnimation::GGCostumeAnimation(const std::string &name, sf::Texture &texture)
+NGCostumeAnimation::NGCostumeAnimation(const std::string &name, sf::Texture &texture)
     : _texture(texture), _name(name), _state(AnimationState::Pause), _loop(false)
 {
 }
 
-GGCostumeAnimation::~GGCostumeAnimation() = default;
+NGCostumeAnimation::~NGCostumeAnimation() = default;
 
-void GGCostumeAnimation::play(bool loop)
+void NGCostumeAnimation::play(bool loop)
 {
     _loop = loop;
     _state = AnimationState::Play;
 }
 
-void GGCostumeAnimation::update(const sf::Time &elapsed)
+void NGCostumeAnimation::update(const sf::Time &elapsed)
 {
     if (!isPlaying())
         return;
@@ -30,7 +30,7 @@ void GGCostumeAnimation::update(const sf::Time &elapsed)
     }
 }
 
-void GGCostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void NGCostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     for (auto &layer : _layers)
     {
@@ -51,4 +51,4 @@ void GGCostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states)
         target.draw(sprite, states);
     }
 }
-} // namespace gg
+} // namespace ng

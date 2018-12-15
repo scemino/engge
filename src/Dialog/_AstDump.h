@@ -1,7 +1,7 @@
 #pragma once
 #include "Dialog/YackParser.h"
 
-namespace gg
+namespace ng
 {
 class _AstDump : public Ast::AstVisitor
 {
@@ -84,4 +84,4 @@ public:
         std::cout << "condition: " << node.code << std::endl;
     }
 };
-} // namespace gg
+} // namespace ng

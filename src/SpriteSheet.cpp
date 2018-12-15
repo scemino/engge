@@ -1,10 +1,10 @@
 #include <string>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "_GGUtil.h"
+#include "_NGUtil.h"
 #include "SpriteSheet.h"
 
-namespace gg
+namespace ng
 {
 void SpriteSheet::load(const std::string &name)
 {
@@ -35,4 +35,4 @@ sf::IntRect SpriteSheet::getRect(const std::string &name) const
     return it->second;
 }
 
-} // namespace gg
+} // namespace ng

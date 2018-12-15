@@ -3,15 +3,15 @@
 #include "SFML/Graphics.hpp"
 #include "TextureManager.h"
 
-namespace gg
+namespace ng
 {
-class GGFont
+class NGFont
 {
 public:
-  GGFont();
-  ~GGFont();
+  NGFont();
+  ~NGFont();
 
-  void setSettings(const GGEngineSettings *settings);
+  void setSettings(const NGEngineSettings *settings);
   void setTextureManager(TextureManager *textureManager);
 
   void load(const std::string &path);
@@ -21,7 +21,7 @@ public:
   sf::IntRect getSize(char letter) const;
 
 private:
-  const GGEngineSettings *_settings;
+  const NGEngineSettings *_settings;
   TextureManager *_textureManager;
   std::string _path;
   std::string _jsonFilename;
@@ -29,30 +29,30 @@ private:
   sf::Texture _texture;
 };
 
-enum class GGTextAlignment
+enum class NGTextAlignment
 {
   Center,
   Left
 };
 
-class GGText : public sf::Drawable, public sf::Transformable
+class NGText : public sf::Drawable, public sf::Transformable
 {
 public:
-  GGText();
-  void setFont(const GGFont &font) { _font = font; }
+  NGText();
+  void setFont(const NGFont &font) { _font = font; }
   void setColor(const sf::Color &color) { _color = color; }
   void setText(const std::string &text) { _text = text; }
-  void setAlignment(GGTextAlignment alignment) { _alignment = alignment; }
+  void setAlignment(NGTextAlignment alignment) { _alignment = alignment; }
   sf::FloatRect getBoundRect() const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states = sf::RenderStates::Default) const override;
 
 private:
-  GGFont _font;
+  NGFont _font;
   sf::Color _color;
   std::string _text;
-  GGTextAlignment _alignment;
+  NGTextAlignment _alignment;
 };
 
-} // namespace gg
+} // namespace ng

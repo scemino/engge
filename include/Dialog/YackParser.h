@@ -5,7 +5,7 @@
 #include <vector>
 #include "YackTokenReader.h"
 
-namespace gg
+namespace ng
 {
 namespace Ast
 {
@@ -200,4 +200,4 @@ private:
   YackTokenReader &_reader;
   YackTokenReader::iterator _it;
 };
-} // namespace gg
+} // namespace ng

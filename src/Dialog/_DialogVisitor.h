@@ -1,15 +1,15 @@
 #pragma once
 
-#include "GGEngine.h"
+#include "NGEngine.h"
 #include "Dialog/YackTokenReader.h"
 #include "Dialog/YackParser.h"
 
-namespace gg
+namespace ng
 {
 class _DialogVisitor : public Ast::AstVisitor
 {
   public:
-    _DialogVisitor(GGEngine &engine, DialogManager &dialogManager)
+    _DialogVisitor(NGEngine &engine, DialogManager &dialogManager)
         : _engine(engine), _dialogManager(dialogManager)
     {
     }
@@ -39,7 +39,7 @@ class _DialogVisitor : public Ast::AstVisitor
     virtual void visit(const Ast::Say &node)
     {
         auto &actors = _engine.getActors();
-        GGActor *pActor = nullptr;
+        NGActor *pActor = nullptr;
         for (auto &actor : actors)
         {
             if (actor->getName() == node.actor)
@@ -116,8 +116,8 @@ class _DialogVisitor : public Ast::AstVisitor
     }
 
   private:
-    GGEngine &_engine;
+    NGEngine &_engine;
     DialogManager &_dialogManager;
     bool _conditionAccepted;
 };
-} // namespace gg
+} // namespace ng

@@ -1,21 +1,21 @@
 #pragma once
-#include "GGObject.h"
-#include "GGFont.h"
+#include "NGObject.h"
+#include "NGFont.h"
 #include "SFML/Graphics.hpp"
 
-namespace gg
+namespace ng
 {
-class GGTextObject : public GGObject
+class NGTextObject : public NGObject
 {
 public:
-  explicit GGTextObject(GGFont &font);
+  explicit NGTextObject(NGFont &font);
   void setText(const std::string &text) { _text = text; }
 
 private:
   virtual void draw(sf::RenderWindow &window);
 
 private:
-  GGFont &_font;
+  NGFont &_font;
   std::string _text;
 };
-} // namespace gg
+} // namespace ng

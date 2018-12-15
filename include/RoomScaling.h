@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-namespace gg
+namespace ng
 {
 struct Scaling
 {
@@ -25,4 +25,4 @@ class RoomScaling
     std::string _trigger;
     std::vector<Scaling> _scalings;
 };
-} // namespace gg
+} // namespace ng

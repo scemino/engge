@@ -1,9 +1,9 @@
-#include "GGObject.h"
+#include "NGObject.h"
 #include "Screen.h"
 
-namespace gg
+namespace ng
 {
-GGObject::GGObject()
+NGObject::NGObject()
     : _pAnim(std::nullopt),
       _isVisible(true),
       _zorder(0),
@@ -18,9 +18,9 @@ GGObject::GGObject()
 {
 }
 
-GGObject::~GGObject() = default;
+NGObject::~NGObject() = default;
 
-void GGObject::setVisible(bool isVisible)
+void NGObject::setVisible(bool isVisible)
 {
     _isVisible = isVisible;
     if (!_isVisible)
@@ -29,14 +29,14 @@ void GGObject::setVisible(bool isVisible)
     }
 }
 
-sf::IntRect GGObject::getRealHotspot() const
+sf::IntRect NGObject::getRealHotspot() const
 {
     auto rect = getHotspot();
     auto pos = getPosition();
     return (sf::IntRect)_transform.getTransform().transformRect((sf::FloatRect)rect);
 }
 
-void GGObject::setStateAnimIndex(int animIndex)
+void NGObject::setStateAnimIndex(int animIndex)
 {
     std::ostringstream s;
     s << "state" << animIndex;
@@ -49,7 +49,7 @@ void GGObject::setStateAnimIndex(int animIndex)
     setAnimation(s.str());
 }
 
-int GGObject::getStateAnimIndex()
+int NGObject::getStateAnimIndex()
 {
     if (!_pAnim.has_value())
         return -1;
@@ -58,9 +58,9 @@ int GGObject::getStateAnimIndex()
     return std::strtol(_pAnim->getName().c_str(), nullptr, 10);
 }
 
-void GGObject::setAnimation(const std::string &name)
+void NGObject::setAnimation(const std::string &name)
 {
-    auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<GGAnimation> &animation) { return animation->getName() == name; });
+    auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<NGAnimation> &animation) { return animation->getName() == name; });
     if (it == _anims.end())
     {
         _pAnim = std::nullopt;
@@ -74,32 +74,32 @@ void GGObject::setAnimation(const std::string &name)
     sprite.setColor(_color);
 }
 
-void GGObject::move(const sf::Vector2f &offset)
+void NGObject::move(const sf::Vector2f &offset)
 {
     _transform.move(offset);
 }
 
-void GGObject::setPosition(const sf::Vector2f &pos)
+void NGObject::setPosition(const sf::Vector2f &pos)
 {
     _transform.setPosition(pos);
 }
 
-sf::Vector2f GGObject::getPosition() const
+sf::Vector2f NGObject::getPosition() const
 {
     return _transform.getPosition();
 }
 
-void GGObject::setUsePosition(const sf::Vector2f &pos)
+void NGObject::setUsePosition(const sf::Vector2f &pos)
 {
     _usePos = pos;
 }
 
-sf::Vector2f GGObject::getUsePosition() const
+sf::Vector2f NGObject::getUsePosition() const
 {
     return _usePos;
 }
 
-void GGObject::setColor(const sf::Color &color)
+void NGObject::setColor(const sf::Color &color)
 {
     _color = color;
     if (_pAnim)
@@ -108,17 +108,17 @@ void GGObject::setColor(const sf::Color &color)
     }
 }
 
-const sf::Color &GGObject::getColor() const
+const sf::Color &NGObject::getColor() const
 {
     return _color;
 }
 
-void GGObject::setScale(float s)
+void NGObject::setScale(float s)
 {
     _transform.setScale(s, s);
 }
 
-void GGObject::update(const sf::Time &elapsed)
+void NGObject::update(const sf::Time &elapsed)
 {
     if (_pAnim)
     {
@@ -126,7 +126,7 @@ void GGObject::update(const sf::Time &elapsed)
     }
 }
 
-void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
+void NGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
     states.transform *= _transform.getTransform();
     auto rect = getHotspot();
@@ -149,7 +149,7 @@ void GGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) co
     target.draw(hl, states);
 }
 
-void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void NGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_isVisible)
         return;
@@ -161,9 +161,9 @@ void GGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const GGObject &obj)
+std::ostream &operator<<(std::ostream &os, const NGObject &obj)
 {
     return os << obj.getName() << " (" << obj.getPosition().x << "," << obj.getPosition().y << ":" << obj.getZOrder() << ")";
 }
 
-} // namespace gg
+} // namespace ng

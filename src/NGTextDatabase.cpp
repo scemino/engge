@@ -1,12 +1,12 @@
 #include <regex>
 #include <fstream>
-#include "GGTextDatabase.h"
+#include "NGTextDatabase.h"
 
-namespace gg
+namespace ng
 {
-GGTextDatabase::GGTextDatabase() = default;
+NGTextDatabase::NGTextDatabase() = default;
 
-void GGTextDatabase::load(const std::string &path)
+void NGTextDatabase::load(const std::string &path)
 {
     std::regex re("^(\\d+)\\s+(.*)$");
     std::ifstream infile(path);
@@ -23,4 +23,4 @@ void GGTextDatabase::load(const std::string &path)
         _texts.insert(std::make_pair(num, text));
     }
 }
-} // namespace gg
+} // namespace ng

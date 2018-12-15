@@ -1,15 +1,15 @@
-#include "GGEngine.h"
-#include "GGActor.h"
-#include "GGRoom.h"
+#include "NGEngine.h"
+#include "NGActor.h"
+#include "NGRoom.h"
 
-namespace gg
+namespace ng
 {
-GGActor::WalkingState::WalkingState(GGActor &actor)
+NGActor::WalkingState::WalkingState(NGActor &actor)
     : _actor(actor), _isWalking(false)
 {
 }
 
-void GGActor::WalkingState::setDestination(const sf::Vector2f &destination)
+void NGActor::WalkingState::setDestination(const sf::Vector2f &destination)
 {
     _destination = destination;
     auto pos = _actor.getPosition();
@@ -19,7 +19,7 @@ void GGActor::WalkingState::setDestination(const sf::Vector2f &destination)
     _isWalking = true;
 }
 
-void GGActor::WalkingState::update(const sf::Time &elapsed)
+void NGActor::WalkingState::update(const sf::Time &elapsed)
 {
     if (!_isWalking)
         return;
@@ -59,7 +59,7 @@ void GGActor::WalkingState::update(const sf::Time &elapsed)
     };
 }
 
-GGActor::TalkingState::TalkingState(GGActor &actor)
+NGActor::TalkingState::TalkingState(NGActor &actor)
     : _actor(actor), _isTalking(false),
       _talkColor(sf::Color::White), _index(0)
 {
@@ -76,7 +76,7 @@ static std::string str_toupper(std::string s)
     return s;
 }
 
-void GGActor::TalkingState::say(int id)
+void NGActor::TalkingState::say(int id)
 {
     std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
     auto soundDefinition = _actor._engine.defineSound(name + ".ogg");
@@ -94,7 +94,7 @@ void GGActor::TalkingState::say(int id)
     _clock.restart();
 }
 
-void GGActor::TalkingState::update(const sf::Time &elapsed)
+void NGActor::TalkingState::update(const sf::Time &elapsed)
 {
     if (!_isTalking)
         return;
@@ -114,20 +114,20 @@ void GGActor::TalkingState::update(const sf::Time &elapsed)
     _actor.getCostume().setHeadIndex(index % 6);
 }
 
-void GGActor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void NGActor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     sf::Transformable t;
     t.move((sf::Vector2f)-_talkOffset);
     states.transform *= t.getTransform();
 
-    GGText text;
+    NGText text;
     text.setFont(_font);
     text.setColor(_talkColor);
     text.setText(_sayText);
     target.draw(text, states);
 }
 
-GGActor::GGActor(GGEngine &engine)
+NGActor::NGActor(NGEngine &engine)
     : _engine(engine),
       _settings(engine.getSettings()),
       _costume(engine.getTextureManager()),
@@ -142,37 +142,37 @@ GGActor::GGActor(GGEngine &engine)
 {
 }
 
-GGActor::~GGActor() = default;
+NGActor::~NGActor() = default;
 
-int GGActor::getZOrder() const
+int NGActor::getZOrder() const
 {
     return getRoom()->getRoomSize().y - getPosition().y;
 }
 
-void GGActor::setRoom(GGRoom *pRoom)
+void NGActor::setRoom(NGRoom *pRoom)
 {
     _pRoom = pRoom;
     _pRoom->setAsParallaxLayer(this, 0);
 }
 
-void GGActor::move(const sf::Vector2f &offset)
+void NGActor::move(const sf::Vector2f &offset)
 {
     _transform.move(offset);
 }
 
-void GGActor::setPosition(const sf::Vector2f &pos)
+void NGActor::setPosition(const sf::Vector2f &pos)
 {
     _transform.setPosition(pos);
 }
 
-void GGActor::setCostume(const std::string &name, const std::string &sheet)
+void NGActor::setCostume(const std::string &name, const std::string &sheet)
 {
     std::string path(_settings.getGamePath());
     path.append(name).append(".json");
     _costume.loadCostume(path, sheet);
 }
 
-void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void NGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     auto actorTransform = states.transform;
     auto transform = _transform;
@@ -186,16 +186,16 @@ void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     _talkingState.draw(target, states);
 }
 
-void GGActor::update(const sf::Time &elapsed)
+void NGActor::update(const sf::Time &elapsed)
 {
     _costume.update(elapsed);
     _walkingState.update(elapsed);
     _talkingState.update(elapsed);
 }
 
-void GGActor::walkTo(const sf::Vector2f &destination)
+void NGActor::walkTo(const sf::Vector2f &destination)
 {
     _walkingState.setDestination(destination);
 }
 
-} // namespace gg
+} // namespace ng

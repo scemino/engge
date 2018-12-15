@@ -2,13 +2,13 @@
 #include <sstream>
 #include "SFML/Graphics.hpp"
 
-namespace gg
+namespace ng
 {
-class GGLayer
+class NGLayer
 {
 public:
-  GGLayer();
-  ~GGLayer();
+  NGLayer();
+  ~NGLayer();
 
   std::vector<sf::IntRect> &getFrames() { return _frames; }
   std::vector<sf::IntRect> &getSourceFrames() { return _sourceFrames; }
@@ -39,4 +39,4 @@ private:
   int _index;
   bool _isVisible;
 };
-} // namespace gg
+} // namespace ng

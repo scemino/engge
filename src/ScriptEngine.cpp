@@ -18,7 +18,7 @@
 #define scvprintf vfprintf
 #endif
 
-namespace gg
+namespace ng
 {
 template <>
 void ScriptEngine::pushValue(bool value)
@@ -92,7 +92,7 @@ TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
         return nullptr;
     }
 
-    GGEntity *pObj = nullptr;
+    NGEntity *pObj = nullptr;
     if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
     {
         return nullptr;
@@ -119,7 +119,7 @@ void ScriptEngine::addPack()
     _packs.push_back(std::move(pack));
 }
 
-ScriptEngine::ScriptEngine(GGEngine &engine)
+ScriptEngine::ScriptEngine(NGEngine &engine)
     : _engine(engine)
 {
     v = sq_open(1024);
@@ -189,24 +189,24 @@ ScriptEngine::~ScriptEngine()
     sq_close(v);
 }
 
-GGEngine &ScriptEngine::getEngine()
+NGEngine &ScriptEngine::getEngine()
 {
     return _engine;
 }
 
-GGObject *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
+NGObject *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<GGObject>(v, index);
+    return ScriptEngine::getEntity<NGObject>(v, index);
 }
 
-GGRoom *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
+NGRoom *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<GGRoom>(v, index);
+    return ScriptEngine::getEntity<NGRoom>(v, index);
 }
 
-GGActor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
+NGActor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<GGActor>(v, index);
+    return ScriptEngine::getEntity<NGActor>(v, index);
 }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
@@ -283,4 +283,4 @@ std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMe
         return Interpolations::linear;
     }
 }
-} // namespace gg
+} // namespace ng

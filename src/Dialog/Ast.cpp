@@ -1,6 +1,6 @@
 #include "Dialog/YackParser.h"
 
-namespace gg::Ast
+namespace ng::Ast
 {
 void Statement::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Label::accept(AstVisitor &visitor) { visitor.visit(*this); }

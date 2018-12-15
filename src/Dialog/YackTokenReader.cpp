@@ -1,6 +1,6 @@
 #include "Dialog/YackTokenReader.h"
 
-namespace gg
+namespace ng
 {
 std::string Token::readToken() const
 {
@@ -232,4 +232,4 @@ TokenId YackTokenReader::readIdentifier()
     }
     return TokenId::Identifier;
 }
-} // namespace gg
+} // namespace ng

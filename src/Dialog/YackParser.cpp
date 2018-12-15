@@ -1,6 +1,6 @@
 #include "Dialog/YackParser.h"
 
-namespace gg
+namespace ng
 {
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
@@ -180,4 +180,4 @@ std::unique_ptr<Ast::Choice> YackParser::parseChoiceExpression()
     pExp->gotoExp = std::move(pGoto);
     return pExp;
 }
-} // namespace gg
+} // namespace ng

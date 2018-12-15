@@ -2,14 +2,14 @@
 #include <string>
 #include <map>
 #include "TextureManager.h"
-#include "GGEngineSettings.h"
+#include "NGEngineSettings.h"
 
-namespace gg
+namespace ng
 {
 class SpriteSheet
 {
   public:
-    SpriteSheet(TextureManager &textureManager, const GGEngineSettings &settings)
+    SpriteSheet(TextureManager &textureManager, const NGEngineSettings &settings)
         : _textureManager(textureManager), _settings(settings)
     {
     }
@@ -21,8 +21,8 @@ class SpriteSheet
 
   private:
     TextureManager &_textureManager;
-    const GGEngineSettings &_settings;
+    const NGEngineSettings &_settings;
     sf::Texture _texture;
     std::map<std::string, sf::IntRect> _rects;
 };
-} // namespace gg
+} // namespace ng

@@ -1,12 +1,12 @@
 #pragma once
 #include <squirrel3/squirrel.h>
 
-namespace gg
+namespace ng
 {
 class _GeneralPack : public Pack
 {
   private:
-    static GGEngine *g_pEngine;
+    static NGEngine *g_pEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
@@ -66,8 +66,8 @@ class _GeneralPack : public Pack
         {
             interpolation = 0;
         }
-        auto get = std::bind(&GGEngine::getCameraAt, g_pEngine);
-        auto set = std::bind(&GGEngine::setCameraAt, g_pEngine, std::placeholders::_1);
+        auto get = std::bind(&NGEngine::getCameraAt, g_pEngine);
+        auto set = std::bind(&NGEngine::setCameraAt, g_pEngine, std::placeholders::_1);
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
         auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t), method);
@@ -144,7 +144,7 @@ class _GeneralPack : public Pack
         {
             return sq_throwerror(v, _SC("can't find instance entry"));
         }
-        GGRoom *pRoom = nullptr;
+        NGRoom *pRoom = nullptr;
         sq_getuserpointer(v, -1, (SQUserPointer *)&pRoom);
         sq_pop(v, 2);
 
@@ -317,6 +317,6 @@ class _GeneralPack : public Pack
     }
 };
 
-GGEngine *_GeneralPack::g_pEngine = nullptr;
+NGEngine *_GeneralPack::g_pEngine = nullptr;
 
-} // namespace gg
+} // namespace ng

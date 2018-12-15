@@ -1,7 +1,7 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 
-namespace gg
+namespace ng
 {
 class Trigger
 {
@@ -9,7 +9,7 @@ public:
   virtual void trig() = 0;
 };
 
-class GGEntity : public sf::Drawable
+class NGEntity : public sf::Drawable
 {
 public:
   virtual void update(const sf::Time &elapsed) {}
@@ -32,4 +32,4 @@ public:
 private:
   std::map<int, std::shared_ptr<Trigger>> _triggers;
 };
-} // namespace gg
+} // namespace ng

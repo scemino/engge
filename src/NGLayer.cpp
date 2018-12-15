@@ -1,16 +1,16 @@
-#include "GGLayer.h"
+#include "NGLayer.h"
 
-namespace gg
+namespace ng
 {
-GGLayer::GGLayer()
+NGLayer::NGLayer()
     : _index(0),
      _isVisible(true)
 {
 }
 
-GGLayer::~GGLayer() = default;
+NGLayer::~NGLayer() = default;
 
-bool GGLayer::update(const sf::Time &elapsed)
+bool NGLayer::update(const sf::Time &elapsed)
 {
     _time += elapsed;
     if (_time.asSeconds() > (1.f / _fps))
@@ -25,4 +25,4 @@ bool GGLayer::update(const sf::Time &elapsed)
     }
     return false;
 }
-} // namespace gg
+} // namespace ng

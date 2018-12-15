@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gg
+namespace ng
 {
 class NonCopyable
 {
@@ -13,4 +13,4 @@ private:
   NonCopyable(const NonCopyable &) = delete;
   NonCopyable &operator=(const NonCopyable &) = delete;
 };
-} // namespace gg
+} // namespace ng

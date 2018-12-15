@@ -1,19 +1,19 @@
-#include "GGTextObject.h"
+#include "NGTextObject.h"
 
-namespace gg
+namespace ng
 {
-GGTextObject::GGTextObject(GGFont &font)
+NGTextObject::NGTextObject(NGFont &font)
     : _font(font)
 {
     _font.load("FontModernSheet");
 }
 
-void GGTextObject::draw(sf::RenderWindow &window)
+void NGTextObject::draw(sf::RenderWindow &window)
 {
-    GGText txt;
+    NGText txt;
     txt.setFont(_font);
     txt.setColor(sf::Color::White);
     txt.setText(_text);
     window.draw(txt);
 }
-} // namespace gg
+} // namespace ng

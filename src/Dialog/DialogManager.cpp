@@ -1,11 +1,11 @@
 
 #include "Dialog/DialogManager.h"
-#include "GGEngine.h"
+#include "NGEngine.h"
 #include "_DialogVisitor.h"
 
-namespace gg
+namespace ng
 {
-DialogManager::DialogManager(GGEngine &engine)
+DialogManager::DialogManager(NGEngine &engine)
     : _engine(engine)
 {
 }
@@ -40,4 +40,4 @@ void DialogManager::selectLabel(const std::string &name)
         _pLabel->accept(visitor);
     }
 }
-} // namespace gg
+} // namespace ng

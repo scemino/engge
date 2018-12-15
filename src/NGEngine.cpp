@@ -6,15 +6,15 @@
 #include <regex>
 #include <string>
 #include <math.h>
-#include "GGEngine.h"
+#include "NGEngine.h"
 #include "Screen.h"
-#include "GGFont.h"
-#include "_GGUtil.h"
+#include "NGFont.h"
+#include "_NGUtil.h"
 #include "Dialog/_DialogVisitor.h"
 
-namespace gg
+namespace ng
 {
-GGEngine::GGEngine(const GGEngineSettings &settings)
+NGEngine::NGEngine(const NGEngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
       _fadeAlpha(255),
@@ -74,16 +74,16 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
     }
 }
 
-GGEngine::~GGEngine() = default;
+NGEngine::~NGEngine() = default;
 
-sf::IntRect GGEngine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
+sf::IntRect NGEngine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
 {
     std::ostringstream s;
     s << name << (isRetro ? "_retro" : "") << "_" << lang;
     return _verbSheet.getRect(s.str());
 }
 
-const Verb *GGEngine::getVerb(const std::string &id) const
+const Verb *NGEngine::getVerb(const std::string &id) const
 {
     for (auto i = 0; i < 10; i++)
     {
@@ -97,12 +97,12 @@ const Verb *GGEngine::getVerb(const std::string &id) const
     return nullptr;
 }
 
-void GGEngine::setCameraAt(const sf::Vector2f &at)
+void NGEngine::setCameraAt(const sf::Vector2f &at)
 {
     _cameraPos = at;
 }
 
-void GGEngine::moveCamera(const sf::Vector2f &offset)
+void NGEngine::moveCamera(const sf::Vector2f &offset)
 {
     _cameraPos += offset;
     if (_cameraPos.x < 0)
@@ -118,7 +118,7 @@ void GGEngine::moveCamera(const sf::Vector2f &offset)
         _cameraPos.y = size.y - Screen::Height;
 }
 
-void GGEngine::update(const sf::Time &elapsed)
+void NGEngine::update(const sf::Time &elapsed)
 {
     for (auto &function : _newFunctions)
     {
@@ -151,7 +151,7 @@ void GGEngine::update(const sf::Time &elapsed)
 
     _pCurrentObject = nullptr;
     const auto &objects = _pRoom->getObjects();
-    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<GGObject> &pObj) {
+    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<NGObject> &pObj) {
         if (!pObj->isTouchable())
             return false;
         auto rect = pObj->getRealHotspot();
@@ -169,7 +169,7 @@ void GGEngine::update(const sf::Time &elapsed)
         {
             if (dlg.id != 0)
             {
-                GGText text;
+                NGText text;
                 text.setFont(_font);
                 text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
                 text.setText(dlg.text);
@@ -216,7 +216,7 @@ void GGEngine::update(const sf::Time &elapsed)
     }
 }
 
-std::shared_ptr<SoundDefinition> GGEngine::defineSound(const std::string &name)
+std::shared_ptr<SoundDefinition> NGEngine::defineSound(const std::string &name)
 {
     std::string path(_settings.getGamePath());
     path.append(name);
@@ -231,7 +231,7 @@ std::shared_ptr<SoundDefinition> GGEngine::defineSound(const std::string &name)
     return sound;
 }
 
-std::shared_ptr<SoundId> GGEngine::playSound(SoundDefinition &soundDefinition, bool loop)
+std::shared_ptr<SoundId> NGEngine::playSound(SoundDefinition &soundDefinition, bool loop)
 {
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     _soundIds.push_back(soundId);
@@ -239,7 +239,7 @@ std::shared_ptr<SoundId> GGEngine::playSound(SoundDefinition &soundDefinition, b
     return soundId;
 }
 
-std::shared_ptr<SoundId> GGEngine::loopMusic(SoundDefinition &soundDefinition)
+std::shared_ptr<SoundId> NGEngine::loopMusic(SoundDefinition &soundDefinition)
 {
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     _soundIds.push_back(soundId);
@@ -247,7 +247,7 @@ std::shared_ptr<SoundId> GGEngine::loopMusic(SoundDefinition &soundDefinition)
     return soundId;
 }
 
-void GGEngine::stopSound(SoundId &sound)
+void NGEngine::stopSound(SoundId &sound)
 {
     std::cout << "stopSound" << std::endl;
     sound.stop();
@@ -259,7 +259,7 @@ void GGEngine::stopSound(SoundId &sound)
     _soundIds.erase(it);
 }
 
-void GGEngine::draw(sf::RenderWindow &window) const
+void NGEngine::draw(sf::RenderWindow &window) const
 {
     auto cameraPos = _cameraPos;
     if (!_pRoom)
@@ -295,11 +295,11 @@ void GGEngine::draw(sf::RenderWindow &window) const
     // _font.draw(s.str(), window);
 }
 
-bool GGEngine::drawDialog(sf::RenderWindow &window) const
+bool NGEngine::drawDialog(sf::RenderWindow &window) const
 {
     int dialog = 0;
-    GGText text;
-    text.setAlignment(GGTextAlignment::Left);
+    NGText text;
+    text.setAlignment(NGTextAlignment::Left);
     text.setFont(_font);
     for (auto dlg : _dialog)
     {
@@ -315,7 +315,7 @@ bool GGEngine::drawDialog(sf::RenderWindow &window) const
     return dialog > 0;
 }
 
-void GGEngine::drawCursor(sf::RenderWindow &window) const
+void NGEngine::drawCursor(sf::RenderWindow &window) const
 {
     auto cursorSize = sf::Vector2f(68.f * Screen::Width / 1284, 68.f * Screen::Height / 772);
     sf::RectangleShape shape;
@@ -328,7 +328,7 @@ void GGEngine::drawCursor(sf::RenderWindow &window) const
 
     if (_pCurrentObject)
     {
-        GGText text;
+        NGText text;
         text.setFont(_font);
         text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 18));
         text.setColor(sf::Color::White);
@@ -341,7 +341,7 @@ void GGEngine::drawCursor(sf::RenderWindow &window) const
     }
 }
 
-void GGEngine::drawVerbs(sf::RenderWindow &window) const
+void NGEngine::drawVerbs(sf::RenderWindow &window) const
 {
     auto verbId = -1;
     if (_pCurrentObject)
@@ -400,7 +400,7 @@ void GGEngine::drawVerbs(sf::RenderWindow &window) const
     }
 }
 
-void GGEngine::drawInventory(sf::RenderWindow &window) const
+void NGEngine::drawInventory(sf::RenderWindow &window) const
 {
     auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
 
@@ -473,31 +473,31 @@ void GGEngine::drawInventory(sf::RenderWindow &window) const
     }
 }
 
-bool GGEngine::isThreadAlive(HSQUIRRELVM thread) const
+bool NGEngine::isThreadAlive(HSQUIRRELVM thread) const
 {
     return std::find(_threads.begin(), _threads.end(), thread) != _threads.end();
 }
 
-void GGEngine::startDialog(const std::string &dialog)
+void NGEngine::startDialog(const std::string &dialog)
 {
     _dialogManager.start(dialog);
 }
 
-void GGEngine::execute(const std::string &code)
+void NGEngine::execute(const std::string &code)
 {
     _pScriptExecute->execute(code);
 }
 
-bool GGEngine::executeCondition(const std::string &code)
+bool NGEngine::executeCondition(const std::string &code)
 {
     return _pScriptExecute->executeCondition(code);
 }
 
-void GGEngine::stopThread(HSQUIRRELVM thread)
+void NGEngine::stopThread(HSQUIRRELVM thread)
 {
     auto it = std::find(_threads.begin(), _threads.end(), thread);
     if (it == _threads.end())
         return;
     _threads.erase(it);
 }
-} // namespace gg
+} // namespace ng

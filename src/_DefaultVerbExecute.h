@@ -1,8 +1,8 @@
 #pragma once
 #include "squirrel3/squirrel.h"
-#include "GGEngine.h"
+#include "NGEngine.h"
 
-namespace gg
+namespace ng
 {
 class _DefaultScriptExecute : public ScriptExecute
 {
@@ -66,13 +66,13 @@ int _DefaultScriptExecute::_pos = 0;
 class _DefaultVerbExecute : public VerbExecute
 {
   public:
-    _DefaultVerbExecute(HSQUIRRELVM vm, GGEngine &engine)
+    _DefaultVerbExecute(HSQUIRRELVM vm, NGEngine &engine)
         : _vm(vm), _engine(engine)
     {
     }
 
   public:
-    void execute(GGObject *pObject, const Verb *pVerb) override
+    void execute(NGObject *pObject, const Verb *pVerb) override
     {
         auto pRoom = pObject->getRoom();
         sq_pushroottable(_vm);
@@ -171,6 +171,6 @@ class _DefaultVerbExecute : public VerbExecute
 
   private:
     HSQUIRRELVM _vm;
-    GGEngine &_engine;
-}; // namespace gg
-} // namespace gg
+    NGEngine &_engine;
+}; // namespace ng
+} // namespace ng

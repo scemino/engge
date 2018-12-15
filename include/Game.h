@@ -1,12 +1,12 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
-#include "GGObject.h"
+#include "NGObject.h"
 #include "Function.h"
 #include "NonCopyable.h"
-#include "GGEngine.h"
+#include "NGEngine.h"
 
-namespace gg
+namespace ng
 {
 class InputEventHandler
 {
@@ -17,7 +17,7 @@ public:
 class Game : public NonCopyable
 {
 public:
-  explicit Game(GGEngine &engine);
+  explicit Game(NGEngine &engine);
   ~Game();
   void run();
 
@@ -29,8 +29,8 @@ private:
   void update(const sf::Time &time);
   void render();
 
-  GGEngine &_engine;
+  NGEngine &_engine;
   sf::RenderWindow _window;
   std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
 };
-} // namespace gg
+} // namespace ng

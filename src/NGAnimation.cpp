@@ -1,17 +1,17 @@
 #include <iostream>
-#include "GGAnimation.h"
-#include "GGObject.h"
+#include "NGAnimation.h"
+#include "NGObject.h"
 
-namespace gg
+namespace ng
 {
-GGAnimation::GGAnimation(const sf::Texture &texture, const std::string &name)
+NGAnimation::NGAnimation(const sf::Texture &texture, const std::string &name)
     : _sprite(texture), _name(name), _fps(10), _index(0), _state(AnimState::Play)
 {
 }
 
-GGAnimation::~GGAnimation() = default;
+NGAnimation::~NGAnimation() = default;
 
-void GGAnimation::reset()
+void NGAnimation::reset()
 {
     _index = 0;
     if (_rects.empty())
@@ -22,13 +22,13 @@ void GGAnimation::reset()
     _sprite.setOrigin(sf::Vector2f(size.x / 2.f - sourceRect.left, size.y / 2.f - sourceRect.top));
 }
 
-void GGAnimation::play(bool loop)
+void NGAnimation::play(bool loop)
 {
     _loop = loop;
     _state = AnimState::Play;
 }
 
-void GGAnimation::update(const sf::Time &elapsed)
+void NGAnimation::update(const sf::Time &elapsed)
 {
     if (_state == AnimState::Pause)
         return;
@@ -51,7 +51,7 @@ void GGAnimation::update(const sf::Time &elapsed)
     }
 }
 
-void GGAnimation::updateTrigger()
+void NGAnimation::updateTrigger()
 {
     if (_triggers.empty())
         return;
@@ -63,8 +63,8 @@ void GGAnimation::updateTrigger()
     }
 }
 
-void GGAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void NGAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     target.draw(_sprite, states);
 }
-} // namespace gg
+} // namespace ng

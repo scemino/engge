@@ -4,34 +4,34 @@
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
-#include "GGCostume.h"
-#include "GGFont.h"
-#include "GGEntity.h"
-#include "GGLip.h"
+#include "NGCostume.h"
+#include "NGFont.h"
+#include "NGEntity.h"
+#include "NGLip.h"
 
-namespace gg
+namespace ng
 {
-class GGRoom;
-class GGObject;
+class NGRoom;
+class NGObject;
 
-class GGActor;
+class NGActor;
 
-class GGEngine;
+class NGEngine;
 
-class GGActor : public GGEntity
+class NGActor : public NGEntity
 {
 private:
   class WalkingState
   {
   public:
-    WalkingState(GGActor &actor);
+    WalkingState(NGActor &actor);
 
     void setDestination(const sf::Vector2f &destination);
     void update(const sf::Time &elapsed);
     bool isWalking() const { return _isWalking; }
 
   private:
-    GGActor &_actor;
+    NGActor &_actor;
     sf::Vector2f _destination;
     bool _isWalking;
   };
@@ -39,7 +39,7 @@ private:
   class TalkingState : public sf::Drawable
   {
   public:
-    TalkingState(GGActor &actor);
+    TalkingState(NGActor &actor);
 
     void setTalkOffset(const sf::Vector2i &offset) { _talkOffset = offset; }
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -49,11 +49,11 @@ private:
     void setTalkColor(sf::Color color) { _talkColor = color; }
 
   private:
-    GGActor &_actor;
-    GGFont _font;
+    NGActor &_actor;
+    NGFont _font;
     bool _isTalking;
     std::string _sayText;
-    GGLip _lip;
+    NGLip _lip;
     int _index;
     sf::Vector2i _talkOffset;
     sf::Color _talkColor;
@@ -61,8 +61,8 @@ private:
   };
 
 public:
-  explicit GGActor(GGEngine &engine);
-  virtual ~GGActor();
+  explicit NGActor(NGEngine &engine);
+  virtual ~NGActor();
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
@@ -75,8 +75,8 @@ public:
   int getZOrder() const override;
 
   void setCostume(const std::string &name, const std::string &sheet = "");
-  GGCostume &getCostume() { return _costume; }
-  const GGCostume &getCostume() const { return _costume; }
+  NGCostume &getCostume() { return _costume; }
+  const NGCostume &getCostume() const { return _costume; }
 
   void setTalkColor(sf::Color color) { _talkingState.setTalkColor(color); }
   void setTalkOffset(const sf::Vector2i &offset) { _talkingState.setTalkOffset(offset); }
@@ -91,8 +91,8 @@ public:
   void setPosition(const sf::Vector2f &pos);
   void setRenderOffset(const sf::Vector2i &offset) { _renderOffset = offset; }
 
-  GGRoom *getRoom() const { return _pRoom; }
-  void setRoom(GGRoom *pRoom);
+  NGRoom *getRoom() const { return _pRoom; }
+  void setRoom(NGRoom *pRoom);
 
   void setHotspot(const sf::IntRect &hotspot) { _hotspot = hotspot; }
   const sf::IntRect &getHotspot() const { return _hotspot; }
@@ -109,9 +109,9 @@ public:
   bool isWalking() const { return _walkingState.isWalking(); }
 
 private:
-  GGEngine &_engine;
-  const GGEngineSettings &_settings;
-  GGCostume _costume;
+  NGEngine &_engine;
+  const NGEngineSettings &_settings;
+  NGCostume _costume;
   std::string _name;
   sf::Transformable _transform;
   sf::Color _color;
@@ -119,11 +119,11 @@ private:
   int _zorder;
   bool _isVisible;
   bool _use;
-  GGRoom *_pRoom;
+  NGRoom *_pRoom;
   sf::IntRect _hotspot;
   std::vector<std::string> _icons;
   WalkingState _walkingState;
   TalkingState _talkingState;
   sf::Vector2i _speed;
 };
-} // namespace gg
+} // namespace ng

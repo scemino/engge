@@ -1,6 +1,6 @@
 #pragma once
 
-namespace gg
+namespace ng
 {
 enum class InterpolationMethod
 {
@@ -40,4 +40,4 @@ class Interpolations
         return -8 * f * f * f * f + 1;
     }
 };
-} // namespace gg
+} // namespace ng

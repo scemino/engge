@@ -4,7 +4,7 @@
 #include "NonCopyable.h"
 #include "Interpolations.h"
 
-namespace gg
+namespace ng
 {
 class Function : public NonCopyable
 {
@@ -88,4 +88,4 @@ private:
   Value _current;
   std::function<float(float)> _anim;
 };
-} // namespace gg
+} // namespace ng

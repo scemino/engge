@@ -1,9 +1,9 @@
 #pragma once
 #include <sstream>
 #include "SFML/Graphics.hpp"
-#include "GGLayer.h"
+#include "NGLayer.h"
 
-namespace gg
+namespace ng
 {
 enum class AnimationState
 {
@@ -11,14 +11,14 @@ enum class AnimationState
   Play
 };
 
-class GGCostumeAnimation : public sf::Drawable
+class NGCostumeAnimation : public sf::Drawable
 {
 public:
-  GGCostumeAnimation(const std::string &name, sf::Texture &texture);
-  ~GGCostumeAnimation();
+  NGCostumeAnimation(const std::string &name, sf::Texture &texture);
+  ~NGCostumeAnimation();
 
   const std::string &getName() const { return _name; }
-  std::vector<GGLayer *> &getLayers() { return _layers; }
+  std::vector<NGLayer *> &getLayers() { return _layers; }
 
   void play(bool loop = false);
   void pause() { _state = AnimationState::Pause; }
@@ -32,8 +32,8 @@ private:
 private:
   sf::Texture &_texture;
   std::string _name;
-  std::vector<GGLayer *> _layers;
+  std::vector<NGLayer *> _layers;
   AnimationState _state;
   bool _loop;
 };
-} // namespace gg
+} // namespace ng

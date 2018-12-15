@@ -1,9 +1,9 @@
 #include "Game.h"
 #include "Screen.h"
 
-namespace gg
+namespace ng
 {
-Game::Game(GGEngine &engine)
+Game::Game(NGEngine &engine)
     : _engine(engine), _window(sf::VideoMode(320, 180), "Engge")
 {
     _window.setSize(sf::Vector2u(1024, 768));
@@ -63,4 +63,4 @@ void Game::render()
     _engine.draw(_window);
     _window.display();
 }
-} // namespace gg
+} // namespace ng

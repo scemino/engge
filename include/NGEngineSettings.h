@@ -2,19 +2,19 @@
 #include <utility>
 #include <string>
 
-namespace gg
+namespace ng
 {
-class GGEngineSettings
+class NGEngineSettings
 {
 private:
   const std::string _gamePath;
 
 public:
-  explicit GGEngineSettings(std::string gamePath)
+  explicit NGEngineSettings(std::string gamePath)
       : _gamePath(std::move(gamePath))
   {
   }
 
   const std::string &getGamePath() const { return _gamePath; }
 };
-} // namespace gg
+} // namespace ng

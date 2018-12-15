@@ -3,25 +3,25 @@
 #include <nlohmann/json.hpp>
 #include "NonCopyable.h"
 #include "TextureManager.h"
-#include "GGEngineSettings.h"
-#include "GGObject.h"
-#include "GGTextObject.h"
+#include "NGEngineSettings.h"
+#include "NGObject.h"
+#include "NGTextObject.h"
 #include "Walkbox.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
 
-namespace gg
+namespace ng
 {
-class GGRoom : public NonCopyable
+class NGRoom : public NonCopyable
 {
 public:
-  GGRoom(TextureManager &textureManager, const GGEngineSettings &settings);
-  ~GGRoom() = default;
+  NGRoom(TextureManager &textureManager, const NGEngineSettings &settings);
+  ~NGRoom() = default;
 
   const std::string &getId() const { return _id; }
 
   void load(const char *name);
-  std::vector<std::unique_ptr<GGObject>> &getObjects() { return _objects; }
+  std::vector<std::unique_ptr<NGObject>> &getObjects() { return _objects; }
   const std::string &getSheet() const { return _sheet; }
 
   void update(const sf::Time &elapsed);
@@ -30,12 +30,12 @@ public:
   void showDrawWalkboxes(bool show) { _showDrawWalkboxes = show; }
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
   const std::vector<Walkbox> &getWalkboxes() const { return _walkboxes; }
-  GGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
-  GGObject &createObject(const std::vector<std::string> &anims);
-  GGTextObject &createTextObject(const std::string &name, GGFont &font);
-  void deleteObject(GGObject &textObject);
+  NGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
+  NGObject &createObject(const std::vector<std::string> &anims);
+  NGTextObject &createTextObject(const std::string &name, NGFont &font);
+  void deleteObject(NGObject &textObject);
   sf::Vector2i getRoomSize() const { return _roomSize; }
-  void setAsParallaxLayer(GGEntity *pEntity, int layer);
+  void setAsParallaxLayer(NGEntity *pEntity, int layer);
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
@@ -48,8 +48,8 @@ private:
 
 private:
   TextureManager &_textureManager;
-  const GGEngineSettings &_settings;
-  std::vector<std::unique_ptr<GGObject>> _objects;
+  const NGEngineSettings &_settings;
+  std::vector<std::unique_ptr<NGObject>> _objects;
   std::vector<Walkbox> _walkboxes;
   std::vector<std::unique_ptr<RoomLayer>> _layers;
   std::vector<RoomScaling> _scalings;
@@ -58,4 +58,4 @@ private:
   std::string _sheet;
   std::string _id;
 };
-} // namespace gg
+} // namespace ng

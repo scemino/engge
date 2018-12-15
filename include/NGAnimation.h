@@ -3,9 +3,9 @@
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 
-namespace gg
+namespace ng
 {
-class GGObject;
+class NGObject;
 
 enum class AnimState
 {
@@ -13,11 +13,11 @@ enum class AnimState
   Play
 };
 
-class GGAnimation: public sf::Drawable
+class NGAnimation: public sf::Drawable
 {
 public:
-  explicit GGAnimation(const sf::Texture &texture, const std::string &name);
-  ~GGAnimation();
+  explicit NGAnimation(const sf::Texture &texture, const std::string &name);
+  ~NGAnimation();
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
@@ -39,7 +39,7 @@ public:
   sf::Sprite &getSprite() { return _sprite; }
   const sf::Sprite &getSprite() const { return _sprite; }
 
-  void setObject(GGObject* pObject){ _pObject = pObject; }
+  void setObject(NGObject* pObject){ _pObject = pObject; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -57,6 +57,6 @@ private:
   size_t _index;
   AnimState _state;
   bool _loop;
-  GGObject* _pObject;
+  NGObject* _pObject;
 };
-} // namespace gg
+} // namespace ng
