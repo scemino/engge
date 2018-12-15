@@ -66,10 +66,18 @@ std::unique_ptr<Ast::Statement> YackParser::parseStatement()
 
 std::unique_ptr<Ast::Condition> YackParser::parseCondition()
 {
-    auto pCondition = std::make_unique<Ast::Condition>();
-    auto text = _reader.readText(*_it);
-    _it++;
-    pCondition->code = text.substr(1, text.length() - 2);
+    auto text = _reader.readText(*_it++);
+    auto conditionText = text.substr(1, text.length() - 2);
+    if (conditionText == "once")
+    {
+        return std::make_unique<Ast::OnceCondition>();
+    }
+    else if (conditionText == "showonce")
+    {
+        return std::make_unique<Ast::ShowOnceCondition>();
+    }
+    auto pCondition = std::make_unique<Ast::CodeCondition>();
+    pCondition->code = conditionText;
     return pCondition;
 }
 
@@ -108,7 +116,7 @@ std::unique_ptr<Ast::Say> YackParser::parseSayExpression()
     _it++;
     auto pExp = std::make_unique<Ast::Say>();
     pExp->actor = actor;
-    pExp->text = text;
+    pExp->text = text.substr(1, text.length() - 2);
     return pExp;
 }
 
@@ -167,7 +175,7 @@ std::unique_ptr<Ast::Choice> YackParser::parseChoiceExpression()
     _it++;
     auto pExp = std::make_unique<Ast::Choice>();
     pExp->number = number;
-    pExp->text = text;
+    pExp->text = text.substr(1, text.length() - 2);
     auto pGoto = parseGotoExpression();
     pExp->gotoExp = std::move(pGoto);
     return pExp;

@@ -100,7 +100,7 @@ return true
 
 function noReach(actor = null) {
  if (actor == null) actor = currentActor
- if (!actorWalking(actor) && !actor.onLadder) actorStand(actor)	
+//  if (!actorWalking(actor) && !actor.onLadder) actorStand(actor)	
 }
 
 // soundhelpers.nut
@@ -808,6 +808,7 @@ willie <- {
 }
 createActor(willie)
 actorRenderOffset(willie, 0, 45)
+actorTalkColors(willie, talkColorWillie)
 
 function williePassedOutCostume()
 {
@@ -1343,7 +1344,7 @@ defineRoom(StartScreen)
 function newOpeningScene() {
     // inputOn()
     // inputVerbs(ON)
-    //selectActor(boris)
+    // selectActor(boris)
     roomFade(FADE_OUT, 0)
     // TODO: actorSlotSelectable(OFF)
     // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
@@ -1361,7 +1362,7 @@ function newOpeningScene() {
     
     // TODO: lot of code
 
-    startMusic(musicBridgeA, bridgeMusicPool)
+    // startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
 
     Bridge.bridgeGate.gate_state = CLOSED

@@ -34,13 +34,36 @@ public:
 
 class Condition : public Node
 {
-public:
+protected:
   Condition() {}
+public:
   virtual ~Condition() {}
+};
+class CodeCondition : public Condition
+{
+public:
+  CodeCondition() {}
+  virtual ~CodeCondition() {}
 
   virtual void accept(AstVisitor &visitor) override;
 
   std::string code;
+};
+class OnceCondition : public Condition
+{
+public:
+  OnceCondition() {}
+  virtual ~OnceCondition() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+};
+class ShowOnceCondition : public Condition
+{
+public:
+  ShowOnceCondition() {}
+  virtual ~ShowOnceCondition() {}
+
+  virtual void accept(AstVisitor &visitor) override;
 };
 class Statement : public Node
 {
@@ -145,7 +168,9 @@ public:
   virtual void visit(const Choice &node);
   virtual void visit(const Code &node);
   virtual void visit(const Goto &node);
-  virtual void visit(const Condition &node);
+  virtual void visit(const CodeCondition &node);
+  virtual void visit(const OnceCondition &node);
+  virtual void visit(const ShowOnceCondition &node);
   virtual void visit(const Shutup &node);
   virtual void visit(const Pause &node);
   virtual void visit(const WaitFor &node);

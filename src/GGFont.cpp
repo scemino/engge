@@ -43,6 +43,26 @@ sf::IntRect GGFont::getSize(char letter) const
     return _toRect(_json["frames"][s]["spriteSourceSize"]);
 }
 
+GGText::GGText()
+    : _alignment(GGTextAlignment::Center)
+{
+}
+
+sf::FloatRect GGText::getBoundRect() const
+{
+    float width = 0;
+    float scale = 0.2f;
+    float height = 0;
+    for (auto letter : _text)
+    {
+        auto rect = _font.getRect(letter);
+        height = std::max(height, (float)rect.height * scale);
+        width += std::max(rect.width * scale, 10.f * scale);
+    }
+    sf::FloatRect r(0, 0, width, height);
+    return getTransform().transformRect(r);
+}
+
 void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     states.transform *= getTransform();
@@ -58,7 +78,7 @@ void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
         width += std::max(rect.width * scale, 10.f * scale);
     }
 
-    auto x = 0;
+    auto x = _alignment == GGTextAlignment::Center ? -width / 2.f : 0.f;
     for (auto i = 0; i < rects.size(); i++)
     {
         auto rect = rects[i];
@@ -69,7 +89,7 @@ void GGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
         _sprite.setTexture(_font.getTexture());
         _sprite.setOrigin(-sourceRect.left, -sourceRect.top);
         _sprite.setColor(_color);
-        _sprite.setPosition(x - width / 2, 0);
+        _sprite.setPosition(x, 0);
         target.draw(_sprite, states);
         x += std::max(rect.width * scale, 10.f * scale);
     }

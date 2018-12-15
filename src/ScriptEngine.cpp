@@ -179,6 +179,8 @@ ScriptEngine::ScriptEngine(GGEngine &engine)
 
     auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
     engine.setVerbExecute(std::move(pVerbExecute));
+    auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(v);
+    engine.setScriptExecute(std::move(pScriptExecute));
 }
 
 ScriptEngine::~ScriptEngine()

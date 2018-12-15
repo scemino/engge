@@ -840,16 +840,17 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get verbHighlightTint"));
         }
 
-        // SQInteger dialogNormal = 0;
+        // TODO:
+        SQInteger dialogNormal = verbNormal;
         // if (SQ_FAILED(readFieldInt(v, _SC("dialogNormal"), dialogNormal)))
         // {
-        //     return sq_throwerror(v, _SC("failed to get dialogNormal"));
+        //     dialogNormal = verbNormal;
         // }
 
-        // SQInteger dialogHighlight = 0;
+        SQInteger dialogHighlight = verbHighlight;
         // if (SQ_FAILED(readFieldInt(v, _SC("dialogHighlight"), dialogHighlight)))
         // {
-        //     return sq_throwerror(v, _SC("failed to get dialogHighlight"));
+        //     dialogHighlight = verbHighlight;
         // }
 
         SQInteger inventoryFrame = 0;
@@ -872,8 +873,8 @@ class _ActorPack : public Pack
         colors.verbNormalTint = fromRgbInt(verbNormalTint);
         colors.verbHighlight = fromRgbInt(verbHighlight);
         colors.verbHighlightTint = fromRgbInt(verbHighlightTint);
-        // colors.dialogNormal = fromRgbInt(dialogNormal);
-        // colors.dialogHighlight = fromRgbInt(dialogHighlight);
+        colors.dialogNormal = fromRgbInt(dialogNormal);
+        colors.dialogHighlight = fromRgbInt(dialogHighlight);
         colors.inventoryFrame = fromRgbInt(inventoryFrame);
         colors.inventoryBackground = fromRgbInt(inventoryBackground);
         g_pEngine->setVerbUiColors(actorSlot - 1, colors);

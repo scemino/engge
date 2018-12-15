@@ -71,7 +71,15 @@ public:
     {
         std::cout << "goto " << node.name << std::endl;
     }
-    virtual void visit(const Ast::Condition &node)
+    virtual void visit(const Ast::OnceCondition &node)
+    {
+        std::cout << "condition: once" << std::endl;
+    }
+    virtual void visit(const Ast::ShowOnceCondition &node)
+    {
+        std::cout << "condition: showonce" << std::endl;
+    }
+    virtual void visit(const Ast::CodeCondition &node)
     {
         std::cout << "condition: " << node.code << std::endl;
     }

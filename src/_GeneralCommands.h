@@ -21,6 +21,7 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(cameraFollow, "cameraFollow");
         engine.registerGlobalFunction(cameraPanTo, "cameraPanTo");
         engine.registerGlobalFunction(setVerb, "setVerb");
+        engine.registerGlobalFunction(startDialog, "startDialog");
     }
 
     static SQInteger cameraAt(HSQUIRRELVM v)
@@ -286,6 +287,17 @@ class _GeneralPack : public Pack
         verb.text = text;
         verb.key = key;
         g_pEngine->setVerb(actorSlot - 1, verbSlot, verb);
+        return 0;
+    }
+
+     static SQInteger startDialog(HSQUIRRELVM v)
+    {
+        const SQChar *dialog;
+        if (SQ_FAILED(sq_getstring(v, 2, &dialog)))
+        {
+            return sq_throwerror(v, _SC("failed to get dialog"));
+        }
+        g_pEngine->startDialog(dialog);
         return 0;
     }
 

@@ -10,6 +10,7 @@
 #include "Screen.h"
 #include "GGFont.h"
 #include "_GGUtil.h"
+#include "Dialog/_DialogVisitor.h"
 
 namespace gg
 {
@@ -27,7 +28,8 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
       _showCursor(false),
       _pFollowActor(nullptr),
       _pCurrentObject(nullptr),
-      _pVerb(nullptr)
+      _pVerb(nullptr),
+      _dialogManager(*this)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -157,32 +159,54 @@ void GGEngine::update(const sf::Time &elapsed)
 
     if (m.isButtonPressed(sf::Mouse::Button::Left))
     {
-        auto verbId = -1;
-        for (auto i = 0; i < 9; i++)
+        int dialog = 0;
+        for (auto dlg : _dialog)
         {
-            if (_verbRects[i].contains((sf::Vector2i)_mousePos))
+            if (!dlg.text.empty())
             {
-                verbId = i;
-                break;
+                GGText text;
+                text.setFont(_font);
+                text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
+                text.setText(dlg.text);
+                if (text.getBoundRect().contains(_mousePos))
+                {
+                    _pCurrentActor->say(dlg.text);
+                    _dialogManager.selectLabel(dlg.label);
+                    break;
+                }
+                dialog++;
             }
         }
 
-        if (verbId != -1)
+        if (!dialog)
         {
-            _pVerb = &_verbSlots[0].getVerb(1 + verbId);
-            std::cout << "select verb: " << _pVerb->id << std::endl;
-        }
-        // else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
-        // {
-        //     _pCurrentActor->walkTo(_mousePos);
-        // }
-        else if (_pCurrentObject)
-        {
-            _pVerbExecute->execute(_pCurrentObject, _pVerb);
-        }
-        else
-        {
-            _pVerb = &_verbSlots[0].getVerb(0);
+            auto verbId = -1;
+            for (auto i = 0; i < 9; i++)
+            {
+                if (_verbRects[i].contains((sf::Vector2i)_mousePos))
+                {
+                    verbId = i;
+                    break;
+                }
+            }
+
+            if (verbId != -1)
+            {
+                _pVerb = &_verbSlots[0].getVerb(1 + verbId);
+                std::cout << "select verb: " << _pVerb->id << std::endl;
+            }
+            // else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
+            // {
+            //     _pCurrentActor->walkTo(_mousePos);
+            // }
+            else if (_pCurrentObject)
+            {
+                _pVerbExecute->execute(_pCurrentObject, _pVerb);
+            }
+            else
+            {
+                _pVerb = &_verbSlots[0].getVerb(0);
+            }
         }
     }
 }
@@ -243,21 +267,47 @@ void GGEngine::draw(sf::RenderWindow &window) const
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
 
+    // draw dialog
+    bool dialog = drawDialog(window);
+
     // draw verbs
-    if (_inputActive && !_verbSlots[0].getVerb(0).id.empty())
+    if (!dialog && _inputActive && !_verbSlots[0].getVerb(0).id.empty())
     {
         drawVerbs(window);
     }
 
     if (_inputActive)
     {
-        drawInventory(window);
+        if (!dialog)
+        {
+            drawInventory(window);
+        }
         drawCursor(window);
     }
 
     // std::stringstream s;
     // s << "camera: " << std::fixed << std::setprecision(0) << cameraPos.x << ", " << cameraPos.y;
     // _font.draw(s.str(), window);
+}
+
+bool GGEngine::drawDialog(sf::RenderWindow &window) const
+{
+    int dialog = 0;
+    GGText text;
+    text.setAlignment(GGTextAlignment::Left);
+    text.setFont(_font);
+    for (auto dlg : _dialog)
+    {
+        if (!dlg.text.empty())
+        {
+            text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
+            text.setText(dlg.text);
+            text.setColor(text.getBoundRect().contains(_mousePos) ? _verbUiColors[0].dialogHighlight : _verbUiColors[0].dialogNormal);
+            window.draw(text, sf::RenderStates::Default);
+            dialog++;
+        }
+    }
+    return dialog > 0;
 }
 
 void GGEngine::drawCursor(sf::RenderWindow &window) const
@@ -423,6 +473,21 @@ bool GGEngine::isThreadAlive(HSQUIRRELVM thread) const
     return std::find(_threads.begin(), _threads.end(), thread) != _threads.end();
 }
 
+void GGEngine::startDialog(const std::string &dialog)
+{
+    _dialogManager.start(dialog);
+}
+
+void GGEngine::execute(const std::string &code)
+{
+    _pScriptExecute->execute(code);
+}
+
+bool GGEngine::executeCondition(const std::string &code)
+{
+    return _pScriptExecute->executeCondition(code);
+}
+
 void GGEngine::stopThread(HSQUIRRELVM thread)
 {
     auto it = std::find(_threads.begin(), _threads.end(), thread);
@@ -430,5 +495,4 @@ void GGEngine::stopThread(HSQUIRRELVM thread)
         return;
     _threads.erase(it);
 }
-
 } // namespace gg

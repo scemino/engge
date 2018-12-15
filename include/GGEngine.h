@@ -12,6 +12,7 @@
 #include "Verb.h"
 #include "SpriteSheet.h"
 #include "NonCopyable.h"
+#include "Dialog/DialogManager.h"
 
 namespace gg
 {
@@ -20,6 +21,20 @@ class VerbExecute
 public:
   virtual ~VerbExecute() = default;
   virtual void execute(GGObject *pObject, const Verb *pVerb) = 0;
+};
+
+class ScriptExecute
+{
+public:
+  virtual ~ScriptExecute() = default;
+  virtual void execute(const std::string& code) = 0;
+  virtual bool executeCondition(const std::string& code) = 0;
+};
+
+struct DialogSlot
+{
+std::string text;
+std::string label;
 };
 
 class GGEngine : public NonCopyable
@@ -74,17 +89,24 @@ public:
 
   void follow(GGActor *pActor) { _pFollowActor = pActor; }
   void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pVerbExecute = std::move(verbExecute); }
+  void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute) { _pScriptExecute = std::move(scriptExecute); }
   const Verb *getVerb(const std::string &id) const;
 
   void addThread(HSQUIRRELVM thread) { _threads.push_back(thread); }
   void stopThread(HSQUIRRELVM thread);
   bool isThreadAlive(HSQUIRRELVM thread) const;
 
+  void startDialog(const std::string& dialog);
+  std::array<DialogSlot,8>& getDialog() {return _dialog;}
+  void execute(const std::string& code);
+  bool executeCondition(const std::string& code);
+
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
   void drawInventory(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
+  bool drawDialog(sf::RenderWindow &window) const;
 
 private:
   const GGEngineSettings &_settings;
@@ -124,7 +146,10 @@ private:
   GGObject *_pCurrentObject;
   sf::Vector2f _mousePos;
   std::unique_ptr<VerbExecute> _pVerbExecute;
+  std::unique_ptr<ScriptExecute> _pScriptExecute;
   const Verb *_pVerb;
   std::vector<HSQUIRRELVM> _threads;
+  std::array<DialogSlot,8> _dialog;
+  DialogManager _dialogManager;
 };
 } // namespace gg

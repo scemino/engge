@@ -4,6 +4,65 @@
 
 namespace gg
 {
+class _DefaultScriptExecute : public ScriptExecute
+{
+  public:
+    _DefaultScriptExecute(HSQUIRRELVM vm)
+        : _vm(vm)
+    {
+    }
+
+  public:
+    void execute(const std::string &code) override
+    {
+        std::string c;
+        c.append("return ");
+        c.append(code);
+        _pos = 0;
+        // compile
+        sq_pushroottable(_vm);
+        if (SQ_FAILED(sq_compile(_vm, program_reader, (SQUserPointer)c.data(), _SC("_DefaultScriptExecute"), SQTrue)))
+        {
+            std::cerr << "Error executing code " << code << std::endl;
+            return;
+        }
+        // call
+        sq_pushroottable(_vm);
+        if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue)))
+        {
+            std::cerr << "Error calling code " << code << std::endl;
+            return;
+        }
+    }
+
+    bool executeCondition(const std::string &code) override
+    {
+        execute(code);
+        // get the result
+        auto type = sq_gettype(_vm, -1);
+        SQBool result;
+        if (SQ_FAILED(sq_getbool(_vm, -1, &result)))
+        {
+            std::cerr << "Error getting result " << code << std::endl;
+            return false;
+        }
+        std::cout << code << " returns " << result << std::endl;
+        return result == SQTrue;
+    }
+
+    static SQInteger program_reader(SQUserPointer p)
+    {
+        auto code = (char *)p;
+        return (SQInteger)code[_pos++];
+    }
+
+  private:
+    static int _pos;
+    HSQUIRRELVM _vm;
+};
+
+int _DefaultScriptExecute::_pos = 0;
+
 class _DefaultVerbExecute : public VerbExecute
 {
   public:
