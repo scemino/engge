@@ -28,14 +28,28 @@ void GGActor::WalkingState::update(const sf::Time &elapsed)
     auto delta = (_destination - pos);
     auto speed = _actor.getWalkSpeed();
     auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
-    if (offset.x > delta.x)
-        offset.x = delta.x;
-    if (offset.x < -delta.x)
-        offset.x = -delta.x;
-    if (offset.y < -delta.y)
-        offset.y = -delta.y;
-    if (offset.y > delta.y)
-        offset.y = delta.y;
+    if (delta.x > 0)
+    {
+        if (offset.x > delta.x)
+            offset.x = delta.x;
+    }
+    else
+    {
+        offset.x = -offset.x;
+        if (offset.x < delta.x)
+            offset.x = delta.x;
+    }
+    if (delta.y < 0)
+    {
+        offset.y = -offset.y;
+        if (offset.y < delta.y)
+            offset.y = delta.y;
+    }
+    else
+    {
+        if (offset.y > delta.y)
+            offset.y = delta.y;
+    }
     _actor.setPosition(pos + offset);
     if (fabs(_destination.x - pos.x) <= 1 && fabs(_destination.y - pos.y) <= 1)
     {

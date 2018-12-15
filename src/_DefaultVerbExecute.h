@@ -147,7 +147,10 @@ class _DefaultVerbExecute : public VerbExecute
                 }
                 else if (pVerb->id == "walkto")
                 {
-                    _engine.getCurrentActor()->walkTo(pObject->getPosition());
+                    auto pos = pObject->getPosition();
+                    auto usePos = pObject->getUsePosition();
+                    auto dest = sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y);
+                    _engine.getCurrentActor()->walkTo(dest);
                 }
                 else
                 {

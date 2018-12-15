@@ -574,7 +574,10 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        pActor->walkTo(pObject->getPosition());
+        
+        auto pos = pObject->getPosition();
+        auto usePos = pObject->getUsePosition();
+        pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y));
 
         return 0;
     }
