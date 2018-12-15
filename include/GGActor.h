@@ -7,6 +7,7 @@
 #include "GGCostume.h"
 #include "GGFont.h"
 #include "GGEntity.h"
+#include "GGLip.h"
 
 namespace gg
 {
@@ -15,25 +16,52 @@ class GGObject;
 
 class GGActor;
 
-class WalkingState
-{
-public:
-  WalkingState(GGActor &actor);
-
-  void setDestination(const sf::Vector2f &destination);
-  void update(const sf::Time &elapsed);
-  bool isWalking() const { return _isWalking; }
-
-private:
-  GGActor &_actor;
-  sf::Vector2f _destination;
-  bool _isWalking;
-}; // namespace gg
+class GGEngine;
 
 class GGActor : public GGEntity
 {
+private:
+  class WalkingState
+  {
+  public:
+    WalkingState(GGActor &actor);
+
+    void setDestination(const sf::Vector2f &destination);
+    void update(const sf::Time &elapsed);
+    bool isWalking() const { return _isWalking; }
+
+  private:
+    GGActor &_actor;
+    sf::Vector2f _destination;
+    bool _isWalking;
+  };
+
+  class TalkingState : public sf::Drawable
+  {
+  public:
+    TalkingState(GGActor &actor);
+
+    void setTalkOffset(const sf::Vector2i &offset) { _talkOffset = offset; }
+    void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+    void update(const sf::Time &elapsed);
+    void say(int id);
+    bool isTalking() const { return _isTalking; }
+    void setTalkColor(sf::Color color) { _talkColor = color; }
+
+  private:
+    GGActor &_actor;
+    GGFont _font;
+    bool _isTalking;
+    std::string _sayText;
+    GGLip _lip;
+    int _index;
+    sf::Vector2i _talkOffset;
+    sf::Color _talkColor;
+    sf::Clock _clock;
+  };
+
 public:
-  explicit GGActor(TextureManager &textureManager);
+  explicit GGActor(GGEngine &engine);
   virtual ~GGActor();
 
   void setName(const std::string &name) { _name = name; }
@@ -50,11 +78,10 @@ public:
   GGCostume &getCostume() { return _costume; }
   const GGCostume &getCostume() const { return _costume; }
 
-  void setTalkColor(sf::Color color) { _talkColor = color; }
-  sf::Color getTalkColor() { return _talkColor; }
-  void setTalkOffset(const sf::Vector2i &offset) { _talkOffset = offset; }
-  void say(const std::string &text) { _sayText = text; }
-  bool isTalking() const { return !_sayText.empty(); }
+  void setTalkColor(sf::Color color) { _talkingState.setTalkColor(color); }
+  void setTalkOffset(const sf::Vector2i &offset) { _talkingState.setTalkOffset(offset); }
+  void say(int id) { _talkingState.say(id); }
+  bool isTalking() const { return _talkingState.isTalking(); }
 
   void setColor(sf::Color color) { _color = color; }
   sf::Color getColor() { return _color; }
@@ -77,23 +104,18 @@ public:
   const std::vector<std::string> &getObjects() const { return _icons; }
 
   void setWalkSpeed(const sf::Vector2i &speed) { _speed = speed; }
-  const sf::Vector2i& getWalkSpeed() const { return _speed; }
-  void walkTo(const sf::Vector2f &destination)
-  {
-    _walkingState.setDestination(destination);
-  }
+  const sf::Vector2i &getWalkSpeed() const { return _speed; }
+  void walkTo(const sf::Vector2f &destination);
   bool isWalking() const { return _walkingState.isWalking(); }
 
 private:
+  GGEngine &_engine;
   const GGEngineSettings &_settings;
   GGCostume _costume;
   std::string _name;
   sf::Transformable _transform;
   sf::Color _color;
-  sf::Color _talkColor;
-  sf::Vector2i _renderOffset, _talkOffset;
-  GGFont _font;
-  std::string _sayText;
+  sf::Vector2i _renderOffset;
   int _zorder;
   bool _isVisible;
   bool _use;
@@ -101,6 +123,7 @@ private:
   sf::IntRect _hotspot;
   std::vector<std::string> _icons;
   WalkingState _walkingState;
+  TalkingState _talkingState;
   sf::Vector2i _speed;
 };
 } // namespace gg

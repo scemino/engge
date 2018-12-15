@@ -1,14 +1,15 @@
+#include "GGEngine.h"
 #include "GGActor.h"
 #include "GGRoom.h"
 
 namespace gg
 {
-WalkingState::WalkingState(GGActor &actor)
+GGActor::WalkingState::WalkingState(GGActor &actor)
     : _actor(actor), _isWalking(false)
 {
 }
 
-void WalkingState::setDestination(const sf::Vector2f &destination)
+void GGActor::WalkingState::setDestination(const sf::Vector2f &destination)
 {
     _destination = destination;
     auto pos = _actor.getPosition();
@@ -18,7 +19,7 @@ void WalkingState::setDestination(const sf::Vector2f &destination)
     _isWalking = true;
 }
 
-void WalkingState::update(const sf::Time &elapsed)
+void GGActor::WalkingState::update(const sf::Time &elapsed)
 {
     if (!_isWalking)
         return;
@@ -44,21 +45,87 @@ void WalkingState::update(const sf::Time &elapsed)
     };
 }
 
-GGActor::GGActor(TextureManager &textureManager)
-    : _settings(textureManager.getSettings()),
-      _costume(textureManager),
+GGActor::TalkingState::TalkingState(GGActor &actor)
+    : _actor(actor), _isTalking(false),
+      _talkColor(sf::Color::White), _index(0)
+{
+    _font.setSettings(&_actor._engine.getSettings());
+    _font.setTextureManager(&_actor._engine.getTextureManager());
+    _font.load("FontModernSheet");
+}
+
+static std::string str_toupper(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c) { return std::toupper(c); } // correct
+    );
+    return s;
+}
+
+void GGActor::TalkingState::say(int id)
+{
+    std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
+    auto soundDefinition = _actor._engine.defineSound(name + ".ogg");
+    if (!soundDefinition)
+        return;
+    _actor._engine.playSound(*soundDefinition);
+
+    std::string path;
+    path.append(_actor._engine.getSettings().getGamePath()).append(name).append(".lip");
+    std::cout << "load lip " << path << std::endl;
+    _lip.load(path);
+
+    _sayText = _actor._engine.getText(id);
+    _isTalking = true;
+    _clock.restart();
+}
+
+void GGActor::TalkingState::update(const sf::Time &elapsed)
+{
+    if (!_isTalking)
+        return;
+
+    auto time = _lip.getData()[_index + 1].time;
+    if (_clock.getElapsedTime() > time)
+    {
+        _index = _index + 1;
+    }
+    if (_index == _lip.getData().size())
+    {
+        _isTalking = false;
+        return;
+    }
+    auto index = _lip.getData()[_index].letter - 'A';
+    // TODO: what is the correspondance between letter and head index ?
+    _actor.getCostume().setHeadIndex(index % 6);
+}
+
+void GGActor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
+{
+    sf::Transformable t;
+    t.move((sf::Vector2f)-_talkOffset);
+    states.transform *= t.getTransform();
+
+    GGText text;
+    text.setFont(_font);
+    text.setColor(_talkColor);
+    text.setText(_sayText);
+    target.draw(text, states);
+}
+
+GGActor::GGActor(GGEngine &engine)
+    : _engine(engine),
+      _settings(engine.getSettings()),
+      _costume(engine.getTextureManager()),
       _color(sf::Color::White),
-      _talkColor(sf::Color::White),
       _zorder(0),
       _isVisible(true),
       _use(true),
       _pRoom(nullptr),
       _walkingState(*this),
+      _talkingState(*this),
       _speed(30, 15)
 {
-    _font.setSettings(&_settings);
-    _font.setTextureManager(&textureManager);
-    _font.load("FontModernSheet");
 }
 
 GGActor::~GGActor() = default;
@@ -98,23 +165,23 @@ void GGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     transform.move((sf::Vector2f)-_renderOffset);
     states.transform *= transform.getTransform();
     target.draw(_costume, states);
-    if (_sayText.empty())
+    if (!_talkingState.isTalking())
         return;
 
-    transform = _transform;
-    transform.move((sf::Vector2f)-_talkOffset);
-    states.transform = actorTransform * transform.getTransform();
-
-    GGText text;
-    text.setFont(_font);
-    text.setColor(_talkColor);
-    text.setText(_sayText);
-    target.draw(text, states);
+    states.transform = actorTransform * _transform.getTransform();
+    _talkingState.draw(target, states);
 }
 
 void GGActor::update(const sf::Time &elapsed)
 {
     _costume.update(elapsed);
     _walkingState.update(elapsed);
+    _talkingState.update(elapsed);
 }
+
+void GGActor::walkTo(const sf::Vector2f &destination)
+{
+    _walkingState.setDestination(destination);
+}
+
 } // namespace gg

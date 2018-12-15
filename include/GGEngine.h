@@ -33,6 +33,7 @@ public:
 
 struct DialogSlot
 {
+int id;
 std::string text;
 std::string label;
 };

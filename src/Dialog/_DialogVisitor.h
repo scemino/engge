@@ -48,14 +48,16 @@ class _DialogVisitor : public Ast::AstVisitor
                 break;
             }
         }
-        pActor->say(getText(node.text));
+        pActor->say(getId(node.text));
     }
 
     virtual void visit(const Ast::Choice &node)
     {
-        if (_engine.getDialog()[node.number - 1].text.empty())
+        if (_engine.getDialog()[node.number - 1].id == 0)
         {
-            _engine.getDialog()[node.number - 1].text = getText(node.text);
+            auto id = getId(node.text);
+            _engine.getDialog()[node.number - 1].id = id;
+            _engine.getDialog()[node.number - 1].text = _engine.getText(id);
             _engine.getDialog()[node.number - 1].label = node.gotoExp->name;
         }
     }
@@ -100,7 +102,7 @@ class _DialogVisitor : public Ast::AstVisitor
         // TODO: waitfor
     }
 
-    std::string getText(const std::string &text)
+    int getId(const std::string &text)
     {
         std::string s(text);
         if (s[0] == '@')
@@ -108,9 +110,9 @@ class _DialogVisitor : public Ast::AstVisitor
             s = s.substr(1);
 
             auto id = std::strtol(s.c_str(), nullptr, 10);
-            return _engine.getText(id);
+            return id;
         }
-        return text;
+        throw std::logic_error("Expecting a talk id");
     }
 
   private:

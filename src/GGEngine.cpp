@@ -67,6 +67,11 @@ GGEngine::GGEngine(const GGEngineSettings &settings)
         auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
         _verbRects[i] = sf::IntRect(left, top, size.x, size.y);
     }
+
+    for (auto &dlg : _dialog)
+    {
+        dlg.id = 0;
+    }
 }
 
 GGEngine::~GGEngine() = default;
@@ -162,7 +167,7 @@ void GGEngine::update(const sf::Time &elapsed)
         int dialog = 0;
         for (auto dlg : _dialog)
         {
-            if (!dlg.text.empty())
+            if (dlg.id != 0)
             {
                 GGText text;
                 text.setFont(_font);
@@ -170,7 +175,7 @@ void GGEngine::update(const sf::Time &elapsed)
                 text.setText(dlg.text);
                 if (text.getBoundRect().contains(_mousePos))
                 {
-                    _pCurrentActor->say(dlg.text);
+                    _pCurrentActor->say(dlg.id);
                     _dialogManager.selectLabel(dlg.label);
                     break;
                 }
@@ -298,7 +303,7 @@ bool GGEngine::drawDialog(sf::RenderWindow &window) const
     text.setFont(_font);
     for (auto dlg : _dialog)
     {
-        if (!dlg.text.empty())
+        if (dlg.id != 0)
         {
             text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
             text.setText(dlg.text);

@@ -28,7 +28,7 @@ void DialogManager::selectLabel(const std::string &name)
     auto &dlg = _engine.getDialog();
     for (auto &line : dlg)
     {
-        line.text.clear();
+        line.id = 0;
     }
     auto it = std::find_if(_pCompilationUnit->labels.begin(), _pCompilationUnit->labels.end(), [&name](const std::unique_ptr<Ast::Label> &label) {
         return label->name == name;

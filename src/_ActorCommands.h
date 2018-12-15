@@ -5,40 +5,6 @@
 
 namespace gg
 {
-class _TalkAnim : public TimeFunction
-{
-  public:
-    _TalkAnim(GGActor &actor, std::unique_ptr<GGLip> lip)
-        : TimeFunction((lip->getData().end() - 1)->time),
-          _actor(actor),
-          _lip(std::move(lip)),
-          _index(0)
-    {
-    }
-
-    void operator()() override
-    {
-        if (isElapsed())
-        {
-            _actor.say("");
-            return;
-        }
-        auto time = _lip->getData()[_index + 1].time;
-        if (_clock.getElapsedTime() > time)
-        {
-            _index = _index + 1;
-        }
-        auto index = _lip->getData()[_index].letter - 'A';
-        // TODO: what is the correspondance between letter and head index ?
-        _actor.getCostume().setHeadIndex(index % 6);
-    }
-
-  private:
-    GGActor &_actor;
-    std::unique_ptr<GGLip> _lip;
-    int _index;
-};
-
 class _ActorPack : public Pack
 {
   private:
@@ -465,6 +431,7 @@ class _ActorPack : public Pack
         sq_pushbool(v, actor->isTalking());
         return 1;
     }
+    
     // TODO: static SQInteger _actorStopWalking(HSQUIRRELVM v)
 
     static SQInteger actorTalkColors(HSQUIRRELVM v)
@@ -634,7 +601,7 @@ class _ActorPack : public Pack
         sq_pop(v, 2);
 
         // define instance
-        auto pActor = std::make_unique<GGActor>(g_pEngine->getTextureManager());
+        auto pActor = std::make_unique<GGActor>(*g_pEngine);
         pActor->setName(key);
         // pActor->setTable(table);
         sq_pushobject(v, table);
@@ -707,25 +674,7 @@ class _ActorPack : public Pack
         std::string s(idText);
         s = s.substr(1);
         auto id = std::strtol(s.c_str(), nullptr, 10);
-        std::cout << "Play anim talk (loop)" << std::endl;
-
-        std::string name = str_toupper(actor->getName()).append("_").append(s);
-
-        auto soundDefinition = g_pEngine->defineSound(name + ".ogg");
-        if (!soundDefinition)
-            return 0;
-
-        g_pEngine->playSound(*soundDefinition);
-
-        std::string path;
-        path.append(g_pEngine->getSettings().getGamePath()).append(name).append(".lip");
-        auto lip = std::make_unique<GGLip>();
-        std::cout << "load lip " << path << std::endl;
-        lip->load(path);
-
-        g_pEngine->addFunction(std::make_unique<_TalkAnim>(*actor, std::move(lip)));
-        auto text = g_pEngine->getText(id);
-        actor->say(text);
+        actor->say(id);
         return 0;
     }
 
