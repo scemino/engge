@@ -8,6 +8,7 @@
 #include "NGFont.h"
 #include "NGEntity.h"
 #include "NGLip.h"
+#include "NGObject.h"
 
 namespace ng
 {
@@ -26,13 +27,14 @@ private:
   public:
     WalkingState(NGActor &actor);
 
-    void setDestination(const sf::Vector2f &destination);
+    void setDestination(const sf::Vector2f &destination, Facing facing);
     void update(const sf::Time &elapsed);
     bool isWalking() const { return _isWalking; }
 
   private:
     NGActor &_actor;
     sf::Vector2f _destination;
+    Facing _facing;
     bool _isWalking;
   };
 
@@ -106,6 +108,7 @@ public:
   void setWalkSpeed(const sf::Vector2i &speed) { _speed = speed; }
   const sf::Vector2i &getWalkSpeed() const { return _speed; }
   void walkTo(const sf::Vector2f &destination);
+  void walkTo(const sf::Vector2f &destination, Facing facing);
   bool isWalking() const { return _walkingState.isWalking(); }
 
 private:

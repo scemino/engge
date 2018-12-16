@@ -9,9 +9,10 @@ NGActor::WalkingState::WalkingState(NGActor &actor)
 {
 }
 
-void NGActor::WalkingState::setDestination(const sf::Vector2f &destination)
+void NGActor::WalkingState::setDestination(const sf::Vector2f &destination, Facing facing)
 {
     _destination = destination;
+    _facing = facing;
     auto pos = _actor.getPosition();
     _actor.getCostume().setFacing(((_destination.x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
     _actor.getCostume().setState("walk");
@@ -56,6 +57,7 @@ void NGActor::WalkingState::update(const sf::Time &elapsed)
         _isWalking = false;
         std::cout << "Play anim stand" << std::endl;
         _actor.getCostume().setState("stand");
+        _actor.getCostume().setFacing(_facing);
     };
 }
 
@@ -193,9 +195,14 @@ void NGActor::update(const sf::Time &elapsed)
     _talkingState.update(elapsed);
 }
 
+void NGActor::walkTo(const sf::Vector2f &destination, Facing facing)
+{
+    _walkingState.setDestination(destination, facing);
+}
+
 void NGActor::walkTo(const sf::Vector2f &destination)
 {
-    _walkingState.setDestination(destination);
+    _walkingState.setDestination(destination, getCostume().getFacing());
 }
 
 } // namespace ng

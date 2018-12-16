@@ -26,6 +26,7 @@ public:
   void loadCostume(const std::string &name, const std::string &sheet = "");
   void lockFacing(Facing facing);
   void setFacing(Facing facing);
+  Facing getFacing() const { return _facing; }
   void setState(const std::string &name);
   void setAnimation(const std::string &name);
   const std::string &getAnimationName() const { return _animation; }

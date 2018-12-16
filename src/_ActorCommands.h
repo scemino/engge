@@ -2,6 +2,7 @@
 #include <squirrel3/squirrel.h>
 #include "NGLip.h"
 #include "NGEngine.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
@@ -431,7 +432,7 @@ class _ActorPack : public Pack
         sq_pushbool(v, actor->isTalking());
         return 1;
     }
-    
+
     // TODO: static SQInteger _actorStopWalking(HSQUIRRELVM v)
 
     static SQInteger actorTalkColors(HSQUIRRELVM v)
@@ -574,10 +575,11 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        
+
         auto pos = pObject->getPosition();
         auto usePos = pObject->getUsePosition();
-        pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y));
+        
+        pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
 
         return 0;
     }

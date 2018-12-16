@@ -1,6 +1,7 @@
 #pragma once
 #include "squirrel3/squirrel.h"
 #include "NGEngine.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
@@ -150,7 +151,7 @@ class _DefaultVerbExecute : public VerbExecute
                     auto pos = pObject->getPosition();
                     auto usePos = pObject->getUsePosition();
                     auto dest = sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y);
-                    _engine.getCurrentActor()->walkTo(dest);
+                    _engine.getCurrentActor()->walkTo(dest, _toFacing(pObject->getUseDirection()));
                 }
                 else
                 {

@@ -1,9 +1,26 @@
+#pragma once
 #include <nlohmann/json.hpp>
 #include <regex>
 #include "NGObject.h"
 
 namespace ng
 {
+static Facing _toFacing(UseDirection direction)
+{
+    switch (direction)
+    {
+    case UseDirection::Front:
+        return Facing::FACE_FRONT;
+    case UseDirection::Back:
+        return Facing::FACE_BACK;
+    case UseDirection::Left:
+        return Facing::FACE_LEFT;
+    case UseDirection::Right:
+        return Facing::FACE_RIGHT;
+    }
+    throw std::logic_error("Invalid direction");
+}
+
 static sf::IntRect _toRect(const nlohmann::json &json)
 {
     sf::IntRect rect;
