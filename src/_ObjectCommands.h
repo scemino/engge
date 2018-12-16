@@ -259,7 +259,7 @@ class _ObjectPack : public Pack
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&NGObject::getPosition, obj);
         auto set = std::bind(&NGObject::setPosition, obj, std::placeholders::_1);
-        auto destination = obj->getPosition() + sf::Vector2f(x, y);
+        auto destination = obj->getDefaultPosition() + sf::Vector2f(x, y);
         auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 

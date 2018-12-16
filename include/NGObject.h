@@ -78,6 +78,7 @@ public:
   void move(const sf::Vector2f &offset);
   void setPosition(const sf::Vector2f &pos);
   sf::Vector2f getPosition() const;
+  sf::Vector2f getDefaultPosition() const;
 
   void setUsePosition(const sf::Vector2f &pos);
   sf::Vector2f getUsePosition() const;
@@ -104,6 +105,9 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const NGObject &obj);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
+  void addTrigger(std::shared_ptr<Trigger> trigger) { _triggers.push_back(trigger);}
+  void removeTrigger() { _triggers.clear();}
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
@@ -128,5 +132,7 @@ private:
   NGRoom *_pRoom;
   int _state;
   std::string _verb;
+  std::vector<std::shared_ptr<Trigger>> _triggers;
+  std::optional<sf::Vector2f> _defaultPosition;
 };
 } // namespace ng

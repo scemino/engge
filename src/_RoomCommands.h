@@ -1,6 +1,7 @@
 #pragma once
 #include "squirrel3/squirrel.h"
 #include "NGEngine.h"
+#include "_RoomTrigger.h"
 
 namespace ng
 {
@@ -13,6 +14,8 @@ class _RoomPack : public Pack
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
+        engine.registerGlobalFunction(addTrigger, "addTrigger");
+        engine.registerGlobalFunction(removeTrigger, "removeTrigger");
         engine.registerGlobalFunction(roomFade, "roomFade");
         engine.registerGlobalFunction(defineRoom, "defineRoom");
     }
@@ -23,6 +26,45 @@ class _RoomPack : public Pack
         auto set = std::bind(&NGEngine::setFadeAlpha, g_pEngine, std::placeholders::_1);
         auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, a, time);
         g_pEngine->addFunction(std::move(fadeTo));
+    }
+
+    static SQInteger addTrigger(HSQUIRRELVM v)
+    {
+        auto object = ScriptEngine::getObject(v, 2);
+        if (!object)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        HSQOBJECT inside;
+        if (SQ_FAILED(sq_getstackobj(v, 3, &inside)))
+        {
+            return sq_throwerror(v, _SC("failed to get insideTriggerFunction"));
+        }
+        HSQOBJECT outside;
+        sq_resetobject(&outside);
+        auto numArgs = sq_gettop(v) - 2;
+        if (numArgs == 4)
+        {
+            if (SQ_FAILED(sq_getstackobj(v, 4, &outside)))
+            {
+                return sq_throwerror(v, _SC("failed to get outsideTriggerFunction"));
+            }
+        }
+        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, v, inside, outside);
+        object->addTrigger(trigger);
+
+        return 0;
+    }
+
+    static SQInteger removeTrigger(HSQUIRRELVM v)
+    {
+        auto object = ScriptEngine::getObject(v, 2);
+        if (!object)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        object->removeTrigger();
+        return 0;
     }
 
     static SQInteger roomFade(HSQUIRRELVM v)

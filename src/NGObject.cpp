@@ -81,12 +81,21 @@ void NGObject::move(const sf::Vector2f &offset)
 
 void NGObject::setPosition(const sf::Vector2f &pos)
 {
+    if (!_defaultPosition.has_value())
+    {
+        _defaultPosition = pos;
+    }
     _transform.setPosition(pos);
 }
 
 sf::Vector2f NGObject::getPosition() const
 {
     return _transform.getPosition();
+}
+
+sf::Vector2f NGObject::getDefaultPosition() const
+{
+    return _defaultPosition.value();
 }
 
 void NGObject::setUsePosition(const sf::Vector2f &pos)
@@ -123,6 +132,10 @@ void NGObject::update(const sf::Time &elapsed)
     if (_pAnim)
     {
         _pAnim->update(elapsed);
+    }
+    for (auto &trigger : _triggers)
+    {
+        trigger->trig();
     }
 }
 
