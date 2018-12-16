@@ -280,6 +280,24 @@ Bridge <-
  otheragent_save_y = 0
  otheragent_save_dir = 0
 
+ function willieSnoring() {
+ //TODO: Bridge._willieSnoringTID = threadid()
+ g.willie_sleeping = YES
+ actorAnimationNames(willie, { stand = "asleep", walk = "asleep", reach = "asleep" })
+ actorPlayAnimation(willie, "asleep")
+//  actorVolume(willie, 0.25)		
+ do {
+//  TODO: if (isActorOnScreen(willie)) 
+ {
+ breakwhiletalking(willie)
+ breakwhiletalking(currentActor)
+//  mumbleLine(willie, "@24839")
+ breakwhiletalking(willie)
+ }
+ breaktime(4)
+ }while(1)
+ }
+
  function openGate() {
 //  Tutorial.stopHints(1)
  inputOff()

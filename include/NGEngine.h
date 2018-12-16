@@ -31,13 +31,6 @@ public:
   virtual bool executeCondition(const std::string& code) = 0;
 };
 
-struct DialogSlot
-{
-int id;
-std::string text;
-std::string label;
-};
-
 class NGEngine : public NonCopyable
 {
 public:
@@ -79,6 +72,7 @@ public:
 
   void setVerb(int characterSlot, int verbSlot, const Verb &verb) { _verbSlots[characterSlot].setVerb(verbSlot, verb); }
   void setVerbUiColors(int characterSlot, VerbUiColors colors) { _verbUiColors[characterSlot] = colors; }
+  VerbUiColors& getVerbUiColors(int characterSlot) { return _verbUiColors[characterSlot]; }
 
   void setInputActive(bool active)
   {
@@ -98,16 +92,16 @@ public:
   bool isThreadAlive(HSQUIRRELVM thread) const;
 
   void startDialog(const std::string& dialog);
-  std::array<DialogSlot,8>& getDialog() {return _dialog;}
   void execute(const std::string& code);
   bool executeCondition(const std::string& code);
+
+  sf::Vector2f getMousePos() const {return _mousePos;}
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
   void drawInventory(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
-  bool drawDialog(sf::RenderWindow &window) const;
 
 private:
   const NGEngineSettings &_settings;
@@ -150,7 +144,6 @@ private:
   std::unique_ptr<ScriptExecute> _pScriptExecute;
   const Verb *_pVerb;
   std::vector<HSQUIRRELVM> _threads;
-  std::array<DialogSlot,8> _dialog;
   DialogManager _dialogManager;
 };
 } // namespace ng

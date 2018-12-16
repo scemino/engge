@@ -10,7 +10,6 @@
 #include "Screen.h"
 #include "NGFont.h"
 #include "_NGUtil.h"
-#include "Dialog/_DialogVisitor.h"
 
 namespace ng
 {
@@ -66,11 +65,6 @@ NGEngine::NGEngine(const NGEngineSettings &settings)
         auto left = (i / 3) * size.x;
         auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
         _verbRects[i] = sf::IntRect(left, top, size.x, size.y);
-    }
-
-    for (auto &dlg : _dialog)
-    {
-        dlg.id = 0;
     }
 }
 
@@ -164,28 +158,12 @@ void NGEngine::update(const sf::Time &elapsed)
         _pCurrentObject = it->get();
     }
 
+    _dialogManager.update(elapsed);
+
     if (!m.isButtonPressed(sf::Mouse::Button::Left)) return;
     
-    int dialog = 0;
-    for (auto dlg : _dialog)
-    {
-        if (dlg.id == 0) continue;
-        
-        NGText text;
-        text.setFont(_font);
-        text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
-        text.setText(dlg.text);
-        if (text.getBoundRect().contains(_mousePos))
-        {
-            _pCurrentActor->say(dlg.id);
-            _dialogManager.selectLabel(dlg.label);
-            break;
-        }
-        dialog++;
-    }
+    if(_dialogManager.isActive()) return;
 
-    if (dialog) return;
-    
     auto verbId = -1;
     for (auto i = 0; i < 9; i++)
     {
@@ -270,33 +248,14 @@ void NGEngine::draw(sf::RenderWindow &window) const
     fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
     window.draw(fadeShape);
 
-    bool dialog = drawDialog(window);
-    if(!dialog)
+    window.draw(_dialogManager);
+
+    if(!_dialogManager.isActive())
     {
         drawVerbs(window);
         drawInventory(window);
     }
-
     drawCursor(window);
-}
-
-bool NGEngine::drawDialog(sf::RenderWindow &window) const
-{
-    int dialog = 0;
-    NGText text;
-    text.setAlignment(NGTextAlignment::Left);
-    text.setFont(_font);
-    for (auto dlg : _dialog)
-    {
-        if (dlg.id == 0) continue;
-        
-        text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
-        text.setText(dlg.text);
-        text.setColor(text.getBoundRect().contains(_mousePos) ? _verbUiColors[0].dialogHighlight : _verbUiColors[0].dialogNormal);
-        window.draw(text, sf::RenderStates::Default);
-        dialog++;
-    }
-    return dialog > 0;
 }
 
 void NGEngine::drawCursor(sf::RenderWindow &window) const
