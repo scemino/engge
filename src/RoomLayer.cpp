@@ -22,27 +22,19 @@ void RoomLayer::removeEntity(NGEntity &entity)
     _entities.erase(it);
 }
 
-void RoomLayer::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+void RoomLayer::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-    auto parallax = getParallax();
-    auto posX = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
-    auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
-
-    sf::RenderStates states;
-    sf::Transform t;
-    t.translate(posX, posY);
-    states.transform = t;
-
     // draw layer sprites
     for (const auto &sprite : getSprites())
     {
-        window.draw(sprite, states);
+        target.draw(sprite, states);
     }
 
     // draw layer objects
-    std::for_each(std::begin(_entities), std::end(_entities), [&window, &states](const sf::Drawable &entity) {
-        window.draw(entity, states);
-    });
+    for (const auto &entity : _entities)
+    {
+        target.draw(entity, states);
+    }
 }
 
 void RoomLayer::update(const sf::Time &elapsed)

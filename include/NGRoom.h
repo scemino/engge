@@ -57,5 +57,6 @@ private:
   bool _showDrawWalkboxes;
   std::string _sheet;
   std::string _id;
+  int _fullscreen;
 };
 } // namespace ng

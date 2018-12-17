@@ -34,6 +34,7 @@ void NGRoom::setAsParallaxLayer(NGEntity *pEntity, int layerNum)
 void NGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
 {
     int width = 0;
+    _fullscreen = jWimpy["fullscreen"].get<int>();
     if (jWimpy["background"].is_array())
     {
         auto layer = std::make_unique<RoomLayer>();
@@ -414,13 +415,26 @@ void NGRoom::update(const sf::Time &elapsed)
 void NGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
-    states.transform.translate(-cameraPos);
-
+    auto ratio = ((float)Screen::Height) / _roomSize.y;
     for (const auto &layer : _layers)
     {
-        layer->draw(window, cameraPos);
+        auto parallax = layer->getParallax();
+        auto posX = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
+        auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
+
+        sf::Transform t;
+        t.translate(posX, posY);
+        if (_fullscreen == 1)
+        {
+            t.scale(ratio, ratio);
+        }
+        states.transform = t;
+        layer->draw(window, states);
     }
 
+    sf::Transform t;
+    t.translate(-cameraPos);
+    states.transform = t;
     drawWalkboxes(window, states);
 }
 } // namespace ng

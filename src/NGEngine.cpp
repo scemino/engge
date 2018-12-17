@@ -242,12 +242,6 @@ void NGEngine::draw(sf::RenderWindow &window) const
 
     _pRoom->draw(window, _cameraPos);
 
-    // draw fade
-    sf::RectangleShape fadeShape;
-    fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
-    fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
-    window.draw(fadeShape);
-
     window.draw(_dialogManager);
 
     if(!_dialogManager.isActive())
@@ -255,6 +249,13 @@ void NGEngine::draw(sf::RenderWindow &window) const
         drawVerbs(window);
         drawInventory(window);
     }
+
+    // draw fade
+    sf::RectangleShape fadeShape;
+    fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
+    fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
+    window.draw(fadeShape);
+
     drawCursor(window);
 }
 

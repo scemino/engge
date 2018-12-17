@@ -24,7 +24,7 @@ public:
   void addEntity(NGEntity &entity);
   void removeEntity(NGEntity &entity);
 
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   void update(const sf::Time &elapsed);
 
 private:
