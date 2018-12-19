@@ -12,7 +12,7 @@ set(SOURCES
     src/NGTextDatabase.cpp src/NGEngine.cpp src/NGFont.cpp src/NGLayer.cpp src/NGObject.cpp src/NGRoom.cpp
     src/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/NGTextObject.cpp src/RoomLayer.cpp src/NGLip.cpp
     src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
-    src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp
+    src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
