@@ -29,7 +29,8 @@ public:
 
   void showDrawWalkboxes(bool show) { _showDrawWalkboxes = show; }
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
-  const std::vector<Walkbox> &getWalkboxes() const { return _walkboxes; }
+  const std::vector<std::unique_ptr<Walkbox>> &getWalkboxes() const { return _walkboxes; }
+  std::vector<std::unique_ptr<Walkbox>> &getWalkboxes() { return _walkboxes; }
   NGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   NGObject &createObject(const std::vector<std::string> &anims);
   NGTextObject &createTextObject(const std::string &fontName);
@@ -50,7 +51,7 @@ private:
   TextureManager &_textureManager;
   const NGEngineSettings &_settings;
   std::vector<std::unique_ptr<NGObject>> _objects;
-  std::vector<Walkbox> _walkboxes;
+  std::vector<std::unique_ptr<Walkbox>> _walkboxes;
   std::vector<std::unique_ptr<RoomLayer>> _layers;
   std::vector<RoomScaling> _scalings;
   sf::Vector2i _roomSize;

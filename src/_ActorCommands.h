@@ -300,8 +300,8 @@ class _ActorPack : public Pack
         }
 
         const auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
-        auto inWalkbox = std::any_of(std::begin(walkboxes), std::end(walkboxes), [actor](const Walkbox &w) {
-            return w.contains(actor->getPosition());
+        auto inWalkbox = std::any_of(std::begin(walkboxes), std::end(walkboxes), [actor](const std::unique_ptr<Walkbox> &w) {
+            return w->contains(actor->getPosition());
         });
 
         sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);

@@ -182,13 +182,15 @@ void NGRoom::loadWalkboxes(nlohmann::json jWimpy)
     for (auto jWalkbox : jWimpy["walkboxes"])
     {
         std::vector<sf::Vector2i> vertices;
+        auto polygon = jWalkbox["polygon"].get<std::string>();
+        _parsePolygon(polygon, vertices, _roomSize.y);
+        auto walkbox = std::make_unique<Walkbox>(vertices);
         if (jWalkbox["name"].is_string())
         {
             auto walkboxName = jWalkbox["name"].get<std::string>();
+            walkbox->setName(walkboxName);
         }
-        auto polygon = jWalkbox["polygon"].get<std::string>();
-        _parsePolygon(polygon, vertices, _roomSize.y);
-        _walkboxes.emplace_back(vertices);
+        _walkboxes.push_back(std::move(walkbox));
     }
 }
 
@@ -401,7 +403,7 @@ void NGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) co
 
     for (auto &walkbox : _walkboxes)
     {
-        walkbox.draw(window, states);
+        walkbox->draw(window, states);
     }
 }
 

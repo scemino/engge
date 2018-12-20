@@ -359,7 +359,7 @@ Bridge <-
  playObjectSound(soundGateSlidingOpen, Bridge.bridgeGate)
  Bridge.bridgeGate.gate_state = OPEN
  breaktime(1)
- // TODO: walkboxHidden("gate", NO)
+ walkboxHidden("gate", NO)
  Bridge.bridgeGate.gate_opening = NO
  inputOn()
  breaktime(1)
@@ -725,7 +725,7 @@ borisPrototypeToy =
  
  // TODO: _lightObject1 = lightSetUp(0xAAAAAA, 719, 43, 0.8, 0, 210, 0.7, 200, 0.85, null, null)
  if (g.openingScene == 1) {
-// TODO: walkboxHidden("body", NO)
+walkboxHidden("body", NO)
  addTrigger(Bridge.triggerCloseGate, trigCloseGate)
  objectTouchable(bridgeHighwayDoorOpening, YES)
  williePassedOutCostume()
@@ -750,7 +750,7 @@ borisPrototypeToy =
  } else {
  objectTouchable(bridgeHighwayDoorOpening, NO)
  objectTouchable(bridgeGateBack, NO)
- // TODO: walkboxHidden("body", YES)
+ walkboxHidden("body", YES)
  objectState(bridgeRock, GONE)
  objectState(bridgeBody, HERE)
  objectTouchable(bridgeBody, YES)
@@ -789,11 +789,11 @@ borisPrototypeToy =
 objectTouchable(Bridge.bridgeGate, YES)
  Bridge.bridgeGate.gate_opening = NO
  if (Bridge.bridgeGate.gate_state == OPEN) {
-// TODO:  walkboxHidden("gate", NO)
+walkboxHidden("gate", NO)
  objectOffset(Bridge.bridgeGate, -60, 0)
  objectOffset(Bridge.bridgeGateBack, -60, 0)
  } else {
-// TODO:  walkboxHidden("gate", YES)
+walkboxHidden("gate", YES)
  objectOffset(Bridge.bridgeGate, 0, 0)
  objectOffset(Bridge.bridgeGateBack, 0, 0)
  }
@@ -801,11 +801,11 @@ objectTouchable(Bridge.bridgeGate, YES)
  actorWalkTo(currentActor, Bridge.pathSpot)
  }
  if (objectState(Bridge.bridgeGrateTree) == ON) {		
- // TODO: walkboxHidden("fallen_tree", YES)
+ walkboxHidden("fallen_tree", YES)
   objectSort(Bridge.bridgeGrateTree, 73)
   objectOffset(Bridge.bridgeGrateTree, 27, -34)
   } else {																						
-  // TODO: walkboxHidden("fallen_tree", NO)
+  walkboxHidden("fallen_tree", NO)
   objectSort(Bridge.bridgeGrateTree, 123)
   objectOffset(Bridge.bridgeGrateTree, 0, 0)
   }

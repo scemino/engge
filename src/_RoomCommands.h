@@ -18,6 +18,7 @@ class _RoomPack : public Pack
         engine.registerGlobalFunction(removeTrigger, "removeTrigger");
         engine.registerGlobalFunction(roomFade, "roomFade");
         engine.registerGlobalFunction(defineRoom, "defineRoom");
+        engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
     }
 
     static void _fadeTo(float a, const sf::Time &time)
@@ -53,6 +54,33 @@ class _RoomPack : public Pack
         auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, v, inside, outside);
         object->addTrigger(trigger);
 
+        return 0;
+    }
+
+    static SQInteger walkboxHidden(HSQUIRRELVM v)
+    {
+        const SQChar *name = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &name)))
+        {
+            return sq_throwerror(v, _SC("failed to get walkbox name"));
+        }
+        SQBool hidden;
+        if (SQ_FAILED(sq_getbool(v, 3, &hidden)))
+        {
+            return sq_throwerror(v, _SC("failed to get hidden value"));
+        }
+        auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
+        auto it = std::find_if(walkboxes.begin(), walkboxes.end(), [&name](std::unique_ptr<Walkbox> &walkbox) 
+        {
+            return walkbox->getName() == name; 
+        });
+        if (it == walkboxes.end())
+        {
+            std::string s;
+            s.append("walkbox ").append(name).append(" has not been found");
+            return sq_throwerror(v, s.data());
+        }
+        it->get()->setEnabled(hidden == SQFalse ? true : false);
         return 0;
     }
 
