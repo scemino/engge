@@ -31,6 +31,16 @@ soundBridgeAmbienceFrog2 <- defineSound("BridgeAmbienceFrog2.wav")
 soundBridgeAmbienceFrog3 <- defineSound("BridgeAmbienceFrog3.wav")
 soundBridgeAmbienceFrog4 <- defineSound("BridgeAmbienceFrog4.wav")
 soundGateSlidingOpen <- defineSound("GateSlidingOpen.wav")
+soundGateSlidingClosed <- defineSound("GateSlidingClosed.wav")			
+soundFootstepWater1 <- defineSound("FootstepWater1.wav")
+soundFootstepWater2 <- defineSound("FootstepWater2.wav")
+soundFootstepNormal1 <- defineSound("FootstepNormal1.wav")
+soundFootstepNormal2 <- defineSound("FootstepNormal2.wav")
+soundFootstepNormal3 <- defineSound("FootstepNormal3.wav")
+soundTitleStinger1 <- defineSound("TitleCardStab1.ogg")
+soundTitleStinger2 <- defineSound("TitleCardStab2.ogg")
+soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
+soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
 
 // Boot.nut
 function objectName(obj, name) {
@@ -55,6 +65,46 @@ function defineVerbs(slot) {
  setVerb(slot, 7, { verb = VERB_PUSH, image = "push",  func = "verbPush", text = "@30024", key = getUserPref("keyPush", "@30025") })
  setVerb(slot, 8, { verb = VERB_PULL, image = "pull",  func = "verbPull", text = "@30026", key = getUserPref("keyPull", "@30027") })
  setVerb(slot, 9, { verb = VERB_USE, image = "use",  func = "verbUse", text = "@30028", key = getUserPref("keyUse", "@30029") })
+}
+
+// Boot.nut
+settings <- { 
+    playFootsteps = YES
+    actorIdleAnimations = YES
+    idleTime = 3*60
+    demo = NO	
+    demoQP = NO
+    selectActorHintTime = 60
+    preloadMusic = NO
+    ambianceSounds = YES
+    starTwinkleRate = 1.0
+    isRon = NO
+    showMusicInfo = YES
+    showAmbianceInfo = YES
+    toilet_paper_over = YES
+}
+
+// Helpers.nut
+function footstepsNormal(actor) {
+ if (settings.playFootsteps) {
+ if (getroottable().rawin("ransome")		 && actor == ransome) {
+ actorSound(actor, 1, soundRansomeFootstep1, soundRansomeFootstep2, soundRansomeFootstep3, soundRansomeFootstep4)
+ } else
+ if (getroottable().rawin("pigeon1")		 && actor == pigeon1) {
+ actorSound(actor, 1, 0)		
+ } else {
+ actorSound(actor, 1, soundFootstepNormal1, soundFootstepNormal2, soundFootstepNormal3)
+ }
+ }
+ actorHideLayer(actor, "splash")
+}
+
+function footstepsWater(actor) {
+    print("footstepsWater "+actor+"\n")
+ if (settings.playFootsteps) {
+ actorSound(actor, 1, soundFootstepWater1, soundFootstepWater2)
+ }
+ actorShowLayer(actor, "splash")
 }
 
 boris <- {
@@ -87,7 +137,7 @@ function borisCostume()
 actorTalkOffset(boris, 0, defaultTextOffset)
  actorHidden(boris, OFF)
 //  objectLit(boris, 1)
-//  footstepsNormal(boris)
+ footstepsNormal(boris)
  boris.showHideLayers()
 }
 borisCostume()
@@ -319,12 +369,14 @@ Bridge <-
  }
 
  function closeGate() {
+     print("closeGate\n")
  if (Bridge.bridgeGate.gate_state == CLOSED) {
+     print("closed\n")
  return	
  }
  Bridge.bridgeGate.gate_closing = YES
  Bridge.bridgeGate.gate_state = CLOSED
- walkboxHidden("gate", YES)
+//  walkboxHidden("gate", YES)
  playObjectSound(soundGateSlidingClosed, Bridge.bridgeGate)
  objectOffsetTo(Bridge.bridgeGate, 0, 0, 2.0, EASE_INOUT)
  objectTouchable(Bridge.bridgeGate, NO)
@@ -334,6 +386,12 @@ Bridge <-
  Bridge.bridgeGate.gate_closing = NO
  objectTouchable(Bridge.bridgeGate, YES)
 
+ }
+
+ function trigCloseGate()
+ {
+     startthread(Bridge.closeGate)
+     removeTrigger(Bridge.triggerCloseGate);
  }
 
  startLeft = { name = objectName(this, "@25553") }
@@ -349,6 +407,10 @@ rock =
  {
  icon = "rock"
  name = objectName(this, "@25567")
+  verbLookAt = function()
+ {
+ sayLine(boris, "@25568")
+ }
  }
 
 borisNote =
@@ -664,7 +726,7 @@ borisPrototypeToy =
  // TODO: _lightObject1 = lightSetUp(0xAAAAAA, 719, 43, 0.8, 0, 210, 0.7, 200, 0.85, null, null)
  if (g.openingScene == 1) {
 // TODO: walkboxHidden("body", NO)
- // TODO: addTrigger(Bridge.triggerCloseGate, @() { startthread(Bridge.closeGate); removeTrigger(Bridge.triggerCloseGate); })
+ addTrigger(Bridge.triggerCloseGate, trigCloseGate)
  objectTouchable(bridgeHighwayDoorOpening, YES)
  williePassedOutCostume()
 //  actorVolume(willie, 1.0)
@@ -751,7 +813,7 @@ objectTouchable(Bridge.bridgeGate, YES)
  // TODO: addTrigger(Bridge.triggerSound1, @() { Bridge.spookySound(Bridge.triggerSound1, randomfrom(soundOwls, soundBridgeAmbienceOwlHoot, soundBridgeAmbienceOwlHoot, soundBridgeAmbienceOwlHoot), 5.0) })
  // TODO: addTrigger(Bridge.triggerSound4, @() { Bridge.spookySound(Bridge.triggerSound4, randomfrom(soundWolf, soundBridgeAmbienceDogHowl1, soundBridgeAmbienceDogHowl2, soundBridgeAmbienceDogHowl3, soundBridgeAmbienceDogHowl4), 5.0) })
 
- // TODO: addTrigger(triggerWater, footstepsWater, footstepsNormal)
+ addTrigger(triggerWater, footstepsWater, footstepsNormal)
  
  objectHidden(bridgeEyes, YES)
  objectParallaxLayer(bridgeWater, 1)
@@ -866,23 +928,6 @@ function actorEyesLook(actor, dir) {
  }
 }
 
-// Boot.nut
-settings <- { 
-    playFootsteps = YES
-    actorIdleAnimations = YES
-    idleTime = 3*60
-    demo = NO	
-    demoQP = NO
-    selectActorHintTime = 60
-    preloadMusic = NO
-    ambianceSounds = YES
-    starTwinkleRate = 1.0
-    isRon = NO
-    showMusicInfo = YES
-    showAmbianceInfo = YES
-    toilet_paper_over = YES
-}
-
 // Globals.nut
 g <- {
     openingScene = 1
@@ -893,6 +938,7 @@ g <- {
     hint_stage = 1	
     taken_photo = NO		
 }
+
 // MusicHelpers.nut
 _watchMusicTID <- 0
 _playingMusicSID <- 0
@@ -1340,6 +1386,60 @@ Opening <-
  opening1987 = { name = "" }
 }
 
+TitleCards <-
+{
+ background = "TitleCards"
+//  _dont_hero_track = TRUE
+
+ enter = function()
+ {
+ ""
+ foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
+ }
+
+ exit = function()
+ {
+ }
+
+ function displayCard(part, title) {
+ if (part != 1) {	
+//  local count = getPrivatePref("heroPartCount", 0)+1
+//  setPrivatePref("heroPartCount", count)
+//  markStat("part", count) 
+ }
+//  cameraInRoom(TitleCards)
+//  stopAllSounds()
+//  stopMusic(0.10)
+//  stopSoundAmbiance()
+//  local state = inputState()
+ inputOff()
+ inputVerbs(OFF)
+ objectHidden(pressPreview, YES)
+ objectHidden(part, NO)
+ objectHidden(title, NO)
+ objectHidden(line, NO)
+ objectAlpha(part, 1.0)
+ objectAlpha(title, 1.0)
+ objectAlpha(line, 1.0)
+ playSound(randomfrom(soundTitleStinger1, soundTitleStinger2, soundTitleStinger3, soundTitleStinger4))
+ breaktime(5.0)
+ objectAlphaTo(part, 0.0, 2.0)
+ objectAlphaTo(title, 0.0, 2.0)
+ objectAlphaTo(line, 0.0, 2.0)
+ breaktime(4.0)
+ objectHidden(part, YES)
+ objectHidden(title, YES)
+ objectHidden(line, YES)
+//  inputState(state)
+ }
+  function showPartMeeting() {
+//  achievementPart(1)
+//  setProgress("part1")
+//  logEvent("part1")
+ return startthread(displayCard, part1, part1Title)
+ }
+}
+
 defineRoom(Bridge)
 defineRoom(StartScreen)
 // defineRoom(AStreet)
@@ -1355,9 +1455,12 @@ defineRoom(StartScreen)
 // defineRoom(CircusEntrance)
 // defineRoom(CoronersOffice)
 // defineRoom(Opening)
+defineRoom(TitleCards)
 // Opening.playOpening()
+TitleCards.showPartMeeting()
 // cameraInRoom(StartScreen)
-// roomFade(FADE_IN, 2.0)
+// cameraInRoom(TitleCards)
+roomFade(FADE_IN, 2.0)
 
 function newOpeningScene() {
     // inputOn()
