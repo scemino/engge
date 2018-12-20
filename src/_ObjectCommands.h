@@ -645,13 +645,13 @@ class _ObjectPack : public Pack
 
     static SQInteger createTextObject(HSQUIRRELVM v)
     {
-        const SQChar *name;
+        const SQChar *fontName;
         const SQChar *text;
-        if (SQ_FAILED(sq_getstring(v, 2, &name)))
+        if (SQ_FAILED(sq_getstring(v, 2, &fontName)))
         {
-            return sq_throwerror(v, _SC("failed to get name"));
+            return sq_throwerror(v, _SC("failed to get fontName"));
         }
-        auto &obj = g_pEngine->getRoom().createTextObject(name, g_pEngine->getFont());
+        auto &obj = g_pEngine->getRoom().createTextObject(fontName);
 
         if (SQ_FAILED(sq_getstring(v, 3, &text)))
         {

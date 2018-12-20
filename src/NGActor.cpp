@@ -1,6 +1,7 @@
 #include "NGEngine.h"
 #include "NGActor.h"
 #include "NGRoom.h"
+#include "Text.h"
 
 namespace ng
 {
@@ -65,9 +66,9 @@ NGActor::TalkingState::TalkingState(NGActor &actor)
     : _actor(actor), _isTalking(false),
       _talkColor(sf::Color::White), _index(0)
 {
-    _font.setSettings(&_actor._engine.getSettings());
-    _font.setTextureManager(&_actor._engine.getTextureManager());
-    _font.load("FontModernSheet");
+    std::string path;
+    path.append(_actor._engine.getSettings().getGamePath()).append("SayLineFont.fnt");
+    _font.loadFromFile(path);
 }
 
 static std::string str_toupper(std::string s)
@@ -118,14 +119,18 @@ void NGActor::TalkingState::update(const sf::Time &elapsed)
 
 void NGActor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    Text text;
+    auto scale = Screen::HalfHeight / 512.f;
+    text.setScale(scale, scale);
+    text.setFont(_font);
+    text.setFillColor(_talkColor);
+    text.setString(_sayText);
+    auto bounds = text.getLocalBounds();
+
     sf::Transformable t;
-    t.move((sf::Vector2f)-_talkOffset);
+    t.move((sf::Vector2f)-_talkOffset - sf::Vector2f(bounds.width * scale / 2.f, 0));
     states.transform *= t.getTransform();
 
-    NGText text;
-    text.setFont(_font);
-    text.setColor(_talkColor);
-    text.setText(_sayText);
     target.draw(text, states);
 }
 

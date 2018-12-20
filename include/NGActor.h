@@ -5,7 +5,7 @@
 #include "NonCopyable.h"
 #include "TextureManager.h"
 #include "NGCostume.h"
-#include "NGFont.h"
+#include "FntFont.h"
 #include "NGEntity.h"
 #include "NGLip.h"
 #include "NGObject.h"
@@ -52,7 +52,7 @@ private:
 
   private:
     NGActor &_actor;
-    NGFont _font;
+    FntFont _font;
     bool _isTalking;
     std::string _sayText;
     NGLip _lip;

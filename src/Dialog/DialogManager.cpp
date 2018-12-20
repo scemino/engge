@@ -2,6 +2,7 @@
 #include "Dialog/DialogManager.h"
 #include "NGEngine.h"
 #include "NGActor.h"
+#include "Text.h"
 #include "_SayFunction.h"
 
 namespace ng
@@ -9,6 +10,10 @@ namespace ng
 DialogManager::DialogManager(NGEngine &engine)
     : _engine(engine), _isActive(false), _dialogVisitor(_engine, *this)
 {
+    std::string path;
+    path.append(_engine.getSettings().getGamePath());
+    path.append("DialogFont.fnt");
+    _font.loadFromFile(path);
     for (auto &dlg : _dialog)
     {
         dlg.id = 0;
@@ -59,17 +64,18 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         return;
 
     int dialog = 0;
-    NGText text;
-    text.setAlignment(NGTextAlignment::Left);
-    text.setFont(_engine.getFont());
-    for (auto dlg : _dialog)
+    Text text;
+    auto scale = Screen::HalfHeight / 512.f;
+    text.setFont(_font);
+    text.scale(scale, scale);
+    for (auto &dlg : _dialog)
     {
         if (dlg.id == 0)
             continue;
 
         text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
-        text.setText(dlg.text);
-        text.setColor(text.getBoundRect().contains(_engine.getMousePos()) ? _engine.getVerbUiColors(0).dialogHighlight : _engine.getVerbUiColors(0).dialogNormal);
+        text.setString(dlg.text);
+        text.setFillColor(text.getGlobalBounds().contains(_engine.getMousePos()) ? _engine.getVerbUiColors(0).dialogHighlight : _engine.getVerbUiColors(0).dialogNormal);
         target.draw(text, states);
         dialog++;
     }
@@ -96,11 +102,13 @@ void DialogManager::update(const sf::Time &elapsed)
         if (dlg.id == 0)
             continue;
 
-        NGText text;
-        text.setFont(_engine.getFont());
+        Text text;
+        auto scale = Screen::HalfHeight / 512.f;
+        text.scale(scale, scale);
+        text.setFont(_font);
         text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
-        text.setText(dlg.text);
-        if (text.getBoundRect().contains(_engine.getMousePos()))
+        text.setString(dlg.text);
+        if (text.getGlobalBounds().contains(_engine.getMousePos()))
         {
             auto say = std::make_unique<_SayFunction>(*_engine.getCurrentActor(), dlg.id);
             _functions.push_back(std::move(say));

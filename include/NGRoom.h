@@ -32,7 +32,7 @@ public:
   const std::vector<Walkbox> &getWalkboxes() const { return _walkboxes; }
   NGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   NGObject &createObject(const std::vector<std::string> &anims);
-  NGTextObject &createTextObject(const std::string &name, NGFont &font);
+  NGTextObject &createTextObject(const std::string &fontName);
   void deleteObject(NGObject &textObject);
   sf::Vector2i getRoomSize() const { return _roomSize; }
   void setAsParallaxLayer(NGEntity *pEntity, int layer);

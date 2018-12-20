@@ -22,9 +22,9 @@ public:
     };
 
     Text();
-    Text(const std::wstring& string, const FntFont& font, unsigned int characterSize = 30);
+    Text(const sf::String& string, const FntFont& font, unsigned int characterSize = 30);
 
-    void setString(const std::wstring& string);
+    void setString(const sf::String& string);
     void setFont(const FntFont& font);
     void setCharacterSize(unsigned int size);
     void setLineSpacing(float spacingFactor);
@@ -34,7 +34,7 @@ public:
     void setOutlineColor(const sf::Color& color);
     void setOutlineThickness(float thickness);
 
-    const std::wstring& getString() const;
+    const sf::String& getString() const;
     const FntFont* getFont() const;
     unsigned int getCharacterSize() const;
     float getLetterSpacing() const;
@@ -53,8 +53,8 @@ private:
 
     void ensureGeometryUpdate() const;
 
-    std::wstring               m_string;              ///< String to display
-    const FntFont*              m_font;                ///< Font used to display the string
+    sf::String                 m_string;              ///< String to display
+    const FntFont*             m_font;                ///< Font used to display the string
     unsigned int               m_characterSize;       ///< Base size of characters, in pixels
     float                      m_letterSpacingFactor; ///< Spacing factor between letters
     float                      m_lineSpacingFactor;   ///< Spacing factor between lines

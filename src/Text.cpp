@@ -65,7 +65,7 @@ Text::Text() : m_string(),
 }
 
 ////////////////////////////////////////////////////////////
-Text::Text(const std::wstring &string, const FntFont &font, unsigned int characterSize) : m_string(string),
+Text::Text(const sf::String &string, const FntFont &font, unsigned int characterSize) : m_string(string),
                                                                                        m_font(&font),
                                                                                        m_characterSize(characterSize),
                                                                                        m_letterSpacingFactor(1.f),
@@ -83,7 +83,7 @@ Text::Text(const std::wstring &string, const FntFont &font, unsigned int charact
 }
 
 ////////////////////////////////////////////////////////////
-void Text::setString(const std::wstring &string)
+void Text::setString(const sf::String &string)
 {
     if (m_string != string)
     {
@@ -186,7 +186,7 @@ void Text::setOutlineThickness(float thickness)
 }
 
 ////////////////////////////////////////////////////////////
-const std::wstring &Text::getString() const
+const sf::String &Text::getString() const
 {
     return m_string;
 }
@@ -246,8 +246,8 @@ sf::Vector2f Text::findCharacterPos(std::size_t index) const
         return sf::Vector2f();
 
     // Adjust the index if it's out of range
-    if (index > m_string.size())
-        index = m_string.size();
+    if (index > m_string.getSize())
+        index = m_string.getSize();
 
     // Precompute the variables needed by the algorithm
     bool isBold = m_style & Bold;
@@ -345,7 +345,7 @@ void Text::ensureGeometryUpdate() const
     m_bounds = sf::FloatRect();
 
     // No text: nothing to draw
-    if (m_string.empty())
+    if (m_string.isEmpty())
         return;
 
     // Compute values related to the text style
@@ -379,7 +379,7 @@ void Text::ensureGeometryUpdate() const
     float maxX = 0.f;
     float maxY = 0.f;
     sf::Uint32 prevChar = 0;
-    for (std::size_t i = 0; i < m_string.size(); ++i)
+    for (std::size_t i = 0; i < m_string.getSize(); ++i)
     {
         sf::Uint32 curChar = m_string[i];
 

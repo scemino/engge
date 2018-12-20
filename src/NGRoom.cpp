@@ -324,9 +324,12 @@ void NGRoom::load(const char *name)
     loadWalkboxes(jWimpy);
 }
 
-NGTextObject &NGRoom::createTextObject(const std::string &name, NGFont &font)
+NGTextObject &NGRoom::createTextObject(const std::string &fontName)
 {
-    auto object = std::make_unique<NGTextObject>(font);
+    auto object = std::make_unique<NGTextObject>();
+    std::string path;
+    path.append(_settings.getGamePath()).append(fontName).append(".fnt");
+    object->getFont().loadFromFile(path);
     auto &obj = *object;
     _objects.push_back(std::move(object));
     return obj;
