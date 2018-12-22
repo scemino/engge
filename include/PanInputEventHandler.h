@@ -1,14 +1,14 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "Game.h"
-#include "NGEngine.h"
+#include "Engine.h"
 
 namespace ng
 {
 class PanInputEventHandler : public InputEventHandler
 {
   public:
-    PanInputEventHandler(NGEngine &engine, sf::RenderWindow &window)
+    PanInputEventHandler(Engine &engine, sf::RenderWindow &window)
         : _engine(engine),
           _window(window),
           _view(sf::FloatRect(0, 0, Screen::Width, Screen::Height)),
@@ -69,19 +69,19 @@ class PanInputEventHandler : public InputEventHandler
     }
 
   private:
-    NGEngine &_engine;
+    Engine &_engine;
     sf::RenderWindow &_window;
     sf::View _view;
     bool _isMousePressed, _isKeyPressed;
     sf::Vector2i _pos = sf::Mouse::getPosition();
 };
 
-class NGEngine;
+class Engine;
 
 class EngineShortcutsInputEventHandler : public InputEventHandler
 {
   public:
-    EngineShortcutsInputEventHandler(ng::NGEngine &engine, sf::RenderWindow &window)
+    EngineShortcutsInputEventHandler(ng::Engine &engine, sf::RenderWindow &window)
         : _engine(engine), _window(window)
     {
     }
@@ -103,7 +103,7 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
     }
 
   private:
-    ng::NGEngine &_engine;
+    ng::Engine &_engine;
     sf::RenderWindow &_window;
 };
 } // namespace ng

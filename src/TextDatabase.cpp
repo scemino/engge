@@ -1,12 +1,12 @@
 #include <regex>
 #include <fstream>
-#include "NGTextDatabase.h"
+#include "TextDatabase.h"
 
 namespace ng
 {
-NGTextDatabase::NGTextDatabase() = default;
+TextDatabase::TextDatabase() = default;
 
-void NGTextDatabase::load(const std::string &path)
+void TextDatabase::load(const std::string &path)
 {
     std::regex re("^(\\d+)\\s+(.*)$");
     std::ifstream infile(path);

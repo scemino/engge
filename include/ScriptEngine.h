@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include "squirrel3/squirrel.h"
-#include "NGEngine.h"
+#include "Engine.h"
 
 namespace ng
 {
@@ -15,10 +15,10 @@ public:
 class ScriptEngine
 {
 public:
-  explicit ScriptEngine(NGEngine &engine);
+  explicit ScriptEngine(Engine &engine);
   ~ScriptEngine();
 
-  NGEngine &getEngine();
+  Engine &getEngine();
 
   template <typename TConstant>
   void pushValue(TConstant value);
@@ -35,9 +35,9 @@ public:
   template <typename TEntity>
   static TEntity *getEntity(HSQUIRRELVM v, SQInteger index);
 
-  static NGObject *getObject(HSQUIRRELVM v, SQInteger index);
-  static NGRoom *getRoom(HSQUIRRELVM v, SQInteger index);
-  static NGActor *getActor(HSQUIRRELVM v, SQInteger index);
+  static Object *getObject(HSQUIRRELVM v, SQInteger index);
+  static Room *getRoom(HSQUIRRELVM v, SQInteger index);
+  static Actor *getActor(HSQUIRRELVM v, SQInteger index);
 
   template <class T>
   static void pushObject(HSQUIRRELVM v, T &object);
@@ -51,7 +51,7 @@ private:
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
 private:
-  NGEngine &_engine;
+  Engine &_engine;
   HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
 };

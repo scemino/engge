@@ -1,11 +1,11 @@
 #include <regex>
 #include <iostream>
 #include <fstream>
-#include "NGLip.h"
+#include "Lip.h"
 
 namespace ng
 {
-void NGLip::load(const std::string &path)
+void Lip::load(const std::string &path)
 {
     std::regex re("^(\\d*\\.?\\d*)\\s+(\\w)$");
     std::ifstream infile(path);

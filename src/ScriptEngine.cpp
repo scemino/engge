@@ -92,7 +92,7 @@ TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
         return nullptr;
     }
 
-    NGEntity *pObj = nullptr;
+    Entity *pObj = nullptr;
     if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
     {
         return nullptr;
@@ -119,7 +119,7 @@ void ScriptEngine::addPack()
     _packs.push_back(std::move(pack));
 }
 
-ScriptEngine::ScriptEngine(NGEngine &engine)
+ScriptEngine::ScriptEngine(Engine &engine)
     : _engine(engine)
 {
     v = sq_open(1024);
@@ -190,24 +190,24 @@ ScriptEngine::~ScriptEngine()
     sq_close(v);
 }
 
-NGEngine &ScriptEngine::getEngine()
+Engine &ScriptEngine::getEngine()
 {
     return _engine;
 }
 
-NGObject *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
+Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<NGObject>(v, index);
+    return ScriptEngine::getEntity<Object>(v, index);
 }
 
-NGRoom *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
+Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<NGRoom>(v, index);
+    return ScriptEngine::getEntity<Room>(v, index);
 }
 
-NGActor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
+Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<NGActor>(v, index);
+    return ScriptEngine::getEntity<Actor>(v, index);
 }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)

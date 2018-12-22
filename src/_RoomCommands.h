@@ -1,6 +1,6 @@
 #pragma once
 #include "squirrel3/squirrel.h"
-#include "NGEngine.h"
+#include "Engine.h"
 #include "_RoomTrigger.h"
 
 namespace ng
@@ -8,7 +8,7 @@ namespace ng
 class _RoomPack : public Pack
 {
   private:
-    static NGEngine *g_pEngine;
+    static Engine *g_pEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
@@ -23,8 +23,8 @@ class _RoomPack : public Pack
 
     static void _fadeTo(float a, const sf::Time &time)
     {
-        auto get = std::bind(&NGEngine::getFadeAlpha, g_pEngine);
-        auto set = std::bind(&NGEngine::setFadeAlpha, g_pEngine, std::placeholders::_1);
+        auto get = std::bind(&Engine::getFadeAlpha, g_pEngine);
+        auto set = std::bind(&Engine::setFadeAlpha, g_pEngine, std::placeholders::_1);
         auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, a, time);
         g_pEngine->addFunction(std::move(fadeTo));
     }
@@ -111,7 +111,7 @@ class _RoomPack : public Pack
         return 0;
     }
 
-    static void setObjectSlot(HSQUIRRELVM v, const SQChar *name, NGObject &object)
+    static void setObjectSlot(HSQUIRRELVM v, const SQChar *name, Object &object)
     {
         sq_pushstring(v, name, -1);
         ScriptEngine::pushObject(v, object);
@@ -138,7 +138,7 @@ class _RoomPack : public Pack
 
     static SQInteger defineRoom(HSQUIRRELVM v)
     {
-        auto pRoom = std::make_unique<NGRoom>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
         HSQOBJECT table;
         sq_getstackobj(v, 2, &table);
 
@@ -238,6 +238,6 @@ const SQChar *_RoomPack::_get(HSQUIRRELVM v)
     return value;
 }
 
-NGEngine *_RoomPack::g_pEngine = nullptr;
+Engine *_RoomPack::g_pEngine = nullptr;
 
 } // namespace ng

@@ -8,7 +8,7 @@
 
 namespace ng
 {
-class NGEngine;
+class Engine;
 
 struct DialogSlot
 {
@@ -40,7 +40,7 @@ private:
   };
 
 public:
-  DialogVisitor(NGEngine &engine, DialogManager &dialogManager);
+  DialogVisitor(Engine &engine, DialogManager &dialogManager);
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
 
 private:
@@ -58,7 +58,7 @@ private:
   bool acceptConditions(const Ast::Statement &statement);
 
 private:
-  NGEngine &_engine;
+  Engine &_engine;
   DialogManager &_dialogManager;
   std::vector<const Ast::Node *> _nodesVisited;
   std::vector<const Ast::Node *> _nodesSelected;
@@ -67,7 +67,7 @@ private:
 class DialogManager : public sf::Drawable
 {
 public:
-  DialogManager(NGEngine &engine);
+  DialogManager(Engine &engine);
 
   void start(const std::string &name);
   void selectLabel(const std::string &label);
@@ -81,7 +81,7 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  NGEngine &_engine;
+  Engine &_engine;
   std::unique_ptr<Ast::CompilationUnit> _pCompilationUnit;
   Ast::Label *_pLabel;
   std::array<DialogSlot, 8> _dialog;

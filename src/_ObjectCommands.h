@@ -6,7 +6,7 @@ namespace ng
 class _ObjectPack : public Pack
 {
   private:
-    static NGEngine *g_pEngine;
+    static Engine *g_pEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
@@ -49,7 +49,7 @@ class _ObjectPack : public Pack
 
     static SQInteger isObject(HSQUIRRELVM v)
     {
-        auto object = ScriptEngine::getEntity<NGObject>(v, 2);
+        auto object = ScriptEngine::getEntity<Object>(v, 2);
         sq_pushbool(v, object ? SQTrue : SQFalse);
         return 1;
     }
@@ -61,7 +61,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get scale"));
         }
-        NGObject *self = ScriptEngine::getObject(v, 2);
+        Object *self = ScriptEngine::getObject(v, 2);
         if (!self)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -72,7 +72,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectAlpha(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -92,7 +92,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectAlphaTo(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -118,10 +118,10 @@ class _ObjectPack : public Pack
         auto a = (sf::Uint8)(alpha * 255);
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
-        auto getAlpha = [](const NGObject &o) {
+        auto getAlpha = [](const Object &o) {
             return o.getColor().a;
         };
-        auto setAlpha = [](NGObject &o, sf::Uint8 a) {
+        auto setAlpha = [](Object &o, sf::Uint8 a) {
             const auto &c = o.getColor();
             return o.setColor(sf::Color(c.r, c.g, c.b, a));
         };
@@ -143,8 +143,8 @@ class _ObjectPack : public Pack
         SQInteger right = 0;
         SQInteger bottom = 0;
 
-        NGObject *obj = ScriptEngine::getObject(v, 2);
-        NGActor *actor = nullptr;
+        Object *obj = ScriptEngine::getObject(v, 2);
+        Actor *actor = nullptr;
         if (!obj)
         {
             actor = ScriptEngine::getActor(v, 2);
@@ -187,7 +187,7 @@ class _ObjectPack : public Pack
     {
         SQInteger x = 0;
         SQInteger y = 0;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -234,7 +234,7 @@ class _ObjectPack : public Pack
         SQInteger x = 0;
         SQInteger y = 0;
         SQFloat t = 0;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -257,8 +257,8 @@ class _ObjectPack : public Pack
             interpolation = 0;
         }
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&NGObject::getPosition, obj);
-        auto set = std::bind(&NGObject::setPosition, obj, std::placeholders::_1);
+        auto get = std::bind(&Object::getPosition, obj);
+        auto set = std::bind(&Object::setPosition, obj, std::placeholders::_1);
         auto destination = obj->getDefaultPosition() + sf::Vector2f(x, y);
         auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
@@ -271,7 +271,7 @@ class _ObjectPack : public Pack
         SQInteger x = 0;
         SQInteger y = 0;
         SQFloat t = 0;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -294,8 +294,8 @@ class _ObjectPack : public Pack
             interpolation = 0;
         }
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&NGObject::getPosition, obj);
-        auto set = std::bind(&NGObject::setPosition, obj, std::placeholders::_1);
+        auto get = std::bind(&Object::getPosition, obj);
+        auto set = std::bind(&Object::setPosition, obj, std::placeholders::_1);
         auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 
@@ -305,7 +305,7 @@ class _ObjectPack : public Pack
     static SQInteger playState(HSQUIRRELVM v)
     {
         SQInteger index;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -322,14 +322,14 @@ class _ObjectPack : public Pack
     {
         SQInteger x, y;
         auto numArgs = sq_gettop(v) - 1;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
         if (numArgs == 2)
         {
-            NGObject *spot = ScriptEngine::getObject(v, 3);
+            Object *spot = ScriptEngine::getObject(v, 3);
             if (!spot)
             {
                 return sq_throwerror(v, _SC("failed to get spot"));
@@ -355,7 +355,7 @@ class _ObjectPack : public Pack
     static SQInteger objectScale(HSQUIRRELVM v)
     {
         SQFloat scale;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -370,7 +370,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectPosX(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -382,7 +382,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectPosY(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -395,7 +395,7 @@ class _ObjectPack : public Pack
     static SQInteger objectSort(HSQUIRRELVM v)
     {
         SQInteger zOrder;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -411,7 +411,7 @@ class _ObjectPack : public Pack
     static SQInteger objectRotate(HSQUIRRELVM v)
     {
         SQInteger angle;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -428,7 +428,7 @@ class _ObjectPack : public Pack
     {
         SQInteger dir;
         SQInteger t;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -447,8 +447,8 @@ class _ObjectPack : public Pack
             interpolation = 0;
         }
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&NGObject::getRotation, obj);
-        auto set = std::bind(&NGObject::setRotation, obj, std::placeholders::_1);
+        auto get = std::bind(&Object::getRotation, obj);
+        auto set = std::bind(&Object::setRotation, obj, std::placeholders::_1);
         auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t), method, (InterpolationMethod)interpolation == InterpolationMethod::Looping);
         g_pEngine->addFunction(std::move(rotateTo));
         return 0;
@@ -457,7 +457,7 @@ class _ObjectPack : public Pack
     static SQInteger objectParallaxLayer(HSQUIRRELVM v)
     {
         SQInteger layer;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -540,7 +540,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectColor(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -560,7 +560,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectIcon(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -576,7 +576,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectFPS(HSQUIRRELVM v)
     {
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -593,7 +593,7 @@ class _ObjectPack : public Pack
     static SQInteger objectHidden(HSQUIRRELVM v)
     {
         SQBool hidden;
-        NGObject *obj = ScriptEngine::getObject(v, 2);
+        Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -716,6 +716,6 @@ class _ObjectPack : public Pack
     }
 };
 
-NGEngine *_ObjectPack::g_pEngine = nullptr;
+Engine *_ObjectPack::g_pEngine = nullptr;
 
 } // namespace ng

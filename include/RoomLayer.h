@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "SFML/Graphics.hpp"
-#include "NGEntity.h"
+#include "Entity.h"
 #include "Screen.h"
 
 namespace ng
@@ -21,15 +21,15 @@ public:
   void setZOrder(int zsort) { _zsort = zsort; }
   int getZOrder() const { return _zsort; }
 
-  void addEntity(NGEntity &entity);
-  void removeEntity(NGEntity &entity);
+  void addEntity(Entity &entity);
+  void removeEntity(Entity &entity);
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   void update(const sf::Time &elapsed);
 
 private:
   std::vector<sf::Sprite> _sprites;
-  std::vector<std::reference_wrapper<NGEntity>> _entities;
+  std::vector<std::reference_wrapper<Entity>> _entities;
   sf::Vector2f _parallax;
   int _zsort;
 };

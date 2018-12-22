@@ -1,16 +1,16 @@
-#include "NGLayer.h"
+#include "Layer.h"
 
 namespace ng
 {
-NGLayer::NGLayer()
+Layer::Layer()
     : _index(0),
      _isVisible(true)
 {
 }
 
-NGLayer::~NGLayer() = default;
+Layer::~Layer() = default;
 
-bool NGLayer::update(const sf::Time &elapsed)
+bool Layer::update(const sf::Time &elapsed)
 {
     _time += elapsed;
     if (_time.asSeconds() > (1.f / _fps))

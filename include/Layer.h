@@ -4,11 +4,11 @@
 
 namespace ng
 {
-class NGLayer
+class Layer
 {
 public:
-  NGLayer();
-  ~NGLayer();
+  Layer();
+  ~Layer();
 
   std::vector<sf::IntRect> &getFrames() { return _frames; }
   std::vector<sf::IntRect> &getSourceFrames() { return _sourceFrames; }

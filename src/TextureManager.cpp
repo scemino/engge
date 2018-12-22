@@ -3,7 +3,7 @@
 
 namespace ng
 {
-TextureManager::TextureManager(const NGEngineSettings &settings)
+TextureManager::TextureManager(const EngineSettings &settings)
     : _settings(settings)
 {
 }

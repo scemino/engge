@@ -4,13 +4,13 @@
 
 namespace ng
 {
-class NGEngineSettings
+class EngineSettings
 {
 private:
   const std::string _gamePath;
 
 public:
-  explicit NGEngineSettings(std::string gamePath)
+  explicit EngineSettings(std::string gamePath)
       : _gamePath(std::move(gamePath))
   {
   }

@@ -1,7 +1,7 @@
 #pragma once
 #include <nlohmann/json.hpp>
 #include <regex>
-#include "NGObject.h"
+#include "Object.h"
 
 namespace ng
 {

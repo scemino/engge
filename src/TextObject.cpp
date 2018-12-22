@@ -1,13 +1,13 @@
-#include "NGTextObject.h"
+#include "TextObject.h"
 #include "Text.h"
 
 namespace ng
 {
-NGTextObject::NGTextObject()
+TextObject::TextObject()
 {
 }
 
-void NGTextObject::draw(sf::RenderWindow &window)
+void TextObject::draw(sf::RenderWindow &window)
 {
     Text txt;
     txt.setFont(_font);

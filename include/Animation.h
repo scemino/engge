@@ -5,7 +5,7 @@
 
 namespace ng
 {
-class NGObject;
+class Object;
 
 enum class AnimState
 {
@@ -13,11 +13,11 @@ enum class AnimState
   Play
 };
 
-class NGAnimation: public sf::Drawable
+class Animation: public sf::Drawable
 {
 public:
-  explicit NGAnimation(const sf::Texture &texture, const std::string &name);
-  ~NGAnimation();
+  explicit Animation(const sf::Texture &texture, const std::string &name);
+  ~Animation();
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
@@ -39,7 +39,7 @@ public:
   sf::Sprite &getSprite() { return _sprite; }
   const sf::Sprite &getSprite() const { return _sprite; }
 
-  void setObject(NGObject* pObject){ _pObject = pObject; }
+  void setObject(Object* pObject){ _pObject = pObject; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -57,6 +57,6 @@ private:
   size_t _index;
   AnimState _state;
   bool _loop;
-  NGObject* _pObject;
+  Object* _pObject;
 };
 } // namespace ng

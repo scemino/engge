@@ -2,18 +2,18 @@
 #include <time.h>
 #include <squirrel3/squirrel.h>
 #include "Function.h"
-#include "NGActor.h"
+#include "Actor.h"
 
 namespace ng
 {
 class _BreakFunction : public Function
 {
   private:
-    NGEngine &_engine;
+    Engine &_engine;
     HSQUIRRELVM _vm;
 
   public:
-    explicit _BreakFunction(NGEngine &engine, HSQUIRRELVM vm)
+    explicit _BreakFunction(Engine &engine, HSQUIRRELVM vm)
         : _engine(engine), _vm(vm)
     {
     }
@@ -37,7 +37,7 @@ class _BreakFunction : public Function
 class _BreakHereFunction : public _BreakFunction
 {
   public:
-    explicit _BreakHereFunction(NGEngine &engine, HSQUIRRELVM vm)
+    explicit _BreakHereFunction(Engine &engine, HSQUIRRELVM vm)
         : _BreakFunction(engine, vm)
     {
     }
@@ -46,10 +46,10 @@ class _BreakHereFunction : public _BreakFunction
 class _BreakWhileAnimatingFunction : public _BreakFunction
 {
   private:
-    NGActor &_actor;
+    Actor &_actor;
 
   public:
-    explicit _BreakWhileAnimatingFunction(NGEngine &engine, HSQUIRRELVM vm, NGActor &actor)
+    explicit _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
     }
@@ -64,10 +64,10 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
 class _BreakWhileWalkingFunction : public _BreakFunction
 {
   private:
-    NGActor &_actor;
+    Actor &_actor;
 
   public:
-    explicit _BreakWhileWalkingFunction(NGEngine &engine, HSQUIRRELVM vm, NGActor &actor)
+    explicit _BreakWhileWalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
     }
@@ -83,10 +83,10 @@ class _BreakWhileWalkingFunction : public _BreakFunction
 class _BreakWhileTalkingFunction : public _BreakFunction
 {
   private:
-    NGActor &_actor;
+    Actor &_actor;
 
   public:
-    explicit _BreakWhileTalkingFunction(NGEngine &engine, HSQUIRRELVM vm, NGActor &actor)
+    explicit _BreakWhileTalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
     }
@@ -103,7 +103,7 @@ class _BreakWhileSoundFunction : public _BreakFunction
     SoundId &_soundId;
 
   public:
-    explicit _BreakWhileSoundFunction(NGEngine &engine, HSQUIRRELVM vm, SoundId &soundId)
+    explicit _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, SoundId &soundId)
         : _BreakFunction(engine, vm), _soundId(soundId)
     {
     }
@@ -118,10 +118,10 @@ class _BreakTimeFunction : public TimeFunction
 {
   private:
     HSQUIRRELVM _vm;
-    NGEngine &_engine;
+    Engine &_engine;
 
   public:
-    _BreakTimeFunction(NGEngine &engine, HSQUIRRELVM vm, const sf::Time &time)
+    _BreakTimeFunction(Engine &engine, HSQUIRRELVM vm, const sf::Time &time)
         : TimeFunction(time), _vm(vm), _engine(engine)
     {
     }
@@ -146,7 +146,7 @@ class _BreakTimeFunction : public TimeFunction
 class _SystemPack : public Pack
 {
   private:
-    static NGEngine *g_pEngine;
+    static Engine *g_pEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
@@ -520,6 +520,6 @@ class _SystemPack : public Pack
     }
 };
 
-NGEngine *_SystemPack::g_pEngine = nullptr;
+Engine *_SystemPack::g_pEngine = nullptr;
 
 } // namespace ng

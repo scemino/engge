@@ -3,7 +3,7 @@
 
 namespace ng
 {
-Game::Game(NGEngine &engine)
+Game::Game(Engine &engine)
     : _engine(engine), _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge")
 {
     _window.setSize(sf::Vector2u(1024, 768));

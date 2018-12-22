@@ -5,10 +5,10 @@
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
-#include "NGAnimation.h"
-#include "NGFont.h"
-#include "NGEntity.h"
-#include "NGActor.h"
+#include "Animation.h"
+#include "Font.h"
+#include "Entity.h"
+#include "Actor.h"
 
 namespace ng
 {
@@ -20,11 +20,11 @@ enum class UseDirection
   Right
 };
 
-class NGObject : public NGEntity
+class Object : public Entity
 {
 public:
-  NGObject();
-  ~NGObject();
+  Object();
+  ~Object();
 
   void setZOrder(int zorder) { _zorder = zorder; }
   int getZOrder() const override { return _zorder; }
@@ -69,7 +69,7 @@ public:
   void setDefaultVerb(const std::string &verb) { _verb = verb; }
   const std::string &getDefaultVerb() const { return _verb; }
 
-  std::vector<std::unique_ptr<NGAnimation>> &getAnims() { return _anims; }
+  std::vector<std::unique_ptr<Animation>> &getAnims() { return _anims; }
 
   void setStateAnimIndex(int animIndex);
   int getStateAnimIndex();
@@ -92,17 +92,17 @@ public:
   bool isVisible() const { return _isVisible; }
   void setScale(float s);
 
-  NGActor *getOwner() { return _pOwner; }
-  void setOwner(NGActor *pActor) { _pOwner = pActor; }
+  Actor *getOwner() { return _pOwner; }
+  void setOwner(Actor *pActor) { _pOwner = pActor; }
 
-  NGRoom *getRoom() { return _pRoom; }
-  void setRoom(NGRoom *pRoom) { _pRoom = pRoom; }
+  Room *getRoom() { return _pRoom; }
+  void setRoom(Room *pRoom) { _pRoom = pRoom; }
 
   // TODO: void setIcon(const std::string& icon);
 
   void update(const sf::Time &elapsed) override;
 
-  friend std::ostream &operator<<(std::ostream &os, const NGObject &obj);
+  friend std::ostream &operator<<(std::ostream &os, const Object &obj);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
   void addTrigger(std::shared_ptr<Trigger> trigger) { _triggers.push_back(trigger);}
@@ -112,8 +112,8 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  std::vector<std::unique_ptr<NGAnimation>> _anims;
-  std::optional<NGAnimation> _pAnim;
+  std::vector<std::unique_ptr<Animation>> _anims;
+  std::optional<Animation> _pAnim;
   bool _isVisible;
   std::string _name, _id;
   int _zorder;
@@ -128,8 +128,8 @@ private:
   float _angle;
   bool _isTouchable;
   bool _isLit;
-  NGActor *_pOwner;
-  NGRoom *_pRoom;
+  Actor *_pOwner;
+  Room *_pRoom;
   int _state;
   std::string _verb;
   std::vector<std::shared_ptr<Trigger>> _triggers;

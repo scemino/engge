@@ -1,6 +1,6 @@
 #include <memory>
 #include "Game.h"
-#include "NGEngine.h"
+#include "Engine.h"
 #include "ScriptEngine.h"
 #include "PanInputEventHandler.h"
 #include "Dialog/_AstDump.h"
@@ -15,8 +15,8 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    ng::NGEngineSettings settings("./resources/");
-    auto engine = std::make_unique<ng::NGEngine>(settings);
+    ng::EngineSettings settings("./resources/");
+    auto engine = std::make_unique<ng::Engine>(settings);
 
     auto game = std::make_unique<ng::Game>(*engine);
     auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);

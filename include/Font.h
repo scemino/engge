@@ -5,13 +5,13 @@
 
 namespace ng
 {
-class NGFont
+class Font
 {
 public:
-  NGFont();
-  ~NGFont();
+  Font();
+  ~Font();
 
-  void setSettings(const NGEngineSettings *settings);
+  void setSettings(const EngineSettings *settings);
   void setTextureManager(TextureManager *textureManager);
 
   void load(const std::string &path);
@@ -21,7 +21,7 @@ public:
   sf::IntRect getSize(char letter) const;
 
 private:
-  const NGEngineSettings *_settings;
+  const EngineSettings *_settings;
   TextureManager *_textureManager;
   std::string _path;
   std::string _jsonFilename;
@@ -39,7 +39,7 @@ class NGText : public sf::Drawable, public sf::Transformable
 {
 public:
   NGText();
-  void setFont(const NGFont &font) { _font = font; }
+  void setFont(const Font &font) { _font = font; }
   void setColor(const sf::Color &color) { _color = color; }
   void setText(const std::string &text) { _text = text; }
   void setAlignment(NGTextAlignment alignment) { _alignment = alignment; }
@@ -49,7 +49,7 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states = sf::RenderStates::Default) const override;
 
 private:
-  NGFont _font;
+  Font _font;
   sf::Color _color;
   std::string _text;
   NGTextAlignment _alignment;

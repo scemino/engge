@@ -1,6 +1,6 @@
 #pragma once
 #include "squirrel3/squirrel.h"
-#include "NGEngine.h"
+#include "Engine.h"
 #include "_NGUtil.h"
 
 namespace ng
@@ -67,13 +67,13 @@ int _DefaultScriptExecute::_pos = 0;
 class _DefaultVerbExecute : public VerbExecute
 {
   public:
-    _DefaultVerbExecute(HSQUIRRELVM vm, NGEngine &engine)
+    _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine)
         : _vm(vm), _engine(engine)
     {
     }
 
   public:
-    void execute(NGObject *pObject, const Verb *pVerb) override
+    void execute(Object *pObject, const Verb *pVerb) override
     {
         auto pRoom = pObject->getRoom();
         sq_pushroottable(_vm);
@@ -172,6 +172,6 @@ class _DefaultVerbExecute : public VerbExecute
 
   private:
     HSQUIRRELVM _vm;
-    NGEngine &_engine;
+    Engine &_engine;
 }; // namespace ng
 } // namespace ng

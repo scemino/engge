@@ -1,24 +1,24 @@
 #include <fstream>
-#include "NGFont.h"
+#include "Font.h"
 #include "_NGUtil.h"
 
 namespace ng
 {
-NGFont::NGFont() = default;
+Font::Font() = default;
 
-NGFont::~NGFont() = default;
+Font::~Font() = default;
 
-void NGFont::setSettings(const NGEngineSettings *settings)
+void Font::setSettings(const EngineSettings *settings)
 {
     _settings = settings;
 }
 
-void NGFont::setTextureManager(TextureManager *textureManager)
+void Font::setTextureManager(TextureManager *textureManager)
 {
     _textureManager = textureManager;
 }
 
-void NGFont::load(const std::string &path)
+void Font::load(const std::string &path)
 {
     _path = path;
     _jsonFilename = _settings->getGamePath();
@@ -31,13 +31,13 @@ void NGFont::load(const std::string &path)
     _texture = _textureManager->get(_path);
 }
 
-sf::IntRect NGFont::getRect(char letter) const
+sf::IntRect Font::getRect(char letter) const
 {
     const auto &s = std::to_string((int)letter);
     return _toRect(_json["frames"][s]["frame"]);
 }
 
-sf::IntRect NGFont::getSize(char letter) const
+sf::IntRect Font::getSize(char letter) const
 {
     const auto &s = std::to_string((int)letter);
     return _toRect(_json["frames"][s]["spriteSourceSize"]);

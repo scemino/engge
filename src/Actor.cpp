@@ -1,17 +1,17 @@
 #include <regex>
-#include "NGEngine.h"
-#include "NGActor.h"
-#include "NGRoom.h"
+#include "Engine.h"
+#include "Actor.h"
+#include "Room.h"
 #include "Text.h"
 
 namespace ng
 {
-NGActor::WalkingState::WalkingState(NGActor &actor)
+Actor::WalkingState::WalkingState(Actor &actor)
     : _actor(actor), _isWalking(false)
 {
 }
 
-void NGActor::WalkingState::setDestination(const sf::Vector2f &destination, Facing facing)
+void Actor::WalkingState::setDestination(const sf::Vector2f &destination, Facing facing)
 {
     _destination = destination;
     _facing = facing;
@@ -22,7 +22,7 @@ void NGActor::WalkingState::setDestination(const sf::Vector2f &destination, Faci
     _isWalking = true;
 }
 
-void NGActor::WalkingState::update(const sf::Time &elapsed)
+void Actor::WalkingState::update(const sf::Time &elapsed)
 {
     if (!_isWalking)
         return;
@@ -63,7 +63,7 @@ void NGActor::WalkingState::update(const sf::Time &elapsed)
     };
 }
 
-NGActor::TalkingState::TalkingState(NGActor &actor)
+Actor::TalkingState::TalkingState(Actor &actor)
     : _actor(actor), _isTalking(false),
       _talkColor(sf::Color::White), _index(0)
 {
@@ -80,7 +80,7 @@ static std::string str_toupper(std::string s)
     return s;
 }
 
-void NGActor::TalkingState::say(int id)
+void Actor::TalkingState::say(int id)
 {
     if (_isTalking)
     {
@@ -91,7 +91,7 @@ void NGActor::TalkingState::say(int id)
     load(id);
 }
 
-void NGActor::TalkingState::load(int id)
+void Actor::TalkingState::load(int id)
 {
     std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
     auto soundDefinition = _actor._engine.defineSound(name + ".ogg");
@@ -117,7 +117,7 @@ void NGActor::TalkingState::load(int id)
     _clock.restart();
 }
 
-void NGActor::TalkingState::update(const sf::Time &elapsed)
+void Actor::TalkingState::update(const sf::Time &elapsed)
 {
     if (!_isTalking)
         return;
@@ -142,7 +142,7 @@ void NGActor::TalkingState::update(const sf::Time &elapsed)
     _actor.getCostume().setHeadIndex(index % 6);
 }
 
-void NGActor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Actor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     Text text;
     auto scale = Screen::HalfHeight / 512.f;
@@ -159,7 +159,7 @@ void NGActor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates stat
     target.draw(text, states);
 }
 
-NGActor::NGActor(NGEngine &engine)
+Actor::Actor(Engine &engine)
     : _engine(engine),
       _settings(engine.getSettings()),
       _costume(engine.getTextureManager()),
@@ -174,37 +174,37 @@ NGActor::NGActor(NGEngine &engine)
 {
 }
 
-NGActor::~NGActor() = default;
+Actor::~Actor() = default;
 
-int NGActor::getZOrder() const
+int Actor::getZOrder() const
 {
     return getRoom()->getRoomSize().y - getPosition().y;
 }
 
-void NGActor::setRoom(NGRoom *pRoom)
+void Actor::setRoom(Room *pRoom)
 {
     _pRoom = pRoom;
     _pRoom->setAsParallaxLayer(this, 0);
 }
 
-void NGActor::move(const sf::Vector2f &offset)
+void Actor::move(const sf::Vector2f &offset)
 {
     _transform.move(offset);
 }
 
-void NGActor::setPosition(const sf::Vector2f &pos)
+void Actor::setPosition(const sf::Vector2f &pos)
 {
     _transform.setPosition(pos);
 }
 
-void NGActor::setCostume(const std::string &name, const std::string &sheet)
+void Actor::setCostume(const std::string &name, const std::string &sheet)
 {
     std::string path(_settings.getGamePath());
     path.append(name).append(".json");
     _costume.loadCostume(path, sheet);
 }
 
-void NGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     auto actorTransform = states.transform;
     auto transform = _transform;
@@ -218,19 +218,19 @@ void NGActor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     _talkingState.draw(target, states);
 }
 
-void NGActor::update(const sf::Time &elapsed)
+void Actor::update(const sf::Time &elapsed)
 {
     _costume.update(elapsed);
     _walkingState.update(elapsed);
     _talkingState.update(elapsed);
 }
 
-void NGActor::walkTo(const sf::Vector2f &destination, Facing facing)
+void Actor::walkTo(const sf::Vector2f &destination, Facing facing)
 {
     _walkingState.setDestination(destination, facing);
 }
 
-void NGActor::walkTo(const sf::Vector2f &destination)
+void Actor::walkTo(const sf::Vector2f &destination)
 {
     _walkingState.setDestination(destination, getCostume().getFacing());
 }

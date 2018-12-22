@@ -8,9 +8,9 @@ include_directories(include/)
 link_directories(lib)
 
 set(SOURCES
-    src/Game.cpp src/main.cpp src/NGActor.cpp src/NGAnimation.cpp src/NGCostume.cpp src/NGCostumeAnimation.cpp
-    src/NGTextDatabase.cpp src/NGEngine.cpp src/NGFont.cpp src/NGLayer.cpp src/NGObject.cpp src/NGRoom.cpp
-    src/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/NGTextObject.cpp src/RoomLayer.cpp src/NGLip.cpp
+    src/Game.cpp src/main.cpp src/Actor.cpp src/Animation.cpp src/Costume.cpp src/CostumeAnimation.cpp
+    src/TextDatabase.cpp src/Engine.cpp src/Font.cpp src/Layer.cpp src/Object.cpp src/Room.cpp
+    src/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/TextObject.cpp src/RoomLayer.cpp src/Lip.cpp
     src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
     src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
 )

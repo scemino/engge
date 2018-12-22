@@ -1,13 +1,13 @@
 #pragma once
 #include "Function.h"
-#include "NGActor.h"
+#include "Actor.h"
 
 namespace ng
 {
 class _SayFunction : public Function
 {
   public:
-    _SayFunction(NGActor &actor, const int id)
+    _SayFunction(Actor &actor, const int id)
         : _actor(actor), _id(id), _done(false)
     {
     }
@@ -23,7 +23,7 @@ class _SayFunction : public Function
     }
 
   private:
-    NGActor &_actor;
+    Actor &_actor;
     const int _id;
     bool _done;
 };

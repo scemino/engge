@@ -9,7 +9,7 @@ public:
   virtual void trig() = 0;
 };
 
-class NGEntity : public sf::Drawable
+class Entity : public sf::Drawable
 {
 public:
   virtual void update(const sf::Time &elapsed) {}

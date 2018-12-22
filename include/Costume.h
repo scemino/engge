@@ -3,9 +3,9 @@
 #include <set>
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
-#include "NGEngineSettings.h"
+#include "EngineSettings.h"
 #include "TextureManager.h"
-#include "NGCostumeAnimation.h"
+#include "CostumeAnimation.h"
 
 namespace ng
 {
@@ -17,11 +17,11 @@ enum class Facing
   FACE_RIGHT
 };
 
-class NGCostume : public sf::Drawable
+class Costume : public sf::Drawable
 {
 public:
-  explicit NGCostume(TextureManager &textureManager);
-  ~NGCostume();
+  explicit Costume(TextureManager &textureManager);
+  ~Costume();
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
   void lockFacing(Facing facing);
@@ -30,8 +30,8 @@ public:
   void setState(const std::string &name);
   void setAnimation(const std::string &name);
   const std::string &getAnimationName() const { return _animation; }
-  const NGCostumeAnimation *getAnimation() const { return _pCurrentAnimation.get(); }
-  NGCostumeAnimation *getAnimation() { return _pCurrentAnimation.get(); }
+  const CostumeAnimation *getAnimation() const { return _pCurrentAnimation.get(); }
+  CostumeAnimation *getAnimation() { return _pCurrentAnimation.get(); }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
 
@@ -44,11 +44,11 @@ private:
   void updateAnimation();
 
 private:
-  const NGEngineSettings &_settings;
+  const EngineSettings &_settings;
   TextureManager &_textureManager;
   std::string _path;
   std::string _sheet;
-  std::unique_ptr<NGCostumeAnimation> _pCurrentAnimation;
+  std::unique_ptr<CostumeAnimation> _pCurrentAnimation;
   sf::Texture _texture;
   Facing _facing;
   std::string _animation;

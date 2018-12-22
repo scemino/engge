@@ -4,10 +4,10 @@
 
 namespace ng
 {
-class NGTextDatabase
+class TextDatabase
 {
 public:
-  NGTextDatabase();
+  TextDatabase();
   void load(const std::string &path);
   std::string getText(int id) { return _texts[id]; }
 

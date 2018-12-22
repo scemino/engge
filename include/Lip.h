@@ -13,7 +13,7 @@ struct NGLipData
     char letter;
 };
 
-class NGLip
+class Lip
 {
   public:
     void load(const std::string &path);

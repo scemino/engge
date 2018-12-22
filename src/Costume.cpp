@@ -1,12 +1,12 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include "NGCostume.h"
+#include "Costume.h"
 #include "_NGUtil.h"
 
 namespace ng
 {
-NGCostume::NGCostume(TextureManager &textureManager)
+Costume::Costume(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _textureManager(textureManager),
       _pCurrentAnimation(nullptr),
@@ -23,9 +23,9 @@ NGCostume::NGCostume(TextureManager &textureManager)
     _hiddenLayers.emplace("eyes_right");
 }
 
-NGCostume::~NGCostume() = default;
+Costume::~Costume() = default;
 
-void NGCostume::setLayerVisible(const std::string &name, bool isVisible)
+void Costume::setLayerVisible(const std::string &name, bool isVisible)
 {
     if (!isVisible)
     {
@@ -37,7 +37,7 @@ void NGCostume::setLayerVisible(const std::string &name, bool isVisible)
     }
     if (_pCurrentAnimation == nullptr)
         return;
-    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](NGLayer *pLayer) {
+    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](Layer *pLayer) {
         return pLayer->getName() == name;
     });
     if (it != _pCurrentAnimation->getLayers().end())
@@ -46,7 +46,7 @@ void NGCostume::setLayerVisible(const std::string &name, bool isVisible)
     }
 }
 
-void NGCostume::setFacing(Facing facing)
+void Costume::setFacing(Facing facing)
 {
     if (_facing == facing)
         return;
@@ -54,7 +54,7 @@ void NGCostume::setFacing(Facing facing)
     updateAnimation();
 }
 
-void NGCostume::lockFacing(Facing facing)
+void Costume::lockFacing(Facing facing)
 {
     // TODO: lock
     if (_facing == facing)
@@ -63,19 +63,19 @@ void NGCostume::lockFacing(Facing facing)
     updateAnimation();
 }
 
-void NGCostume::setState(const std::string &name)
+void Costume::setState(const std::string &name)
 {
     _animation = name;
     updateAnimation();
 }
 
-void NGCostume::loadCostume(const std::string &path, const std::string &sheet)
+void Costume::loadCostume(const std::string &path, const std::string &sheet)
 {
     _path = path;
     _sheet = sheet;
 }
 
-void NGCostume::setAnimation(const std::string &animName)
+void Costume::setAnimation(const std::string &animName)
 {
     nlohmann::json json;
     nlohmann::json jSheet;
@@ -106,10 +106,10 @@ void NGCostume::setAnimation(const std::string &animName)
         if (animName != name)
             continue;
 
-        _pCurrentAnimation = std::make_unique<NGCostumeAnimation>(name, _texture);
+        _pCurrentAnimation = std::make_unique<CostumeAnimation>(name, _texture);
         for (auto jLayer : j["layers"])
         {
-            auto layer = new NGLayer();
+            auto layer = new Layer();
             auto fps = jLayer["fps"].is_null() ? 10 : jLayer["fps"].get<int>();
             layer->setFps(fps);
             auto layerName = jLayer["name"].get<std::string>();
@@ -152,7 +152,7 @@ static bool _startsWith(const std::string &str, const std::string &prefix)
     return str.length() >= prefix.length() && 0 == str.compare(0, prefix.length(), prefix);
 }
 
-void NGCostume::updateAnimation()
+void Costume::updateAnimation()
 {
     // special case for eyes... bof
     if (_pCurrentAnimation && _startsWith(_animation, "eyes_"))
@@ -189,21 +189,21 @@ void NGCostume::updateAnimation()
     setAnimation(name);
 }
 
-void NGCostume::update(const sf::Time &elapsed)
+void Costume::update(const sf::Time &elapsed)
 {
     if (!_pCurrentAnimation)
         return;
     _pCurrentAnimation->update(elapsed);
 }
 
-void NGCostume::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Costume::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_pCurrentAnimation)
         return;
     target.draw(*_pCurrentAnimation, states);
 }
 
-void NGCostume::setHeadIndex(int index)
+void Costume::setHeadIndex(int index)
 {
     _headIndex = index;
     for (int i = 0; i < 6; i++)
@@ -212,7 +212,7 @@ void NGCostume::setHeadIndex(int index)
         s << _headAnimName << (i + 1);
         // std::cout << "setLayerVisible(" << s.str() << "," << (_headIndex == i) << ")" << std::endl;
         auto layerName = s.str();
-        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](NGLayer *pLayer) {
+        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](Layer *pLayer) {
             return pLayer->getName() == layerName;
         });
         if (it != _pCurrentAnimation->getLayers().end())
@@ -222,7 +222,7 @@ void NGCostume::setHeadIndex(int index)
     }
 }
 
-void NGCostume::setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim)
+void Costume::setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim)
 {
     if (!headAnim.empty())
     {

@@ -1,6 +1,6 @@
 #include "Dialog/DialogManager.h"
-#include "NGEngine.h"
-#include "NGActor.h"
+#include "Engine.h"
+#include "Actor.h"
 #include "_SayFunction.h"
 
 namespace ng
@@ -29,7 +29,7 @@ class _PauseFunction : public Function
     bool _done;
 };
 
-DialogVisitor::DialogVisitor(NGEngine &engine, DialogManager &dialogManager)
+DialogVisitor::DialogVisitor(Engine &engine, DialogManager &dialogManager)
     : _engine(engine), _dialogManager(dialogManager)
 {
 }
@@ -87,7 +87,7 @@ bool DialogVisitor::acceptConditions(const Ast::Statement &statement)
 void DialogVisitor::visit(const Ast::Say &node)
 {
     auto &actors = _engine.getActors();
-    NGActor *pActor = nullptr;
+    Actor *pActor = nullptr;
     for (auto &actor : actors)
     {
         if (actor->getName() == node.actor)

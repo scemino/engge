@@ -1,14 +1,14 @@
 #pragma once
-#include "NGObject.h"
+#include "Object.h"
 #include "FntFont.h"
 #include "SFML/Graphics.hpp"
 
 namespace ng
 {
-class NGTextObject : public NGObject
+class TextObject : public Object
 {
 public:
-  explicit NGTextObject();
+  explicit TextObject();
   FntFont &getFont() { return _font; }
   void setText(const std::string &text) { _text = text; }
 

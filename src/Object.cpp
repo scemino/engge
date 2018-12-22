@@ -1,9 +1,9 @@
-#include "NGObject.h"
+#include "Object.h"
 #include "Screen.h"
 
 namespace ng
 {
-NGObject::NGObject()
+Object::Object()
     : _pAnim(std::nullopt),
       _isVisible(true),
       _zorder(0),
@@ -18,9 +18,9 @@ NGObject::NGObject()
 {
 }
 
-NGObject::~NGObject() = default;
+Object::~Object() = default;
 
-void NGObject::setVisible(bool isVisible)
+void Object::setVisible(bool isVisible)
 {
     _isVisible = isVisible;
     if (!_isVisible)
@@ -29,14 +29,14 @@ void NGObject::setVisible(bool isVisible)
     }
 }
 
-sf::IntRect NGObject::getRealHotspot() const
+sf::IntRect Object::getRealHotspot() const
 {
     auto rect = getHotspot();
     auto pos = getPosition();
     return (sf::IntRect)_transform.getTransform().transformRect((sf::FloatRect)rect);
 }
 
-void NGObject::setStateAnimIndex(int animIndex)
+void Object::setStateAnimIndex(int animIndex)
 {
     std::ostringstream s;
     s << "state" << animIndex;
@@ -49,7 +49,7 @@ void NGObject::setStateAnimIndex(int animIndex)
     setAnimation(s.str());
 }
 
-int NGObject::getStateAnimIndex()
+int Object::getStateAnimIndex()
 {
     if (!_pAnim.has_value())
         return -1;
@@ -58,9 +58,9 @@ int NGObject::getStateAnimIndex()
     return std::strtol(_pAnim->getName().c_str(), nullptr, 10);
 }
 
-void NGObject::setAnimation(const std::string &name)
+void Object::setAnimation(const std::string &name)
 {
-    auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<NGAnimation> &animation) { return animation->getName() == name; });
+    auto it = std::find_if(_anims.begin(), _anims.end(), [name](std::unique_ptr<Animation> &animation) { return animation->getName() == name; });
     if (it == _anims.end())
     {
         _pAnim = std::nullopt;
@@ -74,12 +74,12 @@ void NGObject::setAnimation(const std::string &name)
     sprite.setColor(_color);
 }
 
-void NGObject::move(const sf::Vector2f &offset)
+void Object::move(const sf::Vector2f &offset)
 {
     _transform.move(offset);
 }
 
-void NGObject::setPosition(const sf::Vector2f &pos)
+void Object::setPosition(const sf::Vector2f &pos)
 {
     if (!_defaultPosition.has_value())
     {
@@ -88,27 +88,27 @@ void NGObject::setPosition(const sf::Vector2f &pos)
     _transform.setPosition(pos);
 }
 
-sf::Vector2f NGObject::getPosition() const
+sf::Vector2f Object::getPosition() const
 {
     return _transform.getPosition();
 }
 
-sf::Vector2f NGObject::getDefaultPosition() const
+sf::Vector2f Object::getDefaultPosition() const
 {
     return _defaultPosition.value();
 }
 
-void NGObject::setUsePosition(const sf::Vector2f &pos)
+void Object::setUsePosition(const sf::Vector2f &pos)
 {
     _usePos = pos;
 }
 
-sf::Vector2f NGObject::getUsePosition() const
+sf::Vector2f Object::getUsePosition() const
 {
     return _usePos;
 }
 
-void NGObject::setColor(const sf::Color &color)
+void Object::setColor(const sf::Color &color)
 {
     _color = color;
     if (_pAnim)
@@ -117,17 +117,17 @@ void NGObject::setColor(const sf::Color &color)
     }
 }
 
-const sf::Color &NGObject::getColor() const
+const sf::Color &Object::getColor() const
 {
     return _color;
 }
 
-void NGObject::setScale(float s)
+void Object::setScale(float s)
 {
     _transform.setScale(s, s);
 }
 
-void NGObject::update(const sf::Time &elapsed)
+void Object::update(const sf::Time &elapsed)
 {
     if (_pAnim)
     {
@@ -139,7 +139,7 @@ void NGObject::update(const sf::Time &elapsed)
     }
 }
 
-void NGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
+void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
     states.transform *= _transform.getTransform();
     auto rect = getHotspot();
@@ -162,7 +162,7 @@ void NGObject::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) co
     target.draw(hl, states);
 }
 
-void NGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_isVisible)
         return;
@@ -174,7 +174,7 @@ void NGObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const NGObject &obj)
+std::ostream &operator<<(std::ostream &os, const Object &obj)
 {
     return os << obj.getName() << " (" << obj.getPosition().x << "," << obj.getPosition().y << ":" << obj.getZOrder() << ")";
 }

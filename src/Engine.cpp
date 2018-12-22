@@ -6,14 +6,14 @@
 #include <regex>
 #include <string>
 #include <math.h>
-#include "NGEngine.h"
+#include "Engine.h"
 #include "Screen.h"
-#include "NGFont.h"
+#include "Font.h"
 #include "_NGUtil.h"
 
 namespace ng
 {
-NGEngine::NGEngine(const NGEngineSettings &settings)
+Engine::Engine(const EngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
       _fadeAlpha(255),
@@ -68,16 +68,16 @@ NGEngine::NGEngine(const NGEngineSettings &settings)
     }
 }
 
-NGEngine::~NGEngine() = default;
+Engine::~Engine() = default;
 
-sf::IntRect NGEngine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
+sf::IntRect Engine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
 {
     std::ostringstream s;
     s << name << (isRetro ? "_retro" : "") << "_" << lang;
     return _verbSheet.getRect(s.str());
 }
 
-const Verb *NGEngine::getVerb(const std::string &id) const
+const Verb *Engine::getVerb(const std::string &id) const
 {
     for (auto i = 0; i < 10; i++)
     {
@@ -91,12 +91,12 @@ const Verb *NGEngine::getVerb(const std::string &id) const
     return nullptr;
 }
 
-void NGEngine::setCameraAt(const sf::Vector2f &at)
+void Engine::setCameraAt(const sf::Vector2f &at)
 {
     _cameraPos = at;
 }
 
-void NGEngine::moveCamera(const sf::Vector2f &offset)
+void Engine::moveCamera(const sf::Vector2f &offset)
 {
     _cameraPos += offset;
     if (_cameraPos.x < 0)
@@ -112,7 +112,7 @@ void NGEngine::moveCamera(const sf::Vector2f &offset)
         _cameraPos.y = size.y - Screen::Height;
 }
 
-void NGEngine::update(const sf::Time &elapsed)
+void Engine::update(const sf::Time &elapsed)
 {
     for (auto &function : _newFunctions)
     {
@@ -147,7 +147,7 @@ void NGEngine::update(const sf::Time &elapsed)
 
     _pCurrentObject = nullptr;
     const auto &objects = _pRoom->getObjects();
-    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<NGObject> &pObj) {
+    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<Object> &pObj) {
         if (!pObj->isTouchable())
             return false;
         auto rect = pObj->getRealHotspot();
@@ -193,7 +193,7 @@ void NGEngine::update(const sf::Time &elapsed)
     }
 }
 
-std::shared_ptr<SoundDefinition> NGEngine::defineSound(const std::string &name)
+std::shared_ptr<SoundDefinition> Engine::defineSound(const std::string &name)
 {
     std::string path(_settings.getGamePath());
     path.append(name);
@@ -208,7 +208,7 @@ std::shared_ptr<SoundDefinition> NGEngine::defineSound(const std::string &name)
     return sound;
 }
 
-std::shared_ptr<SoundId> NGEngine::playSound(SoundDefinition &soundDefinition, bool loop)
+std::shared_ptr<SoundId> Engine::playSound(SoundDefinition &soundDefinition, bool loop)
 {
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     _soundIds.push_back(soundId);
@@ -216,7 +216,7 @@ std::shared_ptr<SoundId> NGEngine::playSound(SoundDefinition &soundDefinition, b
     return soundId;
 }
 
-std::shared_ptr<SoundId> NGEngine::loopMusic(SoundDefinition &soundDefinition)
+std::shared_ptr<SoundId> Engine::loopMusic(SoundDefinition &soundDefinition)
 {
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     _soundIds.push_back(soundId);
@@ -224,7 +224,7 @@ std::shared_ptr<SoundId> NGEngine::loopMusic(SoundDefinition &soundDefinition)
     return soundId;
 }
 
-void NGEngine::stopSound(SoundId &sound)
+void Engine::stopSound(SoundId &sound)
 {
     std::cout << "stopSound" << std::endl;
     sound.stop();
@@ -236,7 +236,7 @@ void NGEngine::stopSound(SoundId &sound)
     _soundIds.erase(it);
 }
 
-void NGEngine::draw(sf::RenderWindow &window) const
+void Engine::draw(sf::RenderWindow &window) const
 {
     if (!_pRoom) return;
 
@@ -259,7 +259,7 @@ void NGEngine::draw(sf::RenderWindow &window) const
     drawCursor(window);
 }
 
-void NGEngine::drawCursor(sf::RenderWindow &window) const
+void Engine::drawCursor(sf::RenderWindow &window) const
 {
     if (!_inputActive) return;
 
@@ -287,7 +287,7 @@ void NGEngine::drawCursor(sf::RenderWindow &window) const
     }
 }
 
-void NGEngine::drawVerbs(sf::RenderWindow &window) const
+void Engine::drawVerbs(sf::RenderWindow &window) const
 {
     if(!_inputActive || _verbSlots[0].getVerb(0).id.empty())
         return;
@@ -349,7 +349,7 @@ void NGEngine::drawVerbs(sf::RenderWindow &window) const
     }
 }
 
-void NGEngine::drawInventory(sf::RenderWindow &window) const
+void Engine::drawInventory(sf::RenderWindow &window) const
 {
     if (!_inputActive) return;
 
@@ -424,27 +424,27 @@ void NGEngine::drawInventory(sf::RenderWindow &window) const
     }
 }
 
-bool NGEngine::isThreadAlive(HSQUIRRELVM thread) const
+bool Engine::isThreadAlive(HSQUIRRELVM thread) const
 {
     return std::find(_threads.begin(), _threads.end(), thread) != _threads.end();
 }
 
-void NGEngine::startDialog(const std::string &dialog)
+void Engine::startDialog(const std::string &dialog)
 {
     _dialogManager.start(dialog);
 }
 
-void NGEngine::execute(const std::string &code)
+void Engine::execute(const std::string &code)
 {
     _pScriptExecute->execute(code);
 }
 
-bool NGEngine::executeCondition(const std::string &code)
+bool Engine::executeCondition(const std::string &code)
 {
     return _pScriptExecute->executeCondition(code);
 }
 
-void NGEngine::stopThread(HSQUIRRELVM thread)
+void Engine::stopThread(HSQUIRRELVM thread)
 {
     auto it = std::find(_threads.begin(), _threads.end(), thread);
     if (it == _threads.end())

@@ -1,7 +1,7 @@
 #pragma once
 #include <squirrel3/squirrel.h>
-#include "NGLip.h"
-#include "NGEngine.h"
+#include "Lip.h"
+#include "Engine.h"
 #include "_NGUtil.h"
 
 namespace ng
@@ -9,7 +9,7 @@ namespace ng
 class _ActorPack : public Pack
 {
   private:
-    static NGEngine *g_pEngine;
+    static Engine *g_pEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
@@ -311,7 +311,7 @@ class _ActorPack : public Pack
     static SQInteger actorLockFacing(HSQUIRRELVM v)
     {
         SQInteger facing;
-        NGActor *actor = ScriptEngine::getActor(v, 2);
+        Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -326,7 +326,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorBlinkRate(HSQUIRRELVM v)
     {
-        NGActor *pActor = ScriptEngine::getActor(v, 2);
+        Actor *pActor = ScriptEngine::getActor(v, 2);
         if (!pActor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -347,7 +347,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorPlayAnimation(HSQUIRRELVM v)
     {
-        NGActor *pActor = ScriptEngine::getActor(v, 2);
+        Actor *pActor = ScriptEngine::getActor(v, 2);
         if (!pActor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -453,7 +453,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorTalkOffset(HSQUIRRELVM v)
     {
-        NGActor *actor = ScriptEngine::getActor(v, 2);
+        Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -475,12 +475,12 @@ class _ActorPack : public Pack
 
     static SQInteger actorUsePos(HSQUIRRELVM v)
     {
-        NGActor *actor = ScriptEngine::getActor(v, 2);
+        Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        NGObject *obj = ScriptEngine::getObject(v, 3);
+        Object *obj = ScriptEngine::getObject(v, 3);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -492,7 +492,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorUseWalkboxes(HSQUIRRELVM v)
     {
-        NGActor *actor = ScriptEngine::getActor(v, 2);
+        Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -508,7 +508,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorWalkForward(HSQUIRRELVM v)
     {
-        NGActor *actor = ScriptEngine::getActor(v, 2);
+        Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -525,7 +525,7 @@ class _ActorPack : public Pack
     static SQInteger actorWalking(HSQUIRRELVM v)
     {
         auto numArgs = sq_gettop(v) - 1;
-        NGActor *pActor = nullptr;
+        Actor *pActor = nullptr;
         if (numArgs == 0)
         {
             pActor = g_pEngine->getCurrentActor();
@@ -606,7 +606,7 @@ class _ActorPack : public Pack
         sq_pop(v, 2);
 
         // define instance
-        auto pActor = std::make_unique<NGActor>(*g_pEngine);
+        auto pActor = std::make_unique<Actor>(*g_pEngine);
         pActor->setName(key);
         // pActor->setTable(table);
         sq_pushobject(v, table);
@@ -662,7 +662,7 @@ class _ActorPack : public Pack
 
     static SQInteger sayLine(HSQUIRRELVM v)
     {
-        NGActor *actor = ScriptEngine::getActor(v, 2);
+        Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
@@ -838,6 +838,6 @@ class _ActorPack : public Pack
     }
 };
 
-NGEngine *_ActorPack::g_pEngine = nullptr;
+Engine *_ActorPack::g_pEngine = nullptr;
 
 } // namespace ng

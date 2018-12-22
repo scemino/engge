@@ -1,13 +1,13 @@
 
 #include "Dialog/DialogManager.h"
-#include "NGEngine.h"
-#include "NGActor.h"
+#include "Engine.h"
+#include "Actor.h"
 #include "Text.h"
 #include "_SayFunction.h"
 
 namespace ng
 {
-DialogManager::DialogManager(NGEngine &engine)
+DialogManager::DialogManager(Engine &engine)
     : _engine(engine), _isActive(false), _dialogVisitor(_engine, *this)
 {
     std::string path;

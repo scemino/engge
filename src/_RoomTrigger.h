@@ -1,13 +1,13 @@
 #pragma once
 #include "squirrel3/squirrel.h"
-#include "NGEngine.h"
+#include "Engine.h"
 
 namespace ng
 {
 class _RoomTrigger : public Trigger
 {
   public:
-    _RoomTrigger(NGEngine &engine, const NGObject &object, HSQUIRRELVM v, HSQOBJECT inside, HSQOBJECT outside)
+    _RoomTrigger(Engine &engine, const Object &object, HSQUIRRELVM v, HSQOBJECT inside, HSQOBJECT outside)
         : _engine(engine), _object(object), _v(v), _inside(inside), _outside(outside), _isInside(false)
     {
     }
@@ -71,8 +71,8 @@ class _RoomTrigger : public Trigger
     }
 
   private:
-    NGEngine &_engine;
-    const NGObject &_object;
+    Engine &_engine;
+    const Object &_object;
     HSQUIRRELVM _v;
     HSQOBJECT _inside;
     HSQOBJECT _outside;

@@ -3,20 +3,20 @@
 #include <algorithm>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include "NGRoom.h"
+#include "Room.h"
 #include "_NGUtil.h"
 #include "Screen.h"
 
 namespace ng
 {
-NGRoom::NGRoom(TextureManager &textureManager, const NGEngineSettings &settings)
+Room::Room(TextureManager &textureManager, const EngineSettings &settings)
     : _textureManager(textureManager),
       _settings(settings),
       _showDrawWalkboxes(false)
 {
 }
 
-void NGRoom::setAsParallaxLayer(NGEntity *pEntity, int layerNum)
+void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
 {
     auto itEndLayers = std::end(_layers);
     auto it = std::find_if(std::begin(_layers), itEndLayers, [layerNum](const std::unique_ptr<RoomLayer> &layer) {
@@ -31,7 +31,7 @@ void NGRoom::setAsParallaxLayer(NGEntity *pEntity, int layerNum)
     it->get()->addEntity(*pEntity);
 }
 
-void NGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
+void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
 {
     int width = 0;
     _fullscreen = jWimpy["fullscreen"].get<int>();
@@ -67,7 +67,7 @@ void NGRoom::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
     }
 }
 
-void NGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
+void Room::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
 {
     if (jWimpy["layers"].is_null())
         return;
@@ -127,7 +127,7 @@ void NGRoom::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
     _layers.push_back(std::move(layer));
 }
 
-void NGRoom::loadScalings(nlohmann::json jWimpy)
+void Room::loadScalings(nlohmann::json jWimpy)
 {
     if (jWimpy["scalings"].is_array() && !jWimpy["scalings"].empty())
     {
@@ -177,7 +177,7 @@ void NGRoom::loadScalings(nlohmann::json jWimpy)
     }
 }
 
-void NGRoom::loadWalkboxes(nlohmann::json jWimpy)
+void Room::loadWalkboxes(nlohmann::json jWimpy)
 {
     for (auto jWalkbox : jWimpy["walkboxes"])
     {
@@ -194,7 +194,7 @@ void NGRoom::loadWalkboxes(nlohmann::json jWimpy)
     }
 }
 
-void NGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
+void Room::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
 {
     auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
@@ -203,7 +203,7 @@ void NGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
 
     for (auto jObject : jWimpy["objects"])
     {
-        auto object = std::make_unique<NGObject>();
+        auto object = std::make_unique<Object>();
         // name
         auto objectName = jObject["name"].get<std::string>();
         object->setName(objectName);
@@ -236,7 +236,7 @@ void NGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
             for (auto jAnimation : jObject["animations"])
             {
                 auto animName = jAnimation["name"].get<std::string>();
-                auto anim = std::make_unique<NGAnimation>(texture, animName);
+                auto anim = std::make_unique<Animation>(texture, animName);
                 if (!jAnimation["fps"].is_null())
                 {
                     anim->setFps(jAnimation["fps"].get<int>());
@@ -286,13 +286,13 @@ void NGRoom::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
     }
 
     // sort objects
-    auto cmpObjects = [](std::unique_ptr<NGObject> &a, std::unique_ptr<NGObject> &b) {
+    auto cmpObjects = [](std::unique_ptr<Object> &a, std::unique_ptr<Object> &b) {
         return a->getZOrder() > b->getZOrder();
     };
     std::sort(_objects.begin(), _objects.end(), cmpObjects);
 }
 
-void NGRoom::load(const char *name)
+void Room::load(const char *name)
 {
     _id = name;
 
@@ -326,9 +326,9 @@ void NGRoom::load(const char *name)
     loadWalkboxes(jWimpy);
 }
 
-NGTextObject &NGRoom::createTextObject(const std::string &fontName)
+TextObject &Room::createTextObject(const std::string &fontName)
 {
-    auto object = std::make_unique<NGTextObject>();
+    auto object = std::make_unique<TextObject>();
     std::string path;
     path.append(_settings.getGamePath()).append(fontName).append(".fnt");
     object->getFont().loadFromFile(path);
@@ -337,20 +337,20 @@ NGTextObject &NGRoom::createTextObject(const std::string &fontName)
     return obj;
 }
 
-void NGRoom::deleteObject(NGObject &object)
+void Room::deleteObject(Object &object)
 {
-    auto const &it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<NGObject> &ptr) {
+    auto const &it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<Object> &ptr) {
         return ptr.get() == &object;
     });
     _objects.erase(it);
 }
 
-NGObject &NGRoom::createObject(const std::vector<std::string> &anims)
+Object &Room::createObject(const std::vector<std::string> &anims)
 {
     return createObject(_sheet, anims);
 }
 
-NGObject &NGRoom::createObject(const std::string &sheet, const std::vector<std::string> &anims)
+Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &anims)
 {
     auto &texture = _textureManager.get(sheet);
 
@@ -363,8 +363,8 @@ NGObject &NGRoom::createObject(const std::string &sheet, const std::vector<std::
         i >> json;
     }
 
-    auto object = std::make_unique<NGObject>();
-    auto animation = std::make_unique<NGAnimation>(texture, "state0");
+    auto object = std::make_unique<Object>();
+    auto animation = std::make_unique<Animation>(texture, "state0");
     for (const auto &n : anims)
     {
         if (json["frames"][n].is_null())
@@ -396,7 +396,7 @@ NGObject &NGRoom::createObject(const std::string &sheet, const std::vector<std::
     return obj;
 }
 
-void NGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
+void Room::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
 {
     if (!_showDrawWalkboxes)
         return;
@@ -407,7 +407,7 @@ void NGRoom::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) co
     }
 }
 
-void NGRoom::update(const sf::Time &elapsed)
+void Room::update(const sf::Time &elapsed)
 {
     std::for_each(std::begin(_layers), std::end(_layers),
                   [elapsed](std::unique_ptr<RoomLayer> &layer) { layer->update(elapsed); });
@@ -417,7 +417,7 @@ void NGRoom::update(const sf::Time &elapsed)
     });
 }
 
-void NGRoom::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
     auto ratio = ((float)Screen::Height) / _roomSize.y;

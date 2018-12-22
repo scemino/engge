@@ -3,25 +3,25 @@
 #include <nlohmann/json.hpp>
 #include "NonCopyable.h"
 #include "TextureManager.h"
-#include "NGEngineSettings.h"
-#include "NGObject.h"
-#include "NGTextObject.h"
+#include "EngineSettings.h"
+#include "Object.h"
+#include "TextObject.h"
 #include "Walkbox.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
 
 namespace ng
 {
-class NGRoom : public NonCopyable
+class Room : public NonCopyable
 {
 public:
-  NGRoom(TextureManager &textureManager, const NGEngineSettings &settings);
-  ~NGRoom() = default;
+  Room(TextureManager &textureManager, const EngineSettings &settings);
+  ~Room() = default;
 
   const std::string &getId() const { return _id; }
 
   void load(const char *name);
-  std::vector<std::unique_ptr<NGObject>> &getObjects() { return _objects; }
+  std::vector<std::unique_ptr<Object>> &getObjects() { return _objects; }
   const std::string &getSheet() const { return _sheet; }
 
   void update(const sf::Time &elapsed);
@@ -31,12 +31,12 @@ public:
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
   const std::vector<std::unique_ptr<Walkbox>> &getWalkboxes() const { return _walkboxes; }
   std::vector<std::unique_ptr<Walkbox>> &getWalkboxes() { return _walkboxes; }
-  NGObject &createObject(const std::string &sheet, const std::vector<std::string> &anims);
-  NGObject &createObject(const std::vector<std::string> &anims);
-  NGTextObject &createTextObject(const std::string &fontName);
-  void deleteObject(NGObject &textObject);
+  Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
+  Object &createObject(const std::vector<std::string> &anims);
+  TextObject &createTextObject(const std::string &fontName);
+  void deleteObject(Object &textObject);
   sf::Vector2i getRoomSize() const { return _roomSize; }
-  void setAsParallaxLayer(NGEntity *pEntity, int layer);
+  void setAsParallaxLayer(Entity *pEntity, int layer);
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
@@ -49,8 +49,8 @@ private:
 
 private:
   TextureManager &_textureManager;
-  const NGEngineSettings &_settings;
-  std::vector<std::unique_ptr<NGObject>> _objects;
+  const EngineSettings &_settings;
+  std::vector<std::unique_ptr<Object>> _objects;
   std::vector<std::unique_ptr<Walkbox>> _walkboxes;
   std::vector<std::unique_ptr<RoomLayer>> _layers;
   std::vector<RoomScaling> _scalings;

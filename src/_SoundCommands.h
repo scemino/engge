@@ -1,7 +1,7 @@
 #pragma once
 #include <random>
 #include <squirrel3/squirrel.h>
-#include "NGEngine.h"
+#include "Engine.h"
 
 namespace ng
 {
@@ -15,7 +15,7 @@ class _NoTrigger : public Trigger
 class _SoundTrigger : public Trigger
 {
   public:
-    _SoundTrigger(NGEngine &engine, const std::vector<SoundDefinition *> &sounds)
+    _SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds)
         : _engine(engine), _soundsDefinitions(sounds), _distribution(0, sounds.size() - 1)
     {
         _sounds.resize(sounds.size());
@@ -38,7 +38,7 @@ class _SoundTrigger : public Trigger
     }
 
   private:
-    NGEngine &_engine;
+    Engine &_engine;
     std::vector<SoundDefinition *> _soundsDefinitions;
     std::vector<std::shared_ptr<SoundId>> _sounds;
     std::default_random_engine _generator;
@@ -48,7 +48,7 @@ class _SoundTrigger : public Trigger
 class _SoundPack : public Pack
 {
   private:
-    static NGEngine *g_pEngine;
+    static Engine *g_pEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
@@ -104,7 +104,7 @@ class _SoundPack : public Pack
 
     static SQInteger actorSound(HSQUIRRELVM v)
     {
-        auto pEntity = ScriptEngine::getEntity<NGEntity>(v, 2);
+        auto pEntity = ScriptEngine::getEntity<Entity>(v, 2);
         if (!pEntity)
         {
             return sq_throwerror(v, _SC("failed to get actor or object"));
@@ -263,6 +263,6 @@ class _SoundPack : public Pack
     }
 };
 
-NGEngine *_SoundPack::g_pEngine = nullptr;
+Engine *_SoundPack::g_pEngine = nullptr;
 
 } // namespace ng

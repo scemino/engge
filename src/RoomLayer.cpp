@@ -7,14 +7,14 @@ RoomLayer::RoomLayer()
 {
 }
 
-void RoomLayer::addEntity(NGEntity &entity)
+void RoomLayer::addEntity(Entity &entity)
 {
     _entities.push_back(entity);
 }
 
-void RoomLayer::removeEntity(NGEntity &entity)
+void RoomLayer::removeEntity(Entity &entity)
 {
-    auto it = std::find_if(std::cbegin(_entities), std::cend(_entities), [&entity](const std::reference_wrapper<NGEntity> &ref) {
+    auto it = std::find_if(std::cbegin(_entities), std::cend(_entities), [&entity](const std::reference_wrapper<Entity> &ref) {
         return &ref.get() == &entity;
     });
     if (it == std::cend(_entities))
@@ -39,10 +39,10 @@ void RoomLayer::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 void RoomLayer::update(const sf::Time &elapsed)
 {
-     std::sort(std::begin(_entities), std::end(_entities), [](const NGEntity &a, const NGEntity &b) {
+     std::sort(std::begin(_entities), std::end(_entities), [](const Entity &a, const Entity &b) {
         return a.getZOrder() > b.getZOrder();
     });
-    std::for_each(std::begin(_entities), std::end(_entities), [elapsed](NGEntity &obj) { obj.update(elapsed); });
+    std::for_each(std::begin(_entities), std::end(_entities), [elapsed](Entity &obj) { obj.update(elapsed); });
 }
 
 } // namespace ng
