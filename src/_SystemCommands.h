@@ -167,6 +167,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(isString, "is_string");
         engine.registerGlobalFunction(isTable, "is_table");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
+        engine.registerGlobalFunction(setUserPref, "setUserPref");
         engine.registerGlobalFunction(systemTime, "systemTime");
         engine.registerGlobalFunction(threadpauseable, "threadpauseable");
     }
@@ -323,14 +324,110 @@ class _SystemPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get key"));
         }
-        const SQChar *defaultValue;
-        if (SQ_FAILED(sq_getstring(v, 3, &defaultValue)))
+        auto numArgs = sq_gettop(v) - 1;
+        std::any defaultValue;
+        if (numArgs > 1)
         {
-            return sq_throwerror(v, _SC("failed to get defaultValue"));
+            auto type = sq_gettype(v, 3);
+            if (type == SQObjectType::OT_STRING)
+            {
+                const SQChar *str = nullptr;
+                sq_getstring(v, 3, &str);
+                std::string strValue = str;
+                defaultValue = strValue;
+            }
+            else if (type == SQObjectType::OT_INTEGER)
+            {
+                SQInteger integer;
+                sq_getinteger(v, 3, &integer);
+                defaultValue = integer;
+            }
+            else if (type == SQObjectType::OT_BOOL)
+            {
+                SQBool b;
+                sq_getbool(v, 3, &b);
+                defaultValue = b;
+            }
+            else if (type == SQObjectType::OT_FLOAT)
+            {
+                SQFloat fl;
+                sq_getfloat(v, 3, &fl);
+                defaultValue = fl;
+            }
         }
-        // TODO: get here the value from the preferences file
-        sq_pushstring(v, defaultValue, -1);
+
+        auto value = g_pEngine->getPreferences().getUserPreference(key, defaultValue);
+        const auto &valueType = value.type();
+        if (valueType == typeid(std::string))
+        {
+            sq_pushstring(v, std::any_cast<std::string>(value).data(), -1);
+        }
+        else if (valueType == typeid(int))
+        {
+            sq_pushinteger(v, std::any_cast<int>(value));
+        }
+        else if (valueType == typeid(float))
+        {
+            sq_pushfloat(v, std::any_cast<float>(value));
+        }
+        else if (valueType == typeid(bool))
+        {
+            sq_pushbool(v, std::any_cast<bool>(value));
+        }
+        else
+        {
+            sq_pushnull(v);
+        }
+
         return 1;
+    }
+
+    static SQInteger setUserPref(HSQUIRRELVM v)
+    {
+        const SQChar *key;
+        if (SQ_FAILED(sq_getstring(v, 2, &key)))
+        {
+            return sq_throwerror(v, _SC("failed to get key"));
+        }
+        std::any value;
+        auto type = sq_gettype(v, 3);
+        if (type == SQObjectType::OT_STRING)
+        {
+            const SQChar *str = nullptr;
+            sq_getstring(v, 3, &str);
+            std::string strValue = str;
+            value = strValue;
+            g_pEngine->getPreferences().setUserPreference(key, value);
+            return 0;
+        }
+        if (type == SQObjectType::OT_INTEGER)
+        {
+            SQInteger integer;
+            sq_getinteger(v, 3, &integer);
+            value = integer;
+            g_pEngine->getPreferences().setUserPreference(key, value);
+            return 0;
+        }
+        if (type == SQObjectType::OT_BOOL)
+        {
+            SQBool b;
+            sq_getbool(v, 3, &b);
+            value = b;
+            g_pEngine->getPreferences().setUserPreference(key, value);
+            return 0;
+        }
+        if (type == SQObjectType::OT_FLOAT)
+        {
+            SQFloat fl;
+            sq_getfloat(v, 3, &fl);
+            value = fl;
+            g_pEngine->getPreferences().setUserPreference(key, value);
+            return 0;
+        }
+
+        g_pEngine->getPreferences().removeUserPreference(key);
+
+        return 0;
     }
 
     static SQInteger inputOff(HSQUIRRELVM v)

@@ -13,6 +13,7 @@
 #include "SpriteSheet.h"
 #include "NonCopyable.h"
 #include "Dialog/DialogManager.h"
+#include "Preferences.h"
 
 namespace ng
 {
@@ -27,8 +28,8 @@ class ScriptExecute
 {
 public:
   virtual ~ScriptExecute() = default;
-  virtual void execute(const std::string& code) = 0;
-  virtual bool executeCondition(const std::string& code) = 0;
+  virtual void execute(const std::string &code) = 0;
+  virtual bool executeCondition(const std::string &code) = 0;
 };
 
 class NGEngine : public NonCopyable
@@ -72,7 +73,7 @@ public:
 
   void setVerb(int characterSlot, int verbSlot, const Verb &verb) { _verbSlots[characterSlot].setVerb(verbSlot, verb); }
   void setVerbUiColors(int characterSlot, VerbUiColors colors) { _verbUiColors[characterSlot] = colors; }
-  VerbUiColors& getVerbUiColors(int characterSlot) { return _verbUiColors[characterSlot]; }
+  VerbUiColors &getVerbUiColors(int characterSlot) { return _verbUiColors[characterSlot]; }
 
   void setInputActive(bool active)
   {
@@ -91,11 +92,13 @@ public:
   void stopThread(HSQUIRRELVM thread);
   bool isThreadAlive(HSQUIRRELVM thread) const;
 
-  void startDialog(const std::string& dialog);
-  void execute(const std::string& code);
-  bool executeCondition(const std::string& code);
+  void startDialog(const std::string &dialog);
+  void execute(const std::string &code);
+  bool executeCondition(const std::string &code);
 
-  sf::Vector2f getMousePos() const {return _mousePos;}
+  sf::Vector2f getMousePos() const { return _mousePos; }
+
+  Preferences &getPreferences() { return _preferences; }
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
@@ -145,5 +148,6 @@ private:
   const Verb *_pVerb;
   std::vector<HSQUIRRELVM> _threads;
   DialogManager _dialogManager;
+  Preferences _preferences;
 };
 } // namespace ng
