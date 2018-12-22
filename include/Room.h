@@ -37,6 +37,7 @@ public:
   void deleteObject(Object &textObject);
   sf::Vector2i getRoomSize() const { return _roomSize; }
   void setAsParallaxLayer(Entity *pEntity, int layer);
+  const RoomScaling& getRoomScaling() const;
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;

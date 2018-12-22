@@ -129,17 +129,13 @@ void Room::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
 
 void Room::loadScalings(nlohmann::json jWimpy)
 {
-    if (jWimpy["scalings"].is_array() && !jWimpy["scalings"].empty())
+    if (jWimpy["scaling"].is_array())
     {
-        if (jWimpy["scalings"][0].is_string())
+        if (jWimpy["scaling"][0].is_string())
         {
             RoomScaling scaling;
-            for (auto jScaling : jWimpy["scalings"])
+            for (auto jScaling : jWimpy["scaling"])
             {
-                if (!jScaling["trigger"].is_string())
-                {
-                    scaling.setTrigger(jScaling["trigger"].get<std::string>());
-                }
                 auto value = jScaling.get<std::string>();
                 auto index = value.find('@');
                 auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
@@ -151,12 +147,12 @@ void Room::loadScalings(nlohmann::json jWimpy)
             }
             _scalings.push_back(scaling);
         }
-        else if (jWimpy["scalings"][0].is_array())
+        else if (jWimpy["scaling"][0].is_array())
         {
-            for (auto jScaling : jWimpy["scalings"])
+            for (auto jScaling : jWimpy["scaling"])
             {
                 RoomScaling scaling;
-                for (auto jSubScaling : jScaling["scalings"])
+                for (auto jSubScaling : jScaling["scaling"])
                 {
                     if (jSubScaling["trigger"].is_string())
                     {
@@ -442,4 +438,10 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     states.transform = t;
     drawWalkboxes(window, states);
 }
+
+const RoomScaling &Room::getRoomScaling() const
+{
+    return _scalings[0];
+}
+
 } // namespace ng

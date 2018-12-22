@@ -206,9 +206,12 @@ void Actor::setCostume(const std::string &name, const std::string &sheet)
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    auto size = _pRoom->getRoomSize();
+    auto scale = _pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
     auto actorTransform = states.transform;
     auto transform = _transform;
     transform.move((sf::Vector2f)-_renderOffset);
+    transform.scale(scale, scale);
     states.transform *= transform.getTransform();
     target.draw(_costume, states);
     if (!_talkingState.isTalking())
