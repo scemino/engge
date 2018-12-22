@@ -449,7 +449,7 @@ class _ObjectPack : public Pack
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&NGObject::getRotation, obj);
         auto set = std::bind(&NGObject::setRotation, obj, std::placeholders::_1);
-        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t), method);
+        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t), method, (InterpolationMethod)interpolation == InterpolationMethod::Looping);
         g_pEngine->addFunction(std::move(rotateTo));
         return 0;
     }
@@ -622,7 +622,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get object icon"));
         }
 
-        const SQChar* icon;
+        const SQChar *icon;
         if (SQ_FAILED(sq_getstring(v, -1, &icon)))
         {
             sq_pop(v, 2);

@@ -299,8 +299,7 @@ function createFirefly(x) {
  zsort = 668
  }
  if (firefly) {
- //TODO: objectRotateTo(firefly, direction, 12, LOOPING)
- objectRotateTo(firefly, direction, 12)
+ objectRotateTo(firefly, direction, 12, LOOPING)
  objectAt(firefly, x, y)
  objectSort(firefly, zsort)
  return firefly

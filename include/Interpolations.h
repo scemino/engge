@@ -8,6 +8,9 @@ enum class InterpolationMethod
     EaseIn,
     EaseInOut,
     EaseOut,
+    SlowEaseIn,
+    SlowEaseOut,
+    Looping
 };
 
 class Interpolations

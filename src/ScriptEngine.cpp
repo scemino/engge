@@ -168,7 +168,8 @@ ScriptEngine::ScriptEngine(NGEngine &engine)
                             {"EASE_INOUT", 2},
                             {"EASE_OUT", 3},
                             {"SLOW_EASE_IN", 4},
-                            {"SLOW_EASE_OUT", 5}});
+                            {"SLOW_EASE_OUT", 5},
+                            {"LOOPING", 6}});
 
     addPack<_ActorPack>();
     addPack<_GeneralPack>();
@@ -273,10 +274,12 @@ std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMe
 {
     switch (index)
     {
+    case InterpolationMethod::SlowEaseIn:
     case InterpolationMethod::EaseIn:
         return Interpolations::easeIn;
     case InterpolationMethod::EaseInOut:
         return Interpolations::easeInOut;
+    case InterpolationMethod::SlowEaseOut:
     case InterpolationMethod::EaseOut:
         return Interpolations::easeOut;
     default:

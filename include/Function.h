@@ -51,7 +51,7 @@ template <typename Value>
 class ChangeProperty : public TimeFunction
 {
 public:
-  ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear)
+  ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
       : TimeFunction(time),
         _get(get),
         _set(set),
@@ -59,7 +59,8 @@ public:
         _init(get()),
         _delta(_destination - _init),
         _current(_init),
-        _anim(anim)
+        _anim(anim),
+        _isLooping(isLooping)
   {
   }
 
@@ -72,6 +73,13 @@ public:
       auto f = _anim(t);
       _current = _init + f * _delta;
     }
+  }
+
+  bool isElapsed() override
+  {
+    if (!_isLooping)
+      return TimeFunction::isElapsed();
+    return false;
   }
 
   void onElapsed() override
@@ -87,5 +95,6 @@ private:
   Value _delta;
   Value _current;
   std::function<float(float)> _anim;
+  bool _isLooping;
 };
 } // namespace ng
