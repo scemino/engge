@@ -1,7 +1,7 @@
 #pragma once
 #include "squirrel3/squirrel.h"
 #include "Engine.h"
-#include "_NGUtil.h"
+#include "../_NGUtil.h"
 
 namespace ng
 {

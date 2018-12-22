@@ -4,12 +4,12 @@
 #include "squirrel3/sqstdstring.h"
 #include "squirrel3/sqstdmath.h"
 #include "ScriptEngine.h"
-#include "_SystemCommands.h"
-#include "_GeneralCommands.h"
-#include "_ObjectCommands.h"
-#include "_ActorCommands.h"
-#include "_RoomCommands.h"
-#include "_SoundCommands.h"
+#include "_SystemPack.h"
+#include "_GeneralPack.h"
+#include "_ObjectPack.h"
+#include "_ActorPack.h"
+#include "_RoomPack.h"
+#include "_SoundPack.h"
 #include "_DefaultVerbExecute.h"
 
 #ifdef SQUNICODE
