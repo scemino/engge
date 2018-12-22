@@ -1,5 +1,4 @@
 #pragma once
-#include "SFML/Audio.hpp"
 #include "Function.h"
 #include "Object.h"
 #include "EngineSettings.h"
@@ -8,12 +7,12 @@
 #include "TextureManager.h"
 #include "TextDatabase.h"
 #include "Font.h"
-#include "SoundDefinition.h"
 #include "Verb.h"
 #include "SpriteSheet.h"
 #include "NonCopyable.h"
 #include "Dialog/DialogManager.h"
 #include "Preferences.h"
+#include "SoundManager.h"
 
 namespace ng
 {
@@ -60,11 +59,6 @@ public:
 
   std::vector<std::unique_ptr<Actor>> &getActors() { return _actors; }
 
-  std::shared_ptr<SoundDefinition> defineSound(const std::string &name);
-  std::shared_ptr<SoundId> playSound(SoundDefinition &soundDefinition, bool loop = false);
-  std::shared_ptr<SoundId> loopMusic(SoundDefinition &soundDefinition);
-  void stopSound(SoundId &sound);
-
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
 
@@ -99,6 +93,7 @@ public:
   sf::Vector2f getMousePos() const { return _mousePos; }
 
   Preferences &getPreferences() { return _preferences; }
+  SoundManager &getSoundManager() { return _soundManager; }
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
@@ -114,9 +109,6 @@ private:
   std::vector<std::unique_ptr<Room>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
-  std::vector<std::shared_ptr<SoundDefinition>> _sounds;
-  std::vector<std::shared_ptr<SoundId>> _soundIds;
-  sf::Music _music;
   sf::Uint8 _fadeAlpha;
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;
@@ -149,5 +141,6 @@ private:
   std::vector<HSQUIRRELVM> _threads;
   DialogManager _dialogManager;
   Preferences _preferences;
+  SoundManager _soundManager;
 };
 } // namespace ng

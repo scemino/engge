@@ -94,10 +94,10 @@ void Actor::TalkingState::say(int id)
 void Actor::TalkingState::load(int id)
 {
     std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
-    auto soundDefinition = _actor._engine.defineSound(name + ".ogg");
+    auto soundDefinition = _actor._engine.getSoundManager().defineSound(name + ".ogg");
     if (!soundDefinition)
         return;
-    _actor._engine.playSound(*soundDefinition);
+    _actor._engine.getSoundManager().playSound(*soundDefinition);
 
     std::string path;
     path.append(_actor._engine.getSettings().getGamePath()).append(name).append(".lip");

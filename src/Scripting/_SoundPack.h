@@ -34,7 +34,7 @@ class _SoundTrigger : public Trigger
             _sounds[i]->play();
             return;
         }
-        _sounds[i] = _engine.playSound(*_soundsDefinitions[i]);
+        _sounds[i] = _engine.getSoundManager().playSound(*_soundsDefinitions[i]);
     }
 
   private:
@@ -143,7 +143,7 @@ class _SoundPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get music"));
         }
-        g_pEngine->loopMusic(*pSound);
+        g_pEngine->getSoundManager().loopMusic(*pSound);
         return 0;
     }
 
@@ -154,7 +154,7 @@ class _SoundPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get filename"));
         }
-        auto sound = g_pEngine->defineSound(filename);
+        auto sound = g_pEngine->getSoundManager().defineSound(filename);
         sq_pushuserpointer(v, sound.get());
         return 1;
     }
@@ -170,7 +170,7 @@ class _SoundPack : public Pack
         sq_getinteger(v, 3, &loopTimes);
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 4, &fadeInTime);
-        auto pSoundId = g_pEngine->playSound(*pSound, true);
+        auto pSoundId = g_pEngine->getSoundManager().playSound(*pSound, true);
         if (loopTimes != -1)
         {
             // TODO: loopTimes
@@ -207,7 +207,7 @@ class _SoundPack : public Pack
         auto set = std::bind(&SoundId::setVolume, pSound, std::placeholders::_1);
         auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 0.f, sf::seconds(t));
         fadeTo->callWhenElapsed([pSound]() {
-            g_pEngine->stopSound(*pSound);
+            g_pEngine->getSoundManager().stopSound(*pSound);
         });
         g_pEngine->addFunction(std::move(fadeTo));
         return 0;
@@ -221,7 +221,7 @@ class _SoundPack : public Pack
             return sq_throwerror(v, _SC("failed to get sound"));
         }
         // TODO: other params: object or actor, loopTimes, fadeInTime
-        auto soundId = g_pEngine->playSound(*pSound);
+        auto soundId = g_pEngine->getSoundManager().playSound(*pSound);
         sq_pushuserpointer(v, (SQUserPointer)soundId.get());
 
         return 1;
@@ -234,7 +234,7 @@ class _SoundPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
-        auto soundId = g_pEngine->playSound(*pSound);
+        auto soundId = g_pEngine->getSoundManager().playSound(*pSound);
         sq_pushuserpointer(v, (SQUserPointer)soundId.get());
 
         return 1;
@@ -247,7 +247,7 @@ class _SoundPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
-        g_pEngine->stopSound(*soundId);
+        g_pEngine->getSoundManager().stopSound(*soundId);
         return 0;
     }
 
@@ -258,7 +258,7 @@ class _SoundPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get music"));
         }
-        g_pEngine->stopSound(*soundId);
+        g_pEngine->getSoundManager().stopSound(*soundId);
         return 0;
     }
 };

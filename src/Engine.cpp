@@ -28,7 +28,8 @@ Engine::Engine(const EngineSettings &settings)
       _pFollowActor(nullptr),
       _pCurrentObject(nullptr),
       _pVerb(nullptr),
-      _dialogManager(*this)
+      _dialogManager(*this),
+      _soundManager(settings)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -133,7 +134,7 @@ void Engine::update(const sf::Time &elapsed)
 
     if (!_pRoom)
         return;
-    
+
     _pRoom->update(elapsed);
     if (_pFollowActor)
     {
@@ -160,9 +161,11 @@ void Engine::update(const sf::Time &elapsed)
 
     _dialogManager.update(elapsed);
 
-    if (!m.isButtonPressed(sf::Mouse::Button::Left)) return;
-    
-    if(_dialogManager.isActive()) return;
+    if (!m.isButtonPressed(sf::Mouse::Button::Left))
+        return;
+
+    if (_dialogManager.isActive())
+        return;
 
     auto verbId = -1;
     for (auto i = 0; i < 9; i++)
@@ -193,58 +196,16 @@ void Engine::update(const sf::Time &elapsed)
     }
 }
 
-std::shared_ptr<SoundDefinition> Engine::defineSound(const std::string &name)
-{
-    std::string path(_settings.getGamePath());
-    path.append(name);
-    {
-        std::ifstream infile(path);
-        if (!infile.good())
-            return nullptr;
-    }
-
-    auto sound = std::make_shared<SoundDefinition>(path);
-    _sounds.push_back(sound);
-    return sound;
-}
-
-std::shared_ptr<SoundId> Engine::playSound(SoundDefinition &soundDefinition, bool loop)
-{
-    auto soundId = std::make_shared<SoundId>(soundDefinition);
-    _soundIds.push_back(soundId);
-    soundId->play(loop);
-    return soundId;
-}
-
-std::shared_ptr<SoundId> Engine::loopMusic(SoundDefinition &soundDefinition)
-{
-    auto soundId = std::make_shared<SoundId>(soundDefinition);
-    _soundIds.push_back(soundId);
-    soundId->play(true);
-    return soundId;
-}
-
-void Engine::stopSound(SoundId &sound)
-{
-    std::cout << "stopSound" << std::endl;
-    sound.stop();
-    auto it = std::find_if(_soundIds.begin(), _soundIds.end(), [&sound](const std::shared_ptr<SoundId> &id) {
-        return id.get() == &sound;
-    });
-    if (it == _soundIds.end())
-        return;
-    _soundIds.erase(it);
-}
-
 void Engine::draw(sf::RenderWindow &window) const
 {
-    if (!_pRoom) return;
+    if (!_pRoom)
+        return;
 
     _pRoom->draw(window, _cameraPos);
 
     window.draw(_dialogManager);
 
-    if(!_dialogManager.isActive())
+    if (!_dialogManager.isActive())
     {
         drawVerbs(window);
         drawInventory(window);
@@ -261,7 +222,8 @@ void Engine::draw(sf::RenderWindow &window) const
 
 void Engine::drawCursor(sf::RenderWindow &window) const
 {
-    if (!_inputActive) return;
+    if (!_inputActive)
+        return;
 
     auto cursorSize = sf::Vector2f(68.f * Screen::Width / 1284, 68.f * Screen::Height / 772);
     sf::RectangleShape shape;
@@ -289,7 +251,7 @@ void Engine::drawCursor(sf::RenderWindow &window) const
 
 void Engine::drawVerbs(sf::RenderWindow &window) const
 {
-    if(!_inputActive || _verbSlots[0].getVerb(0).id.empty())
+    if (!_inputActive || _verbSlots[0].getVerb(0).id.empty())
         return;
 
     auto verbId = -1;
@@ -351,7 +313,8 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
 
 void Engine::drawInventory(sf::RenderWindow &window) const
 {
-    if (!_inputActive) return;
+    if (!_inputActive)
+        return;
 
     auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
 
