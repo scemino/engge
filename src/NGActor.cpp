@@ -1,3 +1,4 @@
+#include <regex>
 #include "NGEngine.h"
 #include "NGActor.h"
 #include "NGRoom.h"
@@ -104,6 +105,14 @@ void NGActor::TalkingState::load(int id)
     _lip.load(path);
 
     _sayText = _actor._engine.getText(id);
+    std::regex re("\\{([^\\}]*)\\}");
+    std::smatch matches;
+    if (std::regex_search(_sayText, matches, re))
+    {
+        auto anim = matches[1].str();
+        _actor.getCostume().setState(anim);
+        _sayText = matches.suffix();
+    }
     _isTalking = true;
     _clock.restart();
 }
