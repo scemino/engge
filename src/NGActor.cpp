@@ -81,6 +81,17 @@ static std::string str_toupper(std::string s)
 
 void NGActor::TalkingState::say(int id)
 {
+    if (_isTalking)
+    {
+        _ids.push_back(id);
+        return;
+    }
+
+    load(id);
+}
+
+void NGActor::TalkingState::load(int id)
+{
     std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
     auto soundDefinition = _actor._engine.defineSound(name + ".ogg");
     if (!soundDefinition)
@@ -109,8 +120,13 @@ void NGActor::TalkingState::update(const sf::Time &elapsed)
     }
     if (_index == _lip.getData().size())
     {
-        _isTalking = false;
-        return;
+        if (_ids.empty())
+        {
+            _isTalking = false;
+            return;
+        }
+        load(_ids.front());
+        _ids.erase(_ids.begin());
     }
     auto index = _lip.getData()[_index].letter - 'A';
     // TODO: what is the correspondance between letter and head index ?

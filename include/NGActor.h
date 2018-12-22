@@ -50,6 +50,9 @@ private:
     bool isTalking() const { return _isTalking; }
     void setTalkColor(sf::Color color) { _talkColor = color; }
 
+    private:
+      void load(int id);
+
   private:
     NGActor &_actor;
     FntFont _font;
@@ -60,6 +63,7 @@ private:
     sf::Vector2i _talkOffset;
     sf::Color _talkColor;
     sf::Clock _clock;
+    std::vector<int> _ids;
   };
 
 public:

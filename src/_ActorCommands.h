@@ -578,7 +578,7 @@ class _ActorPack : public Pack
 
         auto pos = pObject->getPosition();
         auto usePos = pObject->getUsePosition();
-        
+
         pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
 
         return 0;
@@ -667,19 +667,21 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto numArgs = sq_gettop(v) - 1;
 
-        // TODO: say the other lines
-        const SQChar *idText;
-        if (SQ_FAILED(sq_getstring(v, 3, &idText)))
+        auto numIds = sq_gettop(v) - 4;
+        for (int i = 0; i < numIds; i++)
         {
-            return sq_throwerror(v, _SC("failed to get text"));
-        }
+            const SQChar *idText;
+            if (SQ_FAILED(sq_getstring(v, 3 + i, &idText)))
+            {
+                return sq_throwerror(v, _SC("failed to get text"));
+            }
 
-        std::string s(idText);
-        s = s.substr(1);
-        auto id = std::strtol(s.c_str(), nullptr, 10);
-        actor->say(id);
+            std::string s(idText);
+            s = s.substr(1);
+            auto id = std::strtol(s.c_str(), nullptr, 10);
+            actor->say(id);
+        }
         return 0;
     }
 
