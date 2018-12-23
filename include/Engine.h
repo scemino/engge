@@ -100,6 +100,7 @@ private:
   void drawVerbs(sf::RenderWindow &window) const;
   void drawInventory(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
+  void clampCamera();
 
 private:
   const EngineSettings &_settings;

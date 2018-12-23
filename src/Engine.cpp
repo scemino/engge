@@ -100,6 +100,11 @@ void Engine::setCameraAt(const sf::Vector2f &at)
 void Engine::moveCamera(const sf::Vector2f &offset)
 {
     _cameraPos += offset;
+    clampCamera();
+}
+
+void Engine::clampCamera()
+{
     if (_cameraPos.x < 0)
         _cameraPos.x = 0;
     if (_cameraPos.y < 0)
@@ -140,6 +145,7 @@ void Engine::update(const sf::Time &elapsed)
     {
         auto pos = _pFollowActor->getPosition();
         _cameraPos = pos - sf::Vector2f(Screen::HalfWidth, Screen::HalfHeight);
+        clampCamera();
     }
 
     sf::Mouse m;
