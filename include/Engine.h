@@ -31,6 +31,16 @@ public:
   virtual bool executeCondition(const std::string &code) = 0;
 };
 
+enum class CursorDirection
+{
+  None = 0,
+  Left = 1,
+  Right = 1 << 1,
+  Up = 1 << 2,
+  Down = 1 << 3,
+  Hotspot = 1 << 4
+};
+
 class Engine : public NonCopyable
 {
 public:
@@ -143,5 +153,6 @@ private:
   DialogManager _dialogManager;
   Preferences _preferences;
   SoundManager _soundManager;
+  CursorDirection _cursorDirection;
 };
 } // namespace ng

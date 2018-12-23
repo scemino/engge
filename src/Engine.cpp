@@ -13,6 +13,21 @@
 
 namespace ng
 {
+CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs)
+{
+    lhs = static_cast<CursorDirection>(
+        static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
+        static_cast<std::underlying_type<CursorDirection>::type>(rhs));
+    return lhs;
+}
+
+bool operator&(CursorDirection lhs, CursorDirection rhs)
+{
+    return static_cast<CursorDirection>(
+               static_cast<std::underlying_type<CursorDirection>::type>(lhs) &
+               static_cast<std::underlying_type<CursorDirection>::type>(rhs)) > CursorDirection::None;
+}
+
 Engine::Engine(const EngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
@@ -150,6 +165,20 @@ void Engine::update(const sf::Time &elapsed)
 
     sf::Mouse m;
     _mousePos = _pWindow->mapPixelToCoords(m.getPosition(*_pWindow));
+    if (_pRoom)
+    {
+        _cursorDirection = CursorDirection::None;
+        if (_mousePos.x < 20)
+            _cursorDirection |= CursorDirection::Left;
+        else if (_mousePos.x > Screen::Width - 20)
+            _cursorDirection |= CursorDirection::Right;
+        if (_mousePos.y < 10)
+            _cursorDirection |= CursorDirection::Up;
+        else if (_mousePos.y > Screen::Height - 10)
+            _cursorDirection |= CursorDirection::Down;
+        if (_pCurrentObject)
+            _cursorDirection |= CursorDirection::Hotspot;
+    }
     auto mousePosInRoom = _mousePos + _cameraPos;
 
     _pCurrentObject = nullptr;
@@ -237,7 +266,29 @@ void Engine::drawCursor(sf::RenderWindow &window) const
     shape.setOrigin(cursorSize / 2.f);
     shape.setSize(cursorSize);
     shape.setTexture(&_gameSheet.getTexture());
-    shape.setTextureRect(_pCurrentObject ? _hotspotCursorRect : _cursorRect);
+    sf::IntRect cursorRect;
+    const auto &size = _pRoom->getRoomSize();
+    if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
+    {
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorLeftRect : _cursorLeftRect;
+    }
+    else if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - Screen::Width)
+    {
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorRightRect : _cursorRightRect;
+    }
+    else if (_cursorDirection & CursorDirection::Up && _cameraPos.y > 0)
+    {
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorBackRect : _cursorBackRect;
+    }
+    else if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - Screen::Height)
+    {
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorFrontRect : _cursorFrontRect;
+    }
+    else
+    {
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorRect : _cursorRect;
+    }
+    shape.setTextureRect(cursorRect);
     window.draw(shape);
 
     if (_pCurrentObject)
