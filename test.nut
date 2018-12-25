@@ -197,7 +197,7 @@ function startSoundAmbiance(sound, bed_volume = AMBIENT_VOLUME, sfx_volume = 1.0
  _soundAmbianceArraySID = []
  _soundAmbianceTID = stopthread(_soundAmbianceTID)
  _soundAmbianceSID = loopSound(sound)
- // TODO: soundVolume(_soundAmbianceSID, _soundAmbianceBedVolume)
+ soundVolume(_soundAmbianceSID, _soundAmbianceBedVolume)
  if (settings.showAmbianceInfo) ""
  if (time && sound_array) {
  //TODO: _soundAmbianceTID = startglobalthread(watchAmbianceSounds, time, sound_array)
@@ -334,16 +334,16 @@ Bridge <-
  g.willie_sleeping = YES
  actorAnimationNames(willie, { stand = "asleep", walk = "asleep", reach = "asleep" })
  actorPlayAnimation(willie, "asleep")
-//  actorVolume(willie, 0.25)		
+ actorVolume(willie, 0.25)		
  do {
-//  TODO: if (isActorOnScreen(willie)) 
- {
- breakwhiletalking(willie)
- breakwhiletalking(currentActor)
-//  mumbleLine(willie, "@24839")
- breakwhiletalking(willie)
- }
- breaktime(4)
+    if (isActorOnScreen(willie)) 
+    {
+    breakwhiletalking(willie)
+    breakwhiletalking(currentActor)
+    mumbleLine(willie, "@24839")
+    breakwhiletalking(willie)
+    }
+    breaktime(4)
  }while(1)
  }
 
@@ -375,7 +375,7 @@ Bridge <-
  }
  Bridge.bridgeGate.gate_closing = YES
  Bridge.bridgeGate.gate_state = CLOSED
-//  walkboxHidden("gate", YES)
+ walkboxHidden("gate", YES)
  playObjectSound(soundGateSlidingClosed, Bridge.bridgeGate)
  objectOffsetTo(Bridge.bridgeGate, 0, 0, 2.0, EASE_INOUT)
  objectTouchable(Bridge.bridgeGate, NO)
@@ -728,7 +728,7 @@ walkboxHidden("body", NO)
  addTrigger(Bridge.triggerCloseGate, trigCloseGate)
  objectTouchable(bridgeHighwayDoorOpening, YES)
  williePassedOutCostume()
-//  actorVolume(willie, 1.0)
+ actorVolume(willie, 1.0)
  objectState(Bridge.willieObject, HERE)
  objectTouchable(Bridge.willieObject, YES)
 //  addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
@@ -1465,6 +1465,7 @@ function newOpeningScene() {
     // inputOn()
     // inputVerbs(ON)
     // selectActor(boris)
+    // cameraFollow(boris)
     roomFade(FADE_OUT, 0)
     // TODO: actorSlotSelectable(OFF)
     // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))

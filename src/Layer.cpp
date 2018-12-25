@@ -1,10 +1,12 @@
 #include "Layer.h"
+#include "Actor.h"
 
 namespace ng
 {
 Layer::Layer()
     : _index(0),
-     _isVisible(true)
+     _isVisible(true),
+     _pActor(nullptr)
 {
 }
 
@@ -22,7 +24,21 @@ bool Layer::update(const sf::Time &elapsed)
             _index = 0;
             return true;
         }
+        updateTrigger();
     }
     return false;
 }
+
+void Layer::updateTrigger()
+{
+    if (_triggers.empty())
+        return;
+
+    auto trigger = _triggers[_index];
+    if (trigger.has_value() && _pActor)
+    {
+        _pActor->trig(*trigger);
+    }
+}
+
 } // namespace ng

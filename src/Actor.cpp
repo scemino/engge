@@ -22,6 +22,11 @@ void Actor::WalkingState::setDestination(const sf::Vector2f &destination, Facing
     _isWalking = true;
 }
 
+void Actor::WalkingState::stop()
+{
+    _isWalking = false;
+}
+
 void Actor::WalkingState::update(const sf::Time &elapsed)
 {
     if (!_isWalking)
@@ -91,13 +96,24 @@ void Actor::TalkingState::say(int id)
     load(id);
 }
 
+void Actor::TalkingState::stop()
+{
+    _ids.clear();
+    if (_sound)
+    {
+        _sound->stop();
+    }
+    _isTalking = false;
+}
+
 void Actor::TalkingState::load(int id)
 {
     std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
     auto soundDefinition = _actor._engine.getSoundManager().defineSound(name + ".ogg");
     if (!soundDefinition)
         return;
-    _actor._engine.getSoundManager().playSound(*soundDefinition);
+    _sound = _actor._engine.getSoundManager().playSound(*soundDefinition);
+    _sound->setVolume(_actor._volume);
 
     std::string path;
     path.append(_actor._engine.getSettings().getGamePath()).append(name).append(".lip");
@@ -170,8 +186,10 @@ Actor::Actor(Engine &engine)
       _pRoom(nullptr),
       _walkingState(*this),
       _talkingState(*this),
-      _speed(30, 15)
+      _speed(30, 15),
+      _volume(1.f)
 {
+    _costume.setActor(this);
 }
 
 Actor::~Actor() = default;

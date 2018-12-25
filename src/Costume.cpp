@@ -16,7 +16,8 @@ Costume::Costume(TextureManager &textureManager)
       _standAnimName("stand"),
       _walkAnimName("walk"),
       _reachAnimName("reach"),
-      _headIndex(0)
+      _headIndex(0),
+      _pActor(nullptr)
 {
     _hiddenLayers.emplace("blink");
     _hiddenLayers.emplace("eyes_left");
@@ -137,10 +138,27 @@ void Costume::setAnimation(const std::string &animName)
                     layer->getSizes().push_back(_toSize(jf["sourceSize"]));
                 }
             }
+            if (!jLayer["triggers"].is_null())
+            {
+                for (const auto &jtrigger : jLayer["triggers"])
+                {
+                    if (!jtrigger.is_null())
+                    {
+                        auto name = jtrigger.get<std::string>();
+                        auto trigger = std::atoi(name.data() + 1);
+                        layer->getTriggers().push_back(trigger);
+                    }
+                    else
+                    {
+                        layer->getTriggers().push_back(std::nullopt);
+                    }
+                }
+            }
             for (const auto &jOffset : jLayer["offsets"])
             {
                 layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.get<std::string>()));
             }
+            layer->setActor(_pActor);
             _pCurrentAnimation->getLayers().push_back(layer);
         }
         std::cout << "found animation: " << name << std::endl;

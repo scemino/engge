@@ -98,16 +98,6 @@ sf::Vector2f Object::getDefaultPosition() const
     return _defaultPosition.value();
 }
 
-void Object::setUsePosition(const sf::Vector2f &pos)
-{
-    _usePos = pos;
-}
-
-sf::Vector2f Object::getUsePosition() const
-{
-    return _usePos;
-}
-
 void Object::setColor(const sf::Color &color)
 {
     _color = color;

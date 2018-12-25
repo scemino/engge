@@ -17,6 +17,8 @@ enum class Facing
   FACE_RIGHT
 };
 
+class Actor;
+
 class Costume : public sf::Drawable
 {
 public:
@@ -36,11 +38,12 @@ public:
   void setHeadIndex(int index);
 
   void setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim);
+  void setActor(Actor *pActor) { _pActor = pActor; }
 
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void update(const sf::Time &elapsed);
 
 private:
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void updateAnimation();
 
 private:
@@ -58,5 +61,6 @@ private:
   std::string _walkAnimName;
   std::string _reachAnimName;
   int _headIndex;
+  Actor *_pActor;
 };
 } // namespace ng

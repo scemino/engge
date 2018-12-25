@@ -9,6 +9,7 @@
 #include "Entity.h"
 #include "Lip.h"
 #include "Object.h"
+#include "SoundDefinition.h"
 
 namespace ng
 {
@@ -29,6 +30,7 @@ private:
 
     void setDestination(const sf::Vector2f &destination, Facing facing);
     void update(const sf::Time &elapsed);
+    void stop();
     bool isWalking() const { return _isWalking; }
 
   private:
@@ -47,11 +49,12 @@ private:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
     void update(const sf::Time &elapsed);
     void say(int id);
+    void stop();
     bool isTalking() const { return _isTalking; }
     void setTalkColor(sf::Color color) { _talkColor = color; }
 
-    private:
-      void load(int id);
+  private:
+    void load(int id);
 
   private:
     Actor &_actor;
@@ -64,6 +67,7 @@ private:
     sf::Color _talkColor;
     sf::Clock _clock;
     std::vector<int> _ids;
+    std::shared_ptr<SoundId> _sound;
   };
 
 public:
@@ -87,6 +91,7 @@ public:
   void setTalkColor(sf::Color color) { _talkingState.setTalkColor(color); }
   void setTalkOffset(const sf::Vector2i &offset) { _talkingState.setTalkOffset(offset); }
   void say(int id) { _talkingState.say(id); }
+  void stopTalking() { _talkingState.stop(); }
   bool isTalking() const { return _talkingState.isTalking(); }
 
   void setColor(sf::Color color) { _color = color; }
@@ -113,7 +118,11 @@ public:
   const sf::Vector2i &getWalkSpeed() const { return _speed; }
   void walkTo(const sf::Vector2f &destination);
   void walkTo(const sf::Vector2f &destination, Facing facing);
+  void stopWalking() { _walkingState.stop(); }
   bool isWalking() const { return _walkingState.isWalking(); }
+
+  void setVolume(float volume) { _volume = volume; }
+  float getVolume() const { return _volume; }
 
 private:
   Engine &_engine;
@@ -132,5 +141,6 @@ private:
   WalkingState _walkingState;
   TalkingState _talkingState;
   sf::Vector2i _speed;
+  float _volume;
 };
 } // namespace ng

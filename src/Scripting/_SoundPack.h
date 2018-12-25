@@ -60,6 +60,7 @@ class _SoundPack : public Pack
         engine.registerGlobalFunction(defineSound, "defineSound");
         engine.registerGlobalFunction(playSound, "playSound");
         engine.registerGlobalFunction(playObjectSound, "playObjectSound");
+        engine.registerGlobalFunction(soundVolume, "soundVolume");
         engine.registerGlobalFunction(stopSound, "stopSound");
         engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
     }
@@ -180,7 +181,7 @@ class _SoundPack : public Pack
             pSoundId->setVolume(0.f);
             auto get = std::bind(&SoundId::getVolume, pSoundId);
             auto set = std::bind(&SoundId::setVolume, pSoundId, std::placeholders::_1);
-            auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 100.f, sf::seconds(fadeInTime));
+            auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 1.f, sf::seconds(fadeInTime));
             g_pEngine->addFunction(std::move(fadeTo));
         }
         sq_pushuserpointer(v, (SQUserPointer *)pSoundId.get());
@@ -238,6 +239,22 @@ class _SoundPack : public Pack
         sq_pushuserpointer(v, (SQUserPointer)soundId.get());
 
         return 1;
+    }
+
+    static SQInteger soundVolume(HSQUIRRELVM v)
+    {
+        SoundId *soundId;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&soundId)))
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        SQFloat volume = 0;
+        if (SQ_FAILED(sq_getfloat(v, 3, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        soundId->setVolume(volume);
+        return 0;
     }
 
     static SQInteger stopSound(HSQUIRRELVM v)

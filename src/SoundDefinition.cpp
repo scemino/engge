@@ -40,12 +40,12 @@ void SoundId::play(bool loop)
 void SoundId::setVolume(float volume)
 {
     std::cout << "setVolume(" << volume << ")" << std::endl;
-    _sound.setVolume(volume);
+    _sound.setVolume(volume * 100.f);
 }
 
 float SoundId::getVolume() const
 {
-    return _sound.getVolume();
+    return _sound.getVolume() / 100.f;
 }
 
 void SoundId::stop()

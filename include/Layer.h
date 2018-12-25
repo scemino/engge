@@ -1,9 +1,12 @@
 #pragma once
 #include <sstream>
+#include <optional>
 #include "SFML/Graphics.hpp"
 
 namespace ng
 {
+class Actor;
+
 class Layer
 {
 public:
@@ -24,8 +27,13 @@ public:
   int getIndex() const { return _index; }
   void setVisible(bool isVisible) { _isVisible = isVisible; }
   int getVisible() const { return _isVisible; }
+  std::vector<std::optional<int>> &getTriggers() { return _triggers; }
+  void setActor(Actor* pActor){ _pActor = pActor; }
 
   bool update(const sf::Time &elapsed);
+
+private:
+  void updateTrigger();
 
 private:
   std::string _name;
@@ -33,10 +41,12 @@ private:
   std::vector<sf::IntRect> _sourceFrames;
   std::vector<sf::Vector2i> _sizes;
   std::vector<sf::Vector2i> _offsets;
+  std::vector<std::optional<int>> _triggers;
   int _fps;
   int _flags;
   sf::Time _time;
   int _index;
   bool _isVisible;
+  Actor* _pActor;
 };
 } // namespace ng

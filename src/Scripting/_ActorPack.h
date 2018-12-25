@@ -35,11 +35,13 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorRenderOffset, "actorRenderOffset");
         engine.registerGlobalFunction(actorRoom, "actorRoom");
         engine.registerGlobalFunction(actorShowLayer, "actorShowLayer");
+        engine.registerGlobalFunction(actorStopWalking, "actorStopWalking");
         engine.registerGlobalFunction(actorTalking, "actorTalking");
         engine.registerGlobalFunction(actorTalkColors, "actorTalkColors");
         engine.registerGlobalFunction(actorTalkOffset, "actorTalkOffset");
         engine.registerGlobalFunction(actorUsePos, "actorUsePos");
         engine.registerGlobalFunction(actorUseWalkboxes, "actorUseWalkboxes");
+        engine.registerGlobalFunction(actorVolume, "actorVolume");
         engine.registerGlobalFunction(actorWalking, "actorWalking");
         engine.registerGlobalFunction(actorWalkSpeed, "actorWalkSpeed");
         engine.registerGlobalFunction(actorWalkTo, "actorWalkTo");
@@ -47,10 +49,13 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(createActor, "createActor");
         engine.registerGlobalFunction(currentActor, "currentActor");
         engine.registerGlobalFunction(isActor, "isActor");
+        engine.registerGlobalFunction(isActorOnScreen, "isActorOnScreen");
         engine.registerGlobalFunction(isActor, "is_actor");
         engine.registerGlobalFunction(masterActorArray, "masterActorArray");
+        engine.registerGlobalFunction(mumbleLine, "mumbleLine");
         engine.registerGlobalFunction(sayLine, "sayLine");
         engine.registerGlobalFunction(selectActor, "selectActor");
+        engine.registerGlobalFunction(stopTalking, "stopTalking");
         engine.registerGlobalFunction(triggerActors, "triggerActors");
         engine.registerGlobalFunction(verbUIColors, "verbUIColors");
     }
@@ -433,7 +438,16 @@ class _ActorPack : public Pack
         return 1;
     }
 
-    // TODO: static SQInteger _actorStopWalking(HSQUIRRELVM v)
+    static SQInteger actorStopWalking(HSQUIRRELVM v)
+    {
+        auto actor = ScriptEngine::getActor(v, 2);
+        if (!actor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        actor->stopWalking();
+        return 0;
+    }
 
     static SQInteger actorTalkColors(HSQUIRRELVM v)
     {
@@ -486,7 +500,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         auto pos = obj->getUsePosition();
-        // TODO: actor->setUsePosition(pos);
+        actor->setUsePosition(pos);
         return 0;
     }
 
@@ -503,6 +517,22 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get useWalkboxes"));
         }
         actor->useWalkboxes(use);
+        return 0;
+    }
+
+    static SQInteger actorVolume(HSQUIRRELVM v)
+    {
+        Actor *actor = ScriptEngine::getActor(v, 2);
+        if (!actor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        SQFloat volume;
+        if (SQ_FAILED(sq_getfloat(v, 3, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        actor->setVolume(volume);
         return 0;
     }
 
@@ -637,7 +667,21 @@ class _ActorPack : public Pack
         return 1;
     }
 
-    // TODO: static SQInteger isActorOnScreen(HSQUIRRELVM v)
+    static SQInteger isActorOnScreen(HSQUIRRELVM v)
+    {
+        auto actor = ScriptEngine::getActor(v, 2);
+        if (!actor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        auto pos = (sf::Vector2i)actor->getPosition();
+        auto camera = g_pEngine->getCameraAt();
+        sf::IntRect rect(camera.x, camera.y, Screen::Width, Screen::Height);
+        auto isOnScreen = rect.contains(pos);
+        sq_pushbool(v, isOnScreen ? SQTrue : SQFalse);
+        return 1;
+    }
+
     static SQInteger masterActorArray(HSQUIRRELVM v)
     {
         auto &actors = g_pEngine->getActors();
@@ -650,7 +694,6 @@ class _ActorPack : public Pack
         }
         return 1;
     }
-    // TODO: static SQInteger mumbleLine(HSQUIRRELVM v)
 
     static std::string str_toupper(std::string s)
     {
@@ -660,7 +703,7 @@ class _ActorPack : public Pack
         return s;
     }
 
-    static SQInteger sayLine(HSQUIRRELVM v)
+    static SQInteger _sayLine(HSQUIRRELVM v)
     {
         Actor *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
@@ -685,6 +728,22 @@ class _ActorPack : public Pack
         return 0;
     }
 
+    static SQInteger mumbleLine(HSQUIRRELVM v)
+    {
+        return _sayLine(v);
+    }
+
+    static SQInteger sayLine(HSQUIRRELVM v)
+    {
+        auto &actors = g_pEngine->getActors();
+        for (auto &a : actors)
+        {
+            a->stopTalking();
+        }
+
+        return _sayLine(v);
+    }
+
     static SQInteger selectActor(HSQUIRRELVM v)
     {
         auto *actor = ScriptEngine::getActor(v, 2);
@@ -696,7 +755,22 @@ class _ActorPack : public Pack
         return 0;
     }
 
-    // TODO: static SQInteger stopTalking(HSQUIRRELVM v)
+    static SQInteger stopTalking(HSQUIRRELVM v)
+    {
+        Actor *actor = nullptr;
+        auto numArgs = sq_gettop(v) - 1;
+        if (numArgs == 1)
+        {
+            actor = ScriptEngine::getActor(v, 2);
+            if (!actor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
+        }
+        actor = g_pEngine->getCurrentActor();
+        actor->stopTalking();
+        return 0;
+    }
 
     static SQInteger triggerActors(HSQUIRRELVM v)
     {

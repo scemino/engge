@@ -20,6 +20,8 @@ enum class UseDirection
   Right
 };
 
+class Room;
+
 class Object : public Entity
 {
 public:
@@ -80,8 +82,6 @@ public:
   sf::Vector2f getPosition() const;
   sf::Vector2f getDefaultPosition() const;
 
-  void setUsePosition(const sf::Vector2f &pos);
-  sf::Vector2f getUsePosition() const;
   void setRotation(float angle) { _transform.setRotation(angle); }
   const float getRotation() const { return _transform.getRotation(); }
 
