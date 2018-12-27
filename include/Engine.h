@@ -41,6 +41,18 @@ enum class CursorDirection
   Hotspot = 1 << 4
 };
 
+struct ActorIconSlot
+{
+  bool selectable;
+  Actor *pActor;
+
+  ActorIconSlot()
+  {
+    selectable = false;
+    pActor = nullptr;
+  }
+};
+
 class Engine : public NonCopyable
 {
 public:
@@ -105,12 +117,17 @@ public:
   Preferences &getPreferences() { return _preferences; }
   SoundManager &getSoundManager() { return _soundManager; }
 
+  void addSelectableActor(int index, Actor *pActor);
+  void actorSlotSelectable(Actor *pActor, bool selectable);
+
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
   void drawInventory(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
+  void drawActorIcons(sf::RenderWindow &window) const;
   void clampCamera();
+  int getCurrentActorIndex() const;
 
 private:
   const EngineSettings &_settings;
@@ -154,5 +171,6 @@ private:
   Preferences _preferences;
   SoundManager _soundManager;
   CursorDirection _cursorDirection;
+  std::array<ActorIconSlot, 6> _actorsIconSlots;
 };
 } // namespace ng

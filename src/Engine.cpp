@@ -95,9 +95,10 @@ sf::IntRect Engine::getVerbRect(const std::string &name, std::string lang, bool 
 
 const Verb *Engine::getVerb(const std::string &id) const
 {
+    auto index = getCurrentActorIndex();
     for (auto i = 0; i < 10; i++)
     {
-        const auto &verb = _verbSlots[0].getVerb(i);
+        const auto &verb = _verbSlots[index].getVerb(i);
         if (verb.id == id)
         {
             return &verb;
@@ -212,9 +213,10 @@ void Engine::update(const sf::Time &elapsed)
         }
     }
 
+    int currentActorIndex = getCurrentActorIndex();
     if (verbId != -1)
     {
-        _pVerb = &_verbSlots[0].getVerb(1 + verbId);
+        _pVerb = &_verbSlots[currentActorIndex].getVerb(1 + verbId);
         std::cout << "select verb: " << _pVerb->id << std::endl;
     }
     else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
@@ -227,7 +229,7 @@ void Engine::update(const sf::Time &elapsed)
     }
     else
     {
-        _pVerb = &_verbSlots[0].getVerb(0);
+        _pVerb = &_verbSlots[currentActorIndex].getVerb(0);
     }
 }
 
@@ -245,6 +247,8 @@ void Engine::draw(sf::RenderWindow &window) const
         drawVerbs(window);
         drawInventory(window);
     }
+
+    drawActorIcons(window);
 
     // draw fade
     sf::RectangleShape fadeShape;
@@ -306,9 +310,24 @@ void Engine::drawCursor(sf::RenderWindow &window) const
     }
 }
 
+int Engine::getCurrentActorIndex() const
+{
+    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    {
+        const auto &selectableActor = _actorsIconSlots[i];
+        if (selectableActor.pActor == _pCurrentActor)
+        {
+            return i;
+            break;
+        }
+    }
+    return -1;
+}
+
 void Engine::drawVerbs(sf::RenderWindow &window) const
 {
-    if (!_inputActive || _verbSlots[0].getVerb(0).id.empty())
+    int currentActorIndex = getCurrentActorIndex();
+    if (!_inputActive || currentActorIndex == -1 || _verbSlots[currentActorIndex].getVerb(0).id.empty())
         return;
 
     auto verbId = -1;
@@ -317,7 +336,7 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
         auto defaultVerb = _pCurrentObject->getDefaultVerb();
         if (!defaultVerb.empty())
         {
-            verbId = _verbSlots[0].getVerbIndex(defaultVerb);
+            verbId = _verbSlots[currentActorIndex].getVerbIndex(defaultVerb);
         }
     }
     else
@@ -342,7 +361,7 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
         auto maxW = 0;
         for (int y = 0; y < 3; y++)
         {
-            auto verb = _verbSlots[0].getVerb(x * 3 + y + 1);
+            auto verb = _verbSlots[currentActorIndex].getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb.id);
             maxW = fmax(maxW, rect.width * ratio.x);
         }
@@ -352,11 +371,11 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
         for (int y = 0; y < 3; y++)
         {
             auto top = Screen::Height - size.y * 3 + y * size.y;
-            auto verb = _verbSlots[0].getVerb(x * 3 + y + 1);
+            auto verb = _verbSlots[currentActorIndex].getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb.id);
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
             int index = x * 3 + y;
-            auto color = index == verbId ? _verbUiColors[0].verbHighlight : _verbUiColors[0].verbNormalTint;
+            auto color = index == verbId ? _verbUiColors[currentActorIndex].verbHighlight : _verbUiColors[currentActorIndex].verbNormalTint;
             sf::RectangleShape verbShape;
             verbShape.setFillColor(color);
             verbShape.setPosition(left, top);
@@ -370,7 +389,8 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
 
 void Engine::drawInventory(sf::RenderWindow &window) const
 {
-    if (!_inputActive)
+    int currentActorIndex = getCurrentActorIndex();
+    if (!_inputActive || currentActorIndex == -1)
         return;
 
     auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
@@ -380,7 +400,7 @@ void Engine::drawInventory(sf::RenderWindow &window) const
     // sf::RectangleShape scrollUpShape;
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
-    // scrollUpShape.setFillColor(_verbUiColors[0].verbNormal);
+    // scrollUpShape.setFillColor(_verbUiColors[currentActorIndex].verbNormal);
     // scrollUpShape.setPosition(scrollUpPosition);
     // scrollUpShape.setSize(scrollUpSize);
     // scrollUpShape.setTexture(&_gameSheet.getTexture());
@@ -389,7 +409,7 @@ void Engine::drawInventory(sf::RenderWindow &window) const
 
     // auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
     // sf::RectangleShape scrollDownShape;
-    // scrollDownShape.setFillColor(_verbUiColors[0].verbNormal);
+    // scrollDownShape.setFillColor(_verbUiColors[currentActorIndex].verbNormal);
     // scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
     // scrollDownShape.setSize(scrollUpSize);
     // scrollDownShape.setTexture(&_gameSheet.getTexture());
@@ -399,7 +419,7 @@ void Engine::drawInventory(sf::RenderWindow &window) const
     // inventory frame
     // auto inventoryFrameRect = _gameSheet.getRect("inventory_frame");
     // sf::RectangleShape inventoryShape;
-    // inventoryShape.setFillColor(_verbUiColors[0].inventoryFrame);
+    // inventoryShape.setFillColor(_verbUiColors[currentActorIndex].inventoryFrame);
     // inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
     // inventoryShape.setSize(sf::Vector2f(Screen::Width / 2.f - scrollUpSize.x, 3 * Screen::Height / 14.f));
     // inventoryShape.setTexture(&_gameSheet.getTexture());
@@ -408,7 +428,7 @@ void Engine::drawInventory(sf::RenderWindow &window) const
 
     auto inventoryFrameRect = _gameSheet.getRect("inventory_background");
     sf::RectangleShape inventoryShape;
-    sf::Color c(_verbUiColors[0].inventoryBackground);
+    sf::Color c(_verbUiColors[currentActorIndex].inventoryBackground);
     c.a = 128;
     inventoryShape.setFillColor(c);
     inventoryShape.setTexture(&_gameSheet.getTexture());
@@ -471,4 +491,149 @@ void Engine::stopThread(HSQUIRRELVM thread)
         return;
     _threads.erase(it);
 }
+
+void Engine::addSelectableActor(int index, Actor *pActor)
+{
+    _actorsIconSlots[index - 1].selectable = true;
+    _actorsIconSlots[index - 1].pActor = pActor;
+}
+
+void Engine::drawActorIcons(sf::RenderWindow &window) const
+{
+    if (!_pCurrentActor)
+        return;
+
+    const auto &texture = _gameSheet.getTexture();
+    auto offsetX = Screen::Width - 4 - 4;
+    auto offsetY = 12;
+    auto backRect = _gameSheet.getRect("icon_background");
+    auto backSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_background");
+    auto backSourceSize = _gameSheet.getSourceSize("icon_background");
+    auto frameRect = _gameSheet.getRect("icon_frame");
+    auto frameSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_frame");
+    auto frameSourceSize = _gameSheet.getSourceSize("icon_frame");
+    auto gearRect = _gameSheet.getRect("icon_gear");
+    auto gearSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_gear");
+    auto gearSourceSize = _gameSheet.getSourceSize("icon_gear");
+
+    sf::RenderStates states;
+    states.texture = &texture;
+    if (_pCurrentActor)
+    {
+        for (auto i = 0; i < _actorsIconSlots.size(); i++)
+        {
+            const auto &selectableActor = _actorsIconSlots[i];
+            if (selectableActor.pActor == _pCurrentActor)
+            {
+                sf::Sprite s;
+                const auto &colors = _verbUiColors[i];
+                sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
+                s.scale(0.5f, 0.5f);
+                sf::Color c(colors.inventoryBackground);
+                c.a = 0x20;
+                s.setColor(c);
+                s.setPosition(offsetX, offsetY);
+                s.setOrigin(-pos);
+                s.setTextureRect(backRect);
+                s.setTexture(texture);
+                window.draw(s, states);
+
+                const auto &icon = selectableActor.pActor->getIcon();
+                auto rect = _gameSheet.getRect(icon);
+                auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
+                auto sourceSize = _gameSheet.getSourceSize(icon);
+                pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
+                s.setOrigin(-pos);
+                c = (sf::Color::White);
+                c.a = 0x20;
+                s.setColor(c);
+                s.setTextureRect(rect);
+                window.draw(s, states);
+
+                pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
+                s.setOrigin(-pos);
+                c = (colors.inventoryFrame);
+                c.a = 0x20;
+                s.setColor(c);
+                s.setTextureRect(frameRect);
+                window.draw(s, states);
+                offsetY += 13 + 2;
+                break;
+            }
+        }
+    }
+
+    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    {
+        const auto &selectableActor = _actorsIconSlots[i];
+        if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
+            continue;
+
+        sf::Sprite s;
+        const auto &colors = _verbUiColors[i];
+        sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
+        s.scale(0.5f, 0.5f);
+        s.setColor(colors.inventoryBackground);
+        s.setPosition(offsetX, offsetY);
+        s.setOrigin(-pos);
+        s.setTextureRect(backRect);
+        s.setTexture(texture);
+        window.draw(s, states);
+
+        const auto &icon = selectableActor.pActor->getIcon();
+        auto rect = _gameSheet.getRect(icon);
+        auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
+        auto sourceSize = _gameSheet.getSourceSize(icon);
+        pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
+        s.setOrigin(-pos);
+        s.setColor(sf::Color::White);
+        s.setTextureRect(rect);
+        window.draw(s, states);
+
+        pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
+        s.setOrigin(-pos);
+        s.setColor(colors.inventoryFrame);
+        s.setTextureRect(frameRect);
+        window.draw(s, states);
+        offsetY += 13 + 2;
+    }
+
+    sf::Sprite s;
+    sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
+    s.scale(0.5f, 0.5f);
+    s.setColor(sf::Color::Black);
+    s.setPosition(offsetX, offsetY);
+    s.setOrigin(-pos);
+    s.setTextureRect(backRect);
+    s.setTexture(texture);
+    window.draw(s, states);
+
+    pos = sf::Vector2f(-gearSourceSize.x / 2.f + gearSpriteSourceSize.left, -gearSourceSize.y / 2.f + gearSpriteSourceSize.top);
+    s.setPosition(offsetX, offsetY);
+    s.setOrigin(-pos);
+    s.setColor(sf::Color::White);
+    s.setTextureRect(gearRect);
+    window.draw(s, states);
+
+    states.blendMode = sf::BlendAlpha;
+    pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
+    s.setOrigin(-pos);
+    s.setColor(sf::Color(128, 128, 128));
+    s.setTextureRect(frameRect);
+    window.draw(s, states);
+}
+
+void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
+{
+    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    {
+        auto &selectableActor = _actorsIconSlots[i];
+        if (selectableActor.pActor == pActor)
+        {
+            selectableActor.selectable = selectable;
+            return;
+        }
+    }
+}
+
 } // namespace ng

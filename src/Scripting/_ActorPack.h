@@ -35,6 +35,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorRenderOffset, "actorRenderOffset");
         engine.registerGlobalFunction(actorRoom, "actorRoom");
         engine.registerGlobalFunction(actorShowLayer, "actorShowLayer");
+        engine.registerGlobalFunction(actorSlotSelectable, "actorSlotSelectable");
         engine.registerGlobalFunction(actorStopWalking, "actorStopWalking");
         engine.registerGlobalFunction(actorTalking, "actorTalking");
         engine.registerGlobalFunction(actorTalkColors, "actorTalkColors");
@@ -46,6 +47,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorWalkSpeed, "actorWalkSpeed");
         engine.registerGlobalFunction(actorWalkTo, "actorWalkTo");
         engine.registerGlobalFunction(actorWalkForward, "actorWalkForward");
+        engine.registerGlobalFunction(addSelectableActor, "addSelectableActor");
         engine.registerGlobalFunction(createActor, "createActor");
         engine.registerGlobalFunction(currentActor, "currentActor");
         engine.registerGlobalFunction(isActor, "isActor");
@@ -425,7 +427,31 @@ class _ActorPack : public Pack
         return actorShowHideLayer(v, true);
     }
 
-    // TODO: static SQInteger _actorSlotSelectable(HSQUIRRELVM v)
+    static SQInteger actorSlotSelectable(HSQUIRRELVM v)
+    {
+        auto numArgs = sq_gettop(v) - 1;
+        Actor *actor = nullptr;
+        if (numArgs == 2)
+        {
+            actor = ScriptEngine::getActor(v, 2);
+            if (!actor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
+        }
+        else
+        {
+            actor = g_pEngine->getCurrentActor();
+        }
+        if (!actor)
+            return 0;
+
+        SQBool selectable;
+        sq_getbool(v, numArgs + 1, &selectable);
+        g_pEngine->actorSlotSelectable(actor, selectable == SQTrue);
+        return 0;
+    }
+
     static SQInteger actorTalking(HSQUIRRELVM v)
     {
         // TODO: with no actor specified
@@ -614,7 +640,21 @@ class _ActorPack : public Pack
         return 0;
     }
 
-    // TODO: static SQInteger addSelectableActor(HSQUIRRELVM v)
+    static SQInteger addSelectableActor(HSQUIRRELVM v)
+    {
+        SQInteger slot;
+        if (SQ_FAILED(sq_getinteger(v, 2, &slot)))
+        {
+            return sq_throwerror(v, _SC("failed to get slot"));
+        }
+        auto *pActor = ScriptEngine::getActor(v, 3);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        g_pEngine->addSelectableActor(slot, pActor);
+        return 0;
+    }
 
     static SQInteger createActor(HSQUIRRELVM v)
     {
@@ -637,8 +677,19 @@ class _ActorPack : public Pack
 
         // define instance
         auto pActor = std::make_unique<Actor>(*g_pEngine);
+
+        const SQChar *icon = nullptr;
+        sq_pushobject(v, table);
+        sq_pushstring(v, _SC("icon"), 4);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            sq_getstring(v, -1, &icon);
+            pActor->setIcon(icon);
+        }
+
+        sq_pop(v, 2);
+
         pActor->setName(key);
-        // pActor->setTable(table);
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pActor.get());

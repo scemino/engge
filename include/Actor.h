@@ -76,6 +76,8 @@ public:
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
+  void setIcon(const std::string &icon) { _icon = icon; }
+  const std::string &getIcon() const { return _icon; }
 
   void setVisible(bool isVisible) { _isVisible = isVisible; }
   bool isVisible() const { return _isVisible; }
@@ -128,7 +130,7 @@ private:
   Engine &_engine;
   const EngineSettings &_settings;
   Costume _costume;
-  std::string _name;
+  std::string _name, _icon;
   sf::Transformable _transform;
   sf::Color _color;
   sf::Vector2i _renderOffset;

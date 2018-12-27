@@ -121,8 +121,8 @@ boris <- {
 }
 createActor(boris)
 actorRenderOffset(boris, 0, 45)
-defineVerbs(1)
-verbUIColors(1, {	nameid = "boris", sentence = 0xffffff, 
+defineVerbs(6)
+verbUIColors(6, {	nameid = "boris", sentence = 0xffffff, 
  verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
  verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
  inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
@@ -889,6 +889,56 @@ createActor(willie)
 actorRenderOffset(willie, 0, 45)
 actorTalkColors(willie, talkColorWillie)
 
+ray <- { 
+ _key = "ray"
+  talkColor = 0x30AAFF
+  icon = "icon_ray"
+}
+createActor(ray)
+
+reyes <- {
+ _key = "reyes"
+ name = "@30045"
+ icon = "icon_reyes"
+}
+createActor(reyes)
+
+function rayCostume()
+{
+ actorCostume(ray, "RayAnimation")
+ actorWalkSpeed(ray, 30, 15)
+ actorRenderOffset(ray, 0, 45)
+//  objectOffset(ray, 0, 0)
+ actorTalkColors(ray, ray.talkColor)
+ actorTalkOffset(ray, 0,defaultTextOffset)
+//  objectLit(ray, 1)
+ footstepsNormal(ray)
+//  ray.showHideLayers()
+}
+
+addSelectableActor(1, ray)
+defineVerbs(1)
+verbUIColors(1, {	nameid = "ray", sentence = 0xffffff, 
+ verbNormal = 0x2173d8, verbHighlight = 0x4c9cff,
+ verbNormalTint = 0x0077ff, verbHighlightTint = 0x95ecff, 
+ dialogNormal = 0x4c9cff, dialogHighlight = 0xa6ceff,
+ inventoryFrame = 0x005dcf, inventoryBackground = 0x001e51 })
+rayCostume()
+
+addSelectableActor(2, reyes)
+defineVerbs(2)
+verbUIColors(2, {	nameid = "reyes", sentence = 0xffffff, 
+ verbNormal = 0xaca192, verbHighlight = 0xbba88c,
+ retroNormal = 0x958064, retroHighlight = 0xecc285,
+ verbNormalTint = 0x95754f, verbHighlightTint = 0xf6e0c6, 
+ dialogNormal = 0xc2b49f, dialogHighlight = 0xf6e0bf,
+ inventoryFrame = 0xaca08c, inventoryBackground = 0x454441 })
+ verbUIColors(6, {	nameid = "boris", sentence = 0xffffff, 
+ verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
+ verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
+ inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
+addSelectableActor(6, boris)
+
 function williePassedOutCostume()
 {
  actorCostume(willie, "WilliePassedOutAnimation")
@@ -1168,7 +1218,7 @@ StartScreen <-
     ""
     // TODO: stopMusic()
     _music = loopMusic(musicStartScreen)
-    // actorSlotSelectable(OFF)
+    actorSlotSelectable(OFF)
 
     startthread(flashRadioLight)
 
@@ -1467,7 +1517,7 @@ function newOpeningScene() {
     // selectActor(boris)
     // cameraFollow(boris)
     roomFade(FADE_OUT, 0)
-    // TODO: actorSlotSelectable(OFF)
+    actorSlotSelectable(OFF)
     // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
     actorAt(boris, Bridge.borisStartSpot)
     actorFace(boris, FACE_RIGHT)
@@ -1478,8 +1528,8 @@ function newOpeningScene() {
     // TODO: setRoomNumber(borisHotelKeycard)
     // TODO: setKeycardName(borisHotelKeycard)
     Bridge.speck_of_dust <- NO	
-    // TODO: actorSlotSelectable(ray, OFF)
-    // TODO: actorSlotSelectable(reyes, OFF)
+    actorSlotSelectable(ray, OFF)
+    actorSlotSelectable(reyes, OFF)
     
     // TODO: lot of code
 
