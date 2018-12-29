@@ -1,8 +1,6 @@
 #pragma once
 #include <sstream>
-#include <squirrel3/squirrel.h>
 #include "SFML/Graphics.hpp"
-#include "NonCopyable.h"
 #include "TextureManager.h"
 #include "Costume.h"
 #include "FntFont.h"
@@ -10,14 +8,11 @@
 #include "Lip.h"
 #include "Object.h"
 #include "SoundDefinition.h"
+#include "InventoryObject.h"
 
 namespace ng
 {
 class Room;
-class Object;
-
-class Actor;
-
 class Engine;
 
 class Actor : public Entity
@@ -113,8 +108,8 @@ public:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void update(const sf::Time &time) override;
 
-  void pickupObject(const std::string &icon) { _icons.push_back(icon); }
-  const std::vector<std::string> &getObjects() const { return _icons; }
+  void pickupObject(std::unique_ptr<InventoryObject> pObject) { _objects.push_back(std::move(pObject)); }
+  const std::vector<std::unique_ptr<InventoryObject>> &getObjects() const { return _objects; }
 
   void setWalkSpeed(const sf::Vector2i &speed) { _speed = speed; }
   const sf::Vector2i &getWalkSpeed() const { return _speed; }
@@ -139,7 +134,7 @@ private:
   bool _use;
   Room *_pRoom;
   sf::IntRect _hotspot;
-  std::vector<std::string> _icons;
+  std::vector<std::unique_ptr<InventoryObject>> _objects;
   WalkingState _walkingState;
   TalkingState _talkingState;
   sf::Vector2i _speed;

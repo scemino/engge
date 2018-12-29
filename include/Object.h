@@ -96,17 +96,16 @@ public:
   void setOwner(Actor *pActor) { _pOwner = pActor; }
 
   Room *getRoom() { return _pRoom; }
+  const Room *getRoom() const { return _pRoom; }
   void setRoom(Room *pRoom) { _pRoom = pRoom; }
-
-  // TODO: void setIcon(const std::string& icon);
 
   void update(const sf::Time &elapsed) override;
 
   friend std::ostream &operator<<(std::ostream &os, const Object &obj);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
-  void addTrigger(std::shared_ptr<Trigger> trigger) { _triggers.push_back(trigger);}
-  void removeTrigger() { _triggers.clear();}
+  void addTrigger(std::shared_ptr<Trigger> trigger) { _triggers.push_back(trigger); }
+  void removeTrigger() { _triggers.clear(); }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

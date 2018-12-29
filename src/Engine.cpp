@@ -9,6 +9,7 @@
 #include "Engine.h"
 #include "Screen.h"
 #include "Font.h"
+#include "Text.h"
 #include "_NGUtil.h"
 
 namespace ng
@@ -42,6 +43,7 @@ Engine::Engine(const EngineSettings &settings)
       _showCursor(false),
       _pFollowActor(nullptr),
       _pCurrentObject(nullptr),
+      _pCurrentInventoryObject(nullptr),
       _pVerb(nullptr),
       _dialogManager(*this),
       _soundManager(settings)
@@ -51,12 +53,12 @@ Engine::Engine(const EngineSettings &settings)
     std::cout << "seed: " << seed << std::endl;
     srand(seed);
 
-    _font.setTextureManager(&_textureManager);
-    _font.setSettings(&_settings);
-    _font.load("FontModernSheet");
+    std::string path(settings.getGamePath());
+    path.append("SentenceFont.fnt");
+    _fntFont.loadFromFile(path);
 
     // load all messages
-    std::string path(settings.getGamePath());
+    path = settings.getGamePath();
     path.append("ThimbleweedText_en.tsv");
     _textDb.load(path);
 
@@ -64,23 +66,31 @@ Engine::Engine(const EngineSettings &settings)
     _gameSheet.load("GameSheet");
     _inventoryItems.load("InventoryItems");
 
-    _cursorRect = _gameSheet.getRect("cursor");
-    _cursorLeftRect = _gameSheet.getRect("cursor_left");
-    _cursorRightRect = _gameSheet.getRect("cursor_right");
-    _cursorFrontRect = _gameSheet.getRect("cursor_front");
-    _cursorBackRect = _gameSheet.getRect("cursor_back");
-    _hotspotCursorRect = _gameSheet.getRect("hotspot_cursor");
-    _hotspotCursorLeftRect = _gameSheet.getRect("hotspot_cursor_left");
-    _hotspotCursorRightRect = _gameSheet.getRect("hotspot_cursor_right");
-    _hotspotCursorFrontRect = _gameSheet.getRect("hotspot_cursor_front");
-    _hotspotCursorBackRect = _gameSheet.getRect("hotspot_cursor_back");
-
     sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
     for (auto i = 0; i < 9; i++)
     {
         auto left = (i / 3) * size.x;
         auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
         _verbRects[i] = sf::IntRect(left, top, size.x, size.y);
+    }
+
+    // inventory
+    auto x = 0, y = 0;
+    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
+    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
+    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
+    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
+    for (auto i = 0; i < 8; i++)
+    {
+        sf::Vector2f pos(x + scrollUpPosition.x + scrollUpSize.x, y + Screen::Height - 3 * Screen::Height / 14.f);
+        auto size = sf::Vector2f(206.f * Screen::Width / 1920.f, 112.f * Screen::Height / 1080.f);
+        _inventoryRects[i] = sf::IntRect(pos.x, pos.y, size.x, size.y);
+        x += size.x;
+        if (i == 3)
+        {
+            x = 0;
+            y += size.y;
+        }
     }
 }
 
@@ -183,6 +193,7 @@ void Engine::update(const sf::Time &elapsed)
     auto mousePosInRoom = _mousePos + _cameraPos;
 
     _pCurrentObject = nullptr;
+    _pCurrentInventoryObject = nullptr;
     const auto &objects = _pRoom->getObjects();
     auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<Object> &pObj) {
         if (!pObj->isTouchable())
@@ -193,6 +204,21 @@ void Engine::update(const sf::Time &elapsed)
     if (it != objects.cend())
     {
         _pCurrentObject = it->get();
+    }
+    else
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            const auto &r = _inventoryRects[i];
+            if (r.contains((sf::Vector2i)_mousePos))
+            {
+                auto &objects = _pCurrentActor->getObjects();
+                if (i < objects.size())
+                {
+                    _pCurrentInventoryObject = objects[i].get();
+                }
+            }
+        }
     }
 
     _dialogManager.update(elapsed);
@@ -226,6 +252,10 @@ void Engine::update(const sf::Time &elapsed)
     else if (_pCurrentObject)
     {
         _pVerbExecute->execute(_pCurrentObject, _pVerb);
+    }
+    else if (_pCurrentInventoryObject)
+    {
+        _pVerbExecute->execute(_pCurrentInventoryObject, _pVerb);
     }
     else
     {
@@ -274,39 +304,71 @@ void Engine::drawCursor(sf::RenderWindow &window) const
     const auto &size = _pRoom->getRoomSize();
     if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorLeftRect : _cursorLeftRect;
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left") : _gameSheet.getRect("cursor_left");
     }
     else if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - Screen::Width)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorRightRect : _cursorRightRect;
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right") : _gameSheet.getRect("cursor_right");
     }
     else if (_cursorDirection & CursorDirection::Up && _cameraPos.y > 0)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorBackRect : _cursorBackRect;
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back") : _gameSheet.getRect("cursor_back");
     }
     else if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - Screen::Height)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorFrontRect : _cursorFrontRect;
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front") : _gameSheet.getRect("cursor_front");
     }
     else
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _hotspotCursorRect : _cursorRect;
+        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
     }
     shape.setTextureRect(cursorRect);
     window.draw(shape);
 
+    auto scale = Screen::HalfHeight / 512.f;
     if (_pCurrentObject)
     {
-        NGText text;
-        text.setFont(_font);
-        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 18));
-        text.setColor(sf::Color::White);
-        text.setText(_pCurrentObject->getName());
+        Text text;
+        text.setFont(_fntFont);
+        text.setScale(scale, scale);
+        text.setFillColor(sf::Color::White);
+        std::string s;
+        if (_pVerb)
+        {
+            auto id = std::atoi(_pVerb->text.substr(1).data());
+            s.append(getText(id));
+        }
+        else
+        {
+            s.append("Walk to");
+        }
+        s.append(" ").append(_pCurrentObject->getName());
+        text.setString(s);
+        auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
+        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22) - offset);
         window.draw(text, sf::RenderStates::Default);
 
         sf::RenderStates states;
         states.transform.translate(-_cameraPos);
         _pCurrentObject->drawHotspot(window, states);
+    }
+    if (_pCurrentInventoryObject && _pVerb)
+    {
+        Text text;
+        text.setFont(_fntFont);
+        text.setScale(scale, scale);
+        text.setFillColor(sf::Color::White);
+        std::string s;
+        if (_pVerb)
+        {
+            auto id = std::atoi(_pVerb->text.substr(1).data());
+            s.append(getText(id));
+        }
+        s.append(" ").append(_pCurrentInventoryObject->getName());
+        text.setString(s);
+        auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
+        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22) - offset);
+        window.draw(text, sf::RenderStates::Default);
     }
 }
 
@@ -318,7 +380,6 @@ int Engine::getCurrentActorIndex() const
         if (selectableActor.pActor == _pCurrentActor)
         {
             return i;
-            break;
         }
     }
     return -1;
@@ -452,7 +513,7 @@ void Engine::drawInventory(sf::RenderWindow &window) const
         auto &objects = _pCurrentActor->getObjects();
         for (auto it = objects.begin(); it != objects.end(); it++)
         {
-            auto rect = _inventoryItems.getRect(*it);
+            auto rect = _inventoryItems.getRect((*it)->getIcon());
             sf::RectangleShape inventoryShape;
             inventoryShape.setPosition(sf::Vector2f(x + scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
             inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));

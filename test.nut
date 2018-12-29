@@ -400,17 +400,84 @@ borisWallet =
 {
  icon = "boris_wallet"
  name = objectName(this, "@25555")
+ verbLookAt = function()
+ {
+ sayLine(boris, "@25556")
+ }
+ verbOpen = function()
+ {
+ sayLine(boris, "@25557")
+ }
+ verbUse = function(obj=null)
+ {
+ verbOpen()
+ }
+ verbClose = function()
+ {
+ sayLine(boris, "@25558")
+ }
+ verbGive = function(actor)
+ {
+ sayLine(boris, "@25559")
+ }
+}
+
+function useRock(obj=null){
+inputOff()
+if (obj == bridgeTownSign) {
+actorWalkTo(currentActor, bridgeLight)
+breakwhilewalking(currentActor)
+}
+actorPlayAnimation(currentActor, "break_light")
+breaktime(1.0/12.0*30)	
+objectState(bridgeLight, OFF)
+breaktime(0.5)
+breakwhileanimating(currentActor)
+breaktime(0.5)
+removeTrigger(Bridge.triggerUnderbrush)
+
+// Notes.checkBorisNotes(3)
+inputOn()
+sayLine(boris, "@25569",
+"@25570")
 }
 
 rock =
- {
+{
  icon = "rock"
  name = objectName(this, "@25567")
-  verbLookAt = function()
+ verbLookAt = function()
  {
- sayLine(boris, "@25568")
+  sayLine(boris, "@25568")
+ }
+ verbUse = function(obj=null)
+ {
+ if (obj == bridgeLight || obj == bridgeTownSign) {
+ if (objectState(bridgeLight) == ON) {
+//  Tutorial.completeHint(6)
+ startthread(useRock, obj)					
+ } else {
+ noReach()
+ sayLine(boris, "@25571")
+ }
+ } else
+ if (obj == borisNote) {
+ noReach()
+ sayLine(boris, "@25572")
+ } else
+ if (obj == borisPrototypeToy) {
+ noReach()
+ sayLine(boris, "@25573")
+ } else {
+ noReach()
+ sayLine(boris, "@25574")
  }
  }
+ verbGive = function(actor)
+ {
+ sayLine(boris, "@25575")
+ }
+}
 
 borisNote =
 {
@@ -675,6 +742,45 @@ bridgeChainsaw =
 bridgeRock =
  {
  name = objectName(this, "@25567")
+ verbLookAt = function()
+ {
+ sayLine(boris, "@40125")
+ }
+ function bridgeRockPickUp()
+ {
+ inputSilentOff()
+ breaktime(0.1)
+ pickupObject(rock)
+ objectState(this, GONE)
+ breaktime(0.1)
+ actorPlayAnimation(currentActor, "pocket_rock")
+ breakwhileanimating(currentActor)
+ if (g.easy_mode) {
+ sayLine(boris, "@40125")
+ }
+ inputOn()
+ }
+ verbPickUp = function()
+ {
+//  Tutorial.completeHint(5)
+ startthread(bridgeRockPickUp)
+ }
+ verbPush = function()
+ {
+ sayLine(boris, "@25707")
+ }
+ verbPull = function()
+ {
+ verbPickUp()
+ }
+ verbOpen = function()
+ {
+ sayLine(boris, "@25708")
+ }
+ verbClose = function()
+ {
+ sayLine(boris, "@25709")
+ }
  }
  bridgeDragMark =
  {
@@ -702,6 +808,36 @@ bridgeTownSign =
 borisPrototypeToy =
 {
  icon = "prototype_toy_orange"
+ name = objectName(this, "@25560")
+ verbLookAt = function()
+ {
+ sayLine(boris, "@25561",
+ "@25562")
+ }
+ verbOpen = function()
+ {
+ sayLine(boris, "@25563")
+ }
+ verbClose = function()
+ {
+ sayLine(boris, "@25564")
+ }
+ verbPull = function()
+ {
+ verbOpen()
+ }
+ verbPush = function()
+ {
+ verbOpen()
+ }
+ verbUse = function(obj=null)
+ {
+ sayLine(boris, "@25565")
+ }
+ verbGive = function(actor)
+ {
+ sayLine(boris, "@25566")
+ }
 }
 
  trainPassby = function() {

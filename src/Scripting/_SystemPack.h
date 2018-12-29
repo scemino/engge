@@ -163,6 +163,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(getUserPref, "getUserPref");
         engine.registerGlobalFunction(inputOff, "inputOff");
         engine.registerGlobalFunction(inputOn, "inputOn");
+        engine.registerGlobalFunction(inputSilentOff, "inputSilentOff");
         engine.registerGlobalFunction(isInputOn, "isInputOn");
         engine.registerGlobalFunction(isString, "is_string");
         engine.registerGlobalFunction(isTable, "is_table");

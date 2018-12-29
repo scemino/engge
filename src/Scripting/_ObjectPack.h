@@ -608,13 +608,13 @@ class _ObjectPack : public Pack
 
     static SQInteger pickupObject(HSQUIRRELVM v)
     {
-        HSQOBJECT obj;
-        sq_resetobject(&obj);
-        if (SQ_FAILED(sq_getstackobj(v, 2, &obj)))
+        auto pObj = std::make_unique<HSQOBJECT>();
+        sq_resetobject(pObj.get());
+        if (SQ_FAILED(sq_getstackobj(v, 2, pObj.get())))
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        sq_pushobject(v, obj);
+        sq_pushobject(v, *pObj.get());
         sq_pushstring(v, _SC("icon"), -1);
         if (SQ_FAILED(sq_get(v, -2)))
         {
@@ -629,6 +629,34 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get object icon"));
         }
 
+        sq_pushobject(v, *pObj.get());
+        sq_pushstring(v, _SC("name"), -1);
+        if (SQ_FAILED(sq_get(v, -2)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get object name"));
+        }
+
+        std::string name;
+        const SQChar *strName = nullptr;
+        if (SQ_FAILED(sq_getstring(v, -1, &strName)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get object name"));
+        }
+
+        if (strlen(strName) > 0 && strName[0] == '@')
+        {
+            std::string s(strName);
+            s = s.substr(1);
+            auto id = std::strtol(s.c_str(), nullptr, 10);
+            name = g_pEngine->getText(id);
+        }
+        else
+        {
+            name = strName;
+        }
+
         auto actor = ScriptEngine::getActor(v, 3);
         if (!actor)
         {
@@ -639,7 +667,13 @@ class _ObjectPack : public Pack
             std::cerr << "There is no actor to pickup object " << icon << std::endl;
             return 0;
         }
-        actor->pickupObject(icon);
+
+        auto pObject = std::make_unique<InventoryObject>();
+        pObject->setRoom(&g_pEngine->getRoom());
+        pObject->setName(name);
+        pObject->setIcon(icon);
+        pObject->setHandle(std::move(pObj));
+        actor->pickupObject(std::move(pObject));
         return 0;
     }
 

@@ -13,6 +13,7 @@
 #include "Dialog/DialogManager.h"
 #include "Preferences.h"
 #include "SoundManager.h"
+#include "FntFont.h"
 
 namespace ng
 {
@@ -20,7 +21,8 @@ class VerbExecute
 {
 public:
   virtual ~VerbExecute() = default;
-  virtual void execute(Object *pObject, const Verb *pVerb) = 0;
+  virtual void execute(const Object *pObject, const Verb *pVerb) = 0;
+  virtual void execute(const InventoryObject *pObject, const Verb *pVerb) = 0;
 };
 
 class ScriptExecute
@@ -70,8 +72,7 @@ public:
 
   Room &getRoom() { return *_pRoom; }
   void setRoom(Room *room) { _pRoom = room; }
-  Font &getFont() { return _font; }
-  std::string getText(int id) { return _textDb.getText(id); }
+  std::string getText(int id) const { return _textDb.getText(id); }
   void setFadeAlpha(float fade) { _fadeAlpha = static_cast<uint8_t>(fade * 255); }
   float getFadeAlpha() const { return _fadeAlpha / 255.f; }
 
@@ -141,7 +142,7 @@ private:
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;
   TextDatabase _textDb;
-  Font _font;
+  FntFont _fntFont;
   Actor *_pCurrentActor;
   std::array<VerbSlot, 6> _verbSlots;
   std::array<VerbUiColors, 6> _verbUiColors;
@@ -150,18 +151,10 @@ private:
   SpriteSheet _verbSheet, _gameSheet, _inventoryItems;
   nlohmann::json _jsonInventoryItems;
   Actor *_pFollowActor;
-  sf::IntRect _cursorRect;
-  sf::IntRect _cursorLeftRect;
-  sf::IntRect _cursorRightRect;
-  sf::IntRect _cursorFrontRect;
-  sf::IntRect _cursorBackRect;
-  sf::IntRect _hotspotCursorRect;
-  sf::IntRect _hotspotCursorLeftRect;
-  sf::IntRect _hotspotCursorRightRect;
-  sf::IntRect _hotspotCursorFrontRect;
-  sf::IntRect _hotspotCursorBackRect;
   sf::IntRect _verbRects[9];
-  Object *_pCurrentObject;
+  sf::IntRect _inventoryRects[8];
+  const Object *_pCurrentObject;
+  const InventoryObject *_pCurrentInventoryObject;
   sf::Vector2f _mousePos;
   std::unique_ptr<VerbExecute> _pVerbExecute;
   std::unique_ptr<ScriptExecute> _pScriptExecute;
