@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "SFML/Graphics.hpp"
 
 namespace ng
@@ -20,6 +21,25 @@ public:
     _usePos = pos;
   }
 
+  void setPosition(const sf::Vector2f &pos)
+  {
+      if (!_defaultPosition.has_value())
+      {
+          _defaultPosition = pos;
+      }
+      _transform.setPosition(pos);
+  }
+
+  sf::Vector2f getPosition() const
+  {
+      return _transform.getPosition();
+  }
+
+  sf::Vector2f getDefaultPosition() const
+  {
+      return _defaultPosition.value();
+  }
+
   sf::Vector2f getUsePosition() const
   {
     return _usePos;
@@ -39,8 +59,12 @@ public:
     }
   }
 
+protected:
+  sf::Transformable _transform;
+
 private:
   std::map<int, std::shared_ptr<Trigger>> _triggers;
   sf::Vector2f _usePos;
+  std::optional<sf::Vector2f> _defaultPosition;
 };
 } // namespace ng

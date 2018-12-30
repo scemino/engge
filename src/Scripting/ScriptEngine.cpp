@@ -169,7 +169,11 @@ ScriptEngine::ScriptEngine(Engine &engine)
                             {"EASE_OUT", 3},
                             {"SLOW_EASE_IN", 4},
                             {"SLOW_EASE_OUT", 5},
-                            {"LOOPING", 6}});
+                            {"LOOPING", 6},
+                            {"USE_WITH", 2},
+                            {"USE_ON", 4},
+                            {"USE_IN", 8},
+                            });
 
     addPack<_ActorPack>();
     addPack<_GeneralPack>();

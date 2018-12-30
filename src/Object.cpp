@@ -55,7 +55,7 @@ int Object::getStateAnimIndex()
         return -1;
     if (_pAnim->getName().find("state") == std::string::npos)
         return -1;
-    return std::strtol(_pAnim->getName().c_str(), nullptr, 10);
+    return std::strtol(_pAnim->getName().c_str() + 5, nullptr, 10);
 }
 
 void Object::setAnimation(const std::string &name)
@@ -77,25 +77,6 @@ void Object::setAnimation(const std::string &name)
 void Object::move(const sf::Vector2f &offset)
 {
     _transform.move(offset);
-}
-
-void Object::setPosition(const sf::Vector2f &pos)
-{
-    if (!_defaultPosition.has_value())
-    {
-        _defaultPosition = pos;
-    }
-    _transform.setPosition(pos);
-}
-
-sf::Vector2f Object::getPosition() const
-{
-    return _transform.getPosition();
-}
-
-sf::Vector2f Object::getDefaultPosition() const
-{
-    return _defaultPosition.value();
 }
 
 void Object::setColor(const sf::Color &color)

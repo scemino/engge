@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <optional>
+#include "squirrel3/squirrel.h"
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
@@ -71,6 +72,9 @@ public:
   void setDefaultVerb(const std::string &verb) { _verb = verb; }
   const std::string &getDefaultVerb() const { return _verb; }
 
+  void setTable(std::unique_ptr<HSQOBJECT> pTable) { _pTable = std::move(pTable); }
+  HSQOBJECT *getTable() const { return _pTable.get(); }
+
   std::vector<std::unique_ptr<Animation>> &getAnims() { return _anims; }
 
   void setStateAnimIndex(int animIndex);
@@ -78,9 +82,6 @@ public:
   void setAnimation(const std::string &name);
 
   void move(const sf::Vector2f &offset);
-  void setPosition(const sf::Vector2f &pos);
-  sf::Vector2f getPosition() const;
-  sf::Vector2f getDefaultPosition() const;
 
   void setRotation(float angle) { _transform.setRotation(angle); }
   const float getRotation() const { return _transform.getRotation(); }
@@ -123,7 +124,6 @@ private:
   sf::Vector2f _usePos;
   sf::Color _color;
   sf::IntRect _hotspot;
-  sf::Transformable _transform;
   float _angle;
   bool _isTouchable;
   bool _isLit;
@@ -132,6 +132,6 @@ private:
   int _state;
   std::string _verb;
   std::vector<std::shared_ptr<Trigger>> _triggers;
-  std::optional<sf::Vector2f> _defaultPosition;
+  std::unique_ptr<HSQOBJECT> _pTable;
 };
 } // namespace ng

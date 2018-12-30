@@ -59,6 +59,7 @@ class _SoundPack : public Pack
         engine.registerGlobalFunction(loopMusic, "loopMusic");
         engine.registerGlobalFunction(defineSound, "defineSound");
         engine.registerGlobalFunction(playSound, "playSound");
+        engine.registerGlobalFunction(playSoundVolume, "playSoundVolume");
         engine.registerGlobalFunction(playObjectSound, "playObjectSound");
         engine.registerGlobalFunction(soundVolume, "soundVolume");
         engine.registerGlobalFunction(stopSound, "stopSound");
@@ -236,6 +237,25 @@ class _SoundPack : public Pack
             return sq_throwerror(v, _SC("failed to get sound"));
         }
         auto soundId = g_pEngine->getSoundManager().playSound(*pSound);
+        sq_pushuserpointer(v, (SQUserPointer)soundId.get());
+
+        return 1;
+    }
+
+    static SQInteger playSoundVolume(HSQUIRRELVM v)
+    {
+        SoundDefinition *pSound;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        SQFloat volume = 0;
+        if (SQ_FAILED(sq_getfloat(v, 3, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        auto soundId = g_pEngine->getSoundManager().playSound(*pSound);
+        soundId->setVolume(volume);
         sq_pushuserpointer(v, (SQUserPointer)soundId.get());
 
         return 1;

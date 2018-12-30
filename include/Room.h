@@ -37,7 +37,9 @@ public:
   void deleteObject(Object &textObject);
   sf::Vector2i getRoomSize() const { return _roomSize; }
   void setAsParallaxLayer(Entity *pEntity, int layer);
-  const RoomScaling& getRoomScaling() const;
+  const RoomScaling &getRoomScaling() const;
+  void setTable(std::unique_ptr<HSQOBJECT> pTable) { _pTable = std::move(pTable); }
+  HSQOBJECT* getTable() { return _pTable.get(); }
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
@@ -60,5 +62,6 @@ private:
   std::string _sheet;
   std::string _id;
   int _fullscreen;
+  std::unique_ptr<HSQOBJECT> _pTable;
 };
 } // namespace ng

@@ -108,6 +108,7 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
+            // TODO: argument #3 can be a room
             auto *pObj = ScriptEngine::getObject(v, 3);
             if (!pObj)
             {

@@ -210,11 +210,6 @@ void Actor::move(const sf::Vector2f &offset)
     _transform.move(offset);
 }
 
-void Actor::setPosition(const sf::Vector2f &pos)
-{
-    _transform.setPosition(pos);
-}
-
 void Actor::setCostume(const std::string &name, const std::string &sheet)
 {
     std::string path(_settings.getGamePath());

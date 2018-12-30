@@ -300,6 +300,8 @@ void Room::load(const char *name)
     nlohmann::json jWimpy;
     {
         std::ifstream i(wimpyFilename);
+        if(!i.good())
+            return;
         i >> jWimpy;
     }
 
@@ -326,7 +328,7 @@ TextObject &Room::createTextObject(const std::string &fontName)
 {
     auto object = std::make_unique<TextObject>();
     std::string path;
-    path.append(_settings.getGamePath()).append(fontName).append(".fnt");
+    path.append(_settings.getGamePath()).append(fontName).append("Font.fnt");
     object->getFont().loadFromFile(path);
     auto &obj = *object;
     _objects.push_back(std::move(object));

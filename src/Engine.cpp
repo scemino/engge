@@ -46,7 +46,9 @@ Engine::Engine(const EngineSettings &settings)
       _pCurrentInventoryObject(nullptr),
       _pVerb(nullptr),
       _dialogManager(*this),
-      _soundManager(settings)
+      _soundManager(settings),
+      _useFlag(UseFlag::None),
+      _pUseObject(nullptr)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -243,6 +245,8 @@ void Engine::update(const sf::Time &elapsed)
     if (verbId != -1)
     {
         _pVerb = &_verbSlots[currentActorIndex].getVerb(1 + verbId);
+        _useFlag = UseFlag::None;
+        _pUseObject = nullptr;
         std::cout << "select verb: " << _pVerb->id << std::endl;
     }
     else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
@@ -251,7 +255,14 @@ void Engine::update(const sf::Time &elapsed)
     }
     else if (_pCurrentObject)
     {
-        _pVerbExecute->execute(_pCurrentObject, _pVerb);
+        if (_pUseObject)
+        {
+            _pVerbExecute->use(_pUseObject, _pCurrentObject);
+        }
+        else
+        {
+            _pVerbExecute->execute(_pCurrentObject, _pVerb);
+        }
     }
     else if (_pCurrentInventoryObject)
     {
@@ -260,6 +271,8 @@ void Engine::update(const sf::Time &elapsed)
     else
     {
         _pVerb = &_verbSlots[currentActorIndex].getVerb(0);
+        _useFlag = UseFlag::None;
+        _pUseObject = nullptr;
     }
 }
 
@@ -333,16 +346,29 @@ void Engine::drawCursor(sf::RenderWindow &window) const
         text.setScale(scale, scale);
         text.setFillColor(sf::Color::White);
         std::string s;
-        if (_pVerb)
+        if (_pVerb && !_pVerb->text.empty())
         {
             auto id = std::atoi(_pVerb->text.substr(1).data());
             s.append(getText(id));
         }
         else
         {
-            s.append("Walk to");
+            // Walk to
+            s.append(getText(30011));
         }
-        s.append(" ").append(_pCurrentObject->getName());
+        if (_pUseObject)
+        {
+            s.append(" ").append(_pUseObject->getName());
+        }
+        else
+        {
+            s.append(" ").append(_pCurrentObject->getName());
+        }
+        appendUseFlag(s);
+        if (_pUseObject)
+        {
+            s.append(" ").append(_pCurrentObject->getName());
+        }
         text.setString(s);
         auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
         text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22) - offset);
@@ -365,10 +391,29 @@ void Engine::drawCursor(sf::RenderWindow &window) const
             s.append(getText(id));
         }
         s.append(" ").append(_pCurrentInventoryObject->getName());
+        appendUseFlag(s);
         text.setString(s);
         auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
         text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22) - offset);
         window.draw(text, sf::RenderStates::Default);
+    }
+}
+
+void Engine::appendUseFlag(std::string &sentence) const
+{
+    switch (_useFlag)
+    {
+    case UseFlag::UseWith:
+        sentence.append(" ").append(getText(10000));
+        break;
+    case UseFlag::UseIn:
+        sentence.append(" ").append(getText(10002));
+        break;
+    case UseFlag::UseOn:
+        sentence.append(" ").append(getText(10001));
+        break;
+    case UseFlag::None:
+        break;
     }
 }
 
@@ -581,47 +626,42 @@ void Engine::drawActorIcons(sf::RenderWindow &window) const
     states.texture = &texture;
     if (_pCurrentActor)
     {
-        for (auto i = 0; i < _actorsIconSlots.size(); i++)
-        {
-            const auto &selectableActor = _actorsIconSlots[i];
-            if (selectableActor.pActor == _pCurrentActor)
-            {
-                sf::Sprite s;
-                const auto &colors = _verbUiColors[i];
-                sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
-                s.scale(0.5f, 0.5f);
-                sf::Color c(colors.inventoryBackground);
-                c.a = 0x20;
-                s.setColor(c);
-                s.setPosition(offsetX, offsetY);
-                s.setOrigin(-pos);
-                s.setTextureRect(backRect);
-                s.setTexture(texture);
-                window.draw(s, states);
+        auto i = getCurrentActorIndex();
+        const auto &selectableActor = _actorsIconSlots[i];
 
-                const auto &icon = selectableActor.pActor->getIcon();
-                auto rect = _gameSheet.getRect(icon);
-                auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
-                auto sourceSize = _gameSheet.getSourceSize(icon);
-                pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
-                s.setOrigin(-pos);
-                c = (sf::Color::White);
-                c.a = 0x20;
-                s.setColor(c);
-                s.setTextureRect(rect);
-                window.draw(s, states);
+        sf::Sprite s;
+        const auto &colors = _verbUiColors[i];
+        sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
+        s.scale(0.5f, 0.5f);
+        sf::Color c(colors.inventoryBackground);
+        c.a = 0x20;
+        s.setColor(c);
+        s.setPosition(offsetX, offsetY);
+        s.setOrigin(-pos);
+        s.setTextureRect(backRect);
+        s.setTexture(texture);
+        window.draw(s, states);
 
-                pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
-                s.setOrigin(-pos);
-                c = (colors.inventoryFrame);
-                c.a = 0x20;
-                s.setColor(c);
-                s.setTextureRect(frameRect);
-                window.draw(s, states);
-                offsetY += 13 + 2;
-                break;
-            }
-        }
+        const auto &icon = selectableActor.pActor->getIcon();
+        auto rect = _gameSheet.getRect(icon);
+        auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
+        auto sourceSize = _gameSheet.getSourceSize(icon);
+        pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
+        s.setOrigin(-pos);
+        c = (sf::Color::White);
+        c.a = 0x20;
+        s.setColor(c);
+        s.setTextureRect(rect);
+        window.draw(s, states);
+
+        pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
+        s.setOrigin(-pos);
+        c = (colors.inventoryFrame);
+        c.a = 0x20;
+        s.setColor(c);
+        s.setTextureRect(frameRect);
+        window.draw(s, states);
+        offsetY += 13 + 2;
     }
 
     for (auto i = 0; i < _actorsIconSlots.size(); i++)

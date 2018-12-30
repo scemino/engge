@@ -21,6 +21,7 @@ class VerbExecute
 {
 public:
   virtual ~VerbExecute() = default;
+  virtual void use(const InventoryObject *pObjectSource, const Object *pObjectTarget) = 0;
   virtual void execute(const Object *pObject, const Verb *pVerb) = 0;
   virtual void execute(const InventoryObject *pObject, const Verb *pVerb) = 0;
 };
@@ -53,6 +54,14 @@ struct ActorIconSlot
     selectable = false;
     pActor = nullptr;
   }
+};
+
+enum UseFlag
+{
+  None = 0,
+  UseWith,
+  UseOn,
+  UseIn
 };
 
 class Engine : public NonCopyable
@@ -120,6 +129,12 @@ public:
 
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
+  void setUseFlag(UseFlag flag, const InventoryObject *object)
+  {
+    _useFlag = flag;
+    _pUseObject = object;
+  }
+  UseFlag getUseFlag(UseFlag flag) const { return _useFlag; }
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
@@ -129,6 +144,7 @@ private:
   void drawActorIcons(sf::RenderWindow &window) const;
   void clampCamera();
   int getCurrentActorIndex() const;
+  void appendUseFlag(std::string &sentence) const;
 
 private:
   const EngineSettings &_settings;
@@ -155,6 +171,7 @@ private:
   sf::IntRect _inventoryRects[8];
   const Object *_pCurrentObject;
   const InventoryObject *_pCurrentInventoryObject;
+  const InventoryObject *_pUseObject;
   sf::Vector2f _mousePos;
   std::unique_ptr<VerbExecute> _pVerbExecute;
   std::unique_ptr<ScriptExecute> _pScriptExecute;
@@ -165,5 +182,6 @@ private:
   SoundManager _soundManager;
   CursorDirection _cursorDirection;
   std::array<ActorIconSlot, 6> _actorsIconSlots;
+  UseFlag _useFlag;
 };
 } // namespace ng

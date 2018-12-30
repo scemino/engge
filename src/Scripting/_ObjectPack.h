@@ -28,8 +28,8 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectState, "objectState");
         engine.registerGlobalFunction(objectScale, "objectScale");
         engine.registerGlobalFunction(objectAt, "objectAt");
-        engine.registerGlobalFunction(objectPosX, "_objectPosX");
-        engine.registerGlobalFunction(objectPosY, "_objectPosY");
+        engine.registerGlobalFunction(objectPosX, "objectPosX");
+        engine.registerGlobalFunction(objectPosY, "objectPosY");
         engine.registerGlobalFunction(objectSort, "objectSort");
         engine.registerGlobalFunction(objectRotate, "objectRotate");
         engine.registerGlobalFunction(objectRotateTo, "objectRotateTo");
@@ -234,10 +234,10 @@ class _ObjectPack : public Pack
         SQInteger x = 0;
         SQInteger y = 0;
         SQFloat t = 0;
-        Object *obj = ScriptEngine::getObject(v, 2);
+        Entity *obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get entity"));
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &x)))
         {
@@ -257,8 +257,8 @@ class _ObjectPack : public Pack
             interpolation = 0;
         }
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&Object::getPosition, obj);
-        auto set = std::bind(&Object::setPosition, obj, std::placeholders::_1);
+        auto get = std::bind(&Entity::getPosition, obj);
+        auto set = std::bind(&Entity::setPosition, obj, std::placeholders::_1);
         auto destination = obj->getDefaultPosition() + sf::Vector2f(x, y);
         auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));

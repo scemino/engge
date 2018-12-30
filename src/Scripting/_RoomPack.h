@@ -139,11 +139,12 @@ class _RoomPack : public Pack
     static SQInteger defineRoom(HSQUIRRELVM v)
     {
         auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
-        HSQOBJECT table;
-        sq_getstackobj(v, 2, &table);
+        auto table = std::make_unique<HSQOBJECT>();
+        auto pTable = table.get();
+        sq_getstackobj(v, 2, pTable);
 
         // loadRoom
-        sq_pushobject(v, table);
+        sq_pushobject(v, *pTable);
         sq_pushstring(v, _SC("background"), 10);
         if (SQ_FAILED(sq_get(v, -2)))
         {
@@ -152,10 +153,11 @@ class _RoomPack : public Pack
         const SQChar *name;
         sq_getstring(v, -1, &name);
         sq_pop(v, 2);
+        pRoom->setTable(std::move(table));
         pRoom->load(name);
 
         // define instance
-        sq_pushobject(v, table);
+        sq_pushobject(v, *pTable);
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pRoom.get());
         sq_newslot(v, -3, SQFalse);
@@ -163,26 +165,41 @@ class _RoomPack : public Pack
         // define room objects
         for (auto &obj : pRoom->getObjects())
         {
-            sq_pushobject(v, table);
+            auto object = std::make_unique<HSQOBJECT>();
+            auto pObj = object.get();
+            sq_resetobject(pObj);
+
+            sq_pushobject(v, *pTable);
             sq_pushstring(v, obj->getName().data(), -1);
             if (SQ_FAILED(sq_get(v, -2)))
             {
                 setObjectSlot(v, obj->getName().data(), *obj);
+
+                sq_pushobject(v, *pTable);
+                sq_pushstring(v, obj->getName().data(), -1);
+                sq_get(v, -2);
+                sq_getstackobj(v, -1, pObj);
+                if (!sq_istable(*pObj))
+                {
+                    return sq_throwerror(v, _SC("object should be a table entry"));
+                }
+
+                obj->setTable(std::move(object));
                 continue;
             }
 
-            HSQOBJECT object;
-            sq_resetobject(&object);
-            sq_getstackobj(v, -1, &object);
-            if (!sq_istable(object))
+            sq_getstackobj(v, -1, pObj);
+            if (!sq_istable(*pObj))
             {
                 return sq_throwerror(v, _SC("object should be a table entry"));
             }
 
-            _getField<SQInteger>(v, object, _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
-            _getField<SQBool>(v, object, _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
-            _getField<const SQChar *>(v, object, _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
-            _getField<const SQChar *>(v, object, _SC("name"), [&obj](const SQChar *value) {
+            obj->setTable(std::move(object));
+
+            _getField<SQInteger>(v, *pObj, _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
+            _getField<SQBool>(v, *pObj, _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
+            _getField<const SQChar *>(v, *pObj, _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
+            _getField<const SQChar *>(v, *pObj, _SC("name"), [&obj](const SQChar *value) {
                 if (strlen(value) > 0 && value[0] == '@')
                 {
                     std::string s(value);
@@ -199,13 +216,13 @@ class _RoomPack : public Pack
                 }
             });
 
-            sq_pushobject(v, object);
+            sq_pushobject(v, *pObj);
             sq_pushstring(v, _SC("instance"), -1);
             sq_pushuserpointer(v, obj.get());
             sq_newslot(v, -3, SQFalse);
 
-            sq_pushobject(v, object);
-            sq_pushobject(v, table);
+            sq_pushobject(v, *pObj);
+            sq_pushobject(v, *pTable);
             sq_setdelegate(v, -2);
         }
 

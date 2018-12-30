@@ -95,8 +95,6 @@ public:
   sf::Color getColor() { return _color; }
 
   void move(const sf::Vector2f &offset);
-  sf::Vector2f getPosition() const { return _transform.getPosition(); }
-  void setPosition(const sf::Vector2f &pos);
   void setRenderOffset(const sf::Vector2i &offset) { _renderOffset = offset; }
 
   Room *getRoom() const { return _pRoom; }
@@ -126,7 +124,6 @@ private:
   const EngineSettings &_settings;
   Costume _costume;
   std::string _name, _icon;
-  sf::Transformable _transform;
   sf::Color _color;
   sf::Vector2i _renderOffset;
   int _zorder;

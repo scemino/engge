@@ -41,6 +41,8 @@ soundTitleStinger1 <- defineSound("TitleCardStab1.ogg")
 soundTitleStinger2 <- defineSound("TitleCardStab2.ogg")
 soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
 soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
+soundPunchHit <- defineSound("PunchHit.wav")
+soundScrape <- defineSound("Scrape.wav")
 
 // Boot.nut
 function objectName(obj, name) {
@@ -105,6 +107,94 @@ function footstepsWater(actor) {
  actorSound(actor, 1, soundFootstepWater1, soundFootstepWater2)
  }
  actorShowLayer(actor, "splash")
+}
+
+function doOpening() {
+
+ cameraInRoom(TitleCards)
+
+
+ breaktime(1.0)
+ // TODO: local text = createTextObject("sayline", translate("@25545"), ALIGN_CENTER | 1000)
+ local text = createTextObject("sayline", translate("@25545"))
+ objectScale(text, 0.5)
+ objectColor(text, 0x30AAFF)
+ objectAlpha(text, 0.0)
+ objectAt(text, 320,180)
+ 
+ objectAlphaTo(text, 1.0, 1.0, LINEAR)
+ breaktime(3.0)
+ objectAlphaTo(text, 0.0, 1.0, LINEAR)
+ breaktime(1.0)
+ 
+ deleteObject(text)
+
+//  text = createTextObject("sayline", translate("@25546"), ALIGN_CENTER | 1000)
+ text = createTextObject("sayline", translate("@25546"))
+ objectScale(text, 0.5)
+ objectColor(text, 0x30AAFF)
+ objectAlpha(text, 0.0)
+ objectAt(text, 320,180)
+
+ objectAlphaTo(text, 1.0, 1.0, LINEAR)
+ breaktime(4.0)
+ objectAlphaTo(text, 0.0, 1.0, LINEAR)
+ breaktime(1.0)
+
+//  breakwhilerunning(TitleCards.showPartBody())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//  startMusic(musicTempTheme, bridgeMusicPool)
+
+ selectActor(ray)		
+//  enterRoomFromDoor(Bridge.startRight)
+ actorAt(ray, Bridge.startLeft)
+ actorAt(reyes, Bridge.startRight)
+ cameraAt(Bridge.bridgeBody)
+//  roomOverlayColor(0xFF000000, 0x00000000, 5.0)
+ startDialog("Opening")
+//  breakwhiledialog()
+ if (randomOdds(0.5)) {
+ pickupObject(polaroidFilm, reyes)
+ pickupObject(camera, ray)
+ selectActor(ray)
+ cameraFollow(ray)
+ } else {
+ pickupObject(polaroidFilm, ray)
+ pickupObject(camera, reyes)
+ selectActor(reyes)
+ cameraFollow(reyes)
+ }
+ actorSlotSelectable(ray, ON)
+ actorSlotSelectable(reyes, ON)
+ actorSlotSelectable(ON)
+//  Bridge.flashSelectActorIcon(1)
+ breakhere(1)
+//  exCommand(EX_AUTOSAVE)
+ Bridge.speck_of_dust <- YES	
 }
 
 boris <- {
@@ -446,6 +536,7 @@ rock =
 {
  icon = "rock"
  name = objectName(this, "@25567")
+ flags = USE_ON
  verbLookAt = function()
  {
   sayLine(boris, "@25568")
@@ -846,6 +937,75 @@ borisPrototypeToy =
    playSound(soundBridgeTrain)
  }
 
+function waitUntilLightOut(actor) {
+ inputOff()
+ actorStopWalking(currentActor)
+ actorWalkTo(currentActor, Bridge.borisRefuseSpot)
+ sayLine(boris, "@25552")
+ breakwhilewalking(currentActor)
+ inputOn()
+ }
+ 
+ attackBoris = function() {
+//  Tutorial.completeHint(8)
+//  cutscene( 
+//  @()
+//  {
+ 
+ actorWalkTo(boris, Bridge.attackSpot)
+ stopthread(Bridge._willieSnoringTID)	
+//  breakwhilewalking(boris)
+ local shadowAttacker = createObject("AlleywaySheet", [ "shadow_attacking_1", "shadow_attacking_2", "shadow_attacking_3", "shadow_attacking_4", "shadow_attacking_5", "shadow_attacking_6", "shadow_attacking_5", "shadow_attacking_4", "shadow_attacking_3", "shadow_attacking_2", "shadow_attacking_1" ])
+ objectAt(shadowAttacker, objectPosX(Bridge.attackerSpot), objectPosY(Bridge.attackerSpot))
+ objectHidden(shadowAttacker, NO)
+ playObjectState(shadowAttacker, 0)
+ objectAlpha(shadowAttacker, 1.0)
+ objectAlphaTo(shadowAttacker, 0.0, 2.0, SLOW_EASE_OUT)
+ actorFace(boris, FACE_RIGHT)
+ stopTalking(boris)
+ breakhere(4)
+ actorPlayAnimation(boris, "get_hit")
+ // TODO: screenShake()
+ playSound(soundPunchHit)
+//  TODO: stopMusic()
+ breakwhileanimating(boris)
+ breaktime(1.0)
+ objectState(Bridge.bridgeDragMark, HERE)
+ objectAlpha(Bridge.bridgeDragMark, 0)
+ objectAlphaTo(Bridge.bridgeDragMark, 1, 2)
+ playSoundVolume(soundScrape, 1.0)
+ objectOffsetTo(boris, -10, 0, 0.5)
+ breaktime(1.0)
+ playSoundVolume(soundScrape, 0.75)
+ objectOffsetTo(boris, -25, 0, 0.5)
+ breaktime(1.0)
+ roomFade(FADE_OUT, 4.0)
+ playSoundVolume(soundScrape, 0.50)
+ objectOffsetTo(boris, -40, 0, 0.5)
+ breaktime(1.0)
+ playSoundVolume(soundScrape, 0.25)
+ objectOffsetTo(boris, -50, 0, 0.5)
+ breaktime(3)
+ objectState(Bridge.bridgeRock, GONE)
+ objectState(Bridge.bridgeBody, HERE)
+ objectTouchable(Bridge.bridgeBody, YES)
+ objectState(Bridge.bridgeBottle, HERE)
+ objectTouchable(Bridge.bridgeBottle, YES)
+ if ((g.easy_mode == NO)) {
+ objectState(Bridge.bridgeChainsaw, HERE)
+ objectTouchable(Bridge.bridgeChainsaw, YES)
+ }
+ // TODO: actorAt(willie, Void)
+ // TODO: actorAt(boris, Void)
+ objectState(Bridge.willieObject, GONE)
+ // TODO: removeInventory(boris)
+ removeTrigger(Bridge.triggerAttack)
+ g.openingScene = NO
+ actorSlotSelectable(ON)
+ doOpening()
+//  })
+ }
+
  enter = function(door)
  {
      print("enter\n")
@@ -867,8 +1027,8 @@ walkboxHidden("body", NO)
  actorVolume(willie, 1.0)
  objectState(Bridge.willieObject, HERE)
  objectTouchable(Bridge.willieObject, YES)
-//  addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
-//  addTrigger(Bridge.triggerUnderbrush, Bridge.waitUntilLightOut)
+ addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
+ addTrigger(Bridge.triggerUnderbrush, Bridge.waitUntilLightOut)
  if (g.willie_sleeping) {	
  startthread(Bridge.willieSnoring)
  actorPlayAnimation(willie, "asleep")
@@ -994,9 +1154,9 @@ walkboxHidden("gate", YES)
  }
  
  if (g.openingScene == 1) {
- // TODO: addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
+ addTrigger(Bridge.triggerAttack, Bridge.attackBoris)
  if (objectState(bridgeLight) == OFF) {
- // TODO: removeTrigger(Bridge.triggerUnderbrush)
+ removeTrigger(Bridge.triggerUnderbrush)
  }
  }
 
@@ -1625,6 +1785,8 @@ TitleCards <-
  }
 }
 
+Void <- { background = "Void" }
+
 defineRoom(Bridge)
 defineRoom(StartScreen)
 // defineRoom(AStreet)
@@ -1640,9 +1802,10 @@ defineRoom(StartScreen)
 // defineRoom(CircusEntrance)
 // defineRoom(CoronersOffice)
 // defineRoom(Opening)
+defineRoom(Void)
 defineRoom(TitleCards)
 // Opening.playOpening()
-TitleCards.showPartMeeting()
+// TitleCards.showPartMeeting()
 // cameraInRoom(StartScreen)
 // cameraInRoom(TitleCards)
 roomFade(FADE_IN, 2.0)

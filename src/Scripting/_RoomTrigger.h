@@ -18,6 +18,7 @@ class _RoomTrigger : public Trigger
         auto actor = _engine.getCurrentActor();
         if (!actor)
             return;
+
         auto inObjectHotspot = _object.getRealHotspot().contains((sf::Vector2i)actor->getPosition());
         if (!_isInside && inObjectHotspot)
         {
@@ -25,17 +26,21 @@ class _RoomTrigger : public Trigger
             sq_pushobject(_v, _inside);
             SQUnsignedInteger nparams, nfreevars;
             sq_getclosureinfo(_v, -1, &nparams, &nfreevars);
-            sq_pushroottable(_v);
             if (nparams == 2)
             {
+                sq_pushroottable(_v);
                 sq_pushstring(_v, actor->getName().data(), -1);
                 sq_get(_v, -2);
                 HSQOBJECT actorObject;
                 sq_resetobject(&actorObject);
                 sq_getstackobj(_v, -1, &actorObject);
                 sq_pushobject(_v, _inside);
-                sq_pushroottable(_v);
+                sq_pushobject(_v, *_object.getTable());
                 sq_pushobject(_v, actorObject);
+            }
+            else
+            {
+                sq_pushobject(_v, *_object.getTable());
             }
             if (SQ_FAILED(sq_call(_v, nparams, SQFalse, SQTrue)))
             {
@@ -50,18 +55,23 @@ class _RoomTrigger : public Trigger
                 sq_pushobject(_v, _outside);
                 SQUnsignedInteger nparams, nfreevars;
                 sq_getclosureinfo(_v, -1, &nparams, &nfreevars);
-                sq_pushroottable(_v);
                 if (nparams == 2)
                 {
+                    sq_pushroottable(_v);
                     sq_pushstring(_v, actor->getName().data(), -1);
                     sq_get(_v, -2);
                     HSQOBJECT actorObject;
                     sq_resetobject(&actorObject);
                     sq_getstackobj(_v, -1, &actorObject);
                     sq_pushobject(_v, _outside);
-                    sq_pushroottable(_v);
+                    sq_pushobject(_v, *_object.getTable());
                     sq_pushobject(_v, actorObject);
                 }
+                else
+                {
+                    sq_pushobject(_v, *_object.getTable());
+                }
+
                 if (SQ_FAILED(sq_call(_v, nparams, SQFalse, SQTrue)))
                 {
                     sq_throwerror(_v, "failed to call room outside trigger");

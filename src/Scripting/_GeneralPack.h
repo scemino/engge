@@ -27,15 +27,25 @@ class _GeneralPack : public Pack
     static SQInteger cameraAt(HSQUIRRELVM v)
     {
         SQInteger x, y;
-        if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+        auto numArgs = sq_gettop(v) - 1;
+        if (numArgs == 2)
         {
-            return sq_throwerror(v, _SC("failed to get x"));
+            if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+            {
+                return sq_throwerror(v, _SC("failed to get x"));
+            }
+            if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+            {
+                return sq_throwerror(v, _SC("failed to get y"));
+            }
+            g_pEngine->setCameraAt(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight));
         }
-        if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+        else
         {
-            return sq_throwerror(v, _SC("failed to get y"));
+            auto spot = ScriptEngine::getObject(v, 2);
+            auto pos = spot->getPosition();
+            g_pEngine->setCameraAt(sf::Vector2f(pos.x - Screen::HalfWidth, pos.y - Screen::HalfHeight));
         }
-        g_pEngine->setCameraAt(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight));
         return 0;
     }
 
@@ -290,7 +300,7 @@ class _GeneralPack : public Pack
         return 0;
     }
 
-     static SQInteger startDialog(HSQUIRRELVM v)
+    static SQInteger startDialog(HSQUIRRELVM v)
     {
         const SQChar *dialog;
         if (SQ_FAILED(sq_getstring(v, 2, &dialog)))

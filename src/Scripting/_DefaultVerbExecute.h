@@ -72,7 +72,7 @@ class _DefaultVerbExecute : public VerbExecute
     {
     }
 
-  public:
+  private:
     void execute(const Object *pObject, const Verb *pVerb) override
     {
         auto pRoom = pObject->getRoom();
@@ -170,6 +170,29 @@ class _DefaultVerbExecute : public VerbExecute
         }
     }
 
+    void use(const InventoryObject *pObjectSource, const Object *pObjectTarget) override
+    {
+        HSQOBJECT objSource = *(HSQOBJECT *)pObjectSource->getHandle();
+        HSQOBJECT objTarget = *(HSQOBJECT *)pObjectTarget->getTable();
+        
+        auto pTable = _engine.getRoom().getTable();
+        sq_pushobject(_vm, objSource);
+        sq_pushobject(_vm, *pTable);
+        sq_setdelegate(_vm, -2);
+
+        sq_pushobject(_vm, objSource);
+        sq_pushstring(_vm, _SC("verbUse"), -1);
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_remove(_vm, -2);
+            sq_pushobject(_vm, objSource);
+            sq_pushobject(_vm, objTarget);
+            sq_call(_vm, 2, SQFalse, SQTrue);
+            sq_pop(_vm, 2); //pops the roottable and the function
+            return;
+        }
+    }
+
     void execute(const InventoryObject *pObject, const Verb *pVerb) override
     {
         HSQOBJECT obj = *(HSQOBJECT *)pObject->getHandle();
@@ -181,18 +204,10 @@ class _DefaultVerbExecute : public VerbExecute
         }
         else
         {
-            sq_pushobject(_vm, obj);
-            sq_pushstring(_vm, _SC("defaultVerb"), -1);
-
-            const SQChar *defaultVerb = nullptr;
-            if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-            {
-                sq_getstring(_vm, -1, &defaultVerb);
-                verb = defaultVerb;
-                std::cout << "defaultVerb: " << defaultVerb << std::endl;
-            }
+            const SQChar *defaultVerb = getDefaultVerb(obj);
             if (!defaultVerb)
                 return;
+            verb = defaultVerb;
         }
 
         // first check for objectPreWalk
@@ -211,16 +226,58 @@ class _DefaultVerbExecute : public VerbExecute
             if (handled == 1)
                 return;
         }
+        sq_pop(_vm, 2); //pops the roottable and the function
 
         pVerb = _engine.getVerb(verb);
         if (!pVerb)
             return;
+
+        SQInteger flags = 0;
+        sq_pushobject(_vm, obj);
+        sq_pushstring(_vm, _SC("flags"), -1);
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_getinteger(_vm, -1, &flags);
+            UseFlag useFlag;
+            switch (flags)
+            {
+            case 2:
+                useFlag = UseFlag::UseWith;
+                break;
+            case 4:
+                useFlag = UseFlag::UseOn;
+                break;
+            case 8:
+                useFlag = UseFlag::UseIn;
+                break;
+            }
+            _engine.setUseFlag(useFlag, pObject);
+            return;
+        }
+
+        auto pTable = _engine.getRoom().getTable();
+        sq_pushobject(_vm, obj);
+        sq_pushobject(_vm, *pTable);
+        sq_setdelegate(_vm, -2);
+
         auto func = pVerb->func;
-
-        sq_pop(_vm, 2); //pops the roottable and the function
-
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, func.data(), -1);
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_remove(_vm, -2);
+            sq_pushobject(_vm, obj);
+            sq_call(_vm, 1, SQFalse, SQTrue);
+            sq_pop(_vm, 2); //pops the roottable and the function
+            return;
+        }
+        callVerbDefault(obj);
+    }
+
+    void callVerbDefault(HSQOBJECT obj)
+    {
+        sq_pushobject(_vm, obj);
+        sq_pushstring(_vm, _SC("verbDefault"), -1);
 
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
@@ -229,19 +286,20 @@ class _DefaultVerbExecute : public VerbExecute
             sq_call(_vm, 1, SQFalse, SQTrue);
             sq_pop(_vm, 2); //pops the roottable and the function
         }
-        else
-        {
-            sq_pushobject(_vm, obj);
-            sq_pushstring(_vm, _SC("verbDefault"), -1);
+    }
 
-            if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-            {
-                sq_remove(_vm, -2);
-                sq_pushobject(_vm, obj);
-                sq_call(_vm, 1, SQFalse, SQTrue);
-                sq_pop(_vm, 2); //pops the roottable and the function
-            }
+    const SQChar *getDefaultVerb(HSQOBJECT obj)
+    {
+        sq_pushobject(_vm, obj);
+        sq_pushstring(_vm, _SC("defaultVerb"), -1);
+
+        const SQChar *defaultVerb = nullptr;
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_getstring(_vm, -1, &defaultVerb);
+            std::cout << "defaultVerb: " << defaultVerb << std::endl;
         }
+        return defaultVerb;
     }
 
   private:
