@@ -115,19 +115,18 @@ class _ObjectPack : public Pack
             interpolation = 0;
         }
 
-        auto a = (sf::Uint8)(alpha * 255);
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
         auto getAlpha = [](const Object &o) {
-            return o.getColor().a;
+            return (o.getColor().a / 255.f);
         };
-        auto setAlpha = [](Object &o, sf::Uint8 a) {
+        auto setAlpha = [](Object &o, float a) {
             const auto &c = o.getColor();
-            return o.setColor(sf::Color(c.r, c.g, c.b, a));
+            return o.setColor(sf::Color(c.r, c.g, c.b, (sf::Uint8)(a * 255.f)));
         };
         auto getalpha = std::bind(getAlpha, std::cref(*obj));
         auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
-        auto alphaTo = std::make_unique<ChangeProperty<sf::Uint8>>(getalpha, setalpha, a, sf::seconds(time), method);
+        auto alphaTo = std::make_unique<ChangeProperty<float>>(getalpha, setalpha, alpha, sf::seconds(time), method);
         g_pEngine->addFunction(std::move(alphaTo));
 
         return 0;
@@ -681,19 +680,27 @@ class _ObjectPack : public Pack
     {
         const SQChar *fontName;
         const SQChar *text;
+        auto numArgs = sq_gettop(v) - 1;
         if (SQ_FAILED(sq_getstring(v, 2, &fontName)))
         {
             return sq_throwerror(v, _SC("failed to get fontName"));
         }
         auto &obj = g_pEngine->getRoom().createTextObject(fontName);
-
         if (SQ_FAILED(sq_getstring(v, 3, &text)))
         {
             return sq_throwerror(v, _SC("failed to get text"));
         }
         std::string s(text);
         obj.setText(s);
-
+        if (numArgs == 3)
+        {
+            SQInteger alignment;
+            if (SQ_FAILED(sq_getinteger(v, 4, &alignment)))
+            {
+                return sq_throwerror(v, _SC("failed to get alignment"));
+            }
+            obj.setAlignment((TextAlignment)alignment);
+        }
         ScriptEngine::pushObject(v, obj);
         return 1;
     }

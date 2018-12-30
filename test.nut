@@ -113,10 +113,7 @@ function doOpening() {
 
  cameraInRoom(TitleCards)
 
-
- breaktime(1.0)
- // TODO: local text = createTextObject("sayline", translate("@25545"), ALIGN_CENTER | 1000)
- local text = createTextObject("sayline", translate("@25545"))
+ local text = createTextObject("sayline", translate("@25545"), ALIGN_CENTER | 1000)
  objectScale(text, 0.5)
  objectColor(text, 0x30AAFF)
  objectAlpha(text, 0.0)
@@ -129,8 +126,7 @@ function doOpening() {
  
  deleteObject(text)
 
-//  text = createTextObject("sayline", translate("@25546"), ALIGN_CENTER | 1000)
- text = createTextObject("sayline", translate("@25546"))
+ text = createTextObject("sayline", translate("@25546"), ALIGN_CENTER | 1000)
  objectScale(text, 0.5)
  objectColor(text, 0x30AAFF)
  objectAlpha(text, 0.0)
@@ -1894,4 +1890,5 @@ function newOpeningScene() {
 }
 
 g.openingScene = 1
-local tid = startthread(newOpeningScene)
+// local tid = startthread(newOpeningScene)
+local tid = startthread(doOpening)

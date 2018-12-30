@@ -173,6 +173,11 @@ ScriptEngine::ScriptEngine(Engine &engine)
                             {"USE_WITH", 2},
                             {"USE_ON", 4},
                             {"USE_IN", 8},
+                            {"ALIGN_LEFT",   0x10000000},
+                            {"ALIGN_CENTER", 0x20000000},
+                            {"ALIGN_RIGHT",  0x40000000},
+                            {"ALIGN_TOP",    0x80000000},
+                            {"ALIGN_BOTTOM", 0x1000000},
                             });
 
     addPack<_ActorPack>();

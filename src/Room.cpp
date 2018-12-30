@@ -331,7 +331,12 @@ TextObject &Room::createTextObject(const std::string &fontName)
     path.append(_settings.getGamePath()).append(fontName).append("Font.fnt");
     object->getFont().loadFromFile(path);
     auto &obj = *object;
+    obj.setVisible(true);
     _objects.push_back(std::move(object));
+    auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
+        return pLayer->getZOrder() == 0;
+    });
+    itLayer->get()->addEntity(obj);
     return obj;
 }
 
@@ -340,6 +345,10 @@ void Room::deleteObject(Object &object)
     auto const &it = std::find_if(_objects.begin(), _objects.end(), [&](std::unique_ptr<Object> &ptr) {
         return ptr.get() == &object;
     });
+    auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
+        return pLayer->getZOrder() == 0;
+    });
+    itLayer->get()->removeEntity(object);
     _objects.erase(it);
 }
 
