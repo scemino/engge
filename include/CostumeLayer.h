@@ -7,11 +7,11 @@ namespace ng
 {
 class Actor;
 
-class Layer
+class CostumeLayer
 {
 public:
-  Layer();
-  ~Layer();
+  CostumeLayer();
+  ~CostumeLayer();
 
   std::vector<sf::IntRect> &getFrames() { return _frames; }
   std::vector<sf::IntRect> &getSourceFrames() { return _sourceFrames; }

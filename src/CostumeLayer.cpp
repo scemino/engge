@@ -1,18 +1,18 @@
-#include "Layer.h"
+#include "CostumeLayer.h"
 #include "Actor.h"
 
 namespace ng
 {
-Layer::Layer()
+CostumeLayer::CostumeLayer()
     : _index(0),
      _isVisible(true),
      _pActor(nullptr)
 {
 }
 
-Layer::~Layer() = default;
+CostumeLayer::~CostumeLayer() = default;
 
-bool Layer::update(const sf::Time &elapsed)
+bool CostumeLayer::update(const sf::Time &elapsed)
 {
     _time += elapsed;
     if (_time.asSeconds() > (1.f / _fps))
@@ -29,7 +29,7 @@ bool Layer::update(const sf::Time &elapsed)
     return false;
 }
 
-void Layer::updateTrigger()
+void CostumeLayer::updateTrigger()
 {
     if (_triggers.empty())
         return;

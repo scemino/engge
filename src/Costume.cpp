@@ -38,7 +38,7 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
     }
     if (_pCurrentAnimation == nullptr)
         return;
-    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](Layer *pLayer) {
+    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](CostumeLayer *pLayer) {
         return pLayer->getName() == name;
     });
     if (it != _pCurrentAnimation->getLayers().end())
@@ -110,7 +110,7 @@ void Costume::setAnimation(const std::string &animName)
         _pCurrentAnimation = std::make_unique<CostumeAnimation>(name, _texture);
         for (auto jLayer : j["layers"])
         {
-            auto layer = new Layer();
+            auto layer = new CostumeLayer();
             auto fps = jLayer["fps"].is_null() ? 10 : jLayer["fps"].get<int>();
             layer->setFps(fps);
             auto layerName = jLayer["name"].get<std::string>();
@@ -230,7 +230,7 @@ void Costume::setHeadIndex(int index)
         s << _headAnimName << (i + 1);
         // std::cout << "setLayerVisible(" << s.str() << "," << (_headIndex == i) << ")" << std::endl;
         auto layerName = s.str();
-        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](Layer *pLayer) {
+        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](CostumeLayer *pLayer) {
             return pLayer->getName() == layerName;
         });
         if (it != _pCurrentAnimation->getLayers().end())

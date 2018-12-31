@@ -1,7 +1,7 @@
 #pragma once
 #include <sstream>
 #include "SFML/Graphics.hpp"
-#include "Layer.h"
+#include "CostumeLayer.h"
 
 namespace ng
 {
@@ -18,7 +18,7 @@ public:
   ~CostumeAnimation();
 
   const std::string &getName() const { return _name; }
-  std::vector<Layer *> &getLayers() { return _layers; }
+  std::vector<CostumeLayer *> &getLayers() { return _layers; }
 
   void play(bool loop = false);
   void pause() { _state = AnimationState::Pause; }
@@ -32,7 +32,7 @@ private:
 private:
   sf::Texture &_texture;
   std::string _name;
-  std::vector<Layer *> _layers;
+  std::vector<CostumeLayer *> _layers;
   AnimationState _state;
   bool _loop;
 };
