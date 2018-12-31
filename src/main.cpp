@@ -22,8 +22,8 @@ int main(int argc, char **argv)
     auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
     scriptEngine->executeScript("test.nut");
 
-    game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine.get(), game->getWindow()));
-    game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine.get(), game->getWindow()));
+    game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine, game->getWindow()));
+    game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine, game->getWindow()));
     game->run();
 
     return 0;

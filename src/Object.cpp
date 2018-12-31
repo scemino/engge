@@ -55,7 +55,7 @@ int Object::getStateAnimIndex()
         return -1;
     if (_pAnim->getName().find("state") == std::string::npos)
         return -1;
-    return std::strtol(_pAnim->getName().c_str() + 5, nullptr, 10);
+    return static_cast<int>(std::strtol(_pAnim->getName().c_str() + 5, nullptr, 10));
 }
 
 void Object::setAnimation(const std::string &name)

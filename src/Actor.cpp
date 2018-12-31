@@ -7,7 +7,7 @@
 namespace ng
 {
 Actor::WalkingState::WalkingState(Actor &actor)
-    : _actor(actor), _isWalking(false)
+    : _actor(actor), _isWalking(false), _facing(Facing::FACE_FRONT)
 {
 }
 
@@ -124,7 +124,7 @@ void Actor::TalkingState::load(int id)
     _lip.load(path);
 
     _sayText = _actor._engine.getText(id);
-    std::regex re("\\{([^\\}]*)\\}");
+    std::regex re(R"(\{([^\}]*)\})");
     std::smatch matches;
     if (std::regex_search(_sayText, matches, re))
     {

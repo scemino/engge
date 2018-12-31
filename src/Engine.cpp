@@ -48,7 +48,8 @@ Engine::Engine(const EngineSettings &settings)
       _dialogManager(*this),
       _soundManager(settings),
       _useFlag(UseFlag::None),
-      _pUseObject(nullptr)
+      _pUseObject(nullptr),
+      _cursorDirection(CursorDirection::None)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -176,8 +177,7 @@ void Engine::update(const sf::Time &elapsed)
         clampCamera();
     }
 
-    sf::Mouse m;
-    _mousePos = _pWindow->mapPixelToCoords(m.getPosition(*_pWindow));
+    _mousePos = _pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pWindow));
     if (_pRoom)
     {
         _cursorDirection = CursorDirection::None;
@@ -225,7 +225,7 @@ void Engine::update(const sf::Time &elapsed)
 
     _dialogManager.update(elapsed);
 
-    if (!m.isButtonPressed(sf::Mouse::Button::Left))
+    if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
         return;
 
     if (_dialogManager.isActive())
@@ -292,13 +292,17 @@ void Engine::draw(sf::RenderWindow &window) const
         drawActorIcons(window);
     }
 
-    // draw fade
+    drawFade(window);
+    drawCursor(window);
+    drawCursorText(window);
+}
+
+void Engine::drawFade(sf::RenderWindow &window) const
+{
     sf::RectangleShape fadeShape;
     fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
     fadeShape.setFillColor(_fadeColor);
     window.draw(fadeShape);
-
-    drawCursor(window);
 }
 
 void Engine::drawCursor(sf::RenderWindow &window) const
@@ -312,30 +316,37 @@ void Engine::drawCursor(sf::RenderWindow &window) const
     shape.setOrigin(cursorSize / 2.f);
     shape.setSize(cursorSize);
     shape.setTexture(&_gameSheet.getTexture());
-    sf::IntRect cursorRect;
+
+    shape.setTextureRect(getCursorRect());
+    window.draw(shape);
+}
+
+sf::IntRect Engine::getCursorRect() const
+{
     const auto &size = _pRoom->getRoomSize();
     if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left") : _gameSheet.getRect("cursor_left");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left") : _gameSheet.getRect("cursor_left");
     }
-    else if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - Screen::Width)
+    if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - Screen::Width)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right") : _gameSheet.getRect("cursor_right");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right") : _gameSheet.getRect("cursor_right");
     }
-    else if (_cursorDirection & CursorDirection::Up && _cameraPos.y > 0)
+    if (_cursorDirection & CursorDirection::Up && _cameraPos.y > 0)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back") : _gameSheet.getRect("cursor_back");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back") : _gameSheet.getRect("cursor_back");
     }
-    else if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - Screen::Height)
+    if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - Screen::Height)
     {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front") : _gameSheet.getRect("cursor_front");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front") : _gameSheet.getRect("cursor_front");
     }
-    else
-    {
-        cursorRect = _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
-    }
-    shape.setTextureRect(cursorRect);
-    window.draw(shape);
+    return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
+}
+
+void Engine::drawCursorText(sf::RenderWindow &window) const
+{
+    if (!_inputActive)
+        return;
 
     auto scale = Screen::HalfHeight / 512.f;
     if (_pCurrentObject)
@@ -347,7 +358,7 @@ void Engine::drawCursor(sf::RenderWindow &window) const
         std::string s;
         if (_pVerb && !_pVerb->text.empty())
         {
-            auto id = std::atoi(_pVerb->text.substr(1).data());
+            auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
             s.append(getText(id));
         }
         else
@@ -386,7 +397,7 @@ void Engine::drawCursor(sf::RenderWindow &window) const
         std::string s;
         if (_pVerb)
         {
-            auto id = std::atoi(_pVerb->text.substr(1).data());
+            auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
             s.append(getText(id));
         }
         s.append(" ").append(_pCurrentInventoryObject->getName());
@@ -555,9 +566,9 @@ void Engine::drawInventory(sf::RenderWindow &window) const
     {
         auto x = 0;
         auto &objects = _pCurrentActor->getObjects();
-        for (auto it = objects.begin(); it != objects.end(); it++)
+        for (const auto &object : objects)
         {
-            auto rect = _inventoryItems.getRect((*it)->getIcon());
+            auto rect = _inventoryItems.getRect(object->getIcon());
             sf::RectangleShape inventoryShape;
             inventoryShape.setPosition(sf::Vector2f(x + scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
             inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
@@ -725,9 +736,8 @@ void Engine::drawActorIcons(sf::RenderWindow &window) const
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 {
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    for (auto &selectableActor : _actorsIconSlots)
     {
-        auto &selectableActor = _actorsIconSlots[i];
         if (selectableActor.pActor == pActor)
         {
             selectableActor.selectable = selectable;

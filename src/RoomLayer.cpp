@@ -9,7 +9,7 @@ RoomLayer::RoomLayer()
 
 void RoomLayer::addEntity(Entity &entity)
 {
-    _entities.push_back(entity);
+    _entities.emplace_back(entity);
 }
 
 void RoomLayer::removeEntity(Entity &entity)

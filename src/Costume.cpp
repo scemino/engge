@@ -140,17 +140,17 @@ void Costume::setAnimation(const std::string &animName)
             }
             if (!jLayer["triggers"].is_null())
             {
-                for (const auto &jtrigger : jLayer["triggers"])
+                for (const auto &jTrigger : jLayer["triggers"])
                 {
-                    if (!jtrigger.is_null())
+                    if (!jTrigger.is_null())
                     {
-                        auto name = jtrigger.get<std::string>();
-                        auto trigger = std::atoi(name.data() + 1);
-                        layer->getTriggers().push_back(trigger);
+                        auto triggerName = jTrigger.get<std::string>();
+                        auto trigger = std::strtol(triggerName.data() + 1, nullptr, 10);
+                        layer->getTriggers().emplace_back(trigger);
                     }
                     else
                     {
-                        layer->getTriggers().push_back(std::nullopt);
+                        layer->getTriggers().emplace_back(std::nullopt);
                     }
                 }
             }

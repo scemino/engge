@@ -33,7 +33,7 @@ void SoundId::play(bool loop)
 {
     _soundDefinition.load();
     _sound.setBuffer(_soundDefinition._buffer);
-    _sound.setLoop(false);
+    _sound.setLoop(loop);
     _sound.play();
 }
 

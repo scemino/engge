@@ -4,6 +4,7 @@
 namespace ng
 {
 TextObject::TextObject()
+: _alignment(TextAlignment::Left)
 {
 }
 

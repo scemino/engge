@@ -1,5 +1,5 @@
 #pragma once
-#include <squirrel3/squirrel.h>
+#include "squirrel3/squirrel.h"
 
 namespace ng
 {

@@ -7,7 +7,7 @@ namespace ng
 {
 void Lip::load(const std::string &path)
 {
-    std::regex re("^(\\d*\\.?\\d*)\\s+(\\w)$");
+    std::regex re(R"(^(\d*\.?\d*)\s+(\w)$)");
     std::ifstream infile(path);
     if(!infile.good()) return;
     std::string line;
