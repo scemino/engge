@@ -14,6 +14,8 @@
 #include "Preferences.h"
 #include "SoundManager.h"
 #include "FntFont.h"
+#include "ActorIconSlot.h"
+#include "ActorIcons.h"
 
 namespace ng
 {
@@ -42,18 +44,6 @@ enum class CursorDirection
   Up = 1 << 2,
   Down = 1 << 3,
   Hotspot = 1 << 4
-};
-
-struct ActorIconSlot
-{
-  bool selectable;
-  Actor *pActor;
-
-  ActorIconSlot()
-  {
-    selectable = false;
-    pActor = nullptr;
-  }
 };
 
 enum UseFlag
@@ -191,5 +181,6 @@ private:
   CursorDirection _cursorDirection;
   std::array<ActorIconSlot, 6> _actorsIconSlots;
   UseFlag _useFlag;
+  ActorIcons _actorIcons;
 };
 } // namespace ng

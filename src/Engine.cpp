@@ -49,7 +49,8 @@ Engine::Engine(const EngineSettings &settings)
       _soundManager(settings),
       _useFlag(UseFlag::None),
       _pUseObject(nullptr),
-      _cursorDirection(CursorDirection::None)
+      _cursorDirection(CursorDirection::None),
+      _actorIcons(*this, _actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -178,6 +179,9 @@ void Engine::update(const sf::Time &elapsed)
     }
 
     _mousePos = _pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pWindow));
+    _actorIcons.setMousePosition(_mousePos);
+    _actorIcons.update(elapsed);
+
     if (_pRoom)
     {
         _cursorDirection = CursorDirection::None;
@@ -231,22 +235,8 @@ void Engine::update(const sf::Time &elapsed)
     if (_dialogManager.isActive())
         return;
 
-    sf::FloatRect iconRect(Screen::Width - 16, 15, 16, 16);
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
-    {
-        const auto &selectableActor = _actorsIconSlots[i];
-        if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
-            continue;
-
-        if (iconRect.contains(_mousePos))
-        {
-            _pCurrentActor = selectableActor.pActor;
-            setCameraAt(selectableActor.pActor->getUsePosition());
-            follow(selectableActor.pActor);
-            return;
-        }
-        iconRect.top += 15;
-    }
+    if (_actorIcons.isMouseOver())
+        return;
 
     auto verbId = -1;
     for (auto i = 0; i < 9; i++)
@@ -306,7 +296,7 @@ void Engine::draw(sf::RenderWindow &window) const
     {
         drawVerbs(window);
         drawInventory(window);
-        drawActorIcons(window);
+        window.draw(_actorIcons);
     }
 
     drawFade(window);
@@ -629,89 +619,6 @@ void Engine::addSelectableActor(int index, Actor *pActor)
 {
     _actorsIconSlots[index - 1].selectable = true;
     _actorsIconSlots[index - 1].pActor = pActor;
-}
-
-void Engine::drawActorIcon(sf::RenderWindow &window, const std::string &icon, int actorSlot, const sf::Vector2f &offset, sf::Uint8 alpha) const
-{
-    const auto &colors = _verbUiColors[actorSlot];
-    drawActorIcon(window, icon, colors.inventoryBackground, colors.inventoryFrame, offset, alpha);
-}
-
-void Engine::drawActorIcon(sf::RenderWindow &window, const std::string &icon, sf::Color backColor, sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const
-{
-    sf::RenderStates states;
-    const auto &texture = _gameSheet.getTexture();
-    auto backRect = _gameSheet.getRect("icon_background");
-    auto backSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_background");
-    auto backSourceSize = _gameSheet.getSourceSize("icon_background");
-
-    auto frameRect = _gameSheet.getRect("icon_frame");
-    auto frameSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_frame");
-    auto frameSourceSize = _gameSheet.getSourceSize("icon_frame");
-
-    sf::Sprite s;
-    sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
-    s.scale(0.5f, 0.5f);
-    sf::Color c(backColor);
-    c.a = alpha;
-    s.setColor(c);
-    s.setPosition(offset);
-    s.setOrigin(-pos);
-    s.setTextureRect(backRect);
-    s.setTexture(texture);
-    window.draw(s, states);
-
-    auto rect = _gameSheet.getRect(icon);
-    auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
-    auto sourceSize = _gameSheet.getSourceSize(icon);
-    pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
-    s.setOrigin(-pos);
-    c = sf::Color::White;
-    c.a = alpha;
-    s.setColor(c);
-    s.setTextureRect(rect);
-    window.draw(s, states);
-
-    pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
-    s.setOrigin(-pos);
-    c = frameColor;
-    c.a = alpha;
-    s.setColor(c);
-    s.setTextureRect(frameRect);
-    window.draw(s, states);
-}
-
-void Engine::drawActorIcons(sf::RenderWindow &window) const
-{
-    if (!_pCurrentActor)
-        return;
-
-    sf::Vector2f offset(Screen::Width - 8, 8);
-
-    if (_pCurrentActor)
-    {
-        sf::FloatRect iconRect(Screen::Width - 16, 0, 16, 16);
-        sf::Uint8 alpha = iconRect.contains(_mousePos) ? 0xFF : 0x20;
-
-        auto i = getCurrentActorIndex();
-        const auto &icon = _actorsIconSlots[i].pActor->getIcon();
-
-        drawActorIcon(window, icon, i, offset, alpha);
-        offset.y += 15;
-    }
-
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
-    {
-        const auto &selectableActor = _actorsIconSlots[i];
-        if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
-            continue;
-
-        const auto &icon = selectableActor.pActor->getIcon();
-        drawActorIcon(window, icon, i, offset, 0xFF);
-        offset.y += 15;
-    }
-
-    drawActorIcon(window, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128), offset, 0xFF);
 }
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
