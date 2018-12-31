@@ -231,6 +231,23 @@ void Engine::update(const sf::Time &elapsed)
     if (_dialogManager.isActive())
         return;
 
+    sf::FloatRect iconRect(Screen::Width - 16, 15, 16, 16);
+    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    {
+        const auto &selectableActor = _actorsIconSlots[i];
+        if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
+            continue;
+
+        if (iconRect.contains(_mousePos))
+        {
+            _pCurrentActor = selectableActor.pActor;
+            setCameraAt(selectableActor.pActor->getUsePosition());
+            follow(selectableActor.pActor);
+            return;
+        }
+        iconRect.top += 15;
+    }
+
     auto verbId = -1;
     for (auto i = 0; i < 9; i++)
     {
@@ -673,10 +690,13 @@ void Engine::drawActorIcons(sf::RenderWindow &window) const
 
     if (_pCurrentActor)
     {
+        sf::FloatRect iconRect(Screen::Width - 16, 0, 16, 16);
+        sf::Uint8 alpha = iconRect.contains(_mousePos) ? 0xFF : 0x20;
+
         auto i = getCurrentActorIndex();
         const auto &icon = _actorsIconSlots[i].pActor->getIcon();
 
-        drawActorIcon(window, icon, i, offset, 0x20);
+        drawActorIcon(window, icon, i, offset, alpha);
         offset.y += 15;
     }
 
@@ -691,7 +711,7 @@ void Engine::drawActorIcons(sf::RenderWindow &window) const
         offset.y += 15;
     }
 
-    drawActorIcon(window, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128),offset,  0xFF);
+    drawActorIcon(window, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128), offset, 0xFF);
 }
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
