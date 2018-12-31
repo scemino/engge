@@ -614,64 +614,70 @@ void Engine::addSelectableActor(int index, Actor *pActor)
     _actorsIconSlots[index - 1].pActor = pActor;
 }
 
+void Engine::drawActorIcon(sf::RenderWindow &window, const std::string &icon, int actorSlot, const sf::Vector2f &offset, sf::Uint8 alpha) const
+{
+    const auto &colors = _verbUiColors[actorSlot];
+    drawActorIcon(window, icon, colors.inventoryBackground, colors.inventoryFrame, offset, alpha);
+}
+
+void Engine::drawActorIcon(sf::RenderWindow &window, const std::string &icon, sf::Color backColor, sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const
+{
+    sf::RenderStates states;
+    const auto &texture = _gameSheet.getTexture();
+    auto backRect = _gameSheet.getRect("icon_background");
+    auto backSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_background");
+    auto backSourceSize = _gameSheet.getSourceSize("icon_background");
+
+    auto frameRect = _gameSheet.getRect("icon_frame");
+    auto frameSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_frame");
+    auto frameSourceSize = _gameSheet.getSourceSize("icon_frame");
+
+    sf::Sprite s;
+    sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
+    s.scale(0.5f, 0.5f);
+    sf::Color c(backColor);
+    c.a = alpha;
+    s.setColor(c);
+    s.setPosition(offset);
+    s.setOrigin(-pos);
+    s.setTextureRect(backRect);
+    s.setTexture(texture);
+    window.draw(s, states);
+
+    auto rect = _gameSheet.getRect(icon);
+    auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
+    auto sourceSize = _gameSheet.getSourceSize(icon);
+    pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
+    s.setOrigin(-pos);
+    c = sf::Color::White;
+    c.a = alpha;
+    s.setColor(c);
+    s.setTextureRect(rect);
+    window.draw(s, states);
+
+    pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
+    s.setOrigin(-pos);
+    c = frameColor;
+    c.a = alpha;
+    s.setColor(c);
+    s.setTextureRect(frameRect);
+    window.draw(s, states);
+}
+
 void Engine::drawActorIcons(sf::RenderWindow &window) const
 {
     if (!_pCurrentActor)
         return;
 
-    const auto &texture = _gameSheet.getTexture();
-    auto offsetX = Screen::Width - 4 - 4;
-    auto offsetY = 12;
-    auto backRect = _gameSheet.getRect("icon_background");
-    auto backSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_background");
-    auto backSourceSize = _gameSheet.getSourceSize("icon_background");
-    auto frameRect = _gameSheet.getRect("icon_frame");
-    auto frameSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_frame");
-    auto frameSourceSize = _gameSheet.getSourceSize("icon_frame");
-    auto gearRect = _gameSheet.getRect("icon_gear");
-    auto gearSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_gear");
-    auto gearSourceSize = _gameSheet.getSourceSize("icon_gear");
+    sf::Vector2f offset(Screen::Width - 8, 8);
 
-    sf::RenderStates states;
-    states.texture = &texture;
     if (_pCurrentActor)
     {
         auto i = getCurrentActorIndex();
-        const auto &selectableActor = _actorsIconSlots[i];
+        const auto &icon = _actorsIconSlots[i].pActor->getIcon();
 
-        sf::Sprite s;
-        const auto &colors = _verbUiColors[i];
-        sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
-        s.scale(0.5f, 0.5f);
-        sf::Color c(colors.inventoryBackground);
-        c.a = 0x20;
-        s.setColor(c);
-        s.setPosition(offsetX, offsetY);
-        s.setOrigin(-pos);
-        s.setTextureRect(backRect);
-        s.setTexture(texture);
-        window.draw(s, states);
-
-        const auto &icon = selectableActor.pActor->getIcon();
-        auto rect = _gameSheet.getRect(icon);
-        auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
-        auto sourceSize = _gameSheet.getSourceSize(icon);
-        pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
-        s.setOrigin(-pos);
-        c = (sf::Color::White);
-        c.a = 0x20;
-        s.setColor(c);
-        s.setTextureRect(rect);
-        window.draw(s, states);
-
-        pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
-        s.setOrigin(-pos);
-        c = (colors.inventoryFrame);
-        c.a = 0x20;
-        s.setColor(c);
-        s.setTextureRect(frameRect);
-        window.draw(s, states);
-        offsetY += 13 + 2;
+        drawActorIcon(window, icon, i, offset, 0x20);
+        offset.y += 15;
     }
 
     for (auto i = 0; i < _actorsIconSlots.size(); i++)
@@ -680,58 +686,12 @@ void Engine::drawActorIcons(sf::RenderWindow &window) const
         if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
             continue;
 
-        sf::Sprite s;
-        const auto &colors = _verbUiColors[i];
-        sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
-        s.scale(0.5f, 0.5f);
-        s.setColor(colors.inventoryBackground);
-        s.setPosition(offsetX, offsetY);
-        s.setOrigin(-pos);
-        s.setTextureRect(backRect);
-        s.setTexture(texture);
-        window.draw(s, states);
-
         const auto &icon = selectableActor.pActor->getIcon();
-        auto rect = _gameSheet.getRect(icon);
-        auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
-        auto sourceSize = _gameSheet.getSourceSize(icon);
-        pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
-        s.setOrigin(-pos);
-        s.setColor(sf::Color::White);
-        s.setTextureRect(rect);
-        window.draw(s, states);
-
-        pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
-        s.setOrigin(-pos);
-        s.setColor(colors.inventoryFrame);
-        s.setTextureRect(frameRect);
-        window.draw(s, states);
-        offsetY += 13 + 2;
+        drawActorIcon(window, icon, i, offset, 0xFF);
+        offset.y += 15;
     }
 
-    sf::Sprite s;
-    sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
-    s.scale(0.5f, 0.5f);
-    s.setColor(sf::Color::Black);
-    s.setPosition(offsetX, offsetY);
-    s.setOrigin(-pos);
-    s.setTextureRect(backRect);
-    s.setTexture(texture);
-    window.draw(s, states);
-
-    pos = sf::Vector2f(-gearSourceSize.x / 2.f + gearSpriteSourceSize.left, -gearSourceSize.y / 2.f + gearSpriteSourceSize.top);
-    s.setPosition(offsetX, offsetY);
-    s.setOrigin(-pos);
-    s.setColor(sf::Color::White);
-    s.setTextureRect(gearRect);
-    window.draw(s, states);
-
-    states.blendMode = sf::BlendAlpha;
-    pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
-    s.setOrigin(-pos);
-    s.setColor(sf::Color(128, 128, 128));
-    s.setTextureRect(frameRect);
-    window.draw(s, states);
+    drawActorIcon(window, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128),offset,  0xFF);
 }
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)

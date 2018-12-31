@@ -146,6 +146,8 @@ private:
   void drawCursor(sf::RenderWindow &window) const;
   void drawCursorText(sf::RenderWindow &window) const;
   void drawActorIcons(sf::RenderWindow &window) const;
+  void drawActorIcon(sf::RenderWindow &window, const std::string& icon, int actorSlot, const sf::Vector2f& offset, sf::Uint8 alpha) const;
+  void drawActorIcon(sf::RenderWindow &window, const std::string &icon, sf::Color backColor, sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const;
   void drawFade(sf::RenderWindow &window) const;
   void clampCamera();
   int getCurrentActorIndex() const;
