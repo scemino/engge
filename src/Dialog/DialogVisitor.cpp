@@ -96,8 +96,12 @@ void DialogVisitor::visit(const Ast::Say &node)
             break;
         }
     }
-    auto say = std::make_unique<_SayFunction>(*pActor, getId(node.text));
-    _dialogManager.addFunction(std::move(say));
+    auto id = getId(node.text);
+    if (id > 0)
+    {
+        auto say = std::make_unique<_SayFunction>(*pActor, id);
+        _dialogManager.addFunction(std::move(say));
+    }
 }
 
 void DialogVisitor::visit(const Ast::Choice &node)
@@ -150,6 +154,9 @@ int DialogVisitor::getId(const std::string &text)
         auto id = std::strtol(s.c_str(), nullptr, 10);
         return id;
     }
-    throw std::logic_error("Expecting a talk id");
+    // TODO:
+    //throw std::logic_error("Expecting a talk id");
+    std::cerr << "Expecting a talk id instead of: " << s << std::endl;
+    return -1;
 }
 } // namespace ng

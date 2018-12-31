@@ -8,7 +8,7 @@ namespace ng
 {
 class _BreakFunction : public Function
 {
-  private:
+  protected:
     Engine &_engine;
     HSQUIRRELVM _vm;
 
@@ -103,7 +103,7 @@ class _BreakWhileSoundFunction : public _BreakFunction
     SoundId &_soundId;
 
   public:
-    explicit _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, SoundId &soundId)
+    _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, SoundId &soundId)
         : _BreakFunction(engine, vm), _soundId(soundId)
     {
     }
@@ -111,6 +111,20 @@ class _BreakWhileSoundFunction : public _BreakFunction
     bool isElapsed() override
     {
         return !_soundId.isPlaying();
+    }
+};
+
+class _BreakWhileDialogFunction: public _BreakFunction
+{
+  public:
+    _BreakWhileDialogFunction(Engine &engine, HSQUIRRELVM vm)
+        : _BreakFunction(engine, vm)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        return !_engine.getDialogManager().isActive();
     }
 };
 
@@ -154,6 +168,7 @@ class _SystemPack : public Pack
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(breakhere, "breakhere");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
+        engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
         engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
@@ -201,6 +216,13 @@ class _SystemPack : public Pack
         }
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, v, *pSound));
+        return result;
+    }
+
+    static SQInteger breakwhiledialog(HSQUIRRELVM v)
+    {
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileDialogFunction>(*g_pEngine, v));
         return result;
     }
 

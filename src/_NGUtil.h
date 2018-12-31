@@ -94,4 +94,16 @@ static void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &ve
         vertices.push_back(sf::Vector2i(x, roomHeight - y));
     } while (text.length() - 1 != endPos);
 }
+
+static sf::Color _toColor(SQInteger color)
+{
+    sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF);
+    return c;
+}
+
+static sf::Color _fromRgb(SQInteger color)
+{
+    sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+    return c;
+}
 } // namespace ng

@@ -34,7 +34,10 @@ void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
 void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
 {
     int width = 0;
-    _fullscreen = jWimpy["fullscreen"].get<int>();
+    if (!jWimpy["fullscreen"].is_null())
+    {
+        _fullscreen = jWimpy["fullscreen"].get<int>();
+    }
     if (jWimpy["background"].is_array())
     {
         auto layer = std::make_unique<RoomLayer>();
@@ -300,7 +303,7 @@ void Room::load(const char *name)
     nlohmann::json jWimpy;
     {
         std::ifstream i(wimpyFilename);
-        if(!i.good())
+        if (!i.good())
             return;
         i >> jWimpy;
     }

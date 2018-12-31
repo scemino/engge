@@ -16,6 +16,7 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
         engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
+        engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
         engine.registerGlobalFunction(translate, "translate");
         engine.registerGlobalFunction(cameraAt, "cameraAt");
         engine.registerGlobalFunction(cameraFollow, "cameraFollow");
@@ -182,6 +183,46 @@ class _GeneralPack : public Pack
         if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
         {
             return sq_throwerror(v, _SC("function enter call failed"));
+        }
+        return 0;
+    }
+
+    static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
+    {
+        auto obj = ScriptEngine::getObject(v, 2);
+
+        // set camera in room
+        auto pRoom = obj->getRoom();
+        if (&g_pEngine->getRoom() != pRoom)
+        {
+            g_pEngine->setRoom(pRoom);
+            auto actor = g_pEngine->getCurrentActor();
+            actor->setRoom(pRoom);
+            actor->setPosition(obj->getUsePosition());
+            g_pEngine->setCameraAt(obj->getUsePosition());
+
+            // call enter room function
+            sq_pushobject(v, *pRoom->getTable());
+            sq_pushstring(v, _SC("enter"), -1);
+            if (SQ_FAILED(sq_get(v, -2)))
+            {
+                return sq_throwerror(v, _SC("can't find enter function"));
+            }
+
+            SQUnsignedInteger nparams, nfreevars;
+            sq_getclosureinfo(v, -1, &nparams, &nfreevars);
+            std::cout << "enter function found with " << nparams << " parameters" << std::endl;
+
+            sq_remove(v, -2);
+            sq_pushobject(v, *pRoom->getTable());
+            if (nparams == 2)
+            {
+                sq_pushobject(v, *obj->getTable()); // the door
+            }
+            if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
+            {
+                return sq_throwerror(v, _SC("function enter call failed"));
+            }
         }
         return 0;
     }

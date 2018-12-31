@@ -30,7 +30,7 @@ void DialogManager::start(const std::string &name)
     YackParser parser(reader);
     _pCompilationUnit = std::move(parser.parse());
 
-    selectLabel("main");
+    selectLabel("start");
 }
 
 void DialogManager::selectLabel(const std::string &name)
@@ -48,6 +48,7 @@ void DialogManager::selectLabel(const std::string &name)
     {
         _pLabel->accept(_dialogVisitor);
     }
+    _isActive = _functions.size() > 0;
     for (auto &line : _dialog)
     {
         if (line.id != 0)
@@ -83,6 +84,16 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
 void DialogManager::update(const sf::Time &elapsed)
 {
+    _isActive = _functions.size() > 0;
+    for (auto &line : _dialog)
+    {
+        if (line.id != 0)
+        {
+            _isActive = true;
+            break;
+        }
+    }
+    
     if (!_functions.empty())
     {
         if (_functions[0]->isElapsed())

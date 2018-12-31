@@ -111,7 +111,10 @@ void Actor::TalkingState::load(int id)
     std::string name = str_toupper(_actor.getName()).append("_").append(std::to_string(id));
     auto soundDefinition = _actor._engine.getSoundManager().defineSound(name + ".ogg");
     if (!soundDefinition)
+    {
+        std::cerr << "File " << name << ".ogg not found" << std::endl;
         return;
+    }
     _sound = _actor._engine.getSoundManager().playSound(*soundDefinition);
     _sound->setVolume(_actor._volume);
 

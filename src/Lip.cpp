@@ -9,6 +9,7 @@ void Lip::load(const std::string &path)
 {
     std::regex re("^(\\d*\\.?\\d*)\\s+(\\w)$");
     std::ifstream infile(path);
+    if(!infile.good()) return;
     std::string line;
     while (std::getline(infile, line))
     {

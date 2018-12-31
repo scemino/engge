@@ -21,7 +21,7 @@ bool Layer::update(const sf::Time &elapsed)
         _index = _index + 1;
         if (_index == _frames.size())
         {
-            _index = 0;
+            _index--;
             return true;
         }
         updateTrigger();

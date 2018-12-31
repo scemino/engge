@@ -32,7 +32,7 @@ bool operator&(CursorDirection lhs, CursorDirection rhs)
 Engine::Engine(const EngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
-      _fadeAlpha(255),
+      _fadeColor(0, 0, 0, 255),
       _pWindow(nullptr),
       _pRoom(nullptr),
       _pCurrentActor(nullptr),
@@ -289,14 +289,13 @@ void Engine::draw(sf::RenderWindow &window) const
     {
         drawVerbs(window);
         drawInventory(window);
+        drawActorIcons(window);
     }
-
-    drawActorIcons(window);
 
     // draw fade
     sf::RectangleShape fadeShape;
     fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
-    fadeShape.setFillColor(sf::Color(0, 0, 0, _fadeAlpha));
+    fadeShape.setFillColor(_fadeColor);
     window.draw(fadeShape);
 
     drawCursor(window);

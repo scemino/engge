@@ -82,8 +82,10 @@ public:
   Room &getRoom() { return *_pRoom; }
   void setRoom(Room *room) { _pRoom = room; }
   std::string getText(int id) const { return _textDb.getText(id); }
-  void setFadeAlpha(float fade) { _fadeAlpha = static_cast<uint8_t>(fade * 255); }
-  float getFadeAlpha() const { return _fadeAlpha / 255.f; }
+  void setFadeAlpha(float fade) { _fadeColor.a = static_cast<uint8_t>(fade * 255); }
+  float getFadeAlpha() const { return _fadeColor.a / 255.f; }
+  void setFadeColor(sf::Color color) { _fadeColor = color; }
+  sf::Color getFadeColor() const { return _fadeColor; }
 
   void addActor(std::unique_ptr<Actor> actor) { _actors.push_back(std::move(actor)); }
   void addRoom(std::unique_ptr<Room> room) { _rooms.push_back(std::move(room)); }
@@ -126,6 +128,7 @@ public:
 
   Preferences &getPreferences() { return _preferences; }
   SoundManager &getSoundManager() { return _soundManager; }
+  DialogManager &getDialogManager() { return _dialogManager; }
 
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
@@ -154,7 +157,7 @@ private:
   std::vector<std::unique_ptr<Room>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
-  sf::Uint8 _fadeAlpha;
+  sf::Color _fadeColor;
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;
   TextDatabase _textDb;

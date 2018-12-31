@@ -448,7 +448,7 @@ class _ActorPack : public Pack
             return 0;
 
         SQBool selectable;
-        sq_getbool(v, numArgs + 1, &selectable);
+        sq_tobool(v, numArgs + 1, &selectable);
         g_pEngine->actorSlotSelectable(actor, selectable == SQTrue);
         return 0;
     }
@@ -844,12 +844,6 @@ class _ActorPack : public Pack
         return 1;
     }
 
-    static sf::Color fromRgbInt(SQInteger color)
-    {
-        sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
-        return c;
-    }
-
     static SQInteger readFieldInt(HSQUIRRELVM v, const SQChar *name, SQInteger &field)
     {
         sq_pushstring(v, name, -1);
@@ -950,15 +944,15 @@ class _ActorPack : public Pack
         sq_pop(v, 2);
 
         VerbUiColors colors;
-        colors.sentence = fromRgbInt(sentence);
-        colors.verbNormal = fromRgbInt(verbNormal);
-        colors.verbNormalTint = fromRgbInt(verbNormalTint);
-        colors.verbHighlight = fromRgbInt(verbHighlight);
-        colors.verbHighlightTint = fromRgbInt(verbHighlightTint);
-        colors.dialogNormal = fromRgbInt(dialogNormal);
-        colors.dialogHighlight = fromRgbInt(dialogHighlight);
-        colors.inventoryFrame = fromRgbInt(inventoryFrame);
-        colors.inventoryBackground = fromRgbInt(inventoryBackground);
+        colors.sentence = _fromRgb(sentence);
+        colors.verbNormal = _fromRgb(verbNormal);
+        colors.verbNormalTint = _fromRgb(verbNormalTint);
+        colors.verbHighlight = _fromRgb(verbHighlight);
+        colors.verbHighlightTint = _fromRgb(verbHighlightTint);
+        colors.dialogNormal = _fromRgb(dialogNormal);
+        colors.dialogHighlight = _fromRgb(dialogHighlight);
+        colors.inventoryFrame = _fromRgb(inventoryFrame);
+        colors.inventoryBackground = _fromRgb(inventoryBackground);
         g_pEngine->setVerbUiColors(actorSlot - 1, colors);
         return 0;
     }

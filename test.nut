@@ -1,10 +1,10 @@
 const talkColorBoris		= 0x3ea4b5
 const talkColorWillie		= 0xc69c6d
 
-// Defines.nu
+// Defines.nut
 const HANDLED 		= 1			// This should returned from functions that override system behavior.
 const NOT_HANDLED 	= 0			// This should returned from functions that override system behavior.
-
+const animStand = "stand"
 
 // DefineSounds.nut
 soundTowerHum <- defineSound("TowerHum.wav")
@@ -43,6 +43,7 @@ soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
 soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
 soundPunchHit <- defineSound("PunchHit.wav")
 soundScrape <- defineSound("Scrape.wav")
+soundPolaroidFilmIntoCamera <-	defineSound("PolaroidFilmIntoCamera.wav")	
 
 // Boot.nut
 function objectName(obj, name) {
@@ -86,6 +87,155 @@ settings <- {
     toilet_paper_over = YES
 }
 
+// Inventory.nut
+Inventory <-
+{
+    background = "Inventory"
+
+ enter = function()
+ {
+ }
+
+ exit = function()
+ {
+ }
+
+camera =
+ {
+ icon = "polaroid_camera"
+ name = objectName(this, "@28131")
+ flags = USE_ON
+ noAgentGiveText = "@28132"
+ throwawayable = "@28133"
+ filmCounter = 0
+ verbLookAt = function()
+ {
+ if (filmCounter) {
+ sayLine("@28134")
+ } else {
+ sayLine("@28135")
+ }
+ }
+ verbUse = function(obj=null)
+ {
+ if (obj == polaroidFilm) {
+ if (obj.rawin("verbUse")) { obj.verbUse(this) } else { defaultObject.verbUse(obj,this) }
+ } else 
+ if (filmCounter) {
+ noReach()
+ sayLine("@28136")
+ } else {
+ noReach()
+ sayLine("@28132")
+ }
+ }
+ verbOpen = function()
+ {
+ if (filmCounter) {
+ sayLine("@28137")
+ } else {
+ sayLine("@28138")
+ }
+ }
+ verbClose = function()
+ {
+ sayLineAlreadyClosed(this)
+ }
+ objectPreWalk = function(verb, obj1, obj2) {
+ 
+ if (verb == VERB_USE && obj2 == Bridge.bridgeBody && filmCounter) {
+ filmCounter--
+ stopSentence(currentActor)
+ startthread(Bridge.takePhoto)
+ return HANDLED
+ }
+ return NOT_HANDLED
+ }
+ }
+
+polaroidFilm =
+ {
+ icon = "polaroid_film"
+ name = objectName(this, "@28139")
+ flags = USE_IN
+ verbLookAt = function()
+ {
+ sayLine(agent, "@28140",
+ "@28141")
+ }
+ verbUse = function(obj=null)
+ {
+ if (obj == camera) {
+ removeInventory(this)
+ popInventory(camera)
+ camera.filmCounter = 1
+ playSound(soundPolaroidFilmIntoCamera)
+ } else {
+ noReach()
+ sayLine(agent, "@28142")
+ }
+ }
+ verbOpen = function()
+ {
+ sayLine(agent, "@28143")
+ }
+ }
+
+ reyesNotebook =
+ {
+ icon = "notebook"
+ inventory_slot = 2
+ name = objectName(this, "@28110")
+ function onPickUp(actor) {
+ name = (actor == reyes) ? "@28110" : "@28111"
+ }
+ verbLookAt = function()
+ {
+ if (isReyes()) {
+ cameraInRoom(Notebook)
+ Notebook.loadNotebookFor(reyes)
+ } else 
+ if (isRay()) {
+ sayLine(ray, "@28112","@28113", "@28114")
+ } else 
+ if (isRansome()) {
+ sayLine(ransome, "@28115","@28116")
+ } else {
+ sayLine("@28117","@28118")
+ }
+ }
+ verbUse = function(obj=null)
+ {
+ verbLookAt()
+ }
+ verbOpen = function()
+ {
+ verbLookAt()			
+ }
+ verbClose = function()
+ {
+ sayLineAlreadyClosed(this)
+ }
+
+ objectPreWalk = function(verb, obj1, obj2) {
+ 
+ if (verb == VERB_GIVE) {
+ if (obj2 == reyes) {
+ return NOT_HANDLED
+ } else 
+ if (isRay()) {
+ sayLine(ray, "@28119")
+ } else {
+ sayLine(reyes, "@28120")
+ }
+ return HANDLED
+ }
+ return NOT_HANDLED
+ }
+ }
+}
+defineRoom(Inventory)
+
 // Helpers.nut
 function footstepsNormal(actor) {
  if (settings.playFootsteps) {
@@ -112,6 +262,7 @@ function footstepsWater(actor) {
 function doOpening() {
 
  cameraInRoom(TitleCards)
+ roomFade(FADE_IN, 2.0)
 
  local text = createTextObject("sayline", translate("@25545"), ALIGN_CENTER | 1000)
  objectScale(text, 0.5)
@@ -166,21 +317,21 @@ function doOpening() {
 //  startMusic(musicTempTheme, bridgeMusicPool)
 
  selectActor(ray)		
-//  enterRoomFromDoor(Bridge.startRight)
+ enterRoomFromDoor(Bridge.startRight)
  actorAt(ray, Bridge.startLeft)
  actorAt(reyes, Bridge.startRight)
  cameraAt(Bridge.bridgeBody)
-//  roomOverlayColor(0xFF000000, 0x00000000, 5.0)
+ roomOverlayColor(0xFF000000, 0x00000000, 5.0)
  startDialog("Opening")
-//  breakwhiledialog()
+ breakwhiledialog()
  if (randomOdds(0.5)) {
- pickupObject(polaroidFilm, reyes)
- pickupObject(camera, ray)
+ pickupObject(Inventory.polaroidFilm, reyes)
+ pickupObject(Inventory.camera, ray)
  selectActor(ray)
  cameraFollow(ray)
  } else {
- pickupObject(polaroidFilm, ray)
- pickupObject(camera, reyes)
+ pickupObject(Inventory.polaroidFilm, ray)
+ pickupObject(Inventory.camera, reyes)
  selectActor(reyes)
  cameraFollow(reyes)
  }
@@ -1185,13 +1336,79 @@ ray <- {
  _key = "ray"
   talkColor = 0x30AAFF
   icon = "icon_ray"
+  _pause_looking = NO
+  function pauseLooking(state) {
+ this._pause_looking = state
+ }
+ function showHideLayers() {
+ actorHideLayer(ray, "nose_glasses")
+//  ray.pauseBlinks(NO)
+ actorHideLayer(ray, "pirate_hat")
+ actorHideLayer(ray, "foil_hat")
+ actorHideLayer(ray, "splash")
+ }
 }
 createActor(ray)
 
 reyes <- {
  _key = "reyes"
+ talkColor = 0xc2b49f
  name = "@30045"
  icon = "icon_reyes"
+ _pause_looking = NO
+ notebookOpen = NO
+ _writingTID = 0
+ function pauseLooking(state) {
+ this._pause_looking = state
+ }
+function showHideLayers() {
+ actorHideLayer(reyes, "nose_glasses")
+//  reyes.pauseBlinks(NO)
+ actorHideLayer(reyes, "pirate_hat")
+ actorHideLayer(reyes, "foil_hat")
+ actorHideLayer(reyes, "splash")
+ }
+ function _startWriting() {
+ if (!actorWalking(this)) {
+ if (notebookOpen == NO) {
+ actorPlayAnimation(reyes, "start_writing", NO)
+ breaktime(0.30)
+ }
+ if (!actorWalking(this)) {
+ actorPlayAnimation(reyes, "writing", YES)
+ }
+ }
+ }
+  function _stopWriting() {
+ if (notebookOpen && !actorWalking(this)) {
+ actorPlayAnimation(reyes, "stop_writing", NO)
+ breaktime(0.30)
+ if (!actorWalking(this)) {
+ actorPlayAnimation(reyes, animStand)
+ }
+ }
+ _writingTID = 0
+ }
+
+function startWriting() {
+//  stopActorIdle(reyes)
+ if (_writingTID) stopthread(_writingTID)
+//  if (objectOwner(Inventory.reyesNotebook) != reyes) {
+//  return
+//  }
+ _writingTID = startthread(_startWriting)
+ notebookOpen = YES
+ }
+
+  function stopWriting() {
+ if (_writingTID) stopthread(_writingTID)
+//  if (objectOwner(Inventory.reyesNotebook) != reyes) {
+//  return
+//  }
+ _writingTID = startthread(_stopWriting)
+ notebookOpen = NO
+//  startReyesIdle()
+ }
 }
 createActor(reyes)
 
@@ -1205,7 +1422,20 @@ function rayCostume()
  actorTalkOffset(ray, 0,defaultTextOffset)
 //  objectLit(ray, 1)
  footstepsNormal(ray)
-//  ray.showHideLayers()
+ ray.showHideLayers()
+}
+
+function reyesCostume()
+{
+ actorCostume(reyes, "ReyesAnimation")
+ actorWalkSpeed(reyes, 30, 15)
+ actorRenderOffset(reyes, 0, 45)
+//  objectOffset(reyes, 0, 0)
+ actorTalkColors(reyes, reyes.talkColor)
+ actorTalkOffset(reyes, 0,defaultTextOffset)
+//  objectLit(reyes, 1)
+ footstepsNormal(reyes)
+ reyes.showHideLayers()
 }
 
 addSelectableActor(1, ray)
@@ -1229,6 +1459,8 @@ verbUIColors(2, {	nameid = "reyes", sentence = 0xffffff,
  verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
  verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
  inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
+reyesCostume()
+
 addSelectableActor(6, boris)
 
 function williePassedOutCostume()
@@ -1804,7 +2036,7 @@ defineRoom(TitleCards)
 // TitleCards.showPartMeeting()
 // cameraInRoom(StartScreen)
 // cameraInRoom(TitleCards)
-roomFade(FADE_IN, 2.0)
+// roomFade(FADE_IN, 2.0)
 
 function newOpeningScene() {
     // inputOn()

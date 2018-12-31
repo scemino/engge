@@ -5,6 +5,68 @@
 
 namespace ng
 {
+class ChangeColor : public TimeFunction
+{
+  public:
+    ChangeColor(Engine &engine, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
+        : TimeFunction(time),
+          _engine(engine),
+          _startColor(startColor),
+          _current(startColor),
+          _endColor(endColor),
+          _anim(anim),
+          _isLooping(isLooping),
+          _a(static_cast<sf::Int16>(endColor.a - startColor.a)),
+          _r(static_cast<sf::Int16>(endColor.r - startColor.r)),
+          _g(static_cast<sf::Int16>(endColor.g - startColor.g)),
+          _b(static_cast<sf::Int16>(endColor.b - startColor.b))
+    {
+    }
+
+    void operator()() override
+    {
+        _engine.setFadeColor(_current);
+        if (!isElapsed())
+        {
+            auto t = _clock.getElapsedTime().asSeconds() / _time.asSeconds();
+            auto f = _anim(t);
+            _current = plusColor(_startColor, f);
+        }
+    }
+
+    bool isElapsed() override
+    {
+        if (!_isLooping)
+            return TimeFunction::isElapsed();
+        return false;
+    }
+
+    void onElapsed() override
+    {
+        _engine.setFadeColor(_endColor);
+    }
+
+  private:
+    sf::Color plusColor(const sf::Color &color1, float f)
+    {
+        auto a = static_cast<sf::Uint8>(color1.a + f * _a);
+        auto r = static_cast<sf::Uint8>(color1.r + f * _r);
+        auto g = static_cast<sf::Uint8>(color1.g + f * _g);
+        auto b = static_cast<sf::Uint8>(color1.b + f * _b);
+        std::cout << "fade rgba " << std::setw(2) << std::setfill('0') << std::hex << (int)r << (int)g << (int)b << (int)a << std::endl;
+        return sf::Color(r, g, b, a);
+    }
+
+  private:
+    Engine &_engine;
+    bool _isLooping;
+    std::function<float(float)> _anim;
+    sf::Int16 _a, _r, _g, _b;
+    sf::Color _startColor;
+    sf::Color _endColor;
+    sf::Color _current;
+};
+
 class _RoomPack : public Pack
 {
   private:
@@ -17,6 +79,7 @@ class _RoomPack : public Pack
         engine.registerGlobalFunction(addTrigger, "addTrigger");
         engine.registerGlobalFunction(removeTrigger, "removeTrigger");
         engine.registerGlobalFunction(roomFade, "roomFade");
+        engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
         engine.registerGlobalFunction(defineRoom, "defineRoom");
         engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
     }
@@ -70,9 +133,8 @@ class _RoomPack : public Pack
             return sq_throwerror(v, _SC("failed to get hidden value"));
         }
         auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
-        auto it = std::find_if(walkboxes.begin(), walkboxes.end(), [&name](std::unique_ptr<Walkbox> &walkbox) 
-        {
-            return walkbox->getName() == name; 
+        auto it = std::find_if(walkboxes.begin(), walkboxes.end(), [&name](std::unique_ptr<Walkbox> &walkbox) {
+            return walkbox->getName() == name;
         });
         if (it == walkboxes.end())
         {
@@ -108,6 +170,32 @@ class _RoomPack : public Pack
             return sq_throwerror(v, _SC("failed to get time"));
         }
         _fadeTo(type == 0 ? 0.f : 1.f, sf::seconds(t));
+        return 0;
+    }
+
+    static SQInteger roomOverlayColor(HSQUIRRELVM v)
+    {
+        SQInteger startColor, endColor;
+        auto numArgs = sq_gettop(v) - 1;
+        if (SQ_FAILED(sq_getinteger(v, 2, &startColor)))
+        {
+            return sq_throwerror(v, _SC("failed to get startColor"));
+        }
+        g_pEngine->setFadeColor(_toColor(startColor));
+        if (numArgs == 3)
+        {
+            if (SQ_FAILED(sq_getinteger(v, 3, &endColor)))
+            {
+                return sq_throwerror(v, _SC("failed to get endColor"));
+            }
+            SQFloat duration;
+            if (SQ_FAILED(sq_getfloat(v, 4, &duration)))
+            {
+                return sq_throwerror(v, _SC("failed to get duration"));
+            }
+            auto fadeTo = std::make_unique<ChangeColor>(*g_pEngine, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
+            g_pEngine->addFunction(std::move(fadeTo));
+        }
         return 0;
     }
 
