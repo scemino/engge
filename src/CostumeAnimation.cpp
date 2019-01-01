@@ -12,6 +12,10 @@ CostumeAnimation::~CostumeAnimation() = default;
 void CostumeAnimation::play(bool loop)
 {
     _loop = loop;
+    for (auto &layer : _layers)
+    {
+        layer->setLoop(loop);
+    }
     _state = AnimationState::Play;
 }
 

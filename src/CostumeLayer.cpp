@@ -5,8 +5,9 @@ namespace ng
 {
 CostumeLayer::CostumeLayer()
     : _index(0),
-     _isVisible(true),
-     _pActor(nullptr)
+      _isVisible(true),
+      _pActor(nullptr),
+      _loop(false)
 {
 }
 
@@ -21,8 +22,12 @@ bool CostumeLayer::update(const sf::Time &elapsed)
         _index = _index + 1;
         if (_index == _frames.size())
         {
-            _index--;
-            return true;
+            if (!_loop)
+            {
+                _index--;
+                return true;
+            }
+            _index = 0;
         }
         updateTrigger();
     }

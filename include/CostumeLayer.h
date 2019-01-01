@@ -28,7 +28,8 @@ public:
   void setVisible(bool isVisible) { _isVisible = isVisible; }
   int getVisible() const { return _isVisible; }
   std::vector<std::optional<int>> &getTriggers() { return _triggers; }
-  void setActor(Actor* pActor){ _pActor = pActor; }
+  void setActor(Actor *pActor) { _pActor = pActor; }
+  void setLoop(bool loop) { _loop = loop; }
 
   bool update(const sf::Time &elapsed);
 
@@ -47,6 +48,7 @@ private:
   sf::Time _time;
   int _index;
   bool _isVisible;
-  Actor* _pActor;
+  Actor *_pActor;
+  bool _loop;
 };
 } // namespace ng
