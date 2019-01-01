@@ -78,6 +78,9 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
 
 void Costume::setAnimation(const std::string &animName)
 {
+    if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
+        return;
+        
     nlohmann::json json;
     nlohmann::json jSheet;
     {
@@ -107,10 +110,11 @@ void Costume::setAnimation(const std::string &animName)
         if (animName != name)
             continue;
 
-        _pCurrentAnimation = std::make_unique<CostumeAnimation>(name, _texture);
+        _pCurrentAnimation = std::make_unique<CostumeAnimation>(name);
         for (auto jLayer : j["layers"])
         {
             auto layer = new CostumeLayer();
+            layer->setTexture(&_texture);
             auto fps = jLayer["fps"].is_null() ? 10 : jLayer["fps"].get<int>();
             layer->setFps(fps);
             auto layerName = jLayer["name"].get<std::string>();
@@ -186,6 +190,7 @@ void Costume::updateAnimation()
         return;
     }
 
+    bool leftDirection = false;
     std::string name(_animation);
     name.append("_");
     switch (_facing)
@@ -197,14 +202,23 @@ void Costume::updateAnimation()
         name.append("front");
         break;
     case Facing::FACE_LEFT:
-        // same as right but inverse
+        leftDirection = true;
         name.append("right");
         break;
     case Facing::FACE_RIGHT:
         name.append("right");
         break;
     }
+
     setAnimation(name);
+    if (_pCurrentAnimation)
+    {
+        auto &layers = _pCurrentAnimation->getLayers();
+        for (auto layer : layers)
+        {
+            layer->setLeftDirection(leftDirection);
+        }
+    }
 }
 
 void Costume::update(const sf::Time &elapsed)

@@ -7,7 +7,7 @@ namespace ng
 {
 class Actor;
 
-class CostumeLayer
+class CostumeLayer : public sf::Drawable
 {
 public:
   CostumeLayer();
@@ -30,10 +30,13 @@ public:
   std::vector<std::optional<int>> &getTriggers() { return _triggers; }
   void setActor(Actor *pActor) { _pActor = pActor; }
   void setLoop(bool loop) { _loop = loop; }
+  void setTexture(sf::Texture *pTexture) { _pTexture = pTexture; }
+  void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
   bool update(const sf::Time &elapsed);
 
 private:
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void updateTrigger();
 
 private:
@@ -43,6 +46,7 @@ private:
   std::vector<sf::Vector2i> _sizes;
   std::vector<sf::Vector2i> _offsets;
   std::vector<std::optional<int>> _triggers;
+  sf::Texture *_pTexture;
   int _fps;
   int _flags;
   sf::Time _time;
@@ -50,5 +54,6 @@ private:
   bool _isVisible;
   Actor *_pActor;
   bool _loop;
+  bool _leftDirection;
 };
 } // namespace ng

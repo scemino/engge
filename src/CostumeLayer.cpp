@@ -4,10 +4,14 @@
 namespace ng
 {
 CostumeLayer::CostumeLayer()
-    : _index(0),
+    : _pTexture(nullptr),
+      _fps(10),
+      _flags(0),
+      _index(0),
       _isVisible(true),
       _pActor(nullptr),
-      _loop(false)
+      _loop(false),
+      _leftDirection(false)
 {
 }
 
@@ -44,6 +48,37 @@ void CostumeLayer::updateTrigger()
     {
         _pActor->trig(*trigger);
     }
+}
+
+void CostumeLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
+{
+    if (!getVisible())
+        return;
+
+    auto frame = getIndex();
+    auto rect = _frames[frame];
+    auto sourceRect = (sf::FloatRect)_sourceFrames[frame];
+    auto size = (sf::Vector2f)_sizes[frame];
+    sf::Vector2i offset;
+    if (!_offsets.empty())
+    {
+        offset = _offsets[frame];
+    }
+    float x;
+    if (_leftDirection)
+    {
+        rect.left += rect.width;
+        rect.width = -rect.width;
+        x = size.x - sourceRect.left - size.x / 2.f - sourceRect.width;
+    }
+    else
+    {
+        x = sourceRect.left - size.x / 2.f;
+    }
+    sf::Sprite sprite(*_pTexture, rect);
+    auto y = sourceRect.top - size.y / 2.f;
+    sprite.setOrigin(-sf::Vector2f(x, y) + (sf::Vector2f)offset);
+    target.draw(sprite, states);
 }
 
 } // namespace ng

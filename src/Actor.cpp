@@ -38,11 +38,13 @@ void Actor::WalkingState::update(const sf::Time &elapsed)
     auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
     if (delta.x > 0)
     {
+        _actor.getCostume().setFacing(Facing::FACE_RIGHT);
         if (offset.x > delta.x)
             offset.x = delta.x;
     }
     else
     {
+        _actor.getCostume().setFacing(Facing::FACE_LEFT);
         offset.x = -offset.x;
         if (offset.x < delta.x)
             offset.x = delta.x;

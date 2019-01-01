@@ -14,7 +14,7 @@ enum class AnimationState
 class CostumeAnimation : public sf::Drawable
 {
 public:
-  CostumeAnimation(const std::string &name, sf::Texture &texture);
+  CostumeAnimation(const std::string &name);
   ~CostumeAnimation();
 
   const std::string &getName() const { return _name; }
@@ -30,7 +30,6 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  sf::Texture &_texture;
   std::string _name;
   std::vector<CostumeLayer *> _layers;
   AnimationState _state;
