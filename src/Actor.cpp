@@ -256,4 +256,11 @@ void Actor::walkTo(const sf::Vector2f &destination)
     _walkingState.setDestination(destination, getCostume().getFacing());
 }
 
+void Actor::trigSound(const std::string &name)
+{
+    auto soundId = _engine.getSoundDefinition(name);
+    if(!soundId) return;
+    _engine.getSoundManager().playSound(*soundId);
+}
+
 } // namespace ng

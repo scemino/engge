@@ -34,6 +34,7 @@ public:
   virtual ~ScriptExecute() = default;
   virtual void execute(const std::string &code) = 0;
   virtual bool executeCondition(const std::string &code) = 0;
+  virtual SoundDefinition* getSoundDefinition(const std::string &name) = 0;
 };
 
 enum class CursorDirection
@@ -112,6 +113,7 @@ public:
 
   void startDialog(const std::string &dialog);
   void execute(const std::string &code);
+  SoundDefinition* getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
 
   sf::Vector2f getMousePos() const { return _mousePos; }

@@ -119,6 +119,8 @@ public:
   void setVolume(float volume) { _volume = volume; }
   float getVolume() const { return _volume; }
 
+  void trigSound(const std::string& name) override;
+
 private:
   Engine &_engine;
   const EngineSettings &_settings;

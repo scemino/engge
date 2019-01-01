@@ -34,6 +34,7 @@ bool CostumeLayer::update(const sf::Time &elapsed)
             _index = 0;
         }
         updateTrigger();
+        updateSoundTrigger();
     }
     return false;
 }
@@ -47,6 +48,18 @@ void CostumeLayer::updateTrigger()
     if (trigger.has_value() && _pActor)
     {
         _pActor->trig(*trigger);
+    }
+}
+
+void CostumeLayer::updateSoundTrigger()
+{
+    if (_soundTriggers.empty())
+        return;
+
+    auto trigger = _soundTriggers[_index];
+    if (trigger.has_value() && _pActor)
+    {
+        _pActor->trigSound(*trigger);
     }
 }
 

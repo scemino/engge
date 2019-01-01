@@ -59,6 +59,10 @@ public:
     }
   }
 
+  virtual void trigSound(const std::string& name)
+  {
+  }
+
 protected:
   sf::Transformable _transform;
 

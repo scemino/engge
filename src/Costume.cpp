@@ -80,7 +80,7 @@ void Costume::setAnimation(const std::string &animName)
 {
     if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
         return;
-        
+
     nlohmann::json json;
     nlohmann::json jSheet;
     {
@@ -149,11 +149,22 @@ void Costume::setAnimation(const std::string &animName)
                     if (!jTrigger.is_null())
                     {
                         auto triggerName = jTrigger.get<std::string>();
-                        auto trigger = std::strtol(triggerName.data() + 1, nullptr, 10);
-                        layer->getTriggers().emplace_back(trigger);
+                        char *end;
+                        auto trigger = std::strtol(triggerName.data() + 1, &end, 10);
+                        if (end == triggerName.data() + 1)
+                        {
+                            layer->getSoundTriggers().emplace_back(triggerName.data() + 1);
+                            layer->getTriggers().emplace_back(std::nullopt);
+                        }
+                        else
+                        {
+                            layer->getTriggers().emplace_back(trigger);
+                            layer->getSoundTriggers().emplace_back(std::nullopt);
+                        }
                     }
                     else
                     {
+                        layer->getSoundTriggers().emplace_back(std::nullopt);
                         layer->getTriggers().emplace_back(std::nullopt);
                     }
                 }

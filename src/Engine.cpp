@@ -602,6 +602,11 @@ void Engine::execute(const std::string &code)
     _pScriptExecute->execute(code);
 }
 
+SoundDefinition* Engine:: getSoundDefinition(const std::string &name)
+{
+    return _pScriptExecute->getSoundDefinition(name);
+}
+
 bool Engine::executeCondition(const std::string &code)
 {
     return _pScriptExecute->executeCondition(code);

@@ -51,6 +51,24 @@ class _DefaultScriptExecute : public ScriptExecute
         return result == SQTrue;
     }
 
+    SoundDefinition *getSoundDefinition(const std::string &name) override
+    {
+        sq_pushroottable(_vm);
+        sq_pushstring(_vm, name.data(), -1);
+        sq_get(_vm, -2);
+        HSQOBJECT obj;
+        sq_getstackobj(_vm, -1, &obj);
+        
+        if (!sq_isuserpointer(obj))
+        {
+            std::cerr << "getSoundDefinition: sound should be a userpointer" << std::endl;
+            return nullptr;
+        }
+        
+        SoundDefinition *pSound = static_cast<SoundDefinition*>(obj._unVal.pUserPointer);
+        return pSound;
+    }
+
     static SQInteger program_reader(SQUserPointer p)
     {
         auto code = (char *)p;
@@ -174,7 +192,7 @@ class _DefaultVerbExecute : public VerbExecute
     {
         HSQOBJECT objSource = *(HSQOBJECT *)pObjectSource->getHandle();
         HSQOBJECT objTarget = *(HSQOBJECT *)pObjectTarget->getTable();
-        
+
         auto pTable = _engine.getRoom().getTable();
         sq_pushobject(_vm, objSource);
         sq_pushobject(_vm, *pTable);
