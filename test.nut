@@ -1331,6 +1331,7 @@ walkboxHidden("gate", YES)
 willie <- { 
  _key = "willie"
  dialog = null
+ rambleTID = 0
 }
 createActor(willie)
 actorRenderOffset(willie, 0, 45)

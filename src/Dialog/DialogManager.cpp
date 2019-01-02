@@ -57,6 +57,12 @@ void DialogManager::selectLabel(const std::string &name)
             break;
         }
     }
+    if (_pLabel && !_isActive)
+    {
+        it++;
+        if (it != _pCompilationUnit->labels.end())
+            selectLabel(it->get()->name);
+    }
 }
 
 void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -128,6 +134,17 @@ void DialogManager::update(const sf::Time &elapsed)
             break;
         }
         dialog++;
+    }
+
+    if (_pLabel && !_isActive)
+    {
+        auto name = _pLabel->name;
+        auto it = std::find_if(_pCompilationUnit->labels.begin(), _pCompilationUnit->labels.end(), [&name](const std::unique_ptr<Ast::Label> &label) {
+            return label->name == name;
+        });
+        it++;
+        if (it != _pCompilationUnit->labels.end())
+            selectLabel(it->get()->name);
     }
 }
 
