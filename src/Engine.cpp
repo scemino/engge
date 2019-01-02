@@ -229,6 +229,9 @@ void Engine::update(const sf::Time &elapsed)
 
     _dialogManager.update(elapsed);
 
+    if (!_inputActive)
+        return;
+
     if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
         return;
 
@@ -254,7 +257,6 @@ void Engine::update(const sf::Time &elapsed)
         _pVerb = &_verbSlots[currentActorIndex].getVerb(1 + verbId);
         _useFlag = UseFlag::None;
         _pUseObject = nullptr;
-        std::cout << "select verb: " << _pVerb->id << std::endl;
     }
     else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
     {
@@ -292,7 +294,7 @@ void Engine::draw(sf::RenderWindow &window) const
 
     window.draw(_dialogManager);
 
-    if (!_dialogManager.isActive())
+    if (!_dialogManager.isActive() && _inputActive)
     {
         drawVerbs(window);
         drawInventory(window);
@@ -602,7 +604,7 @@ void Engine::execute(const std::string &code)
     _pScriptExecute->execute(code);
 }
 
-SoundDefinition* Engine:: getSoundDefinition(const std::string &name)
+SoundDefinition *Engine::getSoundDefinition(const std::string &name)
 {
     return _pScriptExecute->getSoundDefinition(name);
 }
