@@ -44,6 +44,10 @@ soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
 soundPunchHit <- defineSound("PunchHit.wav")
 soundScrape <- defineSound("Scrape.wav")
 soundPolaroidFilmIntoCamera <-	defineSound("PolaroidFilmIntoCamera.wav")	
+soundDrinkWhisky <- defineSound("DrinkWhisky.wav")	
+soundBreakLightbulb <- defineSound("BreakLightbulb.wav")		
+soundSpark1 <- defineSound("Spark1.wav")						
+soundSpark2 <- defineSound("Spark2.wav")						
 
 // Boot.nut
 function objectName(obj, name) {
@@ -2043,7 +2047,7 @@ function newOpeningScene() {
     // inputVerbs(ON)
     // selectActor(boris)
     // cameraFollow(boris)
-    roomFade(FADE_OUT, 0)
+    // roomFade(FADE_OUT, 0)
     actorSlotSelectable(OFF)
     // TODO: exCommand(EX_AUTOSAVE_STATE, (NO))
     actorAt(boris, Bridge.borisStartSpot)
@@ -2122,5 +2126,5 @@ function newOpeningScene() {
 }
 
 g.openingScene = 1
-// local tid = startthread(newOpeningScene)
-local tid = startthread(doOpening)
+local tid = startthread(newOpeningScene)
+// local tid = startthread(doOpening)

@@ -76,10 +76,10 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     _sheet = sheet;
 }
 
-void Costume::setAnimation(const std::string &animName)
+bool Costume::setAnimation(const std::string &animName)
 {
     if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
-        return;
+        return true;
 
     nlohmann::json json;
     nlohmann::json jSheet;
@@ -177,7 +177,9 @@ void Costume::setAnimation(const std::string &animName)
             _pCurrentAnimation->getLayers().push_back(layer);
         }
         std::cout << "found animation: " << name << std::endl;
+        return true;
     }
+    return false;
 }
 
 static bool _startsWith(const std::string &str, const std::string &prefix)
@@ -201,33 +203,34 @@ void Costume::updateAnimation()
         return;
     }
 
-    bool leftDirection = false;
-    std::string name(_animation);
-    name.append("_");
-    switch (_facing)
+    if (!setAnimation(_animation))
     {
-    case Facing::FACE_BACK:
-        name.append("back");
-        break;
-    case Facing::FACE_FRONT:
-        name.append("front");
-        break;
-    case Facing::FACE_LEFT:
-        leftDirection = true;
-        name.append("right");
-        break;
-    case Facing::FACE_RIGHT:
-        name.append("right");
-        break;
+        std::string name(_animation);
+        name.append("_");
+        switch (_facing)
+        {
+        case Facing::FACE_BACK:
+            name.append("back");
+            break;
+        case Facing::FACE_FRONT:
+            name.append("front");
+            break;
+        case Facing::FACE_LEFT:
+            name.append("right");
+            break;
+        case Facing::FACE_RIGHT:
+            name.append("right");
+            break;
+        }
+        setAnimation(name);
     }
 
-    setAnimation(name);
     if (_pCurrentAnimation)
     {
         auto &layers = _pCurrentAnimation->getLayers();
         for (auto layer : layers)
         {
-            layer->setLeftDirection(leftDirection);
+            layer->setLeftDirection(_facing == Facing::FACE_LEFT);
         }
     }
 }
