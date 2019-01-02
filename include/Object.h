@@ -103,6 +103,7 @@ public:
   void update(const sf::Time &elapsed) override;
 
   friend std::ostream &operator<<(std::ostream &os, const Object &obj);
+  void setHotspotVisible(bool isVisible) { _hotspotVisible = isVisible; }
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
   void addTrigger(std::shared_ptr<Trigger> trigger) { _triggers.push_back(trigger); }
@@ -133,5 +134,6 @@ private:
   std::string _verb;
   std::vector<std::shared_ptr<Trigger>> _triggers;
   std::unique_ptr<HSQOBJECT> _pTable;
+  bool _hotspotVisible;
 };
 } // namespace ng

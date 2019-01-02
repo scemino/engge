@@ -14,7 +14,8 @@ Object::Object()
       _isTouchable(true),
       _pOwner(nullptr),
       _pRoom(nullptr),
-      _state(0)
+      _state(0),
+      _hotspotVisible(false)
 {
 }
 
@@ -112,6 +113,8 @@ void Object::update(const sf::Time &elapsed)
 
 void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    if(!_hotspotVisible) return;
+    
     states.transform *= _transform.getTransform();
     auto rect = getHotspot();
 
