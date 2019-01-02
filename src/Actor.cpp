@@ -131,6 +131,7 @@ void Actor::TalkingState::load(int id)
     if (std::regex_search(_sayText, matches, re))
     {
         auto anim = matches[1].str();
+        std::cout << "talk anim " << anim << std::endl;
         _actor.getCostume().setState(anim);
         _sayText = matches.suffix();
     }
@@ -153,14 +154,20 @@ void Actor::TalkingState::update(const sf::Time &elapsed)
         if (_ids.empty())
         {
             _isTalking = false;
+            _actor.getCostume().setHeadIndex(0);
             return;
         }
         load(_ids.front());
         _ids.erase(_ids.begin());
     }
-    auto index = _lip.getData()[_index].letter - 'A';
+    auto letter = _lip.getData()[_index].letter;
+    if (letter == 'X' || letter == 'G')
+        letter = 'A';
+    if (letter == 'H')
+        letter = 'D';
+    auto index = letter - 'A';
     // TODO: what is the correspondance between letter and head index ?
-    _actor.getCostume().setHeadIndex(index % 6);
+    _actor.getCostume().setHeadIndex(index);
 }
 
 void Actor::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -259,7 +266,8 @@ void Actor::walkTo(const sf::Vector2f &destination)
 void Actor::trigSound(const std::string &name)
 {
     auto soundId = _engine.getSoundDefinition(name);
-    if(!soundId) return;
+    if (!soundId)
+        return;
     _engine.getSoundManager().playSound(*soundId);
 }
 
