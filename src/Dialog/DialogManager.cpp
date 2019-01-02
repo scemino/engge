@@ -8,7 +8,7 @@
 namespace ng
 {
 DialogManager::DialogManager(Engine &engine)
-    : _engine(engine), _isActive(false), _dialogVisitor(_engine, *this)
+    : _engine(engine), _isActive(false), _dialogVisitor(_engine, *this), _pLabel(nullptr)
 {
     std::string path;
     path.append(_engine.getSettings().getGamePath());
