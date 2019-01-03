@@ -13,7 +13,7 @@ set(SOURCES
     src/Scripting/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/TextObject.cpp src/RoomLayer.cpp src/Lip.cpp
     src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
     src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
-    src/SoundManager.cpp src/ActorIcons.cpp
+    src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

@@ -38,19 +38,18 @@ Engine::Engine(const EngineSettings &settings)
       _pCurrentActor(nullptr),
       _verbSheet(_textureManager, settings),
       _gameSheet(_textureManager, settings),
-      _inventoryItems(_textureManager, settings),
       _inputActive(false),
       _showCursor(false),
       _pFollowActor(nullptr),
       _pCurrentObject(nullptr),
-      _pCurrentInventoryObject(nullptr),
       _pVerb(nullptr),
       _dialogManager(*this),
       _soundManager(settings),
       _useFlag(UseFlag::None),
       _pUseObject(nullptr),
       _cursorDirection(CursorDirection::None),
-      _actorIcons(*this, _actorsIconSlots, _verbUiColors, _pCurrentActor)
+      _actorIcons(*this, _actorsIconSlots, _verbUiColors, _pCurrentActor),
+      _inventory(*this, _actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -68,7 +67,6 @@ Engine::Engine(const EngineSettings &settings)
 
     _verbSheet.load("VerbSheet");
     _gameSheet.load("GameSheet");
-    _inventoryItems.load("InventoryItems");
 
     sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
     for (auto i = 0; i < 9; i++)
@@ -76,25 +74,6 @@ Engine::Engine(const EngineSettings &settings)
         auto left = (i / 3) * size.x;
         auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
         _verbRects[i] = sf::IntRect(left, top, size.x, size.y);
-    }
-
-    // inventory
-    auto x = 0, y = 0;
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
-    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
-    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
-    for (auto i = 0; i < 8; i++)
-    {
-        sf::Vector2f pos(x + scrollUpPosition.x + scrollUpSize.x, y + Screen::Height - 3 * Screen::Height / 14.f);
-        auto size = sf::Vector2f(206.f * Screen::Width / 1920.f, 112.f * Screen::Height / 1080.f);
-        _inventoryRects[i] = sf::IntRect(pos.x, pos.y, size.x, size.y);
-        x += size.x;
-        if (i == 3)
-        {
-            x = 0;
-            y += size.y;
-        }
     }
 }
 
@@ -199,7 +178,6 @@ void Engine::update(const sf::Time &elapsed)
     auto mousePosInRoom = _mousePos + _cameraPos;
 
     _pCurrentObject = nullptr;
-    _pCurrentInventoryObject = nullptr;
     const auto &objects = _pRoom->getObjects();
     auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<Object> &pObj) {
         if (!pObj->isTouchable())
@@ -211,22 +189,9 @@ void Engine::update(const sf::Time &elapsed)
     {
         _pCurrentObject = it->get();
     }
-    else
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            const auto &r = _inventoryRects[i];
-            if (r.contains((sf::Vector2i)_mousePos))
-            {
-                auto &objects = _pCurrentActor->getObjects();
-                if (i < objects.size())
-                {
-                    _pCurrentInventoryObject = objects[i].get();
-                }
-            }
-        }
-    }
 
+    _inventory.setMousePosition(_mousePos);
+    _inventory.update(elapsed);
     _dialogManager.update(elapsed);
 
     if (!_inputActive)
@@ -273,9 +238,9 @@ void Engine::update(const sf::Time &elapsed)
             _pVerbExecute->execute(_pCurrentObject, _pVerb);
         }
     }
-    else if (_pCurrentInventoryObject)
+    else if (_inventory.getCurrentInventoryObject())
     {
-        _pVerbExecute->execute(_pCurrentInventoryObject, _pVerb);
+        _pVerbExecute->execute(_inventory.getCurrentInventoryObject(), _pVerb);
     }
     else
     {
@@ -297,7 +262,7 @@ void Engine::draw(sf::RenderWindow &window) const
     if (!_dialogManager.isActive() && _inputActive)
     {
         drawVerbs(window);
-        drawInventory(window);
+        window.draw(_inventory);
         window.draw(_actorIcons);
     }
 
@@ -397,7 +362,7 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         states.transform.translate(-_cameraPos);
         _pCurrentObject->drawHotspot(window, states);
     }
-    if (_pCurrentInventoryObject && _pVerb)
+    if (_inventory.getCurrentInventoryObject() && _pVerb)
     {
         Text text;
         text.setFont(_fntFont);
@@ -409,7 +374,7 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
             auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
             s.append(getText(id));
         }
-        s.append(" ").append(_pCurrentInventoryObject->getName());
+        s.append(" ").append(_inventory.getCurrentInventoryObject()->getName());
         appendUseFlag(s);
         text.setString(s);
         auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
@@ -508,83 +473,6 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
             verbShape.setTexture(&_verbSheet.getTexture());
             verbShape.setTextureRect(rect);
             window.draw(verbShape);
-        }
-    }
-}
-
-void Engine::drawInventory(sf::RenderWindow &window) const
-{
-    int currentActorIndex = getCurrentActorIndex();
-    if (!_inputActive || currentActorIndex == -1)
-        return;
-
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
-
-    // inventory arrows
-    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    // sf::RectangleShape scrollUpShape;
-    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
-    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
-    // scrollUpShape.setFillColor(_verbUiColors[currentActorIndex].verbNormal);
-    // scrollUpShape.setPosition(scrollUpPosition);
-    // scrollUpShape.setSize(scrollUpSize);
-    // scrollUpShape.setTexture(&_gameSheet.getTexture());
-    // scrollUpShape.setTextureRect(scrollUpFrameRect);
-    // window.draw(scrollUpShape);
-
-    // auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
-    // sf::RectangleShape scrollDownShape;
-    // scrollDownShape.setFillColor(_verbUiColors[currentActorIndex].verbNormal);
-    // scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
-    // scrollDownShape.setSize(scrollUpSize);
-    // scrollDownShape.setTexture(&_gameSheet.getTexture());
-    // scrollDownShape.setTextureRect(scrollDownFrameRect);
-    // window.draw(scrollDownShape);
-
-    // inventory frame
-    // auto inventoryFrameRect = _gameSheet.getRect("inventory_frame");
-    // sf::RectangleShape inventoryShape;
-    // inventoryShape.setFillColor(_verbUiColors[currentActorIndex].inventoryFrame);
-    // inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
-    // inventoryShape.setSize(sf::Vector2f(Screen::Width / 2.f - scrollUpSize.x, 3 * Screen::Height / 14.f));
-    // inventoryShape.setTexture(&_gameSheet.getTexture());
-    // inventoryShape.setTextureRect(inventoryFrameRect);
-    // target.draw(inventoryShape);
-
-    auto inventoryFrameRect = _gameSheet.getRect("inventory_background");
-    sf::RectangleShape inventoryShape;
-    sf::Color c(_verbUiColors[currentActorIndex].inventoryBackground);
-    c.a = 128;
-    inventoryShape.setFillColor(c);
-    inventoryShape.setTexture(&_gameSheet.getTexture());
-    inventoryShape.setTextureRect(inventoryFrameRect);
-    auto sizeBack = sf::Vector2f(206.f * Screen::Width / 1920.f, 112.f * Screen::Height / 1080.f);
-    inventoryShape.setSize(sizeBack);
-    auto gapX = 10.f * Screen::Width / 1920.f;
-    auto gapY = 10.f * Screen::Height / 1080.f;
-    for (auto i = 0; i < 8; i++)
-    {
-        auto x = (i % 4) * (sizeBack.x + gapX);
-        auto y = (i / 4) * (sizeBack.y + gapY);
-        inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x, y + Screen::Height - 3 * Screen::Height / 14.f));
-        window.draw(inventoryShape);
-    }
-
-    // draw inventory objects
-    if (_pCurrentActor)
-    {
-        auto x = 0;
-        auto &objects = _pCurrentActor->getObjects();
-        for (const auto &object : objects)
-        {
-            auto rect = _inventoryItems.getRect(object->getIcon());
-            sf::RectangleShape inventoryShape;
-            inventoryShape.setPosition(sf::Vector2f(x + scrollUpPosition.x + scrollUpSize.x, Screen::Height - 3 * Screen::Height / 14.f));
-            inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
-            inventoryShape.setTexture(&_inventoryItems.getTexture());
-            inventoryShape.setTextureRect(rect);
-            window.draw(inventoryShape);
-            x += rect.width;
         }
     }
 }

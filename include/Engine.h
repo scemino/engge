@@ -16,6 +16,7 @@
 #include "FntFont.h"
 #include "ActorIconSlot.h"
 #include "ActorIcons.h"
+#include "Inventory.h"
 
 namespace ng
 {
@@ -34,7 +35,7 @@ public:
   virtual ~ScriptExecute() = default;
   virtual void execute(const std::string &code) = 0;
   virtual bool executeCondition(const std::string &code) = 0;
-  virtual SoundDefinition* getSoundDefinition(const std::string &name) = 0;
+  virtual SoundDefinition *getSoundDefinition(const std::string &name) = 0;
 };
 
 enum class CursorDirection
@@ -113,7 +114,7 @@ public:
 
   void startDialog(const std::string &dialog);
   void execute(const std::string &code);
-  SoundDefinition* getSoundDefinition(const std::string &name);
+  SoundDefinition *getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
 
   sf::Vector2f getMousePos() const { return _mousePos; }
@@ -134,12 +135,8 @@ public:
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
-  void drawInventory(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
   void drawCursorText(sf::RenderWindow &window) const;
-  void drawActorIcons(sf::RenderWindow &window) const;
-  void drawActorIcon(sf::RenderWindow &window, const std::string& icon, int actorSlot, const sf::Vector2f& offset, sf::Uint8 alpha) const;
-  void drawActorIcon(sf::RenderWindow &window, const std::string &icon, sf::Color backColor, sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const;
   void drawFade(sf::RenderWindow &window) const;
   void clampCamera();
   int getCurrentActorIndex() const;
@@ -164,13 +161,11 @@ private:
   std::array<VerbUiColors, 6> _verbUiColors;
   bool _inputActive;
   bool _showCursor;
-  SpriteSheet _verbSheet, _gameSheet, _inventoryItems;
+  SpriteSheet _verbSheet, _gameSheet;
   nlohmann::json _jsonInventoryItems;
   Actor *_pFollowActor;
   sf::IntRect _verbRects[9];
-  sf::IntRect _inventoryRects[8];
   const Object *_pCurrentObject;
-  const InventoryObject *_pCurrentInventoryObject;
   const InventoryObject *_pUseObject;
   sf::Vector2f _mousePos;
   std::unique_ptr<VerbExecute> _pVerbExecute;
@@ -184,5 +179,6 @@ private:
   std::array<ActorIconSlot, 6> _actorsIconSlots;
   UseFlag _useFlag;
   ActorIcons _actorIcons;
+  Inventory _inventory;
 };
 } // namespace ng
