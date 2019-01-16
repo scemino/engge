@@ -9,6 +9,8 @@
 #include "Walkbox.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
+#include "Graph.h"
+#include "PathFinder.h"
 
 namespace ng
 {
@@ -29,8 +31,11 @@ public:
 
   void showDrawWalkboxes(bool show) { _showDrawWalkboxes = show; }
   bool areDrawWalkboxesVisible() const { return _showDrawWalkboxes; }
-  const std::vector<std::unique_ptr<Walkbox>> &getWalkboxes() const { return _walkboxes; }
-  std::vector<std::unique_ptr<Walkbox>> &getWalkboxes() { return _walkboxes; }
+  void setWalkboxEnabled(const std::string &name, bool isEnabled);
+  bool inWalkbox(const sf::Vector2f &pos) const;
+  std::vector<sf::Vector2i> calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const;
+  const std::vector<Walkbox> &getWalkboxes() const { return _walkboxes; }
+
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   Object &createObject(const std::vector<std::string> &anims);
   TextObject &createTextObject(const std::string &fontName);
@@ -39,7 +44,9 @@ public:
   void setAsParallaxLayer(Entity *pEntity, int layer);
   const RoomScaling &getRoomScaling() const;
   void setTable(std::unique_ptr<HSQOBJECT> pTable) { _pTable = std::move(pTable); }
-  HSQOBJECT* getTable() { return _pTable.get(); }
+  HSQOBJECT *getTable() { return _pTable.get(); }
+
+  bool walkboxesVisible() const { return _showDrawWalkboxes; }
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
@@ -49,12 +56,13 @@ private:
   void loadScalings(nlohmann::json jWimpy);
   void loadWalkboxes(nlohmann::json jWimpy);
   void loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json);
+  void updateGraph();
 
 private:
   TextureManager &_textureManager;
   const EngineSettings &_settings;
   std::vector<std::unique_ptr<Object>> _objects;
-  std::vector<std::unique_ptr<Walkbox>> _walkboxes;
+  std::vector<Walkbox> _walkboxes;
   std::vector<std::unique_ptr<RoomLayer>> _layers;
   std::vector<RoomScaling> _scalings;
   sf::Vector2i _roomSize;
@@ -63,5 +71,8 @@ private:
   std::string _id;
   int _fullscreen;
   std::unique_ptr<HSQOBJECT> _pTable;
+  std::shared_ptr<Path> _path;
+  std::shared_ptr<PathFinder> _pf;
+  std::vector<Walkbox> _graphWalkboxes;
 };
 } // namespace ng

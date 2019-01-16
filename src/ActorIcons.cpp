@@ -55,8 +55,9 @@ void ActorIcons::update(const sf::Time &elapsed)
             if (iconRect.contains(_mousePos))
             {
                 _pCurrentActor = selectableActor.pActor;
-                _engine.setCameraAt(selectableActor.pActor->getUsePosition());
-                _engine.follow(selectableActor.pActor);
+                auto pos = _pCurrentActor->getPosition();
+                _engine.setCameraAt(pos + _pCurrentActor->getUsePosition());
+                _engine.follow(_pCurrentActor);
                 return;
             }
             iconRect.top += 15;

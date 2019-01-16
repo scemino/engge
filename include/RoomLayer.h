@@ -25,6 +25,7 @@ public:
   void removeEntity(Entity &entity);
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+  void drawForeground(sf::RenderTarget& target, sf::RenderStates states) const;
   void update(const sf::Time &elapsed);
 
 private:

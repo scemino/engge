@@ -132,17 +132,7 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get hidden value"));
         }
-        auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
-        auto it = std::find_if(walkboxes.begin(), walkboxes.end(), [&name](std::unique_ptr<Walkbox> &walkbox) {
-            return walkbox->getName() == name;
-        });
-        if (it == walkboxes.end())
-        {
-            std::string s;
-            s.append("walkbox ").append(name).append(" has not been found");
-            return sq_throwerror(v, s.data());
-        }
-        it->get()->setEnabled(hidden == SQFalse ? true : false);
+        g_pEngine->getRoom().setWalkboxEnabled(name, hidden == SQFalse);
         return 0;
     }
 

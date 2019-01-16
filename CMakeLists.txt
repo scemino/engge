@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(engge)
 
+add_definitions(-std=c++17)
+
 set (CMAKE_CXX_STANDARD 17)
 find_package(SFML REQUIRED system window graphics audio)
 
@@ -13,7 +15,7 @@ set(SOURCES
     src/Scripting/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/TextObject.cpp src/RoomLayer.cpp src/Lip.cpp
     src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
     src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
-    src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp
+    src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp src/Graph.cpp src/PathFinder.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

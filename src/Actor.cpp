@@ -3,6 +3,7 @@
 #include "Actor.h"
 #include "Room.h"
 #include "Text.h"
+#include "PathFinder.h"
 
 namespace ng
 {
@@ -11,12 +12,12 @@ Actor::WalkingState::WalkingState(Actor &actor)
 {
 }
 
-void Actor::WalkingState::setDestination(const sf::Vector2f &destination, Facing facing)
+void Actor::WalkingState::setDestination(const std::vector<sf::Vector2i> &path, Facing facing)
 {
-    _destination = destination;
+    _path = path;
     _facing = facing;
     auto pos = _actor.getPosition();
-    _actor.getCostume().setFacing(((_destination.x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
+    _actor.getCostume().setFacing(((_path[0].x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
     _actor.getCostume().setState("walk");
     _actor.getCostume().getAnimation()->play(true);
     _isWalking = true;
@@ -33,7 +34,7 @@ void Actor::WalkingState::update(const sf::Time &elapsed)
         return;
 
     auto pos = _actor.getPosition();
-    auto delta = (_destination - pos);
+    auto delta = (_path[0] - (sf::Vector2i)pos);
     auto speed = _actor.getWalkSpeed();
     auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
     if (delta.x > 0)
@@ -61,12 +62,22 @@ void Actor::WalkingState::update(const sf::Time &elapsed)
             offset.y = delta.y;
     }
     _actor.setPosition(pos + offset);
-    if (fabs(_destination.x - pos.x) <= 1 && fabs(_destination.y - pos.y) <= 1)
+    if (fabs(_path[0].x - pos.x) <= 1 && fabs(_path[0].y - pos.y) <= 1)
     {
-        _isWalking = false;
-        std::cout << "Play anim stand" << std::endl;
-        _actor.getCostume().setState("stand");
-        _actor.getCostume().setFacing(_facing);
+        _path.erase(_path.begin());
+        if (_path.size() == 0)
+        {
+            _isWalking = false;
+            std::cout << "Play anim stand" << std::endl;
+            _actor.getCostume().setState("stand");
+            _actor.getCostume().setFacing(_facing);
+        }
+        else
+        {
+            auto pos = _actor.getPosition();
+            _actor.getCostume().setFacing(((_path[0].x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
+            std::cout << "go to : " << _path[0].x << "," << _path[0].y << std::endl;
+        }
     };
 }
 
@@ -233,15 +244,24 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     auto size = _pRoom->getRoomSize();
     auto scale = _pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
-    auto actorTransform = states.transform;
     auto transform = _transform;
-    transform.move((sf::Vector2f)-_renderOffset);
     transform.scale(scale, scale);
+    transform.move((sf::Vector2f)-_renderOffset * scale);
     states.transform *= transform.getTransform();
     target.draw(_costume, states);
+}
+
+void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
+{
+    if (_path && _pRoom && _pRoom->walkboxesVisible())
+    {
+        target.draw(*_path, states);
+    }
+
     if (!_talkingState.isTalking())
         return;
 
+    auto actorTransform = states.transform;
     states.transform = actorTransform * _transform.getTransform();
     _talkingState.draw(target, states);
 }
@@ -255,12 +275,21 @@ void Actor::update(const sf::Time &elapsed)
 
 void Actor::walkTo(const sf::Vector2f &destination, Facing facing)
 {
-    _walkingState.setDestination(destination, facing);
+    if (_pRoom == nullptr)
+        return;
+
+    auto path = _pRoom->calculatePath((sf::Vector2i)getPosition(), (sf::Vector2i)destination);
+    _path = std::make_unique<Path>(path);
+
+    if (path.size() < 2)
+        return;
+
+    _walkingState.setDestination(path, facing);
 }
 
 void Actor::walkTo(const sf::Vector2f &destination)
 {
-    _walkingState.setDestination(destination, getCostume().getFacing());
+    walkTo(destination, getCostume().getFacing());
 }
 
 void Actor::trigSound(const std::string &name)

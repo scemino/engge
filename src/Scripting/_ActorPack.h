@@ -307,11 +307,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
 
-        const auto &walkboxes = g_pEngine->getRoom().getWalkboxes();
-        auto inWalkbox = std::any_of(std::begin(walkboxes), std::end(walkboxes), [actor](const std::unique_ptr<Walkbox> &w) {
-            return w->contains(actor->getPosition());
-        });
-
+        auto inWalkbox = g_pEngine->getRoom().inWalkbox(actor->getPosition());
         sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);
         return 1;
     }

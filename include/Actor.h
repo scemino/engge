@@ -9,6 +9,7 @@
 #include "Object.h"
 #include "SoundDefinition.h"
 #include "InventoryObject.h"
+#include "Graph.h"
 
 namespace ng
 {
@@ -23,14 +24,14 @@ private:
   public:
     WalkingState(Actor &actor);
 
-    void setDestination(const sf::Vector2f &destination, Facing facing);
+    void setDestination(const std::vector<sf::Vector2i> &path, Facing facing);
     void update(const sf::Time &elapsed);
     void stop();
     bool isWalking() const { return _isWalking; }
 
   private:
     Actor &_actor;
-    sf::Vector2f _destination;
+    std::vector<sf::Vector2i> _path;
     Facing _facing;
     bool _isWalking;
   };
@@ -103,7 +104,6 @@ public:
   void setHotspot(const sf::IntRect &hotspot) { _hotspot = hotspot; }
   const sf::IntRect &getHotspot() const { return _hotspot; }
 
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void update(const sf::Time &time) override;
 
   void pickupObject(std::unique_ptr<InventoryObject> pObject) { _objects.push_back(std::move(pObject)); }
@@ -119,7 +119,12 @@ public:
   void setVolume(float volume) { _volume = volume; }
   float getVolume() const { return _volume; }
 
-  void trigSound(const std::string& name) override;
+  void trigSound(const std::string &name) override;
+
+  void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+private:
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   Engine &_engine;
@@ -138,5 +143,6 @@ private:
   TalkingState _talkingState;
   sf::Vector2i _speed;
   float _volume;
+  std::shared_ptr<Path> _path;
 };
 } // namespace ng

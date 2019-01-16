@@ -63,6 +63,10 @@ public:
   {
   }
 
+  virtual void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
+  {
+  }
+
 protected:
   sf::Transformable _transform;
 

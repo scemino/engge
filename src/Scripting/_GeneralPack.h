@@ -198,8 +198,9 @@ class _GeneralPack : public Pack
             g_pEngine->setRoom(pRoom);
             auto actor = g_pEngine->getCurrentActor();
             actor->setRoom(pRoom);
-            actor->setPosition(obj->getUsePosition());
-            g_pEngine->setCameraAt(obj->getUsePosition());
+            auto pos = obj->getPosition();
+            actor->setPosition(pos + obj->getUsePosition());
+            g_pEngine->setCameraAt(pos + obj->getUsePosition());
 
             // call enter room function
             sq_pushobject(v, *pRoom->getTable());

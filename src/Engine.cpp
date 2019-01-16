@@ -95,7 +95,6 @@ const Verb *Engine::getVerb(const std::string &id) const
         if (verb.id == id)
         {
             return &verb;
-            break;
         }
     }
     return nullptr;

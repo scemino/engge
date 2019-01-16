@@ -22,7 +22,7 @@ void RoomLayer::removeEntity(Entity &entity)
     _entities.erase(it);
 }
 
-void RoomLayer::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     // draw layer sprites
     for (const auto &sprite : getSprites())
@@ -37,9 +37,16 @@ void RoomLayer::draw(sf::RenderTarget& target, sf::RenderStates states) const
     }
 }
 
+void RoomLayer::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
+{
+    std::for_each(_entities.begin(), _entities.end(), [&target, &states](const Entity &entity) {
+        entity.drawForeground(target, states);
+    });
+}
+
 void RoomLayer::update(const sf::Time &elapsed)
 {
-     std::sort(std::begin(_entities), std::end(_entities), [](const Entity &a, const Entity &b) {
+    std::sort(std::begin(_entities), std::end(_entities), [](const Entity &a, const Entity &b) {
         return a.getZOrder() > b.getZOrder();
     });
     std::for_each(std::begin(_entities), std::end(_entities), [elapsed](Entity &obj) { obj.update(elapsed); });

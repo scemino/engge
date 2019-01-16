@@ -1,7 +1,9 @@
 #include <fstream>
+#include <math.h>
 #include <memory>
 #include <algorithm>
 #include <iostream>
+#include <list>
 #include <nlohmann/json.hpp>
 #include "Room.h"
 #include "_NGUtil.h"
@@ -183,14 +185,25 @@ void Room::loadWalkboxes(nlohmann::json jWimpy)
         std::vector<sf::Vector2i> vertices;
         auto polygon = jWalkbox["polygon"].get<std::string>();
         _parsePolygon(polygon, vertices, _roomSize.y);
-        auto walkbox = std::make_unique<Walkbox>(vertices);
+        Walkbox walkbox(vertices);
         if (jWalkbox["name"].is_string())
         {
             auto walkboxName = jWalkbox["name"].get<std::string>();
-            walkbox->setName(walkboxName);
+            walkbox.setName(walkboxName);
         }
-        _walkboxes.push_back(std::move(walkbox));
+        _walkboxes.push_back(walkbox);
     }
+    updateGraph();
+}
+
+void Room::updateGraph()
+{
+    _graphWalkboxes.clear();
+    if (!_walkboxes.empty())
+    {
+        merge(_walkboxes, _graphWalkboxes);
+    }
+    _pf = std::make_shared<PathFinder>(_graphWalkboxes);
 }
 
 void Room::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
@@ -411,9 +424,19 @@ void Room::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) cons
     if (!_showDrawWalkboxes)
         return;
 
-    for (auto &walkbox : _walkboxes)
+    for (auto &walkbox : _graphWalkboxes)
     {
-        walkbox->draw(window, states);
+        window.draw(walkbox, states);
+    }
+
+    if (_path)
+    {
+        window.draw(*_path);
+    }
+
+    if (_pf && _pf->getGraph())
+    {
+        window.draw(*_pf->getGraph(), states);
     }
 }
 
@@ -451,11 +474,54 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     t.translate(-cameraPos);
     states.transform = t;
     drawWalkboxes(window, states);
+
+    for (const auto &layer : _layers)
+    {
+        auto parallax = layer->getParallax();
+        auto posX = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
+        auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
+
+        sf::Transform t;
+        t.translate(posX, posY);
+        if (_fullscreen == 1)
+        {
+            t.scale(ratio, ratio);
+        }
+        states.transform = t;
+        layer->drawForeground(window, states);
+    }
 }
 
 const RoomScaling &Room::getRoomScaling() const
 {
     return _scalings[0];
+}
+
+void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
+{
+    auto it = std::find_if(_walkboxes.begin(), _walkboxes.end(), [&name](const Walkbox &walkbox) {
+        return walkbox.getName() == name;
+    });
+    if (it == _walkboxes.end())
+    {
+        std::cerr << "walkbox " << name << " has not been found" << std::endl;
+        return;
+    }
+    it->setEnabled(isEnabled);
+    updateGraph();
+}
+
+bool Room::inWalkbox(const sf::Vector2f &pos) const
+{
+    auto inWalkbox = std::any_of(_walkboxes.begin(), _walkboxes.end(), [pos](const Walkbox &w) {
+        return w.inside((sf::Vector2i)pos);
+    });
+    return inWalkbox;
+}
+
+std::vector<sf::Vector2i> Room::calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const
+{
+    return _pf->calculatePath(start, end);
 }
 
 } // namespace ng
