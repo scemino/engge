@@ -1,5 +1,5 @@
 #pragma once
-#include "squirrel3/squirrel.h"
+#include "squirrel.h"
 #include "Engine.h"
 
 namespace ng
@@ -24,7 +24,7 @@ class _RoomTrigger : public Trigger
         {
             _isInside = true;
             sq_pushobject(_v, _inside);
-            SQUnsignedInteger nparams, nfreevars;
+            SQInteger nparams, nfreevars;
             sq_getclosureinfo(_v, -1, &nparams, &nfreevars);
             if (nparams == 2)
             {
@@ -53,7 +53,7 @@ class _RoomTrigger : public Trigger
             if (_outside._type != SQObjectType::OT_NULL)
             {
                 sq_pushobject(_v, _outside);
-                SQUnsignedInteger nparams, nfreevars;
+                SQInteger nparams, nfreevars;
                 sq_getclosureinfo(_v, -1, &nparams, &nfreevars);
                 if (nparams == 2)
                 {

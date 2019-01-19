@@ -1,5 +1,5 @@
 #pragma once
-#include "squirrel3/squirrel.h"
+#include "squirrel.h"
 #include "Lip.h"
 #include "Engine.h"
 #include "../_NGUtil.h"

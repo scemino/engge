@@ -1,5 +1,5 @@
 #pragma once
-#include "squirrel3/squirrel.h"
+#include "squirrel.h"
 
 namespace ng
 {
@@ -170,7 +170,7 @@ class _GeneralPack : public Pack
             return sq_throwerror(v, _SC("can't find enter function"));
         }
 
-        SQUnsignedInteger nparams, nfreevars;
+        SQInteger nparams, nfreevars;
         sq_getclosureinfo(v, -1, &nparams, &nfreevars);
         std::cout << "enter function found with " << nparams << " parameters" << std::endl;
 
@@ -210,7 +210,7 @@ class _GeneralPack : public Pack
                 return sq_throwerror(v, _SC("can't find enter function"));
             }
 
-            SQUnsignedInteger nparams, nfreevars;
+            SQInteger nparams, nfreevars;
             sq_getclosureinfo(v, -1, &nparams, &nfreevars);
             std::cout << "enter function found with " << nparams << " parameters" << std::endl;
 

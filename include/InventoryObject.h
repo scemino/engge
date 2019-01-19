@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <squirrel3/squirrel.h>
+#include "squirrel.h"
 
 namespace ng
 {

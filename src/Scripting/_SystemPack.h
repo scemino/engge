@@ -1,6 +1,6 @@
 #pragma once
 #include <time.h>
-#include "squirrel3/squirrel.h"
+#include "squirrel.h"
 #include "Function.h"
 #include "Actor.h"
 

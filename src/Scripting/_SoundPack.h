@@ -1,6 +1,6 @@
 #pragma once
 #include <random>
-#include <squirrel3/squirrel.h>
+#include "squirrel.h"
 #include "Engine.h"
 
 namespace ng

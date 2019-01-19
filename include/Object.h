@@ -2,7 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <optional>
-#include "squirrel3/squirrel.h"
+#include "squirrel.h"
 #include "SFML/Graphics.hpp"
 #include "NonCopyable.h"
 #include "TextureManager.h"
