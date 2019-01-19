@@ -1123,12 +1123,19 @@ public:
         BEGIN_SCOPE();
         Statement();
         END_SCOPE();
-        Expect(TK_WHILE);
-        SQInteger continuetrg = _fs->GetCurrentPos();
-        Expect(_SC('(')); CommaExpr(); Expect(_SC(')'));
-        _fs->AddInstruction(_OP_JZ, _fs->PopTarget(), 1);
-        _fs->AddInstruction(_OP_JMP, 0, jmptrg - _fs->GetCurrentPos() - 1);
-        END_BREAKBLE_BLOCK(continuetrg);
+        if(_token == TK_WHILE) {
+            Expect(TK_WHILE);
+            SQInteger continuetrg = _fs->GetCurrentPos();
+            Expect(_SC('(')); CommaExpr(); Expect(_SC(')'));
+            _fs->AddInstruction(_OP_JZ, _fs->PopTarget(), 1);
+            _fs->AddInstruction(_OP_JMP, 0, jmptrg - _fs->GetCurrentPos() - 1);
+            END_BREAKBLE_BLOCK(continuetrg);
+        } else {
+            SQInteger continuetrg = _fs->GetCurrentPos();
+            _fs->AddInstruction(_OP_JZ, 1, 1);
+            _fs->AddInstruction(_OP_JMP, 0, jmptrg - _fs->GetCurrentPos() - 1);
+            END_BREAKBLE_BLOCK(continuetrg);
+        }
     }
     void ForStatement()
     {
