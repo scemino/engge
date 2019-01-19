@@ -843,7 +843,7 @@ public:
             Lex();ParseTableOrClass(_SC(','),_SC('}'));
             break;
         case TK_FUNCTION: FunctionExp(_token);break;
-        case _SC('@'): FunctionExp(_token,true);break;
+        case _SC('@'): FunctionExp(_token);break;
         case TK_CLASS: Lex(); ClassExp();break;
         case _SC('-'):
             Lex();
@@ -1013,7 +1013,7 @@ public:
             Lex();
             varname = Expect(TK_IDENTIFIER);
             Expect(_SC('('));
-            CreateFunction(varname,false);
+            CreateFunction(varname);
             _fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
             _fs->PopTarget();
             _fs->PushLocalVariable(varname);
@@ -1414,11 +1414,11 @@ public:
             END_SCOPE();
         }
     }
-    void FunctionExp(SQInteger ftype,bool lambda = false)
+    void FunctionExp(SQInteger ftype)
     {
         Lex(); Expect(_SC('('));
         SQObjectPtr dummy;
-        CreateFunction(dummy,lambda);
+        CreateFunction(dummy);
         _fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION?0:1);
     }
     void ClassExp()
@@ -1484,7 +1484,7 @@ public:
         }
         _es = es;
     }
-    void CreateFunction(SQObject &name,bool lambda = false)
+    void CreateFunction(SQObject &name)
     {
         SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
         funcstate->_name = name;
@@ -1524,12 +1524,7 @@ public:
 
         SQFuncState *currchunk = _fs;
         _fs = funcstate;
-        if(lambda) {
-            Expression();
-            _fs->AddInstruction(_OP_RETURN, 1, _fs->PopTarget());}
-        else {
-            Statement(false);
-        }
+        Statement(false);
         funcstate->AddLineInfos(_lex._prevtoken == _SC('\n')?_lex._lasttokenline:_lex._currentline, _lineinfo, true);
         funcstate->AddInstruction(_OP_RETURN, -1);
         funcstate->SetStackSize(0);
