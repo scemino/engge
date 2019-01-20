@@ -100,10 +100,13 @@ class _RoomPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         HSQOBJECT inside;
+        sq_resetobject(&inside);
         if (SQ_FAILED(sq_getstackobj(v, 3, &inside)))
         {
             return sq_throwerror(v, _SC("failed to get insideTriggerFunction"));
         }
+        sq_addref(v, &inside);
+
         HSQOBJECT outside;
         sq_resetobject(&outside);
         auto numArgs = sq_gettop(v) - 2;
@@ -113,6 +116,7 @@ class _RoomPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get outsideTriggerFunction"));
             }
+            sq_addref(v, &outside);
         }
         auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, v, inside, outside);
         object->addTrigger(trigger);
