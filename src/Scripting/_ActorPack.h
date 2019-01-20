@@ -753,7 +753,8 @@ class _ActorPack : public Pack
 
     static SQInteger _sayLine(HSQUIRRELVM v)
     {
-        Actor *actor = ScriptEngine::getActor(v, 2);
+        auto type = sq_gettype(v, 2);
+        auto actor = (type == OT_STRING) ? g_pEngine->getCurrentActor() : ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
