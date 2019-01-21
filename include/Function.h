@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <functional>
 #include "SFML/System.hpp"
 #include "NonCopyable.h"
 #include "Interpolations.h"

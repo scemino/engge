@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Dialog/YackTokenReader.h"
 
 namespace ng
@@ -159,7 +160,7 @@ TokenId YackTokenReader::readTokenId()
             _is.ignore();
             return TokenId::Goto;
         }
-        if (c == '-' || isnumber(c))
+        if (c == '-' || isdigit(c))
         {
             return readNumber();
         }
@@ -196,7 +197,7 @@ TokenId YackTokenReader::readCondition()
 TokenId YackTokenReader::readNumber()
 {
     char c;
-    while (isnumber(_is.peek()))
+    while (isdigit(_is.peek()))
     {
         _is.ignore();
     }
@@ -204,7 +205,7 @@ TokenId YackTokenReader::readNumber()
     {
         _is.ignore();
     }
-    while (isnumber(_is.peek()))
+    while (isdigit(_is.peek()))
     {
         _is.ignore();
     }

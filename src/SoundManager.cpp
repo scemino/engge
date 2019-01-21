@@ -1,4 +1,5 @@
 #include <fstream>
+#include <memory>
 #include "SoundManager.h"
 
 namespace ng

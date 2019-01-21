@@ -4,7 +4,7 @@ project(engge)
 add_definitions(-std=c++17)
 
 set (CMAKE_CXX_STANDARD 17)
-find_package(SFML REQUIRED system window graphics audio)
+find_package( SFML REQUIRED COMPONENTS system window graphics audio )
 
 include_directories(include/ extlibs/squirrel/include/)
 link_directories(extlibs/squirrel/build/squirrel/ extlibs/squirrel/build/sqstdlib/)

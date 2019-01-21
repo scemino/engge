@@ -1,3 +1,4 @@
+#include <stdarg.h> 
 #include "squirrel.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"

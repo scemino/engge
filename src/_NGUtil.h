@@ -1,5 +1,6 @@
 #pragma once
 #include <nlohmann/json.hpp>
+#include <cmath>
 #include <regex>
 #include "Object.h"
 #include "Walkbox.h"
@@ -122,7 +123,7 @@ static float distanceSquared(const sf::Vector2i &vector1, const sf::Vector2i &ve
 
 static float distance(const sf::Vector2i &v1, const sf::Vector2i &v2)
 {
-    return std::sqrtf(distanceSquared(v1, v2));
+    return std::sqrt(distanceSquared(v1, v2));
 }
 
 static bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d)
