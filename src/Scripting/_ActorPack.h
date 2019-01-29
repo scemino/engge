@@ -787,6 +787,7 @@ class _ActorPack : public Pack
         auto &actors = g_pEngine->getActors();
         for (auto &a : actors)
         {
+            if(a.get() == g_pEngine->getCurrentActor()) continue;
             a->stopTalking();
         }
 

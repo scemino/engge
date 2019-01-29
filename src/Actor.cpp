@@ -147,6 +147,7 @@ void Actor::TalkingState::load(int id)
         _sayText = matches.suffix();
     }
     _isTalking = true;
+    _index = 0;
     _clock.restart();
 }
 
@@ -155,7 +156,7 @@ void Actor::TalkingState::update(const sf::Time &elapsed)
     if (!_isTalking)
         return;
 
-    auto time = _lip.getData()[_index + 1].time;
+    auto time = _lip.getData()[_index].time;
     if (_clock.getElapsedTime() > time)
     {
         _index = _index + 1;
@@ -170,6 +171,7 @@ void Actor::TalkingState::update(const sf::Time &elapsed)
         }
         load(_ids.front());
         _ids.erase(_ids.begin());
+        return;
     }
     auto letter = _lip.getData()[_index].letter;
     if (letter == 'X' || letter == 'G')

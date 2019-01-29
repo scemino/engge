@@ -8,18 +8,20 @@ namespace ng
 {
 struct NGLipData
 {
-  public:
-    sf::Time time;
-    char letter;
+public:
+  sf::Time time;
+  char letter;
 };
 
 class Lip
 {
-  public:
-    void load(const std::string &path);
-    const std::vector<NGLipData> getData() const { return _data; }
+public:
+  void load(const std::string &path);
+  const std::vector<NGLipData> getData() const { return _data; }
+  std::string getPath() const { return _path; }
 
-  private:
-    std::vector<NGLipData> _data;
+private:
+  std::string _path;
+  std::vector<NGLipData> _data;
 };
 } // namespace ng
