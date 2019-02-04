@@ -199,6 +199,9 @@ void Engine::update(const sf::Time &elapsed)
     if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
         return;
 
+    if (clickedAt(mousePosInRoom))
+        return;
+
     if (_dialogManager.isActive())
         return;
 
@@ -247,6 +250,28 @@ void Engine::update(const sf::Time &elapsed)
         _useFlag = UseFlag::None;
         _pUseObject = nullptr;
     }
+}
+
+bool Engine::clickedAt(const sf::Vector2f &pos)
+{
+    if (!_pRoom)
+        return false;
+
+    auto pTable = _pRoom->getTable();
+    sq_pushobject(_vm, *pTable);
+    sq_pushstring(_vm, _SC("clickedAt"), -1);
+    if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+    {
+        sq_remove(_vm, -2);
+        sq_pushobject(_vm, *pTable);
+        sq_pushinteger(_vm, pos.x);
+        sq_pushinteger(_vm, pos.y);
+        sq_call(_vm, 3, SQTrue, SQTrue);
+        SQInteger handled = 0;
+        sq_getinteger(_vm, -1, &handled);
+        return handled == 1;
+    }
+    return false;
 }
 
 void Engine::draw(sf::RenderWindow &window) const

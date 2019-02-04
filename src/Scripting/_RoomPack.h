@@ -5,10 +5,10 @@
 
 namespace ng
 {
-class ChangeColor : public TimeFunction
+class _ChangeColor : public TimeFunction
 {
   public:
-    ChangeColor(Engine &engine, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
+    _ChangeColor(Engine &engine, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
         : TimeFunction(time),
           _engine(engine),
           _startColor(startColor),
@@ -53,7 +53,6 @@ class ChangeColor : public TimeFunction
         auto r = static_cast<sf::Uint8>(color1.r + f * _r);
         auto g = static_cast<sf::Uint8>(color1.g + f * _g);
         auto b = static_cast<sf::Uint8>(color1.b + f * _b);
-        std::cout << "fade rgba " << std::setw(2) << std::setfill('0') << std::hex << (int)r << (int)g << (int)b << (int)a << std::endl;
         return sf::Color(r, g, b, a);
     }
 
@@ -187,7 +186,7 @@ class _RoomPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get duration"));
             }
-            auto fadeTo = std::make_unique<ChangeColor>(*g_pEngine, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
+            auto fadeTo = std::make_unique<_ChangeColor>(*g_pEngine, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
             g_pEngine->addFunction(std::move(fadeTo));
         }
         return 0;

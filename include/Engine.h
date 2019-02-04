@@ -132,6 +132,8 @@ public:
   }
   UseFlag getUseFlag(UseFlag flag) const { return _useFlag; }
 
+  void setVm(HSQUIRRELVM vm){ _vm = vm; }
+
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
@@ -142,6 +144,7 @@ private:
   int getCurrentActorIndex() const;
   sf::IntRect getCursorRect() const;
   void appendUseFlag(std::string &sentence) const;
+  bool clickedAt(const sf::Vector2f& pos);
 
 private:
   const EngineSettings &_settings;
@@ -180,5 +183,6 @@ private:
   UseFlag _useFlag;
   ActorIcons _actorIcons;
   Inventory _inventory;
+  HSQUIRRELVM _vm;
 };
 } // namespace ng

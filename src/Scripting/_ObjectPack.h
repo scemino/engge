@@ -15,6 +15,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(scale, "scale");
         engine.registerGlobalFunction(playState, "playObjectState");
         engine.registerGlobalFunction(playState, "loopObjectState");
+        engine.registerGlobalFunction(findObjectAt, "findObjectAt");
         engine.registerGlobalFunction(isObject, "is_object");
         engine.registerGlobalFunction(isObject, "isObject");
 
@@ -45,6 +46,34 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(createObject, "createObject");
         engine.registerGlobalFunction(createTextObject, "createTextObject");
         engine.registerGlobalFunction(deleteObject, "deleteObject");
+    }
+
+    static SQInteger findObjectAt(HSQUIRRELVM v)
+    {
+        SQInteger x = 0;
+        if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        SQInteger y = 0;
+        if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        auto& room = g_pEngine->getRoom();
+        auto& objects = room.getObjects();
+
+        for (auto &obj : objects)
+        {
+            if (obj->getRealHotspot().contains(sf::Vector2i(x, y)))
+            {
+                sq_pushobject(v, *obj->getTable());
+                return 1;
+            }
+        }
+
+        sq_pushnull(v);
+        return 1;
     }
 
     static SQInteger isObject(HSQUIRRELVM v)
@@ -258,7 +287,7 @@ class _ObjectPack : public Pack
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&Entity::getPosition, obj);
         auto set = std::bind(&Entity::setPosition, obj, std::placeholders::_1);
-        auto destination = obj->getDefaultPosition() + sf::Vector2f(x, y);
+        auto destination = obj->getPosition() + sf::Vector2f(x, y);
         auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 
@@ -710,7 +739,8 @@ class _ObjectPack : public Pack
         auto *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            // this function can be called with null
+            return 0;
         }
         g_pEngine->getRoom().deleteObject(*obj);
         return 0;
@@ -751,6 +781,17 @@ class _ObjectPack : public Pack
             }
             sq_pop(v, 1); //pops the null iterator
             auto &object = g_pEngine->getRoom().createObject(sheet, anims);
+            ScriptEngine::pushObject(v, object);
+        }
+        else if (sq_isstring(obj))
+        {
+            const SQChar *image;
+            sq_getstring(v, 3, &image);
+            std::string s;
+            s.append(image);
+            std::size_t pos = s.find(".");
+            s = s.substr(0, pos);
+            auto &object = g_pEngine->getRoom().createObject(s);
             ScriptEngine::pushObject(v, object);
         }
         return 1;

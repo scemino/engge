@@ -124,6 +124,7 @@ ScriptEngine::ScriptEngine(Engine &engine)
     : _engine(engine)
 {
     v = sq_open(1024);
+    _engine.setVm(v);
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
     sq_seterrorhandler(v);
@@ -148,6 +149,11 @@ ScriptEngine::ScriptEngine(Engine &engine)
                             {"GONE", 4},
                             {"OFF", 0},
                             {"ON", 1},
+                            {"FALSE", 0},
+                            {"TRUE", 1},
+                            {"MOUSE", 1},
+                            {"CONTROLLER", 2},
+                            {"DIRECTDRIVE", 3},
                             {"FULL", 0},
                             {"EMPTY", 1},
                             {"OPEN", 1},
@@ -179,6 +185,10 @@ ScriptEngine::ScriptEngine(Engine &engine)
                             {"ALIGN_RIGHT",  0x40000000},
                             {"ALIGN_TOP",    0x80000000},
                             {"ALIGN_BOTTOM", 0x1000000},
+                            {"REACH_HIGH",   0x8000},
+                            {"REACH_MED",    0x10000},
+                            {"REACH_LOW",    0x20000},
+                            {"REACH_NONE",   0x40000},
                             });
 
     addPack<_ActorPack>();

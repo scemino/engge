@@ -38,6 +38,7 @@ public:
 
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   Object &createObject(const std::vector<std::string> &anims);
+  Object &createObject(const std::string &image);
   TextObject &createTextObject(const std::string &fontName);
   void deleteObject(Object &textObject);
   sf::Vector2i getRoomSize() const { return _roomSize; }

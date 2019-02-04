@@ -30,7 +30,9 @@ class _BreakFunction : public Function
         {
             std::cerr << "_BreakFunction: failed to wakeup: " << _vm << std::endl;
             sqstd_printcallstack(_vm);
+            return;
         }
+        std::cout << "_BreakFunction: OK to wakeup: " << _vm << std::endl;
     }
 };
 
@@ -114,7 +116,24 @@ class _BreakWhileSoundFunction : public _BreakFunction
     }
 };
 
-class _BreakWhileDialogFunction: public _BreakFunction
+class _BreakWhileRunningFunction : public _BreakFunction
+{
+  private:
+    HSQUIRRELVM _thread;
+
+  public:
+    _BreakWhileRunningFunction(Engine &engine, HSQUIRRELVM vm, HSQUIRRELVM thread)
+        : _BreakFunction(engine, vm), _thread(thread)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        return !_engine.isThreadAlive(_thread);
+    }
+};
+
+class _BreakWhileDialogFunction : public _BreakFunction
 {
   public:
     _BreakWhileDialogFunction(Engine &engine, HSQUIRRELVM vm)
@@ -152,7 +171,9 @@ class _BreakTimeFunction : public TimeFunction
             {
                 std::cerr << "_BreakTimeFunction: failed to wakeup: " << _vm << std::endl;
                 sqstd_printcallstack(_vm);
+                return;
             }
+            // std::cout << "_BreakTimeFunction: OK to wakeup: " << _vm << std::endl;
         }
     }
 };
@@ -166,14 +187,17 @@ class _SystemPack : public Pack
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
+        engine.registerGlobalFunction(activeController, "activeController");
         engine.registerGlobalFunction(breakhere, "breakhere");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
         engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
         engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
+        engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
         engine.registerGlobalFunction(stopthread, "stopthread");
         engine.registerGlobalFunction(startthread, "startthread");
+        engine.registerGlobalFunction(cutscene, "cutscene");
         engine.registerGlobalFunction(breaktime, "breaktime");
         engine.registerGlobalFunction(getUserPref, "getUserPref");
         engine.registerGlobalFunction(inputOff, "inputOff");
@@ -186,6 +210,11 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(setUserPref, "setUserPref");
         engine.registerGlobalFunction(systemTime, "systemTime");
         engine.registerGlobalFunction(threadpauseable, "threadpauseable");
+    }
+
+    static SQInteger activeController(HSQUIRRELVM v)
+    {
+        return 1;
     }
 
     static SQInteger breakhere(HSQUIRRELVM v)
@@ -247,6 +276,18 @@ class _SystemPack : public Pack
         }
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, v, *pActor));
+        return result;
+    }
+
+    static SQInteger breakwhilerunning(HSQUIRRELVM v)
+    {
+        HSQUIRRELVM thread;
+        if (SQ_FAILED(sq_getthread(v, 2, &thread)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, v, thread));
         return result;
     }
 
@@ -324,6 +365,65 @@ class _SystemPack : public Pack
 
         std::cout << "start thread: " << thread_obj._unVal.pThread << std::endl;
         g_pEngine->addThread(thread_obj._unVal.pThread);
+
+        return 1;
+    }
+
+    static SQInteger cutscene(HSQUIRRELVM v)
+    {
+        auto inputActive = g_pEngine->getInputActive();
+        g_pEngine->setInputActive(false);
+        auto currentActor = g_pEngine->getCurrentActor();
+
+        SQInteger size = sq_gettop(v);
+
+        HSQOBJECT env_obj;
+        sq_resetobject(&env_obj);
+        if (SQ_FAILED(sq_getstackobj(v, 1, &env_obj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get environment from stack"));
+        }
+
+        // create thread and store it on the stack
+        auto thread = sq_newthread(v, 1024);
+        HSQOBJECT thread_obj;
+        sq_resetobject(&thread_obj);
+        if (SQ_FAILED(sq_getstackobj(v, -1, &thread_obj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+
+        // get the closure
+        HSQOBJECT closureObj;
+        sq_resetobject(&closureObj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &closureObj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+
+        // call the closure in the thread
+        sq_pushobject(thread, closureObj);
+        sq_pushobject(thread, env_obj);
+
+        if (SQ_FAILED(sq_call(thread, 1, SQFalse, SQTrue)))
+        {
+            sq_throwerror(v, _SC("call failed"));
+            sq_pop(thread, 1); // pop the compiled closure
+            return SQ_ERROR;
+        }
+
+        // create a table for a thread
+        sq_addref(v, &thread_obj);
+        sq_pushobject(v, thread_obj);
+
+        std::cout << "start cutscene: " << thread_obj._unVal.pThread << std::endl;
+        g_pEngine->addThread(thread_obj._unVal.pThread);
+
+        g_pEngine->setInputActive(inputActive);
+        if (currentActor)
+        {
+            g_pEngine->follow(currentActor);
+        }
 
         return 1;
     }

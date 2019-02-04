@@ -419,6 +419,30 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
     return obj;
 }
 
+Object &Room::createObject(const std::string &image)
+{
+    auto &texture = _textureManager.get(image);
+
+    auto object = std::make_unique<Object>();
+    auto animation = std::make_unique<Animation>(texture, "state0");
+    auto size = texture.getSize();
+    sf::IntRect rect(0, 0, size.x, size.y);
+    animation->getRects().push_back(rect);
+    animation->getSizes().push_back(sf::Vector2i(size));
+    animation->getSourceRects().push_back(rect);
+    animation->reset();
+    object->getAnims().push_back(std::move(animation));
+
+    object->setAnimation("state0");
+    auto &obj = *object;
+    auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
+        return pLayer->getZOrder() == 0;
+    });
+    itLayer->get()->addEntity(obj);
+    _objects.push_back(std::move(object));
+    return obj;
+}
+
 void Room::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
 {
     if (!_showDrawWalkboxes)
