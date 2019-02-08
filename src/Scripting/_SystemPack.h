@@ -11,28 +11,41 @@ class _BreakFunction : public Function
   protected:
     Engine &_engine;
     HSQUIRRELVM _vm;
+    bool _isElapsed;
 
   public:
     explicit _BreakFunction(Engine &engine, HSQUIRRELVM vm)
-        : _engine(engine), _vm(vm)
+        : _engine(engine), _vm(vm), _isElapsed(false)
     {
+    }
+
+    virtual const std::string getName()
+    {
+        return "_BreakFunction";
     }
 
     void operator()() override
     {
         if (!_engine.isThreadAlive(_vm))
+        {
+            std::cerr << getName() << " failed: thread not alive: " << _vm << std::endl;
             return;
-        if (!isElapsed())
+        }
+        if (_isElapsed || !isElapsed())
             return;
+        _isElapsed = true;
         if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
+        {
+            std::cerr << getName() << " failed: thread not suspended: " << _vm << std::endl;
             return;
+        }
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
-            std::cerr << "_BreakFunction: failed to wakeup: " << _vm << std::endl;
+            std::cerr << getName() << ": failed to wakeup: " << _vm << std::endl;
             sqstd_printcallstack(_vm);
             return;
         }
-        std::cout << "_BreakFunction: OK to wakeup: " << _vm << std::endl;
+        std::cout << getName() << ": OK to wakeup: " << _vm << std::endl;
     }
 };
 
@@ -43,23 +56,34 @@ class _BreakHereFunction : public _BreakFunction
         : _BreakFunction(engine, vm)
     {
     }
+
+    const std::string getName() override
+    {
+        return "_BreakHereFunction";
+    }
 };
 
 class _BreakWhileAnimatingFunction : public _BreakFunction
 {
   private:
     Actor &_actor;
+    std::string _name;
 
   public:
     explicit _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
+        _name = actor.getCostume().getAnimation()->getName();
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileAnimatingFunction " + _name;
     }
 
     bool isElapsed() override
     {
-        bool isPlaying = _actor.getCostume().getAnimation()->isPlaying();
-        return !isPlaying;
+        return !_actor.getCostume().getAnimation()->isPlaying();
     }
 };
 
@@ -74,11 +98,14 @@ class _BreakWhileWalkingFunction : public _BreakFunction
     {
     }
 
+    const std::string getName() override
+    {
+        return "_BreakWhileWalkingFunction";
+    }
+
     bool isElapsed() override
     {
-        auto name = _actor.getCostume().getAnimationName();
-        bool isElapsed = name != "walk";
-        return isElapsed;
+        return !_actor.isWalking();
     }
 };
 
@@ -91,6 +118,11 @@ class _BreakWhileTalkingFunction : public _BreakFunction
     explicit _BreakWhileTalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileTalkingFunction";
     }
 
     bool isElapsed() override
@@ -110,6 +142,11 @@ class _BreakWhileSoundFunction : public _BreakFunction
     {
     }
 
+    const std::string getName() override
+    {
+        return "_BreakWhileSoundFunction";
+    }
+
     bool isElapsed() override
     {
         return !_soundId.isPlaying();
@@ -127,6 +164,11 @@ class _BreakWhileRunningFunction : public _BreakFunction
     {
     }
 
+    const std::string getName() override
+    {
+        return "_BreakWhileRunningFunction";
+    }
+
     bool isElapsed() override
     {
         return !_engine.isThreadAlive(_thread);
@@ -139,6 +181,11 @@ class _BreakWhileDialogFunction : public _BreakFunction
     _BreakWhileDialogFunction(Engine &engine, HSQUIRRELVM vm)
         : _BreakFunction(engine, vm)
     {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileDialogFunction";
     }
 
     bool isElapsed() override
