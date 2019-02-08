@@ -1,5 +1,6 @@
 #include "CostumeLayer.h"
 #include "Actor.h"
+#include "Room.h"
 
 namespace ng
 {
@@ -91,6 +92,7 @@ void CostumeLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     sf::Sprite sprite(*_pTexture, rect);
     auto y = sourceRect.top - size.y / 2.f;
     sprite.setOrigin(-sf::Vector2f(x, y) + (sf::Vector2f)offset);
+    sprite.setColor(_pActor->getRoom()->getAmbientLight());
     target.draw(sprite, states);
 }
 

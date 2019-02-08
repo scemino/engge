@@ -3,6 +3,7 @@
 #include "squirrel.h"
 #include "Function.h"
 #include "Actor.h"
+#include "../_NGUtil.h"
 
 namespace ng
 {
@@ -255,6 +256,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(isTable, "is_table");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(setUserPref, "setUserPref");
+        engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
         engine.registerGlobalFunction(systemTime, "systemTime");
         engine.registerGlobalFunction(threadpauseable, "threadpauseable");
     }
@@ -550,6 +552,18 @@ class _SystemPack : public Pack
         }
 
         return 1;
+    }
+
+    static SQInteger setAmbientLight(HSQUIRRELVM v)
+    {
+        SQInteger c = 0;
+        if (SQ_FAILED(sq_getinteger(v, 2, &c)))
+        {
+            return sq_throwerror(v, _SC("failed to get color"));
+        }
+        auto color = _fromRgb(c);
+        g_pEngine->getRoom().setAmbientLight(color);
+        return 0;
     }
 
     static SQInteger setUserPref(HSQUIRRELVM v)

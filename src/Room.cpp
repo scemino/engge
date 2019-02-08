@@ -13,6 +13,7 @@ namespace ng
 {
 Room::Room(TextureManager &textureManager, const EngineSettings &settings)
     : _textureManager(textureManager),
+      _ambientColor(255, 255, 255, 255),
       _settings(settings),
       _showDrawWalkboxes(false)
 {

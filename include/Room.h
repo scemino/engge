@@ -48,6 +48,8 @@ public:
   HSQOBJECT *getTable() { return _pTable.get(); }
 
   bool walkboxesVisible() const { return _showDrawWalkboxes; }
+  void setAmbientLight(sf::Color color) { _ambientColor = color; }
+  sf::Color getAmbientLight() const { return _ambientColor; }
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
@@ -75,5 +77,6 @@ private:
   std::shared_ptr<Path> _path;
   std::shared_ptr<PathFinder> _pf;
   std::vector<Walkbox> _graphWalkboxes;
+  sf::Color _ambientColor;
 };
 } // namespace ng
