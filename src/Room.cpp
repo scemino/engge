@@ -283,14 +283,7 @@ void Room::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
                 object->getAnims().push_back(std::move(anim));
             }
 
-            for (auto &animation : object->getAnims())
-            {
-                if (!animation->getRects().empty())
-                {
-                    object->setAnimation(animation->getName());
-                    break;
-                }
-            }
+            object->setAnimation("state0");
         }
         object->setRoom(this);
         std::cout << "Object " << *object << std::endl;
