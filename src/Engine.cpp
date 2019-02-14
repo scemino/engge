@@ -255,6 +255,10 @@ void Engine::update(const sf::Time &elapsed)
 void Engine::setCurrentActor(Actor *pCurrentActor)
 {
     _pCurrentActor = pCurrentActor;
+    if (_pCurrentActor)
+    {
+        follow(_pCurrentActor);
+    }
 }
 
 bool Engine::clickedAt(const sf::Vector2f &pos)
