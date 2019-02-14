@@ -75,7 +75,7 @@ public:
   void update(const sf::Time &elapsed);
 
   bool isActive() const { return _isActive; }
-  void addFunction(std::unique_ptr<Function> function) { _functions.push_back(std::move(function)); }
+  void addFunction(std::unique_ptr<Function> function);
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

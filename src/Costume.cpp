@@ -106,7 +106,7 @@ bool Costume::setAnimation(const std::string &animName)
     for (auto j : json["animations"])
     {
         auto name = j["name"].get<std::string>();
-        std::cout << "Anim: " << name << std::endl;
+        // std::cout << "Anim: " << name << std::endl;
         if (animName != name)
             continue;
 

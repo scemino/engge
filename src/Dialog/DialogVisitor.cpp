@@ -2,33 +2,12 @@
 #include "Engine.h"
 #include "Actor.h"
 #include "_SayFunction.h"
+#include "_ExecuteCodeFunction.h"
+#include "_ShutupFunction.h"
+#include "_PauseFunction.h"
 
 namespace ng
 {
-class _PauseFunction : public Function
-{
-  public:
-    _PauseFunction(sf::Time time)
-        : _time(time), _done(false)
-    {
-    }
-
-    bool isElapsed() { return _done && _clock.getElapsedTime() > _time; }
-
-    virtual void operator()()
-    {
-        if (_done)
-            return;
-        _clock.restart();
-        _done = true;
-    }
-
-  private:
-    sf::Clock _clock;
-    const sf::Time _time;
-    bool _done;
-};
-
 DialogVisitor::DialogVisitor(Engine &engine, DialogManager &dialogManager)
     : _engine(engine), _dialogManager(dialogManager)
 {
@@ -102,6 +81,14 @@ void DialogVisitor::visit(const Ast::Say &node)
         auto say = std::make_unique<_SayFunction>(*pActor, id);
         _dialogManager.addFunction(std::move(say));
     }
+    else
+    {
+        auto anim = node.text.substr(2, node.text.length() - 3);
+        std::stringstream s;
+        s << "actorPlayAnimation(" << node.actor << ", \"" << anim << "\", NO)";
+        auto executeCode = std::make_unique<_ExecuteCodeFunction>(_engine, s.str());
+        _dialogManager.addFunction(std::move(executeCode));
+    }
 }
 
 void DialogVisitor::visit(const Ast::Choice &node)
@@ -118,7 +105,8 @@ void DialogVisitor::visit(const Ast::Choice &node)
 
 void DialogVisitor::visit(const Ast::Code &node)
 {
-    _engine.execute(node.code);
+    auto executeCode = std::make_unique<_ExecuteCodeFunction>(_engine, node.code);
+    _dialogManager.addFunction(std::move(executeCode));
 }
 
 void DialogVisitor::visit(const Ast::Goto &node)
@@ -128,8 +116,12 @@ void DialogVisitor::visit(const Ast::Goto &node)
 
 void DialogVisitor::visit(const Ast::Shutup &node)
 {
-    // TODO: shutup
-    std::cout << "TODO: shutup" << std::endl;
+    auto actor = _engine.getCurrentActor();
+    if (actor)
+    {
+        auto shutup = std::make_unique<_ShutupFunction>(_engine);
+        _dialogManager.addFunction(std::move(shutup));
+    }
 }
 
 void DialogVisitor::visit(const Ast::Pause &node)
@@ -154,9 +146,6 @@ int DialogVisitor::getId(const std::string &text)
         auto id = std::strtol(s.c_str(), nullptr, 10);
         return id;
     }
-    // TODO:
-    //throw std::logic_error("Expecting a talk id");
-    std::cerr << "Expecting a talk id instead of: " << s << std::endl;
     return -1;
 }
 } // namespace ng

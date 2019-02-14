@@ -3433,4 +3433,5 @@ function newOpeningScene() {
 
 g.openingScene = 1
 // local tid = startthread(newOpeningScene)
+actorPlayAnimation(reyes, animStand)
 local tid = startthread(doOpening)

@@ -20,6 +20,11 @@ DialogManager::DialogManager(Engine &engine)
     }
 }
 
+void DialogManager::addFunction(std::unique_ptr<Function> function)
+{
+    _functions.push_back(std::move(function));
+}
+
 void DialogManager::start(const std::string &name)
 {
     std::string path(_engine.getSettings().getGamePath());
@@ -99,7 +104,7 @@ void DialogManager::update(const sf::Time &elapsed)
             break;
         }
     }
-    
+
     if (!_functions.empty())
     {
         if (_functions[0]->isElapsed())
