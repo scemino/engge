@@ -222,7 +222,35 @@ Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
 
 Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getEntity<Room>(v, index);
+    auto type = sq_gettype(v, index);
+    // is it a table?
+    if (type != OT_TABLE)
+    {
+        sq_pushbool(v, SQFalse);
+        return nullptr;
+    }
+
+    HSQOBJECT object;
+    sq_resetobject(&object);
+    if (SQ_FAILED(sq_getstackobj(v, index, &object)))
+    {
+        return nullptr;
+    }
+
+    sq_pushobject(v, object);
+    sq_pushstring(v, _SC("instance"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        return nullptr;
+    }
+
+    Room *pObj = nullptr;
+    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
+    {
+        return nullptr;
+    }
+
+    return pObj;
 }
 
 Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)

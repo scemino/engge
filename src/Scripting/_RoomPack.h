@@ -239,16 +239,56 @@ class _RoomPack : public Pack
 
         // define instance
         sq_pushobject(v, *pTable);
+        sq_pushstring(v, _SC("_type"), -1);
+        sq_pushinteger(v, Room::RoomType);
+        sq_newslot(v, -3, SQFalse);
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pRoom.get());
         sq_newslot(v, -3, SQFalse);
 
+        std::unordered_map<const SQChar *, HSQOBJECT> inventory;
+
         // define room objects
+        if (strcmp(name, "Inventory") == 0)
+        {
+            sq_pushobject(v, *pTable);
+            sq_pushnull(v);
+            while (SQ_SUCCEEDED(sq_next(v, -2)))
+            {
+                //here -1 is the value and -2 is the key
+                auto type = sq_gettype(v, -1);
+                if (type == OT_TABLE)
+                {
+                    const SQChar *name;
+                    sq_getstring(v, -2, &name);
+                    HSQOBJECT object;
+                    sq_resetobject(&object);
+                    if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))
+                    {
+                        sq_addref(v, &object);
+                        inventory[name] = object;
+                    }
+                }
+
+                sq_pop(v, 2); //pops key and val before the nex iteration
+            }
+            sq_pop(v, 1); //pops the null iterator
+        }
+
+        // don't know if this is the best way to do this
+        // but it seems that inventory objects are accessible
+        // from the roottable
+        for (auto obj : inventory)
+        {
+            sq_pushroottable(v);
+            sq_pushstring(v, obj.first, -1);
+            sq_pushobject(v, obj.second);
+            sq_newslot(v, -3, SQFalse);
+        }
+
         for (auto &obj : pRoom->getObjects())
         {
-            auto object = std::make_unique<HSQOBJECT>();
-            auto pObj = object.get();
-            sq_resetobject(pObj);
+            sq_resetobject(&obj->getTable());
 
             sq_pushobject(v, *pTable);
             sq_pushstring(v, obj->getName().data(), -1);
@@ -259,28 +299,25 @@ class _RoomPack : public Pack
                 sq_pushobject(v, *pTable);
                 sq_pushstring(v, obj->getName().data(), -1);
                 sq_get(v, -2);
-                sq_getstackobj(v, -1, pObj);
-                if (!sq_istable(*pObj))
+                sq_getstackobj(v, -1, &obj->getTable());
+                if (!sq_istable(obj->getTable()))
                 {
                     return sq_throwerror(v, _SC("object should be a table entry"));
                 }
 
-                obj->setTable(std::move(object));
                 continue;
             }
 
-            sq_getstackobj(v, -1, pObj);
-            if (!sq_istable(*pObj))
+            sq_getstackobj(v, -1, &obj->getTable());
+            if (!sq_istable(obj->getTable()))
             {
                 return sq_throwerror(v, _SC("object should be a table entry"));
             }
 
-            obj->setTable(std::move(object));
-
-            _getField<SQInteger>(v, *pObj, _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
-            _getField<SQBool>(v, *pObj, _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
-            _getField<const SQChar *>(v, *pObj, _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
-            _getField<const SQChar *>(v, *pObj, _SC("name"), [&obj](const SQChar *value) {
+            _getField<SQInteger>(v, obj->getTable(), _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
+            _getField<SQBool>(v, obj->getTable(), _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
+            _getField<const SQChar *>(v, obj->getTable(), _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
+            _getField<const SQChar *>(v, obj->getTable(), _SC("name"), [&obj](const SQChar *value) {
                 if (strlen(value) > 0 && value[0] == '@')
                 {
                     std::string s(value);
@@ -297,12 +334,12 @@ class _RoomPack : public Pack
                 }
             });
 
-            sq_pushobject(v, *pObj);
+            sq_pushobject(v, obj->getTable());
             sq_pushstring(v, _SC("instance"), -1);
             sq_pushuserpointer(v, obj.get());
             sq_newslot(v, -3, SQFalse);
 
-            sq_pushobject(v, *pObj);
+            sq_pushobject(v, obj->getTable());
             sq_pushobject(v, *pTable);
             sq_setdelegate(v, -2);
         }

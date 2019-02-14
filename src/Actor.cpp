@@ -226,6 +226,10 @@ int Actor::getZOrder() const
 
 void Actor::setRoom(Room *pRoom)
 {
+    if (_pRoom)
+    {
+        _pRoom->removeEntity(this);
+    }
     _pRoom = pRoom;
     _pRoom->setAsParallaxLayer(this, 0);
 }

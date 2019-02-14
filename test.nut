@@ -47,7 +47,9 @@ soundPolaroidFilmIntoCamera <-	defineSound("PolaroidFilmIntoCamera.wav")
 soundDrinkWhisky <- defineSound("DrinkWhisky.wav")	
 soundBreakLightbulb <- defineSound("BreakLightbulb.wav")		
 soundSpark1 <- defineSound("Spark1.wav")						
-soundSpark2 <- defineSound("Spark2.wav")						
+soundSpark2 <- defineSound("Spark2.wav")
+soundOwls <- defineSound("Owls.wav")
+soundWolf <- defineSound("WolfHowl.wav")						
 
 // Boot.nut
 function objectName(obj, name) {
@@ -237,6 +239,34 @@ polaroidFilm =
  return NOT_HANDLED
  }
  }
+
+ raysBadge =
+ {
+ icon = "rays_badge"
+ inventory_slot = 1
+ name = objectName(this, "@28098")
+ }
+
+ reyesBadge =
+ {
+ icon = "reyes_badge"
+ inventory_slot = 1
+ name = objectName(this, "@28098")
+ }
+
+ reyesNotebook =
+ {
+ icon = "notebook"
+ inventory_slot = 2
+ name = objectName(this, "@28110")
+ } 
+
+ raysNotebook =
+ {
+ icon = "ray_notebook"
+ inventory_slot = 2
+ name = objectName(this, "@28110")
+ }
 }
 defineRoom(Inventory)
 
@@ -256,7 +286,6 @@ function footstepsNormal(actor) {
 }
 
 function footstepsWater(actor) {
-    print("footstepsWater "+actor+"\n")
  if (settings.playFootsteps) {
  actorSound(actor, 1, soundFootstepWater1, soundFootstepWater2)
  }
@@ -265,33 +294,33 @@ function footstepsWater(actor) {
 
 script doOpening() {
 
- cameraInRoom(TitleCards)
- roomFade(FADE_IN, 2.0)
+//  cameraInRoom(TitleCards)
+//  roomFade(FADE_IN, 2.0)
 
- breaktime(1.0)
- local text = createTextObject("sayline", translate("@25545"), ALIGN_CENTER | 1000)
- objectScale(text, 0.5)
- objectColor(text, 0x30AAFF)
- objectAlpha(text, 0.0)
- objectAt(text, 320,180)
+//  breaktime(1.0)
+//  local text = createTextObject("sayline", translate("@25545"), ALIGN_CENTER | 1000)
+//  objectScale(text, 0.5)
+//  objectColor(text, 0x30AAFF)
+//  objectAlpha(text, 0.0)
+//  objectAt(text, 320,180)
  
- objectAlphaTo(text, 1.0, 1.0, LINEAR)
- breaktime(3.0)
- objectAlphaTo(text, 0.0, 1.0, LINEAR)
- breaktime(1.0)
+//  objectAlphaTo(text, 1.0, 1.0, LINEAR)
+//  breaktime(3.0)
+//  objectAlphaTo(text, 0.0, 1.0, LINEAR)
+//  breaktime(1.0)
  
- deleteObject(text)
+//  deleteObject(text)
 
- text = createTextObject("sayline", translate("@25546"), ALIGN_CENTER | 1000)
- objectScale(text, 0.5)
- objectColor(text, 0x30AAFF)
- objectAlpha(text, 0.0)
- objectAt(text, 320,180)
+//  text = createTextObject("sayline", translate("@25546"), ALIGN_CENTER | 1000)
+//  objectScale(text, 0.5)
+//  objectColor(text, 0x30AAFF)
+//  objectAlpha(text, 0.0)
+//  objectAt(text, 320,180)
 
- objectAlphaTo(text, 1.0, 1.0, LINEAR)
- breaktime(4.0)
- objectAlphaTo(text, 0.0, 1.0, LINEAR)
- breaktime(1.0)
+//  objectAlphaTo(text, 1.0, 1.0, LINEAR)
+//  breaktime(4.0)
+//  objectAlphaTo(text, 0.0, 1.0, LINEAR)
+//  breaktime(1.0)
 
 //  breakwhilerunning(TitleCards.showPartBody())
 
@@ -330,13 +359,13 @@ script doOpening() {
  startDialog("Opening")
  breakwhiledialog()
  if (randomOdds(0.5)) {
- pickupObject(Inventory.polaroidFilm, reyes)
- pickupObject(Inventory.camera, ray)
+ pickupObject(polaroidFilm, reyes)
+ pickupObject(camera, ray)
  selectActor(ray)
  cameraFollow(ray)
  } else {
- pickupObject(Inventory.polaroidFilm, ray)
- pickupObject(Inventory.camera, reyes)
+ pickupObject(polaroidFilm, ray)
+ pickupObject(camera, reyes)
  selectActor(reyes)
  cameraFollow(reyes)
  }
@@ -548,6 +577,157 @@ function createFirefly(x) {
  }
  }
 
+ HelpScreens <-
+{
+ background = "HelpScreens"
+//  _dont_hero_track = TRUE
+ 
+ _help_page_object = null
+
+ _page = 1
+ _startPage = 1
+ _endPage = 6
+ _runningTID = 0
+ _fadeTime = 2.0
+
+ function helpIntro() {
+//  _runningTID = startglobalthread(@() {
+ _runningTID = startthread(@() {
+ breaktime(99999)	
+ })
+ HelpScreens._startPage = 1
+ HelpScreens._endPage = 6
+ _fadeTime = 2.0
+ cameraInRoom(HelpScreens)
+ return _runningTID
+ }
+
+ function helpProtips() {
+ _runningTID = startglobalthread(@() {
+ breaktime(99999)	
+ })
+ if ((activeController() == CONTROLLER || activeController() == DIRECTDRIVE)) {
+ HelpScreens._startPage = 10
+ HelpScreens._endPage = 14
+ } else {
+ HelpScreens._startPage = 7
+ HelpScreens._endPage = 9
+ }
+ _fadeTime = 1.0
+ cameraInRoom(HelpScreens)
+ return _runningTID
+ }
+
+ function exitHelpScreen() {
+ inputOff()
+ startthread(@() {
+ roomFade(FADE_OUT, _fadeTime)
+ breaktime(_fadeTime)
+ stopthread(_runningTID)	
+ })
+ }
+
+ function pressedKey(key) {
+ if (((key) == 27 || (key) == BUTTON_B || (key) == BUTTON_BACK)) {
+ exitHelpScreen()
+ }
+ if (key == KEY_RIGHT) {
+ displayPage(++_page)
+ }
+ if (key == KEY_LEFT) {
+ displayPage(--_page)
+ }
+ }
+
+ function clickedAt(x,y) {
+ local button = findObjectAt(x,y)
+ if (button == null) {
+ return NO
+ }
+
+
+
+
+ if (button == helpScreenLeftArrow) {
+ displayPage(--_page)
+ }
+ if (button == helpScreenRightArrow) {
+ displayPage(++_page)
+ }
+ return YES
+ }
+
+ function displayPage(new_page) {
+ _page = new_page
+ objectHidden(helpScreenLeftArrow, NO)
+ objectHidden(helpScreenRightArrow, NO)
+ if (_page <= _startPage) {
+ _page = _startPage
+ objectHidden(helpScreenLeftArrow, YES)
+ }
+ if (_page > _endPage) {
+ exitHelpScreen()
+ return
+ }
+ deleteObject(_help_page_object)
+ _help_page_object = createObject("raw", format("HelpScreen_%02d_en.png", _page))
+ objectScale(_help_page_object, 0.5)
+ objectAt(_help_page_object, 320, 180)
+ }
+
+ enter = function()
+ {
+ ""
+ local bg = createObject("raw", "HelpScreen_bg.png")
+ objectScale(bg, 0.5)
+ objectAt(bg, 320, 180)
+ 
+ roomOverlayColor(0xFF000000)
+ startthread(@() {
+ breaktime(_fadeTime)
+ roomOverlayColor(0x00000000)
+ roomFade(FADE_IN, _fadeTime)
+ inputOn()
+ if ((activeController() == CONTROLLER || activeController() == DIRECTDRIVE)) {
+ inputController(ON)	
+ inputState(UI_CURSOR_OFF)
+ }
+ })
+ enterCloseup(this)
+ _page = _startPage
+ displayPage(_page)
+
+ objectHidden(helpScreenExitArrow, YES)
+
+ }
+
+ exit = function()
+ {
+ exitCloseup(this)
+ inputController(OFF)	
+ }
+
+ 
+ 
+
+ helpScreenLeftArrow =
+ {
+ name = ""
+ }
+
+ helpScreenRightArrow =
+ {
+ name = ""
+ }
+
+ helpScreenExitArrow =
+ {
+ name = ""
+ }
+
+
+}
+
 Bridge <- 
 {
  background = "Bridge"
@@ -683,7 +863,7 @@ Bridge <-
  stopTalking(ALL)
  objectTouchable(Bridge.bridgeStump, YES)
  objectTouchable(Bridge.bridgeGrateEntryDoor, YES)
-//  chainsaw.gassedUp = FALSE
+ chainsaw.gassedUp = FALSE
  chainsaw.used = TRUE
  walkboxHidden("fallen_tree", YES)
  objectSort(Bridge.bridgeGrateTree, 73)
@@ -771,14 +951,14 @@ Bridge <-
  stopTalking(boris)
  breakhere(4)
  actorPlayAnimation(boris, "get_hit")
- screenShake()
+//  screenShake()
  playSound(soundPunchHit)
- stopMusic()
+//  stopMusic()
  breakwhileanimating(boris)
  breaktime(1.0)
- objectState(bridgeDragMark, HERE)
- objectAlpha(bridgeDragMark, 0)
- objectAlphaTo(bridgeDragMark, 1, 2)
+ objectState(Bridge.bridgeDragMark, HERE)
+ objectAlpha(Bridge.bridgeDragMark, 0)
+ objectAlphaTo(Bridge.bridgeDragMark, 1, 2)
  playSoundVolume(soundScrape, 1.0)
  objectOffsetTo(boris, -10, 0, 0.5)
  breaktime(1.0)
@@ -792,19 +972,19 @@ Bridge <-
  playSoundVolume(soundScrape, 0.25)
  objectOffsetTo(boris, -50, 0, 0.5)
  breaktime(3)
- objectState(bridgeRock, GONE)
- objectState(bridgeBody, HERE)
- objectTouchable(bridgeBody, YES)
- objectState(bridgeBottle, HERE)
- objectTouchable(bridgeBottle, YES)
+ objectState(Bridge.bridgeRock, GONE)
+ objectState(Bridge.bridgeBody, HERE)
+ objectTouchable(Bridge.bridgeBody, YES)
+ objectState(Bridge.bridgeBottle, HERE)
+ objectTouchable(Bridge.bridgeBottle, YES)
  if ((g.easy_mode == NO)) {
- objectState(bridgeChainsaw, HERE)
- objectTouchable(bridgeChainsaw, YES)
+ objectState(Bridge.bridgeChainsaw, HERE)
+ objectTouchable(Bridge.bridgeChainsaw, YES)
  }
  actorAt(willie, Void)
  actorAt(boris, Void)
  objectState(Bridge.willieObject, GONE)
- removeInventory(boris)
+//  removeInventory(boris)
  removeTrigger(Bridge.triggerAttack)
  g.openingScene = NO
  actorSlotSelectable(ON)
@@ -929,15 +1109,13 @@ Bridge <-
 //  musicBridge()
  }
  
-//  setAmbientLight(0x999999);	
+ setAmbientLight(0x999999);	
  
  
 //  _lightObject1 = lightSetUp(0xAAAAAA, 719, 43, 0.8, 0, 210, 0.7, 200, 0.85, null, null)
  if (g.openingScene == 1) {
  walkboxHidden("body", NO)
- addTrigger(Bridge.triggerCloseGate, @(){
-     startthread(Bridge.closeGate); removeTrigger(Bridge.triggerCloseGate);
- })
+ addTrigger(Bridge.triggerCloseGate, @() { startthread(Bridge.closeGate); removeTrigger(Bridge.triggerCloseGate); })
  objectTouchable(bridgeHighwayDoorOpening, YES)
  williePassedOutCostume()
  actorVolume(willie, 1.0)
@@ -1347,13 +1525,13 @@ Bridge <-
  sayLine("@24845",
  "@25592")
  playObjectSound(soundThrowInTrashCan2, obj)
-//  g.taken_toilet_paper = FALSE
+ g.taken_toilet_paper = FALSE
  removeInventory(this)
  } else
  if (obj == AStreet.aStreetTrashCan) {
  sayLine("@25593",
  "@25592")
-//  g.taken_toilet_paper = FALSE
+ g.taken_toilet_paper = FALSE
  removeInventory(this)
  } else {
  sayLine("@25594")
@@ -1467,8 +1645,8 @@ Bridge <-
  icon = "chainsaw"
  name = objectName(this, "@25615")
  flags = USE_ON
-//  gassedUp = FALSE
-//  used = FALSE
+ gassedUp = FALSE
+ used = FALSE
  verbLookAt = function()
  {
  if (gassedUp) {
@@ -2348,7 +2526,7 @@ function showHideLayers() {
  }
  }
  }
-  function _stopWriting() {
+  script _stopWriting() {
  if (notebookOpen && !actorWalking(this)) {
  actorPlayAnimation(reyes, "stop_writing", NO)
  breaktime(0.30)
@@ -2359,25 +2537,48 @@ function showHideLayers() {
  _writingTID = 0
  }
 
+ script _writeWhileTalking(actor) {
+ startthread(_startWriting)
+ _writingTID = threadid()
+ notebookOpen = YES
+ if (actor) {
+ breakwhiletalking(actor)
+ } else {
+ breakwhiletalking()
+ }
+ startthread(_stopWriting)
+ notebookOpen = NO
+ }
+
 function startWriting() {
 //  stopActorIdle(reyes)
  if (_writingTID) stopthread(_writingTID)
-//  if (objectOwner(Inventory.reyesNotebook) != reyes) {
-//  return
-//  }
+ if (objectOwner(reyesNotebook) != reyes) {
+ return
+ }
  _writingTID = startthread(_startWriting)
  notebookOpen = YES
  }
 
   function stopWriting() {
  if (_writingTID) stopthread(_writingTID)
-//  if (objectOwner(Inventory.reyesNotebook) != reyes) {
-//  return
-//  }
+ if (objectOwner(reyesNotebook) != reyes) {
+ return
+ }
  _writingTID = startthread(_stopWriting)
  notebookOpen = NO
 //  startReyesIdle()
  }
+
+ function writeWhileTalking(actor = null) {
+ if (_writingTID) stopthread(_writingTID)
+ if (objectOwner(reyesNotebook) != reyes) {
+ return
+ }
+ _writingTID = startthread(_writeWhileTalking, actor)
+ notebookOpen = YES
+ }
+
 }
 createActor(reyes)
 
@@ -2431,6 +2632,11 @@ verbUIColors(2, {	nameid = "reyes", sentence = 0xffffff,
 reyesCostume()
 
 addSelectableActor(6, boris)
+
+pickupObject(raysBadge, ray)
+pickupObject(raysNotebook, ray)
+pickupObject(reyesBadge, reyes)
+pickupObject(reyesNotebook, reyes)
 
 function williePassedOutCostume()
 {
@@ -2498,7 +2704,7 @@ do {
  breakwhilesound(_playingMusicSID)
  if (g.musicSuspended) return
  if (_musicPool == null) {
- stopMusic()
+//  stopMusic()
  return
  }
  startMusic(0, null, NO)
@@ -2982,6 +3188,138 @@ TitleCards <-
  }
 }
 
+function enterCloseup(room) {
+//  actorSlotSelectable(TEMP_UNSELECTABLE)
+//  exCommand(EX_ALLOW_SAVEGAMES, NO)
+ room._is_closeup <- YES
+}
+
+function exitCloseup(room) {
+//  actorSlotSelectable(TEMP_SELECTABLE)
+//  exCommand(EX_ALLOW_SAVEGAMES, YES)
+}
+
+EasyHardMode <-
+{
+ background = "EasyHardMode"
+ runningTID = 0
+
+ function chooseMode() {
+//  runningTID = startglobalthread(@() {
+ runningTID = startthread(@() {
+ breaktime(99999)	
+ })
+ cameraInRoom(EasyHardMode)
+
+ return runningTID
+ }
+
+ enter = function()
+ {
+ ""
+ roomOverlayColor(0xFF000000)
+ startthread(@() {
+ breaktime(2.0)
+ roomOverlayColor(0x00000000)
+ roomFade(FADE_IN, 2.0)
+ inputOn()
+ })
+ enterCloseup(this)
+ }
+
+ exit = function()
+ {
+ exitCloseup(this)
+ }
+
+ function pressedKey(key) {
+ }
+
+ function easyModeChoosen(easy) {
+ inputOff()
+ g.easy_mode = easy
+ initEasyMode()
+ startthread(@() {
+
+ roomFade(FADE_OUT, 1.0)
+ breaktime(1.0)
+ stopthread(runningTID)	
+ })
+ }
+
+ 
+ 
+ function initEasyMode() {
+ if ((g.easy_mode == YES)) {
+ Nickel.copyTron.coins = 1
+ PostOffice.postOfficeTape.tapeCounter = 1
+ objectState(Nickel.nickelFiveCentsSign, GONE)
+ objectName(MansionWorkshop.mansionWorkshopInkBottle1, "@27164")
+ objectName(MansionWorkshop.mansionWorkshopInkBottle2, "@27164")
+ objectState(MansionExterior.mansionExteriorGasCan, GONE)
+ objectTouchable(MansionWorkshop.mansionWorkshopPainting, NO)
+ objectTouchable(MansionWorkshop.mansionWorkshopSafe, NO)
+ objectTouchable(MansionWorkshop.mansionWorkshopFingerprintReader, NO)
+ objectState(MansionWorkshop.mansionWorkshopCheckRegister, GONE)
+ objectState(MansionWorkshop.mansionWorkshopCheckStub, GONE)
+ objectState(MansionWorkshop.mansionWorkshopReceipt, GONE)
+ objectState(MansionWorkshop.mansionWorkshopOfficeKey, GONE)
+ objectState(RansomeTrailer.ransomeTrailerCheese, GONE)
+ objectState(RansomeTrailer.ransomeTrailerComic, GONE)
+ objectTouchable(QuickiePalOutside.quickiePalMovietron, NO)
+ objectTouchable(QuickiePalOutside.quickiePalOutsideBadTube, NO)
+
+ objectHidden(RadioTower.radioTowerSwitch, YES)
+ FactoryHall.factoryHallChucksOfficeDoor.locked = NO
+ objectState(FactoryFront.factoryFrontPF001Tube, HERE)
+ objectState(FactoryFront.factoryFrontTubeHolder, ON)
+ objectTouchable(FactoryFloor.factoryFloorPanel, NO)
+ objectTouchable(FactoryFloor.factoryPanelInside, NO)
+ objectState(ChucksOffice.chucksOfficeGlass, GONE)
+ objectName(FactoryFront.factoryFrontPF001Tube, "@26532")
+ pillowTronShirt.noGiveText <- "@28257"
+
+ }
+ Notes.checkRansomeTodoList("beeper", NO)					
+ if ((g.easy_mode == NO)) Notes.checkRansomeTodoList("package", NO)	
+ Notes.checkRansomeTodoList("insults", NO)
+ Notes.checkRansomeTodoList("insults", YES)
+ Notes.checkRansomeTodoList("makeup", NO)
+ }
+
+ function clickedAt(x,y) {
+ local button = findObjectAt(x,y)
+ if (button == EasyHardMode.easyCheck || button == EasyHardMode.easyArea) {
+ objectState(EasyHardMode.easyCheck, 1)
+ easyModeChoosen(YES)
+ playSound(randomfrom(soundFactoryDoorOpenBlink1, soundFactoryDoorOpenBlink2, soundFactoryDoorOpenBlink3, soundFactoryDoorOpenBlink4, soundFactoryDoorOpenBlink5))
+ } else
+ if (button == EasyHardMode.hardCheck || button == EasyHardMode.hardArea) {
+ objectState(EasyHardMode.hardCheck, 1)
+ easyModeChoosen(NO)
+ playSound(randomfrom(soundFactoryDoorOpenBlink1, soundFactoryDoorOpenBlink2, soundFactoryDoorOpenBlink3, soundFactoryDoorOpenBlink4, soundFactoryDoorOpenBlink5))
+ }
+ }
+
+ 
+ 
+
+ easyCheck = { 
+ name = "" 
+ }
+ hardCheck = { 
+ name = "" 
+ }
+ easyArea = { 
+ name = "" 
+ }
+ hardArea = { 
+ name = "" 
+ }
+
+
+}
+
 Void <- { background = "Void" }
 
 defineRoom(Bridge)
@@ -3000,6 +3338,8 @@ defineRoom(StartScreen)
 // defineRoom(CoronersOffice)
 // defineRoom(Opening)
 defineRoom(Void)
+defineRoom(EasyHardMode)
+defineRoom(HelpScreens)
 defineRoom(TitleCards)
 // Opening.playOpening()
 // TitleCards.showPartMeeting()
@@ -3026,7 +3366,8 @@ function newOpeningScene() {
     Bridge.speck_of_dust <- NO	
     actorSlotSelectable(ray, OFF)
     actorSlotSelectable(reyes, OFF)
-    
+    // breakwhilerunning(EasyHardMode.chooseMode())
+    // breakwhilerunning(HelpScreens.helpIntro())
     // TODO: lot of code
 
     // startMusic(musicBridgeA, bridgeMusicPool)
@@ -3091,5 +3432,5 @@ function newOpeningScene() {
 }
 
 g.openingScene = 1
-local tid = startthread(newOpeningScene)
-// local tid = startthread(doOpening)
+// local tid = startthread(newOpeningScene)
+local tid = startthread(doOpening)

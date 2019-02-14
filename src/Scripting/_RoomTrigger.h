@@ -7,7 +7,7 @@ namespace ng
 class _RoomTrigger : public Trigger
 {
   public:
-    _RoomTrigger(Engine &engine, const Object &object, HSQUIRRELVM v, HSQOBJECT inside, HSQOBJECT outside)
+    _RoomTrigger(Engine &engine, Object &object, HSQUIRRELVM v, HSQOBJECT inside, HSQOBJECT outside)
         : _engine(engine), _object(object), _v(v), _inside(inside), _outside(outside), _isInside(false)
     {
     }
@@ -35,12 +35,12 @@ class _RoomTrigger : public Trigger
                 sq_resetobject(&actorObject);
                 sq_getstackobj(_v, -1, &actorObject);
                 sq_pushobject(_v, _inside);
-                sq_pushobject(_v, *_object.getTable());
+                sq_pushobject(_v, _object.getTable());
                 sq_pushobject(_v, actorObject);
             }
             else
             {
-                sq_pushobject(_v, *_object.getTable());
+                sq_pushobject(_v, _object.getTable());
             }
             if (SQ_FAILED(sq_call(_v, nparams, SQFalse, SQTrue)))
             {
@@ -64,12 +64,12 @@ class _RoomTrigger : public Trigger
                     sq_resetobject(&actorObject);
                     sq_getstackobj(_v, -1, &actorObject);
                     sq_pushobject(_v, _outside);
-                    sq_pushobject(_v, *_object.getTable());
+                    sq_pushobject(_v, _object.getTable());
                     sq_pushobject(_v, actorObject);
                 }
                 else
                 {
-                    sq_pushobject(_v, *_object.getTable());
+                    sq_pushobject(_v, _object.getTable());
                 }
 
                 if (SQ_FAILED(sq_call(_v, nparams, SQFalse, SQTrue)))
@@ -82,7 +82,7 @@ class _RoomTrigger : public Trigger
 
   private:
     Engine &_engine;
-    const Object &_object;
+    Object &_object;
     HSQUIRRELVM _v;
     HSQOBJECT _inside;
     HSQOBJECT _outside;

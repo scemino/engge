@@ -72,8 +72,7 @@ public:
   void setDefaultVerb(const std::string &verb) { _verb = verb; }
   const std::string &getDefaultVerb() const { return _verb; }
 
-  void setTable(std::unique_ptr<HSQOBJECT> pTable) { _pTable = std::move(pTable); }
-  HSQOBJECT *getTable() const { return _pTable.get(); }
+  HSQOBJECT& getTable() { return _pTable; }
 
   std::vector<std::unique_ptr<Animation>> &getAnims() { return _anims; }
 
@@ -92,9 +91,6 @@ public:
   void setVisible(bool isVisible);
   bool isVisible() const { return _isVisible; }
   void setScale(float s);
-
-  Actor *getOwner() { return _pOwner; }
-  void setOwner(Actor *pActor) { _pOwner = pActor; }
 
   Room *getRoom() { return _pRoom; }
   const Room *getRoom() const { return _pRoom; }
@@ -128,12 +124,11 @@ private:
   float _angle;
   bool _isTouchable;
   bool _isLit;
-  Actor *_pOwner;
   Room *_pRoom;
   int _state;
   std::string _verb;
   std::vector<std::shared_ptr<Trigger>> _triggers;
-  std::unique_ptr<HSQOBJECT> _pTable;
+  HSQOBJECT _pTable;
   bool _hotspotVisible;
 };
 } // namespace ng

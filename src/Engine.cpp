@@ -252,6 +252,11 @@ void Engine::update(const sf::Time &elapsed)
     }
 }
 
+void Engine::setCurrentActor(Actor *pCurrentActor)
+{
+    _pCurrentActor = pCurrentActor;
+}
+
 bool Engine::clickedAt(const sf::Vector2f &pos)
 {
     if (!_pRoom)

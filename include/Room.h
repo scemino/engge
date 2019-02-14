@@ -17,6 +17,9 @@ namespace ng
 class Room : public NonCopyable
 {
 public:
+  static int RoomType;
+
+public:
   Room(TextureManager &textureManager, const EngineSettings &settings);
   ~Room() = default;
 
@@ -50,6 +53,8 @@ public:
   bool walkboxesVisible() const { return _showDrawWalkboxes; }
   void setAmbientLight(sf::Color color) { _ambientColor = color; }
   sf::Color getAmbientLight() const { return _ambientColor; }
+
+  void removeEntity(Entity *pEntity);
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;

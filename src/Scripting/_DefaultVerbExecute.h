@@ -132,7 +132,7 @@ class _ActorWalk : public Function
 class _Use : public Function
 {
   public:
-    _Use(HSQUIRRELVM v, Actor &actor, const InventoryObject &objectSource, const Object &objectTarget)
+    _Use(HSQUIRRELVM v, Actor &actor, const InventoryObject &objectSource, Object &objectTarget)
         : _vm(v), _actor(actor), _objectSource(objectSource), _objectTarget(objectTarget)
     {
     }
@@ -142,7 +142,7 @@ class _Use : public Function
     void operator()() override
     {
         HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
-        HSQOBJECT objTarget = *(HSQOBJECT *)_objectTarget.getTable();
+        HSQOBJECT objTarget = _objectTarget.getTable();
 
         auto pTable = _actor.getRoom()->getTable();
         sq_pushobject(_vm, objSource);
@@ -166,13 +166,13 @@ class _Use : public Function
     HSQUIRRELVM _vm;
     Actor &_actor;
     const InventoryObject &_objectSource;
-    const Object &_objectTarget;
+    Object &_objectTarget;
 };
 
 class _VerbExecute : public Function
 {
   public:
-    _VerbExecute(HSQUIRRELVM v, Actor &actor, const Object &object, const std::string &verb)
+    _VerbExecute(HSQUIRRELVM v, Actor &actor, Object &object, const std::string &verb)
         : _vm(v), _actor(actor), _object(object), _verb(verb)
     {
     }
@@ -181,18 +181,18 @@ class _VerbExecute : public Function
     bool isElapsed() override { return true; }
     void operator()() override
     {
-        sq_pushobject(_vm, *_object.getTable());
+        sq_pushobject(_vm, _object.getTable());
         sq_pushstring(_vm, _verb.data(), -1);
 
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
             sq_remove(_vm, -2);
-            sq_pushobject(_vm, *_object.getTable());
+            sq_pushobject(_vm, _object.getTable());
             sq_call(_vm, 1, SQFalse, SQTrue);
             sq_pop(_vm, 2); //pops the roottable and the function
             return;
         }
-        callVerbDefault(*_object.getTable());
+        callVerbDefault(_object.getTable());
     }
 
     void callVerbDefault(HSQOBJECT obj)
@@ -212,7 +212,7 @@ class _VerbExecute : public Function
   private:
     HSQUIRRELVM _vm;
     Actor &_actor;
-    const Object &_object;
+    Object &_object;
     const std::string &_verb;
 };
 
@@ -225,9 +225,9 @@ class _DefaultVerbExecute : public VerbExecute
     }
 
   private:
-    void execute(const Object *pObject, const Verb *pVerb) override
+    void execute(Object *pObject, const Verb *pVerb) override
     {
-        auto obj = *pObject->getTable();
+        auto obj = pObject->getTable();
         getVerb(obj, pVerb);
         if (!pVerb)
             return;
@@ -241,7 +241,7 @@ class _DefaultVerbExecute : public VerbExecute
         _engine.addFunction(std::move(after));
     }
 
-    void use(const InventoryObject *pObjectSource, const Object *pObjectTarget) override
+    void use(const InventoryObject *pObjectSource, Object *pObjectTarget) override
     {
         auto walk = std::make_unique<_ActorWalk>(*_engine.getCurrentActor(), *pObjectTarget);
         auto action = std::make_unique<_Use>(_vm, *_engine.getCurrentActor(), *pObjectSource, *pObjectTarget);

@@ -24,8 +24,8 @@ class VerbExecute
 {
 public:
   virtual ~VerbExecute() = default;
-  virtual void use(const InventoryObject *pObjectSource, const Object *pObjectTarget) = 0;
-  virtual void execute(const Object *pObject, const Verb *pVerb) = 0;
+  virtual void use(const InventoryObject *pObjectSource, Object *pObjectTarget) = 0;
+  virtual void execute(Object *pObject, const Verb *pVerb) = 0;
   virtual void execute(const InventoryObject *pObject, const Verb *pVerb) = 0;
 };
 
@@ -88,7 +88,7 @@ public:
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
 
-  void setCurrentActor(Actor *pCurrentActor) { _pCurrentActor = pCurrentActor; }
+  void setCurrentActor(Actor *pCurrentActor);
   Actor *getCurrentActor() { return _pCurrentActor; }
 
   void setVerb(int characterSlot, int verbSlot, const Verb &verb) { _verbSlots[characterSlot].setVerb(verbSlot, verb); }
@@ -168,7 +168,7 @@ private:
   nlohmann::json _jsonInventoryItems;
   Actor *_pFollowActor;
   sf::IntRect _verbRects[9];
-  const Object *_pCurrentObject;
+  Object *_pCurrentObject;
   const InventoryObject *_pUseObject;
   sf::Vector2f _mousePos;
   std::unique_ptr<VerbExecute> _pVerbExecute;

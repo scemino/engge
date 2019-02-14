@@ -11,6 +11,8 @@
 
 namespace ng
 {
+int Room::RoomType = 1;
+
 Room::Room(TextureManager &textureManager, const EngineSettings &settings)
     : _textureManager(textureManager),
       _ambientColor(255, 255, 255, 255),
@@ -32,6 +34,14 @@ void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
     });
     itMainLayer->get()->removeEntity(*pEntity);
     it->get()->addEntity(*pEntity);
+}
+
+void Room::removeEntity(Entity *pEntity)
+{
+    for (auto &layer : _layers)
+    {
+        layer->removeEntity(*pEntity);
+    }
 }
 
 void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)

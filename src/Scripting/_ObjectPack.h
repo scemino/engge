@@ -60,14 +60,14 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get y"));
         }
-        auto& room = g_pEngine->getRoom();
-        auto& objects = room.getObjects();
+        auto &room = g_pEngine->getRoom();
+        auto &objects = room.getObjects();
 
         for (auto &obj : objects)
         {
             if (obj->getRealHotspot().contains(sf::Vector2i(x, y)))
             {
-                sq_pushobject(v, *obj->getTable());
+                sq_pushobject(v, obj->getTable());
                 return 1;
             }
         }
@@ -532,12 +532,34 @@ class _ObjectPack : public Pack
 
     static SQInteger objectOwner(HSQUIRRELVM v)
     {
-        auto *obj = ScriptEngine::getObject(v, 2);
-        if (!obj)
+        HSQOBJECT obj;
+        sq_resetobject(&obj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &obj)))
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        ScriptEngine::pushObject(v, *obj->getOwner());
+
+        Actor *pActor = nullptr;
+        for (const auto &actor : g_pEngine->getActors())
+        {
+            for (const auto &inventoryObj : actor->getObjects())
+            {
+                if (inventoryObj->getHandle()->_unVal.pTable == obj._unVal.pTable)
+                {
+                    pActor = actor.get();
+                    break;
+                }
+            }
+        }
+
+        if (!pActor)
+        {
+            std::cerr << "Inventory object not found" << std::endl;
+            sq_pushnull(v);
+            return 1;
+        }
+
+        sq_pushobject(v, pActor->getTable());
         return 1;
     }
 
@@ -642,6 +664,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
+        sq_addref(v, pObj.get());
         sq_pushobject(v, *pObj.get());
         sq_pushstring(v, _SC("icon"), -1);
         if (SQ_FAILED(sq_get(v, -2)))

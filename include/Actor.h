@@ -123,6 +123,8 @@ public:
 
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
 
+  HSQOBJECT& getTable() { return _table; }
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
@@ -144,5 +146,6 @@ private:
   sf::Vector2i _speed;
   float _volume;
   std::shared_ptr<Path> _path;
+  HSQOBJECT _table;
 };
 } // namespace ng

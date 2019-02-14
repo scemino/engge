@@ -12,7 +12,6 @@ Object::Object()
       _color(sf::Color::White),
       _angle(0),
       _isTouchable(true),
-      _pOwner(nullptr),
       _pRoom(nullptr),
       _state(0),
       _hotspotVisible(false)

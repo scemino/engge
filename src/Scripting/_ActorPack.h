@@ -108,7 +108,37 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
-            // TODO: argument #3 can be a room
+
+            HSQOBJECT object;
+            sq_resetobject(&object);
+            if (SQ_FAILED(sq_getstackobj(v, 3, &object)))
+            {
+                return sq_throwerror(v, _SC("failed to get object or room"));
+            }
+
+            sq_pushobject(v, object);
+            sq_pushstring(v, _SC("_type"), -1);
+            SQInteger type = 0;
+            if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+            {
+                sq_remove(v, -2);
+                if (SQ_FAILED(sq_getinteger(v, -1, &type)))
+                {
+                    return sq_throwerror(v, _SC("failed to get object or room"));
+                }
+            }
+
+            if (type == Room::RoomType)
+            {
+                auto *pRoom = ScriptEngine::getRoom(v, 3);
+                if (!pRoom)
+                {
+                    return sq_throwerror(v, _SC("failed to get room"));
+                }
+                pActor->setRoom(pRoom);
+                return 0;
+            }
+
             auto *pObj = ScriptEngine::getObject(v, 3);
             if (!pObj)
             {
@@ -119,8 +149,8 @@ class _ActorPack : public Pack
             pos.x += usePos.x;
             pos.y -= usePos.y;
             auto pRoom = pObj->getRoom();
-            pActor->setPosition(pos);
             pActor->setRoom(pRoom);
+            pActor->setPosition(pos);
             return 0;
         }
 
@@ -655,9 +685,11 @@ class _ActorPack : public Pack
 
     static SQInteger createActor(HSQUIRRELVM v)
     {
-        HSQOBJECT table;
+        auto pActor = std::make_unique<Actor>(*g_pEngine);
+        auto &table = pActor->getTable();
         sq_resetobject(&table);
         sq_getstackobj(v, 2, &table);
+        sq_addref(v, &table);
 
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("_key"), 4);
@@ -673,8 +705,6 @@ class _ActorPack : public Pack
         sq_pop(v, 2);
 
         // define instance
-        auto pActor = std::make_unique<Actor>(*g_pEngine);
-
         const SQChar *icon = nullptr;
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("icon"), 4);
@@ -787,7 +817,8 @@ class _ActorPack : public Pack
         auto &actors = g_pEngine->getActors();
         for (auto &a : actors)
         {
-            if(a.get() == g_pEngine->getCurrentActor()) continue;
+            if (a.get() == g_pEngine->getCurrentActor())
+                continue;
             a->stopTalking();
         }
 

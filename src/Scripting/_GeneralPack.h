@@ -218,7 +218,7 @@ class _GeneralPack : public Pack
             sq_pushobject(v, *pRoom->getTable());
             if (nparams == 2)
             {
-                sq_pushobject(v, *obj->getTable()); // the door
+                sq_pushobject(v, obj->getTable()); // the door
             }
             if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
             {
