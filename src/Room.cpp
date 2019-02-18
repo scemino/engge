@@ -17,7 +17,8 @@ Room::Room(TextureManager &textureManager, const EngineSettings &settings)
     : _textureManager(textureManager),
       _ambientColor(255, 255, 255, 255),
       _settings(settings),
-      _showDrawWalkboxes(false)
+      _showDrawWalkboxes(false),
+      _spriteSheet(textureManager, settings)
 {
 }
 
@@ -44,7 +45,7 @@ void Room::removeEntity(Entity *pEntity)
     }
 }
 
-void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
+void Room::loadBackgrounds(nlohmann::json jWimpy)
 {
     int width = 0;
     if (!jWimpy["fullscreen"].is_null())
@@ -56,11 +57,11 @@ void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
         auto layer = std::make_unique<RoomLayer>();
         for (auto &bg : jWimpy["background"])
         {
-            auto frame = json["frames"][bg.get<std::string>()]["frame"];
+            auto frame = _spriteSheet.getRect(bg.get<std::string>());
             auto sprite = sf::Sprite();
             sprite.move(width, 0);
             sprite.setTexture(_textureManager.get(_sheet));
-            sprite.setTextureRect(_toRect(frame));
+            sprite.setTextureRect(frame);
             width += sprite.getTextureRect().width;
             layer->getSprites().push_back(sprite);
         }
@@ -68,10 +69,10 @@ void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
     }
     else if (jWimpy["background"].is_string())
     {
-        auto frame = json["frames"][jWimpy["background"].get<std::string>()]["frame"];
+        auto frame = _spriteSheet.getRect(jWimpy["background"].get<std::string>());
         auto sprite = sf::Sprite();
         sprite.setTexture(_textureManager.get(_sheet));
-        sprite.setTextureRect(_toRect(frame));
+        sprite.setTextureRect(frame);
         auto layer = std::make_unique<RoomLayer>();
         layer->getSprites().push_back(sprite);
         _layers.push_back(std::move(layer));
@@ -83,7 +84,7 @@ void Room::loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json)
     }
 }
 
-void Room::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
+void Room::loadLayers(nlohmann::json jWimpy)
 {
     if (jWimpy["layers"].is_null())
         return;
@@ -101,11 +102,11 @@ void Room::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
                 auto layerName = jName.get<std::string>();
                 // layer.getNames().push_back(layerName);
 
-                const auto &rect = _toRect(json["frames"][layerName]["frame"]);
+                const auto &rect = _spriteSheet.getRect(layerName);
                 sf::Sprite s;
                 s.setTexture(_textureManager.get(_sheet));
                 s.setTextureRect(rect);
-                const auto &sourceRect = _toRect(json["frames"][layerName]["spriteSourceSize"]);
+                const auto &sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
                 s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
                 s.move(sf::Vector2f(offsetX, 0));
                 offsetX += rect.width;
@@ -116,11 +117,11 @@ void Room::loadLayers(nlohmann::json jWimpy, nlohmann::json json)
         {
             auto layerName = jLayer["name"].get<std::string>();
 
-            const auto &rect = _toRect(json["frames"][layerName]["frame"]);
+            const auto &rect = _spriteSheet.getRect(layerName);
             sf::Sprite s;
             s.setTexture(_textureManager.get(_sheet));
             s.setTextureRect(rect);
-            const auto &sourceRect = _toRect(json["frames"][layerName]["spriteSourceSize"]);
+            const auto &sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
             s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
             layer->getSprites().push_back(s);
         }
@@ -217,7 +218,7 @@ void Room::updateGraph()
     _pf = std::make_shared<PathFinder>(_graphWalkboxes);
 }
 
-void Room::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
+void Room::loadObjects(nlohmann::json jWimpy)
 {
     auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
@@ -267,11 +268,11 @@ void Room::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
                 for (const auto &jFrame : jAnimation["frames"])
                 {
                     auto n = jFrame.get<std::string>();
-                    if (json["frames"][n].is_null())
+                    if (!_spriteSheet.hasRect(n))
                         continue;
-                    anim->getRects().push_back(_toRect(json["frames"][n]["frame"]));
-                    anim->getSizes().push_back(_toSize(json["frames"][n]["sourceSize"]));
-                    anim->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
+                    anim->getRects().push_back(_spriteSheet.getRect(n));
+                    anim->getSizes().push_back(_spriteSheet.getSourceSize(n));
+                    anim->getSourceRects().push_back(_spriteSheet.getSpriteSourceSize(n));
                 }
                 if (!jAnimation["triggers"].is_null())
                 {
@@ -330,16 +331,11 @@ void Room::load(const char *name)
 
     // load json file
     std::string jsonFilename;
-    jsonFilename.append(_settings.getGamePath()).append(_sheet).append(".json");
-    nlohmann::json json;
-    {
-        std::ifstream i(jsonFilename);
-        i >> json;
-    }
+    _spriteSheet.load(_sheet);
 
-    loadBackgrounds(jWimpy, json);
-    loadLayers(jWimpy, json);
-    loadObjects(jWimpy, json);
+    loadBackgrounds(jWimpy);
+    loadLayers(jWimpy);
+    loadObjects(jWimpy);
     loadScalings(jWimpy);
     loadWalkboxes(jWimpy);
 }

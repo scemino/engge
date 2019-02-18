@@ -11,6 +11,7 @@
 #include "RoomScaling.h"
 #include "Graph.h"
 #include "PathFinder.h"
+#include "SpriteSheet.h"
 
 namespace ng
 {
@@ -59,11 +60,11 @@ public:
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
 
-  void loadLayers(nlohmann::json jWimpy, nlohmann::json json);
-  void loadObjects(nlohmann::json jWimpy, nlohmann::json json);
+  void loadLayers(nlohmann::json jWimpy);
+  void loadObjects(nlohmann::json jWimpy);
   void loadScalings(nlohmann::json jWimpy);
   void loadWalkboxes(nlohmann::json jWimpy);
-  void loadBackgrounds(nlohmann::json jWimpy, nlohmann::json json);
+  void loadBackgrounds(nlohmann::json jWimpy);
   void updateGraph();
 
 private:
@@ -83,5 +84,6 @@ private:
   std::shared_ptr<PathFinder> _pf;
   std::vector<Walkbox> _graphWalkboxes;
   sf::Color _ambientColor;
+  SpriteSheet _spriteSheet;
 };
 } // namespace ng

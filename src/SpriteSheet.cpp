@@ -35,6 +35,12 @@ void SpriteSheet::load(const std::string &name)
     }
 }
 
+bool SpriteSheet::hasRect(const std::string &name) const
+{
+    const auto it = _rects.find(name);
+    return it != _rects.end();
+}
+
 sf::IntRect SpriteSheet::getRect(const std::string &name) const
 {
     const auto it = _rects.find(name);
