@@ -42,16 +42,7 @@ public:
   bool getTrigger() const { return _trigger; }
 
   void setTouchable(bool isTouchable) { _isTouchable = isTouchable; }
-  bool isTouchable() const
-  {
-    if (_trigger)
-      return false;
-    if (_spot)
-      return false;
-    if (_prop)
-      return false;
-    return _isTouchable;
-  }
+  bool isTouchable() const;
 
   void setLit(bool isLit) { _isLit = isLit; }
   bool isLit() const { return _isLit; }

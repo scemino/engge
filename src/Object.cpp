@@ -20,6 +20,17 @@ Object::Object()
 
 Object::~Object() = default;
 
+bool Object::isTouchable() const
+  {
+    if (_trigger)
+      return false;
+    if (_spot)
+      return false;
+    if (_prop)
+      return false;
+    return _isTouchable;
+  }
+
 void Object::setDefaultPosition(const sf::Vector2f &pos)
 {
     _defaultPosition = pos;
