@@ -20,6 +20,17 @@ Object::Object()
 
 Object::~Object() = default;
 
+void Object::setDefaultPosition(const sf::Vector2f &pos)
+{
+    _defaultPosition = pos;
+    setPosition(pos);
+}
+
+sf::Vector2f Object::getDefaultPosition() const
+{
+    return _defaultPosition;
+}
+
 void Object::setVisible(bool isVisible)
 {
     _isVisible = isVisible;
@@ -112,8 +123,9 @@ void Object::update(const sf::Time &elapsed)
 
 void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if(!_hotspotVisible) return;
-    
+    if (!_hotspotVisible)
+        return;
+
     states.transform *= _transform.getTransform();
     auto rect = getHotspot();
 

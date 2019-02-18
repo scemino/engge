@@ -24,12 +24,17 @@ public:
 
   void setPosition(const sf::Vector2f &pos)
   {
-      _transform.setPosition(pos);
+    _transform.setPosition(pos);
   }
 
   sf::Vector2f getPosition() const
   {
-      return _transform.getPosition();
+    return _transform.getPosition();
+  }
+
+  virtual sf::Vector2f getDefaultPosition() const
+  {
+    return getPosition();
   }
 
   sf::Vector2f getUsePosition() const
@@ -51,7 +56,7 @@ public:
     }
   }
 
-  virtual void trigSound(const std::string& name)
+  virtual void trigSound(const std::string &name)
   {
   }
 

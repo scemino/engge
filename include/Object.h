@@ -80,6 +80,8 @@ public:
   int getStateAnimIndex();
   void setAnimation(const std::string &name);
 
+  void setDefaultPosition(const sf::Vector2f &pos);
+  sf::Vector2f getDefaultPosition() const override;
   void move(const sf::Vector2f &offset);
 
   void setRotation(float angle) { _transform.setRotation(angle); }
@@ -119,6 +121,7 @@ private:
   bool _spot;
   bool _trigger;
   sf::Vector2f _usePos;
+  sf::Vector2f _defaultPosition;
   sf::Color _color;
   sf::IntRect _hotspot;
   float _angle;

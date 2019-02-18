@@ -250,7 +250,7 @@ void Room::loadObjects(nlohmann::json jWimpy, nlohmann::json json)
         bool isTrigger = jObject["trigger"].is_number_integer() && jObject["trigger"].get<int>() == 1;
         object->setTrigger(isTrigger);
 
-        object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
+        object->setDefaultPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
         object->setUsePosition(usePos);
 
         // animations
