@@ -72,7 +72,7 @@ public:
   const EngineSettings &getSettings() const { return _settings; }
 
   Room &getRoom() { return *_pRoom; }
-  void setRoom(Room *room) { _pRoom = room; }
+  void setRoom(Room *room);
   std::string getText(int id) const { return _textDb.getText(id); }
   void setFadeAlpha(float fade) { _fadeColor.a = static_cast<uint8_t>(fade * 255); }
   float getFadeAlpha() const { return _fadeColor.a / 255.f; }
@@ -95,13 +95,11 @@ public:
   void setVerbUiColors(int characterSlot, VerbUiColors colors) { _verbUiColors[characterSlot] = colors; }
   VerbUiColors &getVerbUiColors(int characterSlot) { return _verbUiColors[characterSlot]; }
 
-  void setInputActive(bool active)
-  {
-    _inputActive = active;
-    _showCursor = active;
-  }
-  void inputSilentOff() { _inputActive = false; }
+  void setInputActive(bool active);
+  void inputSilentOff();
+  void setInputVerbs(bool on);
   bool getInputActive() const { return _inputActive; }
+  bool getInputVerbs() const { return _inputVerbsActive; }
 
   void follow(Actor *pActor) { _pFollowActor = pActor; }
   void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pVerbExecute = std::move(verbExecute); }
@@ -132,7 +130,8 @@ public:
   }
   UseFlag getUseFlag(UseFlag flag) const { return _useFlag; }
 
-  void setVm(HSQUIRRELVM vm){ _vm = vm; }
+  void setVm(HSQUIRRELVM vm) { _vm = vm; }
+  HSQUIRRELVM getVm() const { return _vm; }
 
 private:
   sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
@@ -144,7 +143,7 @@ private:
   int getCurrentActorIndex() const;
   sf::IntRect getCursorRect() const;
   void appendUseFlag(std::string &sentence) const;
-  bool clickedAt(const sf::Vector2f& pos);
+  bool clickedAt(const sf::Vector2f &pos);
 
 private:
   const EngineSettings &_settings;
@@ -164,6 +163,7 @@ private:
   std::array<VerbUiColors, 6> _verbUiColors;
   bool _inputActive;
   bool _showCursor;
+  bool _inputVerbsActive;
   SpriteSheet _verbSheet, _gameSheet;
   nlohmann::json _jsonInventoryItems;
   Actor *_pFollowActor;

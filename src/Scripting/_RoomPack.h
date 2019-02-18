@@ -117,7 +117,7 @@ class _RoomPack : public Pack
             }
             sq_addref(v, &outside);
         }
-        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, v, inside, outside);
+        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, inside, outside);
         object->addTrigger(trigger);
 
         return 0;

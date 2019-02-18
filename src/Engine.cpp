@@ -40,6 +40,7 @@ Engine::Engine(const EngineSettings &settings)
       _gameSheet(_textureManager, settings),
       _inputActive(false),
       _showCursor(false),
+      _inputVerbsActive(false),
       _pFollowActor(nullptr),
       _pCurrentObject(nullptr),
       _pVerb(nullptr),
@@ -78,6 +79,28 @@ Engine::Engine(const EngineSettings &settings)
 }
 
 Engine::~Engine() = default;
+
+void Engine::setRoom(Room *room)
+{
+    _fadeColor = sf::Color::Transparent;
+    _pRoom = room;
+}
+
+void Engine::setInputActive(bool active)
+{
+    _inputActive = active;
+    _showCursor = active;
+}
+
+void Engine::inputSilentOff()
+{
+    _inputActive = false;
+}
+
+void Engine::setInputVerbs(bool on)
+{
+    _inputVerbsActive = on;
+}
 
 sf::IntRect Engine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
 {
@@ -209,12 +232,15 @@ void Engine::update(const sf::Time &elapsed)
         return;
 
     auto verbId = -1;
-    for (auto i = 0; i < 9; i++)
+    if (_inputVerbsActive)
     {
-        if (_verbRects[i].contains((sf::Vector2i)_mousePos))
+        for (auto i = 0; i < 9; i++)
         {
-            verbId = i;
-            break;
+            if (_verbRects[i].contains((sf::Vector2i)_mousePos))
+            {
+                verbId = i;
+                break;
+            }
         }
     }
 
@@ -449,6 +475,9 @@ int Engine::getCurrentActorIndex() const
 
 void Engine::drawVerbs(sf::RenderWindow &window) const
 {
+    if (!_inputVerbsActive)
+        return;
+
     int currentActorIndex = getCurrentActorIndex();
     if (!_inputActive || currentActorIndex == -1 || _verbSlots[currentActorIndex].getVerb(0).id.empty())
         return;

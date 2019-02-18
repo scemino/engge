@@ -7,8 +7,8 @@ namespace ng
 class _RoomTrigger : public Trigger
 {
   public:
-    _RoomTrigger(Engine &engine, Object &object, HSQUIRRELVM v, HSQOBJECT inside, HSQOBJECT outside)
-        : _engine(engine), _object(object), _v(v), _inside(inside), _outside(outside), _isInside(false)
+    _RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQOBJECT outside)
+        : _engine(engine), _object(object), _v(engine.getVm()), _inside(inside), _outside(outside), _isInside(false)
     {
     }
 
@@ -44,7 +44,7 @@ class _RoomTrigger : public Trigger
             }
             if (SQ_FAILED(sq_call(_v, nparams, SQFalse, SQTrue)))
             {
-                sq_throwerror(_v, "failed to call room inside trigger");
+                std::cerr << "failed to call room inside trigger" << std::endl;
             }
         }
         else if (_isInside && !inObjectHotspot)
@@ -74,7 +74,7 @@ class _RoomTrigger : public Trigger
 
                 if (SQ_FAILED(sq_call(_v, nparams, SQFalse, SQTrue)))
                 {
-                    sq_throwerror(_v, "failed to call room outside trigger");
+                    std::cerr << "failed to call room outside trigger" << std::endl;
                 }
             }
         }

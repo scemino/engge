@@ -40,6 +40,8 @@ Inventory::Inventory(Engine &engine,
 
 void Inventory::update(const sf::Time &elapsed)
 {
+    if (_pCurrentActor == nullptr)
+        return;
     _pCurrentInventoryObject = nullptr;
 
     for (int i = 0; i < 8; i++)

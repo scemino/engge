@@ -2,11 +2,81 @@
 #include <time.h>
 #include "squirrel.h"
 #include "Function.h"
+#include "Engine.h"
 #include "Actor.h"
 #include "../_NGUtil.h"
 
 namespace ng
 {
+class _BreakWhileCutscene : public Function
+{
+  private:
+    Engine &_engine;
+    HSQUIRRELVM _v;
+    HSQOBJECT _thread;
+    int _state;
+    HSQOBJECT _closureObj;
+    HSQOBJECT _envObj;
+    bool _inputActive;
+    Actor *_currentActor;
+
+  public:
+    _BreakWhileCutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT envObj)
+        : _engine(engine), _v(v), _thread(thread), _state(0), _closureObj(closureObj), _envObj(envObj)
+    {
+        _inputActive = _engine.getInputActive();
+        _engine.setInputActive(false);
+        _currentActor = _engine.getCurrentActor();
+        _engine.setInputVerbs(false);
+
+        sq_addref(_v, &_thread);
+        sq_addref(_v, &_closureObj);
+        sq_addref(_v, &_envObj);
+    }
+
+  private:
+    bool isElapsed() override { return _state == 3; }
+    void operator()() override
+    {
+        if (_state == 3)
+            return;
+
+        if (_state == 0)
+        {
+            _state = 1;
+            std::cout << "start cutscene: " << _thread._unVal.pThread << std::endl;
+            sq_pushobject(_thread._unVal.pThread, _closureObj);
+            sq_pushobject(_thread._unVal.pThread, _envObj);
+            if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
+            {
+                std::cerr << "Couldn't call coroutine thread" << std::endl;
+            }
+            return;
+        }
+        if (_state == 1)
+        {
+            auto s = sq_getvmstate(_thread._unVal.pThread);
+            if (s == SQ_VMSTATE_IDLE)
+            {
+                _state = 2;
+                std::cout << "end cutscene: " << _thread._unVal.pThread << std::endl;
+            }
+            return;
+        }
+        if (_state == 2)
+        {
+            _state = 3;
+            _engine.stopThread(_thread._unVal.pThread);
+            _engine.setInputActive(_inputActive);
+            if(_currentActor) _engine.setCurrentActor(_currentActor);
+            sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
+            sq_release(_v, &_thread);
+            sq_release(_v, &_closureObj);
+            sq_release(_v, &_envObj);
+        }
+    }
+};
+
 class _BreakFunction : public Function
 {
   protected:
@@ -154,20 +224,29 @@ class _BreakWhileSoundFunction : public _BreakFunction
     }
 };
 
-class _BreakWhileRunningFunction : public _BreakFunction
+class _BreakWhileRunningFunction : public Function
 {
   private:
+    Engine &_engine;
+    HSQUIRRELVM _vm;
     HSQUIRRELVM _thread;
 
   public:
     _BreakWhileRunningFunction(Engine &engine, HSQUIRRELVM vm, HSQUIRRELVM thread)
-        : _BreakFunction(engine, vm), _thread(thread)
+        : _engine(engine), _vm(vm), _thread(thread)
     {
     }
 
-    const std::string getName() override
+    void operator()() override
     {
-        return "_BreakWhileRunningFunction";
+        if (isElapsed())
+            return;
+
+        if (sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
+        {
+            _engine.stopThread(_thread);
+            sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse);
+        }
     }
 
     bool isElapsed() override
@@ -420,11 +499,7 @@ class _SystemPack : public Pack
 
     static SQInteger cutscene(HSQUIRRELVM v)
     {
-        auto inputActive = g_pEngine->getInputActive();
-        g_pEngine->setInputActive(false);
-        auto currentActor = g_pEngine->getCurrentActor();
-
-        SQInteger size = sq_gettop(v);
+        // SQInteger size = sq_gettop(v);
 
         HSQOBJECT env_obj;
         sq_resetobject(&env_obj);
@@ -435,9 +510,9 @@ class _SystemPack : public Pack
 
         // create thread and store it on the stack
         auto thread = sq_newthread(v, 1024);
-        HSQOBJECT thread_obj;
-        sq_resetobject(&thread_obj);
-        if (SQ_FAILED(sq_getstackobj(v, -1, &thread_obj)))
+        HSQOBJECT threadObj;
+        sq_resetobject(&threadObj);
+        if (SQ_FAILED(sq_getstackobj(v, -1, &threadObj)))
         {
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
@@ -450,31 +525,14 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
 
-        // call the closure in the thread
-        sq_pushobject(thread, closureObj);
-        sq_pushobject(thread, env_obj);
+        // TODO: cutsceneoverride
 
-        if (SQ_FAILED(sq_call(thread, 1, SQFalse, SQTrue)))
-        {
-            sq_throwerror(v, _SC("call failed"));
-            sq_pop(thread, 1); // pop the compiled closure
-            return SQ_ERROR;
-        }
+        g_pEngine->addThread(thread);
 
-        // create a table for a thread
-        sq_addref(v, &thread_obj);
-        sq_pushobject(v, thread_obj);
+        auto scene = std::make_unique<_BreakWhileCutscene>(*g_pEngine, v, threadObj, closureObj, env_obj);
+        g_pEngine->addFunction(std::move(scene));
 
-        std::cout << "start cutscene: " << thread_obj._unVal.pThread << std::endl;
-        g_pEngine->addThread(thread_obj._unVal.pThread);
-
-        g_pEngine->setInputActive(inputActive);
-        if (currentActor)
-        {
-            g_pEngine->follow(currentActor);
-        }
-
-        return 1;
+        return sq_suspendvm(v);
     }
 
     static SQInteger breaktime(HSQUIRRELVM v)
@@ -674,7 +732,7 @@ class _SystemPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get isActive"));
         }
-        // TODO: g_pEngine->setInputVerbs(on);
+        g_pEngine->setInputVerbs(on);
         return 1;
     }
 
