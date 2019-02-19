@@ -19,7 +19,7 @@ void Animation::reset()
     auto &sourceRect = _sourceRects[_index];
     auto size = _sizes[_index];
     _sprite.setTextureRect(_rects[_index]);
-    _sprite.setOrigin(sf::Vector2f(-size.x / 2.f + sourceRect.left, -size.y / 2.f + sourceRect.top));
+    _sprite.setOrigin(sf::Vector2f(size.x / 2.f - sourceRect.left, size.y / 2.f - sourceRect.top));
 }
 
 void Animation::play(bool loop)
