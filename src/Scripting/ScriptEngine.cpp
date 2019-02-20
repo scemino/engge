@@ -189,6 +189,21 @@ ScriptEngine::ScriptEngine(Engine &engine)
                             {"REACH_MED",    0x10000},
                             {"REACH_LOW",    0x20000},
                             {"REACH_NONE",   0x40000},
+                            {"REACH_HIGH",   0x8000},
+                            {"REACH_MED",    0x10000},
+                            {"REACH_LOW",    0x20000},
+                            {"EX_ALLOW_SAVEGAMES",         0x01},
+                            {"EX_POP_CHARACTER_SELECTION", 0x02},
+                            {"EX_CAMERA_TRACKING",         0x03},
+                            {"EX_BUTTON_HOVER_SOUND",      0x04},
+                            {"EX_RESTART",                 0x06},
+                            {"EX_IDLE_TIME",               0x07},
+                            {"EX_AUTOSAVE",                0x08},
+                            {"EX_AUTOSAVE_STATE",          0x09},
+                            {"EX_DISABLE_SAVESYSTEM",      0x0A},
+                            {"EX_SHOW_OPTIONS",            0x0B},
+                            {"EX_OPTIONS_MUSIC",           0x0C},
+                            {"GRASS_BACKANDFORTH",         0x00},
                             });
 
     addPack<_ActorPack>();

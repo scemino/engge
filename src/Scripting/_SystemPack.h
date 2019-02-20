@@ -316,16 +316,15 @@ class _SystemPack : public Pack
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(activeController, "activeController");
         engine.registerGlobalFunction(breakhere, "breakhere");
+        engine.registerGlobalFunction(breaktime, "breaktime");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
         engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
         engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
-        engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
-        engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
         engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
-        engine.registerGlobalFunction(stopthread, "stopthread");
-        engine.registerGlobalFunction(startthread, "startthread");
+        engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
+        engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
         engine.registerGlobalFunction(cutscene, "cutscene");
-        engine.registerGlobalFunction(breaktime, "breaktime");
+        engine.registerGlobalFunction(exCommand, "exCommand");
         engine.registerGlobalFunction(getUserPref, "getUserPref");
         engine.registerGlobalFunction(inputOff, "inputOff");
         engine.registerGlobalFunction(inputOn, "inputOn");
@@ -334,8 +333,12 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(isString, "is_string");
         engine.registerGlobalFunction(isTable, "is_table");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
-        engine.registerGlobalFunction(setUserPref, "setUserPref");
+        engine.registerGlobalFunction(logEvent, "logEvent");
         engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
+        engine.registerGlobalFunction(setUserPref, "setUserPref");
+        engine.registerGlobalFunction(startglobalthread, "startglobalthread");
+        engine.registerGlobalFunction(startthread, "startthread");
+        engine.registerGlobalFunction(stopthread, "stopthread");
         engine.registerGlobalFunction(systemTime, "systemTime");
         engine.registerGlobalFunction(threadpauseable, "threadpauseable");
     }
@@ -419,6 +422,18 @@ class _SystemPack : public Pack
         return result;
     }
 
+    static SQInteger exCommand(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: exCommand: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger logEvent(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: logEvent: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger stopthread(HSQUIRRELVM v)
     {
         HSQOBJECT thread_obj;
@@ -431,6 +446,12 @@ class _SystemPack : public Pack
         sq_release(v, &thread_obj);
 
         return 0;
+    }
+
+    static SQInteger startglobalthread(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: startglobalthread: not implemented yet" << std::endl;
+        return startthread(v);
     }
 
     static SQInteger startthread(HSQUIRRELVM v)

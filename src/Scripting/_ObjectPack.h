@@ -42,6 +42,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectColor, "objectColor");
         engine.registerGlobalFunction(objectIcon, "objectIcon");
         engine.registerGlobalFunction(objectFPS, "objectFPS");
+        engine.registerGlobalFunction(objectShader, "objectShader");
         engine.registerGlobalFunction(pickupObject, "pickupObject");
         engine.registerGlobalFunction(createObject, "createObject");
         engine.registerGlobalFunction(createTextObject, "createTextObject");
@@ -637,6 +638,13 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get fps"));
         }
         // TODO: obj->setFps(icon);
+        std::cerr << "TODO: setFps: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger objectShader(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectShader: not implemented" << std::endl;
         return 0;
     }
 
