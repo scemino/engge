@@ -13,10 +13,11 @@ void SpriteSheet::load(const std::string &name)
     _rects.clear();
     nlohmann::json json;
     std::string jsonFilename;
-    jsonFilename.append(_settings.getGamePath()).append(name).append(".json");
+    jsonFilename.append(name).append(".json");
     {
-        std::ifstream i(jsonFilename);
-        i >> json;
+        std::vector<char> buffer;
+        _settings.readEntry(jsonFilename, buffer);
+        json = nlohmann::json::parse(buffer.data());
     }
 
     auto jFrames = json["frames"];

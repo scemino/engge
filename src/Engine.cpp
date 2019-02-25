@@ -29,7 +29,7 @@ bool operator&(CursorDirection lhs, CursorDirection rhs)
                static_cast<std::underlying_type<CursorDirection>::type>(rhs)) > CursorDirection::None;
 }
 
-Engine::Engine(const EngineSettings &settings)
+Engine::Engine(EngineSettings &settings)
     : _settings(settings),
       _textureManager(settings),
       _fadeColor(0, 0, 0, 255),
@@ -57,14 +57,12 @@ Engine::Engine(const EngineSettings &settings)
     std::cout << "seed: " << seed << std::endl;
     srand(seed);
 
-    std::string path(settings.getGamePath());
-    path.append("SentenceFont.fnt");
-    _fntFont.loadFromFile(path);
+    _fntFont.setSettings(&settings);
+    _fntFont.loadFromFile("SentenceFont.fnt");
 
     // load all messages
-    path = settings.getGamePath();
-    path.append("ThimbleweedText_en.tsv");
-    _textDb.load(path);
+    _textDb.setSettings(settings);
+    _textDb.load("ThimbleweedText_en.tsv");
 
     _verbSheet.load("VerbSheet");
     _gameSheet.load("GameSheet");

@@ -8,14 +8,14 @@ namespace ng
 class SoundManager
 {
   public:
-    explicit SoundManager(const EngineSettings &settings);
+    explicit SoundManager(EngineSettings &settings);
     std::shared_ptr<SoundDefinition> defineSound(const std::string &name);
     std::shared_ptr<SoundId> playSound(SoundDefinition &soundDefinition, bool loop = false);
     std::shared_ptr<SoundId> loopMusic(SoundDefinition &soundDefinition);
     void stopSound(SoundId &sound);
 
   private:
-    const EngineSettings &_settings;
+    EngineSettings &_settings;
     std::vector<std::shared_ptr<SoundDefinition>> _sounds;
     std::vector<std::shared_ptr<SoundId>> _soundIds;
     sf::Music _music;

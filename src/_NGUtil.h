@@ -4,9 +4,26 @@
 #include <regex>
 #include "Object.h"
 #include "Walkbox.h"
+#include "GGPack.h"
 
 namespace ng
 {
+static bool getLine(GGPackBufferStream &input, std::string &line)
+{
+    char c;
+    line.clear();
+    do
+    {
+        input.read(&c, 1);
+        if (c == 0 || c == '\n')
+        {
+            return input.tell() < input.getLength();
+        }
+        line.append(&c, 1);
+    } while (true);
+    return false;
+}
+
 static bool merge(const ng::Walkbox &w1, const ng::Walkbox &w2, std::vector<sf::Vector2i> &result)
 {
     // I know this implementation is ugly :S

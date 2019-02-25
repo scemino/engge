@@ -13,7 +13,7 @@ namespace ng
 {
 int Room::RoomType = 1;
 
-Room::Room(TextureManager &textureManager, const EngineSettings &settings)
+Room::Room(TextureManager &textureManager, EngineSettings &settings)
     : _textureManager(textureManager),
       _ambientColor(255, 255, 255, 255),
       _settings(settings),
@@ -45,19 +45,19 @@ void Room::removeEntity(Entity *pEntity)
     }
 }
 
-void Room::loadBackgrounds(nlohmann::json jWimpy)
+void Room::loadBackgrounds(GGPackValue &jWimpy)
 {
     int width = 0;
-    if (!jWimpy["fullscreen"].is_null())
+    if (!jWimpy["fullscreen"].isNull())
     {
-        _fullscreen = jWimpy["fullscreen"].get<int>();
+        _fullscreen = jWimpy["fullscreen"].int_value;
     }
-    if (jWimpy["background"].is_array())
+    if (jWimpy["background"].isArray())
     {
         auto layer = std::make_unique<RoomLayer>();
-        for (auto &bg : jWimpy["background"])
+        for (auto &bg : jWimpy["background"].array_value)
         {
-            auto frame = _spriteSheet.getRect(bg.get<std::string>());
+            auto frame = _spriteSheet.getRect(bg.string_value);
             auto sprite = sf::Sprite();
             sprite.move(width, 0);
             sprite.setTexture(_textureManager.get(_sheet));
@@ -67,9 +67,9 @@ void Room::loadBackgrounds(nlohmann::json jWimpy)
         }
         _layers.push_back(std::move(layer));
     }
-    else if (jWimpy["background"].is_string())
+    else if (jWimpy["background"].isString())
     {
-        auto frame = _spriteSheet.getRect(jWimpy["background"].get<std::string>());
+        auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
         auto sprite = sf::Sprite();
         sprite.setTexture(_textureManager.get(_sheet));
         sprite.setTextureRect(frame);
@@ -84,22 +84,22 @@ void Room::loadBackgrounds(nlohmann::json jWimpy)
     }
 }
 
-void Room::loadLayers(nlohmann::json jWimpy)
+void Room::loadLayers(GGPackValue &jWimpy)
 {
-    if (jWimpy["layers"].is_null())
+    if (jWimpy["layers"].isNull())
         return;
 
-    for (auto jLayer : jWimpy["layers"])
+    for (auto jLayer : jWimpy["layers"].array_value)
     {
         auto layer = std::make_unique<RoomLayer>();
-        auto zsort = jLayer["zsort"].get<int>();
+        auto zsort = jLayer["zsort"].int_value;
         layer->setZOrder(zsort);
-        if (jLayer["name"].is_array())
+        if (jLayer["name"].isArray())
         {
             float offsetX = 0;
-            for (const auto &jName : jLayer["name"])
+            for (const auto &jName : jLayer["name"].array_value)
             {
-                auto layerName = jName.get<std::string>();
+                auto layerName = jName.string_value;
                 // layer.getNames().push_back(layerName);
 
                 const auto &rect = _spriteSheet.getRect(layerName);
@@ -115,7 +115,7 @@ void Room::loadLayers(nlohmann::json jWimpy)
         }
         else
         {
-            auto layerName = jLayer["name"].get<std::string>();
+            auto layerName = jLayer["name"].string_value;
 
             const auto &rect = _spriteSheet.getRect(layerName);
             sf::Sprite s;
@@ -125,14 +125,14 @@ void Room::loadLayers(nlohmann::json jWimpy)
             s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
             layer->getSprites().push_back(s);
         }
-        if (jLayer["parallax"].is_string())
+        if (jLayer["parallax"].isString())
         {
-            auto parallax = _parsePos(jLayer["parallax"].get<std::string>());
+            auto parallax = _parsePos(jLayer["parallax"].string_value);
             layer->setParallax(parallax);
         }
         else
         {
-            auto parallax = jLayer["parallax"].get<float>();
+            auto parallax = jLayer["parallax"].double_value;
             layer->setParallax(sf::Vector2f(parallax, 1));
         }
         std::cout << "Read layer zsort: " << layer->getZOrder() << std::endl;
@@ -144,16 +144,16 @@ void Room::loadLayers(nlohmann::json jWimpy)
     _layers.push_back(std::move(layer));
 }
 
-void Room::loadScalings(nlohmann::json jWimpy)
+void Room::loadScalings(GGPackValue &jWimpy)
 {
-    if (jWimpy["scaling"].is_array())
+    if (jWimpy["scaling"].isArray())
     {
-        if (jWimpy["scaling"][0].is_string())
+        if (jWimpy["scaling"][0].isString())
         {
             RoomScaling scaling;
-            for (auto jScaling : jWimpy["scaling"])
+            for (auto jScaling : jWimpy["scaling"].array_value)
             {
-                auto value = jScaling.get<std::string>();
+                auto value = jScaling.string_value;
                 auto index = value.find('@');
                 auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
                 auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
@@ -164,18 +164,18 @@ void Room::loadScalings(nlohmann::json jWimpy)
             }
             _scalings.push_back(scaling);
         }
-        else if (jWimpy["scaling"][0].is_array())
+        else if (jWimpy["scaling"][0].isArray())
         {
-            for (auto jScaling : jWimpy["scaling"])
+            for (auto jScaling : jWimpy["scaling"].array_value)
             {
                 RoomScaling scaling;
-                for (auto jSubScaling : jScaling["scaling"])
+                for (auto jSubScaling : jScaling["scaling"].array_value)
                 {
-                    if (jSubScaling["trigger"].is_string())
+                    if (jSubScaling["trigger"].isString())
                     {
-                        scaling.setTrigger(jSubScaling["trigger"].get<std::string>());
+                        scaling.setTrigger(jSubScaling["trigger"].string_value);
                     }
-                    auto value = jSubScaling.get<std::string>();
+                    auto value = jSubScaling.string_value;
                     auto index = value.find('@');
                     auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
                     auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
@@ -190,17 +190,17 @@ void Room::loadScalings(nlohmann::json jWimpy)
     }
 }
 
-void Room::loadWalkboxes(nlohmann::json jWimpy)
+void Room::loadWalkboxes(GGPackValue &jWimpy)
 {
-    for (auto jWalkbox : jWimpy["walkboxes"])
+    for (auto jWalkbox : jWimpy["walkboxes"].array_value)
     {
         std::vector<sf::Vector2i> vertices;
-        auto polygon = jWalkbox["polygon"].get<std::string>();
+        auto polygon = jWalkbox["polygon"].string_value;
         _parsePolygon(polygon, vertices, _roomSize.y);
         Walkbox walkbox(vertices);
-        if (jWalkbox["name"].is_string())
+        if (jWalkbox["name"].isString())
         {
-            auto walkboxName = jWalkbox["name"].get<std::string>();
+            auto walkboxName = jWalkbox["name"].string_value;
             walkbox.setName(walkboxName);
         }
         _walkboxes.push_back(walkbox);
@@ -218,69 +218,69 @@ void Room::updateGraph()
     _pf = std::make_shared<PathFinder>(_graphWalkboxes);
 }
 
-void Room::loadObjects(nlohmann::json jWimpy)
+void Room::loadObjects(GGPackValue &jWimpy)
 {
     auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
     });
     auto &texture = _textureManager.get(_sheet);
 
-    for (auto jObject : jWimpy["objects"])
+    for (auto jObject : jWimpy["objects"].array_value)
     {
         auto object = std::make_unique<Object>();
         // name
-        auto objectName = jObject["name"].get<std::string>();
+        auto objectName = jObject["name"].string_value;
         object->setName(objectName);
         // zsort
-        object->setZOrder(jObject["zsort"].get<int>());
+        object->setZOrder(jObject["zsort"].int_value);
         // prop
-        bool isProp = jObject["prop"].is_number_integer() && jObject["prop"].get<int>() == 1;
+        bool isProp = jObject["prop"].isInteger() && jObject["prop"].int_value == 1;
         object->setProp(isProp);
         // position
-        auto pos = _parsePos(jObject["pos"].get<std::string>());
-        auto usePos = _parsePos(jObject["usepos"].get<std::string>());
-        auto useDir = _toDirection(jObject["usedir"].get<std::string>());
+        auto pos = _parsePos(jObject["pos"].string_value);
+        auto usePos = _parsePos(jObject["usepos"].string_value);
+        auto useDir = _toDirection(jObject["usedir"].string_value);
         object->setUseDirection(useDir);
         // hotspot
-        auto hotspot = _parseRect(jObject["hotspot"].get<std::string>());
+        auto hotspot = _parseRect(jObject["hotspot"].string_value);
         object->setHotspot(hotspot);
         // spot
-        bool isSpot = jObject["spot"].is_number_integer() && jObject["spot"].get<int>() == 1;
+        bool isSpot = jObject["spot"].isInteger() && jObject["spot"].int_value == 1;
         object->setSpot(isSpot);
         // spot
-        bool isTrigger = jObject["trigger"].is_number_integer() && jObject["trigger"].get<int>() == 1;
+        bool isTrigger = jObject["trigger"].isInteger() && jObject["trigger"].int_value == 1;
         object->setTrigger(isTrigger);
 
         object->setDefaultPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
         object->setUsePosition(usePos);
 
         // animations
-        if (!jObject["animations"].empty())
+        if (jObject["animations"].isArray())
         {
-            for (auto jAnimation : jObject["animations"])
+            for (auto jAnimation : jObject["animations"].array_value)
             {
-                auto animName = jAnimation["name"].get<std::string>();
+                auto animName = jAnimation["name"].string_value;
                 auto anim = std::make_unique<Animation>(texture, animName);
-                if (!jAnimation["fps"].is_null())
+                if (!jAnimation["fps"].isNull())
                 {
-                    anim->setFps(jAnimation["fps"].get<int>());
+                    anim->setFps(jAnimation["fps"].int_value);
                 }
-                for (const auto &jFrame : jAnimation["frames"])
+                for (const auto &jFrame : jAnimation["frames"].array_value)
                 {
-                    auto n = jFrame.get<std::string>();
+                    auto n = jFrame.string_value;
                     if (!_spriteSheet.hasRect(n))
                         continue;
                     anim->getRects().push_back(_spriteSheet.getRect(n));
                     anim->getSizes().push_back(_spriteSheet.getSourceSize(n));
                     anim->getSourceRects().push_back(_spriteSheet.getSpriteSourceSize(n));
                 }
-                if (!jAnimation["triggers"].is_null())
+                if (!jAnimation["triggers"].isNull())
                 {
-                    for (const auto &jtrigger : jAnimation["triggers"])
+                    for (const auto &jtrigger : jAnimation["triggers"].array_value)
                     {
-                        if (!jtrigger.is_null())
+                        if (!jtrigger.isNull())
                         {
-                            auto name = jtrigger.get<std::string>();
+                            auto name = jtrigger.string_value;
                             auto trigger = std::atoi(name.data() + 1);
                             anim->getTriggers().push_back(trigger);
                         }
@@ -315,36 +315,35 @@ void Room::load(const char *name)
 
     // load wimpy file
     std::string wimpyFilename;
-    wimpyFilename.append(_settings.getGamePath()).append(name).append(".wimpy");
+    wimpyFilename.append(name).append(".wimpy");
     std::cout << "Load room " << wimpyFilename << std::endl;
 
-    nlohmann::json jWimpy;
-    {
-        std::ifstream i(wimpyFilename);
-        if (!i.good())
-            return;
-        i >> jWimpy;
-    }
+    if (!_settings.hasEntry(wimpyFilename))
+        return;
 
-    _sheet = jWimpy["sheet"].get<std::string>();
-    _roomSize = (sf::Vector2i)_parsePos(jWimpy["roomsize"].get<std::string>());
+    GGPackValue hash;
+    _settings.readEntry(wimpyFilename, hash);
+
+    _sheet = hash["sheet"].string_value;
+    _roomSize = (sf::Vector2i)_parsePos(hash["roomsize"].string_value);
 
     // load json file
     std::string jsonFilename;
     _spriteSheet.load(_sheet);
 
-    loadBackgrounds(jWimpy);
-    loadLayers(jWimpy);
-    loadObjects(jWimpy);
-    loadScalings(jWimpy);
-    loadWalkboxes(jWimpy);
+    loadBackgrounds(hash);
+    loadLayers(hash);
+    loadObjects(hash);
+    loadScalings(hash);
+    loadWalkboxes(hash);
 }
 
 TextObject &Room::createTextObject(const std::string &fontName)
 {
     auto object = std::make_unique<TextObject>();
     std::string path;
-    path.append(_settings.getGamePath()).append(fontName).append("Font.fnt");
+    path.append(fontName).append("Font.fnt");
+    object->getFont().setSettings(&_settings);
     object->getFont().loadFromFile(path);
     auto &obj = *object;
     obj.setVisible(true);
@@ -379,12 +378,10 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
 
     // load json file
     std::string jsonFilename;
-    jsonFilename.append(_settings.getGamePath()).append(sheet).append(".json");
-    nlohmann::json json;
-    {
-        std::ifstream i(jsonFilename);
-        i >> json;
-    }
+    jsonFilename.append(sheet).append(".json");
+    std::vector<char> buffer;
+    _settings.readEntry(jsonFilename, buffer);
+    auto json = nlohmann::json::parse(buffer.data());
 
     auto object = std::make_unique<Object>();
     auto animation = std::make_unique<Animation>(texture, "state0");

@@ -3,7 +3,7 @@
 
 namespace ng
 {
-TextureManager::TextureManager(const EngineSettings &settings)
+TextureManager::TextureManager(EngineSettings &settings)
     : _settings(settings)
 {
 }
@@ -13,10 +13,15 @@ TextureManager::~TextureManager() = default;
 void TextureManager::load(const std::string &id)
 {
     std::cout << "Load texture " << id << std::endl;
-    std::string path(_settings.getGamePath());
+    std::string path;
     path.append(id).append(".png");
     auto texture = std::make_shared<sf::Texture>();
-    texture->loadFromFile(path);
+    std::vector<char> data;
+    _settings.readEntry(path, data);
+    if (!texture->loadFromMemory(data.data(), data.size()))
+    {
+        std::cerr << "Fail to load texture " << path << std::endl;
+    }
 
     _textureMap.insert(std::make_pair(id, texture));
 }

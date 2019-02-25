@@ -15,16 +15,23 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    ng::EngineSettings settings("./resources/");
-    auto engine = std::make_unique<ng::Engine>(settings);
+    try
+    {
+        ng::EngineSettings settings("./resources/");
+        auto engine = std::make_unique<ng::Engine>(settings);
 
-    auto game = std::make_unique<ng::Game>(*engine);
-    auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
-    scriptEngine->executeScript("test.nut");
+        auto game = std::make_unique<ng::Game>(*engine);
+        auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
+        scriptEngine->executeScript("test.nut");
 
-    game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine, game->getWindow()));
-    game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine, game->getWindow()));
-    game->run();
+        game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine, game->getWindow()));
+        game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine, game->getWindow()));
+        game->run();
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "Sorry, an unhandled exception occured: " << e.what() << std::endl;
+    }
 
     return 0;
 }

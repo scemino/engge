@@ -4,22 +4,18 @@
 
 namespace ng
 {
-SoundManager::SoundManager(const EngineSettings &settings)
+SoundManager::SoundManager(EngineSettings &settings)
     : _settings(settings)
 {
 }
 
 std::shared_ptr<SoundDefinition> SoundManager::defineSound(const std::string &name)
 {
-    std::string path(_settings.getGamePath());
-    path.append(name);
-    {
-        std::ifstream infile(path);
-        if (!infile.good())
-            return nullptr;
-    }
+    if (!_settings.hasEntry(name))
+        return nullptr;
 
-    auto sound = std::make_shared<SoundDefinition>(path);
+    auto sound = std::make_shared<SoundDefinition>(name);
+    sound->setSettings(_settings);
     _sounds.push_back(sound);
     return sound;
 }
@@ -51,4 +47,4 @@ void SoundManager::stopSound(SoundId &sound)
         return;
     _soundIds.erase(it);
 }
-}
+} // namespace ng

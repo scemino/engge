@@ -8,7 +8,7 @@ Font::Font() = default;
 
 Font::~Font() = default;
 
-void Font::setSettings(const EngineSettings *settings)
+void Font::setSettings(EngineSettings *settings)
 {
     _settings = settings;
 }
@@ -21,12 +21,12 @@ void Font::setTextureManager(TextureManager *textureManager)
 void Font::load(const std::string &path)
 {
     _path = path;
-    _jsonFilename = _settings->getGamePath();
-    _jsonFilename.append(path);
+    _jsonFilename = path;
     _jsonFilename.append(".json");
 
-    std::ifstream input(_jsonFilename);
-    input >> _json;
+    std::vector<char> buffer;
+    _settings->readEntry(_jsonFilename, buffer);
+    _json = nlohmann::json::parse(buffer.data());
 
     _texture = _textureManager->get(_path);
 }

@@ -2,19 +2,34 @@
 #include <iostream>
 #include <fstream>
 #include "Lip.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
+Lip::Lip()
+    : _pSettings(nullptr)
+{
+}
+
+void Lip::setSettings(EngineSettings &settings)
+{
+    _pSettings = &settings;
+}
+
 void Lip::load(const std::string &path)
 {
+    if (!_pSettings)
+        return;
+
+    std::vector<char> buffer;
+    _pSettings->readEntry(path, buffer);
+    GGPackBufferStream input(buffer);
     _data.clear();
     _path = path;
     std::regex re(R"(^(\d*\.?\d*)\s+(\w)$)");
-    std::ifstream infile(path);
-    if (!infile.good())
-        return;
+
     std::string line;
-    while (std::getline(infile, line))
+    while (getLine(input, line))
     {
         std::smatch matches;
         if (!std::regex_search(line, matches, re))

@@ -1,17 +1,28 @@
 #include <regex>
 #include <fstream>
 #include "TextDatabase.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
-TextDatabase::TextDatabase() = default;
+TextDatabase::TextDatabase()
+    : _pSettings(nullptr)
+{
+}
+
+void TextDatabase::setSettings(EngineSettings &settings)
+{
+    _pSettings = &settings;
+}
 
 void TextDatabase::load(const std::string &path)
 {
     std::regex re("^(\\d+)\\s+(.*)$");
-    std::ifstream infile(path);
+    std::vector<char> buffer;
+    _pSettings->readEntry(path, buffer);
+    GGPackBufferStream input(buffer);
     std::string line;
-    while (std::getline(infile, line))
+    while (getLine(input, line))
     {
         std::smatch matches;
         if (!std::regex_search(line, matches, re))

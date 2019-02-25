@@ -10,10 +10,8 @@ namespace ng
 DialogManager::DialogManager(Engine &engine)
     : _engine(engine), _isActive(false), _dialogVisitor(_engine, *this), _pLabel(nullptr)
 {
-    std::string path;
-    path.append(_engine.getSettings().getGamePath());
-    path.append("DialogFont.fnt");
-    _font.loadFromFile(path);
+    _font.setSettings(&_engine.getSettings());
+    _font.loadFromFile("DialogFont.fnt");
     for (auto &dlg : _dialog)
     {
         dlg.id = 0;
@@ -27,10 +25,11 @@ void DialogManager::addFunction(std::unique_ptr<Function> function)
 
 void DialogManager::start(const std::string &name)
 {
-    std::string path(_engine.getSettings().getGamePath());
+    std::string path;
     path.append(name).append(".byack");
 
     YackTokenReader reader;
+    reader.setSettings(_engine.getSettings());
     reader.load(path);
     YackParser parser(reader);
     _pCompilationUnit = std::move(parser.parse());

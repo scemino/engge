@@ -21,7 +21,7 @@ public:
   static int RoomType;
 
 public:
-  Room(TextureManager &textureManager, const EngineSettings &settings);
+  Room(TextureManager &textureManager, EngineSettings &settings);
   ~Room() = default;
 
   const std::string &getId() const { return _id; }
@@ -60,16 +60,16 @@ public:
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
 
-  void loadLayers(nlohmann::json jWimpy);
-  void loadObjects(nlohmann::json jWimpy);
-  void loadScalings(nlohmann::json jWimpy);
-  void loadWalkboxes(nlohmann::json jWimpy);
-  void loadBackgrounds(nlohmann::json jWimpy);
+  void loadLayers(GGPackValue& jWimpy);
+  void loadObjects(GGPackValue& jWimpy);
+  void loadScalings(GGPackValue& jWimpy);
+  void loadWalkboxes(GGPackValue& jWimpy);
+  void loadBackgrounds(GGPackValue& jWimpy);
   void updateGraph();
 
 private:
   TextureManager &_textureManager;
-  const EngineSettings &_settings;
+  EngineSettings &_settings;
   std::vector<std::unique_ptr<Object>> _objects;
   std::vector<Walkbox> _walkboxes;
   std::vector<std::unique_ptr<RoomLayer>> _layers;

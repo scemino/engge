@@ -81,52 +81,47 @@ bool Costume::setAnimation(const std::string &animName)
     if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
         return true;
 
-    nlohmann::json json;
-    nlohmann::json jSheet;
-    {
-        std::ifstream i(_path);
-        i >> json;
-    }
+    GGPackValue hash;
+    _settings.readEntry(_path, hash);
     if (_sheet.empty())
     {
-        _sheet = json["sheet"].get<std::string>();
+        _sheet = hash["sheet"].string_value;
     }
 
-    std::string sheetPath(_settings.getGamePath());
+    std::string sheetPath;
     sheetPath.append(_sheet).append(".json");
-    {
-        std::ifstream i(sheetPath);
-        i >> jSheet;
-    }
+    std::vector<char> buffer;
+    _settings.readEntry(sheetPath, buffer);
+    auto jSheet = nlohmann::json::parse(buffer.data());
 
     // load texture
     _texture = _textureManager.get(_sheet);
 
     // find animation matching name
-    for (auto j : json["animations"])
+    for (auto j : hash["animations"].array_value)
     {
-        auto name = j["name"].get<std::string>();
+        auto name = j["name"].string_value;
         // std::cout << "Anim: " << name << std::endl;
         if (animName != name)
             continue;
 
         _pCurrentAnimation = std::make_unique<CostumeAnimation>(name);
-        for (auto jLayer : j["layers"])
+        for (auto jLayer : j["layers"].array_value)
         {
             auto layer = new CostumeLayer();
             layer->setTexture(&_texture);
-            auto fps = jLayer["fps"].is_null() ? 10 : jLayer["fps"].get<int>();
+            auto fps = jLayer["fps"].isNull() ? 10 : jLayer["fps"].int_value;
             layer->setFps(fps);
-            auto layerName = jLayer["name"].get<std::string>();
+            auto layerName = jLayer["name"].string_value;
             layer->setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
             layer->setName(layerName);
-            if (!jLayer["flags"].is_null())
+            if (!jLayer["flags"].isNull())
             {
-                layer->setFlags(jLayer["flags"].get<int>());
+                layer->setFlags(jLayer["flags"].int_value);
             }
-            for (const auto &jFrame : jLayer["frames"])
+            for (const auto &jFrame : jLayer["frames"].array_value)
             {
-                auto frameName = jFrame.get<std::string>();
+                auto frameName = jFrame.string_value;
                 if (frameName == "null")
                 {
                     layer->getFrames().emplace_back();
@@ -142,13 +137,13 @@ bool Costume::setAnimation(const std::string &animName)
                     layer->getSizes().push_back(_toSize(jf["sourceSize"]));
                 }
             }
-            if (!jLayer["triggers"].is_null())
+            if (!jLayer["triggers"].isNull())
             {
-                for (const auto &jTrigger : jLayer["triggers"])
+                for (const auto &jTrigger : jLayer["triggers"].array_value)
                 {
-                    if (!jTrigger.is_null())
+                    if (!jTrigger.isNull())
                     {
-                        auto triggerName = jTrigger.get<std::string>();
+                        auto triggerName = jTrigger.string_value;
                         char *end;
                         auto trigger = std::strtol(triggerName.data() + 1, &end, 10);
                         if (end == triggerName.data() + 1)
@@ -169,9 +164,9 @@ bool Costume::setAnimation(const std::string &animName)
                     }
                 }
             }
-            for (const auto &jOffset : jLayer["offsets"])
+            for (const auto &jOffset : jLayer["offsets"].array_value)
             {
-                layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.get<std::string>()));
+                layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.string_value));
             }
             layer->setActor(_pActor);
             _pCurrentAnimation->getLayers().push_back(layer);

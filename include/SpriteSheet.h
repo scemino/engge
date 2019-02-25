@@ -9,7 +9,7 @@ namespace ng
 class SpriteSheet
 {
 public:
-  SpriteSheet(TextureManager &textureManager, const EngineSettings &settings)
+  SpriteSheet(TextureManager &textureManager, EngineSettings &settings)
       : _textureManager(textureManager), _settings(settings)
   {
   }
@@ -24,7 +24,7 @@ public:
 
 private:
   TextureManager &_textureManager;
-  const EngineSettings &_settings;
+  EngineSettings &_settings;
   sf::Texture _texture;
   std::map<std::string, sf::IntRect> _rects;
   std::map<std::string, sf::IntRect> _spriteSourceSize;

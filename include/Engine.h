@@ -59,7 +59,7 @@ enum UseFlag
 class Engine : public NonCopyable
 {
 public:
-  explicit Engine(const EngineSettings &settings);
+  explicit Engine(EngineSettings &settings);
   ~Engine();
 
   void setCameraAt(const sf::Vector2f &at);
@@ -69,7 +69,7 @@ public:
   void setWindow(sf::RenderWindow &window) { _pWindow = &window; }
 
   TextureManager &getTextureManager() { return _textureManager; }
-  const EngineSettings &getSettings() const { return _settings; }
+  EngineSettings &getSettings() { return _settings; }
 
   Room &getRoom() { return *_pRoom; }
   void setRoom(Room *room);
@@ -146,7 +146,7 @@ private:
   bool clickedAt(const sf::Vector2f &pos);
 
 private:
-  const EngineSettings &_settings;
+  EngineSettings &_settings;
   TextureManager _textureManager;
   Room *_pRoom;
   std::vector<std::unique_ptr<Actor>> _actors;

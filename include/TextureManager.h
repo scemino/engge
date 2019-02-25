@@ -10,13 +10,14 @@ class TextureManager : public NonCopyable
 {
 private:
   std::map<std::string, std::shared_ptr<sf::Texture>> _textureMap;
-  const EngineSettings &_settings;
+  EngineSettings &_settings;
 
 public:
-  explicit TextureManager(const EngineSettings &settings);
+  explicit TextureManager(EngineSettings &settings);
   ~TextureManager();
+
   const sf::Texture &get(const std::string &id);
-  const EngineSettings &getSettings() { return _settings; }
+  EngineSettings &getSettings() { return _settings; }
 
 private:
   void load(const std::string &id);

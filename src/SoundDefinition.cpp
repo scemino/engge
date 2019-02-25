@@ -4,15 +4,22 @@ namespace ng
 {
 
 SoundDefinition::SoundDefinition(const std::string &path)
-    : _path(path), _isLoaded(false)
+    : _pSettings(nullptr), _path(path), _isLoaded(false)
 {
+}
+
+void SoundDefinition::setSettings(EngineSettings &settings)
+{
+    _pSettings = &settings;
 }
 
 void SoundDefinition::load()
 {
     if (_isLoaded)
         return;
-    _isLoaded = _buffer.loadFromFile(_path);
+    std::vector<char> buffer;
+    _pSettings->readEntry(_path, buffer);
+    _isLoaded = _buffer.loadFromMemory(buffer.data(), buffer.size());
     if (!_isLoaded)
     {
         std::cerr << "Can't load the sound" << _path << std::endl;

@@ -47,7 +47,7 @@ private:
   void updateAnimation();
 
 private:
-  const EngineSettings &_settings;
+  EngineSettings &_settings;
   TextureManager &_textureManager;
   std::string _path;
   std::string _sheet;

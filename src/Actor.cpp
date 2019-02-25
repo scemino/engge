@@ -85,9 +85,8 @@ Actor::TalkingState::TalkingState(Actor &actor)
     : _actor(actor), _isTalking(false),
       _talkColor(sf::Color::White), _index(0)
 {
-    std::string path;
-    path.append(_actor._engine.getSettings().getGamePath()).append("SayLineFont.fnt");
-    _font.loadFromFile(path);
+    _font.setSettings(&_actor._engine.getSettings());
+    _font.loadFromFile("SayLineFont.fnt");
 }
 
 static std::string str_toupper(std::string s)
@@ -132,8 +131,9 @@ void Actor::TalkingState::load(int id)
     _sound->setVolume(_actor._volume);
 
     std::string path;
-    path.append(_actor._engine.getSettings().getGamePath()).append(name).append(".lip");
+    path.append(name).append(".lip");
     std::cout << "load lip " << path << std::endl;
+    _lip.setSettings(_actor._engine.getSettings());
     _lip.load(path);
 
     _sayText = _actor._engine.getText(id);
@@ -241,7 +241,7 @@ void Actor::move(const sf::Vector2f &offset)
 
 void Actor::setCostume(const std::string &name, const std::string &sheet)
 {
-    std::string path(_settings.getGamePath());
+    std::string path;
     path.append(name).append(".json");
     _costume.loadCostume(path, sheet);
 }

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include "GGPack.h"
+#include "EngineSettings.h"
 
 namespace ng
 {
@@ -60,6 +62,9 @@ class YackTokenReader
     typedef Iterator iterator;
 
   public:
+    YackTokenReader();
+
+    void setSettings(EngineSettings& settings);
     void load(const std::string &path);
     iterator begin();
     iterator end();
@@ -78,6 +83,7 @@ class YackTokenReader
     TokenId readIdentifier();
 
   private:
-    std::ifstream _is;
+    GGPackBufferStream _stream;
+    EngineSettings* _pSettings;
 };
 } // namespace ng
