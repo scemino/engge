@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 #include <string>
 #include <map>
 #include <vector>
@@ -6,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+
 
 namespace ng
 {
