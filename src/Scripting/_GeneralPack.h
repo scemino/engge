@@ -42,14 +42,34 @@ class _GeneralPack : public Pack
 
     static SQInteger arrayShuffle(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: arrayShuffle: not implemented" << std::endl;
         HSQOBJECT array;
         sq_resetobject(&array);
         if (SQ_FAILED(sq_getstackobj(v, 2, &array)))
         {
             return sq_throwerror(v, "Failed to get array");
         }
+
+        std::vector<HSQOBJECT> objs;
         sq_pushobject(v, array);
+        sq_pushnull(v); //null iterator
+        while (SQ_SUCCEEDED(sq_next(v, -2)))
+        {
+            HSQOBJECT obj;
+            sq_getstackobj(v, -1, &obj);
+            objs.push_back(obj);
+            sq_pop(v, 2); //pops key and val before the nex iteration
+        }
+        sq_pop(v, 1); //pops the null iterator
+
+        sq_newarray(v, 0);
+        while (!objs.empty())
+        {
+            auto index = int_rand(0, objs.size() - 1);
+            sq_pushobject(v, objs[index]);
+            objs.erase(objs.begin() + index);
+            sq_arrayappend(v, -2);
+        }
+
         return 1;
     }
 
@@ -237,7 +257,7 @@ class _GeneralPack : public Pack
         {
             HSQOBJECT obj;
             sq_resetobject(&obj);
-            
+
             auto len = sq_getsize(v, 2);
             auto index = int_rand(0, len);
             sq_push(v, 2);
