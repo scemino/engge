@@ -149,10 +149,7 @@ public:
     bool IsEndOfStatement() { return ((_lex._prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';'))); }
     void OptionalSemicolon()
     {
-        if(_token == _SC(';')) { Lex(); return; }
-        if(!IsEndOfStatement()) {
-            Error(_SC("end of statement expected (; or lf)"));
-        }
+        if(_token == _SC(';')) { Lex(); return; }        
     }
     void MoveIfCurrentTargetIsLocal() {
         SQInteger trg = _fs->TopTarget();

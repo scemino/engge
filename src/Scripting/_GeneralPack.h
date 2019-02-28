@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "squirrel.h"
 
 namespace ng
@@ -7,22 +8,117 @@ class _GeneralPack : public Pack
 {
   private:
     static Engine *g_pEngine;
+    static ScriptEngine *_pScriptEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
     {
+        _pScriptEngine = &engine;
         g_pEngine = &engine.getEngine();
+        engine.registerGlobalFunction(addFolder, "addFolder");
+        engine.registerGlobalFunction(arrayShuffle, "arrayShuffle");
+        engine.registerGlobalFunction(assetExists, "assetExists");
+        engine.registerGlobalFunction(include, "include");
+        engine.registerGlobalFunction(loadArray, "loadArray");
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
         engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
         engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
+        engine.registerGlobalFunction(strsplit, "strsplit");
         engine.registerGlobalFunction(translate, "translate");
         engine.registerGlobalFunction(cameraAt, "cameraAt");
         engine.registerGlobalFunction(cameraFollow, "cameraFollow");
         engine.registerGlobalFunction(cameraPanTo, "cameraPanTo");
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
+    }
+
+    static SQInteger addFolder(HSQUIRRELVM v)
+    {
+        // do nothing
+        return 0;
+    }
+
+    static SQInteger arrayShuffle(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: arrayShuffle: not implemented" << std::endl;
+        HSQOBJECT array;
+        sq_resetobject(&array);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &array)))
+        {
+            return sq_throwerror(v, "Failed to get array");
+        }
+        sq_pushobject(v, array);
+        return 1;
+    }
+
+    static SQInteger assetExists(HSQUIRRELVM v)
+    {
+        const SQChar *filename = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        {
+            return sq_throwerror(v, "failed to get filename");
+        }
+        sq_pushbool(v, g_pEngine->getSettings().hasEntry(filename) ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger include(HSQUIRRELVM v)
+    {
+        const SQChar *filename = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        {
+            return sq_throwerror(v, "failed to get filename");
+        }
+        std::cout << "include " << filename << std::endl;
+        _pScriptEngine->executeNutScript(filename);
+        return 0;
+    }
+
+    static SQInteger loadArray(HSQUIRRELVM v)
+    {
+        sq_newarray(v, 0);
+        const SQChar *filename;
+        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        {
+            return sq_throwerror(v, "Failed to get filename");
+        }
+        std::vector<char> buffer;
+        g_pEngine->getSettings().readEntry(filename, buffer);
+        GGPackBufferStream input(buffer);
+        std::string line;
+        while (getLine(input, line))
+        {
+            sq_pushstring(v, line.data(), -1);
+            sq_arrayappend(v, -2);
+        }
+        return 1;
+    }
+
+    static SQInteger strsplit(HSQUIRRELVM v)
+    {
+        const SQChar *text;
+        if (SQ_FAILED(sq_getstring(v, 2, &text)))
+        {
+            return sq_throwerror(v, "Failed to get text");
+        }
+
+        const SQChar *delimiter;
+        if (SQ_FAILED(sq_getstring(v, 3, &delimiter)))
+        {
+            return sq_throwerror(v, "Failed to get delimiter");
+        }
+
+        sq_newarray(v, 0);
+        std::string token;
+        std::istringstream tokenStream(text);
+        while (std::getline(tokenStream, token, delimiter[0]))
+        {
+            sq_pushstring(v, token.data(), -1);
+            sq_arrayappend(v, -2);
+        }
+        return 1;
     }
 
     static SQInteger cameraAt(HSQUIRRELVM v)
@@ -137,6 +233,27 @@ class _GeneralPack : public Pack
 
     static SQInteger randomFrom(HSQUIRRELVM v)
     {
+        if (sq_gettype(v, 2) == OT_ARRAY)
+        {
+            HSQOBJECT obj;
+            sq_resetobject(&obj);
+            
+            auto len = sq_getsize(v, 2);
+            auto index = int_rand(0, len);
+            sq_push(v, 2);
+            sq_pushnull(v); //null iterator
+            while (SQ_SUCCEEDED(sq_next(v, -2)))
+            {
+                sq_getstackobj(v, -1, &obj);
+                sq_pop(v, 2); //pops key and val before the nex iteration
+                break;
+            }
+
+            sq_pop(v, 1); //pops the null iterator
+
+            sq_pushobject(v, obj);
+            return 1;
+        }
         auto size = sq_gettop(v);
         auto index = int_rand(0, size - 2);
         sq_push(v, 2 + index);
@@ -259,8 +376,8 @@ class _GeneralPack : public Pack
             return sq_throwerror(v, _SC("failed to get verb"));
         }
 
-        const SQChar *id = nullptr;
-        if (SQ_FAILED(sq_getstring(v, -1, &id)))
+        SQInteger id = 0;
+        if (SQ_FAILED(sq_getinteger(v, -1, &id)))
         {
             sq_pop(v, 2);
             return sq_throwerror(v, _SC("failed to get verb"));
@@ -349,7 +466,9 @@ class _GeneralPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get dialog"));
         }
-        g_pEngine->startDialog(dialog);
+        const SQChar *node = "start";
+        sq_getstring(v, 3, &node);
+        g_pEngine->startDialog(dialog, node);
         return 0;
     }
 
@@ -370,5 +489,6 @@ class _GeneralPack : public Pack
 };
 
 Engine *_GeneralPack::g_pEngine = nullptr;
+ScriptEngine *_GeneralPack::_pScriptEngine = nullptr;
 
 } // namespace ng

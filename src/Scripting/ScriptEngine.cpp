@@ -1,4 +1,4 @@
-#include <stdarg.h> 
+#include <stdarg.h>
 #include "squirrel.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
@@ -12,6 +12,7 @@
 #include "_RoomPack.h"
 #include "_SoundPack.h"
 #include "_DefaultVerbExecute.h"
+#include "_bnutPass.h"
 
 #ifdef SQUNICODE
 #define scvprintf vfwprintf
@@ -120,6 +121,41 @@ void ScriptEngine::addPack()
     _packs.push_back(std::move(pack));
 }
 
+enum class Platform : int
+{
+    Mac = 1,
+    Win = 2,
+    Linux = 3,
+    Xbox = 4,
+    IOS = 5,
+    Android = 6,
+    Switch = 7,
+    PS4 = 8,
+};
+
+static Platform _getPlatform()
+{
+#ifdef __APPLE__
+#ifdef TARGET_OS_MAC
+    return Platform::Mac;
+#elif TARGET_OS_IPHONE
+    return Platform::IOS;
+#endif
+#elif _WIN32
+    return Platform::Win;
+#elif defined __linux__ && !defined __ANDROID__
+    return Platform::Linux;
+// TODO: XBOX
+//     return Platform::Xbox;
+#elif __ANDROID__
+    return Platform::Android;
+// TODO: SWITCH
+//    return Platform::Switch;
+// TODO: PS4__
+// TODO: return Platform::PS4;
+#endif
+}
+
 ScriptEngine::ScriptEngine(Engine &engine)
     : _engine(engine)
 {
@@ -133,78 +169,104 @@ ScriptEngine::ScriptEngine(Engine &engine)
     sq_pushroottable(v);
     sqstd_register_mathlib(v);
     sqstd_register_stringlib(v);
-    registerConstants<bool>({{"NO", false},
-                             {"YES", true}});
-    registerConstants<const char *>({{"VERB_CLOSE", "close"},
-                                     {"VERB_GIVE", "give"},
-                                     {"VERB_LOOKAT", "lookat"},
-                                     {"VERB_OPEN", "open"},
-                                     {"VERB_PICKUP", "pickup"},
-                                     {"VERB_PULL", "pull"},
-                                     {"VERB_PUSH", "push"},
-                                     {"VERB_TALKTO", "talkto"},
-                                     {"VERB_USE", "use"},
-                                     {"VERB_WALKTO", "walkto"}});
-    registerConstants<int>({{"HERE", 0},
-                            {"GONE", 4},
-                            {"OFF", 0},
-                            {"ON", 1},
-                            {"FALSE", 0},
-                            {"TRUE", 1},
-                            {"MOUSE", 1},
-                            {"CONTROLLER", 2},
-                            {"DIRECTDRIVE", 3},
-                            {"FULL", 0},
-                            {"EMPTY", 1},
-                            {"OPEN", 1},
-                            {"CLOSED", 0},
-                            {"FULL", 0},
-                            {"EMPTY", 1},
-                            {"FADE_IN", 0},
-                            {"FADE_OUT", 1},
-                            {"FACE_FRONT", 0},
-                            {"FACE_BACK", 1},
-                            {"FACE_LEFT", 2},
-                            {"FACE_RIGHT", 3},
-                            {"DIR_FRONT", 0},
-                            {"DIR_BACK", 1},
-                            {"DIR_LEFT", 2},
-                            {"DIR_RIGHT", 3},
-                            {"LINEAR", 0},
-                            {"EASE_IN", 1},
-                            {"EASE_INOUT", 2},
-                            {"EASE_OUT", 3},
-                            {"SLOW_EASE_IN", 4},
-                            {"SLOW_EASE_OUT", 5},
-                            {"LOOPING", 6},
-                            {"USE_WITH", 2},
-                            {"USE_ON", 4},
-                            {"USE_IN", 8},
-                            {"ALIGN_LEFT",   0x10000000},
-                            {"ALIGN_CENTER", 0x20000000},
-                            {"ALIGN_RIGHT",  0x40000000},
-                            {"ALIGN_TOP",    0x80000000},
-                            {"ALIGN_BOTTOM", 0x1000000},
-                            {"REACH_HIGH",   0x8000},
-                            {"REACH_MED",    0x10000},
-                            {"REACH_LOW",    0x20000},
-                            {"REACH_NONE",   0x40000},
-                            {"REACH_HIGH",   0x8000},
-                            {"REACH_MED",    0x10000},
-                            {"REACH_LOW",    0x20000},
-                            {"EX_ALLOW_SAVEGAMES",         0x01},
-                            {"EX_POP_CHARACTER_SELECTION", 0x02},
-                            {"EX_CAMERA_TRACKING",         0x03},
-                            {"EX_BUTTON_HOVER_SOUND",      0x04},
-                            {"EX_RESTART",                 0x06},
-                            {"EX_IDLE_TIME",               0x07},
-                            {"EX_AUTOSAVE",                0x08},
-                            {"EX_AUTOSAVE_STATE",          0x09},
-                            {"EX_DISABLE_SAVESYSTEM",      0x0A},
-                            {"EX_SHOW_OPTIONS",            0x0B},
-                            {"EX_OPTIONS_MUSIC",           0x0C},
-                            {"GRASS_BACKANDFORTH",         0x00},
-                            });
+    sq_pushstring(v, _SC("PLATFORM"), -1);
+    sq_pushinteger(v, (SQInteger)_getPlatform());
+    sq_newslot(v, -3, SQFalse);
+    registerConstants<int>({
+        {"HERE", 0},
+        {"GONE", 4},
+        {"OFF", 0},
+        {"ON", 1},
+        {"FALSE", 0},
+        {"TRUE", 1},
+        {"MOUSE", 1},
+        {"CONTROLLER", 2},
+        {"DIRECTDRIVE", 3},
+        {"FULL", 0},
+        {"EMPTY", 1},
+        {"OPEN", 1},
+        {"CLOSED", 0},
+        {"FULL", 0},
+        {"EMPTY", 1},
+        {"FADE_IN", 0},
+        {"FADE_OUT", 1},
+        {"FACE_FRONT", 0},
+        {"FACE_BACK", 1},
+        {"FACE_LEFT", 2},
+        {"FACE_RIGHT", 3},
+        {"DIR_FRONT", 0},
+        {"DIR_BACK", 1},
+        {"DIR_LEFT", 2},
+        {"DIR_RIGHT", 3},
+        {"LINEAR", 0},
+        {"EASE_IN", 1},
+        {"EASE_INOUT", 2},
+        {"EASE_OUT", 3},
+        {"SLOW_EASE_IN", 4},
+        {"SLOW_EASE_OUT", 5},
+        {"LOOPING", 6},
+        {"USE_WITH", 2},
+        {"USE_ON", 4},
+        {"USE_IN", 8},
+        {"ALIGN_LEFT", 0x10000000},
+        {"ALIGN_CENTER", 0x20000000},
+        {"ALIGN_RIGHT", 0x40000000},
+        {"ALIGN_TOP", 0x80000000},
+        {"ALIGN_BOTTOM", 0x1000000},
+        {"REACH_HIGH", 0x8000},
+        {"REACH_MED", 0x10000},
+        {"REACH_LOW", 0x20000},
+        {"REACH_NONE", 0x40000},
+        {"REACH_HIGH", 0x8000},
+        {"REACH_MED", 0x10000},
+        {"REACH_LOW", 0x20000},
+        {"EX_ALLOW_SAVEGAMES", 0x01},
+        {"EX_POP_CHARACTER_SELECTION", 0x02},
+        {"EX_CAMERA_TRACKING", 0x03},
+        {"EX_BUTTON_HOVER_SOUND", 0x04},
+        {"EX_RESTART", 0x06},
+        {"EX_IDLE_TIME", 0x07},
+        {"EX_AUTOSAVE", 0x08},
+        {"EX_AUTOSAVE_STATE", 0x09},
+        {"EX_DISABLE_SAVESYSTEM", 0x0A},
+        {"EX_SHOW_OPTIONS", 0x0B},
+        {"EX_OPTIONS_MUSIC", 0x0C},
+        {"GRASS_BACKANDFORTH", 0x00},
+        {"EFFECT_NONE", 0x00},
+        {"DOOR_LEFT", 0x140},
+        {"DOOR_RIGHT", 0x240},
+        {"DOOR_BACK", 0x440},
+        {"DOOR_FRONT", 0x840},
+        {"FAR_LOOK", 0x8},
+        {"GIVEABLE", 0x1000},
+        {"TALKABLE", 0x2000},
+        {"IMMEDIATE", 0x4000},
+        {"FEMALE", 0x8000},
+        {"MALE", 0x100000},
+        {"PERSON", 0x200000},
+        {"VERB_CLOSE", 6},
+        {"VERB_GIVE", 9},
+        {"VERB_LOOKAT", 2},
+        {"VERB_OPEN", 5},
+        {"VERB_PICKUP", 4},
+        {"VERB_PULL", 8},
+        {"VERB_PUSH", 7},
+        {"VERB_TALKTO", 3},
+        {"VERB_USE", 10},
+        {"VERB_WALKTO", 1},
+        {"NO", 0},
+        {"YES", 1},
+        {"TEMP_UNSELECTABLE", 2},
+        {"TEMP_SELECTABLE", 3},
+        {"MAC", 1},
+        {"WIN", 2},
+        {"LINUX", 3},
+        {"XBOX", 4},
+        {"IOS", 5},
+        {"ANDROID", 6},
+        {"SWITCH", 7},
+        {"PS4", 8},
+    });
 
     addPack<_ActorPack>();
     addPack<_GeneralPack>();
@@ -329,6 +391,63 @@ void ScriptEngine::executeScript(const std::string &name)
     if (SQ_FAILED(sqstd_dofile(v, name.c_str(), SQFalse, SQTrue)))
     {
         std::cerr << "failed to execute " << name << std::endl;
+        sq_getlasterror(v);
+        aux_printerror(v);
+        return;
+    }
+}
+
+void ScriptEngine::executeNutScript(const std::string &name)
+{
+    std::vector<char> code;
+    auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
+    _engine.getSettings().readEntry(entryName, code);
+
+    // decode bnut
+    int cursor = code.size() & 0xff;
+    for (auto i = 0; i < code.size(); i++)
+    {
+        code[i] ^= _bnutPass[cursor];
+        cursor = (cursor + 1) % 4096;
+    }
+
+#if 1
+    std::ofstream o;
+    o.open("boot.nut");
+    o.write(code.data(), code.size());
+    o.close();
+#endif
+
+    if (SQ_FAILED(sq_compilebuffer(v, code.data(), code.size() - 1, _SC(name.data()), SQTrue)))
+    {
+        std::cerr << "Error compiling " << name << std::endl;
+        return;
+    }
+
+    // call
+    sq_pushroottable(v);
+    if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+    {
+        std::cerr << "Error calling " << name << std::endl;
+        return;
+    }
+}
+
+void ScriptEngine::executeBootScript()
+{
+    executeNutScript("Defines.nut");
+    executeNutScript("Boot.nut");
+
+    // call start
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC("start"), -1);
+    sq_get(v, -2);
+
+    sq_pushroottable(v);
+    sq_pushbool(v, SQTrue);
+    if (SQ_FAILED(sq_call(v, 2, SQFalse, SQTrue)))
+    {
+        std::cerr << "Error calling start" << std::endl;
         return;
     }
 }

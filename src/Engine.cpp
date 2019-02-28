@@ -100,14 +100,48 @@ void Engine::setInputVerbs(bool on)
     _inputVerbsActive = on;
 }
 
-sf::IntRect Engine::getVerbRect(const std::string &name, std::string lang, bool isRetro) const
+sf::IntRect Engine::getVerbRect(int id, std::string lang, bool isRetro) const
 {
-    std::ostringstream s;
-    s << name << (isRetro ? "_retro" : "") << "_" << lang;
-    return _verbSheet.getRect(s.str());
+    std::string s;
+    std::string name;
+    switch (id)
+    {
+    case 1:
+        name = "walkto";
+        break;
+    case 2:
+        name = "lookat";
+        break;
+    case 3:
+        name = "talkto";
+        break;
+    case 4:
+        name = "pickup";
+        break;
+    case 5:
+        name = "open";
+        break;
+    case 6:
+        name = "close";
+        break;
+    case 7:
+        name = "push";
+        break;
+    case 8:
+        name = "pull";
+        break;
+    case 9:
+        name = "give";
+        break;
+    case 10:
+        name = "use";
+        break;
+    }
+    s.append(name).append(isRetro ? "_retro" : "").append("_").append(lang);
+    return _verbSheet.getRect(s);
 }
 
-const Verb *Engine::getVerb(const std::string &id) const
+const Verb *Engine::getVerb(int id) const
 {
     auto index = getCurrentActorIndex();
     for (auto i = 0; i < 10; i++)
@@ -249,7 +283,7 @@ void Engine::update(const sf::Time &elapsed)
         _useFlag = UseFlag::None;
         _pUseObject = nullptr;
     }
-    else if (_pVerb && _pVerb->id == "walkto" && !_pCurrentObject && _pCurrentActor)
+    else if (_pVerb && _pVerb->id == 1 && !_pCurrentObject && _pCurrentActor)
     {
         _pCurrentActor->walkTo(mousePosInRoom);
     }
@@ -477,17 +511,14 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
         return;
 
     int currentActorIndex = getCurrentActorIndex();
-    if (!_inputActive || currentActorIndex == -1 || _verbSlots[currentActorIndex].getVerb(0).id.empty())
+    if (!_inputActive || currentActorIndex == -1 || _verbSlots[currentActorIndex].getVerb(0).id == 0)
         return;
 
     auto verbId = -1;
     if (_pCurrentObject)
     {
         auto defaultVerb = _pCurrentObject->getDefaultVerb();
-        if (!defaultVerb.empty())
-        {
-            verbId = _verbSlots[currentActorIndex].getVerbIndex(defaultVerb);
-        }
+        verbId = defaultVerb;
     }
     else
     {
@@ -542,9 +573,9 @@ bool Engine::isThreadAlive(HSQUIRRELVM thread) const
     return std::find(_threads.begin(), _threads.end(), thread) != _threads.end();
 }
 
-void Engine::startDialog(const std::string &dialog)
+void Engine::startDialog(const std::string &dialog, const std::string &node)
 {
-    _dialogManager.start(dialog);
+    _dialogManager.start(dialog, node);
 }
 
 void Engine::execute(const std::string &code)
@@ -586,6 +617,11 @@ void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
             return;
         }
     }
+}
+
+void Engine::actorSlotSelectable(int index, bool selectable)
+{
+    _actorsIconSlots[index].selectable = selectable;
 }
 
 } // namespace ng
