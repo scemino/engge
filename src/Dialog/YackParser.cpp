@@ -36,11 +36,17 @@ std::unique_ptr<Ast::Label> YackParser::parseLabel()
     pLabel->name = _reader.readText(*_it++);
     // \n
     _it++;
-    while (!match({TokenId::Colon}) && !match({TokenId::End}) && !match({TokenId::NewLine}))
+    do
     {
+        // skip empty lines
+        while (match({TokenId::NewLine}))
+            _it++;
+        if (match({TokenId::Colon}) || match({TokenId::End}))
+            break;
         auto pStatement = parseStatement();
         pLabel->statements.push_back(std::move(pStatement));
     }
+    while(true);
     // skip empty lines
     while (match({TokenId::NewLine}))
         _it++;
@@ -144,6 +150,16 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
         {
             auto actor = _reader.readText(*_it++);
             pExp->actor = actor;
+        }
+        return pExp;
+    }
+    else if (identifier == "parrot")
+    {
+        auto pExp = std::make_unique<Ast::Parrot>();
+        if (_it->id == TokenId::Identifier)
+        {
+            auto active = _reader.readText(*_it++);
+            pExp->active = active == "yes";
         }
         return pExp;
     }

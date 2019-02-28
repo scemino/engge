@@ -1,14 +1,16 @@
 #pragma once
 #include "Dialog/YackParser.h"
+#include "EngineSettings.h"
 
 namespace ng
 {
 class _AstDump : public Ast::AstVisitor
 {
 public:
-    static void dump(std::string filename)
+    static void dump(EngineSettings& settings, std::string filename)
     {
         YackTokenReader reader;
+        reader.setSettings(settings);
         reader.load(filename);
         std::cout << "# dump tokens: " << std::endl;
         for (auto it = reader.begin(); it != reader.end(); it++)
@@ -42,6 +44,10 @@ public:
     virtual void visit(const Ast::WaitFor &node)
     {
         std::cout << "waitfor " << node.actor << std::endl;
+    }
+    virtual void visit(const Ast::Parrot &node)
+    {
+        std::cout << "parrot " << node.active << std::endl;
     }
     virtual void visit(const Ast::Shutup &node)
     {

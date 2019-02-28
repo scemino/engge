@@ -14,6 +14,7 @@ void ShowOnceCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Shutup::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void WaitFor::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Pause::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void Parrot::accept(AstVisitor &visitor) { visitor.visit(*this); }
 
 void AstVisitor::visit(const Statement &node) { defaultVisit(node); }
 void AstVisitor::visit(const Label &node) { defaultVisit(node); }
@@ -27,6 +28,7 @@ void AstVisitor::visit(const ShowOnceCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const Shutup &node) { defaultVisit(node); }
 void AstVisitor::visit(const Pause &node) { defaultVisit(node); }
 void AstVisitor::visit(const WaitFor &node) { defaultVisit(node); }
+void AstVisitor::visit(const Parrot &node) { defaultVisit(node); }
 void AstVisitor::defaultVisit(const Node &node) {}
 
 } // namespace Ast

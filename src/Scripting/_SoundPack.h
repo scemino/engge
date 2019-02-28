@@ -62,6 +62,9 @@ class _SoundPack : public Pack
         engine.registerGlobalFunction(playSoundVolume, "playSoundVolume");
         engine.registerGlobalFunction(playObjectSound, "playObjectSound");
         engine.registerGlobalFunction(soundVolume, "soundVolume");
+        engine.registerGlobalFunction(soundMixVolume, "soundMixVolume");
+        engine.registerGlobalFunction(musicMixVolume, "musicMixVolume");
+        engine.registerGlobalFunction(talkieMixVolume, "talkieMixVolume");
         engine.registerGlobalFunction(stopSound, "stopSound");
         engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
     }
@@ -259,6 +262,24 @@ class _SoundPack : public Pack
         sq_pushuserpointer(v, (SQUserPointer)soundId.get());
 
         return 1;
+    }
+
+    static SQInteger soundMixVolume(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: soundMixVolume: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger musicMixVolume(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: musicMixVolume: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger talkieMixVolume(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: talkieMixVolume: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger soundVolume(HSQUIRRELVM v)

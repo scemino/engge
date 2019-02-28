@@ -6,7 +6,7 @@ namespace ng
 {
 struct Verb
 {
-    std::string id;
+    int id;
     std::string image;
     std::string func;
     std::string text;
@@ -18,7 +18,7 @@ class VerbSlot
   public:
     void setVerb(int index, const Verb &verb) { _verbs[index] = verb; }
     const Verb &getVerb(int index) const { return _verbs[index]; }
-    size_t getVerbIndex(const std::string &id) const
+    size_t getVerbIndex(int id) const
     {
         for (size_t i = 0; i < 10; i++)
         {

@@ -125,6 +125,15 @@ public:
   virtual void accept(AstVisitor &visitor) override;
   float time;
 };
+class Parrot : public Expression
+{
+public:
+  Parrot() {}
+  virtual ~Parrot() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+  bool active;
+};
 class Shutup : public Expression
 {
 public:
@@ -175,6 +184,7 @@ public:
   virtual void visit(const Shutup &node);
   virtual void visit(const Pause &node);
   virtual void visit(const WaitFor &node);
+  virtual void visit(const Parrot &node);
   virtual void defaultVisit(const Node &node);
 };
 } // namespace Ast

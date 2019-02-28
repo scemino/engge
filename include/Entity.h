@@ -17,6 +17,9 @@ public:
   virtual void update(const sf::Time &elapsed) {}
   virtual int getZOrder() const = 0;
 
+  void setLit(bool isLit) { _isLit = isLit; }
+  bool isLit() const { return _isLit; }
+
   void setUsePosition(const sf::Vector2f &pos)
   {
     _usePos = pos;
@@ -41,6 +44,8 @@ public:
   {
     return _usePos;
   }
+
+  virtual void move(const sf::Vector2f &offset) = 0;
 
   void setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger)
   {
@@ -70,5 +75,6 @@ protected:
 private:
   std::map<int, std::shared_ptr<Trigger>> _triggers;
   sf::Vector2f _usePos;
+  bool _isLit;
 };
 } // namespace ng

@@ -44,6 +44,11 @@ YackTokenReader::Iterator::Iterator(YackTokenReader &reader, std::streampos pos)
 {
 }
 
+YackTokenReader::Iterator::Iterator(const Iterator &it)
+    : _reader(it._reader), _pos(it._pos), _token(it._token)
+{
+}
+
 YackTokenReader::Iterator &YackTokenReader::Iterator::operator++()
 {
     _reader._stream.seek(_pos);
@@ -61,15 +66,11 @@ YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int)
 
 Token &YackTokenReader::Iterator::operator*()
 {
-    _reader._stream.seek(_pos);
-    _reader.readToken(_token);
     return _token;
 }
 
 Token *YackTokenReader::Iterator::operator->()
 {
-    _reader._stream.seek(_pos);
-    _reader.readToken(_token);
     return &_token;
 }
 
@@ -107,7 +108,7 @@ bool YackTokenReader::readToken(Token &token)
 {
     std::streampos start = _stream.tell();
     auto id = readTokenId();
-    while (id == TokenId::Whitespace)
+    while (id == TokenId::Whitespace || id == TokenId::Comment)
     {
         start = _stream.tell();
         id = readTokenId();
@@ -169,6 +170,7 @@ TokenId YackTokenReader::readTokenId()
     case '\"':
         return readString();
     case '#':
+    case ';':
         return readComment();
     default:
         if (c == '-' && _stream.peek() == '>')
@@ -243,7 +245,7 @@ TokenId YackTokenReader::readString()
 TokenId YackTokenReader::readIdentifier()
 {
     char c;
-    while (isalnum(_stream.peek()))
+    while (isalnum(_stream.peek()) || _stream.peek() == '_')
     {
         _stream.ignore();
     }

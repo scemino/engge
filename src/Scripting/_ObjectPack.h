@@ -18,6 +18,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(findObjectAt, "findObjectAt");
         engine.registerGlobalFunction(isObject, "is_object");
         engine.registerGlobalFunction(isObject, "isObject");
+        engine.registerGlobalFunction(jiggleInventory, "jiggleInventory");
 
         engine.registerGlobalFunction(objectHidden, "objectHidden");
         engine.registerGlobalFunction(objectAlpha, "objectAlpha");
@@ -47,6 +48,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(createObject, "createObject");
         engine.registerGlobalFunction(createTextObject, "createTextObject");
         engine.registerGlobalFunction(deleteObject, "deleteObject");
+        engine.registerGlobalFunction(setDefaultObject, "setDefaultObject");
     }
 
     static SQInteger findObjectAt(HSQUIRRELVM v)
@@ -82,6 +84,12 @@ class _ObjectPack : public Pack
         auto object = ScriptEngine::getEntity<Object>(v, 2);
         sq_pushbool(v, object ? SQTrue : SQFalse);
         return 1;
+    }
+
+    static SQInteger jiggleInventory(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: jiggleInventory: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger scale(HSQUIRRELVM v)
@@ -216,7 +224,7 @@ class _ObjectPack : public Pack
     {
         SQInteger x = 0;
         SQInteger y = 0;
-        Object *obj = ScriptEngine::getObject(v, 2);
+        Entity *obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -507,27 +515,24 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (SQ_FAILED(sq_getbool(v, 3, &isTouchable)))
-        {
-            return sq_throwerror(v, _SC("failed to get isTouchable parameter"));
-        }
+        sq_tobool(v, 3, &isTouchable);
         obj->setTouchable(static_cast<bool>(isTouchable));
         return 0;
     }
 
     static SQInteger objectLit(HSQUIRRELVM v)
     {
-        SQBool isLit;
-        auto *obj = ScriptEngine::getObject(v, 2);
+        SQInteger isLit;
+        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (SQ_FAILED(sq_getbool(v, 3, &isLit)))
+        if (SQ_FAILED(sq_getinteger(v, 3, &isLit)))
         {
             return sq_throwerror(v, _SC("failed to get isLit parameter"));
         }
-        obj->setLit(static_cast<bool>(isLit));
+        obj->setLit(isLit != 0);
         return 0;
     }
 
@@ -627,7 +632,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectFPS(HSQUIRRELVM v)
     {
-        Object *obj = ScriptEngine::getObject(v, 2);
+        auto obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -656,10 +661,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (SQ_FAILED(sq_getbool(v, 3, &hidden)))
-        {
-            return sq_throwerror(v, _SC("failed to get hidden"));
-        }
+        sq_tobool(v, 3, &hidden);
         obj->setVisible(!hidden);
         return 0;
     }
@@ -763,6 +765,12 @@ class _ObjectPack : public Pack
         }
         ScriptEngine::pushObject(v, obj);
         return 1;
+    }
+
+    static SQInteger setDefaultObject(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: setDefaultObject: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger deleteObject(HSQUIRRELVM v)

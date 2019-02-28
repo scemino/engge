@@ -1,5 +1,4 @@
 #pragma once
-#include <cstring>
 #include <string>
 #include <map>
 #include <vector>
@@ -7,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <map>
-
 
 namespace ng
 {
@@ -68,7 +66,7 @@ class GGPackBufferStream : public GGPackStream
     void read(char *data, size_t size) override
     {
         if ((_offset + size) > getLength())
-            throw std::logic_error("Try to read beyond the buffer");
+            return;
         memcpy(data, _input.data() + _offset, size);
         _offset += size;
     }

@@ -154,7 +154,7 @@ class _ActorPack : public Pack
             return 0;
         }
 
-        if (numArgs == 5)
+        if (numArgs >= 4)
         {
             auto *pActor = ScriptEngine::getActor(v, 2);
             if (!pActor)
@@ -166,7 +166,7 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get roomTable"));
             }
-            SQInteger x, y, dir;
+            SQInteger x, y, dir = 0;
             if (SQ_FAILED(sq_getinteger(v, 4, &x)))
             {
                 return sq_throwerror(v, _SC("failed to get x"));
@@ -175,7 +175,7 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            if (SQ_FAILED(sq_getinteger(v, 6, &dir)))
+            if (numArgs == 5 && SQ_FAILED(sq_getinteger(v, 6, &dir)))
             {
                 return sq_throwerror(v, _SC("failed to get direction"));
             }
@@ -350,6 +350,13 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
+        HSQOBJECT obj;
+        sq_getstackobj(v, 3, &obj);
+        if (sq_istable(obj))
+        {
+            std::cerr << "TODO: actorLockFacing with table" << std::endl;
+            return 0;
+        }
         if (SQ_FAILED(sq_getinteger(v, 3, &facing)))
         {
             return sq_throwerror(v, _SC("failed to get facing"));
@@ -392,10 +399,14 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get animation"));
         }
         SQBool loop = false;
-        sq_getbool(v, 4, &loop);
+        sq_tobool(v, 4, &loop);
         std::cout << "Play anim " << animation << (loop ? " (loop)" : "") << std::endl;
         pActor->getCostume().setState(animation);
-        pActor->getCostume().getAnimation()->play(loop);
+        auto pAnim = pActor->getCostume().getAnimation();
+        if (pAnim)
+        {
+            pAnim->play(loop);
+        }
         return 0;
     }
 
@@ -458,8 +469,19 @@ class _ActorPack : public Pack
     {
         auto numArgs = sq_gettop(v) - 1;
         Actor *actor = nullptr;
+
+        SQBool selectable;
+        sq_tobool(v, numArgs + 1, &selectable);
+
         if (numArgs == 2)
         {
+            SQInteger actorIndex = 0;
+            if (SQ_SUCCEEDED(sq_getinteger(v, 2, &actorIndex)))
+            {
+                g_pEngine->actorSlotSelectable(actorIndex, selectable == SQTrue);
+                return 0;
+            }
+
             actor = ScriptEngine::getActor(v, 2);
             if (!actor)
             {
@@ -473,8 +495,6 @@ class _ActorPack : public Pack
         if (!actor)
             return 0;
 
-        SQBool selectable;
-        sq_tobool(v, numArgs + 1, &selectable);
         g_pEngine->actorSlotSelectable(actor, selectable == SQTrue);
         return 0;
     }
@@ -565,10 +585,8 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         SQBool use;
-        if (SQ_FAILED(sq_getbool(v, 3, &use)))
-        {
-            return sq_throwerror(v, _SC("failed to get useWalkboxes"));
-        }
+        sq_tobool(v, 3, &use);
+
         actor->useWalkboxes(use);
         return 0;
     }
@@ -675,10 +693,6 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get slot"));
         }
         auto *pActor = ScriptEngine::getActor(v, 3);
-        if (!pActor)
-        {
-            return sq_throwerror(v, _SC("failed to get actor"));
-        }
         g_pEngine->addSelectableActor(slot, pActor);
         return 0;
     }
@@ -693,16 +707,15 @@ class _ActorPack : public Pack
 
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("_key"), 4);
-        if (SQ_FAILED(sq_get(v, -2)))
+        const SQChar *key = nullptr;
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
         {
-            return sq_throwerror(v, _SC("can't find _key entry"));
+            if (SQ_FAILED(sq_getstring(v, -1, &key)))
+            {
+                return sq_throwerror(v, _SC("can't find _key entry"));
+            }
+            sq_pop(v, 2);
         }
-        const SQChar *key;
-        if (SQ_FAILED(sq_getstring(v, -1, &key)))
-        {
-            return sq_throwerror(v, _SC("can't find _key entry"));
-        }
-        sq_pop(v, 2);
 
         // define instance
         const SQChar *icon = nullptr;
@@ -716,7 +729,10 @@ class _ActorPack : public Pack
 
         sq_pop(v, 2);
 
-        pActor->setName(key);
+        if (key)
+        {
+            pActor->setName(key);
+        }
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pActor.get());

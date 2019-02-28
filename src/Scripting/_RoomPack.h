@@ -80,6 +80,7 @@ class _RoomPack : public Pack
         engine.registerGlobalFunction(roomFade, "roomFade");
         engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
         engine.registerGlobalFunction(defineRoom, "defineRoom");
+        engine.registerGlobalFunction(definePseudoRoom, "definePseudoRoom");
         engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
     }
 
@@ -131,10 +132,8 @@ class _RoomPack : public Pack
             return sq_throwerror(v, _SC("failed to get walkbox name"));
         }
         SQBool hidden;
-        if (SQ_FAILED(sq_getbool(v, 3, &hidden)))
-        {
-            return sq_throwerror(v, _SC("failed to get hidden value"));
-        }
+        sq_tobool(v, 3, &hidden);
+        
         g_pEngine->getRoom().setWalkboxEnabled(name, hidden == SQFalse);
         return 0;
     }
@@ -217,6 +216,12 @@ class _RoomPack : public Pack
         }
     }
 
+    static SQInteger definePseudoRoom(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: definePseudoRoom: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger defineRoom(HSQUIRRELVM v)
     {
         auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
@@ -226,7 +231,7 @@ class _RoomPack : public Pack
 
         // loadRoom
         sq_pushobject(v, *pTable);
-        sq_pushstring(v, _SC("background"), 10);
+        sq_pushstring(v, _SC("background"), -1);
         if (SQ_FAILED(sq_get(v, -2)))
         {
             return sq_throwerror(v, _SC("can't find background entry"));
@@ -236,6 +241,11 @@ class _RoomPack : public Pack
         sq_pop(v, 2);
         pRoom->setTable(std::move(table));
         pRoom->load(name);
+
+        if (strcmp(name, "Inventory") == 0)
+        {
+            int tmp = 42;
+        }
 
         // define instance
         sq_pushobject(v, *pTable);
@@ -249,30 +259,38 @@ class _RoomPack : public Pack
         std::unordered_map<const SQChar *, HSQOBJECT> inventory;
 
         // define room objects
-        if (strcmp(name, "Inventory") == 0)
+        sq_pushobject(v, *pTable);
+        sq_pushnull(v);
+        while (SQ_SUCCEEDED(sq_next(v, -2)))
         {
-            sq_pushobject(v, *pTable);
-            sq_pushnull(v);
-            while (SQ_SUCCEEDED(sq_next(v, -2)))
+            //here -1 is the value and -2 is the key
+            auto type = sq_gettype(v, -1);
+            if (type == OT_TABLE)
             {
-                //here -1 is the value and -2 is the key
-                auto type = sq_gettype(v, -1);
-                if (type == OT_TABLE)
+                const SQChar *key = nullptr;
+                sq_getstring(v, -2, &key);
+                std::cout << "### Obj " << key << std::endl;
+                HSQOBJECT object;
+                sq_resetobject(&object);
+                if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))
                 {
-                    const SQChar *name;
-                    sq_getstring(v, -2, &name);
-                    HSQOBJECT object;
-                    sq_resetobject(&object);
-                    if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))
-                    {
-                        sq_addref(v, &object);
-                        inventory[name] = object;
-                    }
+                    sq_addref(v, &object);
+                    inventory[key] = object;
                 }
-
-                sq_pop(v, 2); //pops key and val before the nex iteration
             }
-            sq_pop(v, 1); //pops the null iterator
+            sq_pop(v, 2); //pops key and val before the nex iteration
+        }
+        sq_pop(v, 1); //pops the null iterator
+
+        for (auto obj : inventory)
+        {
+            sq_pushobject(v, obj.second);
+            sq_pushstring(v, _SC("icon"), -1);
+            if (SQ_FAILED(sq_rawget(v, -2)))
+            {
+                sq_release(v, &obj.second);
+                inventory.erase(obj.first);
+            }
         }
 
         // don't know if this is the best way to do this
@@ -316,7 +334,7 @@ class _RoomPack : public Pack
 
             _getField<SQInteger>(v, obj->getTable(), _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
             _getField<SQBool>(v, obj->getTable(), _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
-            _getField<const SQChar *>(v, obj->getTable(), _SC("defaultVerb"), [&obj](const SQChar *value) { obj->setDefaultVerb(value); });
+            _getField<SQInteger>(v, obj->getTable(), _SC("defaultVerb"), [&obj](SQInteger value) { obj->setDefaultVerb(value); });
             _getField<const SQChar *>(v, obj->getTable(), _SC("name"), [&obj](const SQChar *value) {
                 if (strlen(value) > 0 && value[0] == '@')
                 {

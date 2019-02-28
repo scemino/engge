@@ -95,7 +95,7 @@ public:
   void setColor(sf::Color color) { _color = color; }
   sf::Color getColor() { return _color; }
 
-  void move(const sf::Vector2f &offset);
+  void move(const sf::Vector2f &offset) override;
   void setRenderOffset(const sf::Vector2i &offset) { _renderOffset = offset; }
 
   Room *getRoom() const { return _pRoom; }

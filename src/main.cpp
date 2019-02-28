@@ -7,22 +7,22 @@
 
 int main(int argc, char **argv)
 {
-    if (argc == 2)
-    {
-        auto filename = argv[1];
-        std::cout << argc << std::endl;
-        ng::_AstDump::dump(filename);
-        return 0;
-    }
-
     try
     {
         ng::EngineSettings settings("./resources/");
-        auto engine = std::make_unique<ng::Engine>(settings);
+        if (argc == 2)
+        {
+            auto filename = argv[1];
+            std::cout << argc << std::endl;
+            ng::_AstDump::dump(settings, filename);
+            return 0;
+        }
 
+        auto engine = std::make_unique<ng::Engine>(settings);
         auto game = std::make_unique<ng::Game>(*engine);
         auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
         scriptEngine->executeScript("test.nut");
+        // scriptEngine->executeBootScript();
 
         game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine, game->getWindow()));
         game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine, game->getWindow()));

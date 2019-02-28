@@ -104,13 +104,13 @@ public:
   void follow(Actor *pActor) { _pFollowActor = pActor; }
   void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pVerbExecute = std::move(verbExecute); }
   void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute) { _pScriptExecute = std::move(scriptExecute); }
-  const Verb *getVerb(const std::string &id) const;
+  const Verb *getVerb(int id) const;
 
   void addThread(HSQUIRRELVM thread) { _threads.push_back(thread); }
   void stopThread(HSQUIRRELVM thread);
   bool isThreadAlive(HSQUIRRELVM thread) const;
 
-  void startDialog(const std::string &dialog);
+  void startDialog(const std::string &dialog, const std::string& node);
   void execute(const std::string &code);
   SoundDefinition *getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
@@ -123,6 +123,7 @@ public:
 
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
+  void actorSlotSelectable(int index, bool selectable);
   void setUseFlag(UseFlag flag, const InventoryObject *object)
   {
     _useFlag = flag;
@@ -134,7 +135,7 @@ public:
   HSQUIRRELVM getVm() const { return _vm; }
 
 private:
-  sf::IntRect getVerbRect(const std::string &name, std::string lang = "en", bool isRetro = false) const;
+  sf::IntRect getVerbRect(int id, std::string lang = "en", bool isRetro = false) const;
   void drawVerbs(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
   void drawCursorText(sf::RenderWindow &window) const;

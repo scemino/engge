@@ -260,7 +260,7 @@ class _DefaultVerbExecute : public VerbExecute
         if (callObjectPreWalk(obj, pVerb->id))
             return;
 
-        if (pVerb->id == "use" && useFlags(pObject))
+        if (pVerb->id == 10 && useFlags(pObject))
             return;
 
         auto pTable = _engine.getRoom().getTable();
@@ -318,7 +318,7 @@ class _DefaultVerbExecute : public VerbExecute
         return false;
     }
 
-    bool callObjectPreWalk(HSQOBJECT obj, const std::string &verb)
+    bool callObjectPreWalk(HSQOBJECT obj, int verb)
     {
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, _SC("objectPreWalk"), -1);
@@ -326,7 +326,7 @@ class _DefaultVerbExecute : public VerbExecute
         {
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);
-            sq_pushstring(_vm, verb.data(), -1);
+            sq_pushinteger(_vm, verb);
             sq_pushnull(_vm);
             sq_pushnull(_vm);
             sq_call(_vm, 4, SQTrue, SQTrue);
@@ -354,29 +354,29 @@ class _DefaultVerbExecute : public VerbExecute
 
     void getVerb(HSQOBJECT obj, const Verb *&pVerb)
     {
-        std::string verb;
+        int verb;
         if (pVerb)
         {
             verb = pVerb->id;
             pVerb = _engine.getVerb(verb);
             return;
         }
-        const SQChar *defaultVerb = getDefaultVerb(obj);
+        auto defaultVerb = getDefaultVerb(obj);
         if (!defaultVerb)
             return;
         verb = defaultVerb;
         pVerb = _engine.getVerb(verb);
     }
 
-    const SQChar *getDefaultVerb(HSQOBJECT obj)
+    SQInteger getDefaultVerb(HSQOBJECT obj)
     {
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, _SC("defaultVerb"), -1);
 
-        const SQChar *defaultVerb = nullptr;
+        SQInteger defaultVerb = 0;
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
-            sq_getstring(_vm, -1, &defaultVerb);
+            sq_getinteger(_vm, -1, &defaultVerb);
             std::cout << "defaultVerb: " << defaultVerb << std::endl;
         }
         return defaultVerb;

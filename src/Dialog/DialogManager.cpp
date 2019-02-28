@@ -23,7 +23,7 @@ void DialogManager::addFunction(std::unique_ptr<Function> function)
     _functions.push_back(std::move(function));
 }
 
-void DialogManager::start(const std::string &name)
+void DialogManager::start(const std::string &name, const std::string &node)
 {
     std::string path;
     path.append(name).append(".byack");
@@ -34,7 +34,7 @@ void DialogManager::start(const std::string &name)
     YackParser parser(reader);
     _pCompilationUnit = std::move(parser.parse());
 
-    selectLabel("start");
+    selectLabel(node);
 }
 
 void DialogManager::selectLabel(const std::string &name)

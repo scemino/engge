@@ -68,7 +68,8 @@ class _BreakWhileCutscene : public Function
             _state = 3;
             _engine.stopThread(_thread._unVal.pThread);
             _engine.setInputActive(_inputActive);
-            if(_currentActor) _engine.setCurrentActor(_currentActor);
+            if (_currentActor)
+                _engine.setCurrentActor(_currentActor);
             sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
             sq_release(_v, &_thread);
             sq_release(_v, &_closureObj);
@@ -315,6 +316,7 @@ class _SystemPack : public Pack
     {
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(activeController, "activeController");
+        engine.registerGlobalFunction(addCallback, "addCallback");
         engine.registerGlobalFunction(breakhere, "breakhere");
         engine.registerGlobalFunction(breaktime, "breaktime");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
@@ -332,6 +334,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(isInputOn, "isInputOn");
         engine.registerGlobalFunction(isString, "is_string");
         engine.registerGlobalFunction(isTable, "is_table");
+        engine.registerGlobalFunction(ord, "ord");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(logEvent, "logEvent");
         engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
@@ -346,6 +349,12 @@ class _SystemPack : public Pack
     static SQInteger activeController(HSQUIRRELVM v)
     {
         return 1;
+    }
+
+    static SQInteger addCallback(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: addCallback: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger breakhere(HSQUIRRELVM v)
@@ -732,6 +741,17 @@ class _SystemPack : public Pack
         return 1;
     }
 
+    static SQInteger ord(HSQUIRRELVM v)
+    {
+        const SQChar *letter;
+        if (SQ_FAILED(sq_getstring(v, 2, &letter)))
+        {
+            return sq_throwerror(v, "Failed to get letter");
+        }
+        sq_pushinteger(v, (SQInteger)letter[0]);
+        return 1;
+    }
+
     static SQInteger isString(HSQUIRRELVM v)
     {
         HSQOBJECT object;
@@ -773,11 +793,9 @@ class _SystemPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get thread"));
         }
-        SQBool pauseable;
-        if (SQ_FAILED(sq_getbool(v, 3, &pauseable)))
-        {
-            pauseable = true;
-        }
+        SQBool pauseable = true;
+        sq_tobool(v, 3, &pauseable);
+
         // TODO: set thread pauseable
         return 0;
     }

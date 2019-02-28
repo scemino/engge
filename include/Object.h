@@ -44,9 +44,6 @@ public:
   void setTouchable(bool isTouchable) { _isTouchable = isTouchable; }
   bool isTouchable() const;
 
-  void setLit(bool isLit) { _isLit = isLit; }
-  bool isLit() const { return _isLit; }
-
   void setUseDirection(UseDirection direction) { _direction = direction; }
   UseDirection getUseDirection() const { return _direction; }
 
@@ -60,8 +57,8 @@ public:
   void setId(const std::string &id) { _id = id; }
   const std::string &getId() const { return _id; }
 
-  void setDefaultVerb(const std::string &verb) { _verb = verb; }
-  const std::string &getDefaultVerb() const { return _verb; }
+  void setDefaultVerb(const int &verb) { _verb = verb; }
+  int getDefaultVerb() const { return _verb; }
 
   HSQOBJECT& getTable() { return _pTable; }
 
@@ -73,7 +70,7 @@ public:
 
   void setDefaultPosition(const sf::Vector2f &pos);
   sf::Vector2f getDefaultPosition() const override;
-  void move(const sf::Vector2f &offset);
+  void move(const sf::Vector2f &offset) override;
 
   void setRotation(float angle) { _transform.setRotation(angle); }
   const float getRotation() const { return _transform.getRotation(); }
@@ -117,10 +114,9 @@ private:
   sf::IntRect _hotspot;
   float _angle;
   bool _isTouchable;
-  bool _isLit;
   Room *_pRoom;
   int _state;
-  std::string _verb;
+  int _verb;
   std::vector<std::shared_ptr<Trigger>> _triggers;
   HSQOBJECT _pTable;
   bool _hotspotVisible;

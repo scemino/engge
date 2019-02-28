@@ -69,7 +69,7 @@ class DialogManager : public sf::Drawable
 public:
   DialogManager(Engine &engine);
 
-  void start(const std::string &name);
+  void start(const std::string &name, const std::string &node);
   void selectLabel(const std::string &label);
   std::array<DialogSlot, 8> &getDialog() { return _dialog; }
   void update(const sf::Time &elapsed);

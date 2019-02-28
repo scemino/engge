@@ -49,7 +49,7 @@ class YackTokenReader
 
       public:
         Iterator(YackTokenReader &reader, std::streampos pos);
-        Iterator(const Iterator &it) : _reader(it._reader), _pos(it._pos) {}
+        Iterator(const Iterator &it);
         Iterator &operator++();
         Iterator operator++(int);
 
