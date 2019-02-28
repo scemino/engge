@@ -306,6 +306,37 @@ class _BreakTimeFunction : public TimeFunction
     }
 };
 
+class _CallbackFunction : public TimeFunction
+{
+  private:
+    HSQUIRRELVM _v;
+    bool _done;
+    HSQOBJECT _method;
+
+  public:
+    _CallbackFunction(HSQUIRRELVM v, sf::Time duration, HSQOBJECT method)
+        : TimeFunction(duration), _v(v), _done(false), _method(method)
+    {
+        sq_addref(_v, &_method);
+    }
+
+  private:
+    void onElapsed() override
+    {
+        if (_done)
+            return;
+        _done = true;
+
+        sq_pushobject(_v, _method);
+        sq_pushroottable(_v);
+        if (SQ_FAILED(sq_call(_v, 1, SQFalse, SQTrue)))
+        {
+            std::cerr << "failed to call callback" << std::endl;
+        }
+        sq_release(_v, &_method);
+    }
+};
+
 class _SystemPack : public Pack
 {
   private:
@@ -348,12 +379,25 @@ class _SystemPack : public Pack
 
     static SQInteger activeController(HSQUIRRELVM v)
     {
+        std::cerr << "TODO: activeController: not implemented" << std::endl;
         return 1;
     }
 
     static SQInteger addCallback(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: addCallback: not implemented" << std::endl;
+        SQFloat duration;
+        if (SQ_FAILED(sq_getfloat(v, 2, &duration)))
+        {
+            return sq_throwerror(v, _SC("failed to get duration"));
+        }
+        HSQOBJECT method;
+        sq_resetobject(&method);
+        if (SQ_FAILED(sq_getstackobj(v, 3, &method)) || !sq_isclosure(method))
+        {
+            return sq_throwerror(v, _SC("failed to get method"));
+        }
+        auto callback = std::make_unique<_CallbackFunction>(v, sf::seconds(duration), method);
+        g_pEngine->addFunction(std::move(callback));
         return 0;
     }
 
