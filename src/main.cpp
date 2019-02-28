@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     }
     catch (std::exception &e)
     {
-        std::cerr << "Sorry, an unhandled exception occured: " << e.what() << std::endl;
+        std::cerr << "Sorry, an error occured: " << e.what() << std::endl;
     }
 
     return 0;

@@ -3,8 +3,7 @@
 namespace ng
 {
 static const unsigned char _magicBytes[] = {
-    0x4f, 0xd0, 0xa0, 0xac, 0x4a, 0x5b, 0xb9, 0xe5, 0x93, 0x79, 0x45, 0xa5, 0xc1, 0xcb, 0x31, 0x93
-};
+    0x4f, 0xd0, 0xa0, 0xac, 0x4a, 0x5b, 0xb9, 0xe5, 0x93, 0x79, 0x45, 0xa5, 0xc1, 0xcb, 0x31, 0x93};
 
 GGPackValue GGPackValue::nullValue;
 
@@ -149,7 +148,7 @@ void GGPack::readPack()
 
     // try to detect correct method to decode data
     int sig;
-    for (_method = 0; _method < 3; _method++)
+    for (_method = 3; _method >= 0; _method--)
     {
         _input.seekg(dataOffset, std::ios::beg);
         _input.read(&buf[0], dataSize);
@@ -158,6 +157,9 @@ void GGPack::readPack()
         if (sig == 0x04030201)
             break;
     }
+
+    if (sig != 0x04030201)
+        throw std::logic_error("This version of package is not supported (yet?)");
 
     _bufferStream.setBuffer(buf);
 
