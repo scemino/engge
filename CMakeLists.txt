@@ -7,7 +7,7 @@ set (CMAKE_CXX_STANDARD 17)
 find_package( SFML REQUIRED COMPONENTS system window graphics audio )
 
 include_directories(include/ extlibs/squirrel/include/)
-link_directories(extlibs/squirrel/build/squirrel/ extlibs/squirrel/build/sqstdlib/)
+link_directories(extlibs/squirrel/squirrel/ extlibs/squirrel/sqstdlib/)
 
 set(SOURCES
     src/Game.cpp src/main.cpp src/Actor.cpp src/Animation.cpp src/Costume.cpp src/CostumeAnimation.cpp
@@ -18,6 +18,7 @@ set(SOURCES
     src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp src/Graph.cpp src/PathFinder.cpp src/GGPack.cpp
 )
 
+add_subdirectory(extlibs/squirrel)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio)
 if (SFML_FOUND)
