@@ -453,6 +453,15 @@ static SQInteger container_rawset(HSQUIRRELVM v)
     return SQ_SUCCEEDED(sq_rawset(v,-3)) ? 1 : SQ_ERROR;
 }
 
+static SQInteger container_rawsafeget(HSQUIRRELVM v)
+{
+    if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+    {
+        return 1;
+    }
+    sq_pushinteger(v, 0);
+    return 1;
+}
 
 static SQInteger container_rawget(HSQUIRRELVM v)
 {
@@ -503,6 +512,7 @@ static SQInteger table_filter(HSQUIRRELVM v)
 const SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
     {_SC("len"),default_delegate_len,1, _SC("t")},
     {_SC("rawget"),container_rawget,2, _SC("t")},
+    {_SC("rawsafeget"), container_rawsafeget, 2, _SC("t")},
     {_SC("rawset"),container_rawset,3, _SC("t")},
     {_SC("rawdelete"),table_rawdelete,2, _SC("t")},
     {_SC("rawin"),container_rawexists,2, _SC("t")},
