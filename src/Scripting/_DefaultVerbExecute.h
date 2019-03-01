@@ -235,8 +235,11 @@ class _DefaultVerbExecute : public VerbExecute
         if (callObjectPreWalk(obj, pVerb->id))
             return;
 
-        auto walk = std::make_unique<_ActorWalk>(*_engine.getCurrentActor(), *pObject);
-        auto verb = std::make_unique<_VerbExecute>(_vm, *_engine.getCurrentActor(), *pObject, pVerb->func);
+        auto pActor = _engine.getCurrentActor();
+        if (!pActor)
+            return;
+        auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
+        auto verb = std::make_unique<_VerbExecute>(_vm, *pActor, *pObject, pVerb->func);
         auto after = std::make_unique<_AfterFunction>(std::move(walk), std::move(verb));
         _engine.addFunction(std::move(after));
     }

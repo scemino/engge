@@ -277,7 +277,7 @@ void Engine::update(const sf::Time &elapsed)
     }
 
     int currentActorIndex = getCurrentActorIndex();
-    if (verbId != -1)
+    if (verbId != -1 && currentActorIndex != -1)
     {
         _pVerb = &_verbSlots[currentActorIndex].getVerb(1 + verbId);
         _useFlag = UseFlag::None;
@@ -302,7 +302,7 @@ void Engine::update(const sf::Time &elapsed)
     {
         _pVerbExecute->execute(_inventory.getCurrentInventoryObject(), _pVerb);
     }
-    else
+    else if(currentActorIndex != -1)
     {
         _pVerb = &_verbSlots[currentActorIndex].getVerb(0);
         _useFlag = UseFlag::None;
