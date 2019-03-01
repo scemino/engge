@@ -182,6 +182,7 @@ ScriptEngine::ScriptEngine(Engine &engine)
         {"MOUSE", 1},
         {"CONTROLLER", 2},
         {"DIRECTDRIVE", 3},
+        {"TOUCH", 4},
         {"FULL", 0},
         {"EMPTY", 1},
         {"OPEN", 1},
@@ -411,9 +412,9 @@ void ScriptEngine::executeNutScript(const std::string &name)
         cursor = (cursor + 1) % 4096;
     }
 
-#if 1
+#if 0
     std::ofstream o;
-    o.open("boot.nut");
+    o.open(name);
     o.write(code.data(), code.size());
     o.close();
 #endif
