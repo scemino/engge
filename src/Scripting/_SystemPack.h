@@ -231,28 +231,30 @@ class _BreakWhileRunningFunction : public Function
     Engine &_engine;
     HSQUIRRELVM _vm;
     HSQUIRRELVM _thread;
+    bool _done;
 
   public:
     _BreakWhileRunningFunction(Engine &engine, HSQUIRRELVM vm, HSQUIRRELVM thread)
-        : _engine(engine), _vm(vm), _thread(thread)
+        : _engine(engine), _vm(vm), _thread(thread), _done(false)
     {
     }
 
     void operator()() override
     {
-        if (isElapsed())
+        if (_done)
             return;
 
-        if (sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
+        if (!_engine.isThreadAlive(_thread) || sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
         {
             _engine.stopThread(_thread);
             sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse);
+            _done = true;
         }
     }
 
     bool isElapsed() override
     {
-        return !_engine.isThreadAlive(_thread);
+        return _done;
     }
 };
 
@@ -358,10 +360,12 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
         engine.registerGlobalFunction(cutscene, "cutscene");
         engine.registerGlobalFunction(exCommand, "exCommand");
+        engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
         engine.registerGlobalFunction(getUserPref, "getUserPref");
         engine.registerGlobalFunction(inputOff, "inputOff");
         engine.registerGlobalFunction(inputOn, "inputOn");
         engine.registerGlobalFunction(inputSilentOff, "inputSilentOff");
+        engine.registerGlobalFunction(inputState, "inputState");
         engine.registerGlobalFunction(isInputOn, "isInputOn");
         engine.registerGlobalFunction(isString, "is_string");
         engine.registerGlobalFunction(isTable, "is_table");
@@ -369,6 +373,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(logEvent, "logEvent");
         engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
+        engine.registerGlobalFunction(setPrivatePref, "setPrivatePref");
         engine.registerGlobalFunction(setUserPref, "setUserPref");
         engine.registerGlobalFunction(startglobalthread, "startglobalthread");
         engine.registerGlobalFunction(startthread, "startthread");
@@ -423,6 +428,11 @@ class _SystemPack : public Pack
     static SQInteger breakwhilesound(HSQUIRRELVM v)
     {
         SoundId *pSound = nullptr;
+        if (sq_gettype(v, 2) == OT_INTEGER)
+        {
+            std::cerr << "TODO: breakwhilesound(int): not implemented" << std::endl;
+            return 0;
+        }
         if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -621,6 +631,30 @@ class _SystemPack : public Pack
         return result;
     }
 
+    static SQInteger getPrivatePref(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: getPrivatePref: not implemented" << std::endl;
+        if (sq_gettype(v, 3) == OT_INTEGER)
+        {
+            sq_pushinteger(v, 0);
+        }
+        else if (sq_gettype(v, 3) == OT_STRING)
+        {
+            sq_pushstring(v, _SC(""), -1);
+        }
+        else
+        {
+            sq_pushnull(v);
+        }
+        return 1;
+    }
+
+    static SQInteger setPrivatePref(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: setPrivatePref: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger getUserPref(HSQUIRRELVM v)
     {
         const SQChar *key;
@@ -769,6 +803,17 @@ class _SystemPack : public Pack
         bool isActive = g_pEngine->getInputActive();
         sq_push(v, isActive ? SQTrue : SQFalse);
         return 1;
+    }
+
+    static SQInteger inputState(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: inputState: not implemented" << std::endl;
+        if (sq_gettop(v) >= 2)
+        {
+            sq_pushnull(v);
+            return 1;
+        }
+        return 0;
     }
 
     static SQInteger isTable(HSQUIRRELVM v)
