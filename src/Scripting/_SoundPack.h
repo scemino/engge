@@ -61,10 +61,12 @@ class _SoundPack : public Pack
         engine.registerGlobalFunction(playSound, "playSound");
         engine.registerGlobalFunction(playSoundVolume, "playSoundVolume");
         engine.registerGlobalFunction(playObjectSound, "playObjectSound");
+        engine.registerGlobalFunction(playMusic, "playMusic");
         engine.registerGlobalFunction(soundVolume, "soundVolume");
         engine.registerGlobalFunction(soundMixVolume, "soundMixVolume");
         engine.registerGlobalFunction(musicMixVolume, "musicMixVolume");
         engine.registerGlobalFunction(talkieMixVolume, "talkieMixVolume");
+        engine.registerGlobalFunction(stopAllSounds, "stopAllSounds");
         engine.registerGlobalFunction(stopSound, "stopSound");
         engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
     }
@@ -195,6 +197,11 @@ class _SoundPack : public Pack
     static SQInteger fadeOutSound(HSQUIRRELVM v)
     {
         SQUserPointer ptr;
+        if (sq_gettype(v, 2) == OT_INTEGER)
+        {
+            std::cerr << "TODO: fadeOutSound: not implemented" << std::endl;
+            return 0;
+        }
         if (SQ_FAILED(sq_getuserpointer(v, 2, &ptr)))
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -229,6 +236,13 @@ class _SoundPack : public Pack
         auto soundId = g_pEngine->getSoundManager().playSound(*pSound);
         sq_pushuserpointer(v, (SQUserPointer)soundId.get());
 
+        return 1;
+    }
+
+    static SQInteger playMusic(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: playMusic: not implemented" << std::endl;
+        sq_pushinteger(v, 0);
         return 1;
     }
 
@@ -298,23 +312,23 @@ class _SoundPack : public Pack
         return 0;
     }
 
-    static SQInteger stopSound(HSQUIRRELVM v)
+    static SQInteger stopAllSounds(HSQUIRRELVM v)
     {
-        SoundId *soundId;
-        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&soundId)))
-        {
-            return sq_throwerror(v, _SC("failed to get sound"));
-        }
-        g_pEngine->getSoundManager().stopSound(*soundId);
+        std::cerr << "TODO: stopAllSounds: not implemented" << std::endl;
         return 0;
     }
 
-    static SQInteger stopMusic(HSQUIRRELVM v)
+    static SQInteger stopSound(HSQUIRRELVM v)
     {
         SoundId *soundId;
+        if (sq_gettype(v, 2) == OT_INTEGER)
+        {
+            std::cerr << "TODO: stopSound: not implemented" << std::endl;
+            return 0;
+        }
         if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&soundId)))
         {
-            return sq_throwerror(v, _SC("failed to get music"));
+            return sq_throwerror(v, _SC("failed to get sound"));
         }
         g_pEngine->getSoundManager().stopSound(*soundId);
         return 0;

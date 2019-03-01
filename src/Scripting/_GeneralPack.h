@@ -25,6 +25,8 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(randomOdds, "randomOdds");
         engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
         engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
+        engine.registerGlobalFunction(markProgress, "markProgress");
+        engine.registerGlobalFunction(markStat, "markStat");
         engine.registerGlobalFunction(strsplit, "strsplit");
         engine.registerGlobalFunction(translate, "translate");
         engine.registerGlobalFunction(cameraAt, "cameraAt");
@@ -321,6 +323,18 @@ class _GeneralPack : public Pack
         {
             return sq_throwerror(v, _SC("function enter call failed"));
         }
+        return 0;
+    }
+
+    static SQInteger markProgress(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: markProgress: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger markStat(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: markStat: not implemented" << std::endl;
         return 0;
     }
 

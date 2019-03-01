@@ -49,6 +49,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(createTextObject, "createTextObject");
         engine.registerGlobalFunction(deleteObject, "deleteObject");
         engine.registerGlobalFunction(setDefaultObject, "setDefaultObject");
+        engine.registerGlobalFunction(shakeObject, "shakeObject");
     }
 
     static SQInteger findObjectAt(HSQUIRRELVM v)
@@ -770,6 +771,12 @@ class _ObjectPack : public Pack
     static SQInteger setDefaultObject(HSQUIRRELVM v)
     {
         std::cerr << "TODO: setDefaultObject: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger shakeObject(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: shakeObject: not implemented" << std::endl;
         return 0;
     }
 
