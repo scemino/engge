@@ -8,38 +8,35 @@ class _GeneralPack : public Pack
 {
   private:
     static Engine *g_pEngine;
-    static ScriptEngine *_pScriptEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
     {
-        _pScriptEngine = &engine;
         g_pEngine = &engine.getEngine();
-        engine.registerGlobalFunction(addFolder, "addFolder");
         engine.registerGlobalFunction(arrayShuffle, "arrayShuffle");
         engine.registerGlobalFunction(assetExists, "assetExists");
-        engine.registerGlobalFunction(include, "include");
+        engine.registerGlobalFunction(cameraAt, "cameraAt");
+        engine.registerGlobalFunction(cameraBounds, "cameraBounds");
+        engine.registerGlobalFunction(cameraFollow, "cameraFollow");
+        engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
+        engine.registerGlobalFunction(cameraPanTo, "cameraPanTo");
+        engine.registerGlobalFunction(cutscene, "cutscene");
+        engine.registerGlobalFunction(cutsceneOverride, "cutsceneOverride");
+        engine.registerGlobalFunction(distance, "distance");
+        engine.registerGlobalFunction(incutscene, "incutscene");
+        engine.registerGlobalFunction(indialog, "indialog");
         engine.registerGlobalFunction(loadArray, "loadArray");
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
-        engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
-        engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
         engine.registerGlobalFunction(markProgress, "markProgress");
         engine.registerGlobalFunction(markStat, "markStat");
+        engine.registerGlobalFunction(screenSize, "screenSize");
         engine.registerGlobalFunction(strsplit, "strsplit");
         engine.registerGlobalFunction(translate, "translate");
-        engine.registerGlobalFunction(cameraAt, "cameraAt");
-        engine.registerGlobalFunction(cameraFollow, "cameraFollow");
-        engine.registerGlobalFunction(cameraPanTo, "cameraPanTo");
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
-    }
-
-    static SQInteger addFolder(HSQUIRRELVM v)
-    {
-        // do nothing
-        return 0;
+        engine.registerGlobalFunction(stopSentence, "stopSentence");
     }
 
     static SQInteger arrayShuffle(HSQUIRRELVM v)
@@ -86,16 +83,23 @@ class _GeneralPack : public Pack
         return 1;
     }
 
-    static SQInteger include(HSQUIRRELVM v)
+    static SQInteger distance(HSQUIRRELVM v)
     {
-        const SQChar *filename = nullptr;
-        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
-        {
-            return sq_throwerror(v, "failed to get filename");
-        }
-        std::cout << "include " << filename << std::endl;
-        _pScriptEngine->executeNutScript(filename);
+        std::cerr << "TODO: distance: not implemented" << std::endl;
         return 0;
+    }
+
+    static SQInteger incutscene(HSQUIRRELVM v)
+    {
+        sq_pushinteger(v, g_pEngine->inCutscene() ? 1 : 0);
+        return 1;
+    }
+
+    static SQInteger indialog(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: indialog: not implemented" << std::endl;
+        // sq_pushinteger(v, g_pEngine->indialog() ? 1 : 0);
+        return 1;
     }
 
     static SQInteger loadArray(HSQUIRRELVM v)
@@ -168,6 +172,12 @@ class _GeneralPack : public Pack
         return 0;
     }
 
+    static SQInteger cameraBounds(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: cameraBounds: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger cameraFollow(HSQUIRRELVM v)
     {
         auto *pActor = ScriptEngine::getActor(v, 3);
@@ -201,6 +211,48 @@ class _GeneralPack : public Pack
 
         auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(cameraPanTo));
+        return 0;
+    }
+
+    static SQInteger cutscene(HSQUIRRELVM v)
+    {
+        HSQOBJECT env_obj;
+        sq_resetobject(&env_obj);
+        if (SQ_FAILED(sq_getstackobj(v, 1, &env_obj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get environment from stack"));
+        }
+
+        // create thread and store it on the stack
+        auto thread = sq_newthread(v, 1024);
+        HSQOBJECT threadObj;
+        sq_resetobject(&threadObj);
+        if (SQ_FAILED(sq_getstackobj(v, -1, &threadObj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+
+        // get the closure
+        HSQOBJECT closureObj;
+        sq_resetobject(&closureObj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &closureObj)))
+        {
+            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+        }
+
+        // TODO: cutsceneoverride
+
+        g_pEngine->addThread(thread);
+
+        auto scene = std::make_unique<_BreakWhileCutscene>(*g_pEngine, v, threadObj, closureObj, env_obj);
+        g_pEngine->addFunction(std::move(scene));
+
+        return sq_suspendvm(v);
+    }
+
+    static SQInteger cutsceneOverride(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: cutSceneOverride: not implemented" << std::endl;
         return 0;
     }
 
@@ -338,44 +390,9 @@ class _GeneralPack : public Pack
         return 0;
     }
 
-    static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
+    static SQInteger screenSize(HSQUIRRELVM v)
     {
-        auto obj = ScriptEngine::getObject(v, 2);
-
-        // set camera in room
-        auto pRoom = obj->getRoom();
-        if (&g_pEngine->getRoom() != pRoom)
-        {
-            g_pEngine->setRoom(pRoom);
-            auto actor = g_pEngine->getCurrentActor();
-            actor->setRoom(pRoom);
-            auto pos = obj->getPosition();
-            actor->setPosition(pos + obj->getUsePosition());
-            g_pEngine->setCameraAt(pos + obj->getUsePosition());
-
-            // call enter room function
-            sq_pushobject(v, *pRoom->getTable());
-            sq_pushstring(v, _SC("enter"), -1);
-            if (SQ_FAILED(sq_get(v, -2)))
-            {
-                return sq_throwerror(v, _SC("can't find enter function"));
-            }
-
-            SQInteger nparams, nfreevars;
-            sq_getclosureinfo(v, -1, &nparams, &nfreevars);
-            std::cout << "enter function found with " << nparams << " parameters" << std::endl;
-
-            sq_remove(v, -2);
-            sq_pushobject(v, *pRoom->getTable());
-            if (nparams == 2)
-            {
-                sq_pushobject(v, obj->getTable()); // the door
-            }
-            if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
-            {
-                return sq_throwerror(v, _SC("function enter call failed"));
-            }
-        }
+        std::cerr << "TODO: screenSize: not implemented" << std::endl;
         return 0;
     }
 
@@ -506,6 +523,12 @@ class _GeneralPack : public Pack
         return 0;
     }
 
+    static SQInteger stopSentence(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: stopSentence: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger translate(HSQUIRRELVM v)
     {
         const SQChar *idText;
@@ -523,6 +546,5 @@ class _GeneralPack : public Pack
 };
 
 Engine *_GeneralPack::g_pEngine = nullptr;
-ScriptEngine *_GeneralPack::_pScriptEngine = nullptr;
 
 } // namespace ng

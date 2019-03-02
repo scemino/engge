@@ -82,6 +82,8 @@ public:
   void addActor(std::unique_ptr<Actor> actor) { _actors.push_back(std::move(actor)); }
   void addRoom(std::unique_ptr<Room> room) { _rooms.push_back(std::move(room)); }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
+  void cutscene(std::unique_ptr<Function> function) { _pCutscene = std::move(function); }
+  bool inCutscene() const { return _pCutscene && !_pCutscene->isElapsed(); }
 
   std::vector<std::unique_ptr<Actor>> &getActors() { return _actors; }
 
@@ -110,7 +112,7 @@ public:
   void stopThread(HSQUIRRELVM thread);
   bool isThreadAlive(HSQUIRRELVM thread) const;
 
-  void startDialog(const std::string &dialog, const std::string& node);
+  void startDialog(const std::string &dialog, const std::string &node);
   void execute(const std::string &code);
   SoundDefinition *getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
@@ -154,6 +156,7 @@ private:
   std::vector<std::unique_ptr<Room>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
+  std::unique_ptr<Function> _pCutscene;
   sf::Color _fadeColor;
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;

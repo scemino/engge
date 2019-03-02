@@ -24,6 +24,7 @@ public:
   Room(TextureManager &textureManager, EngineSettings &settings);
   ~Room() = default;
 
+  void setId(const std::string &id) { _id = id; }
   const std::string &getId() const { return _id; }
 
   void load(const char *name);
@@ -60,11 +61,11 @@ public:
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
 
-  void loadLayers(GGPackValue& jWimpy);
-  void loadObjects(GGPackValue& jWimpy);
-  void loadScalings(GGPackValue& jWimpy);
-  void loadWalkboxes(GGPackValue& jWimpy);
-  void loadBackgrounds(GGPackValue& jWimpy);
+  void loadLayers(GGPackValue &jWimpy);
+  void loadObjects(GGPackValue &jWimpy);
+  void loadScalings(GGPackValue &jWimpy);
+  void loadWalkboxes(GGPackValue &jWimpy);
+  void loadBackgrounds(GGPackValue &jWimpy);
   void updateGraph();
 
 private:

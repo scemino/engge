@@ -35,6 +35,7 @@ Engine::Engine(EngineSettings &settings)
       _fadeColor(0, 0, 0, 255),
       _pWindow(nullptr),
       _pRoom(nullptr),
+      _pCutscene(nullptr),
       _pCurrentActor(nullptr),
       _verbSheet(_textureManager, settings),
       _gameSheet(_textureManager, settings),
@@ -183,6 +184,14 @@ void Engine::clampCamera()
 
 void Engine::update(const sf::Time &elapsed)
 {
+    if (_pCutscene)
+    {
+        (*_pCutscene)();
+        if (_pCutscene->isElapsed())
+        {
+            _pCutscene.release();
+        }
+    }
     for (auto &function : _newFunctions)
     {
         _functions.push_back(std::move(function));
@@ -302,7 +311,7 @@ void Engine::update(const sf::Time &elapsed)
     {
         _pVerbExecute->execute(_inventory.getCurrentInventoryObject(), _pVerb);
     }
-    else if(currentActorIndex != -1)
+    else if (currentActorIndex != -1)
     {
         _pVerb = &_verbSlots[currentActorIndex].getVerb(0);
         _useFlag = UseFlag::None;

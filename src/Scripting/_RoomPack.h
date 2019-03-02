@@ -76,20 +76,29 @@ class _RoomPack : public Pack
     {
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(addTrigger, "addTrigger");
-        engine.registerGlobalFunction(removeTrigger, "removeTrigger");
-        engine.registerGlobalFunction(roomFade, "roomFade");
-        engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
+        engine.registerGlobalFunction(createLight, "createLight");
         engine.registerGlobalFunction(defineRoom, "defineRoom");
         engine.registerGlobalFunction(definePseudoRoom, "definePseudoRoom");
-        engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
-        engine.registerGlobalFunction(createLight, "createLight");
+        engine.registerGlobalFunction(enableTrigger, "enableTrigger");
+        engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
+        engine.registerGlobalFunction(findRoom, "findRoom");
+        engine.registerGlobalFunction(isRoom, "isRoom");
         engine.registerGlobalFunction(lightBrightness, "lightBrightness");
-        engine.registerGlobalFunction(lightConeDirection, "lightConeDirection");
         engine.registerGlobalFunction(lightConeAngle, "lightConeAngle");
+        engine.registerGlobalFunction(lightConeDirection, "lightConeDirection");
         engine.registerGlobalFunction(lightConeFalloff, "lightConeFalloff");
         engine.registerGlobalFunction(lightCutOffRadius, "lightCutOffRadius");
         engine.registerGlobalFunction(lightHalfRadius, "lightHalfRadius");
+        engine.registerGlobalFunction(lightTurnOn, "lightTurnOn");
         engine.registerGlobalFunction(lightZRange, "lightZRange");
+        engine.registerGlobalFunction(masterRoomArray, "masterRoomArray");
+        engine.registerGlobalFunction(removeTrigger, "removeTrigger");
+        engine.registerGlobalFunction(roomActors, "roomActors");
+        engine.registerGlobalFunction(roomFade, "roomFade");
+        engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
+        engine.registerGlobalFunction(roomRotateTo, "roomRotateTo");
+        engine.registerGlobalFunction(roomSize, "roomSize");
+        engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
     }
 
     static void _fadeTo(float a, const sf::Time &time)
@@ -143,9 +152,33 @@ class _RoomPack : public Pack
         return 0;
     }
 
+    static SQInteger lightTurnOn(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightTurnOn: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger lightZRange(HSQUIRRELVM v)
     {
         std::cerr << "TODO: lightZRange: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger masterRoomArray(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: masterRoomArray: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger roomRotateTo(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: roomRotateTo: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger roomSize(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: roomSize: not implemented" << std::endl;
         return 0;
     }
 
@@ -181,6 +214,75 @@ class _RoomPack : public Pack
         return 0;
     }
 
+    static SQInteger enableTrigger(HSQUIRRELVM v)
+    {
+        auto object = ScriptEngine::getObject(v, 2);
+        if (!object)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQInteger enabled = 0;
+        if (SQ_FAILED(sq_getinteger(v, 3, &enabled)))
+        {
+            return sq_throwerror(v, _SC("failed to get enabled"));
+        }
+        object->getTrigger()->setEnabled(enabled == 1);
+        return 0;
+    }
+
+    static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
+    {
+        auto obj = ScriptEngine::getObject(v, 2);
+
+        // set camera in room
+        auto pRoom = obj->getRoom();
+        if (&g_pEngine->getRoom() != pRoom)
+        {
+            g_pEngine->setRoom(pRoom);
+            auto actor = g_pEngine->getCurrentActor();
+            actor->setRoom(pRoom);
+            auto pos = obj->getPosition();
+            actor->setPosition(pos + obj->getUsePosition());
+            g_pEngine->setCameraAt(pos + obj->getUsePosition());
+
+            // call enter room function
+            sq_pushobject(v, *pRoom->getTable());
+            sq_pushstring(v, _SC("enter"), -1);
+            if (SQ_FAILED(sq_get(v, -2)))
+            {
+                return sq_throwerror(v, _SC("can't find enter function"));
+            }
+
+            SQInteger nparams, nfreevars;
+            sq_getclosureinfo(v, -1, &nparams, &nfreevars);
+            std::cout << "enter function found with " << nparams << " parameters" << std::endl;
+
+            sq_remove(v, -2);
+            sq_pushobject(v, *pRoom->getTable());
+            if (nparams == 2)
+            {
+                sq_pushobject(v, obj->getTable()); // the door
+            }
+            if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
+            {
+                return sq_throwerror(v, _SC("function enter call failed"));
+            }
+        }
+        return 0;
+    }
+
+    static SQInteger findRoom(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: findRoom: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger isRoom(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: isRoom: not implemented" << std::endl;
+        return 0;
+    }
+     
     static SQInteger walkboxHidden(HSQUIRRELVM v)
     {
         const SQChar *name = nullptr;
@@ -203,6 +305,12 @@ class _RoomPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         object->removeTrigger();
+        return 0;
+    }
+
+    static SQInteger roomActors(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: roomActors: not implemented" << std::endl;
         return 0;
     }
 
@@ -273,18 +381,11 @@ class _RoomPack : public Pack
         }
     }
 
-    static SQInteger definePseudoRoom(HSQUIRRELVM v)
+    static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom)
     {
-        std::cerr << "TODO: definePseudoRoom: not implemented" << std::endl;
-        return 0;
-    }
-
-    static SQInteger defineRoom(HSQUIRRELVM v)
-    {
-        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
         auto table = std::make_unique<HSQOBJECT>();
         auto pTable = table.get();
-        sq_getstackobj(v, 2, pTable);
+        sq_getstackobj(v, index, pTable);
 
         // loadRoom
         sq_pushobject(v, *pTable);
@@ -299,18 +400,13 @@ class _RoomPack : public Pack
         pRoom->setTable(std::move(table));
         pRoom->load(name);
 
-        if (strcmp(name, "Inventory") == 0)
-        {
-            int tmp = 42;
-        }
-
         // define instance
         sq_pushobject(v, *pTable);
         sq_pushstring(v, _SC("_type"), -1);
         sq_pushinteger(v, Room::RoomType);
         sq_newslot(v, -3, SQFalse);
         sq_pushstring(v, _SC("instance"), -1);
-        sq_pushuserpointer(v, pRoom.get());
+        sq_pushuserpointer(v, pRoom);
         sq_newslot(v, -3, SQFalse);
 
         std::unordered_map<const SQChar *, HSQOBJECT> inventory;
@@ -418,9 +514,36 @@ class _RoomPack : public Pack
             sq_pushobject(v, *pTable);
             sq_setdelegate(v, -2);
         }
-
-        g_pEngine->addRoom(std::move(pRoom));
         return 0;
+    }
+
+    static SQInteger definePseudoRoom(HSQUIRRELVM v)
+    {
+        const SQChar *name = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &name)))
+        {
+            return sq_throwerror(v, _SC("failed to get name"));
+        }
+        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+        auto result = _defineRoom(v, 3, pRoom.get());
+        if (SQ_FAILED(result))
+            return result;
+
+        pRoom->setId(name);
+        sq_pushobject(v, *pRoom->getTable());
+        g_pEngine->addRoom(std::move(pRoom));
+        return 1;
+    }
+
+    static SQInteger defineRoom(HSQUIRRELVM v)
+    {
+        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+        auto result = _defineRoom(v, 2, pRoom.get());
+        if (SQ_SUCCEEDED(result))
+        {
+            g_pEngine->addRoom(std::move(pRoom));
+        }
+        return result;
     }
 };
 

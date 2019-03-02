@@ -94,6 +94,7 @@ public:
 
   void addTrigger(std::shared_ptr<Trigger> trigger) { _triggers.push_back(trigger); }
   void removeTrigger() { _triggers.clear(); }
+  std::shared_ptr<Trigger> getTrigger() { return _triggers[0]; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

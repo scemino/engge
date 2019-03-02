@@ -40,6 +40,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorTalking, "actorTalking");
         engine.registerGlobalFunction(actorTalkColors, "actorTalkColors");
         engine.registerGlobalFunction(actorTalkOffset, "actorTalkOffset");
+        engine.registerGlobalFunction(actorTurnTo, "actorTurnTo");
         engine.registerGlobalFunction(actorUsePos, "actorUsePos");
         engine.registerGlobalFunction(actorUseWalkboxes, "actorUseWalkboxes");
         engine.registerGlobalFunction(actorVolume, "actorVolume");
@@ -406,7 +407,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get animation"));
         }
         SQInteger loop = 0;
-        sq_getinteger(v, 4,  &loop);
+        sq_getinteger(v, 4, &loop);
         std::cout << "Play anim " << animation << (loop == 1 ? " (loop)" : "") << std::endl;
         pActor->getCostume().setState(animation);
         auto pAnim = pActor->getCostume().getAnimation();
@@ -565,7 +566,12 @@ class _ActorPack : public Pack
         actor->setTalkOffset(sf::Vector2i(x, y));
         return 0;
     }
-    // TODO: static SQInteger _actorTurnTo(HSQUIRRELVM v)
+
+    static SQInteger actorTurnTo(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: actorTurnTo: not implemented" << std::endl;
+        return 0;
+    }
 
     static SQInteger actorUsePos(HSQUIRRELVM v)
     {

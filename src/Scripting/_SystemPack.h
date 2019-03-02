@@ -83,11 +83,11 @@ class _BreakFunction : public Function
   protected:
     Engine &_engine;
     HSQUIRRELVM _vm;
-    bool _isElapsed;
+    bool _done;
 
   public:
     explicit _BreakFunction(Engine &engine, HSQUIRRELVM vm)
-        : _engine(engine), _vm(vm), _isElapsed(false)
+        : _engine(engine), _vm(vm), _done(false)
     {
     }
 
@@ -98,14 +98,18 @@ class _BreakFunction : public Function
 
     void operator()() override
     {
+        if (_done)
+            return;
+
         if (!_engine.isThreadAlive(_vm))
         {
             std::cerr << getName() << " failed: thread not alive: " << _vm << std::endl;
             return;
         }
-        if (_isElapsed || !isElapsed())
+        if (!isElapsed())
             return;
-        _isElapsed = true;
+
+        _done = true;
         if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
         {
             std::cerr << getName() << " failed: thread not suspended: " << _vm << std::endl;
@@ -140,12 +144,16 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
   private:
     Actor &_actor;
     std::string _name;
+    CostumeAnimation *_pAnimation;
 
   public:
-    explicit _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
-        : _BreakFunction(engine, vm), _actor(actor)
+    _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
+        : _BreakFunction(engine, vm), _actor(actor), _pAnimation(actor.getCostume().getAnimation())
     {
-        _name = actor.getCostume().getAnimation()->getName();
+        if (_pAnimation)
+        {
+            _name = _pAnimation->getName();
+        }
     }
 
     const std::string getName() override
@@ -155,9 +163,9 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
 
     bool isElapsed() override
     {
-        return !_actor.getCostume().getAnimation()->isPlaying();
+        return !_pAnimation || !_pAnimation->isPlaying();
     }
-};
+}; // namespace ng
 
 class _BreakWhileWalkingFunction : public _BreakFunction
 {
@@ -277,6 +285,25 @@ class _BreakWhileDialogFunction : public _BreakFunction
     }
 };
 
+class _BreakWhileCutsceneFunction : public _BreakFunction
+{
+  public:
+    _BreakWhileCutsceneFunction(Engine &engine, HSQUIRRELVM vm)
+        : _BreakFunction(engine, vm)
+    {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileCutsceneFunction";
+    }
+
+    bool isElapsed() override
+    {
+        return !_engine.inCutscene();
+    }
+};
+
 class _BreakTimeFunction : public TimeFunction
 {
   private:
@@ -343,25 +370,31 @@ class _SystemPack : public Pack
 {
   private:
     static Engine *g_pEngine;
+    static ScriptEngine *_pScriptEngine;
 
   private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
+        _pScriptEngine = &engine;
         engine.registerGlobalFunction(activeController, "activeController");
         engine.registerGlobalFunction(addCallback, "addCallback");
+        engine.registerGlobalFunction(addFolder, "addFolder");
         engine.registerGlobalFunction(breakhere, "breakhere");
         engine.registerGlobalFunction(breaktime, "breaktime");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
+        engine.registerGlobalFunction(breakwhilecutscene, "breakwhilecutscene");
         engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
         engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
         engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
-        engine.registerGlobalFunction(cutscene, "cutscene");
+        engine.registerGlobalFunction(dumpvar, "dumpvar");
         engine.registerGlobalFunction(exCommand, "exCommand");
+        engine.registerGlobalFunction(gameTime, "gameTime");
         engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
         engine.registerGlobalFunction(getUserPref, "getUserPref");
+        engine.registerGlobalFunction(include, "include");
         engine.registerGlobalFunction(inputOff, "inputOff");
         engine.registerGlobalFunction(inputOn, "inputOn");
         engine.registerGlobalFunction(inputSilentOff, "inputSilentOff");
@@ -372,13 +405,14 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(ord, "ord");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(logEvent, "logEvent");
+        engine.registerGlobalFunction(microTime, "microTime");
         engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
         engine.registerGlobalFunction(setPrivatePref, "setPrivatePref");
         engine.registerGlobalFunction(setUserPref, "setUserPref");
         engine.registerGlobalFunction(startglobalthread, "startglobalthread");
         engine.registerGlobalFunction(startthread, "startthread");
         engine.registerGlobalFunction(stopthread, "stopthread");
-        engine.registerGlobalFunction(systemTime, "systemTime");
+        engine.registerGlobalFunction(threadid, "threadid");
         engine.registerGlobalFunction(threadpauseable, "threadpauseable");
     }
 
@@ -406,6 +440,12 @@ class _SystemPack : public Pack
         return 0;
     }
 
+    static SQInteger addFolder(HSQUIRRELVM v)
+    {
+        // do nothing
+        return 0;
+    }
+
     static SQInteger breakhere(HSQUIRRELVM v)
     {
         auto result = sq_suspendvm(v);
@@ -425,15 +465,32 @@ class _SystemPack : public Pack
         return result;
     }
 
-    static SQInteger breakwhilesound(HSQUIRRELVM v)
+    static SQInteger breakwhilecutscene(HSQUIRRELVM v)
+    {
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileCutsceneFunction>(*g_pEngine, v));
+        return result;
+    }
+
+    static SoundId *_getSound(HSQUIRRELVM v, SQInteger index)
     {
         SoundId *pSound = nullptr;
-        if (sq_gettype(v, 2) == OT_INTEGER)
+        if (SQ_FAILED(sq_getuserpointer(v, index, (SQUserPointer *)&pSound)))
         {
-            std::cerr << "TODO: breakwhilesound(int): not implemented" << std::endl;
-            return 0;
+            SQInteger i = 0;
+            if (SQ_FAILED(sq_getinteger(v, index, &i)))
+            {
+                return nullptr;
+            }
+            return g_pEngine->getSoundManager().getSound(i).get();
         }
-        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        return pSound;
+    }
+
+    static SQInteger breakwhilesound(HSQUIRRELVM v)
+    {
+        SoundId *pSound = _getSound(v, 2);
+        if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
@@ -485,15 +542,33 @@ class _SystemPack : public Pack
         return result;
     }
 
+    static SQInteger dumpvar(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: exCommand: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger exCommand(HSQUIRRELVM v)
     {
         std::cerr << "TODO: exCommand: not implemented" << std::endl;
         return 0;
     }
 
+    static SQInteger gameTime(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: gameTime: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger logEvent(HSQUIRRELVM v)
     {
         std::cerr << "TODO: logEvent: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger microTime(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: microTime: not implemented" << std::endl;
         return 0;
     }
 
@@ -585,44 +660,6 @@ class _SystemPack : public Pack
         g_pEngine->addThread(thread_obj._unVal.pThread);
 
         return 1;
-    }
-
-    static SQInteger cutscene(HSQUIRRELVM v)
-    {
-        // SQInteger size = sq_gettop(v);
-
-        HSQOBJECT env_obj;
-        sq_resetobject(&env_obj);
-        if (SQ_FAILED(sq_getstackobj(v, 1, &env_obj)))
-        {
-            return sq_throwerror(v, _SC("Couldn't get environment from stack"));
-        }
-
-        // create thread and store it on the stack
-        auto thread = sq_newthread(v, 1024);
-        HSQOBJECT threadObj;
-        sq_resetobject(&threadObj);
-        if (SQ_FAILED(sq_getstackobj(v, -1, &threadObj)))
-        {
-            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
-        }
-
-        // get the closure
-        HSQOBJECT closureObj;
-        sq_resetobject(&closureObj);
-        if (SQ_FAILED(sq_getstackobj(v, 2, &closureObj)))
-        {
-            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
-        }
-
-        // TODO: cutsceneoverride
-
-        g_pEngine->addThread(thread);
-
-        auto scene = std::make_unique<_BreakWhileCutscene>(*g_pEngine, v, threadObj, closureObj, env_obj);
-        g_pEngine->addFunction(std::move(scene));
-
-        return sq_suspendvm(v);
     }
 
     static SQInteger breaktime(HSQUIRRELVM v)
@@ -786,6 +823,18 @@ class _SystemPack : public Pack
         return 0;
     }
 
+    static SQInteger include(HSQUIRRELVM v)
+    {
+        const SQChar *filename = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        {
+            return sq_throwerror(v, "failed to get filename");
+        }
+        std::cout << "include " << filename << std::endl;
+        _pScriptEngine->executeNutScript(filename);
+        return 0;
+    }
+
     static SQInteger inputOff(HSQUIRRELVM v)
     {
         g_pEngine->setInputActive(false);
@@ -872,12 +921,10 @@ class _SystemPack : public Pack
         return 1;
     }
 
-    static SQInteger systemTime(HSQUIRRELVM v)
+    static SQInteger threadid(HSQUIRRELVM v)
     {
-        time_t t;
-        time(&t);
-        sq_pushinteger(v, t);
-        return 1;
+        std::cerr << "TODO: threadid: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger threadpauseable(HSQUIRRELVM v)
@@ -897,5 +944,6 @@ class _SystemPack : public Pack
 };
 
 Engine *_SystemPack::g_pEngine = nullptr;
+ScriptEngine *_SystemPack::_pScriptEngine = nullptr;
 
 } // namespace ng

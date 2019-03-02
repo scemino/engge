@@ -12,45 +12,50 @@ class _ObjectPack : public Pack
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
-        engine.registerGlobalFunction(scale, "scale");
-        engine.registerGlobalFunction(playState, "playObjectState");
-        engine.registerGlobalFunction(playState, "loopObjectState");
+        engine.registerGlobalFunction(createObject, "createObject");
+        engine.registerGlobalFunction(createTextObject, "createTextObject");
+        engine.registerGlobalFunction(deleteObject, "deleteObject");
         engine.registerGlobalFunction(findObjectAt, "findObjectAt");
         engine.registerGlobalFunction(isObject, "is_object");
         engine.registerGlobalFunction(isObject, "isObject");
         engine.registerGlobalFunction(jiggleInventory, "jiggleInventory");
-
-        engine.registerGlobalFunction(objectHidden, "objectHidden");
+        engine.registerGlobalFunction(playState, "loopObjectState");
         engine.registerGlobalFunction(objectAlpha, "objectAlpha");
         engine.registerGlobalFunction(objectAlphaTo, "objectAlphaTo");
+        engine.registerGlobalFunction(objectAt, "objectAt");
         engine.registerGlobalFunction(objectBumperCycle, "objectBumperCycle");
+        engine.registerGlobalFunction(objectColor, "objectColor");
+        engine.registerGlobalFunction(objectDependentOn, "objectDependentOn");
+        engine.registerGlobalFunction(objectFPS, "objectFPS");
+        engine.registerGlobalFunction(objectHidden, "objectHidden");
         engine.registerGlobalFunction(objectHotspot, "objectHotspot");
+        engine.registerGlobalFunction(objectIcon, "objectIcon");
+        engine.registerGlobalFunction(objectLit, "objectLit");
+        engine.registerGlobalFunction(objectMoveTo, "objectMoveTo");
         engine.registerGlobalFunction(objectOffset, "objectOffset");
         engine.registerGlobalFunction(objectOffsetTo, "objectOffsetTo");
-        engine.registerGlobalFunction(objectMoveTo, "objectMoveTo");
-        engine.registerGlobalFunction(objectState, "objectState");
-        engine.registerGlobalFunction(objectScale, "objectScale");
-        engine.registerGlobalFunction(objectAt, "objectAt");
+        engine.registerGlobalFunction(objectOwner, "objectOwner");
         engine.registerGlobalFunction(objectPosX, "objectPosX");
         engine.registerGlobalFunction(objectPosY, "objectPosY");
-        engine.registerGlobalFunction(objectSort, "objectSort");
+        engine.registerGlobalFunction(objectRoom, "objectRoom");
         engine.registerGlobalFunction(objectRotate, "objectRotate");
         engine.registerGlobalFunction(objectRotateTo, "objectRotateTo");
-        engine.registerGlobalFunction(objectParallaxLayer, "objectParallaxLayer");
+        engine.registerGlobalFunction(objectScale, "objectScale");
+        engine.registerGlobalFunction(objectSort, "objectSort");
+        engine.registerGlobalFunction(objectState, "objectState");
         engine.registerGlobalFunction(objectTouchable, "objectTouchable");
-        engine.registerGlobalFunction(objectLit, "objectLit");
-        engine.registerGlobalFunction(objectOwner, "objectOwner");
+        engine.registerGlobalFunction(objectParallaxLayer, "objectParallaxLayer");
         engine.registerGlobalFunction(objectUsePos, "objectUsePos");
-        engine.registerGlobalFunction(objectColor, "objectColor");
-        engine.registerGlobalFunction(objectIcon, "objectIcon");
-        engine.registerGlobalFunction(objectFPS, "objectFPS");
+        engine.registerGlobalFunction(objectValidUsePos, "objectValidUsePos");
+        engine.registerGlobalFunction(objectValidVerb, "objectValidVerb");
         engine.registerGlobalFunction(objectShader, "objectShader");
         engine.registerGlobalFunction(pickupObject, "pickupObject");
-        engine.registerGlobalFunction(createObject, "createObject");
-        engine.registerGlobalFunction(createTextObject, "createTextObject");
-        engine.registerGlobalFunction(deleteObject, "deleteObject");
+        engine.registerGlobalFunction(playState, "playObjectState");
+        engine.registerGlobalFunction(removeInventory, "removeInventory");
         engine.registerGlobalFunction(setDefaultObject, "setDefaultObject");
+        engine.registerGlobalFunction(scale, "scale");
         engine.registerGlobalFunction(shakeObject, "shakeObject");
+        engine.registerGlobalFunction(stopObjectMotors, "stopObjectMotors");
     }
 
     static SQInteger findObjectAt(HSQUIRRELVM v)
@@ -363,6 +368,12 @@ class _ObjectPack : public Pack
         return 0;
     }
 
+    static SQInteger removeInventory(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: removeInventory: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger objectAt(HSQUIRRELVM v)
     {
         SQInteger x, y;
@@ -435,6 +446,12 @@ class _ObjectPack : public Pack
         auto pos = obj->getPosition();
         sq_pushinteger(v, static_cast<SQInteger>(pos.y));
         return 1;
+    }
+
+    static SQInteger objectRoom(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectRoom: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger objectSort(HSQUIRRELVM v)
@@ -622,6 +639,12 @@ class _ObjectPack : public Pack
         return 0;
     }
 
+    static SQInteger objectDependentOn(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectDependentOn: not implemented" << std::endl;
+        return 0;
+    }
+
     static SQInteger objectIcon(HSQUIRRELVM v)
     {
         Object *obj = ScriptEngine::getObject(v, 2);
@@ -652,6 +675,18 @@ class _ObjectPack : public Pack
         }
         // TODO: obj->setFps(icon);
         std::cerr << "TODO: setFps: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger objectValidUsePos(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectValidUsePos: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger objectValidVerb(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectValidVerb: not implemented" << std::endl;
         return 0;
     }
 
@@ -784,6 +819,12 @@ class _ObjectPack : public Pack
     static SQInteger shakeObject(HSQUIRRELVM v)
     {
         std::cerr << "TODO: shakeObject: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger stopObjectMotors(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: stopObjectMotors: not implemented" << std::endl;
         return 0;
     }
 
