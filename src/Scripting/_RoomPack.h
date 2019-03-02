@@ -82,6 +82,14 @@ class _RoomPack : public Pack
         engine.registerGlobalFunction(defineRoom, "defineRoom");
         engine.registerGlobalFunction(definePseudoRoom, "definePseudoRoom");
         engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
+        engine.registerGlobalFunction(createLight, "createLight");
+        engine.registerGlobalFunction(lightBrightness, "lightBrightness");
+        engine.registerGlobalFunction(lightConeDirection, "lightConeDirection");
+        engine.registerGlobalFunction(lightConeAngle, "lightConeAngle");
+        engine.registerGlobalFunction(lightConeFalloff, "lightConeFalloff");
+        engine.registerGlobalFunction(lightCutOffRadius, "lightCutOffRadius");
+        engine.registerGlobalFunction(lightHalfRadius, "lightHalfRadius");
+        engine.registerGlobalFunction(lightZRange, "lightZRange");
     }
 
     static void _fadeTo(float a, const sf::Time &time)
@@ -90,6 +98,55 @@ class _RoomPack : public Pack
         auto set = std::bind(&Engine::setFadeAlpha, g_pEngine, std::placeholders::_1);
         auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, a, time);
         g_pEngine->addFunction(std::move(fadeTo));
+    }
+
+    static SQInteger createLight(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: createLight: not implemented" << std::endl;
+        sq_pushnull(v);
+        return 1;
+    }
+
+    static SQInteger lightBrightness(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightBrightness: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger lightConeDirection(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightConeDirection: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger lightConeAngle(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightConeAngle: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger lightConeFalloff(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightConeFalloff: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger lightCutOffRadius(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightCutOffRadius: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger lightHalfRadius(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightHalfRadius: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger lightZRange(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: lightZRange: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger addTrigger(HSQUIRRELVM v)
@@ -133,7 +190,7 @@ class _RoomPack : public Pack
         }
         SQBool hidden;
         sq_tobool(v, 3, &hidden);
-        
+
         g_pEngine->getRoom().setWalkboxEnabled(name, hidden == SQFalse);
         return 0;
     }

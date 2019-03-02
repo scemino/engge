@@ -23,6 +23,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectHidden, "objectHidden");
         engine.registerGlobalFunction(objectAlpha, "objectAlpha");
         engine.registerGlobalFunction(objectAlphaTo, "objectAlphaTo");
+        engine.registerGlobalFunction(objectBumperCycle, "objectBumperCycle");
         engine.registerGlobalFunction(objectHotspot, "objectHotspot");
         engine.registerGlobalFunction(objectOffset, "objectOffset");
         engine.registerGlobalFunction(objectOffsetTo, "objectOffsetTo");
@@ -168,6 +169,12 @@ class _ObjectPack : public Pack
         auto alphaTo = std::make_unique<ChangeProperty<float>>(getalpha, setalpha, alpha, sf::seconds(time), method);
         g_pEngine->addFunction(std::move(alphaTo));
 
+        return 0;
+    }
+
+    static SQInteger objectBumperCycle(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectBumperCycle: not implemented" << std::endl;
         return 0;
     }
 

@@ -56,6 +56,7 @@ class _SoundPack : public Pack
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(actorSound, "actorSound");
         engine.registerGlobalFunction(loopSound, "loopSound");
+        engine.registerGlobalFunction(loopObjectSound, "loopObjectSound");
         engine.registerGlobalFunction(loopMusic, "loopMusic");
         engine.registerGlobalFunction(defineSound, "defineSound");
         engine.registerGlobalFunction(playSound, "playSound");
@@ -166,6 +167,35 @@ class _SoundPack : public Pack
         return 1;
     }
 
+    static SQInteger loopObjectSound(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: loopObjectSound: not implemented" << std::endl;
+        SoundDefinition *pSound = nullptr;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        SQInteger loopTimes = -1;
+        sq_getinteger(v, 4, &loopTimes);
+        SQFloat fadeInTime = 0;
+        sq_getfloat(v, 5, &fadeInTime);
+        auto pSoundId = g_pEngine->getSoundManager().playSound(*pSound, true);
+        if (loopTimes != -1)
+        {
+            // TODO: loopTimes
+        }
+        if (fadeInTime != 0)
+        {
+            pSoundId->setVolume(0.f);
+            auto get = std::bind(&SoundId::getVolume, pSoundId);
+            auto set = std::bind(&SoundId::setVolume, pSoundId, std::placeholders::_1);
+            auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 1.f, sf::seconds(fadeInTime));
+            g_pEngine->addFunction(std::move(fadeTo));
+        }
+        sq_pushuserpointer(v, (SQUserPointer *)pSoundId.get());
+        return 1;
+    }
+
     static SQInteger loopSound(HSQUIRRELVM v)
     {
         SoundDefinition *pSound = nullptr;
@@ -241,8 +271,15 @@ class _SoundPack : public Pack
 
     static SQInteger playMusic(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: playMusic: not implemented" << std::endl;
-        sq_pushinteger(v, 0);
+        // TODO: set category to music
+        SoundDefinition *pSound;
+        if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
+        {
+            return sq_throwerror(v, _SC("failed to get music"));
+        }
+        auto soundId = g_pEngine->getSoundManager().playSound(*pSound);
+        sq_pushuserpointer(v, (SQUserPointer)soundId.get());
+
         return 1;
     }
 

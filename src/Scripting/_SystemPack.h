@@ -499,6 +499,12 @@ class _SystemPack : public Pack
 
     static SQInteger stopthread(HSQUIRRELVM v)
     {
+        SQInteger id;
+        if (SQ_SUCCEEDED(sq_getinteger(v, 2, &id)) && id == 0)
+        {
+            // no thread id => nothing to stop
+            return 0;
+        }
         HSQOBJECT thread_obj;
         if (SQ_FAILED(sq_getstackobj(v, 2, &thread_obj)))
         {
