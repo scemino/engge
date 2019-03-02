@@ -50,6 +50,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(addSelectableActor, "addSelectableActor");
         engine.registerGlobalFunction(createActor, "createActor");
         engine.registerGlobalFunction(currentActor, "currentActor");
+        engine.registerGlobalFunction(flashSelectableActor, "flashSelectableActor");
         engine.registerGlobalFunction(isActor, "isActor");
         engine.registerGlobalFunction(isActorOnScreen, "isActorOnScreen");
         engine.registerGlobalFunction(isActor, "is_actor");
@@ -186,6 +187,12 @@ class _ActorPack : public Pack
         }
 
         return sq_throwerror(v, _SC("invalid number of arguments"));
+    }
+
+    static SQInteger flashSelectableActor(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: flashSelectableActor: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger actorColor(HSQUIRRELVM v)
@@ -398,14 +405,14 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get animation"));
         }
-        SQBool loop = false;
-        sq_tobool(v, 4, &loop);
-        std::cout << "Play anim " << animation << (loop ? " (loop)" : "") << std::endl;
+        SQInteger loop = 0;
+        sq_getinteger(v, 4,  &loop);
+        std::cout << "Play anim " << animation << (loop == 1 ? " (loop)" : "") << std::endl;
         pActor->getCostume().setState(animation);
         auto pAnim = pActor->getCostume().getAnimation();
         if (pAnim)
         {
-            pAnim->play(loop);
+            pAnim->play(loop == 1);
         }
         return 0;
     }
