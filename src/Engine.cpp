@@ -11,6 +11,7 @@
 #include "Font.h"
 #include "Text.h"
 #include "_NGUtil.h"
+#include "Cutscene.h"
 
 namespace ng
 {
@@ -632,6 +633,23 @@ void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 void Engine::actorSlotSelectable(int index, bool selectable)
 {
     _actorsIconSlots[index].selectable = selectable;
+}
+
+void Engine::cutsceneOverride()
+{
+    if (!_pCutscene)
+        return;
+    _pCutscene->cutsceneOverride();
+}
+
+void Engine::cutscene(std::unique_ptr<Cutscene> function)
+{
+    _pCutscene = std::move(function);
+}
+
+bool Engine::inCutscene() const
+{
+    return _pCutscene && !_pCutscene->isElapsed();
 }
 
 } // namespace ng

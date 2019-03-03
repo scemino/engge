@@ -1,0 +1,114 @@
+#include "Cutscene.h"
+
+namespace ng
+{
+Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj)
+    : _engine(engine), _v(v), _thread(thread), _state(0), _closureObj(closureObj), _closureCutsceneOverrideObj(closureCutsceneOverrideObj), _envObj(envObj)
+{
+    _hasCutsceneOverride = !sq_isnull(_closureCutsceneOverrideObj);
+    _inputActive = _engine.getInputActive();
+    _engine.setInputActive(false);
+    _currentActor = _engine.getCurrentActor();
+    _engine.setInputVerbs(false);
+
+    sq_addref(_v, &_thread);
+    sq_addref(_v, &_closureObj);
+    sq_addref(_v, &_closureCutsceneOverrideObj);
+    sq_addref(_v, &_envObj);
+}
+
+bool Cutscene::isElapsed() { return _state == 5; }
+
+void Cutscene::cutsceneOverride()
+{
+    if (_hasCutsceneOverride && _state == 1)
+        _state = 2;
+}
+
+void Cutscene::operator()()
+{
+    switch (_state)
+    {
+    case 0:
+        startCutscene();
+        break;
+    case 1:
+        checkEndCutscene();
+        break;
+    case 2:
+        doCutsceneOverride();
+        break;
+    case 3:
+        checkEndCutsceneOverride();
+        break;
+    case 4:
+        endCutscene();
+        break;
+    case 5:
+        return;
+    }
+}
+
+void Cutscene::startCutscene()
+{
+    _state = 1;
+    std::cout << "start cutscene: " << _thread._unVal.pThread << std::endl;
+    sq_pushobject(_thread._unVal.pThread, _closureObj);
+    sq_pushobject(_thread._unVal.pThread, _envObj);
+    if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
+    {
+        std::cerr << "Couldn't call cutscene" << std::endl;
+    }
+}
+
+void Cutscene::checkEndCutscene()
+{
+    auto s = sq_getvmstate(_thread._unVal.pThread);
+    if (s == SQ_VMSTATE_IDLE)
+    {
+        _state = 2;
+        std::cout << "end cutscene: " << _thread._unVal.pThread << std::endl;
+    }
+}
+
+void Cutscene::doCutsceneOverride()
+{
+    if (_hasCutsceneOverride)
+    {
+        _state = 3;
+        std::cout << "start cutsceneOverride: " << _thread._unVal.pThread << std::endl;
+        sq_pushobject(_thread._unVal.pThread, _closureCutsceneOverrideObj);
+        sq_pushobject(_thread._unVal.pThread, _envObj);
+        if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
+        {
+            std::cerr << "Couldn't call cutsceneOverride" << std::endl;
+        }
+        return;
+    }
+    _state = 4;
+}
+
+void Cutscene::checkEndCutsceneOverride()
+{
+    auto s = sq_getvmstate(_thread._unVal.pThread);
+    if (s == SQ_VMSTATE_IDLE)
+    {
+        _state = 4;
+        std::cout << "end checkEndCutsceneOverride: " << _thread._unVal.pThread << std::endl;
+    }
+}
+
+void Cutscene::endCutscene()
+{
+    _state = 5;
+    _engine.stopThread(_thread._unVal.pThread);
+    _engine.setInputActive(_inputActive);
+    if (_currentActor)
+        _engine.setCurrentActor(_currentActor);
+    sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
+    sq_release(_v, &_thread);
+    sq_release(_v, &_closureObj);
+    sq_release(_v, &_closureCutsceneOverrideObj);
+    sq_release(_v, &_envObj);
+}
+} // namespace ng

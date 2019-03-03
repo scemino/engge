@@ -20,6 +20,7 @@
 
 namespace ng
 {
+class Cutscene;
 class VerbExecute
 {
 public:
@@ -83,8 +84,9 @@ public:
   void addRoom(std::unique_ptr<Room> room) { _rooms.push_back(std::move(room)); }
   const std::vector<std::unique_ptr<Room>> &getRooms() const { return _rooms; }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
-  void cutscene(std::unique_ptr<Function> function) { _pCutscene = std::move(function); }
-  bool inCutscene() const { return _pCutscene && !_pCutscene->isElapsed(); }
+  void cutscene(std::unique_ptr<Cutscene> function);
+  bool inCutscene() const;
+  void cutsceneOverride();
 
   std::vector<std::unique_ptr<Actor>> &getActors() { return _actors; }
 
@@ -158,7 +160,7 @@ private:
   std::vector<std::unique_ptr<Room>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
-  std::unique_ptr<Function> _pCutscene;
+  std::unique_ptr<Cutscene> _pCutscene;
   sf::Color _fadeColor;
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;

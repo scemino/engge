@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "squirrel.h"
+#include "Cutscene.h"
 
 namespace ng
 {
@@ -246,6 +247,7 @@ class _GeneralPack : public Pack
 
     static SQInteger cutscene(HSQUIRRELVM v)
     {
+        auto numArgs = sq_gettop(v);
         HSQOBJECT env_obj;
         sq_resetobject(&env_obj);
         if (SQ_FAILED(sq_getstackobj(v, 1, &env_obj)))
@@ -262,19 +264,28 @@ class _GeneralPack : public Pack
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
 
-        // get the closure
+        // get the cutscene  closure
         HSQOBJECT closureObj;
         sq_resetobject(&closureObj);
         if (SQ_FAILED(sq_getstackobj(v, 2, &closureObj)))
         {
-            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+            return sq_throwerror(v, _SC("failed to get cutscene closure"));
         }
 
-        // TODO: cutsceneoverride
+        // get the cutscene override closure
+        HSQOBJECT closureCutsceneOverrideObj;
+        sq_resetobject(&closureCutsceneOverrideObj);
+        if (numArgs == 3)
+        {
+            if (SQ_FAILED(sq_getstackobj(v, 3, &closureCutsceneOverrideObj)))
+            {
+                return sq_throwerror(v, _SC("failed to get cutscene override closure"));
+            }
+        }
 
         g_pEngine->addThread(thread);
 
-        auto scene = std::make_unique<_BreakWhileCutscene>(*g_pEngine, v, threadObj, closureObj, env_obj);
+        auto scene = std::make_unique<Cutscene>(*g_pEngine, v, threadObj, closureObj, closureCutsceneOverrideObj, env_obj);
         g_pEngine->addFunction(std::move(scene));
 
         return sq_suspendvm(v);
@@ -282,7 +293,7 @@ class _GeneralPack : public Pack
 
     static SQInteger cutsceneOverride(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: cutSceneOverride: not implemented" << std::endl;
+        g_pEngine->cutsceneOverride();
         return 0;
     }
 
