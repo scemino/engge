@@ -259,7 +259,30 @@ class _SoundPack : public Pack
     static SQInteger isSoundPlaying(HSQUIRRELVM v)
     {
         std::cerr << "TODO: isSoundPlaying: not implemented" << std::endl;
-        return 0;
+        auto *pSound = _getSound(v, 2);
+        if (pSound)
+        {
+            sq_pushinteger(v, pSound->isPlaying() ? 1 : 0);
+            return 1;
+        }
+        auto *pSoundDef = _getSoundDefinition(v, 2);
+        if (pSoundDef)
+        {
+            for (size_t i = 0; i < g_pEngine->getSoundManager().getSize(); i++)
+            {
+                auto &&sound = g_pEngine->getSoundManager().getSound(i);
+                if (pSoundDef == &sound->getSoundDefinition())
+                {
+                    if (pSound->isPlaying())
+                    {
+                        sq_pushinteger(v, 1);
+                        break;
+                    }
+                }
+            }
+        }
+        sq_pushinteger(v, 0);
+        return 1;
     }
 
     static SQInteger playObjectSound(HSQUIRRELVM v)

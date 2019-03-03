@@ -556,8 +556,8 @@ class _SystemPack : public Pack
 
     static SQInteger gameTime(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: gameTime: not implemented" << std::endl;
-        return 0;
+        sq_pushfloat(v, g_pEngine->getTime().asSeconds());
+        return 1;
     }
 
     static SQInteger logEvent(HSQUIRRELVM v)
@@ -568,8 +568,8 @@ class _SystemPack : public Pack
 
     static SQInteger microTime(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: microTime: not implemented" << std::endl;
-        return 0;
+        sq_pushfloat(v, g_pEngine->getTime().asMilliseconds());
+        return 1;
     }
 
     static SQInteger stopthread(HSQUIRRELVM v)

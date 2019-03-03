@@ -450,8 +450,19 @@ class _ObjectPack : public Pack
 
     static SQInteger objectRoom(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectRoom: not implemented" << std::endl;
-        return 0;
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        auto pRoom = obj->getRoom();
+        if (!pRoom)
+        {
+            sq_pushnull(v);
+            return 1;
+        }
+        sq_pushobject(v, *pRoom->getTable());
+        return 1;
     }
 
     static SQInteger objectSort(HSQUIRRELVM v)
@@ -680,8 +691,13 @@ class _ObjectPack : public Pack
 
     static SQInteger objectValidUsePos(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectValidUsePos: not implemented" << std::endl;
-        return 0;
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        sq_pushbool(v, obj->getUsePosition() != sf::Vector2f() ? SQTrue : SQFalse);
+        return 1;
     }
 
     static SQInteger objectValidVerb(HSQUIRRELVM v)

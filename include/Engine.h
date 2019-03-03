@@ -81,6 +81,7 @@ public:
 
   void addActor(std::unique_ptr<Actor> actor) { _actors.push_back(std::move(actor)); }
   void addRoom(std::unique_ptr<Room> room) { _rooms.push_back(std::move(room)); }
+  const std::vector<std::unique_ptr<Room>> &getRooms() const { return _rooms; }
   void addFunction(std::unique_ptr<Function> function) { _newFunctions.push_back(std::move(function)); }
   void cutscene(std::unique_ptr<Function> function) { _pCutscene = std::move(function); }
   bool inCutscene() const { return _pCutscene && !_pCutscene->isElapsed(); }
@@ -132,6 +133,7 @@ public:
     _pUseObject = object;
   }
   UseFlag getUseFlag(UseFlag flag) const { return _useFlag; }
+  sf::Time getTime() const { return _time; }
 
   void setVm(HSQUIRRELVM vm) { _vm = vm; }
   HSQUIRRELVM getVm() const { return _vm; }
@@ -188,5 +190,6 @@ private:
   ActorIcons _actorIcons;
   Inventory _inventory;
   HSQUIRRELVM _vm;
+  sf::Time _time;
 };
 } // namespace ng

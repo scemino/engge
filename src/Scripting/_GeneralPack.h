@@ -85,8 +85,39 @@ class _GeneralPack : public Pack
 
     static SQInteger distance(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: distance: not implemented" << std::endl;
-        return 0;
+        if (sq_gettype(v, 2) == OT_INTEGER)
+        {
+            SQInteger num1;
+            if (SQ_FAILED(sq_getinteger(v, 2, &num1)))
+            {
+                return sq_throwerror(v, "failed to get num1");
+            }
+            SQInteger num2;
+            if (SQ_FAILED(sq_getinteger(v, 3, &num2)))
+            {
+                return sq_throwerror(v, "failed to get num2");
+            }
+            auto d = std::abs(num1 - num2);
+            sq_pushinteger(v, d);
+            return 1;
+        }
+        auto obj1 = ScriptEngine::getEntity<Entity>(v, 2);
+        if (!obj1)
+        {
+            return sq_throwerror(v, "failed to get object1 or actor1");
+        }
+        auto obj2 = ScriptEngine::getEntity<Entity>(v, 3);
+        if (!obj2)
+        {
+            return sq_throwerror(v, "failed to get object2 or actor2");
+        }
+        auto pos1 = obj1->getPosition();
+        auto pos2 = obj1->getPosition();
+        auto dx = pos1.x - pos2.x;
+        auto dy = pos1.y - pos2.y;
+        auto d = std::sqrt(dx * dx + dy * dy);
+        sq_pushfloat(v, d);
+        return 1;
     }
 
     static SQInteger incutscene(HSQUIRRELVM v)
@@ -97,8 +128,7 @@ class _GeneralPack : public Pack
 
     static SQInteger indialog(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: indialog: not implemented" << std::endl;
-        // sq_pushinteger(v, g_pEngine->indialog() ? 1 : 0);
+        sq_pushinteger(v, g_pEngine->getDialogManager().isActive() ? 1 : 0);
         return 1;
     }
 

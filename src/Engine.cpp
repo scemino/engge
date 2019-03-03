@@ -184,6 +184,7 @@ void Engine::clampCamera()
 
 void Engine::update(const sf::Time &elapsed)
 {
+    _time += elapsed;
     if (_pCutscene)
     {
         (*_pCutscene)();

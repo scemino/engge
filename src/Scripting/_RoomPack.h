@@ -166,8 +166,13 @@ class _RoomPack : public Pack
 
     static SQInteger masterRoomArray(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: masterRoomArray: not implemented" << std::endl;
-        return 0;
+        sq_newarray(v, 0);
+        for (auto &&pRoom : g_pEngine->getRooms())
+        {
+            sq_pushobject(v, *pRoom->getTable());
+            sq_arrayappend(v, -2);
+        }
+        return 1;
     }
 
     static SQInteger roomRotateTo(HSQUIRRELVM v)
@@ -178,7 +183,19 @@ class _RoomPack : public Pack
 
     static SQInteger roomSize(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: roomSize: not implemented" << std::endl;
+        auto pRoom = ScriptEngine::getRoom(v, 2);
+        if (!pRoom)
+        {
+            return sq_throwerror(v, _SC("failed to get room"));
+        }
+        auto size = pRoom->getRoomSize();
+        sq_newtable(v);
+        sq_pushstring(v, _SC("x"), -1);
+        sq_pushinteger(v, size.x);
+        sq_newslot(v, -3, SQFalse);
+        sq_pushstring(v, _SC("y"), -1);
+        sq_pushinteger(v, size.y);
+        sq_newslot(v, -3, SQFalse);
         return 0;
     }
 
@@ -273,8 +290,21 @@ class _RoomPack : public Pack
 
     static SQInteger findRoom(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: findRoom: not implemented" << std::endl;
-        return 0;
+        const SQChar *name = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &name)))
+        {
+            return sq_throwerror(v, _SC("failed to get room name"));
+        }
+        for (auto &&pRoom : g_pEngine->getRooms())
+        {
+            if (pRoom->getId() == name)
+            {
+                sq_pushobject(v, *pRoom->getTable());
+                return 1;
+            }
+        }
+        sq_pushnull(v);
+        return 1;
     }
 
     static SQInteger isRoom(HSQUIRRELVM v)
@@ -282,7 +312,7 @@ class _RoomPack : public Pack
         std::cerr << "TODO: isRoom: not implemented" << std::endl;
         return 0;
     }
-     
+
     static SQInteger walkboxHidden(HSQUIRRELVM v)
     {
         const SQChar *name = nullptr;
@@ -310,8 +340,20 @@ class _RoomPack : public Pack
 
     static SQInteger roomActors(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: roomActors: not implemented" << std::endl;
-        return 0;
+        auto pRoom = ScriptEngine::getRoom(v, 2);
+        if (!pRoom)
+        {
+            return sq_throwerror(v, _SC("failed to get room"));
+        }
+        sq_newarray(v, 0);
+        for (auto &&pActor : g_pEngine->getActors())
+        {
+            if (pActor->getRoom() == pRoom)
+                continue;
+            sq_pushobject(v, pActor->getTable());
+            sq_arrayappend(v, -2);
+        }
+        return 1;
     }
 
     static SQInteger roomFade(HSQUIRRELVM v)

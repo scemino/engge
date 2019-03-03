@@ -795,8 +795,7 @@ class _ActorPack : public Pack
         sq_newarray(v, 0);
         for (auto &actor : actors)
         {
-            // TODO:
-            // sq_pushobject(v, actor->getTable());
+            sq_pushobject(v, actor->getTable());
             sq_arrayappend(v, -2);
         }
         return 1;
@@ -894,8 +893,7 @@ class _ActorPack : public Pack
         {
             if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
             {
-                // TODO:
-                // sq_pushobject(v, actor->getTable());
+                sq_pushobject(v, actor->getTable());
                 sq_arrayappend(v, -2);
             }
         }
