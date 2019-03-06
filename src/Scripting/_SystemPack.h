@@ -8,6 +8,35 @@
 
 namespace ng
 {
+class _StopThread : public Function
+{
+  private:
+    Engine &_engine;
+    HSQUIRRELVM _v;
+    HSQOBJECT _threadObj;
+    bool _done;
+
+  public:
+    _StopThread(Engine &engine, HSQUIRRELVM v, HSQOBJECT threadObj)
+        : _engine(engine), _v(v), _threadObj(threadObj), _done(false)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        return _done;
+    }
+
+    void operator()() override
+    {
+        if (_done)
+            return;
+        _engine.stopThread(_threadObj._unVal.pThread);
+        sq_release(_v, &_threadObj);
+        _done = true;
+    }
+};
+
 class _BreakFunction : public Function
 {
   protected:
@@ -516,8 +545,9 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
         std::cout << "stopthread " << thread_obj._unVal.pThread << std::endl;
-        g_pEngine->stopThread(thread_obj._unVal.pThread);
-        sq_release(v, &thread_obj);
+
+        auto stopThread = std::make_unique<_StopThread>(*g_pEngine, v, thread_obj);
+        g_pEngine->addFunction(std::move(stopThread));
 
         return 0;
     }
