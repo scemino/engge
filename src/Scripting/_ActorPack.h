@@ -50,7 +50,6 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorWalkForward, "actorWalkForward");
         engine.registerGlobalFunction(addSelectableActor, "addSelectableActor");
         engine.registerGlobalFunction(createActor, "createActor");
-        engine.registerGlobalFunction(currentActor, "currentActor");
         engine.registerGlobalFunction(flashSelectableActor, "flashSelectableActor");
         engine.registerGlobalFunction(isActor, "isActor");
         engine.registerGlobalFunction(isActorOnScreen, "isActorOnScreen");
@@ -755,18 +754,6 @@ class _ActorPack : public Pack
         return 1;
     }
 
-    static SQInteger currentActor(HSQUIRRELVM v)
-    {
-        auto actor = g_pEngine->getCurrentActor();
-        if (!actor)
-        {
-            sq_pushnull(v);
-            return 1;
-        }
-        ScriptEngine::pushObject(v, *actor);
-        return 1;
-    }
-
     static SQInteger isActor(HSQUIRRELVM v)
     {
         auto actor = ScriptEngine::getActor(v, 2);
@@ -861,6 +848,21 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         g_pEngine->setCurrentActor(actor);
+
+        sq_pushroottable(v);
+        sq_pushstring(v, _SC("onActorSelected"), -1);
+        if (SQ_FAILED(sq_get(v, -2)))
+        {
+            return sq_throwerror(v, _SC("failed to call onActorSelected function"));
+        }
+
+        sq_remove(v, -2);
+        sq_pushroottable(v);
+        sq_pushobject(v, actor->getTable());
+        sq_pushbool(v, false);
+        sq_call(v, 3, SQFalse, SQTrue);
+        sq_pop(v, 2); //pops the roottable and the function
+
         return 0;
     }
 
