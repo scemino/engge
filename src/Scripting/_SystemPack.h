@@ -491,14 +491,18 @@ class _SystemPack : public Pack
 
     static SQInteger breakwhilerunning(HSQUIRRELVM v)
     {
-        HSQUIRRELVM thread;
-        if (SQ_FAILED(sq_getthread(v, 2, &thread)))
+        if (sq_gettype(v, 2) == OT_THREAD)
         {
-            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+            HSQUIRRELVM thread;
+            if (SQ_FAILED(sq_getthread(v, 2, &thread)))
+            {
+                return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+            }
+            auto result = sq_suspendvm(v);
+            g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, v, thread));
+            return result;
         }
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, v, thread));
-        return result;
+        return breakwhilesound(v);
     }
 
     static SQInteger dumpvar(HSQUIRRELVM v)
