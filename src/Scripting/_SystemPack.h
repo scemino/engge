@@ -837,15 +837,7 @@ class _SystemPack : public Pack
 
     static SQInteger isTable(HSQUIRRELVM v)
     {
-        HSQOBJECT object;
-        sq_resetobject(&object);
-        if (SQ_FAILED(sq_getstackobj(v, 2, &object)))
-        {
-            sq_push(v, SQFalse);
-            return 1;
-        }
-
-        sq_push(v, sq_istable(object) ? SQTrue : SQFalse);
+        sq_pushbool(v, sq_gettype(v, 2) == OT_TABLE ? SQTrue : SQFalse);
         return 1;
     }
 
