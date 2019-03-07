@@ -244,6 +244,9 @@ void Actor::setCostume(const std::string &name, const std::string &sheet)
     std::string path;
     path.append(name).append(".json");
     _costume.loadCostume(path, sheet);
+    // don't know if it's necessary, reyes has no costume in the intro
+    _costume.setFacing(Facing::FACE_FRONT);
+    _costume.setAnimation("stand_front");
 }
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
