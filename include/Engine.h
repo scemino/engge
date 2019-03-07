@@ -72,7 +72,7 @@ public:
   TextureManager &getTextureManager() { return _textureManager; }
   EngineSettings &getSettings() { return _settings; }
 
-  Room &getRoom() { return *_pRoom; }
+  Room *getRoom() { return _pRoom; }
   void setRoom(Room *room);
   std::string getText(int id) const { return _textDb.getText(id); }
   void setFadeAlpha(float fade) { _fadeColor.a = static_cast<uint8_t>(fade * 255); }

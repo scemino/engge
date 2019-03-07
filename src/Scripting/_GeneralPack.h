@@ -391,6 +391,24 @@ class _GeneralPack : public Pack
         sq_getuserpointer(v, -1, (SQUserPointer *)&pRoom);
         sq_pop(v, 2);
 
+        auto pOldRoom = g_pEngine->getRoom();
+        if (pOldRoom && pRoom != pOldRoom)
+        {
+            // call exit room function
+            sq_pushobject(v, *pOldRoom->getTable());
+            sq_pushstring(v, _SC("exit"), -1);
+            if (SQ_FAILED(sq_get(v, -2)))
+            {
+                return sq_throwerror(v, _SC("can't find exit function"));
+            }
+            sq_remove(v, -2);
+            sq_pushobject(v, *pOldRoom->getTable());
+            if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+            {
+                return sq_throwerror(v, _SC("function exit call failed"));
+            }
+        }
+
         // set camera in room
         g_pEngine->setRoom(pRoom);
 
@@ -410,7 +428,7 @@ class _GeneralPack : public Pack
         sq_pushobject(v, table);
         if (nparams == 2)
         {
-            sq_pushnull(v); // TODO: push here the door
+            sq_pushnull(v); // push here the door
         }
         if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
         {

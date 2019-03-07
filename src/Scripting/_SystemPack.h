@@ -362,6 +362,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(isString, "is_string");
         engine.registerGlobalFunction(isTable, "is_table");
         engine.registerGlobalFunction(ord, "ord");
+        engine.registerGlobalFunction(inputController, "inputController");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(logEvent, "logEvent");
         engine.registerGlobalFunction(microTime, "microTime");
@@ -735,7 +736,7 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("failed to get color"));
         }
         auto color = _fromRgb(c);
-        g_pEngine->getRoom().setAmbientLight(color);
+        g_pEngine->getRoom()->setAmbientLight(color);
         return 0;
     }
 
@@ -864,6 +865,12 @@ class _SystemPack : public Pack
 
         sq_push(v, sq_isstring(object) ? SQTrue : SQFalse);
         return 1;
+    }
+    
+    static SQInteger inputController(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: inputController: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger inputVerbs(HSQUIRRELVM v)

@@ -70,8 +70,8 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get y"));
         }
-        auto &room = g_pEngine->getRoom();
-        auto &objects = room.getObjects();
+        auto *room = g_pEngine->getRoom();
+        auto &objects = room->getObjects();
 
         for (auto &obj : objects)
         {
@@ -539,7 +539,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get layer number"));
         }
-        g_pEngine->getRoom().setAsParallaxLayer(obj, static_cast<int>(layer));
+        g_pEngine->getRoom()->setAsParallaxLayer(obj, static_cast<int>(layer));
         return 0;
     }
 
@@ -789,7 +789,7 @@ class _ObjectPack : public Pack
         }
 
         auto pObject = std::make_unique<InventoryObject>();
-        pObject->setRoom(&g_pEngine->getRoom());
+        pObject->setRoom(g_pEngine->getRoom());
         pObject->setName(name);
         pObject->setIcon(icon);
         pObject->setHandle(std::move(pObj));
@@ -806,7 +806,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get fontName"));
         }
-        auto &obj = g_pEngine->getRoom().createTextObject(fontName);
+        auto &obj = g_pEngine->getRoom()->createTextObject(fontName);
         if (SQ_FAILED(sq_getstring(v, 3, &text)))
         {
             return sq_throwerror(v, _SC("failed to get text"));
@@ -852,7 +852,7 @@ class _ObjectPack : public Pack
             // this function can be called with null
             return 0;
         }
-        g_pEngine->getRoom().deleteObject(*obj);
+        g_pEngine->getRoom()->deleteObject(*obj);
         return 0;
     }
 
@@ -868,7 +868,7 @@ class _ObjectPack : public Pack
                 sq_getstring(v, 2 + i, &animName);
                 anims.emplace_back(animName);
             }
-            auto &obj = g_pEngine->getRoom().createObject(anims);
+            auto &obj = g_pEngine->getRoom()->createObject(anims);
             ScriptEngine::pushObject(v, obj);
             return 1;
         }
@@ -890,7 +890,7 @@ class _ObjectPack : public Pack
                 sq_pop(v, 2);
             }
             sq_pop(v, 1); //pops the null iterator
-            auto &object = g_pEngine->getRoom().createObject(sheet, anims);
+            auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
             ScriptEngine::pushObject(v, object);
         }
         else if (sq_isstring(obj))
@@ -901,7 +901,7 @@ class _ObjectPack : public Pack
             s.append(image);
             std::size_t pos = s.find(".");
             s = s.substr(0, pos);
-            auto &object = g_pEngine->getRoom().createObject(s);
+            auto &object = g_pEngine->getRoom()->createObject(s);
             ScriptEngine::pushObject(v, object);
         }
         return 1;

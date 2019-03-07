@@ -93,7 +93,7 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
         case sf::Event::KeyPressed:
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
             {
-                _engine.getRoom().showDrawWalkboxes(!_engine.getRoom().areDrawWalkboxesVisible());
+                _engine.getRoom()->showDrawWalkboxes(!_engine.getRoom()->areDrawWalkboxesVisible());
                 break;
             }
             break;

@@ -266,7 +266,7 @@ class _DefaultVerbExecute : public VerbExecute
         if (pVerb->id == 10 && useFlags(pObject))
             return;
 
-        auto pTable = _engine.getRoom().getTable();
+        auto pTable = _engine.getRoom()->getTable();
         sq_pushobject(_vm, obj);
         sq_pushobject(_vm, *pTable);
         sq_setdelegate(_vm, -2);

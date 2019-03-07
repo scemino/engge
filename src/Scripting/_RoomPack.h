@@ -250,11 +250,26 @@ class _RoomPack : public Pack
     static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
     {
         auto obj = ScriptEngine::getObject(v, 2);
+        auto pOldRoom = g_pEngine->getRoom();
 
         // set camera in room
         auto pRoom = obj->getRoom();
-        if (&g_pEngine->getRoom() != pRoom)
+        if (pOldRoom != pRoom)
         {
+            // call exit room function
+            sq_pushobject(v, *pOldRoom->getTable());
+            sq_pushstring(v, _SC("exit"), -1);
+            if (SQ_FAILED(sq_get(v, -2)))
+            {
+                return sq_throwerror(v, _SC("can't find exit function"));
+            }
+            sq_remove(v, -2);
+            sq_pushobject(v, *pOldRoom->getTable());
+            if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+            {
+                return sq_throwerror(v, _SC("function exit call failed"));
+            }
+
             g_pEngine->setRoom(pRoom);
             auto actor = g_pEngine->getCurrentActor();
             actor->setRoom(pRoom);
@@ -323,7 +338,7 @@ class _RoomPack : public Pack
         SQBool hidden;
         sq_tobool(v, 3, &hidden);
 
-        g_pEngine->getRoom().setWalkboxEnabled(name, hidden == SQFalse);
+        g_pEngine->getRoom()->setWalkboxEnabled(name, hidden == SQFalse);
         return 0;
     }
 

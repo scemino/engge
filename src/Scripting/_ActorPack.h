@@ -344,7 +344,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
 
-        auto inWalkbox = g_pEngine->getRoom().inWalkbox(actor->getPosition());
+        auto inWalkbox = g_pEngine->getRoom()->inWalkbox(actor->getPosition());
         sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);
         return 1;
     }
