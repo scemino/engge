@@ -1,5 +1,6 @@
 #pragma once
 #include "squirrel.h"
+#include "InventoryObject.h"
 
 namespace ng
 {

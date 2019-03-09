@@ -6,12 +6,14 @@
 #include <regex>
 #include <string>
 #include <math.h>
-#include "Engine.h"
-#include "Screen.h"
-#include "Font.h"
-#include "Text.h"
-#include "_NGUtil.h"
 #include "Cutscene.h"
+#include "Engine.h"
+#include "Font.h"
+#include "InventoryObject.h"
+#include "Screen.h"
+#include "Text.h"
+#include "Verb.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
