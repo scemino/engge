@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <cmath>
 #include <regex>
+#include "Costume.h"
 #include "Object.h"
 #include "Walkbox.h"
 #include "GGPack.h"

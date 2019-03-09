@@ -5,9 +5,10 @@
 #include <iostream>
 #include <list>
 #include <nlohmann/json.hpp>
+#include "Animation.h"
 #include "Room.h"
-#include "_NGUtil.h"
 #include "Screen.h"
+#include "_NGUtil.h"
 
 namespace ng
 {

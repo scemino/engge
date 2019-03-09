@@ -94,6 +94,7 @@ struct Actor::Impl
     HSQOBJECT _table;
 };
 
+
 void Actor::setName(const std::string &name)
 {
     pImpl->_name = name;
@@ -318,7 +319,6 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     };
 }
 
-
 Actor::Impl::TalkingState::TalkingState()
     : _pActor(nullptr), _isTalking(false),
       _talkColor(sf::Color::White), _index(0)
@@ -445,7 +445,6 @@ void Actor::Impl::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates 
 
     target.draw(text, states);
 }
-
 
 Actor::Actor(Engine &engine)
     : pImpl(std::make_unique<Impl>(engine))
