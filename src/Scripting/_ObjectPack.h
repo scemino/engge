@@ -801,14 +801,16 @@ class _ObjectPack : public Pack
 
     static SQInteger createTextObject(HSQUIRRELVM v)
     {
-        const SQChar *fontName;
-        const SQChar *text;
         auto numArgs = sq_gettop(v) - 1;
+
+        const SQChar *fontName;
         if (SQ_FAILED(sq_getstring(v, 2, &fontName)))
         {
             return sq_throwerror(v, _SC("failed to get fontName"));
         }
         auto &obj = g_pEngine->getRoom()->createTextObject(fontName);
+
+        const SQChar *text;
         if (SQ_FAILED(sq_getstring(v, 3, &text)))
         {
             return sq_throwerror(v, _SC("failed to get text"));

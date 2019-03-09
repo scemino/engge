@@ -12,9 +12,9 @@ public:
   {
   }
 
-  bool isElapsed() { return _done && !_actor.isTalking(); }
+  bool isElapsed() override { return _done && !_actor.isTalking(); }
 
-  virtual void operator()()
+  void operator()(const sf::Time &elapsed) override
   {
     if (_done)
       return;

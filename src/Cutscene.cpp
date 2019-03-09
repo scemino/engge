@@ -25,7 +25,7 @@ void Cutscene::cutsceneOverride()
         _state = 2;
 }
 
-void Cutscene::operator()()
+void Cutscene::operator()(const sf::Time &elapsed)
 {
     switch (_state)
     {

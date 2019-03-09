@@ -27,12 +27,47 @@ class _StopThread : public Function
         return _done;
     }
 
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
         if (_done)
             return;
         _engine.stopThread(_threadObj._unVal.pThread);
         sq_release(_v, &_threadObj);
+        _done = true;
+    }
+};
+
+class _WakeupThread : public Function
+{
+  private:
+    Engine &_engine;
+    HSQUIRRELVM _vm;
+    bool _done;
+
+  public:
+    _WakeupThread(Engine &engine, HSQUIRRELVM vm)
+        : _engine(engine), _vm(vm), _done(false)
+    {
+    }
+
+    bool isElapsed() override
+    {
+        return _done;
+    }
+
+    void operator()(const sf::Time &elapsed) override
+    {
+        if (_done)
+            return;
+
+        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
+        {
+            std::cerr << typeid(this).name() << ": failed to wakeup: " << _vm << std::endl;
+            sqstd_printcallstack(_vm);
+            return;
+        }
+        std::cout << typeid(this).name() << ": OK to wakeup: " << _vm << std::endl;
+
         _done = true;
     }
 };
@@ -55,7 +90,7 @@ class _BreakFunction : public Function
         return "_BreakFunction";
     }
 
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
         if (_done)
             return;
@@ -74,13 +109,9 @@ class _BreakFunction : public Function
             std::cerr << getName() << " failed: thread not suspended: " << _vm << std::endl;
             return;
         }
-        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-        {
-            std::cerr << getName() << ": failed to wakeup: " << _vm << std::endl;
-            sqstd_printcallstack(_vm);
-            return;
-        }
-        std::cout << getName() << ": OK to wakeup: " << _vm << std::endl;
+
+        auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
+        _engine.addFunction(std::move(wakeupThread));
     }
 };
 
@@ -206,7 +237,7 @@ class _BreakWhileRunningFunction : public Function
     {
     }
 
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
         if (_done)
             return;
@@ -214,7 +245,8 @@ class _BreakWhileRunningFunction : public Function
         if (!_engine.isThreadAlive(_thread) || sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
         {
             _engine.stopThread(_thread);
-            sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse);
+            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
+            _engine.addFunction(std::move(wakeupThread));
             _done = true;
         }
     }
@@ -275,21 +307,18 @@ class _BreakTimeFunction : public TimeFunction
     {
     }
 
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
+        TimeFunction::operator()(elapsed);
         if (isElapsed())
         {
             if (!_engine.isThreadAlive(_vm))
                 return;
             if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
                 return;
-            if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-            {
-                std::cerr << "_BreakTimeFunction: failed to wakeup: " << _vm << std::endl;
-                sqstd_printcallstack(_vm);
-                return;
-            }
-            // std::cout << "_BreakTimeFunction: OK to wakeup: " << _vm << std::endl;
+
+            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
+            _engine.addFunction(std::move(wakeupThread));
         }
     }
 };
@@ -866,7 +895,7 @@ class _SystemPack : public Pack
         sq_push(v, sq_isstring(object) ? SQTrue : SQFalse);
         return 1;
     }
-    
+
     static SQInteger inputController(HSQUIRRELVM v)
     {
         std::cerr << "TODO: inputController: not implemented" << std::endl;

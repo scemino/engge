@@ -426,7 +426,7 @@ TextObject &Room::createTextObject(const std::string &fontName)
 
 void Room::deleteObject(Object &object)
 {
-    auto const &it = std::find_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&](std::unique_ptr<Object> &ptr) {
+    auto const &it = std::find_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&object](std::unique_ptr<Object> &ptr) {
         return ptr.get() == &object;
     });
     auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {

@@ -25,7 +25,7 @@ class Cutscene : public Function
 
   public:
     bool isElapsed() override;
-    void operator()() override;
+    void operator()(const sf::Time &elapsed) override;
     void cutsceneOverride();
 
   private:

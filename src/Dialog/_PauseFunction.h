@@ -11,9 +11,9 @@ class _PauseFunction : public Function
     {
     }
 
-    bool isElapsed() { return _done && _clock.getElapsedTime() > _time; }
+    bool isElapsed() override { return _done && _clock.getElapsedTime() > _time; }
 
-    virtual void operator()()
+    void operator()(const sf::Time &elapsed) override
     {
         if (_done)
             return;

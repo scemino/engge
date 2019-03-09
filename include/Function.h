@@ -11,14 +11,14 @@ class Function : public NonCopyable
 {
 public:
   virtual bool isElapsed() { return true; }
-  virtual void operator()() {}
+  virtual void operator()(const sf::Time &elapsed) {}
   virtual ~Function() = default;
 };
 
 class TimeFunction : public Function
 {
 protected:
-  sf::Clock _clock;
+  sf::Time _elapsed;
   sf::Time _time;
   std::function<void()> _function;
 
@@ -30,9 +30,14 @@ public:
 
   ~TimeFunction() override = default;
 
+  void operator()(const sf::Time &elapsed) override
+  {
+    _elapsed += elapsed;
+  }
+
   bool isElapsed() override
   {
-    auto isElapsed = _clock.getElapsedTime() > _time;
+    auto isElapsed = _elapsed > _time;
     if (isElapsed)
     {
       onElapsed();
@@ -65,12 +70,13 @@ public:
   {
   }
 
-  void operator()() override
+  void operator()(const sf::Time &elapsed) override
   {
+    TimeFunction::operator()(elapsed);
     _set(_current);
     if (!isElapsed())
     {
-      auto t = _clock.getElapsedTime().asSeconds() / _time.asSeconds();
+      auto t = _elapsed.asSeconds() / _time.asSeconds();
       auto f = _anim(t);
       _current = _init + f * _delta;
     }

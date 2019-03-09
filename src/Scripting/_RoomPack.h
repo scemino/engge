@@ -23,12 +23,13 @@ class _ChangeColor : public TimeFunction
     {
     }
 
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
+        TimeFunction::operator()(elapsed);
         _engine.setFadeColor(_current);
         if (!isElapsed())
         {
-            auto t = _clock.getElapsedTime().asSeconds() / _time.asSeconds();
+            auto t = _elapsed.asSeconds() / _time.asSeconds();
             auto f = _anim(t);
             _current = plusColor(_startColor, f);
         }
@@ -466,7 +467,7 @@ class _RoomPack : public Pack
         sq_pushuserpointer(v, pRoom);
         sq_newslot(v, -3, SQFalse);
 
-        std::unordered_map<const SQChar *, HSQOBJECT> inventory;
+        std::unordered_map<std::string, HSQOBJECT> inventory;
 
         // define room objects
         sq_pushobject(v, *pTable);
@@ -509,7 +510,7 @@ class _RoomPack : public Pack
         for (auto obj : inventory)
         {
             sq_pushroottable(v);
-            sq_pushstring(v, obj.first, -1);
+            sq_pushstring(v, obj.first.data(), -1);
             sq_pushobject(v, obj.second);
             sq_newslot(v, -3, SQFalse);
         }

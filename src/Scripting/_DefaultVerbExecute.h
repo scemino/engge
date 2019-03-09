@@ -91,14 +91,14 @@ class _AfterFunction : public Function
     }
 
     bool isElapsed() override { return _before->isElapsed() && _after->isElapsed(); }
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
         if (!_before->isElapsed())
         {
-            (*_before)();
+            (*_before)(elapsed);
             return;
         }
-        (*_after)();
+        (*_after)(elapsed);
     }
 
   private:
@@ -121,7 +121,7 @@ class _ActorWalk : public Function
 
   private:
     bool isElapsed() override { return !_actor.isWalking(); }
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
     }
 
@@ -139,7 +139,7 @@ class _Use : public Function
 
   private:
     bool isElapsed() override { return true; }
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
         HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
         HSQOBJECT objTarget = _objectTarget.getTable();
@@ -179,7 +179,7 @@ class _VerbExecute : public Function
 
   private:
     bool isElapsed() override { return true; }
-    void operator()() override
+    void operator()(const sf::Time &elapsed) override
     {
         sq_pushobject(_vm, _object.getTable());
         sq_pushstring(_vm, _verb.data(), -1);

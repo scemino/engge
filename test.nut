@@ -49,7 +49,10 @@ soundBreakLightbulb <- defineSound("BreakLightbulb.wav")
 soundSpark1 <- defineSound("Spark1.wav")						
 soundSpark2 <- defineSound("Spark2.wav")
 soundOwls <- defineSound("Owls.wav")
-soundWolf <- defineSound("WolfHowl.wav")						
+soundWolf <- defineSound("WolfHowl.wav")	
+
+function onActorSelected(actor, user_selected) {
+}
 
 // Boot.nut
 function objectName(obj, name) {
@@ -3409,4 +3412,4 @@ script newOpeningScene() {
 }
 
 g.openingScene = 1
-local tid = startthread(newOpeningScene)
+local tid = startthread(doOpening)

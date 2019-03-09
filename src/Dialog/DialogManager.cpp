@@ -110,7 +110,7 @@ void DialogManager::update(const sf::Time &elapsed)
         if (_functions[0]->isElapsed())
             _functions.erase(_functions.begin());
         else
-            (*_functions[0])();
+            (*_functions[0])(elapsed);
         return;
     }
 

@@ -190,7 +190,7 @@ void Engine::update(const sf::Time &elapsed)
     _time += elapsed;
     if (_pCutscene)
     {
-        (*_pCutscene)();
+        (*_pCutscene)(elapsed);
         if (_pCutscene->isElapsed())
         {
             _pCutscene.release();
@@ -203,7 +203,7 @@ void Engine::update(const sf::Time &elapsed)
     _newFunctions.clear();
     for (auto &function : _functions)
     {
-        (*function)();
+        (*function)(elapsed);
     }
     _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
                                     [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
