@@ -2,6 +2,7 @@
 #include "squirrel.h"
 #include "Lip.h"
 #include "Engine.h"
+#include "Screen.h"
 #include "../_NGUtil.h"
 
 namespace ng

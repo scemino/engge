@@ -2,6 +2,7 @@
 #include "SFML/Graphics.hpp"
 #include "Game.h"
 #include "Engine.h"
+#include "Screen.h"
 
 namespace ng
 {

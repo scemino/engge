@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "Inventory.h"
 #include "InventoryObject.h"
+#include "Screen.h"
 
 namespace ng
 {

@@ -2,6 +2,7 @@
 #include <string>
 #include "squirrel.h"
 #include "Cutscene.h"
+#include "Screen.h"
 
 namespace ng
 {

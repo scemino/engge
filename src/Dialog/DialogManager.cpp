@@ -1,7 +1,8 @@
 
+#include "Actor.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
-#include "Actor.h"
+#include "Screen.h"
 #include "Text.h"
 #include "_SayFunction.h"
 

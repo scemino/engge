@@ -1,6 +1,7 @@
 #pragma once
 #include "squirrel.h"
 #include "InventoryObject.h"
+#include "TextObject.h"
 
 namespace ng
 {

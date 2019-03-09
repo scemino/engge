@@ -4,6 +4,8 @@
 #include "InventoryObject.h"
 #include "Lip.h"
 #include "Room.h"
+#include "RoomScaling.h"
+#include "Screen.h"
 #include "Text.h"
 #include "PathFinder.h"
 
