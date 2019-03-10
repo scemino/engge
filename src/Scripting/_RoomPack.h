@@ -452,6 +452,7 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("can't find background entry"));
         }
+
         const SQChar *name;
         sq_getstring(v, -1, &name);
         sq_pop(v, 2);
@@ -467,7 +468,7 @@ class _RoomPack : public Pack
         sq_pushuserpointer(v, pRoom);
         sq_newslot(v, -3, SQFalse);
 
-        std::unordered_map<std::string, HSQOBJECT> inventory;
+        std::vector<std::tuple<const SQChar*,HSQOBJECT,bool>> inventory;
 
         // define room objects
         sq_pushobject(v, *pTable);
@@ -486,7 +487,7 @@ class _RoomPack : public Pack
                 if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))
                 {
                     sq_addref(v, &object);
-                    inventory[key] = object;
+                    inventory.push_back({key,object,false});
                 }
             }
             sq_pop(v, 2); //pops key and val before the nex iteration
@@ -495,23 +496,20 @@ class _RoomPack : public Pack
 
         for (auto&& obj : inventory)
         {
-            sq_pushobject(v, obj.second);
+            sq_pushobject(v, std::get<1>(obj));
             sq_pushstring(v, _SC("icon"), -1);
-            if (SQ_FAILED(sq_rawget(v, -2)))
-            {
-                sq_release(v, &obj.second);
-                inventory.erase(obj.first);
-            }
+            std::get<2>(obj) = SQ_SUCCEEDED(sq_rawget(v, -2));
         }
-
+        
         // don't know if this is the best way to do this
         // but it seems that inventory objects are accessible
         // from the roottable
-        for (auto obj : inventory)
+        for (auto&& obj : inventory)
         {
+            if(!std::get<2>(obj)) continue;
             sq_pushroottable(v);
-            sq_pushstring(v, obj.first.data(), -1);
-            sq_pushobject(v, obj.second);
+            sq_pushstring(v, std::get<0>(obj), -1);
+            sq_pushobject(v, std::get<1>(obj));
             sq_newslot(v, -3, SQFalse);
         }
 
