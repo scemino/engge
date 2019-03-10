@@ -493,7 +493,7 @@ class _RoomPack : public Pack
         }
         sq_pop(v, 1); //pops the null iterator
 
-        for (auto obj : inventory)
+        for (auto&& obj : inventory)
         {
             sq_pushobject(v, obj.second);
             sq_pushstring(v, _SC("icon"), -1);
