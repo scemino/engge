@@ -36,7 +36,20 @@
 build/**
 engge*
 resources/**
+
+CMakeFiles
+CMakeCache.txt
+Makefile
+cmake_install.cmake
 extlibs/squirrel/build/**
+extlibs/squirrel/CMakeFiles/
+extlibs/squirrel/cmake_install.cmake
+extlibs/squirrel/sq/CMakeFiles/
+extlibs/squirrel/sq/cmake_install.cmake
+extlibs/squirrel/sqstdlib/CMakeFiles/
+extlibs/squirrel/sqstdlib/cmake_install.cmake
+extlibs/squirrel/squirrel/CMakeFiles/
+extlibs/squirrel/squirrel/cmake_install.cmake
 
 ThimbleweedPark.ggpack1
 ThimbleweedPark.ggpack2
