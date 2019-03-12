@@ -16,7 +16,9 @@ engge is an **experimental** game engine, its purpose is to be able (one day) to
 # Compiling
 
 ```
-cmake .
+mkdir build
+cd build
+cmake ..
 cmake --build .
 ```
 
