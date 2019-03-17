@@ -122,22 +122,12 @@ void Actor::setVisible(bool isVisible)
     pImpl->_isVisible = isVisible;
 }
 
-bool Actor::isVisible() const
-{
-    return pImpl->_isVisible;
-}
-
 void Actor::useWalkboxes(bool use)
 {
     pImpl->_use = use;
 }
 
 Costume &Actor::getCostume()
-{
-    return pImpl->_costume;
-}
-
-const Costume &Actor::getCostume() const
 {
     return pImpl->_costume;
 }
@@ -192,11 +182,6 @@ void Actor::setHotspot(const sf::IntRect &hotspot)
     pImpl->_hotspot = hotspot;
 }
 
-const sf::IntRect &Actor::getHotspot() const
-{
-    return pImpl->_hotspot;
-}
-
 void Actor::pickupObject(std::unique_ptr<InventoryObject> pObject)
 {
     pImpl->_objects.push_back(std::move(pObject));
@@ -230,11 +215,6 @@ bool Actor::isWalking() const
 void Actor::setVolume(float volume)
 {
     pImpl->_volume = volume;
-}
-
-float Actor::getVolume() const
-{
-    return pImpl->_volume;
 }
 
 HSQOBJECT &Actor::getTable()
@@ -305,7 +285,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     if (fabs(_path[0].x - pos.x) <= 1 && fabs(_path[0].y - pos.y) <= 1)
     {
         _path.erase(_path.begin());
-        if (_path.size() == 0)
+        if (_path.empty())
         {
             _isWalking = false;
             std::cout << "Play anim stand" << std::endl;
@@ -314,8 +294,8 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         }
         else
         {
-            auto pos = _pActor->getPosition();
-            _pActor->getCostume().setFacing(((_path[0].x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
+            auto pos2 = _pActor->getPosition();
+            _pActor->getCostume().setFacing(((_path[0].x - pos2.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
             std::cout << "go to : " << _path[0].x << "," << _path[0].y << std::endl;
         }
     };
@@ -460,7 +440,7 @@ Actor::~Actor() = default;
 
 int Actor::getZOrder() const
 {
-    return getRoom()->getRoomSize().y - getPosition().y;
+    return static_cast<int>(getRoom()->getRoomSize().y - getPosition().y);
 }
 
 void Actor::setRoom(Room *pRoom)

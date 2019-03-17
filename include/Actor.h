@@ -25,7 +25,6 @@ public:
   const std::string &getIcon() const;
 
   void setVisible(bool isVisible);
-  bool isVisible() const;
 
   void useWalkboxes(bool use);
 
@@ -33,7 +32,6 @@ public:
 
   void setCostume(const std::string &name, const std::string &sheet = "");
   Costume &getCostume();
-  const Costume &getCostume() const;
 
   void setTalkColor(sf::Color color);
   void setTalkOffset(const sf::Vector2i &offset);
@@ -51,7 +49,6 @@ public:
   void setRoom(Room *pRoom);
 
   void setHotspot(const sf::IntRect &hotspot);
-  const sf::IntRect &getHotspot() const;
 
   void update(const sf::Time &time) override;
 
@@ -66,13 +63,12 @@ public:
   bool isWalking() const;
 
   void setVolume(float volume);
-  float getVolume() const;
 
   void trigSound(const std::string &name) override;
 
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-  HSQOBJECT& getTable();
+  HSQOBJECT &getTable();
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

@@ -396,6 +396,8 @@ class _GeneralPack : public Pack
         if (pOldRoom && pRoom != pOldRoom)
         {
             // call exit room function
+            std::cout << "call exit room function of " << pOldRoom->getId() << std::endl;
+            
             sq_pushobject(v, *pOldRoom->getTable());
             sq_pushstring(v, _SC("exit"), -1);
             if (SQ_FAILED(sq_get(v, -2)))
@@ -414,6 +416,7 @@ class _GeneralPack : public Pack
         g_pEngine->setRoom(pRoom);
 
         // call enter room function
+        std::cout << "call enter room function of " << pRoom->getId() << std::endl;
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("enter"), -1);
         if (SQ_FAILED(sq_get(v, -2)))

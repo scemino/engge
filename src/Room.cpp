@@ -216,12 +216,12 @@ struct Room::Impl
                             if (!jtrigger.isNull())
                             {
                                 auto name = jtrigger.string_value;
-                                auto trigger = std::atoi(name.data() + 1);
-                                anim->getTriggers().push_back(trigger);
+                                auto trigger = std::strtol(name.data() + 1, nullptr, 10);
+                                anim->getTriggers().emplace_back(trigger);
                             }
                             else
                             {
-                                anim->getTriggers().push_back(std::nullopt);
+                                anim->getTriggers().emplace_back(std::nullopt);
                             }
                         }
                     }
@@ -232,7 +232,7 @@ struct Room::Impl
                 object->setAnimation("state0");
             }
             object->setRoom(_pRoom);
-            std::cout << "Object " << *object << std::endl;
+            // std::cout << "Object " << *object << std::endl;
             itLayer->get()->addEntity(*object);
             _objects.push_back(std::move(object));
         }
@@ -251,7 +251,7 @@ struct Room::Impl
             if (jWimpy["scaling"][0].isString())
             {
                 RoomScaling scaling;
-                for (auto jScaling : jWimpy["scaling"].array_value)
+                for (const auto jScaling : jWimpy["scaling"].array_value)
                 {
                     auto value = jScaling.string_value;
                     auto index = value.find('@');
@@ -340,8 +340,6 @@ const std::string &Room::getSheet() const { return pImpl->_sheet; }
 void Room::showDrawWalkboxes(bool show) { pImpl->_showDrawWalkboxes = show; }
 
 bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
-
-const std::vector<Walkbox> &Room::getWalkboxes() const { return pImpl->_walkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
 
@@ -494,7 +492,7 @@ Object &Room::createObject(const std::string &image)
     auto size = texture.getSize();
     sf::IntRect rect(0, 0, size.x, size.y);
     animation->getRects().push_back(rect);
-    animation->getSizes().push_back(sf::Vector2i(size));
+    animation->getSizes().emplace_back(size);
     animation->getSourceRects().push_back(rect);
     animation->reset();
     object->getAnims().push_back(std::move(animation));
@@ -571,13 +569,13 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         auto posX = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
         auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
 
-        sf::Transform t;
-        t.translate(posX, posY);
+        sf::Transform t2;
+        t2.translate(posX, posY);
         if (pImpl->_fullscreen == 1)
         {
-            t.scale(ratio, ratio);
+            t2.scale(ratio, ratio);
         }
-        states.transform = t;
+        states.transform = t2;
         layer->drawForeground(window, states);
     }
 }

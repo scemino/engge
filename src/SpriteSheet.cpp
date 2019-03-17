@@ -25,13 +25,13 @@ void SpriteSheet::load(const std::string &name)
     {
         auto n = it.key();
         auto rect = _toRect(json["frames"][n]["frame"]);
-        std::cout << "frame " << n << " (" << rect.width << "," << rect.height << ")" << std::endl;
+        // std::cout << "frame " << n << " (" << rect.width << "," << rect.height << ")" << std::endl;
         _rects.insert(std::pair(n, rect));
         rect = _toRect(json["frames"][n]["spriteSourceSize"]);
-        std::cout << "spriteSourceSize " << n << " (" << rect.width << "," << rect.height << ")" << std::endl;
+        // std::cout << "spriteSourceSize " << n << " (" << rect.width << "," << rect.height << ")" << std::endl;
         _spriteSourceSize.insert(std::pair(n, rect));
         auto size = _toSize(json["frames"][n]["sourceSize"]);
-        std::cout << "sourceSize " << n << " (" << rect.width << "," << rect.height << ")" << std::endl;
+        // std::cout << "sourceSize " << n << " (" << rect.width << "," << rect.height << ")" << std::endl;
         _sourceSize.insert(std::pair(n, size));
     }
 }

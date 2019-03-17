@@ -547,14 +547,17 @@ class _ObjectPack : public Pack
 
     static SQInteger objectTouchable(HSQUIRRELVM v)
     {
-        SQBool isTouchable;
+        SQInteger isTouchable;
         auto *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        sq_tobool(v, 3, &isTouchable);
-        obj->setTouchable(static_cast<bool>(isTouchable));
+        if (SQ_FAILED(sq_getinteger(v, 3, &isTouchable)))
+        {
+            return sq_throwerror(v, _SC("failed to get isTouchable"));
+        }
+        obj->setTouchable(isTouchable != 0);
         return 0;
     }
 
@@ -716,14 +719,17 @@ class _ObjectPack : public Pack
 
     static SQInteger objectHidden(HSQUIRRELVM v)
     {
-        SQBool hidden;
+        SQInteger hidden;
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        sq_tobool(v, 3, &hidden);
-        obj->setVisible(!hidden);
+        if (SQ_FAILED(sq_getinteger(v, 3, &hidden)))
+        {
+            return sq_throwerror(v, _SC("failed to get hidden"));
+        }
+        obj->setVisible(hidden == 0);
         return 0;
     }
 

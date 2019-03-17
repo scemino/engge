@@ -66,7 +66,7 @@ class _WakeupThread : public Function
             sqstd_printcallstack(_vm);
             return;
         }
-        std::cout << typeid(this).name() << ": OK to wakeup: " << _vm << std::endl;
+        // std::cout << typeid(this).name() << ": OK to wakeup: " << _vm << std::endl;
 
         _done = true;
     }
@@ -97,7 +97,6 @@ class _BreakFunction : public Function
 
         if (!_engine.isThreadAlive(_vm))
         {
-            std::cerr << getName() << " failed: thread not alive: " << _vm << std::endl;
             return;
         }
         if (!isElapsed())
@@ -927,8 +926,11 @@ class _SystemPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get thread"));
         }
-        SQBool pauseable = true;
-        sq_tobool(v, 3, &pauseable);
+        SQInteger pauseable = 0;
+        if (SQ_FAILED(sq_getinteger(v, 3, &pauseable)))
+        {
+            return sq_throwerror(v, _SC("failed to get pauseable"));
+        }
 
         // TODO: set thread pauseable
         return 0;
