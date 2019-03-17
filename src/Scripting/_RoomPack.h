@@ -14,7 +14,7 @@ class _ChangeColor : public TimeFunction
           _startColor(startColor),
           _current(startColor),
           _endColor(endColor),
-          _anim(anim),
+          _anim(std::move(anim)),
           _isLooping(isLooping),
           _a(static_cast<sf::Int16>(endColor.a - startColor.a)),
           _r(static_cast<sf::Int16>(endColor.r - startColor.r)),
@@ -244,7 +244,7 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get enabled"));
         }
-        object->getTrigger()->setEnabled(enabled == 1);
+        object->getTrigger()->setEnabled(enabled != 0);
         return 0;
     }
 
@@ -448,11 +448,10 @@ class _RoomPack : public Pack
         // loadRoom
         sq_pushobject(v, *pTable);
         sq_pushstring(v, _SC("background"), -1);
-        if (SQ_FAILED(sq_get(v, -2)))
+        if (SQ_FAILED(sq_rawget(v, -2)))
         {
             return sq_throwerror(v, _SC("can't find background entry"));
         }
-
         const SQChar *name;
         sq_getstring(v, -1, &name);
         sq_pop(v, 2);
@@ -468,7 +467,7 @@ class _RoomPack : public Pack
         sq_pushuserpointer(v, pRoom);
         sq_newslot(v, -3, SQFalse);
 
-        std::vector<std::tuple<const SQChar*,HSQOBJECT,bool>> inventory;
+        std::unordered_map<std::string, HSQOBJECT> roomObjects;
 
         // define room objects
         sq_pushobject(v, *pTable);
@@ -487,29 +486,21 @@ class _RoomPack : public Pack
                 if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))
                 {
                     sq_addref(v, &object);
-                    inventory.push_back({key,object,false});
+                    roomObjects[key] = object;
                 }
             }
             sq_pop(v, 2); //pops key and val before the nex iteration
         }
         sq_pop(v, 1); //pops the null iterator
 
-        for (auto&& obj : inventory)
-        {
-            sq_pushobject(v, std::get<1>(obj));
-            sq_pushstring(v, _SC("icon"), -1);
-            std::get<2>(obj) = SQ_SUCCEEDED(sq_rawget(v, -2));
-        }
-        
         // don't know if this is the best way to do this
-        // but it seems that inventory objects are accessible
+        // but it seems that room objects and inventory objects are accessible
         // from the roottable
-        for (auto&& obj : inventory)
+        for (auto it = roomObjects.begin(); it != roomObjects.end(); it++)
         {
-            if(!std::get<2>(obj)) continue;
             sq_pushroottable(v);
-            sq_pushstring(v, std::get<0>(obj), -1);
-            sq_pushobject(v, std::get<1>(obj));
+            sq_pushstring(v, it->first.data(), -1);
+            sq_pushobject(v, it->second);
             sq_newslot(v, -3, SQFalse);
         }
 
@@ -519,7 +510,7 @@ class _RoomPack : public Pack
 
             sq_pushobject(v, *pTable);
             sq_pushstring(v, obj->getName().data(), -1);
-            if (SQ_FAILED(sq_get(v, -2)))
+            if (SQ_FAILED(sq_rawget(v, -2)))
             {
                 setObjectSlot(v, obj->getName().data(), *obj);
 
@@ -614,7 +605,7 @@ SQInteger _RoomPack::_get(HSQUIRRELVM v)
 template <>
 SQBool _RoomPack::_get(HSQUIRRELVM v)
 {
-    SQBool value = false;
+    SQBool value = SQFalse;
     sq_getbool(v, -1, &value);
     return value;
 }
