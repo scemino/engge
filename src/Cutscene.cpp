@@ -66,7 +66,7 @@ void Cutscene::checkEndCutscene()
     auto s = sq_getvmstate(_thread._unVal.pThread);
     if (s == SQ_VMSTATE_IDLE)
     {
-        _state = 2;
+        _state = 4;
         std::cout << "end cutscene: " << _thread._unVal.pThread << std::endl;
     }
 }
