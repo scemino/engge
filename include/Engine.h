@@ -193,5 +193,6 @@ private:
   Inventory _inventory;
   HSQUIRRELVM _vm;
   sf::Time _time;
+  bool _isMouseDown;
 };
 } // namespace ng

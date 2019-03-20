@@ -57,8 +57,8 @@ public:
 
   void setWalkSpeed(const sf::Vector2i &speed);
   const sf::Vector2i &getWalkSpeed() const;
-  void walkTo(const sf::Vector2f &destination);
-  void walkTo(const sf::Vector2f &destination, Facing facing);
+  
+  void walkTo(const sf::Vector2f &destination, std::optional<Facing> facing = std::nullopt);
   void stopWalking();
   bool isWalking() const;
 

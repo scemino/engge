@@ -19,15 +19,18 @@ struct Actor::Impl
         WalkingState();
 
         void setActor(Actor *pActor);
-        void setDestination(const std::vector<sf::Vector2i> &path, Facing facing);
+        void setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing);
         void update(const sf::Time &elapsed);
         void stop();
         bool isWalking() const { return _isWalking; }
 
       private:
+        Facing getFacing();
+
+      private:
         Actor *_pActor;
         std::vector<sf::Vector2i> _path;
-        Facing _facing;
+        std::optional<Facing> _facing;
         bool _isWalking;
     };
 
@@ -95,7 +98,6 @@ struct Actor::Impl
     std::shared_ptr<Path> _path;
     HSQOBJECT _table;
 };
-
 
 void Actor::setName(const std::string &name)
 {
@@ -232,12 +234,13 @@ void Actor::Impl::WalkingState::setActor(Actor *pActor)
     _pActor = pActor;
 }
 
-void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &path, Facing facing)
+void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing)
 {
     _path = path;
     _facing = facing;
     auto pos = _pActor->getPosition();
-    _pActor->getCostume().setFacing(((_path[0].x - pos.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
+    _path.erase(_path.begin());
+    _pActor->getCostume().setFacing(getFacing());
     _pActor->getCostume().setState("walk");
     _pActor->getCostume().getAnimation()->play(true);
     _isWalking = true;
@@ -246,6 +249,16 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
 void Actor::Impl::WalkingState::stop()
 {
     _isWalking = false;
+}
+
+Facing Actor::Impl::WalkingState::getFacing()
+{
+    auto pos = _pActor->getPosition();
+    auto dx = _path[0].x - pos.x;
+    auto dy = _path[0].y - pos.y;
+    if (fabs(dx) > fabs(dy))
+        return (dx > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
+    return (dy > 0) ? Facing::FACE_FRONT : Facing::FACE_BACK;
 }
 
 void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
@@ -259,13 +272,11 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
     if (delta.x > 0)
     {
-        _pActor->getCostume().setFacing(Facing::FACE_RIGHT);
         if (offset.x > delta.x)
             offset.x = delta.x;
     }
     else
     {
-        _pActor->getCostume().setFacing(Facing::FACE_LEFT);
         offset.x = -offset.x;
         if (offset.x < delta.x)
             offset.x = delta.x;
@@ -289,13 +300,18 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         {
             _isWalking = false;
             std::cout << "Play anim stand" << std::endl;
+            if (_facing.has_value())
+            {
+                _pActor->getCostume().setFacing(_facing.value());
+            }
             _pActor->getCostume().setState("stand");
-            _pActor->getCostume().setFacing(_facing);
         }
         else
         {
             auto pos2 = _pActor->getPosition();
-            _pActor->getCostume().setFacing(((_path[0].x - pos2.x) > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT);
+            _pActor->getCostume().setFacing(getFacing());
+            _pActor->getCostume().setState("walk");
+            _pActor->getCostume().getAnimation()->play(true);
             std::cout << "go to : " << _path[0].x << "," << _path[0].y << std::endl;
         }
     };
@@ -501,7 +517,7 @@ void Actor::update(const sf::Time &elapsed)
     pImpl->_talkingState.update(elapsed);
 }
 
-void Actor::walkTo(const sf::Vector2f &destination, Facing facing)
+void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing)
 {
     if (pImpl->_pRoom == nullptr)
         return;
@@ -513,11 +529,6 @@ void Actor::walkTo(const sf::Vector2f &destination, Facing facing)
         return;
 
     pImpl->_walkingState.setDestination(path, facing);
-}
-
-void Actor::walkTo(const sf::Vector2f &destination)
-{
-    walkTo(destination, getCostume().getFacing());
 }
 
 void Actor::trigSound(const std::string &name)

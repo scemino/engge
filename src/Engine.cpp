@@ -187,6 +187,10 @@ void Engine::clampCamera()
 
 void Engine::update(const sf::Time &elapsed)
 {
+    auto wasMouseDown = _isMouseDown;
+    _isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+    auto isMouseClick = wasMouseDown != _isMouseDown && !_isMouseDown;
+
     _time += elapsed;
     if (_pCutscene)
     {
@@ -264,7 +268,7 @@ void Engine::update(const sf::Time &elapsed)
     if (!_inputActive)
         return;
 
-    if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+    if (!isMouseClick)
         return;
 
     if (clickedAt(mousePosInRoom))

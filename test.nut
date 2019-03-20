@@ -3345,8 +3345,8 @@ script newOpeningScene() {
 
     cutscene(@()
     {
-    breakwhilerunning(Opening.playOpening())
-    breakwhilerunning(TitleCards.showPartMeeting())
+    // breakwhilerunning(Opening.playOpening())
+    // breakwhilerunning(TitleCards.showPartMeeting())
 
     // startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
@@ -3412,4 +3412,4 @@ script newOpeningScene() {
 }
 
 g.openingScene = 1
-local tid = startthread(doOpening)
+local tid = startthread(newOpeningScene)
