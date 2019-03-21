@@ -20,11 +20,12 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
+cd ..
 ```
 
 # Running
 
-Just type `engge`, don't forget the prerequisites.
+Just type `./build/engge`, don't forget the prerequisites.
 
 # Disclaimer
 
