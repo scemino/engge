@@ -165,7 +165,7 @@ private:
   sf::RenderWindow *_pWindow;
   sf::Vector2f _cameraPos;
   TextDatabase _textDb;
-  FntFont _fntFont;
+  Font _fntFont;
   Actor *_pCurrentActor;
   std::array<VerbSlot, 6> _verbSlots;
   std::array<VerbUiColors, 6> _verbUiColors;

@@ -61,8 +61,9 @@ Engine::Engine(EngineSettings &settings)
     std::cout << "seed: " << seed << std::endl;
     srand(seed);
 
+    _fntFont.setTextureManager(&_textureManager);
     _fntFont.setSettings(&settings);
-    _fntFont.loadFromFile("SentenceFont.fnt");
+    _fntFont.load("FontModernSheet");
 
     // load all messages
     _textDb.setSettings(settings);
@@ -430,13 +431,11 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
     if (!_inputActive)
         return;
 
-    auto scale = Screen::HalfHeight / 512.f;
     if (_pCurrentObject)
     {
-        Text text;
+        NGText text;
         text.setFont(_fntFont);
-        text.setScale(scale, scale);
-        text.setFillColor(sf::Color::White);
+        text.setColor(sf::Color::White);
         std::wstring s;
         if (_pVerb && !_pVerb->text.empty())
         {
@@ -461,32 +460,32 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         {
             s.append(L" ").append(_pCurrentObject->getName());
         }
-        text.setString(s);
-        auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
-        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22) - offset);
+        text.setText(s);
+        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22));
         window.draw(text, sf::RenderStates::Default);
 
         sf::RenderStates states;
         states.transform.translate(-_cameraPos);
         _pCurrentObject->drawHotspot(window, states);
     }
-    if (_inventory.getCurrentInventoryObject() && _pVerb)
+    else if (_pVerb && _pVerb->id != 1)
     {
-        Text text;
+        NGText text;
         text.setFont(_fntFont);
-        text.setScale(scale, scale);
-        text.setFillColor(sf::Color::White);
+        text.setColor(sf::Color::White);
+
         std::wstring s;
-        if (_pVerb)
+        auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
+        s.append(getText(id));
+
+        if (_inventory.getCurrentInventoryObject())
         {
-            auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
-            s.append(getText(id));
+            s.append(L" ").append(_inventory.getCurrentInventoryObject()->getName());
         }
-        s.append(L" ").append(_inventory.getCurrentInventoryObject()->getName());
         appendUseFlag(s);
-        text.setString(s);
-        auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
-        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22) - offset);
+        text.setText(s);
+
+        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22));
         window.draw(text, sf::RenderStates::Default);
     }
 }

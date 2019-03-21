@@ -41,7 +41,7 @@ public:
   NGText();
   void setFont(const Font &font) { _font = font; }
   void setColor(const sf::Color &color) { _color = color; }
-  void setText(const std::string &text) { _text = text; }
+  void setText(const sf::String &text) { _text = text; }
   void setAlignment(NGTextAlignment alignment) { _alignment = alignment; }
   sf::FloatRect getBoundRect() const;
 
@@ -51,7 +51,7 @@ private:
 private:
   Font _font;
   sf::Color _color;
-  std::string _text;
+  sf::String _text;
   NGTextAlignment _alignment;
 };
 
