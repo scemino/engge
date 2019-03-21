@@ -419,7 +419,7 @@ class _RoomPack : public Pack
         sq_pushstring(v, name, -1);
         ScriptEngine::pushObject(v, object);
         sq_pushstring(v, _SC("name"), -1);
-        sq_pushstring(v, object.getName().data(), -1);
+        sq_pushstring(v, (const SQChar *)object.getName().data(), -1);
         sq_newslot(v, -3, SQFalse);
         sq_newslot(v, -3, SQFalse);
     }
@@ -509,13 +509,13 @@ class _RoomPack : public Pack
             sq_resetobject(&obj->getTable());
 
             sq_pushobject(v, *pTable);
-            sq_pushstring(v, obj->getName().data(), -1);
+            sq_pushstring(v, (const SQChar *)obj->getName().data(), -1);
             if (SQ_FAILED(sq_rawget(v, -2)))
             {
-                setObjectSlot(v, obj->getName().data(), *obj);
+                setObjectSlot(v, (const SQChar *)obj->getName().data(), *obj);
 
                 sq_pushobject(v, *pTable);
-                sq_pushstring(v, obj->getName().data(), -1);
+                sq_pushstring(v, (const SQChar *)obj->getName().data(), -1);
                 sq_get(v, -2);
                 sq_getstackobj(v, -1, &obj->getTable());
                 if (!sq_istable(obj->getTable()))
@@ -548,7 +548,7 @@ class _RoomPack : public Pack
                 else
                 {
                     obj->setId(obj->getName());
-                    obj->setName(value);
+                    obj->setName((const wchar_t *)value);
                 }
             });
 

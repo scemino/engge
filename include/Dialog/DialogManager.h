@@ -13,7 +13,7 @@ class Engine;
 struct DialogSlot
 {
   int id;
-  std::string text;
+  std::wstring text;
   std::string label;
   const Ast::Choice *pChoice;
 };

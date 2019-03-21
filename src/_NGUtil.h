@@ -25,6 +25,26 @@ static bool getLine(GGPackBufferStream &input, std::string &line)
     return false;
 }
 
+static bool getLine(GGPackBufferStream &input, std::wstring &wline)
+{
+    std::string line;
+    char c;
+    do
+    {
+        input.read(&c, 1);
+        if (c == 0 || c == '\n')
+        {
+            std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+            wline = converter.from_bytes(line.data(), line.data() + line.size());
+
+            return input.tell() < input.getLength();
+        }
+        line.append(&c, 1);
+    } while (true);
+
+    return false;
+}
+
 static bool merge(const ng::Walkbox &w1, const ng::Walkbox &w2, std::vector<sf::Vector2i> &result)
 {
     // I know this implementation is ugly :S

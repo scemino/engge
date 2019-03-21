@@ -165,7 +165,7 @@ struct Room::Impl
             auto object = std::make_unique<Object>();
             // name
             auto objectName = jObject["name"].string_value;
-            object->setName(objectName);
+            object->setName((wchar_t*)objectName.data());
             // zsort
             object->setZOrder(jObject["zsort"].int_value);
             // prop

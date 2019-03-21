@@ -74,7 +74,7 @@ public:
 
   Room *getRoom() { return _pRoom; }
   void setRoom(Room *room);
-  std::string getText(int id) const { return _textDb.getText(id); }
+  std::wstring getText(int id) const { return _textDb.getText(id); }
   void setFadeAlpha(float fade) { _fadeColor.a = static_cast<uint8_t>(fade * 255); }
   float getFadeAlpha() const { return _fadeColor.a / 255.f; }
   void setFadeColor(sf::Color color) { _fadeColor = color; }
@@ -149,7 +149,7 @@ private:
   void clampCamera();
   int getCurrentActorIndex() const;
   sf::IntRect getCursorRect() const;
-  void appendUseFlag(std::string &sentence) const;
+  void appendUseFlag(std::wstring &sentence) const;
   bool clickedAt(const sf::Vector2f &pos);
 
 private:

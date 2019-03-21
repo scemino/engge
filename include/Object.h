@@ -45,11 +45,11 @@ public:
   const sf::IntRect &getHotspot() const;
   sf::IntRect getRealHotspot() const;
 
-  void setName(const std::string &name);
-  const std::string &getName() const;
+  void setName(const std::wstring &name);
+  const std::wstring &getName() const;
 
-  void setId(const std::string &id);
-  const std::string &getId() const;
+  void setId(const std::wstring &id);
+  const std::wstring &getId() const;
 
   void setDefaultVerb(const int &verb);
   int getDefaultVerb() const;
@@ -82,7 +82,7 @@ public:
 
   void update(const sf::Time &elapsed) override;
 
-  friend std::ostream &operator<<(std::ostream &os, const Object &obj);
+  friend std::wostream &operator<<(std::wostream &os, const Object &obj);
   void setHotspotVisible(bool isVisible);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 

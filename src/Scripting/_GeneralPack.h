@@ -603,7 +603,7 @@ class _GeneralPack : public Pack
         s = s.substr(1);
         auto id = std::strtol(s.c_str(), nullptr, 10);
         auto text = g_pEngine->getText(id);
-        sq_pushstring(v, text.c_str(), -1);
+        sq_pushstring(v, (const SQChar*)text.c_str(), -1);
         return 1;
     }
 };

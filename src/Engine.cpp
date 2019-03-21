@@ -437,7 +437,7 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         text.setFont(_fntFont);
         text.setScale(scale, scale);
         text.setFillColor(sf::Color::White);
-        std::string s;
+        std::wstring s;
         if (_pVerb && !_pVerb->text.empty())
         {
             auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
@@ -450,16 +450,16 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         }
         if (_pUseObject)
         {
-            s.append(" ").append(_pUseObject->getName());
+            s.append(L" ").append(_pUseObject->getName());
         }
         else
         {
-            s.append(" ").append(_pCurrentObject->getName());
+            s.append(L" ").append(_pCurrentObject->getName());
         }
         appendUseFlag(s);
         if (_pUseObject)
         {
-            s.append(" ").append(_pCurrentObject->getName());
+            s.append(L" ").append(_pCurrentObject->getName());
         }
         text.setString(s);
         auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
@@ -476,13 +476,13 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         text.setFont(_fntFont);
         text.setScale(scale, scale);
         text.setFillColor(sf::Color::White);
-        std::string s;
+        std::wstring s;
         if (_pVerb)
         {
             auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
             s.append(getText(id));
         }
-        s.append(" ").append(_inventory.getCurrentInventoryObject()->getName());
+        s.append(L" ").append(_inventory.getCurrentInventoryObject()->getName());
         appendUseFlag(s);
         text.setString(s);
         auto offset = sf::Vector2f(text.getGlobalBounds().width / 2.f, 0);
@@ -491,18 +491,18 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
     }
 }
 
-void Engine::appendUseFlag(std::string &sentence) const
+void Engine::appendUseFlag(std::wstring &sentence) const
 {
     switch (_useFlag)
     {
     case UseFlag::UseWith:
-        sentence.append(" ").append(getText(10000));
+        sentence.append(L" ").append(getText(10000));
         break;
     case UseFlag::UseIn:
-        sentence.append(" ").append(getText(10002));
+        sentence.append(L" ").append(getText(10002));
         break;
     case UseFlag::UseOn:
-        sentence.append(" ").append(getText(10001));
+        sentence.append(L" ").append(getText(10001));
         break;
     case UseFlag::None:
         break;

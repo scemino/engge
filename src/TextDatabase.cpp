@@ -17,19 +17,19 @@ void TextDatabase::setSettings(EngineSettings &settings)
 
 void TextDatabase::load(const std::string &path)
 {
-    std::regex re("^(\\d+)\\s+(.*)$");
+    std::wregex re(L"^(\\d+)\\s+(.*)$");
     std::vector<char> buffer;
     _pSettings->readEntry(path, buffer);
     GGPackBufferStream input(buffer);
-    std::string line;
+    std::wstring line;
     while (getLine(input, line))
     {
-        std::smatch matches;
+        std::wsmatch matches;
         if (!std::regex_search(line, matches, re))
             continue;
 
-        char *end;
-        auto num = std::strtol(matches[1].str().c_str(), &end, 10);
+        wchar_t *end;
+        auto num = std::wcstoul(matches[1].str().c_str(), &end, 10);
         auto text = matches[2].str();
         _texts.insert(std::make_pair(num, text));
     }

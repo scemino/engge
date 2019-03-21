@@ -276,7 +276,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get state"));
         }
         obj->setStateAnimIndex(state);
-        std::cout << obj->getName() << "setStateAnimIndex(" << state << ")" << std::endl;
+        std::wcout << obj->getName() << L"setStateAnimIndex(" << state << L")" << std::endl;
 
         return 0;
     }
@@ -765,7 +765,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get object name"));
         }
 
-        std::string name;
+        std::wstring name;
         const SQChar *strName = nullptr;
         if (SQ_FAILED(sq_getstring(v, -1, &strName)))
         {
@@ -782,7 +782,7 @@ class _ObjectPack : public Pack
         }
         else
         {
-            name = strName;
+            name = (wchar_t*)strName;
         }
 
         auto actor = ScriptEngine::getActor(v, 3);

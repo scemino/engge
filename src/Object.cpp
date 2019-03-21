@@ -10,7 +10,7 @@ struct Object::Impl
     std::vector<std::unique_ptr<Animation>> _anims;
     std::optional<Animation> _pAnim;
     bool _isVisible;
-    std::string _name, _id;
+    std::wstring _name, _id;
     int _zorder;
     UseDirection _direction;
     bool _prop;
@@ -99,11 +99,11 @@ UseDirection Object::getUseDirection() const { return pImpl->_direction; }
 void Object::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
 const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
 
-void Object::setName(const std::string &name) { pImpl->_name = name; }
-const std::string &Object::getName() const { return pImpl->_name; }
+void Object::setName(const std::wstring &name) { pImpl->_name = name; }
+const std::wstring &Object::getName() const { return pImpl->_name; }
 
-void Object::setId(const std::string &id) { pImpl->_id = id; }
-const std::string &Object::getId() const { return pImpl->_id; }
+void Object::setId(const std::wstring &id) { pImpl->_id = id; }
+const std::wstring &Object::getId() const { return pImpl->_id; }
 
 void Object::setDefaultVerb(const int &verb) { pImpl->_verb = verb; }
 int Object::getDefaultVerb() const { return pImpl->_verb; }
@@ -277,9 +277,9 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const Object &obj)
+std::wostream &operator<<(std::wostream &os, const Object &obj)
 {
-    return os << obj.getName() << " (" << obj.getPosition().x << "," << obj.getPosition().y << ":" << obj.getZOrder() << ")";
+    return os << obj.getName() << L" (" << obj.getPosition().x << L"," << obj.getPosition().y << L":" << obj.getZOrder() << L")";
 }
 
 } // namespace ng

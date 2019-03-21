@@ -55,7 +55,7 @@ struct Actor::Impl
         Actor *_pActor;
         FntFont _font;
         bool _isTalking;
-        std::string _sayText;
+        std::wstring _sayText;
         Lip _lip;
         int _index;
         sf::Vector2i _talkOffset;
@@ -381,13 +381,13 @@ void Actor::Impl::TalkingState::load(int id)
     _lip.load(path);
 
     _sayText = _pActor->pImpl->_engine.getText(id);
-    std::regex re(R"(\{([^\}]*)\})");
-    std::smatch matches;
+    std::wregex re(L"(\\{([^\\}]*)\\})");
+    std::wsmatch matches;
     if (std::regex_search(_sayText, matches, re))
     {
         auto anim = matches[1].str();
-        std::cout << "talk anim " << anim << std::endl;
-        _pActor->getCostume().setState(anim);
+        std::wcout << "talk anim " << anim << std::endl;
+        _pActor->getCostume().setState((char*)anim.data());
         _sayText = matches.suffix();
     }
     _isTalking = true;
