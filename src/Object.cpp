@@ -40,7 +40,8 @@ struct Object::Impl
           _isTouchable(true),
           _pRoom(nullptr),
           _state(0),
-          _hotspotVisible(false)
+          _hotspotVisible(false),
+          _verb(1)
     {
     }
 };

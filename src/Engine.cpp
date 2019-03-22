@@ -186,13 +186,8 @@ void Engine::clampCamera()
         _cameraPos.y = size.y - Screen::Height;
 }
 
-void Engine::update(const sf::Time &elapsed)
+void Engine::updateCutscene(const sf::Time &elapsed)
 {
-    auto wasMouseDown = _isMouseDown;
-    _isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-    auto isMouseClick = wasMouseDown != _isMouseDown && !_isMouseDown;
-
-    _time += elapsed;
     if (_pCutscene)
     {
         (*_pCutscene)(elapsed);
@@ -201,6 +196,10 @@ void Engine::update(const sf::Time &elapsed)
             _pCutscene.release();
         }
     }
+}
+
+void Engine::updateFunctions(const sf::Time &elapsed)
+{
     for (auto &function : _newFunctions)
     {
         _functions.push_back(std::move(function));
@@ -217,6 +216,54 @@ void Engine::update(const sf::Time &elapsed)
     {
         actor->update(elapsed);
     }
+}
+
+void Engine::updateActorIcons(const sf::Time &elapsed)
+{
+    _actorIcons.setMousePosition(_mousePos);
+    _actorIcons.update(elapsed);
+}
+
+void Engine::updateMouseCursor()
+{
+    if (_mousePos.x < 20)
+        _cursorDirection |= CursorDirection::Left;
+    else if (_mousePos.x > Screen::Width - 20)
+        _cursorDirection |= CursorDirection::Right;
+    if (_mousePos.y < 10)
+        _cursorDirection |= CursorDirection::Up;
+    else if (_mousePos.y > Screen::Height - 10)
+        _cursorDirection |= CursorDirection::Down;
+    if (_pCurrentObject)
+        _cursorDirection |= CursorDirection::Hotspot;
+}
+
+void Engine::updateCurrentObject(const sf::Vector2f& mousPos)
+{
+    _pCurrentObject = nullptr;
+    const auto &objects = _pRoom->getObjects();
+    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousPos](const std::unique_ptr<Object> &pObj) {
+        if (!pObj->isTouchable())
+            return false;
+        auto rect = pObj->getRealHotspot();
+        return rect.contains((sf::Vector2i)mousPos);
+    });
+    if (it != objects.cend())
+    {
+        _pCurrentObject = it->get();
+    }
+}
+
+void Engine::update(const sf::Time &elapsed)
+{
+    auto wasMouseDown = _isMouseDown;
+    _isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+    auto isMouseClick = wasMouseDown != _isMouseDown && !_isMouseDown;
+
+    _time += elapsed;
+
+    updateCutscene(elapsed);
+    updateFunctions(elapsed);
 
     if (!_pRoom)
         return;
@@ -230,37 +277,14 @@ void Engine::update(const sf::Time &elapsed)
     }
 
     _mousePos = _pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pWindow));
-    _actorIcons.setMousePosition(_mousePos);
-    _actorIcons.update(elapsed);
+    updateActorIcons(elapsed);
 
-    if (_pRoom)
-    {
-        _cursorDirection = CursorDirection::None;
-        if (_mousePos.x < 20)
-            _cursorDirection |= CursorDirection::Left;
-        else if (_mousePos.x > Screen::Width - 20)
-            _cursorDirection |= CursorDirection::Right;
-        if (_mousePos.y < 10)
-            _cursorDirection |= CursorDirection::Up;
-        else if (_mousePos.y > Screen::Height - 10)
-            _cursorDirection |= CursorDirection::Down;
-        if (_pCurrentObject)
-            _cursorDirection |= CursorDirection::Hotspot;
-    }
+    _cursorDirection = CursorDirection::None;
+    updateMouseCursor();
+
     auto mousePosInRoom = _mousePos + _cameraPos;
 
-    _pCurrentObject = nullptr;
-    const auto &objects = _pRoom->getObjects();
-    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousePosInRoom](const std::unique_ptr<Object> &pObj) {
-        if (!pObj->isTouchable())
-            return false;
-        auto rect = pObj->getRealHotspot();
-        return rect.contains((sf::Vector2i)mousePosInRoom);
-    });
-    if (it != objects.cend())
-    {
-        _pCurrentObject = it->get();
-    }
+    updateCurrentObject(mousePosInRoom);
 
     _inventory.setMousePosition(_mousePos);
     _inventory.update(elapsed);
@@ -281,6 +305,7 @@ void Engine::update(const sf::Time &elapsed)
     if (_actorIcons.isMouseOver())
         return;
 
+    // input click on a verb ?
     auto verbId = -1;
     if (_inputVerbsActive)
     {
@@ -313,6 +338,10 @@ void Engine::update(const sf::Time &elapsed)
         }
         else
         {
+            if(_pVerb && _pVerb->id == 1)
+            {
+                _pVerb = getVerb(_pCurrentObject->getDefaultVerb());
+            }
             _pVerbExecute->execute(_pCurrentObject, _pVerb);
         }
     }
@@ -322,7 +351,7 @@ void Engine::update(const sf::Time &elapsed)
     }
     else if (currentActorIndex != -1)
     {
-        _pVerb = &_verbSlots[currentActorIndex].getVerb(0);
+        _pVerb = getVerb(1);
         _useFlag = UseFlag::None;
         _pUseObject = nullptr;
     }
@@ -431,22 +460,27 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
     if (!_inputActive)
         return;
 
+    auto pVerb = _pVerb;
+    if (!pVerb)
+        pVerb = getVerb(1);
     if (_pCurrentObject)
     {
         NGText text;
         text.setFont(_fntFont);
         text.setColor(sf::Color::White);
         std::wstring s;
-        if (_pVerb && !_pVerb->text.empty())
+
+        if (pVerb->id == 1)
         {
-            auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
+            pVerb = getVerb(_pCurrentObject->getDefaultVerb());
+        }
+
+        if (!pVerb->text.empty())
+        {
+            auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
             s.append(getText(id));
         }
-        else
-        {
-            // Walk to
-            s.append(getText(30011));
-        }
+
         if (_pUseObject)
         {
             s.append(L" ").append(_pUseObject->getName());
@@ -468,14 +502,14 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         states.transform.translate(-_cameraPos);
         _pCurrentObject->drawHotspot(window, states);
     }
-    else if (_pVerb && _pVerb->id != 1)
+    else if (pVerb->id != 1)
     {
         NGText text;
         text.setFont(_fntFont);
         text.setColor(sf::Color::White);
 
         std::wstring s;
-        auto id = std::strtol(_pVerb->text.substr(1).data(), nullptr, 10);
+        auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         s.append(getText(id));
 
         if (_inventory.getCurrentInventoryObject())
@@ -534,7 +568,7 @@ void Engine::drawVerbs(sf::RenderWindow &window) const
     if (_pCurrentObject)
     {
         auto defaultVerb = _pCurrentObject->getDefaultVerb();
-        verbId = defaultVerb;
+        verbId = _verbSlots[currentActorIndex].getVerbIndex(defaultVerb);
     }
     else
     {

@@ -151,6 +151,11 @@ private:
   sf::IntRect getCursorRect() const;
   void appendUseFlag(std::wstring &sentence) const;
   bool clickedAt(const sf::Vector2f &pos);
+  void updateCutscene(const sf::Time &elapsed);
+  void updateFunctions(const sf::Time &elapsed);
+  void updateActorIcons(const sf::Time &elapsed);
+  void updateMouseCursor();
+  void updateCurrentObject(const sf::Vector2f& mousPos);
 
 private:
   EngineSettings &_settings;
