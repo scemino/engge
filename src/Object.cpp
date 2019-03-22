@@ -106,7 +106,7 @@ const std::wstring &Object::getName() const { return pImpl->_name; }
 void Object::setId(const std::wstring &id) { pImpl->_id = id; }
 const std::wstring &Object::getId() const { return pImpl->_id; }
 
-void Object::setDefaultVerb(const int &verb) { pImpl->_verb = verb; }
+void Object::setDefaultVerb(int verb) { pImpl->_verb = verb; }
 int Object::getDefaultVerb() const { return pImpl->_verb; }
 
 HSQOBJECT &Object::getTable() { return pImpl->_pTable; }

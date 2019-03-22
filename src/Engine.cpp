@@ -338,16 +338,23 @@ void Engine::update(const sf::Time &elapsed)
         }
         else
         {
-            if(_pVerb && _pVerb->id == 1)
+            auto pVerb = _pVerb;
+            if(pVerb && pVerb->id == 1)
             {
-                _pVerb = getVerb(_pCurrentObject->getDefaultVerb());
+                pVerb = getVerb(_pCurrentObject->getDefaultVerb());
             }
-            _pVerbExecute->execute(_pCurrentObject, _pVerb);
+            _pVerbExecute->execute(_pCurrentObject, pVerb);
         }
     }
     else if (_inventory.getCurrentInventoryObject())
     {
-        _pVerbExecute->execute(_inventory.getCurrentInventoryObject(), _pVerb);
+        auto pVerb = _pVerb;
+        auto pInventoryObj = _inventory.getCurrentInventoryObject();
+        if (!pVerb || pVerb->id == 1)
+        {
+            pVerb = getVerb(pInventoryObj->getDefaultVerb());
+        }
+        _pVerbExecute->execute(pInventoryObj, pVerb);
     }
     else if (currentActorIndex != -1)
     {
@@ -502,8 +509,13 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         states.transform.translate(-_cameraPos);
         _pCurrentObject->drawHotspot(window, states);
     }
-    else if (pVerb->id != 1)
+    else
     {
+        auto pInventoryObj = _inventory.getCurrentInventoryObject();
+        if (pVerb->id == 1 && pInventoryObj)
+        {
+            pVerb = getVerb(pInventoryObj->getDefaultVerb());
+        }
         NGText text;
         text.setFont(_fntFont);
         text.setColor(sf::Color::White);
@@ -512,9 +524,9 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         s.append(getText(id));
 
-        if (_inventory.getCurrentInventoryObject())
+        if (pInventoryObj)
         {
-            s.append(L" ").append(_inventory.getCurrentInventoryObject()->getName());
+            s.append(L" ").append(pInventoryObj->getName());
         }
         appendUseFlag(s);
         text.setText(s);

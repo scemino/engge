@@ -51,7 +51,7 @@ public:
   void setId(const std::wstring &id);
   const std::wstring &getId() const;
 
-  void setDefaultVerb(const int &verb);
+  void setDefaultVerb(int verb);
   int getDefaultVerb() const;
 
   HSQOBJECT &getTable();

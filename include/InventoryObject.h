@@ -8,20 +8,28 @@ namespace ng
 class Room;
 class InventoryObject
 {
-  public:
-    void setRoom(const Room *pRoom) { _pRoom = pRoom; }
-    const Room *getRoom() const { return _pRoom; }
-    void setName(const std::wstring &name) { _name = name; }
-    const std::wstring &getName() const { return _name; }
-    void setIcon(const std::string &icon) { _icon = icon; }
-    const std::string &getIcon() const { return _icon; }
-    void setHandle(std::unique_ptr<HSQOBJECT> pHandle) { _pHandle = std::move(pHandle); }
-    HSQOBJECT *getHandle() const { return _pHandle.get(); }
+public:
+  InventoryObject()
+      : _pRoom(nullptr),
+        _verb(2) // look at
+  {
+  }
+  void setRoom(const Room *pRoom) { _pRoom = pRoom; }
+  const Room *getRoom() const { return _pRoom; }
+  void setName(const std::wstring &name) { _name = name; }
+  const std::wstring &getName() const { return _name; }
+  void setIcon(const std::string &icon) { _icon = icon; }
+  const std::string &getIcon() const { return _icon; }
+  void setHandle(std::unique_ptr<HSQOBJECT> pHandle) { _pHandle = std::move(pHandle); }
+  HSQOBJECT *getHandle() const { return _pHandle.get(); }
+  void setDefaultVerb(int verb) { _verb = verb; }
+  int getDefaultVerb() const { return _verb; }
 
-  private:
-    const Room *_pRoom;
-    std::string _icon;
-    std::wstring _name;
-    std::unique_ptr<HSQOBJECT> _pHandle;
+private:
+  const Room *_pRoom;
+  std::string _icon;
+  std::wstring _name;
+  int _verb;
+  std::unique_ptr<HSQOBJECT> _pHandle;
 };
 } // namespace ng
