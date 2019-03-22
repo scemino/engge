@@ -238,7 +238,7 @@ void Engine::updateMouseCursor()
         _cursorDirection |= CursorDirection::Hotspot;
 }
 
-void Engine::updateCurrentObject(const sf::Vector2f& mousPos)
+void Engine::updateCurrentObject(const sf::Vector2f &mousPos)
 {
     _pCurrentObject = nullptr;
     const auto &objects = _pRoom->getObjects();
@@ -339,7 +339,7 @@ void Engine::update(const sf::Time &elapsed)
         else
         {
             auto pVerb = _pVerb;
-            if(pVerb && pVerb->id == 1)
+            if (pVerb && pVerb->id == 1)
             {
                 pVerb = getVerb(_pCurrentObject->getDefaultVerb());
             }
@@ -470,24 +470,24 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
     auto pVerb = _pVerb;
     if (!pVerb)
         pVerb = getVerb(1);
+
+    NGText text;
+    text.setFont(_fntFont);
+    text.setColor(sf::Color::White);
+
     if (_pCurrentObject)
     {
-        NGText text;
-        text.setFont(_fntFont);
-        text.setColor(sf::Color::White);
-        std::wstring s;
-
         if (pVerb->id == 1)
         {
             pVerb = getVerb(_pCurrentObject->getDefaultVerb());
         }
 
+        std::wstring s;
         if (!pVerb->text.empty())
         {
             auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
             s.append(getText(id));
         }
-
         if (_pUseObject)
         {
             s.append(L" ").append(_pUseObject->getName());
@@ -502,8 +502,6 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
             s.append(L" ").append(_pCurrentObject->getName());
         }
         text.setText(s);
-        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22));
-        window.draw(text, sf::RenderStates::Default);
 
         sf::RenderStates states;
         states.transform.translate(-_cameraPos);
@@ -516,24 +514,23 @@ void Engine::drawCursorText(sf::RenderWindow &window) const
         {
             pVerb = getVerb(pInventoryObj->getDefaultVerb());
         }
-        NGText text;
-        text.setFont(_fntFont);
-        text.setColor(sf::Color::White);
-
-        std::wstring s;
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
+        std::wstring s;
         s.append(getText(id));
-
         if (pInventoryObj)
         {
             s.append(L" ").append(pInventoryObj->getName());
         }
         appendUseFlag(s);
         text.setText(s);
-
-        text.setPosition((sf::Vector2f)_mousePos - sf::Vector2f(0, 22));
-        window.draw(text, sf::RenderStates::Default);
     }
+
+    auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;
+    if (y < 0)
+        y = 0;
+    auto x = std::clamp((int)_mousePos.x, 20, Screen::Width - 20 - (int)text.getBoundRect().width / 2);
+    text.setPosition(x, y);
+    window.draw(text, sf::RenderStates::Default);
 }
 
 void Engine::appendUseFlag(std::wstring &sentence) const
