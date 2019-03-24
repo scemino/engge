@@ -44,9 +44,10 @@ struct Room::Impl
           _ambientColor(255, 255, 255, 255),
           _settings(settings),
           _showDrawWalkboxes(false),
-          _spriteSheet(textureManager, settings),
           _pRoom(nullptr)
     {
+        _spriteSheet.setTextureManager(&textureManager);
+        _spriteSheet.setSettings(&settings);
     }
 
     void setRoom(Room *pRoom)

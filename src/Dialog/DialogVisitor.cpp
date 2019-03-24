@@ -8,8 +8,8 @@
 
 namespace ng
 {
-DialogVisitor::DialogVisitor(Engine &engine, DialogManager &dialogManager)
-    : _engine(engine), _dialogManager(dialogManager)
+DialogVisitor::DialogVisitor(DialogManager &dialogManager)
+    : _pEngine(nullptr), _dialogManager(dialogManager)
 {
 }
 void DialogVisitor::visit(const Ast::Statement &node)
@@ -34,7 +34,7 @@ DialogVisitor::ConditionVisitor::ConditionVisitor(DialogVisitor &dialogVisitor, 
 
 void DialogVisitor::ConditionVisitor::visit(const Ast::CodeCondition &node)
 {
-    _isAccepted = _dialogVisitor._engine.executeCondition(node.code);
+    _isAccepted = _dialogVisitor._pEngine->executeCondition(node.code);
 }
 
 void DialogVisitor::ConditionVisitor::visit(const Ast::OnceCondition &node)
@@ -65,7 +65,7 @@ bool DialogVisitor::acceptConditions(const Ast::Statement &statement)
 
 void DialogVisitor::visit(const Ast::Say &node)
 {
-    auto &actors = _engine.getActors();
+    auto &actors = _pEngine->getActors();
     Actor *pActor = nullptr;
     for (auto &actor : actors)
     {
@@ -86,7 +86,7 @@ void DialogVisitor::visit(const Ast::Say &node)
         auto anim = node.text.substr(2, node.text.length() - 3);
         std::stringstream s;
         s << "actorPlayAnimation(" << node.actor << ", \"" << anim << "\", NO)";
-        auto executeCode = std::make_unique<_ExecuteCodeFunction>(_engine, s.str());
+        auto executeCode = std::make_unique<_ExecuteCodeFunction>(*_pEngine, s.str());
         _dialogManager.addFunction(std::move(executeCode));
     }
 }
@@ -98,14 +98,14 @@ void DialogVisitor::visit(const Ast::Choice &node)
 
     auto id = getId(node.text);
     _dialogManager.getDialog()[node.number - 1].id = id;
-    _dialogManager.getDialog()[node.number - 1].text = _engine.getText(id);
+    _dialogManager.getDialog()[node.number - 1].text = _pEngine->getText(id);
     _dialogManager.getDialog()[node.number - 1].label = node.gotoExp->name;
     _dialogManager.getDialog()[node.number - 1].pChoice = &node;
 }
 
 void DialogVisitor::visit(const Ast::Code &node)
 {
-    auto executeCode = std::make_unique<_ExecuteCodeFunction>(_engine, node.code);
+    auto executeCode = std::make_unique<_ExecuteCodeFunction>(*_pEngine, node.code);
     _dialogManager.addFunction(std::move(executeCode));
 }
 
@@ -116,10 +116,10 @@ void DialogVisitor::visit(const Ast::Goto &node)
 
 void DialogVisitor::visit(const Ast::Shutup &node)
 {
-    auto actor = _engine.getCurrentActor();
+    auto actor = _pEngine->getCurrentActor();
     if (actor)
     {
-        auto shutup = std::make_unique<_ShutupFunction>(_engine);
+        auto shutup = std::make_unique<_ShutupFunction>(*_pEngine);
         _dialogManager.addFunction(std::move(shutup));
     }
 }

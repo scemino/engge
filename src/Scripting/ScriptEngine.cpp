@@ -5,6 +5,8 @@
 #include "sqstdstring.h"
 #include "sqstdmath.h"
 #include "ScriptEngine.h"
+#include "SoundDefinition.h"
+#include "VerbExecute.h"
 #include "_SystemPack.h"
 #include "_GeneralPack.h"
 #include "_ObjectPack.h"

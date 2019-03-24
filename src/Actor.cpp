@@ -1,13 +1,15 @@
 #include <regex>
-#include "Engine.h"
 #include "Actor.h"
+#include "Engine.h"
 #include "InventoryObject.h"
 #include "Lip.h"
+#include "PathFinder.h"
 #include "Room.h"
 #include "RoomScaling.h"
 #include "Screen.h"
+#include "SoundDefinition.h"
+#include "SoundManager.h"
 #include "Text.h"
-#include "PathFinder.h"
 
 namespace ng
 {

@@ -5,21 +5,15 @@
 
 namespace ng
 {
-Inventory::Inventory(Engine &engine,
-                     std::array<ActorIconSlot, 6> &actorsIconSlots,
+Inventory::Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
                      std::array<VerbUiColors, 6> &verbUiColors,
                      Actor *&pCurrentActor)
-    : _engine(engine),
+    : _pEngine(nullptr),
       _actorsIconSlots(actorsIconSlots),
       _verbUiColors(verbUiColors),
-      _gameSheet(engine.getTextureManager(), engine.getSettings()),
-      _inventoryItems(engine.getTextureManager(), engine.getSettings()),
       _pCurrentActor(pCurrentActor),
       _pCurrentInventoryObject(nullptr)
 {
-    _gameSheet.load("GameSheet");
-    _inventoryItems.load("InventoryItems");
-
     // inventory rects
     auto x = 0, y = 0;
     auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
@@ -38,6 +32,18 @@ Inventory::Inventory(Engine &engine,
             y += size.y;
         }
     }
+}
+
+void Inventory::setEngine(Engine *pEngine)
+{
+    _pEngine = pEngine;
+    _gameSheet.setTextureManager(&_pEngine->getTextureManager());
+    _gameSheet.setSettings(&_pEngine->getSettings());
+    _gameSheet.load("GameSheet");
+
+    _inventoryItems.setTextureManager(&_pEngine->getTextureManager());
+    _inventoryItems.setSettings(&_pEngine->getSettings());
+    _inventoryItems.load("InventoryItems");
 }
 
 void Inventory::update(const sf::Time &elapsed)

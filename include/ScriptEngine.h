@@ -2,6 +2,7 @@
 #include <string>
 #include "squirrel.h"
 #include "Engine.h"
+#include "Interpolations.h"
 
 namespace ng
 {

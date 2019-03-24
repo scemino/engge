@@ -6,9 +6,14 @@
 
 namespace ng
 {
+SpriteSheet::SpriteSheet()
+    : _pTextureManager(nullptr), _pSettings(nullptr)
+{
+}
+
 void SpriteSheet::load(const std::string &name)
 {
-    _texture = _textureManager.get(name);
+    _texture = _pTextureManager->get(name);
 
     _rects.clear();
     nlohmann::json json;
@@ -16,7 +21,7 @@ void SpriteSheet::load(const std::string &name)
     jsonFilename.append(name).append(".json");
     {
         std::vector<char> buffer;
-        _settings.readEntry(jsonFilename, buffer);
+        _pSettings->readEntry(jsonFilename, buffer);
         json = nlohmann::json::parse(buffer.data());
     }
 

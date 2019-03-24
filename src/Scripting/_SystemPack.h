@@ -1,9 +1,13 @@
 #pragma once
 #include <time.h>
 #include "squirrel.h"
-#include "Function.h"
-#include "Engine.h"
 #include "Actor.h"
+#include "Dialog/DialogManager.h"
+#include "Engine.h"
+#include "Function.h"
+#include "Preferences.h"
+#include "Room.h"
+#include "SoundManager.h"
 #include "../_NGUtil.h"
 
 namespace ng

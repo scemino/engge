@@ -5,21 +5,29 @@
 
 namespace ng
 {
-ActorIcons::ActorIcons(Engine &engine,
-                       std::array<ActorIconSlot, 6> &actorsIconSlots,
+ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots,
                        std::array<VerbUiColors, 6> &verbUiColors,
                        Actor *&pCurrentActor)
-    : _engine(engine),
-      _gameSheet(engine.getTextureManager(), engine.getSettings()),
+    : _pEngine(nullptr),
       _actorsIconSlots(actorsIconSlots),
       _verbUiColors(verbUiColors),
       _pCurrentActor(pCurrentActor),
       _isMouseButtonPressed(false)
 {
+}
+
+void ActorIcons::setEngine(Engine *pEngine)
+{
+    _pEngine = pEngine;
+    _gameSheet.setTextureManager(&_pEngine->getTextureManager());
+    _gameSheet.setSettings(&_pEngine->getSettings());
     _gameSheet.load("GameSheet");
 }
 
-void ActorIcons::setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
+void ActorIcons::setMousePosition(const sf::Vector2f &pos)
+{
+    _mousePos = pos;
+}
 
 void ActorIcons::update(const sf::Time &elapsed)
 {
@@ -56,8 +64,8 @@ void ActorIcons::update(const sf::Time &elapsed)
             {
                 _pCurrentActor = selectableActor.pActor;
                 auto pos = _pCurrentActor->getPosition();
-                _engine.setCameraAt(pos + _pCurrentActor->getUsePosition());
-                _engine.follow(_pCurrentActor);
+                _pEngine->setCameraAt(pos + _pCurrentActor->getUsePosition());
+                _pEngine->follow(_pCurrentActor);
                 return;
             }
             iconRect.top += 15;

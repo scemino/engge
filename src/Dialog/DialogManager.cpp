@@ -8,15 +8,21 @@
 
 namespace ng
 {
-DialogManager::DialogManager(Engine &engine)
-    : _engine(engine), _isActive(false), _dialogVisitor(_engine, *this), _pLabel(nullptr)
+DialogManager::DialogManager()
+    : _pEngine(nullptr), _isActive(false), _dialogVisitor(*this), _pLabel(nullptr)
 {
-    _font.setSettings(&_engine.getSettings());
-    _font.loadFromFile("DialogFont.fnt");
     for (auto &dlg : _dialog)
     {
         dlg.id = 0;
     }
+}
+
+void DialogManager::setEngine(Engine *pEngine)
+{
+    _pEngine = pEngine;
+    _dialogVisitor.setEngine(_pEngine);
+    _font.setSettings(&pEngine->getSettings());
+    _font.loadFromFile("DialogFont.fnt");
 }
 
 void DialogManager::addFunction(std::unique_ptr<Function> function)
@@ -30,7 +36,7 @@ void DialogManager::start(const std::string &name, const std::string &node)
     path.append(name).append(".byack");
 
     YackTokenReader reader;
-    reader.setSettings(_engine.getSettings());
+    reader.setSettings(_pEngine->getSettings());
     reader.load(path);
     YackParser parser(reader);
     _pCompilationUnit = std::move(parser.parse());
@@ -87,7 +93,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
         text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
         text.setString(dlg.text);
-        text.setFillColor(text.getGlobalBounds().contains(_engine.getMousePos()) ? _engine.getVerbUiColors(0).dialogHighlight : _engine.getVerbUiColors(0).dialogNormal);
+        text.setFillColor(text.getGlobalBounds().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(0).dialogHighlight : _pEngine->getVerbUiColors(0).dialogNormal);
         target.draw(text, states);
         dialog++;
     }
@@ -130,9 +136,9 @@ void DialogManager::update(const sf::Time &elapsed)
         text.setFont(_font);
         text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
         text.setString(dlg.text);
-        if (text.getGlobalBounds().contains(_engine.getMousePos()))
+        if (text.getGlobalBounds().contains(_pEngine->getMousePos()))
         {
-            auto say = std::make_unique<_SayFunction>(*_engine.getCurrentActor(), dlg.id);
+            auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
             _functions.push_back(std::move(say));
             _dialogVisitor.select(*dlg.pChoice);
             selectLabel(dlg.label);

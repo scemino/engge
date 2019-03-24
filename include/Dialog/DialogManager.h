@@ -40,7 +40,9 @@ private:
   };
 
 public:
-  DialogVisitor(Engine &engine, DialogManager &dialogManager);
+  DialogVisitor(DialogManager &dialogManager);
+
+  void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
 
 private:
@@ -58,7 +60,7 @@ private:
   bool acceptConditions(const Ast::Statement &statement);
 
 private:
-  Engine &_engine;
+  Engine *_pEngine;
   DialogManager &_dialogManager;
   std::vector<const Ast::Node *> _nodesVisited;
   std::vector<const Ast::Node *> _nodesSelected;
@@ -67,8 +69,9 @@ private:
 class DialogManager : public sf::Drawable
 {
 public:
-  DialogManager(Engine &engine);
+  DialogManager();
 
+  void setEngine(Engine *pEngine);
   void start(const std::string &name, const std::string &node);
   void selectLabel(const std::string &label);
   std::array<DialogSlot, 8> &getDialog() { return _dialog; }
@@ -81,7 +84,7 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  Engine &_engine;
+  Engine *_pEngine;
   std::unique_ptr<Ast::CompilationUnit> _pCompilationUnit;
   Ast::Label *_pLabel;
   std::array<DialogSlot, 8> _dialog;
