@@ -174,7 +174,7 @@ void Actor::setRenderOffset(const sf::Vector2i &offset)
     pImpl->_renderOffset = offset;
 }
 
-Room *Actor::getRoom() const
+Room *Actor::getRoom()
 {
     return pImpl->_pRoom;
 }
@@ -387,7 +387,7 @@ void Actor::Impl::TalkingState::load(int id)
     {
         auto anim = matches[1].str();
         std::wcout << "talk anim " << anim << std::endl;
-        _pActor->getCostume().setState((char*)anim.data());
+        _pActor->getCostume().setState((char *)anim.data());
         _sayText = matches.suffix();
     }
     _isTalking = true;
@@ -453,6 +453,11 @@ Actor::Actor(Engine &engine)
 }
 
 Actor::~Actor() = default;
+
+const Room *Actor::getRoom() const
+{
+    return pImpl->_pRoom;
+}
 
 int Actor::getZOrder() const
 {

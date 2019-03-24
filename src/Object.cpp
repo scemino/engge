@@ -2,6 +2,7 @@
 #include "Animation.h"
 #include "Object.h"
 #include "Screen.h"
+#include "Trigger.h"
 
 namespace ng
 {

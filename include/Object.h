@@ -76,7 +76,7 @@ public:
   bool isVisible() const;
   void setScale(float s);
 
-  Room *getRoom();
+  Room *getRoom() override;
   const Room *getRoom() const;
   void setRoom(Room *pRoom);
 

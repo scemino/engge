@@ -1,6 +1,7 @@
 #pragma once
 #include "squirrel.h"
 #include "Engine.h"
+#include "Trigger.h"
 
 namespace ng
 {

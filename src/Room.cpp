@@ -165,7 +165,7 @@ struct Room::Impl
             auto object = std::make_unique<Object>();
             // name
             auto objectName = jObject["name"].string_value;
-            object->setName((wchar_t*)objectName.data());
+            object->setName((wchar_t *)objectName.data());
             // zsort
             object->setZOrder(jObject["zsort"].int_value);
             // prop
@@ -409,7 +409,7 @@ TextObject &Room::createTextObject(const std::string &fontName)
 {
     auto object = std::make_unique<TextObject>();
     std::string path;
-    path.append(fontName).append("Font.fnt");
+    path.append(fontName).append(".fnt");
     object->getFont().setSettings(&pImpl->_settings);
     object->getFont().loadFromFile(path);
     auto &obj = *object;
@@ -549,11 +549,11 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
 
         sf::Transform t;
-        t.translate(posX, posY);
         if (pImpl->_fullscreen == 1)
         {
             t.scale(ratio, ratio);
         }
+        t.translate(posX, posY);
         states.transform = t;
         layer->draw(window, states);
     }

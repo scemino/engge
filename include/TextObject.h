@@ -5,8 +5,9 @@
 
 namespace ng
 {
-enum TextAlignment
+enum class TextAlignment: unsigned long
 {
+  None = 0x00000000,
   Left = 0x10000000,
   Center = 0x20000000,
   Right = 0x40000000,

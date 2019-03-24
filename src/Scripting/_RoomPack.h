@@ -258,17 +258,20 @@ class _RoomPack : public Pack
         if (pOldRoom != pRoom)
         {
             // call exit room function
-            sq_pushobject(v, *pOldRoom->getTable());
-            sq_pushstring(v, _SC("exit"), -1);
-            if (SQ_FAILED(sq_get(v, -2)))
+            if (pOldRoom)
             {
-                return sq_throwerror(v, _SC("can't find exit function"));
-            }
-            sq_remove(v, -2);
-            sq_pushobject(v, *pOldRoom->getTable());
-            if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
-            {
-                return sq_throwerror(v, _SC("function exit call failed"));
+                sq_pushobject(v, *pOldRoom->getTable());
+                sq_pushstring(v, _SC("exit"), -1);
+                if (SQ_FAILED(sq_get(v, -2)))
+                {
+                    return sq_throwerror(v, _SC("can't find exit function"));
+                }
+                sq_remove(v, -2);
+                sq_pushobject(v, *pOldRoom->getTable());
+                if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+                {
+                    return sq_throwerror(v, _SC("function exit call failed"));
+                }
             }
 
             g_pEngine->setRoom(pRoom);
@@ -480,7 +483,7 @@ class _RoomPack : public Pack
             {
                 const SQChar *key = nullptr;
                 sq_getstring(v, -2, &key);
-                std::cout << "### Obj " << key << std::endl;
+                // std::cout << "### Obj " << key << std::endl;
                 HSQOBJECT object;
                 sq_resetobject(&object);
                 if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))

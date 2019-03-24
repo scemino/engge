@@ -45,7 +45,8 @@ public:
   void move(const sf::Vector2f &offset) override;
   void setRenderOffset(const sf::Vector2i &offset);
 
-  Room *getRoom() const;
+  Room *getRoom() override;
+  const Room *getRoom() const;
   void setRoom(Room *pRoom);
 
   void setHotspot(const sf::IntRect &hotspot);

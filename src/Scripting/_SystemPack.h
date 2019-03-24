@@ -480,7 +480,7 @@ class _SystemPack : public Pack
         SoundId *pSound = _getSound(v, 2);
         if (!pSound)
         {
-            return sq_throwerror(v, _SC("failed to get sound"));
+            return 0;
         }
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, v, *pSound));
