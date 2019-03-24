@@ -20,8 +20,14 @@ bool operator&(TextAlignment lhs, TextAlignment rhs)
 }
 
 TextObject::TextObject()
-: _alignment(TextAlignment::Left)
+    : _alignment(TextAlignment::Left)
 {
+}
+
+void TextObject::setText(const std::string &text)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+    _text = converter.from_bytes(text.data(), text.data() + text.size());
 }
 
 void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const

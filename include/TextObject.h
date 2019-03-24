@@ -23,7 +23,7 @@ class TextObject : public Object
 public:
   explicit TextObject();
   FntFont &getFont() { return _font; }
-  void setText(const std::string &text) { _text = text; }
+  void setText(const std::string &text);
   void setAlignment(TextAlignment alignment) { _alignment = alignment; }
 
 private:
@@ -31,7 +31,7 @@ private:
 
 private:
   FntFont _font;
-  std::string _text;
+  std::wstring _text;
   TextAlignment _alignment;
 };
 } // namespace ng
