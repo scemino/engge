@@ -27,5 +27,5 @@ script:
   - export CC=gcc-8
   - export CXX=g++-8
   - mkdir build && cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS -DSFML_DIR=$TRAVIS_BUILD_DIR/sfml/install/lib/cmake/SFML -DCMAKE_INSTALL_PREFIX=../install
+  - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS -DSFML_DIR=$TRAVIS_BUILD_DIR/SFML-2.5.1/install/lib/cmake/SFML -DCMAKE_INSTALL_PREFIX=../install
   - cmake --build . --config Release
