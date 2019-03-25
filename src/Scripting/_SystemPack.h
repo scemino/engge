@@ -374,6 +374,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(breakhere, "breakhere");
         engine.registerGlobalFunction(breaktime, "breaktime");
         engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
+        engine.registerGlobalFunction(breakwhilecamera, "breakwhilecamera");
         engine.registerGlobalFunction(breakwhilecutscene, "breakwhilecutscene");
         engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
         engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
@@ -455,6 +456,12 @@ class _SystemPack : public Pack
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
         return result;
+    }
+
+    static SQInteger breakwhilecamera(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: breakwhilecamera: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger breakwhilecutscene(HSQUIRRELVM v)
