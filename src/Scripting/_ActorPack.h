@@ -37,6 +37,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(actorRoom, "actorRoom");
         engine.registerGlobalFunction(actorShowLayer, "actorShowLayer");
         engine.registerGlobalFunction(actorSlotSelectable, "actorSlotSelectable");
+        engine.registerGlobalFunction(actorStand, "actorStand");
         engine.registerGlobalFunction(actorStopWalking, "actorStopWalking");
         engine.registerGlobalFunction(actorTalking, "actorTalking");
         engine.registerGlobalFunction(actorTalkColors, "actorTalkColors");
@@ -466,6 +467,13 @@ class _ActorPack : public Pack
         // TODO: sq_pushobject(v, *pRoomTable);
         sq_pushnull(v);
         return 1;
+    }
+
+    static SQInteger actorStand(HSQUIRRELVM v)
+    {
+        auto *pActor = ScriptEngine::getActor(v, 2);
+        pActor->getCostume().setAnimation("stand");
+        return 0;
     }
 
     static SQInteger actorShowLayer(HSQUIRRELVM v)
