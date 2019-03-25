@@ -39,6 +39,7 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
         engine.registerGlobalFunction(stopSentence, "stopSentence");
+        engine.registerGlobalFunction(strfind, "strfind");
     }
 
     static SQInteger arrayShuffle(HSQUIRRELVM v)
@@ -397,7 +398,7 @@ class _GeneralPack : public Pack
         {
             // call exit room function
             std::cout << "call exit room function of " << pOldRoom->getId() << std::endl;
-            
+
             sq_pushobject(v, *pOldRoom->getTable());
             sq_pushstring(v, _SC("exit"), -1);
             if (SQ_FAILED(sq_get(v, -2)))
@@ -592,6 +593,30 @@ class _GeneralPack : public Pack
         return 0;
     }
 
+    static SQInteger strfind(HSQUIRRELVM v)
+    {
+        const SQChar *str1;
+        if (SQ_FAILED(sq_getstring(v, 2, &str1)))
+        {
+            return sq_throwerror(v, _SC("failed to get string1"));
+        }
+        const SQChar *str2;
+        if (SQ_FAILED(sq_getstring(v, 3, &str2)))
+        {
+            return sq_throwerror(v, _SC("failed to get string1"));
+        }
+        auto p = std::strstr(str1, str2);
+        if (p == nullptr)
+        {
+            sq_pushinteger(v, -1);
+        }
+        else
+        {
+            sq_pushinteger(v, p - str1);
+        }
+        return 1;
+    }
+
     static SQInteger translate(HSQUIRRELVM v)
     {
         const SQChar *idText;
@@ -603,7 +628,7 @@ class _GeneralPack : public Pack
         s = s.substr(1);
         auto id = std::strtol(s.c_str(), nullptr, 10);
         auto text = g_pEngine->getText(id);
-        sq_pushstring(v, (const SQChar*)text.c_str(), -1);
+        sq_pushstring(v, (const SQChar *)text.c_str(), -1);
         return 1;
     }
 };
