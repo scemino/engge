@@ -257,10 +257,10 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto object = ScriptEngine::getObject(v, 3);
+        auto object = ScriptEngine::getEntity<Entity>(v, 3);
         if (!object)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get object or actor"));
         }
         SQInteger distance;
         if (SQ_FAILED(sq_getinteger(v, 4, &distance)))
