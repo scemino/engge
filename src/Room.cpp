@@ -289,6 +289,12 @@ struct Room::Impl
                 }
             }
         }
+        
+        if (_scalings.size() == 0)
+        {
+            RoomScaling scaling;
+            _scalings.push_back(scaling);
+        }
     }
 
     void loadWalkboxes(GGPackValue &jWimpy)
