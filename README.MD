@@ -1,4 +1,5 @@
 # engge
+[![Build Status](https://travis-ci.org/scemino/engge.svg?branch=master)](https://travis-ci.org/scemino/engge)
 
 engge is an **experimental** game engine, its purpose is to be able (one day) to run Thimbleweed park.
 
