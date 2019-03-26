@@ -121,7 +121,6 @@ class _AstarAlgorithm
             {
                 float Hcost = length(_graph.nodes[edge->to] - _graph.nodes[_target]);
                 float Gcost = G_Cost[NCN] + edge->cost;
-                int to = edge->to;
                 if (SF[edge->to] == nullptr)
                 {
                     F_Cost[edge->to] = Gcost + Hcost;

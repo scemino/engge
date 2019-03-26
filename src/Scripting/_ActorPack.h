@@ -463,7 +463,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorRoom(HSQUIRRELVM v)
     {
-        auto *pActor = ScriptEngine::getActor(v, 2);
+        std::cerr << "TODO: actorRoom: not implemented" << std::endl;
         // TODO: sq_pushobject(v, *pRoomTable);
         sq_pushnull(v);
         return 1;

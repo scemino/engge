@@ -67,7 +67,7 @@ struct Actor::Impl
         std::shared_ptr<SoundId> _sound;
     };
 
-    Impl(Engine &engine)
+    explicit Impl(Engine &engine)
         : _engine(engine),
           _settings(engine.getSettings()),
           _costume(engine.getTextureManager()),

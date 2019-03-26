@@ -70,7 +70,7 @@ class _RoomTrigger : public Trigger
         }
     }
 
-    void callTrigger(std::vector<HSQOBJECT> &params, std::string name)
+    void callTrigger(std::vector<HSQOBJECT> &params, const std::string& name)
     {
         // create thread and store it on the stack
         auto thread = sq_newthread(_v, 1024);

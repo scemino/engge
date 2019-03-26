@@ -146,7 +146,6 @@ class _SoundPack : public Pack
 
     static SQInteger loopMusic(HSQUIRRELVM v)
     {
-        const SQChar *filename;
         SoundDefinition *pSound = nullptr;
         if (SQ_FAILED(sq_getuserpointer(v, 2, (SQUserPointer *)&pSound)))
         {
@@ -426,7 +425,6 @@ class _SoundPack : public Pack
 
     static SQInteger stopSound(HSQUIRRELVM v)
     {
-        SoundId *soundId;
         auto *pSound = _getSound(v, 2);
         if (pSound)
         {

@@ -203,7 +203,6 @@ TokenId YackTokenReader::readCode()
 
 TokenId YackTokenReader::readCondition()
 {
-    char c;
     while (_stream.peek() != ']')
     {
         _stream.ignore();
@@ -214,7 +213,6 @@ TokenId YackTokenReader::readCondition()
 
 TokenId YackTokenReader::readNumber()
 {
-    char c;
     while (isdigit(_stream.peek()))
     {
         _stream.ignore();
@@ -244,7 +242,6 @@ TokenId YackTokenReader::readString()
 
 TokenId YackTokenReader::readIdentifier()
 {
-    char c;
     while (isalnum(_stream.peek()) || _stream.peek() == '_')
     {
         _stream.ignore();

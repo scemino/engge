@@ -6,7 +6,7 @@ namespace ng
 class _ShutupFunction : public Function
 {
 public:
-  _ShutupFunction(Engine &engine)
+  explicit _ShutupFunction(Engine &engine)
       : _engine(engine), _done(false)
   {
   }

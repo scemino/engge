@@ -41,6 +41,7 @@ struct Room::Impl
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
         : _textureManager(textureManager),
+          _fullscreen(0),
           _ambientColor(255, 255, 255, 255),
           _settings(settings),
           _showDrawWalkboxes(false),
@@ -402,7 +403,6 @@ void Room::load(const char *name)
     pImpl->_roomSize = (sf::Vector2i)_parsePos(hash["roomsize"].string_value);
 
     // load json file
-    std::string jsonFilename;
     pImpl->_spriteSheet.load(pImpl->_sheet);
 
     pImpl->loadBackgrounds(hash);

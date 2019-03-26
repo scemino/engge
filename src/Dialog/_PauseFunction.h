@@ -6,7 +6,7 @@ namespace ng
 class _PauseFunction : public Function
 {
   public:
-    _PauseFunction(sf::Time time)
+    explicit _PauseFunction(sf::Time time)
         : _time(time), _done(false)
     {
     }

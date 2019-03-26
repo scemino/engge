@@ -9,7 +9,7 @@ namespace ng
 class _DefaultScriptExecute : public ScriptExecute
 {
   public:
-    _DefaultScriptExecute(HSQUIRRELVM vm)
+    explicit _DefaultScriptExecute(HSQUIRRELVM vm)
         : _vm(vm)
     {
     }

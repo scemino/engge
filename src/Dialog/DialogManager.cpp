@@ -60,14 +60,8 @@ void DialogManager::selectLabel(const std::string &name)
         _pLabel->accept(_dialogVisitor);
     }
     _isActive = _functions.size() > 0;
-    for (auto &line : _dialog)
-    {
-        if (line.id != 0)
-        {
-            _isActive = true;
-            break;
-        }
-    }
+    _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
+    
     if (_pLabel && !_isActive)
     {
         it++;
@@ -102,14 +96,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 void DialogManager::update(const sf::Time &elapsed)
 {
     _isActive = _functions.size() > 0;
-    for (auto &line : _dialog)
-    {
-        if (line.id != 0)
-        {
-            _isActive = true;
-            break;
-        }
-    }
+    _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
 
     if (!_functions.empty())
     {

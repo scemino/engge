@@ -88,7 +88,7 @@ struct Engine::Impl
     sf::Time _time;
     bool _isMouseDown;
 
-    Impl(EngineSettings &settings);
+    explicit Impl(EngineSettings &settings);
 
     sf::IntRect getVerbRect(int id, std::string lang = "en", bool isRetro = false) const;
     void drawVerbs(sf::RenderWindow &window) const;
@@ -820,13 +820,12 @@ void Engine::addSelectableActor(int index, Actor *pActor)
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 {
-    for (auto &selectableActor : _pImpl->_actorsIconSlots)
+    auto it = std::find_if(_pImpl->_actorsIconSlots.begin(), _pImpl->_actorsIconSlots.end(), [&pActor](auto &selectableActor) {
+        return selectableActor.pActor == pActor;
+    });
+    if (it != _pImpl->_actorsIconSlots.end())
     {
-        if (selectableActor.pActor == pActor)
-        {
-            selectableActor.selectable = selectable;
-            return;
-        }
+        it->selectable = selectable;
     }
 }
 

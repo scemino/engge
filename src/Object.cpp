@@ -36,6 +36,8 @@ struct Object::Impl
           _zorder(0),
           _direction(UseDirection::Front),
           _prop(false),
+          _spot(false),
+          _trigger(false),
           _color(sf::Color::White),
           _angle(0),
           _isTouchable(true),
