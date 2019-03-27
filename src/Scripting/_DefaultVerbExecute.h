@@ -52,6 +52,21 @@ class _DefaultScriptExecute : public ScriptExecute
         return result == SQTrue;
     }
 
+    std::string executeDollar(const std::string &code) override
+    {
+        execute(code);
+        // get the result
+        auto type = sq_gettype(_vm, -1);
+        const SQChar* result;
+        if (SQ_FAILED(sq_getstring(_vm, -1, &result)))
+        {
+            std::cerr << "Error getting result " << code << std::endl;
+            return "";
+        }
+        std::cout << code << " returns " << result << std::endl;
+        return result;
+    }
+
     SoundDefinition *getSoundDefinition(const std::string &name) override
     {
         sq_pushroottable(_vm);

@@ -102,6 +102,7 @@ public:
   void execute(const std::string &code);
   SoundDefinition *getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
+  std::string executeDollar(const std::string &code);
 
   sf::Vector2f getMousePos() const;
 

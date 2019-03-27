@@ -163,6 +163,8 @@ TokenId YackTokenReader::readTokenId()
         return readCode();
     case ':':
         return TokenId::Colon;
+    case '$':
+        return readDollar();
     case '[':
         return readCondition();
     case '=':
@@ -199,6 +201,16 @@ TokenId YackTokenReader::readCode()
         _stream.ignore();
     }
     return TokenId::Code;
+}
+
+TokenId YackTokenReader::readDollar()
+{
+    char c;
+    while ((c = _stream.peek()) != '[' && c != ' ' && c != '\n' && c != '\0')
+    {
+        _stream.ignore();
+    }
+    return TokenId::Dollar;
 }
 
 TokenId YackTokenReader::readCondition()

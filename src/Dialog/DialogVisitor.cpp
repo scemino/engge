@@ -5,6 +5,7 @@
 #include "_ExecuteCodeFunction.h"
 #include "_ShutupFunction.h"
 #include "_PauseFunction.h"
+#include "../_NGUtil.h"
 
 namespace ng
 {
@@ -96,9 +97,14 @@ void DialogVisitor::visit(const Ast::Choice &node)
     if (_dialogManager.getDialog()[node.number - 1].id != 0)
         return;
 
-    auto id = getId(node.text);
+    auto text = node.text;
+    if (text[0] == '$')
+    {
+        text =  _pEngine->executeDollar(text);
+    }
+    auto id = getId(text);
     _dialogManager.getDialog()[node.number - 1].id = id;
-    _dialogManager.getDialog()[node.number - 1].text = _pEngine->getText(id);
+    _dialogManager.getDialog()[node.number - 1].text = towstring(text);
     _dialogManager.getDialog()[node.number - 1].label = node.gotoExp->name;
     _dialogManager.getDialog()[node.number - 1].pChoice = &node;
 }

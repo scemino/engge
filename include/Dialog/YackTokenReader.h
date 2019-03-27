@@ -22,6 +22,7 @@ enum class TokenId
     Comment,
     Goto,
     Code,
+    Dollar,
     End
 };
 
@@ -77,6 +78,7 @@ class YackTokenReader
     TokenId readTokenId();
     TokenId readCode();
     TokenId readCondition();
+    TokenId readDollar();
     TokenId readNumber();
     TokenId readComment();
     TokenId readString();

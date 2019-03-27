@@ -45,8 +45,7 @@ std::unique_ptr<Ast::Label> YackParser::parseLabel()
             break;
         auto pStatement = parseStatement();
         pLabel->statements.push_back(std::move(pStatement));
-    }
-    while(true);
+    } while (true);
     // skip empty lines
     while (match({TokenId::NewLine}))
         _it++;
@@ -197,11 +196,21 @@ std::unique_ptr<Ast::Choice> YackParser::parseChoiceExpression()
 {
     auto number = std::atoi(_reader.readText(*_it).data());
     _it++;
-    auto text = _reader.readText(*_it);
+    std::string text;
+    if (_it->id == TokenId::Dollar)
+    {
+        text = _reader.readText(*_it);
+    }
+    else
+    {
+        text = _reader.readText(*_it);
+        text = text.substr(1, text.length() - 2);
+    }
+
     _it++;
     auto pExp = std::make_unique<Ast::Choice>();
     pExp->number = number;
-    pExp->text = text.substr(1, text.length() - 2);
+    pExp->text = text;
     auto pGoto = parseGotoExpression();
     pExp->gotoExp = std::move(pGoto);
     return pExp;

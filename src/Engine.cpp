@@ -804,6 +804,11 @@ bool Engine::executeCondition(const std::string &code)
     return _pImpl->_pScriptExecute->executeCondition(code);
 }
 
+std::string Engine::executeDollar(const std::string &code)
+{
+    return _pImpl->_pScriptExecute->executeDollar(code);
+}
+
 void Engine::stopThread(HSQUIRRELVM thread)
 {
     auto it = std::find(_pImpl->_threads.begin(), _pImpl->_threads.end(), thread);
