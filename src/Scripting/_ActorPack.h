@@ -280,7 +280,14 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
+        auto count = sq_gettop(v) - 2;
         SQInteger dir;
+        if (count == 2)
+        {
+            dir = (SQInteger)actor->getCostume().getFacing();
+            sq_pushinteger(v, dir);
+            return 1;
+        }
         if (SQ_FAILED(sq_getinteger(v, 3, &dir)))
         {
             return sq_throwerror(v, _SC("failed to get direction"));
@@ -463,8 +470,13 @@ class _ActorPack : public Pack
 
     static SQInteger actorRoom(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: actorRoom: not implemented" << std::endl;
-        // TODO: sq_pushobject(v, *pRoomTable);
+        auto *pActor = ScriptEngine::getActor(v, 2);
+        auto pRoom = pActor->getRoom();
+        if (pRoom)
+        {
+            sq_pushobject(v, pRoom->getTable());
+            return 1;
+        }
         sq_pushnull(v);
         return 1;
     }
