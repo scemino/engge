@@ -47,8 +47,7 @@ public:
   sf::Vector2i getRoomSize() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);
   const RoomScaling &getRoomScaling() const;
-  void setTable(std::unique_ptr<HSQOBJECT> pTable);
-  HSQOBJECT *getTable();
+  HSQOBJECT &getTable();
 
   bool walkboxesVisible() const;
   void setAmbientLight(sf::Color color);

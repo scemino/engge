@@ -463,7 +463,7 @@ class _ObjectPack : public Pack
             sq_pushnull(v);
             return 1;
         }
-        sq_pushobject(v, *pRoom->getTable());
+        sq_pushobject(v, pRoom->getTable());
         return 1;
     }
 

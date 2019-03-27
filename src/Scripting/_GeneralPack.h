@@ -399,14 +399,14 @@ class _GeneralPack : public Pack
             // call exit room function
             std::cout << "call exit room function of " << pOldRoom->getId() << std::endl;
 
-            sq_pushobject(v, *pOldRoom->getTable());
+            sq_pushobject(v, pOldRoom->getTable());
             sq_pushstring(v, _SC("exit"), -1);
             if (SQ_FAILED(sq_get(v, -2)))
             {
                 return sq_throwerror(v, _SC("can't find exit function"));
             }
             sq_remove(v, -2);
-            sq_pushobject(v, *pOldRoom->getTable());
+            sq_pushobject(v, pOldRoom->getTable());
             if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
             {
                 return sq_throwerror(v, _SC("function exit call failed"));
@@ -628,7 +628,7 @@ class _GeneralPack : public Pack
         s = s.substr(1);
         auto id = std::strtol(s.c_str(), nullptr, 10);
         auto text = g_pEngine->getText(id);
-        sq_pushstring(v, (const SQChar *)text.c_str(), -1);
+        sq_pushstring(v, tostring(text).c_str(), -1);
         return 1;
     }
 };

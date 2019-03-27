@@ -35,6 +35,8 @@ void DialogManager::start(const std::string &name, const std::string &node)
     std::string path;
     path.append(name).append(".byack");
 
+    std::cout << "start dialog " << name << " from node " << node << std::endl;
+
     YackTokenReader reader;
     reader.setSettings(_pEngine->getSettings());
     reader.load(path);

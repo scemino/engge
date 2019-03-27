@@ -25,6 +25,18 @@ static bool getLine(GGPackBufferStream &input, std::string &line)
     return false;
 }
 
+static std::wstring towstring(const std::string &text)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+    return converter.from_bytes(text.data(), text.data() + text.size());
+}
+
+static std::string tostring(const std::wstring &text)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+    return converter.to_bytes(text);
+}
+
 static bool getLine(GGPackBufferStream &input, std::wstring &wline)
 {
     std::string line;

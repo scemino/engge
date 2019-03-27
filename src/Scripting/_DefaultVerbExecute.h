@@ -143,11 +143,11 @@ class _Use : public Function
     void operator()(const sf::Time &elapsed) override
     {
         HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
-        HSQOBJECT objTarget = _objectTarget.getTable();
+        auto& objTarget = _objectTarget.getTable();
 
-        auto pTable = _actor.getRoom()->getTable();
+        auto& roomTable = _actor.getRoom()->getTable();
         sq_pushobject(_vm, objSource);
-        sq_pushobject(_vm, *pTable);
+        sq_pushobject(_vm, roomTable);
         sq_setdelegate(_vm, -2);
 
         sq_pushobject(_vm, objSource);
@@ -267,9 +267,9 @@ class _DefaultVerbExecute : public VerbExecute
         if (pVerb->id == 10 && useFlags(pObject))
             return;
 
-        auto pTable = _engine.getRoom()->getTable();
+        auto& roomTable = _engine.getRoom()->getTable();
         sq_pushobject(_vm, obj);
-        sq_pushobject(_vm, *pTable);
+        sq_pushobject(_vm, roomTable);
         sq_setdelegate(_vm, -2);
 
         auto func = pVerb->func;

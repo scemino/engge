@@ -1,6 +1,7 @@
 #include "Screen.h"
 #include "TextObject.h"
 #include "Text.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
@@ -26,8 +27,7 @@ TextObject::TextObject()
 
 void TextObject::setText(const std::string &text)
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-    _text = converter.from_bytes(text.data(), text.data() + text.size());
+    _text = towstring(text);
 }
 
 void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const

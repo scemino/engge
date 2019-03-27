@@ -31,7 +31,7 @@ struct Room::Impl
     std::string _sheet;
     std::string _id;
     int _fullscreen;
-    std::unique_ptr<HSQOBJECT> _pTable;
+    HSQOBJECT _table;
     std::shared_ptr<Path> _path;
     std::shared_ptr<PathFinder> _pf;
     std::vector<Walkbox> _graphWalkboxes;
@@ -167,7 +167,8 @@ struct Room::Impl
             auto object = std::make_unique<Object>();
             // name
             auto objectName = jObject["name"].string_value;
-            object->setName((wchar_t *)objectName.data());
+            object->setId(towstring(objectName));
+            object->setName(towstring(objectName));
             // zsort
             object->setZOrder(jObject["zsort"].int_value);
             // prop
@@ -231,7 +232,7 @@ struct Room::Impl
                     object->getAnims().push_back(std::move(anim));
                 }
 
-                object->setAnimation("state0");
+                object->setStateAnimIndex(0);
             }
             object->setRoom(_pRoom);
             // std::cout << "Object " << *object << std::endl;
@@ -290,7 +291,7 @@ struct Room::Impl
                 }
             }
         }
-        
+
         if (_scalings.size() == 0)
         {
             RoomScaling scaling;
@@ -351,9 +352,7 @@ bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
 
-void Room::setTable(std::unique_ptr<HSQOBJECT> pTable) { pImpl->_pTable = std::move(pTable); }
-
-HSQOBJECT *Room::getTable() { return pImpl->_pTable.get(); }
+HSQOBJECT& Room::getTable() { return pImpl->_table; }
 
 bool Room::walkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "squirrel.h"
+#include "Animation.h"
 #include "Engine.h"
 #include "_RoomTrigger.h"
 
@@ -170,7 +171,7 @@ class _RoomPack : public Pack
         sq_newarray(v, 0);
         for (auto &&pRoom : g_pEngine->getRooms())
         {
-            sq_pushobject(v, *pRoom->getTable());
+            sq_pushobject(v, pRoom->getTable());
             sq_arrayappend(v, -2);
         }
         return 1;
@@ -260,14 +261,14 @@ class _RoomPack : public Pack
             // call exit room function
             if (pOldRoom)
             {
-                sq_pushobject(v, *pOldRoom->getTable());
+                sq_pushobject(v, pOldRoom->getTable());
                 sq_pushstring(v, _SC("exit"), -1);
                 if (SQ_FAILED(sq_get(v, -2)))
                 {
                     return sq_throwerror(v, _SC("can't find exit function"));
                 }
                 sq_remove(v, -2);
-                sq_pushobject(v, *pOldRoom->getTable());
+                sq_pushobject(v, pOldRoom->getTable());
                 if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
                 {
                     return sq_throwerror(v, _SC("function exit call failed"));
@@ -282,7 +283,7 @@ class _RoomPack : public Pack
             g_pEngine->setCameraAt(pos + obj->getUsePosition());
 
             // call enter room function
-            sq_pushobject(v, *pRoom->getTable());
+            sq_pushobject(v, pRoom->getTable());
             sq_pushstring(v, _SC("enter"), -1);
             if (SQ_FAILED(sq_get(v, -2)))
             {
@@ -294,7 +295,7 @@ class _RoomPack : public Pack
             std::cout << "enter function found with " << nparams << " parameters" << std::endl;
 
             sq_remove(v, -2);
-            sq_pushobject(v, *pRoom->getTable());
+            sq_pushobject(v, pRoom->getTable());
             if (nparams == 2)
             {
                 sq_pushobject(v, obj->getTable()); // the door
@@ -318,7 +319,7 @@ class _RoomPack : public Pack
         {
             if (pRoom->getId() == name)
             {
-                sq_pushobject(v, *pRoom->getTable());
+                sq_pushobject(v, pRoom->getTable());
                 return 1;
             }
         }
@@ -422,7 +423,7 @@ class _RoomPack : public Pack
         sq_pushstring(v, name, -1);
         ScriptEngine::pushObject(v, object);
         sq_pushstring(v, _SC("name"), -1);
-        sq_pushstring(v, (const SQChar *)object.getName().data(), -1);
+        sq_pushstring(v, tostring(object.getName()).c_str(), -1);
         sq_newslot(v, -3, SQFalse);
         sq_newslot(v, -3, SQFalse);
     }
@@ -444,12 +445,11 @@ class _RoomPack : public Pack
 
     static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom)
     {
-        auto table = std::make_unique<HSQOBJECT>();
-        auto pTable = table.get();
-        sq_getstackobj(v, index, pTable);
+        auto& table = pRoom->getTable();
+        sq_getstackobj(v, index, &table);
 
         // loadRoom
-        sq_pushobject(v, *pTable);
+        sq_pushobject(v, table);
         sq_pushstring(v, _SC("background"), -1);
         if (SQ_FAILED(sq_rawget(v, -2)))
         {
@@ -458,14 +458,14 @@ class _RoomPack : public Pack
         const SQChar *name;
         sq_getstring(v, -1, &name);
         sq_pop(v, 2);
-        pRoom->setTable(std::move(table));
         pRoom->load(name);
 
         // define instance
-        sq_pushobject(v, *pTable);
+        sq_pushobject(v, table);
         sq_pushstring(v, _SC("_type"), -1);
         sq_pushinteger(v, Room::RoomType);
         sq_newslot(v, -3, SQFalse);
+
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pRoom);
         sq_newslot(v, -3, SQFalse);
@@ -473,7 +473,7 @@ class _RoomPack : public Pack
         std::unordered_map<std::string, HSQOBJECT> roomObjects;
 
         // define room objects
-        sq_pushobject(v, *pTable);
+        sq_pushobject(v, table);
         sq_pushnull(v);
         while (SQ_SUCCEEDED(sq_next(v, -2)))
         {
@@ -511,14 +511,14 @@ class _RoomPack : public Pack
         {
             sq_resetobject(&obj->getTable());
 
-            sq_pushobject(v, *pTable);
-            sq_pushstring(v, (const SQChar *)obj->getName().data(), -1);
+            sq_pushobject(v, table);
+            sq_pushstring(v, tostring(obj->getName()).c_str(), -1);
             if (SQ_FAILED(sq_rawget(v, -2)))
             {
-                setObjectSlot(v, (const SQChar *)obj->getName().data(), *obj);
+                setObjectSlot(v, tostring(obj->getName()).c_str(), *obj);
 
-                sq_pushobject(v, *pTable);
-                sq_pushstring(v, (const SQChar *)obj->getName().data(), -1);
+                sq_pushobject(v, table);
+                sq_pushstring(v, tostring(obj->getName()).c_str(), -1);
                 sq_get(v, -2);
                 sq_getstackobj(v, -1, &obj->getTable());
                 if (!sq_istable(obj->getTable()))
@@ -535,9 +535,6 @@ class _RoomPack : public Pack
                 return sq_throwerror(v, _SC("object should be a table entry"));
             }
 
-            _getField<SQInteger>(v, obj->getTable(), _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
-            _getField<SQBool>(v, obj->getTable(), _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
-            _getField<SQInteger>(v, obj->getTable(), _SC("defaultVerb"), [&obj](SQInteger value) { obj->setDefaultVerb(value); });
             _getField<const SQChar *>(v, obj->getTable(), _SC("name"), [&obj](const SQChar *value) {
                 if (strlen(value) > 0 && value[0] == '@')
                 {
@@ -550,8 +547,8 @@ class _RoomPack : public Pack
                 }
                 else
                 {
-                    obj->setId(obj->getName());
-                    obj->setName((const wchar_t *)value);
+                    obj->setId(towstring(value));
+                    obj->setName(towstring(value));
                 }
             });
 
@@ -561,7 +558,7 @@ class _RoomPack : public Pack
             sq_newslot(v, -3, SQFalse);
 
             sq_pushobject(v, obj->getTable());
-            sq_pushobject(v, *pTable);
+            sq_pushobject(v, table);
             sq_setdelegate(v, -2);
         }
         return 0;
@@ -580,7 +577,7 @@ class _RoomPack : public Pack
             return result;
 
         pRoom->setId(name);
-        sq_pushobject(v, *pRoom->getTable());
+        sq_pushobject(v, pRoom->getTable());
         g_pEngine->addRoom(std::move(pRoom));
         return 1;
     }
