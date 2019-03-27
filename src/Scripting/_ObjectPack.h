@@ -43,6 +43,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectRotate, "objectRotate");
         engine.registerGlobalFunction(objectRotateTo, "objectRotateTo");
         engine.registerGlobalFunction(objectScale, "objectScale");
+        engine.registerGlobalFunction(objectScreenSpace, "objectScreenSpace");
         engine.registerGlobalFunction(objectSort, "objectSort");
         engine.registerGlobalFunction(objectState, "objectState");
         engine.registerGlobalFunction(objectTouchable, "objectTouchable");
@@ -119,6 +120,9 @@ class _ObjectPack : public Pack
 
     static SQInteger objectAlpha(HSQUIRRELVM v)
     {
+        if (sq_gettype(v, 2) == OT_NULL)
+            return 0;
+
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
@@ -139,6 +143,9 @@ class _ObjectPack : public Pack
 
     static SQInteger objectAlphaTo(HSQUIRRELVM v)
     {
+        if (sq_gettype(v, 2) == OT_NULL)
+            return 0;
+
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
@@ -253,6 +260,12 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get y"));
         }
         obj->move(sf::Vector2f(x, y));
+        return 0;
+    }
+
+    static SQInteger objectScreenSpace(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: objectScreenSpace: not implemented" << std::endl;
         return 0;
     }
 
@@ -782,7 +795,7 @@ class _ObjectPack : public Pack
         }
         else
         {
-            name = (wchar_t*)strName;
+            name = towstring(strName);
         }
 
         auto actor = ScriptEngine::getActor(v, 3);
