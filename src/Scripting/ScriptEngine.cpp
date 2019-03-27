@@ -271,6 +271,12 @@ ScriptEngine::ScriptEngine(Engine &engine)
         {"ANDROID", 6},
         {"SWITCH", 7},
         {"PS4", 8},
+        {"EFFECT_NONE", 0},
+        {"EFFECT_SEPIA", 1},
+        {"EFFECT_EGA", 2},
+        {"EFFECT_VHS", 3},
+        {"EFFECT_GHOST", 4},
+        {"EFFECT_BLACKANDWHITE", 5},
     });
 
     addPack<_ActorPack>();

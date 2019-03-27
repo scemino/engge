@@ -96,6 +96,7 @@ class _RoomPack : public Pack
         engine.registerGlobalFunction(masterRoomArray, "masterRoomArray");
         engine.registerGlobalFunction(removeTrigger, "removeTrigger");
         engine.registerGlobalFunction(roomActors, "roomActors");
+        engine.registerGlobalFunction(roomEffect, "roomEffect");
         engine.registerGlobalFunction(roomFade, "roomFade");
         engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
         engine.registerGlobalFunction(roomRotateTo, "roomRotateTo");
@@ -305,6 +306,12 @@ class _RoomPack : public Pack
                 return sq_throwerror(v, _SC("function enter call failed"));
             }
         }
+        return 0;
+    }
+
+    static SQInteger roomEffect(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: roomEffect: not implemented" << std::endl;
         return 0;
     }
 
