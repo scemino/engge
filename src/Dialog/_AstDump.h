@@ -49,6 +49,10 @@ public:
     {
         std::cout << "parrot " << node.active << std::endl;
     }
+    virtual void visit(const Ast::Dialog &node)
+    {
+        std::cout << "dialog " << node.actor << std::endl;
+    }
     virtual void visit(const Ast::Shutup &node)
     {
         std::cout << "shutup " << std::endl;

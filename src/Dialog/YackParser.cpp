@@ -163,6 +163,16 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
         }
         return pExp;
     }
+    else if (identifier == "dialog")
+    {
+        auto pExp = std::make_unique<Ast::Dialog>();
+        if (_it->id == TokenId::Identifier)
+        {
+            auto actor = _reader.readText(*_it++);
+            pExp->actor = actor;
+        }
+        return pExp;
+    }
     throw std::domain_error("Unknown instruction: " + identifier);
 }
 
