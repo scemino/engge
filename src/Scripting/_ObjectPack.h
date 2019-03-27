@@ -21,6 +21,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(isObject, "is_object");
         engine.registerGlobalFunction(isObject, "isObject");
         engine.registerGlobalFunction(jiggleInventory, "jiggleInventory");
+        engine.registerGlobalFunction(jiggleObject, "jiggleObject");
         engine.registerGlobalFunction(playState, "loopObjectState");
         engine.registerGlobalFunction(objectAlpha, "objectAlpha");
         engine.registerGlobalFunction(objectAlphaTo, "objectAlphaTo");
@@ -99,6 +100,12 @@ class _ObjectPack : public Pack
     static SQInteger jiggleInventory(HSQUIRRELVM v)
     {
         std::cerr << "TODO: jiggleInventory: not implemented" << std::endl;
+        return 0;
+    }
+
+    static SQInteger jiggleObject(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: jiggleObject: not implemented" << std::endl;
         return 0;
     }
 
