@@ -23,13 +23,13 @@ class _DefaultScriptExecute : public ScriptExecute
         _pos = 0;
         // compile
         sq_pushroottable(_vm);
-        if (SQ_FAILED(sq_compile(_vm, program_reader, (SQUserPointer)c.data(), _SC("_DefaultScriptExecute"), SQTrue)))
+        if (SQ_FAILED(sq_compilebuffer(_vm, c.data(), c.size(), _SC("_DefaultScriptExecute"), SQTrue)))
         {
             std::cerr << "Error executing code " << code << std::endl;
             return;
         }
+        sq_push(_vm, -2);
         // call
-        sq_pushroottable(_vm);
         if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue)))
         {
             std::cerr << "Error calling code " << code << std::endl;
@@ -83,12 +83,6 @@ class _DefaultScriptExecute : public ScriptExecute
 
         SoundDefinition *pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
         return pSound;
-    }
-
-    static SQInteger program_reader(SQUserPointer p)
-    {
-        auto code = (char *)p;
-        return (SQInteger)code[_pos++];
     }
 
   private:
