@@ -222,21 +222,38 @@ class _GeneralPack : public Pack
     {
         SQInteger x, y, interpolation;
         SQFloat t;
-        if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+        if (sq_gettype(v, 2) == OT_TABLE)
         {
-            return sq_throwerror(v, _SC("failed to get x"));
+            auto *pActor = ScriptEngine::getActor(v, 2);
+            if (!pActor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
+            x = pActor->getPosition().x;
+            y = pActor->getPosition().y;
+            if (SQ_FAILED(sq_getfloat(v, 3, &t)))
+            {
+                return sq_throwerror(v, _SC("failed to get time"));
+            }
         }
-        if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+        else
         {
-            return sq_throwerror(v, _SC("failed to get y"));
-        }
-        if (SQ_FAILED(sq_getfloat(v, 4, &t)))
-        {
-            return sq_throwerror(v, _SC("failed to get time"));
-        }
-        if (SQ_FAILED(sq_getinteger(v, 5, &interpolation)))
-        {
-            interpolation = 0;
+            if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+            {
+                return sq_throwerror(v, _SC("failed to get x"));
+            }
+            if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+            {
+                return sq_throwerror(v, _SC("failed to get y"));
+            }
+            if (SQ_FAILED(sq_getfloat(v, 4, &t)))
+            {
+                return sq_throwerror(v, _SC("failed to get time"));
+            }
+            if (SQ_FAILED(sq_getinteger(v, 5, &interpolation)))
+            {
+                interpolation = 0;
+            }
         }
         auto get = std::bind(&Engine::getCameraAt, g_pEngine);
         auto set = std::bind(&Engine::setCameraAt, g_pEngine, std::placeholders::_1);
@@ -576,13 +593,17 @@ class _GeneralPack : public Pack
 
     static SQInteger startDialog(HSQUIRRELVM v)
     {
+        auto count = sq_gettop(v);
         const SQChar *dialog;
         if (SQ_FAILED(sq_getstring(v, 2, &dialog)))
         {
             return sq_throwerror(v, _SC("failed to get dialog"));
         }
         const SQChar *node = "start";
-        sq_getstring(v, 3, &node);
+        if (count == 3)
+        {
+            sq_getstring(v, 3, &node);
+        }
         g_pEngine->startDialog(dialog, node);
         return 0;
     }
