@@ -172,6 +172,16 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
         }
         return pExp;
     }
+    else if (identifier == "override")
+    {
+        auto pExp = std::make_unique<Ast::Override>();
+        if (_it->id == TokenId::Identifier)
+        {
+            auto node = _reader.readText(*_it++);
+            pExp->node = node;
+        }
+        return pExp;
+    }
     throw std::domain_error("Unknown instruction: " + identifier);
 }
 

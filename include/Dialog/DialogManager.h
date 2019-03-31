@@ -54,6 +54,7 @@ private:
   void visit(const Ast::Goto &node) override;
   void visit(const Ast::Shutup &node) override;
   void visit(const Ast::Pause &node) override;
+  void visit(const Ast::Override &node) override;
   void visit(const Ast::WaitFor &node) override;
 
   int getId(const std::string &text);

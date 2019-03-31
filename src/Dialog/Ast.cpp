@@ -12,6 +12,7 @@ void CodeCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void OnceCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void ShowOnceCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Shutup::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void Override::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void WaitFor::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Pause::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Parrot::accept(AstVisitor &visitor) { visitor.visit(*this); }
@@ -31,6 +32,7 @@ void AstVisitor::visit(const Pause &node) { defaultVisit(node); }
 void AstVisitor::visit(const WaitFor &node) { defaultVisit(node); }
 void AstVisitor::visit(const Parrot &node) { defaultVisit(node); }
 void AstVisitor::visit(const Dialog &node) { defaultVisit(node); }
+void AstVisitor::visit(const Override &node) { defaultVisit(node); }
 void AstVisitor::defaultVisit(const Node &node) {}
 
 } // namespace Ast

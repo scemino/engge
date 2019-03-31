@@ -57,6 +57,10 @@ public:
     {
         std::cout << "shutup " << std::endl;
     }
+    virtual void visit(const Ast::Override &node)
+    {
+        std::cout << "override " << node.node << std::endl;
+    }
     virtual void visit(const Ast::Label &node)
     {
         std::cout << "label " << node.name << ":" << std::endl;

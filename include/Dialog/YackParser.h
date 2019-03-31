@@ -143,6 +143,15 @@ public:
   virtual void accept(AstVisitor &visitor) override;
   std::string actor;
 };
+class Override : public Expression
+{
+public:
+  Override() {}
+  virtual ~Override() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+  std::string node;
+};
 class Shutup : public Expression
 {
 public:
@@ -195,6 +204,7 @@ public:
   virtual void visit(const WaitFor &node);
   virtual void visit(const Parrot &node);
   virtual void visit(const Dialog &node);
+  virtual void visit(const Override &node);
   virtual void defaultVisit(const Node &node);
 };
 } // namespace Ast

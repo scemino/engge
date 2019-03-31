@@ -142,6 +142,12 @@ void DialogVisitor::visit(const Ast::WaitFor &node)
     std::cout << "TODO: waitfor" << std::endl;
 }
 
+void DialogVisitor::visit(const Ast::Override &node)
+{
+    // TODO: override
+    std::cout << "TODO: override" << std::endl;
+}
+
 int DialogVisitor::getId(const std::string &text)
 {
     std::string s(text);
