@@ -6,6 +6,7 @@ class Trigger
 {
 public:
   Trigger() : _isEnabled(true) {}
+  virtual ~Trigger() {}
   void doTrig()
   {
     if (isEnabled())

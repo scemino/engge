@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "squirrel.h"
 #include "Animation.h"
 #include "Engine.h"
@@ -45,7 +46,7 @@ class _ChangeColor : public TimeFunction
 
     void onElapsed() override
     {
-        _engine.setFadeColor(_endColor);
+        _engine.setFadeColor(sf::Color::Transparent);
     }
 
   private:
@@ -215,7 +216,6 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get insideTriggerFunction"));
         }
-        sq_addref(v, &inside);
 
         HSQOBJECT outside;
         sq_resetobject(&outside);
@@ -226,9 +226,8 @@ class _RoomPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get outsideTriggerFunction"));
             }
-            sq_addref(v, &outside);
         }
-        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, inside, outside);
+        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, v, *object, inside, outside);
         object->addTrigger(trigger);
 
         return 0;
@@ -252,6 +251,7 @@ class _RoomPack : public Pack
 
     static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
     {
+        std::cout << "enterRoomFromDoor" << std::endl;
         auto obj = ScriptEngine::getObject(v, 2);
         auto pOldRoom = g_pEngine->getRoom();
 
@@ -280,7 +280,7 @@ class _RoomPack : public Pack
             auto actor = g_pEngine->getCurrentActor();
             actor->setRoom(pRoom);
             auto pos = obj->getPosition();
-            actor->setPosition(pos + obj->getUsePosition());
+            actor->setPosition(pos + sf::Vector2f(obj->getUsePosition().x,-obj->getUsePosition().y));
             g_pEngine->setCameraAt(pos + obj->getUsePosition());
 
             // call enter room function
@@ -356,6 +356,31 @@ class _RoomPack : public Pack
 
     static SQInteger removeTrigger(HSQUIRRELVM v)
     {
+        std::cout << "removeTrigger" << std::endl;
+        if (sq_gettype(v, 2) == OT_CLOSURE)
+        {
+            HSQOBJECT closure;
+            sq_getstackobj(v, 2, &closure);
+            for (auto &obj : g_pEngine->getRoom()->getObjects())
+            {
+                auto pTrigger = obj->getTrigger();
+                if(!pTrigger) continue;
+                auto pRoomTrigger = dynamic_cast<_RoomTrigger *>(pTrigger);
+                if (!pRoomTrigger)
+                    continue;
+                if (&pRoomTrigger->getInside() == &closure)
+                {
+                    obj->removeTrigger();
+                    return 0;
+                }
+                if (&pRoomTrigger->getOutside() == &closure)
+                {
+                    obj->removeTrigger();
+                    return 0;
+                }
+            }
+            return 0;
+        }
         auto object = ScriptEngine::getObject(v, 2);
         if (!object)
         {
@@ -401,6 +426,7 @@ class _RoomPack : public Pack
 
     static SQInteger roomOverlayColor(HSQUIRRELVM v)
     {
+        std::cout << "roomOverlayColor" << std::endl;
         SQInteger startColor, endColor;
         auto numArgs = sq_gettop(v) - 1;
         if (SQ_FAILED(sq_getinteger(v, 2, &startColor)))
@@ -452,7 +478,7 @@ class _RoomPack : public Pack
 
     static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom)
     {
-        auto& table = pRoom->getTable();
+        auto &table = pRoom->getTable();
         sq_getstackobj(v, index, &table);
 
         // loadRoom

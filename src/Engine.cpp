@@ -530,7 +530,7 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
     if (!_pRoom)
         return false;
 
-    auto& table = _pRoom->getTable();
+    auto &table = _pRoom->getTable();
     sq_pushobject(_vm, table);
     sq_pushstring(_vm, _SC("clickedAt"), -1);
     if (SQ_SUCCEEDED(sq_get(_vm, -2)))
@@ -622,6 +622,8 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     auto pVerb = _pVerb;
     if (!pVerb)
         pVerb = _pEngine->getVerb(1);
+    if (!pVerb)
+        return;
 
     NGText text;
     text.setFont(_fntFont);

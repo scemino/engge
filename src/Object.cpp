@@ -129,7 +129,7 @@ void Object::setHotspotVisible(bool isVisible) { pImpl->_hotspotVisible = isVisi
 
 void Object::addTrigger(std::shared_ptr<Trigger> trigger) { pImpl->_triggers.push_back(trigger); }
 void Object::removeTrigger() { pImpl->_triggers.clear(); }
-std::shared_ptr<Trigger> Object::getTrigger() { return pImpl->_triggers[0]; }
+Trigger* Object::getTrigger() { return pImpl->_triggers.size() > 0 ? pImpl->_triggers[0].get() : nullptr; }
 
 bool Object::isTouchable() const
 {

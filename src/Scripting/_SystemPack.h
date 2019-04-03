@@ -64,15 +64,14 @@ class _WakeupThread : public Function
         if (_done)
             return;
 
+        _done = true;
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
-            std::cerr << typeid(this).name() << ": failed to wakeup: " << _vm << std::endl;
+            std::cerr << "_WakeupThread: failed to wakeup: " << _vm << std::endl;
             sqstd_printcallstack(_vm);
             return;
         }
         // std::cout << typeid(this).name() << ": OK to wakeup: " << _vm << std::endl;
-
-        _done = true;
     }
 };
 
@@ -642,7 +641,21 @@ class _SystemPack : public Pack
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
 
+        const SQChar *name = nullptr;
+        if (SQ_SUCCEEDED(sq_getclosurename(v, 2)))
+        {
+            sq_getstring(v, -1, &name);
+        }
+
+        // create a table for a thread
+        sq_addref(v, &thread_obj);
+
+        std::cout << "start thread (" << (name ? name : "anonymous")
+            << "): " << thread << std::endl;
+        g_pEngine->addThread(thread);
+
         // call the closure in the thread
+        SQInteger top = sq_gettop(thread);
         sq_pushobject(thread, closureObj);
         sq_pushobject(thread, env_obj);
         for (auto arg : args)
@@ -651,18 +664,11 @@ class _SystemPack : public Pack
         }
         if (SQ_FAILED(sq_call(thread, 1 + args.size(), SQFalse, SQTrue)))
         {
-            sq_throwerror(v, _SC("call failed"));
-            sq_pop(thread, 1); // pop the compiled closure
-            return SQ_ERROR;
+            sq_settop(thread, top);
+            return sq_throwerror(v, _SC("call failed"));
         }
 
-        // create a table for a thread
-        sq_addref(v, &thread_obj);
         sq_pushobject(v, thread_obj);
-
-        std::cout << "start thread: " << thread_obj._unVal.pThread << std::endl;
-        g_pEngine->addThread(thread_obj._unVal.pThread);
-
         return 1;
     }
 
