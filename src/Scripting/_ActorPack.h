@@ -103,6 +103,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorAt(HSQUIRRELVM v)
     {
+        std::cout << "actorAt" << std::endl;
         auto numArgs = sq_gettop(v) - 1;
         if (numArgs == 2)
         {
@@ -470,6 +471,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorRoom(HSQUIRRELVM v)
     {
+        std::cout << "actorRoom" << std::endl;
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
         if (pRoom)
@@ -699,6 +701,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorWalkTo(HSQUIRRELVM v)
     {
+        std::cout << "actorWalkTo" << std::endl;
         auto *pActor = ScriptEngine::getActor(v, 2);
         if (!pActor)
         {

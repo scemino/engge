@@ -182,6 +182,7 @@ class _GeneralPack : public Pack
 
     static SQInteger cameraAt(HSQUIRRELVM v)
     {
+        std::cout << "cameraAt" << std::endl;
         SQInteger x, y;
         auto numArgs = sq_gettop(v) - 1;
         if (numArgs == 2)
@@ -266,6 +267,7 @@ class _GeneralPack : public Pack
 
     static SQInteger cutscene(HSQUIRRELVM v)
     {
+        std::cout << "cutscene" << std::endl;
         auto numArgs = sq_gettop(v);
         HSQOBJECT env_obj;
         sq_resetobject(&env_obj);

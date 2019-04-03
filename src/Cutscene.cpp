@@ -30,18 +30,23 @@ void Cutscene::operator()(const sf::Time &elapsed)
     switch (_state)
     {
     case 0:
+        std::cout << "startCutscene" << std::endl;
         startCutscene();
         break;
     case 1:
+        std::cout << "checkEndCutscene" << std::endl;
         checkEndCutscene();
         break;
     case 2:
+        std::cout << "doCutsceneOverride" << std::endl;
         doCutsceneOverride();
         break;
     case 3:
+        std::cout << "checkEndCutsceneOverride" << std::endl;
         checkEndCutsceneOverride();
         break;
     case 4:
+        std::cout << "endCutscene" << std::endl;
         endCutscene();
         break;
     case 5:

@@ -296,7 +296,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get state"));
         }
         obj->setStateAnimIndex(state);
-        std::wcout << obj->getName() << L"setStateAnimIndex(" << state << L")" << std::endl;
+        std::wcout << obj->getName() << L" setStateAnimIndex(" << state << L")" << std::endl;
 
         return 0;
     }
