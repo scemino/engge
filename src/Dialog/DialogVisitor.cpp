@@ -104,7 +104,7 @@ void DialogVisitor::visit(const Ast::Choice &node)
     }
     auto id = getId(text);
     _dialogManager.getDialog()[node.number - 1].id = id;
-    _dialogManager.getDialog()[node.number - 1].text = towstring(text);
+    _dialogManager.getDialog()[node.number - 1].text = _pEngine->getText(id);
     _dialogManager.getDialog()[node.number - 1].label = node.gotoExp->name;
     _dialogManager.getDialog()[node.number - 1].pChoice = &node;
 }
