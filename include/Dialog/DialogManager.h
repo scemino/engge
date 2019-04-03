@@ -56,6 +56,11 @@ private:
   void visit(const Ast::Pause &node) override;
   void visit(const Ast::Override &node) override;
   void visit(const Ast::WaitFor &node) override;
+  void visit(const Ast::Parrot &node) override;
+  void visit(const Ast::Dialog &node) override;
+  void visit(const Ast::AllowObjects &node) override;
+  void visit(const Ast::WaitWhile &node) override;
+  void visit(const Ast::Limit &node) override;
 
   int getId(const std::string &text);
   bool acceptConditions(const Ast::Statement &statement);

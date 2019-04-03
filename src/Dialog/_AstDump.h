@@ -16,7 +16,8 @@ public:
         for (auto it = reader.begin(); it != reader.end(); it++)
         {
             auto token = *it;
-            std::cout << token << std::endl;
+            auto text = reader.readText(token);
+            std::cout << token << " " << text << std::endl;
         }
         std::cout << "# dump AST: " << std::endl;
         YackParser parser(reader);

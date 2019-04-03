@@ -66,6 +66,14 @@ public:
 
   virtual void accept(AstVisitor &visitor) override;
 };
+class OnceEverCondition : public Condition
+{
+public:
+  OnceEverCondition() {}
+  virtual ~OnceEverCondition() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+};
 class Statement : public Node
 {
 public:
@@ -160,6 +168,36 @@ public:
 
   virtual void accept(AstVisitor &visitor) override;
 };
+class AllowObjects : public Expression
+{
+public:
+  AllowObjects() {}
+  virtual ~AllowObjects() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+  
+  bool allow{true};
+};
+class Limit : public Expression
+{
+public:
+  Limit() {}
+  virtual ~Limit() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+  
+  int max{0};
+};
+class WaitWhile : public Expression
+{
+public:
+  WaitWhile() {}
+  virtual ~WaitWhile() {}
+
+  virtual void accept(AstVisitor &visitor) override;
+
+  std::string condition;
+};
 class WaitFor : public Expression
 {
 public:
@@ -199,12 +237,16 @@ public:
   virtual void visit(const CodeCondition &node);
   virtual void visit(const OnceCondition &node);
   virtual void visit(const ShowOnceCondition &node);
+  virtual void visit(const OnceEverCondition &node);
   virtual void visit(const Shutup &node);
   virtual void visit(const Pause &node);
   virtual void visit(const WaitFor &node);
   virtual void visit(const Parrot &node);
   virtual void visit(const Dialog &node);
   virtual void visit(const Override &node);
+  virtual void visit(const AllowObjects &node);
+  virtual void visit(const WaitWhile &node);
+  virtual void visit(const Limit &node);
   virtual void defaultVisit(const Node &node);
 };
 } // namespace Ast
@@ -222,6 +264,7 @@ private:
   std::unique_ptr<Ast::Condition> parseCondition();
   std::unique_ptr<Ast::Expression> parseExpression();
   std::unique_ptr<Ast::Say> parseSayExpression();
+  std::unique_ptr<Ast::Expression> parseWaitWhileExpression();
   std::unique_ptr<Ast::Expression> parseInstructionExpression();
   std::unique_ptr<Ast::Goto> parseGotoExpression();
   std::unique_ptr<Ast::Code> parseCodeExpression();

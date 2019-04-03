@@ -100,7 +100,7 @@ void DialogVisitor::visit(const Ast::Choice &node)
     auto text = node.text;
     if (text[0] == '$')
     {
-        text =  _pEngine->executeDollar(text);
+        text = _pEngine->executeDollar(text);
     }
     auto id = getId(text);
     _dialogManager.getDialog()[node.number - 1].id = id;
@@ -146,6 +146,36 @@ void DialogVisitor::visit(const Ast::Override &node)
 {
     // TODO: override
     std::cout << "TODO: override" << std::endl;
+}
+
+void DialogVisitor::visit(const Ast::Parrot &node)
+{
+    // TODO: parrot
+    std::cout << "TODO: parrot" << std::endl;
+}
+
+void DialogVisitor::visit(const Ast::Dialog &node)
+{
+    // TODO: dialog
+    std::cout << "TODO: dialog" << std::endl;
+}
+
+void DialogVisitor::visit(const Ast::AllowObjects &node)
+{
+    // TODO: allowObjects
+    std::cout << "TODO: allowObjects" << std::endl;
+}
+
+void DialogVisitor::visit(const Ast::WaitWhile &node)
+{
+    // TODO: waitWhile
+    std::cout << "TODO: waitWhile" << std::endl;
+}
+
+void DialogVisitor::visit(const Ast::Limit &node)
+{
+    // TODO: limit
+    std::cout << "TODO: limit" << std::endl;
 }
 
 int DialogVisitor::getId(const std::string &text)

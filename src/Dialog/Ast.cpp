@@ -17,6 +17,10 @@ void WaitFor::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Pause::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Parrot::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Dialog::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void AllowObjects::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void WaitWhile::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void Limit::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void OnceEverCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 
 void AstVisitor::visit(const Statement &node) { defaultVisit(node); }
 void AstVisitor::visit(const Label &node) { defaultVisit(node); }
@@ -27,12 +31,16 @@ void AstVisitor::visit(const Goto &node) { defaultVisit(node); }
 void AstVisitor::visit(const CodeCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const OnceCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const ShowOnceCondition &node) { defaultVisit(node); }
+void AstVisitor::visit(const OnceEverCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const Shutup &node) { defaultVisit(node); }
 void AstVisitor::visit(const Pause &node) { defaultVisit(node); }
 void AstVisitor::visit(const WaitFor &node) { defaultVisit(node); }
 void AstVisitor::visit(const Parrot &node) { defaultVisit(node); }
 void AstVisitor::visit(const Dialog &node) { defaultVisit(node); }
 void AstVisitor::visit(const Override &node) { defaultVisit(node); }
+void AstVisitor::visit(const AllowObjects &node) { defaultVisit(node); }
+void AstVisitor::visit(const WaitWhile &node) { defaultVisit(node); }
+void AstVisitor::visit(const Limit &node) { defaultVisit(node); }
 void AstVisitor::defaultVisit(const Node &node) {}
 
 } // namespace Ast

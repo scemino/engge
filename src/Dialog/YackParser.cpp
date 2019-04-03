@@ -26,29 +26,17 @@ std::unique_ptr<Ast::Label> YackParser::parseLabel()
 {
     auto pLabel = std::make_unique<Ast::Label>();
 
-    // skip empty lines
-    while (match({TokenId::NewLine}))
-        _it++;
-
     // :
     _it++;
     // label
     pLabel->name = _reader.readText(*_it++);
-    // \n
-    _it++;
     do
     {
-        // skip empty lines
-        while (match({TokenId::NewLine}))
-            _it++;
         if (match({TokenId::Colon}) || match({TokenId::End}))
             break;
         auto pStatement = parseStatement();
         pLabel->statements.push_back(std::move(pStatement));
     } while (true);
-    // skip empty lines
-    while (match({TokenId::NewLine}))
-        _it++;
 
     return pLabel;
 }
@@ -64,8 +52,6 @@ std::unique_ptr<Ast::Statement> YackParser::parseStatement()
     {
         pStatement->conditions.push_back(parseCondition());
     }
-    // skip \n
-    _it++;
     return pStatement;
 }
 
@@ -81,6 +67,10 @@ std::unique_ptr<Ast::Condition> YackParser::parseCondition()
     {
         return std::make_unique<Ast::ShowOnceCondition>();
     }
+    else if (conditionText == "onceever")
+    {
+        return std::make_unique<Ast::OnceEverCondition>();
+    }
     auto pCondition = std::make_unique<Ast::CodeCondition>();
     pCondition->code = conditionText;
     return pCondition;
@@ -90,6 +80,8 @@ std::unique_ptr<Ast::Expression> YackParser::parseExpression()
 {
     if (match({TokenId::Identifier, TokenId::Colon, TokenId::String}))
         return parseSayExpression();
+        if (match({TokenId::WaitWhile}))
+        return parseWaitWhileExpression();
     if (match({TokenId::Identifier}))
         return parseInstructionExpression();
     if (match({TokenId::Goto}))
@@ -125,11 +117,17 @@ std::unique_ptr<Ast::Say> YackParser::parseSayExpression()
     return pExp;
 }
 
+std::unique_ptr<Ast::Expression> YackParser::parseWaitWhileExpression()
+{
+    auto waitwhile = _reader.readText(*_it++);
+    auto code = waitwhile.substr(10);
+    auto pExp = std::make_unique<Ast::WaitWhile>();
+    pExp->condition = code;
+    return pExp;
+}
+
 std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
 {
-    // shutup
-    // pause number
-    // waitfor [actor]
     auto identifier = _reader.readText(*_it++);
     if (identifier == "shutup")
     {
@@ -137,6 +135,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
     }
     else if (identifier == "pause")
     {
+        // pause number
         auto time = std::atof(_reader.readText(*_it++).data());
         auto pExp = std::make_unique<Ast::Pause>();
         pExp->time = time;
@@ -144,6 +143,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
     }
     else if (identifier == "waitfor")
     {
+        // waitfor [actor]
         auto pExp = std::make_unique<Ast::WaitFor>();
         if (_it->id == TokenId::Identifier)
         {
@@ -154,6 +154,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
     }
     else if (identifier == "parrot")
     {
+        // parrot [active]
         auto pExp = std::make_unique<Ast::Parrot>();
         if (_it->id == TokenId::Identifier)
         {
@@ -164,6 +165,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
     }
     else if (identifier == "dialog")
     {
+        // dialog [actor]
         auto pExp = std::make_unique<Ast::Dialog>();
         if (_it->id == TokenId::Identifier)
         {
@@ -174,11 +176,34 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
     }
     else if (identifier == "override")
     {
+        // override [node]
         auto pExp = std::make_unique<Ast::Override>();
         if (_it->id == TokenId::Identifier)
         {
             auto node = _reader.readText(*_it++);
             pExp->node = node;
+        }
+        return pExp;
+    }
+    else if (identifier == "allowobjects")
+    {
+        // allowobjects [allow]
+        auto pExp = std::make_unique<Ast::AllowObjects>();
+        if (_it->id == TokenId::Identifier)
+        {
+            auto node = _reader.readText(*_it++);
+            pExp->allow = node=="YES";
+        }
+        return pExp;
+    }
+    else if (identifier == "limit")
+    {
+        // limit [number]
+        auto pExp = std::make_unique<Ast::Limit>();
+        if (_it->id == TokenId::Number)
+        {
+            auto node = _reader.readText(*_it++);
+            pExp->max = std::atoi(node.c_str());
         }
         return pExp;
     }
