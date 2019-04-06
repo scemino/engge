@@ -42,14 +42,14 @@ class _DefaultScriptExecute : public ScriptExecute
         execute(code);
         // get the result
         auto type = sq_gettype(_vm, -1);
-        SQBool result;
-        if (SQ_FAILED(sq_getbool(_vm, -1, &result)))
+        SQInteger result;
+        if (SQ_FAILED(sq_getinteger(_vm, -1, &result)))
         {
             std::cerr << "Error getting result " << code << std::endl;
             return false;
         }
         std::cout << code << " returns " << result << std::endl;
-        return result == SQTrue;
+        return result != 0;
     }
 
     std::string executeDollar(const std::string &code) override
