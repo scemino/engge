@@ -29,6 +29,7 @@ struct Object::Impl
     std::vector<std::shared_ptr<Trigger>> _triggers;
     HSQOBJECT _pTable;
     bool _hotspotVisible;
+    bool _triggerEnabled{false};
 
     Impl()
         : _pAnim(std::nullopt),
@@ -129,7 +130,8 @@ void Object::setHotspotVisible(bool isVisible) { pImpl->_hotspotVisible = isVisi
 
 void Object::addTrigger(std::shared_ptr<Trigger> trigger) { pImpl->_triggers.push_back(trigger); }
 void Object::removeTrigger() { pImpl->_triggers.clear(); }
-Trigger* Object::getTrigger() { return pImpl->_triggers.size() > 0 ? pImpl->_triggers[0].get() : nullptr; }
+Trigger *Object::getTrigger() { return pImpl->_triggers.size() > 0 ? pImpl->_triggers[0].get() : nullptr; }
+void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 
 bool Object::isTouchable() const
 {
@@ -237,9 +239,12 @@ void Object::update(const sf::Time &elapsed)
     {
         pImpl->_pAnim->update(elapsed);
     }
-    for (auto &trigger : pImpl->_triggers)
+    if (pImpl->_triggerEnabled)
     {
-        trigger->trig();
+        for (auto &trigger : pImpl->_triggers)
+        {
+            trigger->trig();
+        }
     }
 }
 

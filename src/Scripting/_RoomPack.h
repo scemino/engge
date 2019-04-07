@@ -245,7 +245,7 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get enabled"));
         }
-        object->getTrigger()->setEnabled(enabled != 0);
+        object->enableTrigger(enabled != 0);
         return 0;
     }
 
@@ -280,7 +280,7 @@ class _RoomPack : public Pack
             auto actor = g_pEngine->getCurrentActor();
             actor->setRoom(pRoom);
             auto pos = obj->getPosition();
-            actor->setPosition(pos + sf::Vector2f(obj->getUsePosition().x,-obj->getUsePosition().y));
+            actor->setPosition(pos + sf::Vector2f(obj->getUsePosition().x, -obj->getUsePosition().y));
             g_pEngine->setCameraAt(pos + obj->getUsePosition());
 
             // call enter room function
@@ -349,7 +349,7 @@ class _RoomPack : public Pack
         }
         SQBool hidden;
         sq_tobool(v, 3, &hidden);
-
+        std::cout << "walkboxHidden(" << name << "," << ((hidden == SQTrue) ? "true" : "false") << ")" << std::endl;
         g_pEngine->getRoom()->setWalkboxEnabled(name, hidden == SQFalse);
         return 0;
     }
@@ -364,7 +364,8 @@ class _RoomPack : public Pack
             for (auto &obj : g_pEngine->getRoom()->getObjects())
             {
                 auto pTrigger = obj->getTrigger();
-                if(!pTrigger) continue;
+                if (!pTrigger)
+                    continue;
                 auto pRoomTrigger = dynamic_cast<_RoomTrigger *>(pTrigger);
                 if (!pRoomTrigger)
                     continue;
