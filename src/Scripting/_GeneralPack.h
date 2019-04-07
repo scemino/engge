@@ -214,7 +214,7 @@ class _GeneralPack : public Pack
 
     static SQInteger cameraFollow(HSQUIRRELVM v)
     {
-        auto *pActor = ScriptEngine::getActor(v, 3);
+        auto *pActor = ScriptEngine::getActor(v, 2);
         g_pEngine->follow(pActor);
         return 0;
     }
