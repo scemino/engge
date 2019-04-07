@@ -5,7 +5,7 @@
 namespace ng
 {
 Animation::Animation(const sf::Texture &texture, const std::string &name)
-    : _sprite(texture), _name(name), _fps(10), _index(0), _state(AnimState::Play)
+    : _sprite(texture), _name(name), _fps(10), _index(0), _state(AnimState::Pause)
 {
 }
 
@@ -16,6 +16,7 @@ void Animation::reset()
     _index = 0;
     if (_rects.empty())
         return;
+    _index = _sourceRects.size() - 1;
     auto &sourceRect = _sourceRects[_index];
     auto size = _sizes[_index];
     _sprite.setTextureRect(_rects[_index]);
