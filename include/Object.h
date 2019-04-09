@@ -59,8 +59,10 @@ public:
   std::vector<std::unique_ptr<Animation>> &getAnims();
 
   void setStateAnimIndex(int animIndex);
+  void playAnim(int animIndex, bool loop);
   int getStateAnimIndex();
   void setAnimation(const std::string &name);
+  std::optional<Animation>& getAnimation();
 
   void setDefaultPosition(const sf::Vector2f &pos);
   sf::Vector2f getDefaultPosition() const override;

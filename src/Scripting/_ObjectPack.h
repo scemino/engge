@@ -22,7 +22,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(isObject, "isObject");
         engine.registerGlobalFunction(jiggleInventory, "jiggleInventory");
         engine.registerGlobalFunction(jiggleObject, "jiggleObject");
-        engine.registerGlobalFunction(playState, "loopObjectState");
+        engine.registerGlobalFunction(loopObjectState, "loopObjectState");
         engine.registerGlobalFunction(objectAlpha, "objectAlpha");
         engine.registerGlobalFunction(objectAlphaTo, "objectAlphaTo");
         engine.registerGlobalFunction(objectAt, "objectAt");
@@ -54,7 +54,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectValidVerb, "objectValidVerb");
         engine.registerGlobalFunction(objectShader, "objectShader");
         engine.registerGlobalFunction(pickupObject, "pickupObject");
-        engine.registerGlobalFunction(playState, "playObjectState");
+        engine.registerGlobalFunction(playObjectState, "playObjectState");
         engine.registerGlobalFunction(removeInventory, "removeInventory");
         engine.registerGlobalFunction(setDefaultObject, "setDefaultObject");
         engine.registerGlobalFunction(scale, "scale");
@@ -374,7 +374,7 @@ class _ObjectPack : public Pack
         return 0;
     }
 
-    static SQInteger playState(HSQUIRRELVM v)
+    static SQInteger loopObjectState(HSQUIRRELVM v)
     {
         SQInteger index;
         Object *obj = ScriptEngine::getObject(v, 2);
@@ -386,7 +386,23 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get state"));
         }
-        obj->setStateAnimIndex(static_cast<int>(index));
+        obj->playAnim(static_cast<int>(index), true);
+        return 0;
+    }
+
+    static SQInteger playObjectState(HSQUIRRELVM v)
+    {
+        SQInteger index;
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 3, &index)))
+        {
+            return sq_throwerror(v, _SC("failed to get state"));
+        }
+        obj->playAnim(static_cast<int>(index), false);
         return 0;
     }
 

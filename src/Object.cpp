@@ -184,6 +184,12 @@ void Object::setStateAnimIndex(int animIndex)
     setAnimation(s.str());
 }
 
+void Object::playAnim(int animIndex, bool loop)
+{
+    setStateAnimIndex(animIndex);
+    pImpl->_pAnim->play(loop);
+}
+
 int Object::getStateAnimIndex()
 {
     if (!pImpl->_pAnim.has_value())
@@ -207,6 +213,11 @@ void Object::setAnimation(const std::string &name)
     pImpl->_pAnim->setObject(this);
     auto &sprite = pImpl->_pAnim->getSprite();
     sprite.setColor(pImpl->_color);
+}
+
+std::optional<Animation>& Object::getAnimation()
+{
+    return pImpl->_pAnim;
 }
 
 void Object::move(const sf::Vector2f &offset)
