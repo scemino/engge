@@ -12,7 +12,7 @@ public:
   {
   }
 
-  bool isElapsed() override { return _done && !_actor.isTalking(); }
+  bool isElapsed() override { return _done && _actor.isTalkingIdDone(_id); }
 
   void operator()(const sf::Time &elapsed) override
   {

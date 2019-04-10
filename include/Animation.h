@@ -13,7 +13,7 @@ enum class AnimState
   Play
 };
 
-class Animation: public sf::Drawable
+class Animation : public sf::Drawable
 {
 public:
   explicit Animation(const sf::Texture &texture, const std::string &name);
@@ -35,11 +35,12 @@ public:
   void reset();
   void play(bool loop = false);
   void pause() { _state = AnimState::Pause; }
+  bool isPlaying() const { return _state == AnimState::Play; }
 
   sf::Sprite &getSprite() { return _sprite; }
   const sf::Sprite &getSprite() const { return _sprite; }
 
-  void setObject(Object* pObject){ _pObject = pObject; }
+  void setObject(Object *pObject) { _pObject = pObject; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -57,6 +58,6 @@ private:
   size_t _index;
   AnimState _state;
   bool _loop;
-  Object* _pObject;
+  Object *_pObject;
 };
 } // namespace ng

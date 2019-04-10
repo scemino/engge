@@ -48,6 +48,7 @@ struct Actor::Impl
         void say(int id);
         void stop();
         bool isTalking() const { return _isTalking; }
+        bool isTalkingIdDone(int id) const { return _id != id && std::find(_ids.begin(), _ids.end(), id) == _ids.end(); }
         void setTalkColor(sf::Color color) { _talkColor = color; }
 
       private:
@@ -60,10 +61,11 @@ struct Actor::Impl
         std::wstring _sayText;
         Lip _lip;
         int _index;
-        sf::Vector2i _talkOffset;
+        sf::Vector2i _talkOffset{0, 90};
         sf::Color _talkColor;
         sf::Clock _clock;
         std::vector<int> _ids;
+        int _id{0};
         std::shared_ptr<SoundId> _sound;
     };
 
@@ -159,6 +161,11 @@ void Actor::stopTalking()
 bool Actor::isTalking() const
 {
     return pImpl->_talkingState.isTalking();
+}
+
+bool Actor::isTalkingIdDone(int id) const
+{
+    return pImpl->_talkingState.isTalkingIdDone(id);
 }
 
 void Actor::setColor(sf::Color color)
@@ -361,11 +368,13 @@ void Actor::Impl::TalkingState::stop()
     {
         _sound->stop();
     }
+    _id = 0;
     _isTalking = false;
 }
 
 void Actor::Impl::TalkingState::load(int id)
 {
+    _id = id;
     std::string name = str_toupper(_pActor->getName()).append("_").append(std::to_string(id));
     auto soundDefinition = _pActor->pImpl->_engine.getSoundManager().defineSound(name + ".ogg");
     if (!soundDefinition)
@@ -412,6 +421,7 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
         if (_ids.empty())
         {
             _isTalking = false;
+            _id = 0;
             _pActor->getCostume().setHeadIndex(0);
             return;
         }

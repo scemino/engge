@@ -38,6 +38,7 @@ public:
   void say(int id);
   void stopTalking();
   bool isTalking() const;
+  bool isTalkingIdDone(int id) const;
 
   void setColor(sf::Color color);
   sf::Color getColor();

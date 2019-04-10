@@ -2,6 +2,7 @@
 #include <time.h>
 #include "squirrel.h"
 #include "Actor.h"
+#include "Animation.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
 #include "Function.h"
@@ -157,7 +158,30 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
     {
         return !_pAnimation || !_pAnimation->isPlaying();
     }
-}; // namespace ng
+};
+
+class _BreakWhileAnimatingObjectFunction : public _BreakFunction
+{
+  private:
+    Object &_object;
+    std::optional<Animation>& _animation;
+
+  public:
+    _BreakWhileAnimatingObjectFunction(Engine &engine, HSQUIRRELVM vm, Object &object)
+        : _BreakFunction(engine, vm), _object(object), _animation(object.getAnimation())
+    {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileAnimatingObjectFunction";
+    }
+
+    bool isElapsed() override
+    {
+        return !_animation.has_value() || !_animation.value().isPlaying();
+    }
+};
 
 class _BreakWhileWalkingFunction : public _BreakFunction
 {
@@ -450,7 +474,14 @@ class _SystemPack : public Pack
         auto *pActor = ScriptEngine::getActor(v, 2);
         if (!pActor)
         {
-            return sq_throwerror(v, _SC("failed to get actor"));
+            auto *pObj = ScriptEngine::getObject(v, 2);
+            if(!pObj)
+            {
+                auto result = sq_suspendvm(v);
+                g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, v, *pObj));
+                return result;
+            }
+            return sq_throwerror(v, _SC("failed to get actor or object"));
         }
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
