@@ -25,6 +25,7 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(cutscene, "cutscene");
         engine.registerGlobalFunction(cutsceneOverride, "cutsceneOverride");
         engine.registerGlobalFunction(distance, "distance");
+        engine.registerGlobalFunction(frameCounter, "frameCounter");
         engine.registerGlobalFunction(incutscene, "incutscene");
         engine.registerGlobalFunction(indialog, "indialog");
         engine.registerGlobalFunction(loadArray, "loadArray");
@@ -120,6 +121,12 @@ class _GeneralPack : public Pack
         auto dy = pos1.y - pos2.y;
         auto d = std::sqrt(dx * dx + dy * dy);
         sq_pushfloat(v, d);
+        return 1;
+    }
+
+    static SQInteger frameCounter(HSQUIRRELVM v)
+    {
+        sq_pushinteger(v, g_pEngine->getFrameCounter());
         return 1;
     }
 

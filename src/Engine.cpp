@@ -87,6 +87,7 @@ struct Engine::Impl
     HSQUIRRELVM _vm;
     sf::Time _time;
     bool _isMouseDown;
+    int _frameCounter{0};
 
     explicit Impl(EngineSettings &settings);
 
@@ -170,6 +171,8 @@ Engine::Engine(EngineSettings &settings)
 }
 
 Engine::~Engine() = default;
+
+int Engine::getFrameCounter() const { return _pImpl->_frameCounter; }
 
 sf::Vector2f Engine::getCameraAt() const { return _pImpl->_cameraPos; }
 
@@ -513,6 +516,7 @@ void Engine::Impl::updateCurrentObject(const sf::Vector2f &mousPos)
 
 void Engine::update(const sf::Time &elapsed)
 {
+    _pImpl->_frameCounter++;
     auto wasMouseDown = _pImpl->_isMouseDown;
     _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
     auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;

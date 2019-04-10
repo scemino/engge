@@ -76,6 +76,7 @@ public:
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window) const;
+  int getFrameCounter() const;
 
   void setCurrentActor(Actor *pCurrentActor);
   Actor *getCurrentActor();
