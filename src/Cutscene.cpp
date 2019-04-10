@@ -9,6 +9,7 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
     _inputActive = _engine.getInputActive();
     _engine.setInputActive(false);
     _currentActor = _engine.getCurrentActor();
+    _inputVerbs = _engine.getInputVerbs();
     _engine.setInputVerbs(false);
 
     sq_addref(_v, &_thread);
@@ -108,8 +109,12 @@ void Cutscene::endCutscene()
     _state = 5;
     _engine.stopThread(_thread._unVal.pThread);
     _engine.setInputActive(_inputActive);
+    _engine.setInputVerbs(_inputVerbs);
     if (_currentActor)
+    {
         _engine.setCurrentActor(_currentActor);
+        _engine.setRoom(_currentActor->getRoom());
+    }
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
     sq_release(_v, &_thread);
     sq_release(_v, &_closureObj);
