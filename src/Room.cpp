@@ -375,6 +375,17 @@ void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
     it->get()->addEntity(*pEntity);
 }
 
+void Room::roomLayer(int layerNum, bool enabled)
+{
+    auto itEndLayers = std::end(pImpl->_layers);
+    auto it = std::find_if(std::begin(pImpl->_layers), itEndLayers, [layerNum](const std::unique_ptr<RoomLayer> &layer) {
+        return layer->getZOrder() == layerNum;
+    });
+    if (it == itEndLayers)
+        return;
+    it->get()->setEnabled(enabled);
+}
+
 void Room::removeEntity(Entity *pEntity)
 {
     for (auto &layer : pImpl->_layers)

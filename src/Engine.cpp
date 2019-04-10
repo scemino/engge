@@ -54,7 +54,7 @@ struct Engine::Impl
     std::vector<std::unique_ptr<Function>> _newFunctions;
     std::vector<std::unique_ptr<Function>> _functions;
     std::unique_ptr<Cutscene> _pCutscene;
-    sf::Color _fadeColor;
+    sf::Color _fadeColor{sf::Color::Transparent};
     sf::RenderWindow *_pWindow;
     sf::Vector2f _cameraPos;
     TextDatabase _textDb;
@@ -105,6 +105,8 @@ struct Engine::Impl
     void updateActorIcons(const sf::Time &elapsed);
     void updateMouseCursor();
     void updateCurrentObject(const sf::Vector2f &mousPos);
+    SQInteger enterRoom(Room *pRoom, Object *pObject);
+    SQInteger exitRoom();
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -235,10 +237,113 @@ void Engine::setVm(HSQUIRRELVM vm) { _pImpl->_vm = vm; }
 
 HSQUIRRELVM Engine::getVm() const { return _pImpl->_vm; }
 
-void Engine::setRoom(Room *room)
+SQInteger Engine::Impl::exitRoom()
+{
+    if(!_pRoom) return 0;
+
+    auto pOldRoom = _pRoom;
+
+    // call exit room function
+    std::cout << "call exit room function of " << pOldRoom->getId() << std::endl;
+
+    sq_pushobject(_vm, pOldRoom->getTable());
+    sq_pushstring(_vm, _SC("exit"), -1);
+    if (SQ_FAILED(sq_get(_vm, -2)))
+    {
+        return sq_throwerror(_vm, _SC("can't find exit function"));
+    }
+    sq_remove(_vm, -2);
+    sq_pushobject(_vm, pOldRoom->getTable());
+    if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
+    {
+        return sq_throwerror(_vm, _SC("function exit call failed"));
+    }
+
+    return 0;
+}
+
+SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
+{
+    // call enter room function
+    std::cout << "call enter room function of " << pRoom->getId() << std::endl;
+    sq_pushobject(_vm, pRoom->getTable());
+    sq_pushstring(_vm, _SC("enter"), -1);
+    if (SQ_FAILED(sq_get(_vm, -2)))
+    {
+        return sq_throwerror(_vm, _SC("can't find enter function"));
+    }
+
+    SQInteger nparams, nfreevars;
+    sq_getclosureinfo(_vm, -1, &nparams, &nfreevars);
+    std::cout << "enter function found with " << nparams << " parameters" << std::endl;
+
+    sq_remove(_vm, -2);
+    sq_pushobject(_vm, pRoom->getTable());
+    if (nparams == 2)
+    {
+        if (pObject)
+        {
+            sq_pushobject(_vm, pObject->getTable());
+        }
+        else
+        {
+            sq_pushnull(_vm); // push here the door
+        }
+    }
+    if (SQ_FAILED(sq_call(_vm, nparams, SQTrue, SQTrue)))
+    {
+        return sq_throwerror(_vm, _SC("function enter call failed"));
+    }
+    return 0;
+}
+
+SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
-    _pImpl->_pRoom = room;
+
+    auto v = getVm();
+
+    auto pOldRoom = _pImpl->_pRoom;
+    if (pRoom == pOldRoom)
+        return 0;
+
+    auto result = _pImpl->exitRoom();
+    if (SQ_FAILED(result))
+        return result;
+
+    // set camera in room
+    _pImpl->_pRoom = pRoom;
+
+    result = _pImpl->enterRoom(pRoom, nullptr);
+    if (SQ_FAILED(result))
+        return result;
+
+    return 0;
+}
+
+SQInteger Engine::enterRoomFromDoor(Object *pObject)
+{
+    _pImpl->_fadeColor = sf::Color::Transparent;
+    std::cout << "enterRoomFromDoor" << std::endl;
+
+    auto pRoom = pObject->getRoom();
+    auto pOldRoom = _pImpl->_pRoom;
+    if (pRoom == pOldRoom)
+        return 0;
+
+    auto result = _pImpl->exitRoom();
+    if (SQ_FAILED(result))
+        return result;
+
+    _pImpl->_pRoom = pRoom;
+
+    auto actor = getCurrentActor();
+    actor->setRoom(pRoom);
+    auto pos = pObject->getPosition();
+    actor->setPosition(pos + sf::Vector2f(pObject->getUsePosition().x, -pObject->getUsePosition().y));
+    setCameraAt(pos + pObject->getUsePosition());
+
+    return _pImpl->enterRoom(pRoom, pObject);
 }
 
 void Engine::setInputActive(bool active)

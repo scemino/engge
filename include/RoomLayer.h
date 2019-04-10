@@ -24,8 +24,11 @@ public:
   void addEntity(Entity &entity);
   void removeEntity(Entity &entity);
 
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-  void drawForeground(sf::RenderTarget& target, sf::RenderStates states) const;
+  void setEnabled(bool enabled) { _enabled = enabled; }
+  bool isEnabled() const { return _enabled; }
+
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const;
+  void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const;
   void update(const sf::Time &elapsed);
 
 private:
@@ -33,5 +36,6 @@ private:
   std::vector<std::reference_wrapper<Entity>> _entities;
   sf::Vector2f _parallax;
   int _zsort;
+  bool _enabled{true};
 };
 } // namespace ng

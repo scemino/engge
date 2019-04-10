@@ -99,6 +99,7 @@ class _RoomPack : public Pack
         engine.registerGlobalFunction(roomActors, "roomActors");
         engine.registerGlobalFunction(roomEffect, "roomEffect");
         engine.registerGlobalFunction(roomFade, "roomFade");
+        engine.registerGlobalFunction(roomLayer, "roomLayer");
         engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
         engine.registerGlobalFunction(roomRotateTo, "roomRotateTo");
         engine.registerGlobalFunction(roomSize, "roomSize");
@@ -251,62 +252,8 @@ class _RoomPack : public Pack
 
     static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
     {
-        std::cout << "enterRoomFromDoor" << std::endl;
         auto obj = ScriptEngine::getObject(v, 2);
-        auto pOldRoom = g_pEngine->getRoom();
-
-        // set camera in room
-        auto pRoom = obj->getRoom();
-        if (pOldRoom != pRoom)
-        {
-            // call exit room function
-            if (pOldRoom)
-            {
-                sq_pushobject(v, pOldRoom->getTable());
-                sq_pushstring(v, _SC("exit"), -1);
-                if (SQ_FAILED(sq_get(v, -2)))
-                {
-                    return sq_throwerror(v, _SC("can't find exit function"));
-                }
-                sq_remove(v, -2);
-                sq_pushobject(v, pOldRoom->getTable());
-                if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
-                {
-                    return sq_throwerror(v, _SC("function exit call failed"));
-                }
-            }
-
-            g_pEngine->setRoom(pRoom);
-            auto actor = g_pEngine->getCurrentActor();
-            actor->setRoom(pRoom);
-            auto pos = obj->getPosition();
-            actor->setPosition(pos + sf::Vector2f(obj->getUsePosition().x, -obj->getUsePosition().y));
-            g_pEngine->setCameraAt(pos + obj->getUsePosition());
-
-            // call enter room function
-            sq_pushobject(v, pRoom->getTable());
-            sq_pushstring(v, _SC("enter"), -1);
-            if (SQ_FAILED(sq_get(v, -2)))
-            {
-                return sq_throwerror(v, _SC("can't find enter function"));
-            }
-
-            SQInteger nparams, nfreevars;
-            sq_getclosureinfo(v, -1, &nparams, &nfreevars);
-            std::cout << "enter function found with " << nparams << " parameters" << std::endl;
-
-            sq_remove(v, -2);
-            sq_pushobject(v, pRoom->getTable());
-            if (nparams == 2)
-            {
-                sq_pushobject(v, obj->getTable()); // the door
-            }
-            if (SQ_FAILED(sq_call(v, nparams, SQTrue, SQTrue)))
-            {
-                return sq_throwerror(v, _SC("function enter call failed"));
-            }
-        }
-        return 0;
+        return g_pEngine->enterRoomFromDoor(obj);
     }
 
     static SQInteger roomEffect(HSQUIRRELVM v)
@@ -625,6 +572,23 @@ class _RoomPack : public Pack
             g_pEngine->addRoom(std::move(pRoom));
         }
         return result;
+    }
+
+    static SQInteger roomLayer(HSQUIRRELVM v)
+    {
+        auto pRoom = ScriptEngine::getRoom(v, 2);
+        SQInteger layer;
+        if (SQ_FAILED(sq_getinteger(v, 3, &layer)))
+        {
+            return sq_throwerror(v, _SC("failed to get layer"));
+        }
+        SQInteger enabled;
+        if (SQ_FAILED(sq_getinteger(v, 4, &enabled)))
+        {
+            return sq_throwerror(v, _SC("failed to get enabled"));
+        }
+        pRoom->roomLayer(static_cast<int>(layer), enabled != 0);
+        return 0;
     }
 };
 

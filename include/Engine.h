@@ -56,7 +56,8 @@ public:
   EngineSettings &getSettings();
 
   Room *getRoom();
-  void setRoom(Room *room);
+  SQInteger setRoom(Room *pRoom);
+  SQInteger enterRoomFromDoor(Object *pObject);
   std::wstring getText(int id) const;
   void setFadeAlpha(float fade);
   float getFadeAlpha() const;
@@ -121,8 +122,7 @@ public:
   HSQUIRRELVM getVm() const;
 
 private:
-struct Impl;
-std::unique_ptr<Impl> _pImpl;
-  
+  struct Impl;
+  std::unique_ptr<Impl> _pImpl;
 };
 } // namespace ng

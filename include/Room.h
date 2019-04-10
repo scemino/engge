@@ -46,6 +46,7 @@ public:
   void deleteObject(Object &textObject);
   sf::Vector2i getRoomSize() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);
+  void roomLayer(int layer, bool enabled);
   const RoomScaling &getRoomScaling() const;
   HSQOBJECT &getTable();
 

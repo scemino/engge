@@ -24,6 +24,8 @@ void RoomLayer::removeEntity(Entity &entity)
 
 void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    if(!_enabled) return;
+    
     // draw layer sprites
     for (const auto &sprite : getSprites())
     {
