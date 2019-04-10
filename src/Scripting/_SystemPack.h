@@ -321,6 +321,25 @@ class _BreakWhileCutsceneFunction : public _BreakFunction
     }
 };
 
+class _BreakWhileInputOffFunction : public _BreakFunction
+{
+  public:
+    _BreakWhileInputOffFunction(Engine &engine, HSQUIRRELVM vm)
+        : _BreakFunction(engine, vm)
+    {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileInputOffFunction";
+    }
+
+    bool isElapsed() override
+    {
+        return _engine.getInputActive();
+    }
+};
+
 class _BreakTimeFunction : public TimeFunction
 {
   private:
@@ -400,6 +419,7 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(breakwhilecamera, "breakwhilecamera");
         engine.registerGlobalFunction(breakwhilecutscene, "breakwhilecutscene");
         engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
+        engine.registerGlobalFunction(breakwhileinputoff, "breakwhileinputoff");
         engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
         engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
@@ -498,6 +518,13 @@ class _SystemPack : public Pack
     {
         auto result = sq_suspendvm(v);
         g_pEngine->addFunction(std::make_unique<_BreakWhileCutsceneFunction>(*g_pEngine, v));
+        return result;
+    }
+
+    static SQInteger breakwhileinputoff(HSQUIRRELVM v)
+    {
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileInputOffFunction>(*g_pEngine, v));
         return result;
     }
 
