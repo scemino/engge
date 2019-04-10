@@ -16,7 +16,7 @@ struct Object::Impl
     UseDirection _direction;
     bool _prop;
     bool _spot;
-    bool _trigger;
+    bool _trigger{false};
     sf::Vector2f _usePos;
     sf::Vector2f _defaultPosition;
     sf::Color _color;
@@ -29,7 +29,7 @@ struct Object::Impl
     std::vector<std::shared_ptr<Trigger>> _triggers;
     HSQOBJECT _pTable;
     bool _hotspotVisible;
-    bool _triggerEnabled{false};
+    bool _triggerEnabled{true};
 
     Impl()
         : _pAnim(std::nullopt),
@@ -38,7 +38,6 @@ struct Object::Impl
           _direction(UseDirection::Front),
           _prop(false),
           _spot(false),
-          _trigger(false),
           _color(sf::Color::White),
           _angle(0),
           _isTouchable(true),
