@@ -189,6 +189,11 @@ void Object::playAnim(int animIndex, bool loop)
     pImpl->_pAnim->play(loop);
 }
 
+int Object::getState()
+{
+    return pImpl->_state;
+}
+
 int Object::getStateAnimIndex()
 {
     if (!pImpl->_pAnim.has_value())

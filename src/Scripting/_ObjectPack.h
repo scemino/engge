@@ -286,7 +286,7 @@ class _ObjectPack : public Pack
         auto numArgs = sq_gettop(v) - 3;
         if (numArgs == 1)
         {
-            sq_pushinteger(v, obj->getStateAnimIndex());
+            sq_pushinteger(v, obj->getState());
             return 1;
         }
 
@@ -296,7 +296,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get state"));
         }
         obj->setStateAnimIndex(state);
-        std::wcout << obj->getName() << L" setStateAnimIndex(" << state << L")" << std::endl;
+        std::wcout << obj->getId() << L" objectState(" << state << L")" << std::endl;
 
         return 0;
     }

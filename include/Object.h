@@ -61,6 +61,7 @@ public:
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
   int getStateAnimIndex();
+  int getState();
   void setAnimation(const std::string &name);
   std::optional<Animation>& getAnimation();
 
