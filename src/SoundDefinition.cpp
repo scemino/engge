@@ -60,7 +60,7 @@ float SoundId::getVolume() const
 void SoundId::stop()
 {
     auto path = _soundDefinition->getPath();
-    std::cout << "stopSound(" << path << ")" << std::endl;
+    std::cout << "stopSoundId(" << path << ")" << std::endl;
     _sound.stop();
 }
 

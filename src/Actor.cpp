@@ -381,7 +381,7 @@ void Actor::Impl::TalkingState::load(int id)
         return;
     }
     _sound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
-    _sound->setVolume(_pActor->pImpl->_volume);
+    if(_sound) _sound->setVolume(_pActor->pImpl->_volume);
 
     std::string path;
     path.append(name).append(".lip");

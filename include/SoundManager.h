@@ -19,7 +19,7 @@ public:
   std::shared_ptr<SoundId> loopMusic(std::shared_ptr<SoundDefinition> soundDefinition);
   
   void stopAllSounds();
-  void stopSound(SoundId &sound);
+  void stopSound(std::shared_ptr<SoundId> sound);
   void stopSound(std::shared_ptr<SoundDefinition> soundDefinition);
   
   void setVolume(std::shared_ptr<SoundDefinition> soundDefinition, float volume);

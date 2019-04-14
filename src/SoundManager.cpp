@@ -102,12 +102,13 @@ void SoundManager::stopAllSounds()
     }
 }
 
-void SoundManager::stopSound(SoundId &sound)
+void SoundManager::stopSound(std::shared_ptr<SoundId> sound)
 {
-    sound.stop();
+    if(!sound) return;
+    sound->stop();
     for (size_t i = 0; i < _soundIds.size(); i++)
     {
-        if (_soundIds[i] != nullptr && _soundIds[i].get() == &sound)
+        if (_soundIds[i] != nullptr && _soundIds[i] == sound)
         {
             _soundIds[i]->stop();
             _soundIds[i] = nullptr;
@@ -124,7 +125,7 @@ void SoundManager::stopSound(std::shared_ptr<SoundDefinition> soundDef)
         auto &&sound = getSound(i);
         if (sound && soundDef == sound->getSoundDefinition())
         {
-            stopSound(*sound);
+            stopSound(sound);
         }
     }
 }

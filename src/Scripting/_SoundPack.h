@@ -15,8 +15,8 @@ private:
 class _SoundTrigger : public Trigger
 {
 public:
-    _SoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds)
-        : _engine(engine),_distribution(0, sounds.size() - 1)
+    _SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds)
+        : _engine(engine), _distribution(0, sounds.size() - 1)
     {
         _soundsDefinitions.resize(sounds.size());
         for (size_t i = 0; i < sounds.size(); i++)
@@ -136,7 +136,7 @@ private:
             return 0;
         }
 
-        std::vector<SoundDefinition*> sounds;
+        std::vector<SoundDefinition *> sounds;
         if (numSounds > 1 || !_getArray(v, 4, sounds))
         {
             if (!_getArray(v, 4, numSounds, sounds))
@@ -212,11 +212,11 @@ private:
         sq_getinteger(v, 3, &loopTimes);
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 4, &fadeInTime);
-        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, true);
         if (loopTimes != -1)
         {
             // TODO: loopTimes
         }
+        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, true);
         if (fadeInTime != 0)
         {
             pSoundId->setVolume(0.f);
@@ -229,21 +229,44 @@ private:
         return 1;
     }
 
+    static void _fadeOutSound(std::shared_ptr<SoundId> pSound, const sf::Time& time)
+    {
+        std::cout << "fadeOutSound " << pSound->getSoundDefinition()->getPath() << " in " << time.asSeconds() << " seconds" << std::endl;
+        auto get = std::bind(&SoundId::getVolume, pSound);
+        auto set = std::bind(&SoundId::setVolume, pSound, std::placeholders::_1);
+        auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 0.f, time);
+        g_pEngine->addFunction(std::move(fadeTo));
+    }
+
     static SQInteger fadeOutSound(HSQUIRRELVM v)
     {
         auto pSound = _getSound(v, 2);
-        if (pSound == nullptr)
-            return 0;
         float t;
         if (SQ_FAILED(sq_getfloat(v, 3, &t)))
         {
             return sq_throwerror(v, _SC("failed to get fadeOut time"));
         }
-
-        auto get = std::bind(&SoundId::getVolume, pSound);
-        auto set = std::bind(&SoundId::setVolume, pSound, std::placeholders::_1);
-        auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 0.f, sf::seconds(t));
-        g_pEngine->addFunction(std::move(fadeTo));
+        auto time = sf::seconds(t);
+        if (pSound == nullptr)
+        {
+            auto pSoundDefinition = _getSoundDefinition(v, 2);
+            if (pSoundDefinition == nullptr)
+            {
+                std::cerr << "no sound to fadeOutSound" << std::endl;
+                return 0;
+            }
+            auto size = g_pEngine->getSoundManager().getSize();
+            for (size_t i = 1; i <= size; i++)
+            {
+                pSound = g_pEngine->getSoundManager().getSound(i);
+                if (pSound && pSound->getSoundDefinition() == pSoundDefinition)
+                {
+                    _fadeOutSound(pSound, time);
+                }
+            }
+            return 0;
+        }
+        _fadeOutSound(pSound, time);
         return 0;
     }
 
@@ -409,11 +432,10 @@ private:
 
     static SQInteger stopSound(HSQUIRRELVM v)
     {
-        sqstd_printcallstack(v);
         auto pSound = _getSound(v, 2);
         if (pSound)
         {
-            g_pEngine->getSoundManager().stopSound(*pSound);
+            g_pEngine->getSoundManager().stopSound(pSound);
             return 0;
         }
         auto pSoundDef = _getSoundDefinition(v, 2);
