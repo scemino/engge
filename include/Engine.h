@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "SFML/Graphics.hpp"
 #include "squirrel.h"
 #include "NonCopyable.h"
