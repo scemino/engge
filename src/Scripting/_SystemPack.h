@@ -811,9 +811,9 @@ class _SystemPack : public Pack
         {
             sq_pushstring(v, std::any_cast<std::string>(value).data(), -1);
         }
-        else if (valueType == typeid(int))
+        else if (valueType == typeid(SQInteger))
         {
-            sq_pushinteger(v, std::any_cast<int>(value));
+            sq_pushinteger(v, std::any_cast<SQInteger>(value));
         }
         else if (valueType == typeid(float))
         {
