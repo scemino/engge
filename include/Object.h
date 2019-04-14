@@ -60,6 +60,7 @@ public:
 
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
+  void playAnim(const std::string& anim, bool loop);
   int getStateAnimIndex();
   int getState();
   void setAnimation(const std::string &name);

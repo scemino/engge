@@ -7,10 +7,10 @@ namespace ng
 {
 class _ObjectPack : public Pack
 {
-  private:
+private:
     static Engine *g_pEngine;
 
-  private:
+private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
@@ -398,12 +398,26 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (SQ_FAILED(sq_getinteger(v, 3, &index)))
+        if (sq_gettype(v, 3) == OT_INTEGER)
         {
-            return sq_throwerror(v, _SC("failed to get state"));
+            if (SQ_FAILED(sq_getinteger(v, 3, &index)))
+            {
+                return sq_throwerror(v, _SC("failed to get state"));
+            }
+            obj->playAnim(static_cast<int>(index), false);
+            return 0;
         }
-        obj->playAnim(static_cast<int>(index), false);
-        return 0;
+        if (sq_gettype(v, 3) == OT_STRING)
+        {
+            const SQChar* state;
+            if (SQ_FAILED(sq_getstring(v, 3, &state)))
+            {
+                return sq_throwerror(v, _SC("failed to get state"));
+            }
+            obj->playAnim(state, false);
+            return 0;
+        }
+        return sq_throwerror(v, _SC("failed to get state"));
     }
 
     static SQInteger removeInventory(HSQUIRRELVM v)

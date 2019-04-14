@@ -183,6 +183,12 @@ void Object::setStateAnimIndex(int animIndex)
     setAnimation(s.str());
 }
 
+void Object::playAnim(const std::string& anim, bool loop)
+{
+    setAnimation(anim);
+    pImpl->_pAnim->play(loop);
+}
+
 void Object::playAnim(int animIndex, bool loop)
 {
     setStateAnimIndex(animIndex);
