@@ -18,7 +18,7 @@ protected:
   Node() {}
 
 public:
-  virtual ~Node() {}
+  virtual ~Node();
   virtual void accept(AstVisitor &visitor) = 0;
 
   std::streampos start;
@@ -30,7 +30,7 @@ protected:
   Expression() {}
 
 public:
-  virtual ~Expression() {}
+  virtual ~Expression() override;
 };
 
 class Condition : public Node
@@ -38,13 +38,13 @@ class Condition : public Node
 protected:
   Condition() {}
 public:
-  virtual ~Condition() {}
+  virtual ~Condition() override;
 };
 class CodeCondition : public Condition
 {
 public:
   CodeCondition() {}
-  virtual ~CodeCondition() {}
+  virtual ~CodeCondition() override;
 
   virtual void accept(AstVisitor &visitor) override;
 
@@ -54,7 +54,7 @@ class OnceCondition : public Condition
 {
 public:
   OnceCondition() {}
-  virtual ~OnceCondition() {}
+  virtual ~OnceCondition() override;  
 
   virtual void accept(AstVisitor &visitor) override;
 };
@@ -62,7 +62,7 @@ class ShowOnceCondition : public Condition
 {
 public:
   ShowOnceCondition() {}
-  virtual ~ShowOnceCondition() {}
+  virtual ~ShowOnceCondition() override;
 
   virtual void accept(AstVisitor &visitor) override;
 };
@@ -70,7 +70,7 @@ class OnceEverCondition : public Condition
 {
 public:
   OnceEverCondition() {}
-  virtual ~OnceEverCondition() {}
+  virtual ~OnceEverCondition() override;
 
   virtual void accept(AstVisitor &visitor) override;
 };
@@ -78,7 +78,7 @@ class Statement : public Node
 {
 public:
   Statement() {}
-  virtual ~Statement() {}
+  virtual ~Statement() override;
 
   virtual void accept(AstVisitor &visitor) override;
 
@@ -89,7 +89,7 @@ class Goto : public Expression
 {
 public:
   Goto() {}
-  virtual ~Goto() {}
+  virtual ~Goto() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string name;
@@ -98,7 +98,7 @@ class Code : public Expression
 {
 public:
   Code() {}
-  virtual ~Code() {}
+  virtual ~Code() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string code;
@@ -107,10 +107,10 @@ class Choice : public Expression
 {
 public:
   Choice() {}
-  virtual ~Choice() {}
+  virtual ~Choice() override;
 
   virtual void accept(AstVisitor &visitor) override;
-  int number;
+  int number{0};
   std::string text;
   std::unique_ptr<Goto> gotoExp;
 };
@@ -118,7 +118,7 @@ class Say : public Expression
 {
 public:
   Say() {}
-  virtual ~Say() {}
+  virtual ~Say() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string actor;
@@ -128,25 +128,25 @@ class Pause : public Expression
 {
 public:
   Pause() {}
-  virtual ~Pause() {}
+  virtual ~Pause() override;
 
   virtual void accept(AstVisitor &visitor) override;
-  float time;
+  float time{0};
 };
 class Parrot : public Expression
 {
 public:
   Parrot() {}
-  virtual ~Parrot() {}
+  virtual ~Parrot() override;
 
   virtual void accept(AstVisitor &visitor) override;
-  bool active;
+  bool active{true};
 };
 class Dialog : public Expression
 {
 public:
   Dialog() {}
-  virtual ~Dialog() {}
+  virtual ~Dialog() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string actor;
@@ -155,7 +155,7 @@ class Override : public Expression
 {
 public:
   Override() {}
-  virtual ~Override() {}
+  virtual ~Override() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string node;
@@ -164,7 +164,7 @@ class Shutup : public Expression
 {
 public:
   Shutup() {}
-  virtual ~Shutup() {}
+  virtual ~Shutup() override;
 
   virtual void accept(AstVisitor &visitor) override;
 };
@@ -172,7 +172,7 @@ class AllowObjects : public Expression
 {
 public:
   AllowObjects() {}
-  virtual ~AllowObjects() {}
+  virtual ~AllowObjects() override;
 
   virtual void accept(AstVisitor &visitor) override;
   
@@ -182,7 +182,7 @@ class Limit : public Expression
 {
 public:
   Limit() {}
-  virtual ~Limit() {}
+  virtual ~Limit() override;
 
   virtual void accept(AstVisitor &visitor) override;
   
@@ -192,7 +192,7 @@ class WaitWhile : public Expression
 {
 public:
   WaitWhile() {}
-  virtual ~WaitWhile() {}
+  virtual ~WaitWhile() override;
 
   virtual void accept(AstVisitor &visitor) override;
 
@@ -202,7 +202,7 @@ class WaitFor : public Expression
 {
 public:
   WaitFor() {}
-  virtual ~WaitFor() {}
+  virtual ~WaitFor() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string actor;
@@ -211,7 +211,7 @@ class Label : public Node
 {
 public:
   Label() {}
-  virtual ~Label() {}
+  virtual ~Label() override;
 
   virtual void accept(AstVisitor &visitor) override;
   std::string name;
@@ -221,13 +221,14 @@ class CompilationUnit
 {
 public:
   CompilationUnit() {}
-  virtual ~CompilationUnit() {}
+  virtual ~CompilationUnit();
 
   std::vector<std::unique_ptr<Label>> labels;
 };
 class AstVisitor
 {
 public:
+  virtual ~AstVisitor();
   virtual void visit(const Statement &node);
   virtual void visit(const Label &node);
   virtual void visit(const Say &node);
@@ -254,7 +255,7 @@ public:
 class YackParser
 {
 public:
-  YackParser(YackTokenReader &reader);
+  explicit YackParser(YackTokenReader &reader);
   std::unique_ptr<Ast::CompilationUnit> parse();
 
 private:

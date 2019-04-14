@@ -9,7 +9,8 @@ class _RoomTrigger : public Trigger
 {
   public:
     _RoomTrigger(Engine &engine, HSQUIRRELVM vm, Object &object, HSQOBJECT inside, HSQOBJECT outside)
-        : _engine(engine), _object(object), _v(vm), _inside(inside), _outside(outside), _isInside(false), _insideParamsCount(0), _outsideParamsCount(0), _insideName(nullptr), _outsideName(nullptr)
+        : _engine(engine), _object(object), _v(vm), _inside(inside), _outside(outside), _isInside(false),
+         _insideParamsCount(0), _outsideParamsCount(0), _insideName(nullptr), _outsideName(nullptr)
     {
         sq_addref(_v, &inside);
         sq_addref(_v, &outside);
@@ -38,8 +39,10 @@ class _RoomTrigger : public Trigger
             sq_getstring(_v, -1, &_outsideName);
         }
         sq_settop(_v, top);
+
+        std::wcout << L"Add room " << L" trigger (" << _object.getName() << L")" << std::endl;
     }
-    ~_RoomTrigger()
+    ~_RoomTrigger() override
     {
         // sq_release(_v, &thread_obj);
         // sq_release(_v, &_inside);

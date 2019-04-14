@@ -2,6 +2,30 @@
 
 namespace ng
 {
+Ast::Node::~Node() {}
+Ast::Expression::~Expression() {}
+Ast::Condition::~Condition() {}
+Ast::CodeCondition::~CodeCondition() {}
+Ast::OnceCondition::~OnceCondition() {}
+Ast::ShowOnceCondition::~ShowOnceCondition() {}
+Ast::OnceEverCondition::~OnceEverCondition() {}
+Ast::Statement::~Statement() {}
+Ast::Goto::~Goto() {}
+Ast::Code::~Code() {}
+Ast::Choice::~Choice() {}
+Ast::Say::~Say() {}
+Ast::Pause::~Pause() {}
+Ast::Parrot::~Parrot() {}
+Ast::Dialog::~Dialog() {}
+Ast::Override::~Override() {}
+Ast::Shutup::~Shutup() {}
+Ast::AllowObjects::~AllowObjects() {}
+Ast::Limit::~Limit() {}
+Ast::WaitWhile::~WaitWhile() {}
+Ast::WaitFor::~WaitFor() {}
+Ast::Label::~Label() {}
+Ast::CompilationUnit::~CompilationUnit() {}
+    
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
     return os << "[" << token.start << "," << token.end << "] " << token.readToken();

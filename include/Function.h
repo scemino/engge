@@ -20,11 +20,11 @@ class TimeFunction : public Function
 protected:
   sf::Time _elapsed;
   sf::Time _time;
-  std::function<void()> _function;
+  bool _done{false};
 
 public:
   explicit TimeFunction(const sf::Time &time)
-      : _time(time), _function([]() {})
+      : _time(time)
   {
   }
 
@@ -38,10 +38,10 @@ public:
   bool isElapsed() override
   {
     auto isElapsed = _elapsed > _time;
-    if (isElapsed)
+    if (isElapsed && !_done)
     {
+      _done = true;
       onElapsed();
-      _function();
     }
     return isElapsed;
   }
@@ -49,8 +49,6 @@ public:
   virtual void onElapsed()
   {
   }
-
-  void callWhenElapsed(std::function<void()> function) { _function = function; }
 };
 
 template <typename Value>

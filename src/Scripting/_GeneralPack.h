@@ -2,6 +2,7 @@
 #include <string>
 #include "squirrel.h"
 #include "Cutscene.h"
+#include "Dialog/DialogManager.h"
 #include "Screen.h"
 
 namespace ng
@@ -388,8 +389,6 @@ class _GeneralPack : public Pack
             HSQOBJECT obj;
             sq_resetobject(&obj);
 
-            auto len = sq_getsize(v, 2);
-            auto index = int_rand(0, len);
             sq_push(v, 2);
             sq_pushnull(v); //null iterator
             while (SQ_SUCCEEDED(sq_next(v, -2)))

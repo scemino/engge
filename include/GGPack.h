@@ -41,7 +41,7 @@ public:
   GGPackValue &operator[](std::size_t index);
   GGPackValue &operator[](const std::string &key);
   GGPackValue &operator=(const GGPackValue &other);
-  ~GGPackValue();
+  virtual ~GGPackValue();
 };
 class GGPackStream
 {
@@ -57,8 +57,8 @@ public:
 class GGPackBufferStream : public GGPackStream
 {
 public:
-  GGPackBufferStream() : _offset(0) {}
-  GGPackBufferStream(const std::vector<char> &input) : _input(input), _offset(0) {}
+  GGPackBufferStream() {}
+  explicit GGPackBufferStream(const std::vector<char> &input) : _input(input) {}
 
   void setBuffer(const std::vector<char> &input)
   {
@@ -104,7 +104,7 @@ public:
 
 private:
   std::vector<char> _input;
-  int _offset;
+  int _offset{0};
 };
 
 class GGPack

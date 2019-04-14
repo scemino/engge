@@ -35,7 +35,6 @@ void Cutscene::operator()(const sf::Time &elapsed)
         startCutscene();
         break;
     case 1:
-        std::cout << "checkEndCutscene" << std::endl;
         checkEndCutscene();
         break;
     case 2:
