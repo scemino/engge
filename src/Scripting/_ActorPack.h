@@ -9,10 +9,10 @@ namespace ng
 {
 class _ActorPack : public Pack
 {
-  private:
+private:
     static Engine *g_pEngine;
 
-  private:
+private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
@@ -101,6 +101,39 @@ class _ActorPack : public Pack
         return 0;
     }
 
+    static Facing _getFacing(SQInteger dir, Facing currentFacing)
+    {
+        Facing facing;
+        if (dir == 0x10)
+        {
+            switch (currentFacing)
+            {
+            case Facing::FACE_BACK:
+                return Facing::FACE_FRONT;
+            case Facing::FACE_FRONT:
+                return Facing::FACE_BACK;
+            case Facing::FACE_LEFT:
+                return  Facing::FACE_RIGHT;
+            case Facing::FACE_RIGHT:
+                return Facing::FACE_LEFT;
+            }
+        }
+        else
+        {
+            switch (currentFacing)
+            {
+            case Facing::FACE_BACK:
+                return Facing::FACE_BACK;
+            case Facing::FACE_FRONT:
+                return Facing::FACE_FRONT;
+            case Facing::FACE_LEFT:
+                return Facing::FACE_LEFT;
+            case Facing::FACE_RIGHT:
+                return Facing::FACE_RIGHT;
+            }
+        }
+    }
+
     static SQInteger actorAt(HSQUIRRELVM v)
     {
         std::cout << "actorAt" << std::endl;
@@ -183,8 +216,9 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get direction"));
             }
+            auto facing = _getFacing(dir, pActor->getCostume().getFacing());
             pActor->setPosition((sf::Vector2f)sf::Vector2i(x, y));
-            pActor->getCostume().setFacing((Facing)dir);
+            pActor->getCostume().setFacing(facing);
             pActor->setRoom(pRoom);
             return 0;
         }
@@ -192,7 +226,8 @@ class _ActorPack : public Pack
         return sq_throwerror(v, _SC("invalid number of arguments"));
     }
 
-    static SQInteger flashSelectableActor(HSQUIRRELVM v)
+    static SQInteger
+    flashSelectableActor(HSQUIRRELVM v)
     {
         std::cerr << "TODO: flashSelectableActor: not implemented" << std::endl;
         return 0;
@@ -1045,7 +1080,7 @@ class _ActorPack : public Pack
         g_pEngine->setVerbUiColors(actorSlot - 1, colors);
         return 0;
     }
-};
+}; // namespace ng
 
 Engine *_ActorPack::g_pEngine = nullptr;
 
