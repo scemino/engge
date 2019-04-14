@@ -9,16 +9,17 @@ namespace ng
 {
 class _GeneralPack : public Pack
 {
-  private:
+private:
     static Engine *g_pEngine;
 
-  private:
+private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(arrayShuffle, "arrayShuffle");
         engine.registerGlobalFunction(assetExists, "assetExists");
         engine.registerGlobalFunction(cameraAt, "cameraAt");
+        engine.registerGlobalFunction(cameraPos, "cameraPos");
         engine.registerGlobalFunction(cameraBounds, "cameraBounds");
         engine.registerGlobalFunction(cameraFollow, "cameraFollow");
         engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
@@ -29,6 +30,7 @@ class _GeneralPack : public Pack
         engine.registerGlobalFunction(frameCounter, "frameCounter");
         engine.registerGlobalFunction(incutscene, "incutscene");
         engine.registerGlobalFunction(indialog, "indialog");
+        engine.registerGlobalFunction(is_array, "is_array");
         engine.registerGlobalFunction(loadArray, "loadArray");
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
@@ -143,6 +145,12 @@ class _GeneralPack : public Pack
         return 1;
     }
 
+    static SQInteger is_array(HSQUIRRELVM v)
+    {
+        sq_pushbool(v, sq_gettype(v, 2) == OT_ARRAY ? SQTrue : SQFalse);
+        return 1;
+    }
+
     static SQInteger loadArray(HSQUIRRELVM v)
     {
         sq_newarray(v, 0);
@@ -240,13 +248,13 @@ class _GeneralPack : public Pack
         SQFloat t;
         if (sq_gettype(v, 2) == OT_TABLE)
         {
-            auto *pActor = ScriptEngine::getActor(v, 2);
-            if (!pActor)
+            auto *pEntity = ScriptEngine::getEntity<Entity>(v, 2);
+            if (!pEntity)
             {
-                return sq_throwerror(v, _SC("failed to get actor"));
+                return sq_throwerror(v, _SC("failed to get actor/object"));
             }
-            x = pActor->getPosition().x;
-            y = pActor->getPosition().y;
+            x = pEntity->getPosition().x;
+            y = pEntity->getPosition().y;
             if (SQ_FAILED(sq_getfloat(v, 3, &t)))
             {
                 return sq_throwerror(v, _SC("failed to get time"));
@@ -278,6 +286,19 @@ class _GeneralPack : public Pack
         auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(cameraPanTo));
         return 0;
+    }
+
+    static SQInteger cameraPos(HSQUIRRELVM v)
+    {
+        auto pos = g_pEngine->getCameraAt();
+        sq_newtable(v);
+        sq_pushstring(v, _SC("x"), -1);
+        sq_pushinteger(v, pos.x);
+        sq_newslot(v, -3, SQFalse);
+        sq_pushstring(v, _SC("y"), -1);
+        sq_pushinteger(v, pos.y);
+        sq_newslot(v, -3, SQFalse);
+        return 1;
     }
 
     static SQInteger cutscene(HSQUIRRELVM v)
