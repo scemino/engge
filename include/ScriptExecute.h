@@ -11,6 +11,6 @@ class ScriptExecute
     virtual void execute(const std::string &code) = 0;
     virtual std::string executeDollar(const std::string &code) = 0;
     virtual bool executeCondition(const std::string &code) = 0;
-    virtual SoundDefinition *getSoundDefinition(const std::string &name) = 0;
+    virtual std::shared_ptr<SoundDefinition> getSoundDefinition(const std::string &name) = 0;
 };
 }

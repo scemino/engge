@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
 #include <iostream>
+#include <memory>
+#include <string>
 #include "SFML/Audio.hpp"
 #include "EngineSettings.h"
 
@@ -20,7 +21,10 @@ class SoundDefinition : public Sound
 
 public:
   explicit SoundDefinition(const std::string &path);
-  ~SoundDefinition() {}
+  ~SoundDefinition() override
+  {
+    std::cerr << "delete SoundDefinition: " << _path << std::endl;
+  }
 
   void setSettings(EngineSettings &settings);
   const std::string &getPath() const { return _path; };
@@ -38,19 +42,19 @@ private:
 class SoundId : public Sound
 {
 public:
-  explicit SoundId(SoundDefinition &soundDefinition);
-  ~SoundId();
+  explicit SoundId(const std::shared_ptr<SoundDefinition> &soundDefinition);
+  ~SoundId() override;
 
   void play(bool loop = false);
   void stop();
 
   void setVolume(float volume);
   float getVolume() const;
-  SoundDefinition &getSoundDefinition() { return _soundDefinition; }
+  std::shared_ptr<SoundDefinition> getSoundDefinition() { return _soundDefinition; }
   bool isPlaying() const { return _sound.getStatus() == sf::SoundSource::Playing; }
 
 private:
-  SoundDefinition &_soundDefinition;
+  std::shared_ptr<SoundDefinition> _soundDefinition;
   sf::Sound _sound;
 };
 } // namespace ng

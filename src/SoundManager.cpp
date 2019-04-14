@@ -1,5 +1,6 @@
 #include <fstream>
 #include <memory>
+#include "SoundDefinition.h"
 #include "SoundManager.h"
 
 namespace ng
@@ -14,6 +15,25 @@ std::shared_ptr<SoundId> SoundManager::getSound(size_t index)
     if (index < 1 || index > _soundIds.size())
         return nullptr;
     return _soundIds[index - 1];
+}
+
+std::shared_ptr<SoundDefinition> SoundManager::getSoundDefinition(void *pSoundDefinition)
+{
+    auto it = std::find_if(_sounds.begin(), _sounds.end(), [pSoundDefinition](std::shared_ptr<SoundDefinition> sd) {
+        return sd.get() == pSoundDefinition;
+    });
+    if (it == _sounds.end())
+        return nullptr;
+    return *it;
+}
+std::shared_ptr<SoundId> SoundManager::getSound(void *pSound)
+{
+    auto it = std::find_if(_soundIds.begin(), _soundIds.end(), [pSound](std::shared_ptr<SoundId> sd) {
+        return sd.get() == pSound;
+    });
+    if (it == _soundIds.end())
+        return nullptr;
+    return *it;
 }
 
 int SoundManager::getSlotIndex()
@@ -37,23 +57,33 @@ std::shared_ptr<SoundDefinition> SoundManager::defineSound(const std::string &na
     return sound;
 }
 
-std::shared_ptr<SoundId> SoundManager::playSound(SoundDefinition &soundDefinition, bool loop)
+std::shared_ptr<SoundId> SoundManager::playSound(std::shared_ptr<SoundDefinition> soundDefinition, bool loop)
 {
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     auto index = getSlotIndex();
     if (index == -1)
+    {
+        std::cerr << "cannot play sound no more channel available" << std::endl;
         return nullptr;
+    }
+    std::cout << " [" << index << "]"
+              << "play sound " << soundDefinition->getPath() << std::endl;
     _soundIds[index] = soundId;
     soundId->play(loop);
     return soundId;
 }
 
-std::shared_ptr<SoundId> SoundManager::loopMusic(SoundDefinition &soundDefinition)
+std::shared_ptr<SoundId> SoundManager::loopMusic(std::shared_ptr<SoundDefinition> soundDefinition)
 {
     auto soundId = std::make_shared<SoundId>(soundDefinition);
     auto index = getSlotIndex();
     if (index == -1)
+    {
+        std::cerr << "cannot play sound no more channel available" << std::endl;
         return nullptr;
+    }
+    std::cout << " [" << index << "]"
+              << "loop music " << soundDefinition->getPath() << std::endl;
     _soundIds[index] = soundId;
     soundId->play(true);
     return soundId;
@@ -62,19 +92,18 @@ std::shared_ptr<SoundId> SoundManager::loopMusic(SoundDefinition &soundDefinitio
 void SoundManager::stopAllSounds()
 {
     std::cout << "stopAllSounds" << std::endl;
-    for (size_t i = 0; i < _soundIds.size(); i++)
+    for (size_t i = 0; i <= _soundIds.size(); i++)
     {
         if (_soundIds[i] != nullptr)
         {
             _soundIds[i]->stop();
-            _soundIds[i] = nullptr;
+            _soundIds[i].reset();
         }
     }
 }
 
 void SoundManager::stopSound(SoundId &sound)
 {
-    std::cout << "stopSound" << std::endl;
     sound.stop();
     for (size_t i = 0; i < _soundIds.size(); i++)
     {
@@ -86,4 +115,31 @@ void SoundManager::stopSound(SoundId &sound)
         }
     }
 }
+
+void SoundManager::stopSound(std::shared_ptr<SoundDefinition> soundDef)
+{
+    std::cout << "stopSound (sound definition: " << soundDef->getPath() << ")" << std::endl;
+    for (size_t i = 1; i <= getSize(); i++)
+    {
+        auto &&sound = getSound(i);
+        if (sound && soundDef == sound->getSoundDefinition())
+        {
+            stopSound(*sound);
+        }
+    }
+}
+
+void SoundManager::setVolume(std::shared_ptr<SoundDefinition> soundDef, float volume)
+{
+    std::cout << "setVolume (sound definition: " << soundDef->getPath() << ")" << std::endl;
+    for (size_t i = 1; i <= getSize(); i++)
+    {
+        auto &&sound = getSound(i);
+        if (soundDef == sound->getSoundDefinition())
+        {
+            sound->setVolume(volume);
+        }
+    }
+}
+
 } // namespace ng

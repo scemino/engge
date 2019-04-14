@@ -87,6 +87,7 @@ struct Engine::Impl
     HSQUIRRELVM _vm;
     sf::Time _time;
     bool _isMouseDown;
+    bool _isMouseRightDown{false};
     int _frameCounter{0};
 
     explicit Impl(EngineSettings &settings);
@@ -242,7 +243,8 @@ HSQUIRRELVM Engine::getVm() const { return _pImpl->_vm; }
 
 SQInteger Engine::Impl::exitRoom()
 {
-    if(!_pRoom) return 0;
+    if (!_pRoom)
+        return 0;
 
     auto pOldRoom = _pRoom;
 
@@ -518,7 +520,10 @@ void Engine::update(const sf::Time &elapsed)
 {
     _pImpl->_frameCounter++;
     auto wasMouseDown = _pImpl->_isMouseDown;
+    auto wasMouseRightDown = _pImpl->_isMouseRightDown;
     _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+    _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right);
+    bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
     auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
 
     _pImpl->_time += elapsed;
@@ -554,7 +559,7 @@ void Engine::update(const sf::Time &elapsed)
     if (!_pImpl->_inputActive)
         return;
 
-    if (!isMouseClick)
+    if (!isMouseClick && !isRightClick)
         return;
 
     if (_pImpl->clickedAt(mousePosInRoom))
@@ -600,11 +605,18 @@ void Engine::update(const sf::Time &elapsed)
         else
         {
             auto pVerb = _pImpl->_pVerb;
-            if (pVerb && pVerb->id == 1)
+            if (!isRightClick)
             {
-                pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb());
+                _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
             }
-            _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
+            else
+            {
+                if (pVerb && pVerb->id == 1)
+                {
+                    pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb());
+                }
+                _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
+            }
         }
     }
     else if (_pImpl->_inventory.getCurrentInventoryObject())
@@ -740,7 +752,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
 
     if (_pCurrentObject)
     {
-        if (pVerb->id == 1)
+        if (pVerb->id == 1 && _isMouseRightDown)
         {
             pVerb = _pEngine->getVerb(_pCurrentObject->getDefaultVerb());
         }
@@ -905,7 +917,7 @@ void Engine::execute(const std::string &code)
     _pImpl->_pScriptExecute->execute(code);
 }
 
-SoundDefinition *Engine::getSoundDefinition(const std::string &name)
+std::shared_ptr<SoundDefinition> Engine::getSoundDefinition(const std::string &name)
 {
     return _pImpl->_pScriptExecute->getSoundDefinition(name);
 }

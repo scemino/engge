@@ -247,7 +247,6 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
 {
     _path = path;
     _facing = facing;
-    auto pos = _pActor->getPosition();
     _path.erase(_path.begin());
     _pActor->getCostume().setFacing(getFacing());
     _pActor->getCostume().setState("walk");
@@ -317,7 +316,6 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         }
         else
         {
-            auto pos2 = _pActor->getPosition();
             _pActor->getCostume().setFacing(getFacing());
             _pActor->getCostume().setState("walk");
             _pActor->getCostume().getAnimation()->play(true);
@@ -328,7 +326,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
 
 Actor::Impl::TalkingState::TalkingState()
     : _pActor(nullptr), _isTalking(false),
-      _talkColor(sf::Color::White), _index(0)
+      _index(0), _talkColor(sf::Color::White)
 {
 }
 
@@ -382,7 +380,7 @@ void Actor::Impl::TalkingState::load(int id)
         std::cerr << "File " << name << ".ogg not found" << std::endl;
         return;
     }
-    _sound = _pActor->pImpl->_engine.getSoundManager().playSound(*soundDefinition);
+    _sound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
     _sound->setVolume(_pActor->pImpl->_volume);
 
     std::string path;
@@ -553,7 +551,7 @@ void Actor::trigSound(const std::string &name)
     auto soundId = pImpl->_engine.getSoundDefinition(name);
     if (!soundId)
         return;
-    pImpl->_engine.getSoundManager().playSound(*soundId);
+    pImpl->_engine.getSoundManager().playSound(soundId);
 }
 
 } // namespace ng

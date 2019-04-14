@@ -22,31 +22,33 @@ void SoundDefinition::load()
     _isLoaded = _buffer.loadFromMemory(buffer.data(), buffer.size());
     if (!_isLoaded)
     {
-        std::cerr << "Can't load the sound" << _path << std::endl;
+        std::cerr << "Can't load the sound " << _path << std::endl;
     }
 }
 
-SoundId::SoundId(SoundDefinition &soundDefinition)
+SoundId::SoundId(const std::shared_ptr<SoundDefinition> &soundDefinition)
     : _soundDefinition(soundDefinition)
 {
 }
 
 SoundId::~SoundId()
 {
+    std::cerr << "delete SoundId" << std::endl;
     stop();
 }
 
 void SoundId::play(bool loop)
 {
-    _soundDefinition.load();
-    _sound.setBuffer(_soundDefinition._buffer);
+    _soundDefinition->load();
+    _sound.setBuffer(_soundDefinition->_buffer);
     _sound.setLoop(loop);
     _sound.play();
 }
 
 void SoundId::setVolume(float volume)
 {
-    std::cout << "setVolume(" << volume << ")" << std::endl;
+    auto path = _soundDefinition->getPath();
+    std::cout << "setVolume(" << path << "," << volume << ")" << std::endl;
     _sound.setVolume(volume * 100.f);
 }
 
@@ -57,6 +59,8 @@ float SoundId::getVolume() const
 
 void SoundId::stop()
 {
+    auto path = _soundDefinition->getPath();
+    std::cout << "stopSound(" << path << ")" << std::endl;
     _sound.stop();
 }
 

@@ -8,13 +8,13 @@ namespace ng
 {
 class _DefaultScriptExecute : public ScriptExecute
 {
-  public:
+public:
     explicit _DefaultScriptExecute(HSQUIRRELVM vm)
         : _vm(vm)
     {
     }
 
-  public:
+public:
     void execute(const std::string &code) override
     {
         std::string c;
@@ -57,7 +57,7 @@ class _DefaultScriptExecute : public ScriptExecute
         execute(code);
         // get the result
         auto type = sq_gettype(_vm, -1);
-        const SQChar* result;
+        const SQChar *result;
         if (SQ_FAILED(sq_getstring(_vm, -1, &result)))
         {
             std::cerr << "Error getting result " << code << std::endl;
@@ -67,7 +67,7 @@ class _DefaultScriptExecute : public ScriptExecute
         return result;
     }
 
-    SoundDefinition *getSoundDefinition(const std::string &name) override
+    std::shared_ptr<SoundDefinition> getSoundDefinition(const std::string &name) override
     {
         sq_pushroottable(_vm);
         sq_pushstring(_vm, name.data(), -1);
@@ -81,11 +81,11 @@ class _DefaultScriptExecute : public ScriptExecute
             return nullptr;
         }
 
-        SoundDefinition *pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
+        std::shared_ptr<SoundDefinition> pSound = std::shared_ptr<SoundDefinition>(static_cast<SoundDefinition *>(obj._unVal.pUserPointer));
         return pSound;
     }
 
-  private:
+private:
     static int _pos;
     HSQUIRRELVM _vm;
 };
@@ -94,7 +94,7 @@ int _DefaultScriptExecute::_pos = 0;
 
 class _AfterFunction : public Function
 {
-  public:
+public:
     _AfterFunction(std::unique_ptr<Function> before, std::unique_ptr<Function> after)
         : _before(std::move(before)), _after(std::move(after))
     {
@@ -111,14 +111,14 @@ class _AfterFunction : public Function
         (*_after)(elapsed);
     }
 
-  private:
+private:
     std::unique_ptr<Function> _before;
     std::unique_ptr<Function> _after;
 };
 
 class _ActorWalk : public Function
 {
-  public:
+public:
     _ActorWalk(Actor &actor, const Object &object)
         : _actor(actor)
     {
@@ -129,32 +129,32 @@ class _ActorWalk : public Function
         _actor.walkTo(dest, facing);
     }
 
-  private:
+private:
     bool isElapsed() override { return !_actor.isWalking(); }
     void operator()(const sf::Time &elapsed) override
     {
     }
 
-  private:
+private:
     Actor &_actor;
 };
 
 class _Use : public Function
 {
-  public:
+public:
     _Use(HSQUIRRELVM v, Actor &actor, const InventoryObject &objectSource, Object &objectTarget)
         : _vm(v), _actor(actor), _objectSource(objectSource), _objectTarget(objectTarget)
     {
     }
 
-  private:
+private:
     bool isElapsed() override { return true; }
     void operator()(const sf::Time &elapsed) override
     {
         HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
-        auto& objTarget = _objectTarget.getTable();
+        auto &objTarget = _objectTarget.getTable();
 
-        auto& roomTable = _actor.getRoom()->getTable();
+        auto &roomTable = _actor.getRoom()->getTable();
         sq_pushobject(_vm, objSource);
         sq_pushobject(_vm, roomTable);
         sq_setdelegate(_vm, -2);
@@ -172,7 +172,7 @@ class _Use : public Function
         }
     }
 
-  private:
+private:
     HSQUIRRELVM _vm;
     Actor &_actor;
     const InventoryObject &_objectSource;
@@ -181,13 +181,13 @@ class _Use : public Function
 
 class _VerbExecute : public Function
 {
-  public:
+public:
     _VerbExecute(HSQUIRRELVM v, Actor &actor, Object &object, const std::string &verb)
         : _vm(v), _actor(actor), _object(object), _verb(verb)
     {
     }
 
-  private:
+private:
     bool isElapsed() override { return true; }
     void operator()(const sf::Time &elapsed) override
     {
@@ -198,7 +198,12 @@ class _VerbExecute : public Function
         {
             sq_remove(_vm, -2);
             sq_pushobject(_vm, _object.getTable());
-            sq_call(_vm, 1, SQFalse, SQTrue);
+            if(SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
+            {
+                std::cout << "failed to execute verb " <<  _verb.data() << std::endl;
+                sqstd_printcallstack(_vm);
+                return;
+            }
             sq_pop(_vm, 2); //pops the roottable and the function
             return;
         }
@@ -219,7 +224,7 @@ class _VerbExecute : public Function
         }
     }
 
-  private:
+private:
     HSQUIRRELVM _vm;
     Actor &_actor;
     Object &_object;
@@ -228,13 +233,13 @@ class _VerbExecute : public Function
 
 class _DefaultVerbExecute : public VerbExecute
 {
-  public:
+public:
     _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine)
         : _vm(vm), _engine(engine)
     {
     }
 
-  private:
+private:
     void execute(Object *pObject, const Verb *pVerb) override
     {
         auto obj = pObject->getTable();
@@ -276,7 +281,7 @@ class _DefaultVerbExecute : public VerbExecute
         if (pVerb->id == 10 && useFlags(pObject))
             return;
 
-        auto& roomTable = _engine.getRoom()->getTable();
+        auto &roomTable = _engine.getRoom()->getTable();
         sq_pushobject(_vm, obj);
         sq_pushobject(_vm, roomTable);
         sq_setdelegate(_vm, -2);
@@ -395,7 +400,7 @@ class _DefaultVerbExecute : public VerbExecute
         return defaultVerb;
     }
 
-  private:
+private:
     HSQUIRRELVM _vm;
     Engine &_engine;
 }; // namespace ng
