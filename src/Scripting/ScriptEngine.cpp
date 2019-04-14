@@ -194,10 +194,11 @@ ScriptEngine::ScriptEngine(Engine &engine)
         {"EMPTY", 1},
         {"FADE_IN", 0},
         {"FADE_OUT", 1},
-        {"FACE_FRONT", 0},
-        {"FACE_BACK", 1},
-        {"FACE_LEFT", 2},
-        {"FACE_RIGHT", 3},
+        {"FACE_FRONT", 0x4},
+        {"FACE_BACK", 0x8},
+        {"FACE_LEFT", 0x2},
+        {"FACE_RIGHT", 0x1},
+        {"FACE_FLIP", 0x10},
         {"DIR_FRONT", 0},
         {"DIR_BACK", 1},
         {"DIR_LEFT", 2},
@@ -438,7 +439,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
         cursor = (cursor + 1) % 4096;
     }
 
-#if 0
+#if 1
     std::ofstream o;
     o.open(name);
     o.write(code.data(), code.size());
