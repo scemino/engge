@@ -280,6 +280,19 @@ ScriptEngine::ScriptEngine(Engine &engine)
         {"EFFECT_VHS", 3},
         {"EFFECT_GHOST", 4},
         {"EFFECT_BLACKANDWHITE", 5},
+        {"KEY_UP", 0x40000052},
+        {"KEY_RIGHT", 0x4000004F},
+        {"KEY_DOWN", 0x40000051},
+        {"KEY_LEFT", 0x40000050},
+        {"KEY_PAD1", 0x40000059},
+        {"KEY_PAD2", 0x4000005A},
+        {"KEY_PAD3", 0x4000005B},
+        {"KEY_PAD4", 0x4000005C},
+        {"KEY_PAD5", 0x4000005D},
+        {"KEY_PAD6", 0x4000005E},
+        {"KEY_PAD7", 0x4000005F},
+        {"KEY_PAD8", 0x40000056},
+        {"KEY_PAD9", 0x40000061},
     });
 
     addPack<_ActorPack>();
