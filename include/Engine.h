@@ -27,18 +27,18 @@ enum class CursorDirection
 {
   None = 0,
   Left = 1,
-  Right = 1 << 1,
-  Up = 1 << 2,
-  Down = 1 << 3,
-  Hotspot = 1 << 4
+  Right = 1u << 1u,
+  Up = 1u << 2u,
+  Down = 1u << 3u,
+  Hotspot = 1u << 4u
 };
 
-enum UseFlag
+enum class UseFlag
 {
   None = 0,
-  UseWith,
-  UseOn,
-  UseIn
+  UseWith = 1,
+  UseOn = 2,
+  UseIn = 3
 };
 
 class Engine : public NonCopyable
@@ -63,7 +63,6 @@ public:
   void setFadeAlpha(float fade);
   float getFadeAlpha() const;
   void setFadeColor(sf::Color color);
-  sf::Color getFadeColor() const;
 
   void addActor(std::unique_ptr<Actor> actor);
   void addRoom(std::unique_ptr<Room> room);
@@ -117,7 +116,7 @@ public:
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);
   void setUseFlag(UseFlag flag, const InventoryObject *object);
-  UseFlag getUseFlag(UseFlag flag) const;
+
   sf::Time getTime() const;
 
   void setVm(HSQUIRRELVM vm);

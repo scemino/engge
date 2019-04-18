@@ -66,9 +66,8 @@ struct Engine::Impl
     bool _showCursor;
     bool _inputVerbsActive;
     SpriteSheet _verbSheet, _gameSheet;
-    nlohmann::json _jsonInventoryItems;
     Actor *_pFollowActor;
-    sf::IntRect _verbRects[9];
+    std::array<sf::IntRect, 9> _verbRects;
     Object *_pCurrentObject;
     const InventoryObject *_pUseObject;
     sf::Vector2f _mousePos;
@@ -81,12 +80,12 @@ struct Engine::Impl
     SoundManager _soundManager;
     CursorDirection _cursorDirection;
     std::array<ActorIconSlot, 6> _actorsIconSlots;
-    UseFlag _useFlag;
+    UseFlag _useFlag{UseFlag::None};
     ActorIcons _actorIcons;
     Inventory _inventory;
     HSQUIRRELVM _vm;
     sf::Time _time;
-    bool _isMouseDown;
+    bool _isMouseDown{false};
     bool _isMouseRightDown{false};
     int _frameCounter{0};
 
@@ -127,7 +126,6 @@ Engine::Impl::Impl(EngineSettings &settings)
       _pCurrentObject(nullptr),
       _pVerb(nullptr),
       _soundManager(settings),
-      _useFlag(UseFlag::None),
       _pUseObject(nullptr),
       _cursorDirection(CursorDirection::None),
       _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
@@ -167,7 +165,7 @@ Engine::Engine(EngineSettings &settings)
     {
         auto left = (i / 3) * size.x;
         auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
-        _pImpl->_verbRects[i] = sf::IntRect(left, top, size.x, size.y);
+        _pImpl->_verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
     }
 }
 
@@ -193,8 +191,6 @@ float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a / 255.f; }
 
 void Engine::setFadeColor(sf::Color color) { _pImpl->_fadeColor = color; }
 
-sf::Color Engine::getFadeColor() const { return _pImpl->_fadeColor; }
-
 void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
 
 void Engine::addRoom(std::unique_ptr<Room> room) { _pImpl->_rooms.push_back(std::move(room)); }
@@ -207,11 +203,11 @@ std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actor
 
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
 
-void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb) { _pImpl->_verbSlots[characterSlot].setVerb(verbSlot, verb); }
+void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb) { _pImpl->_verbSlots.at(characterSlot).setVerb(verbSlot, verb); }
 
-void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors) { _pImpl->_verbUiColors[characterSlot] = colors; }
+void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors) { _pImpl->_verbUiColors.at(characterSlot) = colors; }
 
-VerbUiColors &Engine::getVerbUiColors(int characterSlot) { return _pImpl->_verbUiColors[characterSlot]; }
+VerbUiColors &Engine::getVerbUiColors(int characterSlot) { return _pImpl->_verbUiColors.at(characterSlot); }
 
 bool Engine::getInputActive() const { return _pImpl->_inputActive; }
 
@@ -232,8 +228,6 @@ Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
 SoundManager &Engine::getSoundManager() { return _pImpl->_soundManager; }
 
 DialogManager &Engine::getDialogManager() { return _pImpl->_dialogManager; }
-
-UseFlag Engine::getUseFlag(UseFlag flag) const { return _pImpl->_useFlag; }
 
 sf::Time Engine::getTime() const { return _pImpl->_time; }
 
@@ -413,7 +407,7 @@ const Verb *Engine::getVerb(int id) const
     auto index = _pImpl->getCurrentActorIndex();
     for (auto i = 0; i < 10; i++)
     {
-        const auto &verb = _pImpl->_verbSlots[index].getVerb(i);
+        const auto &verb = _pImpl->_verbSlots.at(index).getVerb(i);
         if (verb.id == id)
         {
             return &verb;
@@ -577,7 +571,7 @@ void Engine::update(const sf::Time &elapsed)
     {
         for (auto i = 0; i < 9; i++)
         {
-            if (_pImpl->_verbRects[i].contains((sf::Vector2i)_pImpl->_mousePos))
+            if (_pImpl->_verbRects.at(i).contains((sf::Vector2i)_pImpl->_mousePos))
             {
                 verbId = i;
                 break;
@@ -588,7 +582,7 @@ void Engine::update(const sf::Time &elapsed)
     int currentActorIndex = _pImpl->getCurrentActorIndex();
     if (verbId != -1 && currentActorIndex != -1)
     {
-        _pImpl->_pVerb = &_pImpl->_verbSlots[currentActorIndex].getVerb(1 + verbId);
+        _pImpl->_pVerb = &_pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + verbId);
         _pImpl->_useFlag = UseFlag::None;
         _pImpl->_pUseObject = nullptr;
     }
@@ -718,19 +712,23 @@ sf::IntRect Engine::Impl::getCursorRect() const
     const auto &size = _pRoom->getRoomSize();
     if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
     {
-        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left") : _gameSheet.getRect("cursor_left");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
+                                                           : _gameSheet.getRect("cursor_left");
     }
     if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - Screen::Width)
     {
-        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right") : _gameSheet.getRect("cursor_right");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right")
+                                                           : _gameSheet.getRect("cursor_right");
     }
     if (_cursorDirection & CursorDirection::Up && _cameraPos.y > 0)
     {
-        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back") : _gameSheet.getRect("cursor_back");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back")
+                                                           : _gameSheet.getRect("cursor_back");
     }
     if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - Screen::Height)
     {
-        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front") : _gameSheet.getRect("cursor_front");
+        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front")
+                                                           : _gameSheet.getRect("cursor_front");
     }
     return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
 }
@@ -830,7 +828,7 @@ int Engine::Impl::getCurrentActorIndex() const
 {
     for (auto i = 0; i < _actorsIconSlots.size(); i++)
     {
-        const auto &selectableActor = _actorsIconSlots[i];
+        const auto &selectableActor = _actorsIconSlots.at(i);
         if (selectableActor.pActor == _pCurrentActor)
         {
             return i;
@@ -845,20 +843,20 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         return;
 
     int currentActorIndex = getCurrentActorIndex();
-    if (!_inputActive || currentActorIndex == -1 || _verbSlots[currentActorIndex].getVerb(0).id == 0)
+    if (!_inputActive || currentActorIndex == -1 || _verbSlots.at(currentActorIndex).getVerb(0).id == 0)
         return;
 
     auto verbId = -1;
     if (_pCurrentObject)
     {
         auto defaultVerb = _pCurrentObject->getDefaultVerb();
-        verbId = _verbSlots[currentActorIndex].getVerbIndex(defaultVerb);
+        verbId = _verbSlots.at(currentActorIndex).getVerbIndex(defaultVerb);
     }
     else
     {
-        for (auto i = 0; i < 9; i++)
+        for (auto i = 0; i < _verbRects.size(); i++)
         {
-            if (_verbRects[i].contains((sf::Vector2i)_mousePos))
+            if (_verbRects.at(i).contains((sf::Vector2i)_mousePos))
             {
                 verbId = i;
                 break;
@@ -876,7 +874,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         auto maxW = 0;
         for (int y = 0; y < 3; y++)
         {
-            auto verb = _verbSlots[currentActorIndex].getVerb(x * 3 + y + 1);
+            auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb.id);
             maxW = fmax(maxW, rect.width * ratio.x);
         }
@@ -886,11 +884,12 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         for (int y = 0; y < 3; y++)
         {
             auto top = Screen::Height - size.y * 3 + y * size.y;
-            auto verb = _verbSlots[currentActorIndex].getVerb(x * 3 + y + 1);
+            auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb.id);
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
             int index = x * 3 + y;
-            auto color = index == verbId ? _verbUiColors[currentActorIndex].verbHighlight : _verbUiColors[currentActorIndex].verbNormalTint;
+            auto color = index == verbId ? _verbUiColors.at(currentActorIndex).verbHighlight
+                                         : _verbUiColors.at(currentActorIndex).verbNormalTint;
             sf::RectangleShape verbShape;
             verbShape.setFillColor(color);
             verbShape.setPosition(left, top);
@@ -942,15 +941,16 @@ void Engine::stopThread(HSQUIRRELVM thread)
 
 void Engine::addSelectableActor(int index, Actor *pActor)
 {
-    _pImpl->_actorsIconSlots[index - 1].selectable = true;
-    _pImpl->_actorsIconSlots[index - 1].pActor = pActor;
+    _pImpl->_actorsIconSlots.at(index - 1).selectable = true;
+    _pImpl->_actorsIconSlots.at(index - 1).pActor = pActor;
 }
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 {
-    auto it = std::find_if(_pImpl->_actorsIconSlots.begin(), _pImpl->_actorsIconSlots.end(), [&pActor](auto &selectableActor) {
-        return selectableActor.pActor == pActor;
-    });
+    auto it = std::find_if(_pImpl->_actorsIconSlots.begin(), _pImpl->_actorsIconSlots.end(),
+                           [&pActor](auto &selectableActor) {
+                               return selectableActor.pActor == pActor;
+                           });
     if (it != _pImpl->_actorsIconSlots.end())
     {
         it->selectable = selectable;
@@ -959,7 +959,7 @@ void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 
 void Engine::actorSlotSelectable(int index, bool selectable)
 {
-    _pImpl->_actorsIconSlots[index].selectable = selectable;
+    _pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
 }
 
 void Engine::setUseFlag(UseFlag flag, const InventoryObject *object)
