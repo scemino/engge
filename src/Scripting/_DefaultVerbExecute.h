@@ -1,4 +1,5 @@
 #pragma once
+
 #include "squirrel.h"
 #include "Engine.h"
 #include "ScriptExecute.h"
@@ -35,6 +36,7 @@ public:
             std::cerr << "Error calling code " << code << std::endl;
             return;
         }
+        sq_pop(_vm, 1);
     }
 
     bool executeCondition(const std::string &code) override
@@ -81,7 +83,8 @@ public:
             return nullptr;
         }
 
-        std::shared_ptr<SoundDefinition> pSound = std::shared_ptr<SoundDefinition>(static_cast<SoundDefinition *>(obj._unVal.pUserPointer));
+        std::shared_ptr<SoundDefinition> pSound = std::shared_ptr<SoundDefinition>(
+            static_cast<SoundDefinition *>(obj._unVal.pUserPointer));
         return pSound;
     }
 
@@ -92,28 +95,33 @@ private:
 
 int _DefaultScriptExecute::_pos = 0;
 
-class _AfterFunction : public Function
+class _CompositeFunction : public Function
 {
-public:
-    _AfterFunction(std::unique_ptr<Function> before, std::unique_ptr<Function> after)
-        : _before(std::move(before)), _after(std::move(after))
-    {
-    }
+    bool isElapsed() override { return _functions.empty(); }
 
-    bool isElapsed() override { return _before->isElapsed() && _after->isElapsed(); }
     void operator()(const sf::Time &elapsed) override
     {
-        if (!_before->isElapsed())
-        {
-            (*_before)(elapsed);
+        if (_functions.empty())
             return;
+        if (_functions[0]->isElapsed())
+        {
+            _functions.erase(_functions.begin());
         }
-        (*_after)(elapsed);
+        else
+        {
+            (*_functions[0])(elapsed);
+        }
+    }
+
+public:
+    _CompositeFunction &push_back(std::unique_ptr<Function> func)
+    {
+        _functions.push_back(std::move(func));
+        return *this;
     }
 
 private:
-    std::unique_ptr<Function> _before;
-    std::unique_ptr<Function> _after;
+    std::vector<std::unique_ptr<Function>> _functions;
 };
 
 class _ActorWalk : public Function
@@ -131,6 +139,7 @@ public:
 
 private:
     bool isElapsed() override { return !_actor.isWalking(); }
+
     void operator()(const sf::Time &elapsed) override
     {
     }
@@ -149,6 +158,7 @@ public:
 
 private:
     bool isElapsed() override { return true; }
+
     void operator()(const sf::Time &elapsed) override
     {
         HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
@@ -179,6 +189,48 @@ private:
     Object &_objectTarget;
 };
 
+class _PostWalk : public Function
+{
+public:
+    _PostWalk(const HSQUIRRELVM &v, const HSQOBJECT &object, int verb)
+        : _vm(v), _object(object), _verb(verb)
+    {
+    }
+
+    bool isElapsed() override { return _done; }
+
+    void operator()(const sf::Time &elapsed) override
+    {
+        _done = true;
+        sq_pushobject(_vm, _object);
+        sq_pushstring(_vm, _SC("objectPostWalk"), -1);
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_remove(_vm, -2);
+            sq_pushobject(_vm, _object);
+            sq_pushinteger(_vm, _verb);
+            sq_pushnull(_vm);
+            sq_pushnull(_vm);
+            sq_call(_vm, 4, SQTrue, SQTrue);
+            SQInteger handled = 0;
+            sq_getinteger(_vm, -1, &handled);
+            if (handled == 1)
+            {
+                _handled = true;
+                return;
+            }
+        }
+        _handled = false;
+    }
+
+private:
+    const HSQUIRRELVM &_vm;
+    const HSQOBJECT &_object;
+    int _verb;
+    bool _done{false};
+    bool _handled{false};
+};
+
 class _VerbExecute : public Function
 {
 public:
@@ -188,9 +240,11 @@ public:
     }
 
 private:
-    bool isElapsed() override { return true; }
+    bool isElapsed() override { return _done; }
+
     void operator()(const sf::Time &elapsed) override
     {
+        _done = true;
         sq_pushobject(_vm, _object.getTable());
         sq_pushstring(_vm, _verb.data(), -1);
 
@@ -198,9 +252,9 @@ private:
         {
             sq_remove(_vm, -2);
             sq_pushobject(_vm, _object.getTable());
-            if(SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
+            if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
             {
-                std::cout << "failed to execute verb " <<  _verb.data() << std::endl;
+                std::cout << "failed to execute verb " << _verb.data() << std::endl;
                 sqstd_printcallstack(_vm);
                 return;
             }
@@ -229,6 +283,7 @@ private:
     Actor &_actor;
     Object &_object;
     const std::string &_verb;
+    bool _done{false};
 };
 
 class _DefaultVerbExecute : public VerbExecute
@@ -255,16 +310,22 @@ private:
             return;
         auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
         auto verb = std::make_unique<_VerbExecute>(_vm, *pActor, *pObject, pVerb->func);
-        auto after = std::make_unique<_AfterFunction>(std::move(walk), std::move(verb));
-        _engine.addFunction(std::move(after));
+        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
+        auto sentence = std::make_unique<_CompositeFunction>();
+        sentence->push_back(std::move(walk));
+        sentence->push_back(std::move(verb));
+        sentence->push_back(std::move(postWalk));
+        _engine.addFunction(std::move(sentence));
     }
 
     void use(const InventoryObject *pObjectSource, Object *pObjectTarget) override
     {
         auto walk = std::make_unique<_ActorWalk>(*_engine.getCurrentActor(), *pObjectTarget);
         auto action = std::make_unique<_Use>(_vm, *_engine.getCurrentActor(), *pObjectSource, *pObjectTarget);
-        auto after = std::make_unique<_AfterFunction>(std::move(walk), std::move(action));
-        _engine.addFunction(std::move(after));
+        auto sentence = std::make_unique<_CompositeFunction>();
+        sentence->push_back(std::move(walk));
+        sentence->push_back(std::move(action));
+        _engine.addFunction(std::move(sentence));
     }
 
     void execute(const InventoryObject *pObject, const Verb *pVerb) override
@@ -313,6 +374,9 @@ private:
                 break;
             case 8:
                 useFlag = UseFlag::UseIn;
+                break;
+            default:
+                useFlag = UseFlag::None;
                 break;
             }
             _engine.setUseFlag(useFlag, pObject);
@@ -403,5 +467,5 @@ private:
 private:
     HSQUIRRELVM _vm;
     Engine &_engine;
-}; // namespace ng
+};
 } // namespace ng
