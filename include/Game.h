@@ -12,6 +12,7 @@ class InputEventHandler
 {
 public:
   virtual void run(sf::Event event) {}
+  virtual ~InputEventHandler() = default;
 };
 
 class Game : public NonCopyable

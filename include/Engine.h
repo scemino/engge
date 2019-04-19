@@ -20,7 +20,7 @@ class ScriptExecute;
 class SoundDefinition;
 class SoundManager;
 class TextureManager;
-class Verb;
+struct Verb;
 class VerbExecute;
 
 enum class CursorDirection

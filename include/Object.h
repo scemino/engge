@@ -71,7 +71,7 @@ public:
   void move(const sf::Vector2f &offset) override;
 
   void setRotation(float angle);
-  const float getRotation() const;
+  float getRotation() const;
 
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;

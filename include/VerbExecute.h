@@ -4,7 +4,7 @@ namespace ng
 {
 class InventoryObject;
 class Object;
-class Verb;
+struct Verb;
 
 class VerbExecute
 {

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
         // scriptEngine->executeBootScript();
 
         game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine, game->getWindow()));
-        game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine, game->getWindow()));
+        game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine));
         game->run();
     }
     catch (std::exception &e)

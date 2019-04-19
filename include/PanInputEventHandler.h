@@ -78,13 +78,11 @@ class PanInputEventHandler : public InputEventHandler
     sf::Vector2i _pos = sf::Mouse::getPosition();
 };
 
-class Engine;
-
 class EngineShortcutsInputEventHandler : public InputEventHandler
 {
   public:
-    EngineShortcutsInputEventHandler(ng::Engine &engine, sf::RenderWindow &window)
-        : _engine(engine), _window(window)
+    EngineShortcutsInputEventHandler(ng::Engine &engine)
+        : _engine(engine)
     {
     }
 
@@ -106,6 +104,5 @@ class EngineShortcutsInputEventHandler : public InputEventHandler
 
   private:
     ng::Engine &_engine;
-    sf::RenderWindow &_window;
 };
 } // namespace ng

@@ -117,7 +117,7 @@ HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
 std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_anims; }
 
 void Object::setRotation(float angle) { _transform.setRotation(angle); }
-const float Object::getRotation() const { return _transform.getRotation(); }
+float Object::getRotation() const { return _transform.getRotation(); }
 
 bool Object::isVisible() const { return pImpl->_isVisible; }
 
