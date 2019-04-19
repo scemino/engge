@@ -18,10 +18,12 @@ public:
 public:
     void execute(const std::string &code) override
     {
+        sq_resetobject(&_result);
         std::string c;
         c.append("return ");
         c.append(code);
         _pos = 0;
+        auto top = sq_gettop(_vm);
         // compile
         sq_pushroottable(_vm);
         if (SQ_FAILED(sq_compilebuffer(_vm, c.data(), c.size(), _SC("_DefaultScriptExecute"), SQTrue)))
@@ -36,37 +38,40 @@ public:
             std::cerr << "Error calling code " << code << std::endl;
             return;
         }
-        sq_pop(_vm, 1);
+        sq_getstackobj(_vm, -1, &_result);
+        sq_settop(_vm, top);
     }
 
     bool executeCondition(const std::string &code) override
     {
         execute(code);
-        // get the result
-        auto type = sq_gettype(_vm, -1);
-        SQInteger result;
-        if (SQ_FAILED(sq_getinteger(_vm, -1, &result)))
+        if (_result._type == OT_BOOL)
         {
-            std::cerr << "Error getting result " << code << std::endl;
-            return false;
+            std::cout << code << " returns " << sq_objtobool(&_result) << std::endl;
+            return sq_objtobool(&_result);
         }
-        std::cout << code << " returns " << result << std::endl;
-        return result != 0;
+
+        if (_result._type == OT_INTEGER)
+        {
+            std::cout << code << " returns " << sq_objtointeger(&_result) << std::endl;
+            return sq_objtointeger(&_result) != 0;
+        }
+
+        std::cerr << "Error getting result " << code << std::endl;
+        return false;
     }
 
     std::string executeDollar(const std::string &code) override
     {
         execute(code);
         // get the result
-        auto type = sq_gettype(_vm, -1);
-        const SQChar *result;
-        if (SQ_FAILED(sq_getstring(_vm, -1, &result)))
+        if (_result._type != OT_STRING)
         {
             std::cerr << "Error getting result " << code << std::endl;
             return "";
         }
-        std::cout << code << " returns " << result << std::endl;
-        return result;
+        std::cout << code << " returns " << sq_objtostring(&_result) << std::endl;
+        return sq_objtostring(&_result);
     }
 
     std::shared_ptr<SoundDefinition> getSoundDefinition(const std::string &name) override
@@ -91,6 +96,7 @@ public:
 private:
     static int _pos;
     HSQUIRRELVM _vm;
+    HSQOBJECT _result;
 };
 
 int _DefaultScriptExecute::_pos = 0;
@@ -235,7 +241,7 @@ class _VerbExecute : public Function
 {
 public:
     _VerbExecute(HSQUIRRELVM v, Actor &actor, Object &object, const std::string &verb)
-        : _vm(v), _actor(actor), _object(object), _verb(verb)
+        : _vm(v), _object(object), _verb(verb)
     {
     }
 
@@ -280,7 +286,6 @@ private:
 
 private:
     HSQUIRRELVM _vm;
-    Actor &_actor;
     Object &_object;
     const std::string &_verb;
     bool _done{false};
