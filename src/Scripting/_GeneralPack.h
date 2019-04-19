@@ -244,7 +244,7 @@ private:
 
     static SQInteger cameraPanTo(HSQUIRRELVM v)
     {
-        SQInteger x, y, interpolation;
+        SQInteger x, y, interpolation{0};
         SQFloat t;
         if (sq_gettype(v, 2) == OT_TABLE)
         {
@@ -253,8 +253,8 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get actor/object"));
             }
-            x = pEntity->getPosition().x;
-            y = pEntity->getPosition().y;
+            x = static_cast<int>(pEntity->getPosition().x);
+            y = static_cast<int>(pEntity->getPosition().y);
             if (SQ_FAILED(sq_getfloat(v, 3, &t)))
             {
                 return sq_throwerror(v, _SC("failed to get time"));
@@ -293,10 +293,10 @@ private:
         auto pos = g_pEngine->getCameraAt();
         sq_newtable(v);
         sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, pos.x);
+        sq_pushinteger(v, static_cast<int>(pos.x));
         sq_newslot(v, -3, SQFalse);
         sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, pos.y);
+        sq_pushinteger(v, static_cast<int>(pos.y));
         sq_newslot(v, -3, SQFalse);
         return 1;
     }
@@ -343,7 +343,7 @@ private:
         g_pEngine->addThread(thread);
 
         auto scene = std::make_unique<Cutscene>(*g_pEngine, v, threadObj, closureObj, closureCutsceneOverrideObj, env_obj);
-        g_pEngine->addFunction(std::move(scene));
+        g_pEngine->cutscene(std::move(scene));
 
         return sq_suspendvm(v);
     }

@@ -56,7 +56,7 @@ void ActorIcons::update(const sf::Time &elapsed)
         sf::FloatRect iconRect(Screen::Width - 16, 15, 16, 16);
         for (auto i = 0; i < _actorsIconSlots.size(); i++)
         {
-            const auto &selectableActor = _actorsIconSlots[i];
+            const auto &selectableActor = _actorsIconSlots.at(i);
             if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
                 continue;
 
@@ -87,7 +87,7 @@ int ActorIcons::getIconsNum() const
     int numIcons = 1;
     for (auto i = 0; i < _actorsIconSlots.size(); i++)
     {
-        const auto &selectableActor = _actorsIconSlots[i];
+        const auto &selectableActor = _actorsIconSlots.at(i);
         if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
             continue;
 
@@ -110,7 +110,7 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
         sf::Uint8 alpha = _isInside ? 0xFF : 0x60;
 
         auto i = getCurrentActorIndex();
-        const auto &icon = _actorsIconSlots[i].pActor->getIcon();
+        const auto &icon = _actorsIconSlots.at(i).pActor->getIcon();
 
         offset.y = getOffsetY(numIcons);
         drawActorIcon(target, icon, i, offset, alpha);
@@ -122,7 +122,7 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     for (auto i = 0; i < _actorsIconSlots.size(); i++)
     {
-        const auto &selectableActor = _actorsIconSlots[i];
+        const auto &selectableActor = _actorsIconSlots.at(i);
         if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
             continue;
 
@@ -190,7 +190,7 @@ int ActorIcons::getCurrentActorIndex() const
 {
     for (auto i = 0; i < _actorsIconSlots.size(); i++)
     {
-        const auto &selectableActor = _actorsIconSlots[i];
+        const auto &selectableActor = _actorsIconSlots.at(i);
         if (selectableActor.pActor == _pCurrentActor)
         {
             return i;

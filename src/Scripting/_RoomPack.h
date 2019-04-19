@@ -201,7 +201,7 @@ class _RoomPack : public Pack
         sq_pushstring(v, _SC("y"), -1);
         sq_pushinteger(v, size.y);
         sq_newslot(v, -3, SQFalse);
-        return 0;
+        return 1;
     }
 
     static SQInteger addTrigger(HSQUIRRELVM v)
@@ -253,6 +253,7 @@ class _RoomPack : public Pack
     static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
     {
         auto obj = ScriptEngine::getObject(v, 2);
+        std::wcout << L"enterRoomFromDoor " << obj->getName() << std::endl;
         return g_pEngine->enterRoomFromDoor(obj);
     }
 
@@ -480,11 +481,11 @@ class _RoomPack : public Pack
         // don't know if this is the best way to do this
         // but it seems that room objects and inventory objects are accessible
         // from the roottable
-        for (auto it = roomObjects.begin(); it != roomObjects.end(); it++)
+        for (auto &roomObject : roomObjects)
         {
             sq_pushroottable(v);
-            sq_pushstring(v, it->first.data(), -1);
-            sq_pushobject(v, it->second);
+            sq_pushstring(v, roomObject.first.data(), -1);
+            sq_pushobject(v, roomObject.second);
             sq_newslot(v, -3, SQFalse);
         }
 

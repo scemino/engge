@@ -33,7 +33,7 @@ SoundId::SoundId(const std::shared_ptr<SoundDefinition> &soundDefinition)
 
 SoundId::~SoundId()
 {
-    std::cerr << "delete SoundId" << std::endl;
+    std::cout << "delete SoundId" << std::endl;
     stop();
 }
 

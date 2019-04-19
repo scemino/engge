@@ -17,13 +17,13 @@ struct Verb
 class VerbSlot
 {
   public:
-    void setVerb(int index, const Verb &verb) { _verbs[index] = verb; }
-    const Verb &getVerb(int index) const { return _verbs[index]; }
+    void setVerb(int index, const Verb &verb) { _verbs.at(index) = verb; }
+    const Verb &getVerb(int index) const { return _verbs.at(index); }
     size_t getVerbIndex(int id) const
     {
-        for (size_t i = 0; i < 10; i++)
+        for (size_t i = 0; i < _verbs.size(); i++)
         {
-            if (_verbs[i].id == id)
+            if (_verbs.at(i).id == id)
                 return i;
         }
         return -1;

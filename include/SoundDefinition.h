@@ -23,7 +23,7 @@ public:
   explicit SoundDefinition(const std::string &path);
   ~SoundDefinition() override
   {
-    std::cerr << "delete SoundDefinition: " << _path << std::endl;
+    std::cout << "delete SoundDefinition: " << _path << std::endl;
   }
 
   void setSettings(EngineSettings &settings);

@@ -9,15 +9,14 @@ class _RoomTrigger : public Trigger
 {
   public:
     _RoomTrigger(Engine &engine, HSQUIRRELVM vm, Object &object, HSQOBJECT inside, HSQOBJECT outside)
-        : _engine(engine), _object(object), _v(vm), _inside(inside), _outside(outside), _isInside(false),
-         _insideParamsCount(0), _outsideParamsCount(0), _insideName(nullptr), _outsideName(nullptr)
+        : _engine(engine), _object(object), _v(vm), _inside(inside), _outside(outside)
     {
         sq_addref(_v, &inside);
         sq_addref(_v, &outside);
         sq_resetobject(&thread_obj);
 
         SQInteger top = sq_gettop(vm);
-        auto thread = sq_newthread(_v, 1024);
+        sq_newthread(_v, 1024);
         if (SQ_FAILED(sq_getstackobj(_v, -1, &thread_obj)))
         {
             std::cerr << "Couldn't get coroutine thread from stack" << std::endl;
@@ -40,10 +39,11 @@ class _RoomTrigger : public Trigger
         }
         sq_settop(_v, top);
 
-        std::wcout << L"Add room " << L" trigger (" << _object.getName() << L")" << std::endl;
+        std::wcout << L"Add room trigger (" << _object.getName() << L")" << std::endl;
     }
     ~_RoomTrigger() override
     {
+        std::wcout << L"Delete room trigger (" << _object.getName() << L")" << std::endl;
         // sq_release(_v, &thread_obj);
         // sq_release(_v, &_inside);
         // sq_release(_v, &_outside);
@@ -116,10 +116,10 @@ class _RoomTrigger : public Trigger
 
     void callTrigger(std::vector<HSQOBJECT> &params, const std::string &name)
     {
-        SQInteger top = sq_gettop(thread_obj._unVal.pThread);
-        for (size_t i = 0; i < params.size(); i++)
+        auto top = sq_gettop(thread_obj._unVal.pThread);
+        for (auto param : params)
         {
-            sq_pushobject(thread_obj._unVal.pThread, params[i]);
+            sq_pushobject(thread_obj._unVal.pThread, param);
         }
 
         std::wcout << L"call room " << towstring(name) << L" trigger (" << _object.getName() << L")" << std::endl;
@@ -139,10 +139,10 @@ class _RoomTrigger : public Trigger
     HSQOBJECT _inside;
     HSQOBJECT _outside;
     HSQOBJECT thread_obj;
-    bool _isInside;
-    SQInteger _insideParamsCount;
-    SQInteger _outsideParamsCount;
-    const SQChar *_insideName;
-    const SQChar *_outsideName;
+    bool _isInside{false};
+    SQInteger _insideParamsCount{0};
+    SQInteger _outsideParamsCount{0};
+    const SQChar *_insideName{nullptr};
+    const SQChar *_outsideName{nullptr};
 };
 } // namespace ng

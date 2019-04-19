@@ -14,7 +14,7 @@ std::shared_ptr<SoundId> SoundManager::getSound(size_t index)
 {
     if (index < 1 || index > _soundIds.size())
         return nullptr;
-    return _soundIds[index - 1];
+    return _soundIds.at(index - 1);
 }
 
 std::shared_ptr<SoundDefinition> SoundManager::getSoundDefinition(void *pSoundDefinition)
@@ -40,7 +40,7 @@ int SoundManager::getSlotIndex()
 {
     for (size_t i = 0; i < _soundIds.size(); i++)
     {
-        if (_soundIds[i] == nullptr || !_soundIds[i]->isPlaying())
+        if (_soundIds.at(i) == nullptr || !_soundIds.at(i)->isPlaying())
             return i;
     }
     return -1;
@@ -68,7 +68,7 @@ std::shared_ptr<SoundId> SoundManager::playSound(std::shared_ptr<SoundDefinition
     }
     std::cout << " [" << index << "]"
               << "play sound " << soundDefinition->getPath() << std::endl;
-    _soundIds[index] = soundId;
+    _soundIds.at(index) = soundId;
     soundId->play(loop);
     return soundId;
 }
@@ -84,7 +84,7 @@ std::shared_ptr<SoundId> SoundManager::loopMusic(std::shared_ptr<SoundDefinition
     }
     std::cout << " [" << index << "]"
               << "loop music " << soundDefinition->getPath() << std::endl;
-    _soundIds[index] = soundId;
+    _soundIds.at(index) = soundId;
     soundId->play(true);
     return soundId;
 }
@@ -92,12 +92,12 @@ std::shared_ptr<SoundId> SoundManager::loopMusic(std::shared_ptr<SoundDefinition
 void SoundManager::stopAllSounds()
 {
     std::cout << "stopAllSounds" << std::endl;
-    for (size_t i = 0; i <= _soundIds.size(); i++)
+    for (size_t i = 0; i < _soundIds.size(); i++)
     {
-        if (_soundIds[i] != nullptr)
+        if (_soundIds.at(i) != nullptr)
         {
-            _soundIds[i]->stop();
-            _soundIds[i].reset();
+            _soundIds.at(i)->stop();
+            _soundIds.at(i).reset();
         }
     }
 }
@@ -108,10 +108,10 @@ void SoundManager::stopSound(std::shared_ptr<SoundId> sound)
     sound->stop();
     for (size_t i = 0; i < _soundIds.size(); i++)
     {
-        if (_soundIds[i] != nullptr && _soundIds[i] == sound)
+        if (_soundIds.at(i) != nullptr && _soundIds.at(i) == sound)
         {
-            _soundIds[i]->stop();
-            _soundIds[i] = nullptr;
+            _soundIds.at(i)->stop();
+            _soundIds.at(i) = nullptr;
             return;
         }
     }
@@ -136,7 +136,7 @@ void SoundManager::setVolume(std::shared_ptr<SoundDefinition> soundDef, float vo
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);
-        if (soundDef == sound->getSoundDefinition())
+        if (sound && soundDef == sound->getSoundDefinition())
         {
             sound->setVolume(volume);
         }

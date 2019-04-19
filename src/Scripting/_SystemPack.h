@@ -345,6 +345,7 @@ class _BreakTimeFunction : public TimeFunction
   private:
     HSQUIRRELVM _vm;
     Engine &_engine;
+    bool _done{false};
 
   public:
     _BreakTimeFunction(Engine &engine, HSQUIRRELVM vm, const sf::Time &time)
@@ -354,9 +355,11 @@ class _BreakTimeFunction : public TimeFunction
 
     void operator()(const sf::Time &elapsed) override
     {
+        if(_done) return;
         TimeFunction::operator()(elapsed);
         if (isElapsed())
         {
+            _done = true;
             if (!_engine.isThreadAlive(_vm))
                 return;
             if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
@@ -435,8 +438,8 @@ class _SystemPack : public Pack
         engine.registerGlobalFunction(inputSilentOff, "inputSilentOff");
         engine.registerGlobalFunction(inputState, "inputState");
         engine.registerGlobalFunction(isInputOn, "isInputOn");
-        engine.registerGlobalFunction(isString, "is_string");
-        engine.registerGlobalFunction(isTable, "is_table");
+        engine.registerGlobalFunction(is_string, "is_string");
+        engine.registerGlobalFunction(is_table, "is_table");
         engine.registerGlobalFunction(ord, "ord");
         engine.registerGlobalFunction(inputController, "inputController");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
@@ -939,7 +942,7 @@ class _SystemPack : public Pack
         return 0;
     }
 
-    static SQInteger isTable(HSQUIRRELVM v)
+    static SQInteger is_table(HSQUIRRELVM v)
     {
         sq_pushbool(v, sq_gettype(v, 2) == OT_TABLE ? SQTrue : SQFalse);
         return 1;
@@ -956,7 +959,7 @@ class _SystemPack : public Pack
         return 1;
     }
 
-    static SQInteger isString(HSQUIRRELVM v)
+    static SQInteger is_string(HSQUIRRELVM v)
     {
         HSQOBJECT object;
         sq_resetobject(&object);

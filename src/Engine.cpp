@@ -405,6 +405,8 @@ sf::IntRect Engine::Impl::getVerbRect(int id, std::string lang, bool isRetro) co
 const Verb *Engine::getVerb(int id) const
 {
     auto index = _pImpl->getCurrentActorIndex();
+    if (index < 0)
+        return nullptr;
     for (auto i = 0; i < 10; i++)
     {
         const auto &verb = _pImpl->_verbSlots.at(index).getVerb(i);

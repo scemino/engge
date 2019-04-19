@@ -301,7 +301,6 @@ ScriptEngine::ScriptEngine(Engine &engine)
 
 ScriptEngine::~ScriptEngine()
 {
-    sq_pop(v, 1);
     sq_close(v);
 }
 
@@ -418,37 +417,53 @@ void ScriptEngine::executeScript(const std::string &name)
 void ScriptEngine::executeNutScript(const std::string &name)
 {
     std::vector<char> code;
-    auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
-    _engine.getSettings().readEntry(entryName, code);
 
-    // decode bnut
-    int cursor = code.size() & 0xff;
-    for (auto i = 0; i < code.size(); i++)
+    std::ifstream is(name);
+    if (is.is_open())
     {
-        code[i] ^= _bnutPass[cursor];
-        cursor = (cursor + 1) % 4096;
+        std::cout << "Load local file file " << name << std::endl;
+        is.seekg(-1, std::ios::end);
+        auto len = (size_t)is.tellg();
+        is.seekg(0, std::ios::beg);
+        code.resize(len + 1);
+        is.read(code.data(), len);
+    }
+    else
+    {
+        auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
+        _engine.getSettings().readEntry(entryName, code);
+
+        // decode bnut
+        int cursor = code.size() & 0xff;
+        for (auto i = 0; i < code.size(); i++)
+        {
+            code[i] ^= _bnutPass[cursor];
+            cursor = (cursor + 1) % 4096;
+        }
     }
 
-#if 0
+#if 1
     std::ofstream o;
     o.open(name);
     o.write(code.data(), code.size());
     o.close();
 #endif
-
+    auto top = sq_gettop(v);
+    sq_pushroottable(v);
     if (SQ_FAILED(sq_compilebuffer(v, code.data(), code.size() - 1, _SC(name.data()), SQTrue)))
     {
         std::cerr << "Error compiling " << name << std::endl;
         return;
     }
-
+    sq_push(v, -2);
     // call
-    sq_pushroottable(v);
     if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
     {
         std::cerr << "Error calling " << name << std::endl;
+        sqstd_printcallstack(v);
         return;
     }
+    sq_settop(v, top);
 }
 
 void ScriptEngine::executeBootScript()

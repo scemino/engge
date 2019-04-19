@@ -70,7 +70,7 @@ int Inventory::getCurrentActorIndex() const
 {
     for (auto i = 0; i < _actorsIconSlots.size(); i++)
     {
-        const auto &selectableActor = _actorsIconSlots[i];
+        const auto &selectableActor = _actorsIconSlots.at(i);
         if (selectableActor.pActor == _pCurrentActor)
         {
             return i;
@@ -89,7 +89,7 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const
     sf::Vector2f scrollUpSize(rect.width * ratio.x, rect.height * ratio.y);
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
     sf::RectangleShape scrollUpShape;
-    scrollUpShape.setFillColor(_verbUiColors[currentActorIndex].verbNormal);
+    scrollUpShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
     scrollUpShape.setPosition(scrollUpPosition);
     scrollUpShape.setSize(scrollUpSize);
     scrollUpShape.setTexture(&_gameSheet.getTexture());
@@ -108,7 +108,7 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const
 
     auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
     sf::RectangleShape scrollDownShape;
-    scrollDownShape.setFillColor(_verbUiColors[currentActorIndex].verbNormal);
+    scrollDownShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
     scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
     scrollDownShape.setSize(scrollUpSize);
     scrollDownShape.setTexture(&_gameSheet.getTexture());
@@ -131,7 +131,7 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     auto inventoryFrameRect = _gameSheet.getRect("inventory_background");
     sf::RectangleShape inventoryShape;
-    sf::Color c(_verbUiColors[currentActorIndex].inventoryBackground);
+    sf::Color c(_verbUiColors.at(currentActorIndex).inventoryBackground);
     c.a = 128;
     inventoryShape.setFillColor(c);
     inventoryShape.setTexture(&_gameSheet.getTexture());
