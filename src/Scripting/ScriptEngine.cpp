@@ -49,16 +49,6 @@ void ScriptEngine::pushValue(SQFloat value)
 }
 
 template <typename TConstant>
-void ScriptEngine::registerConstant(const SQChar *name, TConstant value)
-{
-    sq_pushconsttable(v);
-    sq_pushstring(v, name, -1);
-    pushValue(value);
-    sq_newslot(v, -3, SQTrue);
-    sq_pop(v, 1);
-}
-
-template <typename TConstant>
 void ScriptEngine::registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list)
 {
     for (auto t : list)
@@ -161,7 +151,7 @@ static Platform _getPlatform()
 ScriptEngine::ScriptEngine(Engine &engine)
     : _engine(engine)
 {
-    v = sq_open(1024);
+    v = sq_open(1024*2);
     _engine.setVm(v);
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
@@ -439,7 +429,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
         cursor = (cursor + 1) % 4096;
     }
 
-#if 1
+#if 0
     std::ofstream o;
     o.open(name);
     o.write(code.data(), code.size());

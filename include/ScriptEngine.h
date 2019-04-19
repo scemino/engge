@@ -12,7 +12,7 @@ class Pack
 {
 public:
   virtual void addTo(ScriptEngine &engine) const = 0;
-  virtual ~Pack() {}
+  virtual ~Pack() = default;
 };
 class ScriptEngine
 {
@@ -24,8 +24,6 @@ public:
 
   template <typename TConstant>
   void pushValue(TConstant value);
-  template <typename TConstant>
-  void registerConstant(const SQChar *name, TConstant value);
   template <typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar*, TConstant>> list);
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);

@@ -3,7 +3,9 @@
 */
 #include "sqpcheader.h"
 #include <math.h>
+#include <sstream>
 #include <stdlib.h>
+#include <stdexcept>
 #include "sqopcodes.h"
 #include "sqvm.h"
 #include "sqfuncproto.h"
@@ -1719,21 +1721,31 @@ void SQVM::Remove(SQInteger n) {
 }
 
 void SQVM::Pop() {
+    CheckStackAccess(_top-1);
     _stack[--_top].Null();
 }
 
 void SQVM::Pop(SQInteger n) {
     for(SQInteger i = 0; i < n; i++){
+        CheckStackAccess(_top-1);
         _stack[--_top].Null();
     }
 }
 
-void SQVM::PushNull() { _stack[_top++].Null(); }
-void SQVM::Push(const SQObjectPtr &o) { _stack[_top++] = o; }
-SQObjectPtr &SQVM::Top() { return _stack[_top-1]; }
-SQObjectPtr &SQVM::PopGet() { return _stack[--_top]; }
-SQObjectPtr &SQVM::GetUp(SQInteger n) { return _stack[_top+n]; }
-SQObjectPtr &SQVM::GetAt(SQInteger n) { return _stack[n]; }
+void SQVM::PushNull() { CheckStackAccess(_top+1); _stack[_top++].Null(); }
+void SQVM::Push(const SQObjectPtr &o) { CheckStackAccess(_top+1); _stack[_top++] = o; }
+SQObjectPtr &SQVM::Top() { CheckStackAccess(_top-1); return _stack[_top-1]; }
+SQObjectPtr &SQVM::PopGet() { CheckStackAccess(_top-1); return _stack[--_top]; }
+SQObjectPtr &SQVM::GetUp(SQInteger n) { CheckStackAccess(_top+n); return _stack[_top+n]; }
+SQObjectPtr &SQVM::GetAt(SQInteger n) { CheckStackAccess(n); return _stack[n]; }
+
+void SQVM::CheckStackAccess(SQInteger n) {
+    if(n < 0 || n >= _stack.size()){
+        std::ostringstream s;
+        s << "Stack of the VM accessed with n=" << n << " and stacksize=" << _stack.size();
+        throw std::out_of_range(s.str());
+    }
+}
 
 #ifdef _DEBUG_DUMP
 void SQVM::dumpstack(SQInteger stackbase,bool dumpall)
