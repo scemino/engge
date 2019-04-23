@@ -43,8 +43,8 @@ struct Object::Impl
           _isTouchable(true),
           _pRoom(nullptr),
           _state(0),
-          _hotspotVisible(false),
-          _verb(1)
+          _verb(1),
+          _hotspotVisible(false)
     {
     }
 };
@@ -127,9 +127,16 @@ void Object::setRoom(Room *pRoom) { pImpl->_pRoom = pRoom; }
 
 void Object::setHotspotVisible(bool isVisible) { pImpl->_hotspotVisible = isVisible; }
 
-void Object::addTrigger(std::shared_ptr<Trigger> trigger) { pImpl->_triggers.push_back(trigger); }
-void Object::removeTrigger() { pImpl->_triggers.clear(); }
-Trigger *Object::getTrigger() { return pImpl->_triggers.size() > 0 ? pImpl->_triggers[0].get() : nullptr; }
+void Object::addTrigger(const std::shared_ptr<Trigger> &trigger) { pImpl->_triggers.push_back(trigger); }
+void Object::removeTrigger()
+{
+    for (auto &trigger : pImpl->_triggers)
+    {
+        trigger->disable();
+    }
+}
+
+Trigger *Object::getTrigger() { return !pImpl->_triggers.empty() ? pImpl->_triggers[0].get() : nullptr; }
 void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 
 bool Object::isTouchable() const
@@ -166,7 +173,6 @@ void Object::setVisible(bool isVisible)
 sf::IntRect Object::getRealHotspot() const
 {
     auto rect = getHotspot();
-    auto pos = getPosition();
     return (sf::IntRect)_transform.getTransform().transformRect((sf::FloatRect)rect);
 }
 
@@ -180,10 +186,14 @@ void Object::setStateAnimIndex(int animIndex)
         pImpl->_isTouchable = false;
         pImpl->_isVisible = false;
     }
+    else if (animIndex == 0)
+    {
+        pImpl->_isVisible = true;
+    }
     setAnimation(s.str());
 }
 
-void Object::playAnim(const std::string& anim, bool loop)
+void Object::playAnim(const std::string &anim, bool loop)
 {
     setAnimation(anim);
     pImpl->_pAnim->play(loop);
@@ -225,7 +235,7 @@ void Object::setAnimation(const std::string &name)
     sprite.setColor(pImpl->_color);
 }
 
-std::optional<Animation>& Object::getAnimation()
+std::optional<Animation> &Object::getAnimation()
 {
     return pImpl->_pAnim;
 }

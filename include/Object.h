@@ -90,7 +90,7 @@ public:
   void setHotspotVisible(bool isVisible);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
-  void addTrigger(std::shared_ptr<Trigger> trigger);
+  void addTrigger(const std::shared_ptr<Trigger>& trigger);
   void removeTrigger();
   Trigger* getTrigger();
   void enableTrigger(bool enabled);
