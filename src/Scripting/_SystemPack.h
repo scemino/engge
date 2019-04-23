@@ -45,13 +45,12 @@ class _StopThread : public Function
 class _WakeupThread : public Function
 {
   private:
-    Engine &_engine;
     HSQUIRRELVM _vm;
     bool _done;
 
   public:
-    _WakeupThread(Engine &engine, HSQUIRRELVM vm)
-        : _engine(engine), _vm(vm), _done(false)
+    explicit _WakeupThread(HSQUIRRELVM vm)
+        : _vm(vm), _done(false)
     {
     }
 
@@ -113,7 +112,7 @@ class _BreakFunction : public Function
             return;
         }
 
-        auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
+        auto wakeupThread = std::make_unique<_WakeupThread>(_vm);
         _engine.addFunction(std::move(wakeupThread));
     }
 };
@@ -135,13 +134,12 @@ class _BreakHereFunction : public _BreakFunction
 class _BreakWhileAnimatingFunction : public _BreakFunction
 {
   private:
-    Actor &_actor;
     std::string _name;
     CostumeAnimation *_pAnimation;
 
   public:
     _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
-        : _BreakFunction(engine, vm), _actor(actor), _pAnimation(actor.getCostume().getAnimation())
+        : _BreakFunction(engine, vm), _pAnimation(actor.getCostume().getAnimation())
     {
         if (_pAnimation)
         {
@@ -163,12 +161,11 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
 class _BreakWhileAnimatingObjectFunction : public _BreakFunction
 {
   private:
-    Object &_object;
     std::optional<Animation>& _animation;
 
   public:
     _BreakWhileAnimatingObjectFunction(Engine &engine, HSQUIRRELVM vm, Object &object)
-        : _BreakFunction(engine, vm), _object(object), _animation(object.getAnimation())
+        : _BreakFunction(engine, vm), _animation(object.getAnimation())
     {
     }
 
@@ -271,7 +268,7 @@ class _BreakWhileRunningFunction : public Function
         if (!_engine.isThreadAlive(_thread) || sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
         {
             _engine.stopThread(_thread);
-            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
+            auto wakeupThread = std::make_unique<_WakeupThread>(_vm);
             _engine.addFunction(std::move(wakeupThread));
             _done = true;
         }
@@ -365,7 +362,7 @@ class _BreakTimeFunction : public TimeFunction
             if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
                 return;
 
-            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
+            auto wakeupThread = std::make_unique<_WakeupThread>(_vm);
             _engine.addFunction(std::move(wakeupThread));
         }
     }

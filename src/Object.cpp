@@ -71,28 +71,14 @@ void Object::setProp(bool prop)
     pImpl->_prop = prop;
 }
 
-bool Object::getProp() const
-{
-    return pImpl->_prop;
-}
-
 void Object::setSpot(bool spot)
 {
     pImpl->_spot = spot;
 }
 
-bool Object::getSpot() const
-{
-    return pImpl->_spot;
-}
-
 void Object::setTrigger(bool trigger)
 {
     pImpl->_trigger = trigger;
-}
-bool Object::getTrigger() const
-{
-    return pImpl->_trigger;
 }
 
 void Object::setTouchable(bool isTouchable) { pImpl->_isTouchable = isTouchable; }
@@ -119,13 +105,9 @@ std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_ani
 void Object::setRotation(float angle) { _transform.setRotation(angle); }
 float Object::getRotation() const { return _transform.getRotation(); }
 
-bool Object::isVisible() const { return pImpl->_isVisible; }
-
 Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
 void Object::setRoom(Room *pRoom) { pImpl->_pRoom = pRoom; }
-
-void Object::setHotspotVisible(bool isVisible) { pImpl->_hotspotVisible = isVisible; }
 
 void Object::addTrigger(const std::shared_ptr<Trigger> &trigger) { pImpl->_triggers.push_back(trigger); }
 void Object::removeTrigger()
@@ -208,15 +190,6 @@ void Object::playAnim(int animIndex, bool loop)
 int Object::getState()
 {
     return pImpl->_state;
-}
-
-int Object::getStateAnimIndex()
-{
-    if (!pImpl->_pAnim.has_value())
-        return -1;
-    if (pImpl->_pAnim->getName().find("state") == std::string::npos)
-        return -1;
-    return static_cast<int>(std::strtol(pImpl->_pAnim->getName().c_str() + 5, nullptr, 10));
 }
 
 void Object::setAnimation(const std::string &name)

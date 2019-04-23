@@ -70,7 +70,7 @@ void CostumeLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
         return;
 
     auto frame = getIndex();
-    if (_frames.size() == 0)
+    if (_frames.empty())
         return;
     auto rect = _frames[frame];
     auto sourceRect = (sf::FloatRect)_sourceFrames[frame];

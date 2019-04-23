@@ -151,12 +151,10 @@ std::shared_ptr<Graph> PathFinder::createGraph()
 {
     _sharedLines.clear();
 
-    for (int i1 = 0; i1 < _walkboxes.size(); i1++)
+    for (const auto & w1 : _walkboxes)
     {
-        const auto &w1 = _walkboxes[i1];
-        for (int i2 = 0; i2 < _walkboxes.size(); i2++)
+        for (const auto & w2 : _walkboxes)
         {
-            const auto &w2 = _walkboxes[i2];
             for (auto i = 0; i < w1.getVertices().size(); i++)
             {
                 auto v1 = w1.getVertex(i);
@@ -167,7 +165,7 @@ std::shared_ptr<Graph> PathFinder::createGraph()
                     auto v2p = w2.getVertex(i);
                     if (v2 == v2p)
                     {
-                        _sharedLines.push_back(std::make_pair(v1, v2));
+                        _sharedLines.emplace_back(v1, v2);
                     }
                 }
             }
@@ -292,6 +290,7 @@ std::vector<sf::Vector2i> PathFinder::calculatePath(sf::Vector2i from, sf::Vecto
     _AstarAlgorithm astar(walkgraph, startNodeIndex, endNodeIndex);
     auto indices = astar.getPath();
     std::vector<sf::Vector2i> path;
+    path.reserve(indices.size());
     for (auto i : indices)
     {
         path.push_back(walkgraph.nodes[i]);

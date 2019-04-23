@@ -147,7 +147,7 @@ void GGPack::readPack()
     _input.read(&buf[0], dataSize);
 
     // try to detect correct method to decode data
-    int sig;
+    int sig = 0;
     for (_method = 3; _method >= 0; _method--)
     {
         _input.seekg(dataOffset, std::ios::beg);
@@ -172,7 +172,7 @@ void GGPack::readPack()
     for (size_t i = 0; i < len; i++)
     {
         auto filename = entries["files"][i]["filename"].string_value;
-        GGPackEntry entry;
+        GGPackEntry entry{};
         entry.offset = entries["files"][i]["offset"].int_value;
         entry.size = entries["files"][i]["size"].int_value;
         _entries.insert(std::pair<std::string, GGPackEntry>(filename, entry));
@@ -293,10 +293,10 @@ void GGPack::readValue(GGPackValue &value)
         readString(plo_idx_int, num_str);
         if (value.type == 5)
         {
-            value.int_value = std::atoi(num_str.data());
+            value.int_value = std::strtol(num_str.data(),nullptr,10);
             return;
         }
-        value.double_value = std::atof(num_str.data());
+        value.double_value = std::strtod(num_str.data(), nullptr);
         return;
     }
     default:
@@ -359,4 +359,4 @@ void GGPack::getOffsets()
         _offsets.push_back(offset);
     } while (true);
 }
-}; // namespace ng
+} // namespace ng

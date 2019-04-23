@@ -21,8 +21,8 @@ public:
   sf::IntRect getSize(char letter) const;
 
 private:
-  EngineSettings *_settings;
-  TextureManager *_textureManager;
+  EngineSettings *_settings{nullptr};
+  TextureManager *_textureManager{nullptr};
   std::string _path;
   std::string _jsonFilename;
   nlohmann::json _json;
@@ -46,7 +46,7 @@ public:
   sf::FloatRect getBoundRect() const;
 
 private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states = sf::RenderStates::Default) const override;
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   Font _font;

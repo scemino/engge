@@ -16,8 +16,8 @@ enum class AnimState
 class Animation : public sf::Drawable
 {
 public:
-  explicit Animation(const sf::Texture &texture, const std::string &name);
-  ~Animation();
+  explicit Animation(const sf::Texture &texture, std::string name);
+  ~Animation() override;
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
@@ -27,7 +27,6 @@ public:
   std::vector<sf::IntRect> &getSourceRects() { return _sourceRects; }
   std::vector<std::optional<int>> &getTriggers() { return _triggers; }
 
-  int getFps() const { return _fps; }
   void setFps(int fps) { _fps = fps; }
 
   void update(const sf::Time &elapsed);
@@ -57,7 +56,7 @@ private:
   sf::Time _time;
   size_t _index;
   AnimState _state;
-  bool _loop;
-  Object *_pObject;
+  bool _loop{false};
+  Object *_pObject{nullptr};
 };
 } // namespace ng

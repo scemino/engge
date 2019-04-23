@@ -2,29 +2,29 @@
 
 namespace ng
 {
-Ast::Node::~Node() {}
-Ast::Expression::~Expression() {}
-Ast::Condition::~Condition() {}
-Ast::CodeCondition::~CodeCondition() {}
-Ast::OnceCondition::~OnceCondition() {}
-Ast::ShowOnceCondition::~ShowOnceCondition() {}
-Ast::OnceEverCondition::~OnceEverCondition() {}
-Ast::Statement::~Statement() {}
-Ast::Goto::~Goto() {}
-Ast::Code::~Code() {}
-Ast::Choice::~Choice() {}
-Ast::Say::~Say() {}
-Ast::Pause::~Pause() {}
-Ast::Parrot::~Parrot() {}
-Ast::Dialog::~Dialog() {}
-Ast::Override::~Override() {}
-Ast::Shutup::~Shutup() {}
-Ast::AllowObjects::~AllowObjects() {}
-Ast::Limit::~Limit() {}
-Ast::WaitWhile::~WaitWhile() {}
-Ast::WaitFor::~WaitFor() {}
-Ast::Label::~Label() {}
-Ast::CompilationUnit::~CompilationUnit() {}
+Ast::Node::~Node() = default;
+Ast::Expression::~Expression() = default;
+Ast::Condition::~Condition() = default;
+Ast::CodeCondition::~CodeCondition() = default;
+Ast::OnceCondition::~OnceCondition() = default;
+Ast::ShowOnceCondition::~ShowOnceCondition() = default;
+Ast::OnceEverCondition::~OnceEverCondition() = default;
+Ast::Statement::~Statement() = default;
+Ast::Goto::~Goto() = default;
+Ast::Code::~Code() = default;
+Ast::Choice::~Choice() = default;
+Ast::Say::~Say() = default;
+Ast::Pause::~Pause() = default;
+Ast::Parrot::~Parrot() = default;
+Ast::Dialog::~Dialog() = default;
+Ast::Override::~Override() = default;
+Ast::Shutup::~Shutup() = default;
+Ast::AllowObjects::~AllowObjects() = default;
+Ast::Limit::~Limit() = default;
+Ast::WaitWhile::~WaitWhile() = default;
+Ast::WaitFor::~WaitFor() = default;
+Ast::Label::~Label() = default;
+Ast::CompilationUnit::~CompilationUnit() = default;
     
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
@@ -104,7 +104,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseExpression()
 {
     if (match({TokenId::Identifier, TokenId::Colon, TokenId::String}))
         return parseSayExpression();
-        if (match({TokenId::WaitWhile}))
+    if (match({TokenId::WaitWhile}))
         return parseWaitWhileExpression();
     if (match({TokenId::Identifier}))
         return parseInstructionExpression();
@@ -160,7 +160,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
     else if (identifier == "pause")
     {
         // pause number
-        auto time = std::atof(_reader.readText(*_it++).data());
+        auto time = std::strtod(_reader.readText(*_it++).data(), nullptr);
         auto pExp = std::make_unique<Ast::Pause>();
         pExp->time = time;
         return pExp;
@@ -227,7 +227,7 @@ std::unique_ptr<Ast::Expression> YackParser::parseInstructionExpression()
         if (_it->id == TokenId::Number)
         {
             auto node = _reader.readText(*_it++);
-            pExp->max = std::atoi(node.c_str());
+            pExp->max = std::strtol(node.c_str(),nullptr,10);
         }
         return pExp;
     }
@@ -253,7 +253,7 @@ std::unique_ptr<Ast::Code> YackParser::parseCodeExpression()
 
 std::unique_ptr<Ast::Choice> YackParser::parseChoiceExpression()
 {
-    auto number = std::atoi(_reader.readText(*_it).data());
+    auto number = std::strtol(_reader.readText(*_it).data(),nullptr,10);
     _it++;
     std::string text;
     if (_it->id == TokenId::Dollar)

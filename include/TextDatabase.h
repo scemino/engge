@@ -12,14 +12,10 @@ public:
 
   void setSettings(EngineSettings& settings);
   void load(const std::string &path);
-  std::wstring getText(int id) const
-  {
-    const auto it = _texts.find(id);
-    return it->second;
-  }
+  std::wstring getText(int id) const;
 
 private:
   std::map<int, std::wstring> _texts;
-  EngineSettings *_pSettings;
+  EngineSettings *_pSettings{nullptr};
 };
 } // namespace ng

@@ -58,7 +58,7 @@ YackTokenReader::Iterator &YackTokenReader::Iterator::operator++()
     return *this;
 }
 
-YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int)
+const YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int)
 {
     Iterator tmp(*this);
     operator++();
@@ -68,6 +68,11 @@ YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int)
 Token &YackTokenReader::Iterator::operator*()
 {
     return _token;
+}
+
+const Token &YackTokenReader::Iterator::operator*() const
+{
+  return _token;
 }
 
 Token *YackTokenReader::Iterator::operator->()
@@ -80,7 +85,7 @@ void YackTokenReader::load(const std::string &path)
     std::vector<char> buffer;
     _pSettings->readEntry(path, buffer);
 
-#if 0
+#if 1
     std::ofstream o;
     o.open(path);
     o.write(buffer.data(), buffer.size());

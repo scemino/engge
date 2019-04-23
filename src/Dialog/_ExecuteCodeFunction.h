@@ -1,3 +1,5 @@
+#include <utility>
+
 #pragma once
 #include "Function.h"
 
@@ -6,8 +8,8 @@ namespace ng
 class _ExecuteCodeFunction : public Function
 {
 public:
-  _ExecuteCodeFunction(Engine &engine, const std::string &code)
-      : _engine(engine), _code(code), _done(false)
+  _ExecuteCodeFunction(Engine &engine, std::string code)
+      : _engine(engine), _code(std::move(code))
   {
   }
 
@@ -24,6 +26,6 @@ public:
 private:
   Engine &_engine;
   std::string _code;
-  bool _done;
+  bool _done{false};
 };
 } // namespace ng

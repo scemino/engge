@@ -15,7 +15,7 @@ class AstVisitor;
 class Node
 {
 protected:
-  Node() {}
+  Node() = default;
 
 public:
   virtual ~Node();
@@ -27,60 +27,60 @@ public:
 class Expression : public Node
 {
 protected:
-  Expression() {}
+  Expression() = default;
 
 public:
-  virtual ~Expression() override;
+  ~Expression() override;
 };
 
 class Condition : public Node
 {
 protected:
-  Condition() {}
+  Condition() = default;
 public:
-  virtual ~Condition() override;
+  ~Condition() override;
 };
 class CodeCondition : public Condition
 {
 public:
-  CodeCondition() {}
-  virtual ~CodeCondition() override;
+  CodeCondition() = default;
+  ~CodeCondition() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 
   std::string code;
 };
 class OnceCondition : public Condition
 {
 public:
-  OnceCondition() {}
-  virtual ~OnceCondition() override;  
+  OnceCondition() = default;
+  ~OnceCondition() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 };
 class ShowOnceCondition : public Condition
 {
 public:
-  ShowOnceCondition() {}
-  virtual ~ShowOnceCondition() override;
+  ShowOnceCondition() = default;
+  ~ShowOnceCondition() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 };
 class OnceEverCondition : public Condition
 {
 public:
-  OnceEverCondition() {}
-  virtual ~OnceEverCondition() override;
+  OnceEverCondition() = default;
+  ~OnceEverCondition() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 };
 class Statement : public Node
 {
 public:
-  Statement() {}
-  virtual ~Statement() override;
+  Statement() = default;
+  ~Statement() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 
   std::unique_ptr<Expression> expression;
   std::vector<std::unique_ptr<Condition>> conditions;
@@ -88,28 +88,28 @@ public:
 class Goto : public Expression
 {
 public:
-  Goto() {}
-  virtual ~Goto() override;
+  Goto() = default;
+  ~Goto() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string name;
 };
 class Code : public Expression
 {
 public:
-  Code() {}
-  virtual ~Code() override;
+  Code() = default;
+  ~Code() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string code;
 };
 class Choice : public Expression
 {
 public:
-  Choice() {}
-  virtual ~Choice() override;
+  Choice() = default;
+  ~Choice() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   int number{0};
   std::string text;
   std::unique_ptr<Goto> gotoExp;
@@ -117,110 +117,110 @@ public:
 class Say : public Expression
 {
 public:
-  Say() {}
-  virtual ~Say() override;
+  Say() = default;
+  ~Say() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string actor;
   std::string text;
 };
 class Pause : public Expression
 {
 public:
-  Pause() {}
-  virtual ~Pause() override;
+  Pause() = default;
+  ~Pause() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   float time{0};
 };
 class Parrot : public Expression
 {
 public:
-  Parrot() {}
-  virtual ~Parrot() override;
+  Parrot() = default;
+  ~Parrot() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   bool active{true};
 };
 class Dialog : public Expression
 {
 public:
-  Dialog() {}
-  virtual ~Dialog() override;
+  Dialog() = default;
+  ~Dialog() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string actor;
 };
 class Override : public Expression
 {
 public:
-  Override() {}
-  virtual ~Override() override;
+  Override() = default;
+  ~Override() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string node;
 };
 class Shutup : public Expression
 {
 public:
-  Shutup() {}
-  virtual ~Shutup() override;
+  Shutup() = default;
+  ~Shutup() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 };
 class AllowObjects : public Expression
 {
 public:
-  AllowObjects() {}
-  virtual ~AllowObjects() override;
+  AllowObjects() = default;
+  ~AllowObjects() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   
   bool allow{true};
 };
 class Limit : public Expression
 {
 public:
-  Limit() {}
-  virtual ~Limit() override;
+  Limit() = default;
+  ~Limit() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   
   int max{0};
 };
 class WaitWhile : public Expression
 {
 public:
-  WaitWhile() {}
-  virtual ~WaitWhile() override;
+  WaitWhile() = default;
+  ~WaitWhile() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
 
   std::string condition;
 };
 class WaitFor : public Expression
 {
 public:
-  WaitFor() {}
-  virtual ~WaitFor() override;
+  WaitFor() = default;
+  ~WaitFor() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string actor;
 };
 class Label : public Node
 {
 public:
-  Label() {}
-  virtual ~Label() override;
+  Label() = default;
+  ~Label() override;
 
-  virtual void accept(AstVisitor &visitor) override;
+  void accept(AstVisitor &visitor) override;
   std::string name;
   std::vector<std::unique_ptr<Statement>> statements;
 };
 class CompilationUnit
 {
 public:
-  CompilationUnit() {}
+  CompilationUnit() = default;
   virtual ~CompilationUnit();
 
   std::vector<std::unique_ptr<Label>> labels;

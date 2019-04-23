@@ -27,25 +27,21 @@ struct Room::Impl
     std::vector<std::unique_ptr<RoomLayer>> _layers;
     std::vector<RoomScaling> _scalings;
     sf::Vector2i _roomSize;
-    bool _showDrawWalkboxes;
+    bool _showDrawWalkboxes{false};
     std::string _sheet;
     std::string _id;
-    int _fullscreen;
+    int _fullscreen{0};
     HSQOBJECT _table;
     std::shared_ptr<Path> _path;
     std::shared_ptr<PathFinder> _pf;
     std::vector<Walkbox> _graphWalkboxes;
-    sf::Color _ambientColor;
+    sf::Color _ambientColor{255, 255, 255, 255};
     SpriteSheet _spriteSheet;
-    Room *_pRoom;
+    Room *_pRoom{nullptr};
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
         : _textureManager(textureManager),
-          _fullscreen(0),
-          _ambientColor(255, 255, 255, 255),
-          _settings(settings),
-          _showDrawWalkboxes(false),
-          _pRoom(nullptr)
+          _settings(settings)
     {
         _spriteSheet.setTextureManager(&textureManager);
         _spriteSheet.setSettings(&settings);
@@ -441,14 +437,11 @@ TextObject &Room::createTextObject(const std::string &fontName)
 
 void Room::deleteObject(Object &object)
 {
-    auto const &it = std::find_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&object](std::unique_ptr<Object> &ptr) {
-        return ptr.get() == &object;
-    });
     auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
     });
     itLayer->get()->removeEntity(object);
-    pImpl->_objects.erase(it);
+    //pImpl->_objects.erase(it);
 }
 
 Object &Room::createObject(const std::vector<std::string> &anims)

@@ -1,11 +1,13 @@
+#include <utility>
+
 #include <iostream>
 #include "Animation.h"
 #include "Object.h"
 
 namespace ng
 {
-Animation::Animation(const sf::Texture &texture, const std::string &name)
-    : _sprite(texture), _name(name), _fps(10), _index(0), _state(AnimState::Pause)
+Animation::Animation(const sf::Texture &texture, std::string name)
+    : _sprite(texture), _name(std::move(name)), _fps(10), _index(0), _state(AnimState::Pause)
 {
 }
 

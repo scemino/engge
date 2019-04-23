@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <math.h>
 #include <algorithm>
 #include "Walkbox.h"
@@ -5,18 +7,15 @@
 
 namespace ng
 {
-Walkbox::Walkbox()
-    : _color(sf::Color::Green)
-{
-}
+Walkbox::Walkbox() = default;
 
 Walkbox::Walkbox(const Walkbox &w)
     : _polygon(w._polygon), _name(w._name), _isEnabled(w._isEnabled), _color(w._color)
 {
 }
 
-Walkbox::Walkbox(const std::vector<sf::Vector2i> &polygon)
-    : _polygon(polygon), _isEnabled(true), _color(sf::Color::Green)
+Walkbox::Walkbox(std::vector<sf::Vector2i> polygon)
+    : _polygon(std::move(polygon)), _isEnabled(true), _color(sf::Color::Green)
 {
 }
 
@@ -129,9 +128,8 @@ bool Walkbox::inside(const sf::Vector2i &position, bool toleranceOnOutside) cons
     sf::Vector2i oldPoint = _polygon[_polygon.size() - 1];
     float oldSqDist = distanceSquared(oldPoint, point);
 
-    for (auto i = 0; i < _polygon.size(); i++)
+    for (auto newPoint : _polygon)
     {
-        sf::Vector2i newPoint = _polygon[i];
         float newSqDist = distanceSquared(newPoint, point);
 
         if (oldSqDist + newSqDist + 2.0f * sqrt(oldSqDist * newSqDist) - distanceSquared(newPoint, oldPoint) < epsilon)

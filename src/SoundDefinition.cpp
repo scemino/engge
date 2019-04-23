@@ -1,10 +1,12 @@
+#include <utility>
+
 #include "SoundDefinition.h"
 
 namespace ng
 {
 
-SoundDefinition::SoundDefinition(const std::string &path)
-    : _pSettings(nullptr), _path(path), _isLoaded(false)
+SoundDefinition::SoundDefinition(std::string path)
+    : _pSettings(nullptr), _path(std::move(path)), _isLoaded(false)
 {
 }
 
@@ -26,8 +28,8 @@ void SoundDefinition::load()
     }
 }
 
-SoundId::SoundId(const std::shared_ptr<SoundDefinition> &soundDefinition)
-    : _soundDefinition(soundDefinition)
+SoundId::SoundId(std::shared_ptr<SoundDefinition> soundDefinition)
+    : _soundDefinition(std::move(soundDefinition))
 {
 }
 

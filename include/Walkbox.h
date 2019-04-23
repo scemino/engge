@@ -12,12 +12,11 @@ class Walkbox : public sf::Drawable
 public:
   Walkbox();
   Walkbox(const Walkbox& w);
-  explicit Walkbox(const std::vector<sf::Vector2i> &polygon);
-  ~Walkbox();
+  explicit Walkbox(std::vector<sf::Vector2i> polygon);
+  ~Walkbox() override;
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
-  bool contains(sf::Vector2f pos) const;
   void setEnabled(bool isEnabled) { _isEnabled = isEnabled; }
   bool isEnabled() const { return _isEnabled; }
 
@@ -34,14 +33,13 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const Walkbox &walkbox);
 
 private:
-  bool inLineOfSight(const sf::Vector2i &start, const sf::Vector2i &end) const;
   static float distanceToSegmentSquared(const sf::Vector2i &p, const sf::Vector2i &v, const sf::Vector2i &w);
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   std::vector<sf::Vector2i> _polygon;
   std::string _name;
-  bool _isEnabled;
-  sf::Color _color;
+  bool _isEnabled{true};
+  sf::Color _color{sf::Color::Green};
 };
 } // namespace ng

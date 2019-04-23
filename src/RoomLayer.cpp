@@ -2,10 +2,7 @@
 
 namespace ng
 {
-RoomLayer::RoomLayer()
-    : _zsort(0), _parallax(1, 1)
-{
-}
+RoomLayer::RoomLayer() = default;
 
 void RoomLayer::addEntity(Entity &entity)
 {

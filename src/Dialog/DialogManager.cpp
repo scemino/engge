@@ -9,7 +9,7 @@
 namespace ng
 {
 DialogManager::DialogManager()
-    : _pEngine(nullptr), _isActive(false), _dialogVisitor(*this), _pLabel(nullptr)
+    : _dialogVisitor(*this)
 {
     for (auto &dlg : _dialog)
     {
@@ -41,7 +41,7 @@ void DialogManager::start(const std::string &name, const std::string &node)
     reader.setSettings(_pEngine->getSettings());
     reader.load(path);
     YackParser parser(reader);
-    _pCompilationUnit = std::move(parser.parse());
+    _pCompilationUnit = parser.parse();
 
     selectLabel(node);
 }
@@ -61,7 +61,7 @@ void DialogManager::selectLabel(const std::string &name)
     {
         _pLabel->accept(_dialogVisitor);
     }
-    _isActive = _functions.size() > 0;
+    _isActive = !_functions.empty();
     _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
     
     if (_pLabel && !_isActive)
@@ -97,7 +97,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
 void DialogManager::update(const sf::Time &elapsed)
 {
-    _isActive = _functions.size() > 0;
+    _isActive = !_functions.empty();
     _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
 
     if (!_functions.empty())
@@ -109,8 +109,7 @@ void DialogManager::update(const sf::Time &elapsed)
         return;
     }
 
-    sf::Mouse m;
-    if (!m.isButtonPressed(sf::Mouse::Button::Left))
+    if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
         return;
 
     int dialog = 0;

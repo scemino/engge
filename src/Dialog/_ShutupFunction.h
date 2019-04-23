@@ -7,7 +7,7 @@ class _ShutupFunction : public Function
 {
 public:
   explicit _ShutupFunction(Engine &engine)
-      : _engine(engine), _done(false)
+      : _engine(engine)
   {
   }
 
@@ -26,6 +26,6 @@ public:
 
 private:
   Engine &_engine;
-  bool _done;
+  bool _done{false};
 };
 } // namespace ng

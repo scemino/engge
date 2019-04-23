@@ -22,7 +22,7 @@ void WaitWhile::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Limit::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void OnceEverCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 
-AstVisitor::~AstVisitor() {}
+AstVisitor::~AstVisitor() = default;
 void AstVisitor::visit(const Statement &node) { defaultVisit(node); }
 void AstVisitor::visit(const Label &node) { defaultVisit(node); }
 void AstVisitor::visit(const Say &node) { defaultVisit(node); }

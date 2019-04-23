@@ -13,15 +13,15 @@ class _ChangeColor : public TimeFunction
     _ChangeColor(Engine &engine, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
         : TimeFunction(time),
           _engine(engine),
-          _startColor(startColor),
-          _current(startColor),
-          _endColor(endColor),
-          _anim(std::move(anim)),
           _isLooping(isLooping),
+          _anim(std::move(anim)),
           _a(static_cast<sf::Int16>(endColor.a - startColor.a)),
           _r(static_cast<sf::Int16>(endColor.r - startColor.r)),
           _g(static_cast<sf::Int16>(endColor.g - startColor.g)),
-          _b(static_cast<sf::Int16>(endColor.b - startColor.b))
+          _b(static_cast<sf::Int16>(endColor.b - startColor.b)),
+          _startColor(startColor),
+          _endColor(endColor),
+          _current(startColor)
     {
     }
 

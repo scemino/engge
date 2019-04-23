@@ -1,11 +1,7 @@
 #include "RoomScaling.h"
 
 namespace ng
-{    
-const std::string &RoomScaling::getTrigger() const
 {
-    return _trigger;
-}
 
 void RoomScaling::setTrigger(const std::string &trigger)
 {
@@ -19,9 +15,7 @@ float RoomScaling::getScaling(float yPos) const
         const auto &scaling = _scalings[i];
         if (yPos < scaling.yPos)
         {
-            Scaling prevScaling;
-            prevScaling.yPos = 0;
-            prevScaling.scale = 1;
+            Scaling prevScaling{1,0};
             if (i > 0)
                 prevScaling = _scalings[i - 1];
             auto dY = scaling.yPos - prevScaling.yPos;

@@ -103,7 +103,6 @@ private:
 
     static Facing _getFacing(SQInteger dir, Facing currentFacing)
     {
-        Facing facing;
         if (dir == 0x10)
         {
             switch (currentFacing)
@@ -847,15 +846,7 @@ private:
         return 1;
     }
 
-    static std::string str_toupper(std::string s)
-    {
-        std::transform(s.begin(), s.end(), s.begin(),
-                       [](unsigned char c) { return std::toupper(c); } // correct
-        );
-        return s;
-    }
-
-    static SQInteger _sayLine(HSQUIRRELVM v)
+  static SQInteger _sayLine(HSQUIRRELVM v)
     {
         auto type = sq_gettype(v, 2);
         auto actor = (type == OT_STRING) ? g_pEngine->getCurrentActor() : ScriptEngine::getActor(v, 2);

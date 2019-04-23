@@ -7,8 +7,8 @@ namespace ng
 class _SayFunction : public Function
 {
 public:
-  _SayFunction(Actor &actor, const int id)
-      : _actor(actor), _id(id), _done(false)
+  _SayFunction(Actor &actor, int id)
+      : _actor(actor), _id(id)
   {
   }
 
@@ -25,6 +25,6 @@ public:
 private:
   Actor &_actor;
   const int _id;
-  bool _done;
+  bool _done{false};
 };
 } // namespace ng

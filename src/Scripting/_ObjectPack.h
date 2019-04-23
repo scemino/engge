@@ -201,8 +201,6 @@ private:
 
     static SQInteger objectHotspot(HSQUIRRELVM v)
     {
-        auto numArgs = sq_gettop(v) - 1;
-
         // TODO: with actor
         SQInteger left = 0;
         SQInteger top = 0;
@@ -253,7 +251,7 @@ private:
     {
         SQInteger x = 0;
         SQInteger y = 0;
-        Entity *obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -306,7 +304,7 @@ private:
         SQInteger x = 0;
         SQInteger y = 0;
         SQFloat t = 0;
-        Entity *obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get entity"));
@@ -792,7 +790,7 @@ private:
             return sq_throwerror(v, _SC("failed to get object"));
         }
         sq_addref(v, pObj.get());
-        sq_pushobject(v, *pObj.get());
+        sq_pushobject(v, *pObj);
         sq_pushstring(v, _SC("icon"), -1);
         if (SQ_FAILED(sq_get(v, -2)))
         {
@@ -807,7 +805,7 @@ private:
             return sq_throwerror(v, _SC("failed to get object icon"));
         }
 
-        sq_pushobject(v, *pObj.get());
+        sq_pushobject(v, *pObj);
         sq_pushstring(v, _SC("name"), -1);
         if (SQ_FAILED(sq_get(v, -2)))
         {
@@ -959,7 +957,7 @@ private:
             sq_getstring(v, 3, &image);
             std::string s;
             s.append(image);
-            std::size_t pos = s.find(".");
+            std::size_t pos = s.find('.');
             s = s.substr(0, pos);
             auto &object = g_pEngine->getRoom()->createObject(s);
             ScriptEngine::pushObject(v, object);

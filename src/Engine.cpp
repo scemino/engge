@@ -55,7 +55,7 @@ struct Engine::Impl
     std::vector<std::unique_ptr<Function>> _functions;
     std::unique_ptr<Cutscene> _pCutscene;
     sf::Color _fadeColor{sf::Color::Transparent};
-    sf::RenderWindow *_pWindow;
+    sf::RenderWindow *_pWindow{nullptr};
     sf::Vector2f _cameraPos;
     TextDatabase _textDb;
     Font _fntFont;
@@ -69,7 +69,7 @@ struct Engine::Impl
     Actor *_pFollowActor;
     std::array<sf::IntRect, 9> _verbRects;
     Object *_pCurrentObject;
-    const InventoryObject *_pUseObject;
+    const InventoryObject *_pUseObject{nullptr};
     sf::Vector2f _mousePos;
     std::unique_ptr<VerbExecute> _pVerbExecute;
     std::unique_ptr<ScriptExecute> _pScriptExecute;
@@ -114,8 +114,6 @@ Engine::Impl::Impl(EngineSettings &settings)
     : _pEngine(nullptr),
       _settings(settings),
       _textureManager(settings),
-      _fadeColor(0, 0, 0, 255),
-      _pWindow(nullptr),
       _pRoom(nullptr),
       _pCutscene(nullptr),
       _pCurrentActor(nullptr),
@@ -126,7 +124,6 @@ Engine::Impl::Impl(EngineSettings &settings)
       _pCurrentObject(nullptr),
       _pVerb(nullptr),
       _soundManager(settings),
-      _pUseObject(nullptr),
       _cursorDirection(CursorDirection::None),
       _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
       _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
@@ -233,8 +230,6 @@ sf::Time Engine::getTime() const { return _pImpl->_time; }
 
 void Engine::setVm(HSQUIRRELVM vm) { _pImpl->_vm = vm; }
 
-HSQUIRRELVM Engine::getVm() const { return _pImpl->_vm; }
-
 SQInteger Engine::Impl::exitRoom()
 {
     if (!_pRoom)
@@ -299,8 +294,6 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
-
-    auto v = getVm();
 
     auto pOldRoom = _pImpl->_pRoom;
     if (pRoom == pOldRoom)

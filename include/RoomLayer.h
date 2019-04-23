@@ -34,8 +34,8 @@ public:
 private:
   std::vector<sf::Sprite> _sprites;
   std::vector<std::reference_wrapper<Entity>> _entities;
-  sf::Vector2f _parallax;
-  int _zsort;
+  sf::Vector2f _parallax{1, 1};
+  int _zsort{0};
   bool _enabled{true};
 };
 } // namespace ng

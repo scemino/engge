@@ -404,7 +404,6 @@ private:
 
     static SQInteger soundVolume(HSQUIRRELVM v)
     {
-        SQInteger channel;
         SQFloat volume = 0;
         if (SQ_FAILED(sq_getfloat(v, 3, &volume)))
         {

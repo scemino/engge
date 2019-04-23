@@ -10,7 +10,7 @@
 namespace ng
 {
 DialogVisitor::DialogVisitor(DialogManager &dialogManager)
-    : _pEngine(nullptr), _dialogManager(dialogManager)
+    : _dialogManager(dialogManager)
 {
 }
 void DialogVisitor::visit(const Ast::Statement &node)
@@ -29,7 +29,7 @@ void DialogVisitor::visit(const Ast::Label &node)
 }
 
 DialogVisitor::ConditionVisitor::ConditionVisitor(DialogVisitor &dialogVisitor, const Ast::Statement &statement)
-    : _dialogVisitor(dialogVisitor), _isAccepted(true), _statement(statement)
+    : _dialogVisitor(dialogVisitor), _statement(statement), _isAccepted(true)
 {
 }
 

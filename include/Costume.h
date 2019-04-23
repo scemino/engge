@@ -23,7 +23,7 @@ class Costume : public sf::Drawable
 {
 public:
   explicit Costume(TextureManager &textureManager);
-  ~Costume();
+  ~Costume() override;
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
   void lockFacing(Facing facing);
@@ -31,8 +31,6 @@ public:
   Facing getFacing() const { return _facing; }
   void setState(const std::string &name);
   bool setAnimation(const std::string &name);
-  const std::string &getAnimationName() const { return _animation; }
-  const CostumeAnimation *getAnimation() const { return _pCurrentAnimation.get(); }
   CostumeAnimation *getAnimation() { return _pCurrentAnimation.get(); }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);

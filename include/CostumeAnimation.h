@@ -14,7 +14,7 @@ enum class AnimationState
 class CostumeAnimation : public sf::Drawable
 {
 public:
-  CostumeAnimation(const std::string &name);
+  CostumeAnimation(std::string name);
   ~CostumeAnimation();
 
   const std::string &getName() const { return _name; }

@@ -5,10 +5,7 @@
 
 namespace ng
 {
-TextDatabase::TextDatabase()
-    : _pSettings(nullptr)
-{
-}
+TextDatabase::TextDatabase() = default;
 
 void TextDatabase::setSettings(EngineSettings &settings)
 {
@@ -34,4 +31,11 @@ void TextDatabase::load(const std::string &path)
         _texts.insert(std::make_pair(num, text));
     }
 }
+
+std::wstring TextDatabase::getText(int id) const
+{
+  const auto it = _texts.find(id);
+  return it->second;
+}
+
 } // namespace ng

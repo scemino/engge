@@ -40,7 +40,7 @@ private:
   };
 
 public:
-  DialogVisitor(DialogManager &dialogManager);
+  explicit DialogVisitor(DialogManager &dialogManager);
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
@@ -62,11 +62,11 @@ private:
   void visit(const Ast::WaitWhile &node) override;
   void visit(const Ast::Limit &node) override;
 
-  int getId(const std::string &text);
+  static int getId(const std::string &text);
   bool acceptConditions(const Ast::Statement &statement);
 
 private:
-  Engine *_pEngine;
+  Engine *_pEngine{nullptr};
   DialogManager &_dialogManager;
   std::vector<const Ast::Node *> _nodesVisited;
   std::vector<const Ast::Node *> _nodesSelected;
@@ -90,12 +90,11 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  Engine *_pEngine;
+  Engine *_pEngine{nullptr};
   std::unique_ptr<Ast::CompilationUnit> _pCompilationUnit;
-  Ast::Label *_pLabel;
+  Ast::Label *_pLabel{nullptr};
   std::array<DialogSlot, 8> _dialog;
-  sf::Vector2f _mousePos;
-  bool _isActive;
+  bool _isActive{false};
   DialogVisitor _dialogVisitor;
   std::vector<std::unique_ptr<Function>> _functions;
   FntFont _font;

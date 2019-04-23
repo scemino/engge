@@ -7,9 +7,9 @@ namespace ng
 {
 struct GraphEdge
 {
-  int from;
-  int to;
-  float cost;
+  int from{0};
+  int to{0};
+  float cost{0};
 
   GraphEdge();
   GraphEdge(int from, int to, float cost);
@@ -38,7 +38,7 @@ public:
 
   std::shared_ptr<GraphEdge> getEdge(int from, int to);
   int addNode(sf::Vector2i node);
-  void addEdge(std::shared_ptr<GraphEdge> edge);
+  void addEdge(const std::shared_ptr<GraphEdge>& edge);
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -47,7 +47,7 @@ private:
 class Path : public sf::Drawable
 {
 public:
-  explicit Path(const std::vector<sf::Vector2i> &path);
+  explicit Path(std::vector<sf::Vector2i> path);
 
   const std::vector<sf::Vector2i> &getPath() const { return _path; }
 

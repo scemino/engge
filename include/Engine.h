@@ -120,9 +120,8 @@ public:
   sf::Time getTime() const;
 
   void setVm(HSQUIRRELVM vm);
-  HSQUIRRELVM getVm() const;
 
-private:
+ private:
   struct Impl;
   std::unique_ptr<Impl> _pImpl;
 };

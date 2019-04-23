@@ -20,7 +20,7 @@ class SoundDefinition : public Sound
   friend class SoundId;
 
 public:
-  explicit SoundDefinition(const std::string &path);
+  explicit SoundDefinition(std::string path);
   ~SoundDefinition() override
   {
     std::cout << "delete SoundDefinition: " << _path << std::endl;
@@ -42,7 +42,7 @@ private:
 class SoundId : public Sound
 {
 public:
-  explicit SoundId(const std::shared_ptr<SoundDefinition> &soundDefinition);
+  explicit SoundId(std::shared_ptr<SoundDefinition> soundDefinition);
   ~SoundId() override;
 
   void play(bool loop = false);

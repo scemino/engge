@@ -44,9 +44,9 @@ class _RoomTrigger : public Trigger
     ~_RoomTrigger() override
     {
         std::wcout << L"Delete room trigger (" << _object.getName() << L")" << std::endl;
-        // sq_release(_v, &thread_obj);
-        // sq_release(_v, &_inside);
-        // sq_release(_v, &_outside);
+        sq_release(_v, &thread_obj);
+        sq_release(_v, &_inside);
+        sq_release(_v, &_outside);
     }
 
     HSQOBJECT &getInside() { return _inside; }
@@ -116,7 +116,6 @@ class _RoomTrigger : public Trigger
 
     void callTrigger(std::vector<HSQOBJECT> &params, const std::string &name)
     {
-        auto top = sq_gettop(thread_obj._unVal.pThread);
         for (auto param : params)
         {
             sq_pushobject(thread_obj._unVal.pThread, param);
@@ -129,7 +128,6 @@ class _RoomTrigger : public Trigger
             std::cerr << "failed to call room " << name << " trigger" << std::endl;
             return;
         }
-        // sq_settop(thread_obj._unVal.pThread, top);
     }
 
   private:

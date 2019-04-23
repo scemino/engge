@@ -27,13 +27,10 @@ public:
   int getZOrder() const override;
 
   void setProp(bool prop);
-  bool getProp() const;
 
   void setSpot(bool spot);
-  bool getSpot() const;
 
   void setTrigger(bool trigger);
-  bool getTrigger() const;
 
   void setTouchable(bool isTouchable);
   bool isTouchable() const;
@@ -61,7 +58,6 @@ public:
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
   void playAnim(const std::string& anim, bool loop);
-  int getStateAnimIndex();
   int getState();
   void setAnimation(const std::string &name);
   std::optional<Animation>& getAnimation();
@@ -77,7 +73,6 @@ public:
   const sf::Color &getColor() const;
 
   void setVisible(bool isVisible);
-  bool isVisible() const;
   void setScale(float s);
 
   Room *getRoom() override;
@@ -87,7 +82,6 @@ public:
   void update(const sf::Time &elapsed) override;
 
   friend std::wostream &operator<<(std::wostream &os, const Object &obj);
-  void setHotspotVisible(bool isVisible);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
   void addTrigger(const std::shared_ptr<Trigger>& trigger);

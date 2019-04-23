@@ -92,32 +92,32 @@ std::shared_ptr<SoundId> SoundManager::loopMusic(std::shared_ptr<SoundDefinition
 void SoundManager::stopAllSounds()
 {
     std::cout << "stopAllSounds" << std::endl;
-    for (size_t i = 0; i < _soundIds.size(); i++)
+    for (auto & _soundId : _soundIds)
     {
-        if (_soundIds.at(i) != nullptr)
+        if (_soundId != nullptr)
         {
-            _soundIds.at(i)->stop();
-            _soundIds.at(i).reset();
+            _soundId->stop();
+            _soundId.reset();
         }
     }
 }
 
-void SoundManager::stopSound(std::shared_ptr<SoundId> sound)
+void SoundManager::stopSound(const std::shared_ptr<SoundId>& sound)
 {
     if(!sound) return;
     sound->stop();
-    for (size_t i = 0; i < _soundIds.size(); i++)
+    for (auto & _soundId : _soundIds)
     {
-        if (_soundIds.at(i) != nullptr && _soundIds.at(i) == sound)
+        if (_soundId != nullptr && _soundId == sound)
         {
-            _soundIds.at(i)->stop();
-            _soundIds.at(i) = nullptr;
+            _soundId->stop();
+            _soundId = nullptr;
             return;
         }
     }
 }
 
-void SoundManager::stopSound(std::shared_ptr<SoundDefinition> soundDef)
+void SoundManager::stopSound(const std::shared_ptr<SoundDefinition>& soundDef)
 {
     std::cout << "stopSound (sound definition: " << soundDef->getPath() << ")" << std::endl;
     for (size_t i = 1; i <= getSize(); i++)
@@ -130,7 +130,7 @@ void SoundManager::stopSound(std::shared_ptr<SoundDefinition> soundDef)
     }
 }
 
-void SoundManager::setVolume(std::shared_ptr<SoundDefinition> soundDef, float volume)
+void SoundManager::setVolume(const std::shared_ptr<SoundDefinition>& soundDef, float volume)
 {
     std::cout << "setVolume (sound definition: " << soundDef->getPath() << ")" << std::endl;
     for (size_t i = 1; i <= getSize(); i++)

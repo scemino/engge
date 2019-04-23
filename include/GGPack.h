@@ -1,3 +1,5 @@
+#include <utility>
+
 #pragma once
 #include <cstring>
 #include <codecvt>
@@ -21,8 +23,8 @@ struct GGPackValue
 {
   char type;
   std::string string_value;
-  int int_value;
-  double double_value;
+  int int_value{0};
+  double double_value{0};
   std::map<std::string, GGPackValue> hash_value;
   std::vector<GGPackValue> array_value;
   static GGPackValue nullValue;
@@ -57,8 +59,8 @@ public:
 class GGPackBufferStream : public GGPackStream
 {
 public:
-  GGPackBufferStream() {}
-  explicit GGPackBufferStream(const std::vector<char> &input) : _input(input) {}
+  GGPackBufferStream() = default;
+  explicit GGPackBufferStream(std::vector<char> input) : _input(std::move(input)) {}
 
   void setBuffer(const std::vector<char> &input)
   {

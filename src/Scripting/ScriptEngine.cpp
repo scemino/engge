@@ -435,9 +435,9 @@ void ScriptEngine::executeNutScript(const std::string &name)
 
         // decode bnut
         int cursor = code.size() & 0xff;
-        for (auto i = 0; i < code.size(); i++)
+        for (char & i : code)
         {
-            code[i] ^= _bnutPass[cursor];
+            i ^= _bnutPass[cursor];
             cursor = (cursor + 1) % 4096;
         }
     }

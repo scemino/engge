@@ -53,11 +53,12 @@ public:
     Iterator(YackTokenReader &reader, std::streampos pos);
     Iterator(const Iterator &it);
     Iterator &operator++();
-    Iterator operator++(int);
+    const Iterator operator++(int);
 
     bool operator==(const Iterator &rhs) const { return _pos == rhs._pos; }
     bool operator!=(const Iterator &rhs) const { return _pos != rhs._pos; }
     Token &operator*();
+    const Token &operator*() const;
     Token *operator->();
   };
 
@@ -75,7 +76,6 @@ public:
   std::string readText(const Token &token);
 
 private:
-  bool isWhitespace(char c);
   TokenId readTokenId();
   TokenId readCode();
   TokenId readCondition();

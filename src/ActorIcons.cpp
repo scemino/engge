@@ -54,9 +54,8 @@ void ActorIcons::update(const sf::Time &elapsed)
     {
         _isMouseButtonPressed = false;
         sf::FloatRect iconRect(Screen::Width - 16, 15, 16, 16);
-        for (auto i = 0; i < _actorsIconSlots.size(); i++)
+        for (auto selectableActor : _actorsIconSlots)
         {
-            const auto &selectableActor = _actorsIconSlots.at(i);
             if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
                 continue;
 
@@ -85,9 +84,8 @@ int ActorIcons::getIconsNum() const
     if (!_pCurrentActor)
         return 0;
     int numIcons = 1;
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    for (auto selectableActor : _actorsIconSlots)
     {
-        const auto &selectableActor = _actorsIconSlots.at(i);
         if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
             continue;
 
@@ -106,7 +104,6 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     if (_pCurrentActor)
     {
-        sf::FloatRect iconRect(Screen::Width - 16, 0, 16, 16);
         sf::Uint8 alpha = _isInside ? 0xFF : 0x60;
 
         auto i = getCurrentActorIndex();

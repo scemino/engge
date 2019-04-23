@@ -1,10 +1,10 @@
+#include <utility>
+
 #include "Graph.h"
 
 namespace ng
 {
-GraphEdge::GraphEdge()
-{
-}
+GraphEdge::GraphEdge() = default;
 
 GraphEdge::GraphEdge(int from, int to, float cost)
 {
@@ -18,9 +18,7 @@ std::ostream &operator<<(std::ostream &os, const GraphEdge &edge)
     return os << '(' << edge.from << ',' << edge.to << ',' << edge.cost << ")";
 }
 
-Graph::Graph()
-{
-}
+Graph::Graph() = default;
 
 Graph::Graph(const Graph &graph)
     : nodes(graph.nodes), edges(graph.edges), concaveVertices(graph.concaveVertices)
@@ -46,9 +44,8 @@ int Graph::addNode(sf::Vector2i node)
     return 0;
 }
 
-void Graph::addEdge(std::shared_ptr<GraphEdge> edge)
+void Graph::addEdge(const std::shared_ptr<GraphEdge>& edge)
 {
-    GraphEdge e;
     if (getEdge(edge->from, edge->to) == nullptr)
     {
         edges[edge->from].push_back(edge);
@@ -63,14 +60,14 @@ void Graph::draw(sf::RenderTarget &window, sf::RenderStates states) const
 {
     sf::Color color(180, 180, 250);
     std::vector<sf::Vertex> vertices;
-    for (auto edge : edges)
+    for (const auto& edge : edges)
     {
-        for (auto e : edge)
+        for (const auto& e : edge)
         {
             auto &nodeFrom = nodes[e->from];
             auto &nodeTo = nodes[e->to];
-            vertices.push_back(sf::Vertex((sf::Vector2f)nodeFrom, color));
-            vertices.push_back(sf::Vertex((sf::Vector2f)nodeTo, color));
+            vertices.emplace_back((sf::Vector2f)nodeFrom, color);
+            vertices.emplace_back((sf::Vector2f)nodeTo, color);
         }
     }
     window.draw(&vertices[0], vertices.size(), sf::Lines, states);
@@ -85,8 +82,8 @@ void Graph::draw(sf::RenderTarget &window, sf::RenderStates states) const
     }
 }
 
-Path::Path(const std::vector<sf::Vector2i> &path)
-    : _path(path)
+Path::Path(std::vector<sf::Vector2i> path)
+    : _path(std::move(path))
 {
 }
 

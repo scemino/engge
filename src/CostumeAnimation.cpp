@@ -1,9 +1,11 @@
+#include <utility>
+
 #include "CostumeAnimation.h"
 
 namespace ng
 {
-CostumeAnimation::CostumeAnimation(const std::string &name)
-    : _name(name), _state(AnimationState::Pause), _loop(false)
+CostumeAnimation::CostumeAnimation(std::string name)
+    : _name(std::move(name)), _state(AnimationState::Pause), _loop(false)
 {
 }
 

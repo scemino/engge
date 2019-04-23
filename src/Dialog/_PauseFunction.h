@@ -7,7 +7,7 @@ class _PauseFunction : public Function
 {
   public:
     explicit _PauseFunction(sf::Time time)
-        : _time(time), _done(false)
+        : _time(time)
     {
     }
 
@@ -24,6 +24,6 @@ class _PauseFunction : public Function
   private:
     sf::Clock _clock;
     const sf::Time _time;
-    bool _done;
+    bool _done{false};
 };
 } // namespace ng

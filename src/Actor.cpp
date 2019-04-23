@@ -234,7 +234,7 @@ HSQOBJECT &Actor::getTable()
 }
 
 Actor::Impl::WalkingState::WalkingState()
-    : _pActor(nullptr), _isWalking(false), _facing(Facing::FACE_FRONT)
+    : _pActor(nullptr), _facing(Facing::FACE_FRONT), _isWalking(false)
 {
 }
 

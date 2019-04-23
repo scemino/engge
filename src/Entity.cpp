@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "Entity.h"
 #include "Trigger.h"
 
@@ -44,7 +46,7 @@ sf::Vector2f Entity::getUsePosition() const
 
 void Entity::setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger)
 {
-    _triggers[triggerNumber] = trigger;
+    _triggers[triggerNumber] = std::move(trigger);
 }
 
 void Entity::trig(int triggerNumber)
