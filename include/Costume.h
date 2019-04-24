@@ -11,10 +11,10 @@ namespace ng
 {
 enum class Facing
 {
-  FACE_FRONT,
-  FACE_BACK,
-  FACE_LEFT,
-  FACE_RIGHT
+  FACE_FRONT = 0x4,
+  FACE_BACK  = 0x8,
+  FACE_LEFT  = 0x2,
+  FACE_RIGHT = 0x1
 };
 
 class Actor;
