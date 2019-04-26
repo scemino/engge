@@ -849,17 +849,31 @@ private:
   static SQInteger _sayLine(HSQUIRRELVM v)
     {
         auto type = sq_gettype(v, 2);
-        auto actor = (type == OT_STRING) ? g_pEngine->getCurrentActor() : ScriptEngine::getActor(v, 2);
+        Actor* actor;
+        SQInteger numIds;
+        SQInteger index;
+        if(type == OT_STRING)
+        {
+            actor = g_pEngine->getCurrentActor();
+            numIds = sq_gettop(v) - 1;
+            index = 2;
+        }
+        else
+        {
+            actor = ScriptEngine::getActor(v, 2);
+            numIds = sq_gettop(v) - 2;
+            index = 3;
+        }
+
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
 
-        auto numIds = sq_gettop(v) - 4;
         for (int i = 0; i < numIds; i++)
         {
-            const SQChar *idText;
-            if (SQ_FAILED(sq_getstring(v, 3 + i, &idText)))
+            const SQChar *idText = nullptr;
+            if (SQ_FAILED(sq_getstring(v, index + i, &idText)))
             {
                 return sq_throwerror(v, _SC("failed to get text"));
             }
