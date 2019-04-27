@@ -318,6 +318,23 @@ SQInteger Engine::enterRoomFromDoor(Object *pObject)
     _pImpl->_fadeColor = sf::Color::Transparent;
     std::cout << "enterRoomFromDoor" << std::endl;
 
+    auto dir = pObject->getUseDirection();
+    Facing facing;
+    switch(dir)
+    {
+        case UseDirection::Back:
+            facing = Facing::FACE_FRONT;
+            break;
+        case UseDirection::Front:
+            facing = Facing::FACE_BACK;
+            break;
+        case UseDirection::Left:
+            facing = Facing::FACE_RIGHT;
+            break;
+        case UseDirection::Right:
+            facing = Facing::FACE_LEFT;
+            break;
+    }
     auto pRoom = pObject->getRoom();
     auto pOldRoom = _pImpl->_pRoom;
     if (pRoom == pOldRoom)
@@ -330,6 +347,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pObject)
     _pImpl->_pRoom = pRoom;
 
     auto actor = getCurrentActor();
+    actor->getCostume().setFacing(facing);
     actor->setRoom(pRoom);
     auto pos = pObject->getPosition();
     actor->setPosition(pos + sf::Vector2f(pObject->getUsePosition().x, -pObject->getUsePosition().y));
