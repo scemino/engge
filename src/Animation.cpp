@@ -15,9 +15,9 @@ Animation::~Animation() = default;
 
 void Animation::reset()
 {
-    _index = 0;
     if (_rects.empty())
         return;
+    _index = _rects.size() - 1;
     auto &sourceRect = _sourceRects.at(_index);
     auto size = _sizes.at(_index);
     _sprite.setTextureRect(_rects.at(_index));
