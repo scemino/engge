@@ -97,11 +97,92 @@ GGPackValue &GGPackValue::operator=(const GGPackValue &other)
     // by convention, always return *this
     return *this;
 }
-GGPackValue::~GGPackValue() {}
 
-GGPack::GGPack()
+static std::ostream &_dumpValue(std::ostream& os, const GGPackValue& value, int indent);
+
+static std::ostream &_dumpHash(std::ostream& os, const GGPackValue& value, int indent)
 {
+    indent++;
+    std::string padding(indent*2, ' ');
+    os << "{";
+    for (auto iterator = value.hash_value.begin(); iterator!=value.hash_value.end();)
+    {
+        os << std::endl << padding << "\"" << iterator->first << "\": ";
+        _dumpValue(os, iterator->second, indent);
+        if(++iterator != value.hash_value.end())
+        {
+            os << ",";
+        }
+    }
+    indent--;
+    padding = std::string(indent*2, ' ');
+    os << std::endl << padding << "}";
+    return os;
 }
+
+static std::ostream &_dumpArray(std::ostream& os, const GGPackValue& value, int indent)
+{
+    indent++;
+    std::string padding(indent*2, ' ');
+    os << "[";
+    for (auto iterator = value.array_value.begin(); iterator!=value.array_value.end();)
+    {
+        os << std::endl << padding;
+        _dumpValue(os, *iterator, indent);
+        if(++iterator != value.array_value.end())
+        {
+            os << ",";
+        }
+    }
+    indent--;
+    padding = std::string(indent*2, ' ');
+    os << std::endl << padding << "]";
+    return os;
+}
+
+static std::ostream &_dumpValue(std::ostream& os, const GGPackValue& value, int indent)
+{
+    if(value.isHash())
+    {
+        _dumpHash(os, value, indent);
+        return os;
+    }
+    if(value.isArray())
+    {
+        _dumpArray(os, value, indent);
+        return os;
+    }
+    if(value.isDouble())
+    {
+        os << value.double_value;
+        return os;
+    }
+    if(value.isInteger())
+    {
+        os << value.int_value;
+        return os;
+    }
+    if(value.isNull())
+    {
+        os << "null";
+        return os;
+    }
+    if(value.isString())
+    {
+        os << "\"" << value.string_value << "\"";
+        return os;
+    }
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const GGPackValue &value)
+{
+    return _dumpValue(os, value, 0);
+}
+
+GGPackValue::~GGPackValue() = default;
+
+GGPack::GGPack() = default;
 
 void GGPack::open(const std::string &path)
 {

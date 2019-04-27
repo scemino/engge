@@ -44,6 +44,8 @@ public:
   GGPackValue &operator[](const std::string &key);
   GGPackValue &operator=(const GGPackValue &other);
   virtual ~GGPackValue();
+
+  friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
 };
 class GGPackStream
 {
@@ -142,6 +144,6 @@ private:
   GGPackBufferStream _bufferStream;
   std::vector<int> _offsets;
   std::map<std::string, GGPackEntry, CaseInsensitiveCompare> _entries;
-  int _method;
+  int _method{0};
 };
 } // namespace ng
