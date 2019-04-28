@@ -50,6 +50,8 @@ private:
         engine.registerGlobalFunction(objectTouchable, "objectTouchable");
         engine.registerGlobalFunction(objectParallaxLayer, "objectParallaxLayer");
         engine.registerGlobalFunction(objectUsePos, "objectUsePos");
+        engine.registerGlobalFunction(objectUsePosX, "objectUsePosX");
+        engine.registerGlobalFunction(objectUsePosY, "objectUsePosY");
         engine.registerGlobalFunction(objectValidUsePos, "objectValidUsePos");
         engine.registerGlobalFunction(objectValidVerb, "objectValidVerb");
         engine.registerGlobalFunction(objectShader, "objectShader");
@@ -201,11 +203,12 @@ private:
 
     static SQInteger objectHotspot(HSQUIRRELVM v)
     {
-        // TODO: with actor
         SQInteger left = 0;
         SQInteger top = 0;
         SQInteger right = 0;
         SQInteger bottom = 0;
+
+        auto numArgs = sq_gettop(v);
 
         Object *obj = ScriptEngine::getObject(v, 2);
         Actor *actor = nullptr;
@@ -216,6 +219,24 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get object or actor"));
             }
+        }
+        if(numArgs == 2)
+        {
+            const auto& hotspot = obj->getHotspot();
+            sq_newtable(v);
+            sq_pushstring(v, _SC("x1"), -1);
+            sq_pushinteger(v, hotspot.left);
+            sq_newslot(v, -3, SQFalse);
+            sq_pushstring(v, _SC("y1"), -1);
+            sq_pushinteger(v, hotspot.top);
+            sq_newslot(v, -3, SQFalse);
+            sq_pushstring(v, _SC("x2"), -1);
+            sq_pushinteger(v, hotspot.left + hotspot.width);
+            sq_newslot(v, -3, SQFalse);
+            sq_pushstring(v, _SC("y2"), -1);
+            sq_pushinteger(v, hotspot.top + hotspot.height);
+            sq_newslot(v, -3, SQFalse);
+            return 1;
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &left)))
         {
@@ -681,6 +702,28 @@ private:
         obj->setUsePosition(sf::Vector2f(x, y));
         obj->setUseDirection(static_cast<UseDirection>(dir));
         return 0;
+    }
+
+    static SQInteger objectUsePosX(HSQUIRRELVM v)
+    {
+        auto *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        sq_pushinteger(v, (SQInteger)obj->getUsePosition().x);
+        return 1;
+    }
+
+    static SQInteger objectUsePosY(HSQUIRRELVM v)
+    {
+        auto *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        sq_pushinteger(v, (SQInteger)obj->getUsePosition().y);
+        return 1;
     }
 
     static SQInteger objectColor(HSQUIRRELVM v)
