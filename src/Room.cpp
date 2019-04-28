@@ -405,6 +405,13 @@ void Room::load(const char *name)
     GGPackValue hash;
     pImpl->_settings.readEntry(wimpyFilename, hash);
 
+#if 0
+    std::ofstream out;
+    out.open(wimpyFilename, std::ios::out);
+    out << hash;
+    out.close();
+#endif
+
     pImpl->_sheet = hash["sheet"].string_value;
     pImpl->_roomSize = (sf::Vector2i)_parsePos(hash["roomsize"].string_value);
 

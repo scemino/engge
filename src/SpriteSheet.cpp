@@ -22,6 +22,14 @@ void SpriteSheet::load(const std::string &name)
     {
         std::vector<char> buffer;
         _pSettings->readEntry(jsonFilename, buffer);
+
+#if 0
+        std::ofstream out;
+        out.open(jsonFilename, std::ios::out);
+        out.write(buffer.data(), buffer.size());
+        out.close();
+#endif
+
         json = nlohmann::json::parse(buffer.data());
     }
 

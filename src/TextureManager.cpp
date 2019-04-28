@@ -18,6 +18,13 @@ void TextureManager::load(const std::string &id)
     auto texture = std::make_shared<sf::Texture>();
     std::vector<char> data;
     _settings.readEntry(path, data);
+
+#if 0
+    std::ofstream os(path, std::ios::out|std::ios::binary);
+    os.write(data.data(), data.size());
+    os.close();
+#endif
+
     if (!texture->loadFromMemory(data.data(), data.size()))
     {
         std::cerr << "Fail to load texture " << path << std::endl;
