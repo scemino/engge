@@ -206,6 +206,7 @@ class _RoomPack : public Pack
 
     static SQInteger addTrigger(HSQUIRRELVM v)
     {
+        auto numArgs = sq_gettop(v);
         auto object = ScriptEngine::getObject(v, 2);
         if (!object)
         {
@@ -220,7 +221,6 @@ class _RoomPack : public Pack
 
         HSQOBJECT outside;
         sq_resetobject(&outside);
-        auto numArgs = sq_gettop(v) - 2;
         if (numArgs == 4)
         {
             if (SQ_FAILED(sq_getstackobj(v, 4, &outside)))
@@ -377,13 +377,13 @@ class _RoomPack : public Pack
     {
         std::cout << "roomOverlayColor" << std::endl;
         SQInteger startColor, endColor;
-        auto numArgs = sq_gettop(v) - 1;
+        auto numArgs = sq_gettop(v);
         if (SQ_FAILED(sq_getinteger(v, 2, &startColor)))
         {
             return sq_throwerror(v, _SC("failed to get startColor"));
         }
         g_pEngine->setFadeColor(_toColor(startColor));
-        if (numArgs == 3)
+        if (numArgs == 4)
         {
             if (SQ_FAILED(sq_getinteger(v, 3, &endColor)))
             {

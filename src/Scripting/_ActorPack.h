@@ -136,8 +136,8 @@ private:
     static SQInteger actorAt(HSQUIRRELVM v)
     {
         std::cout << "actorAt" << std::endl;
-        auto numArgs = sq_gettop(v) - 1;
-        if (numArgs == 2)
+        auto numArgs = sq_gettop(v);
+        if (numArgs == 3)
         {
             auto *pActor = ScriptEngine::getActor(v, 2);
             if (!pActor)
@@ -190,7 +190,7 @@ private:
             return 0;
         }
 
-        if (numArgs >= 4)
+        if (numArgs >= 5)
         {
             auto *pActor = ScriptEngine::getActor(v, 2);
             if (!pActor)
@@ -211,7 +211,7 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            if (numArgs == 5 && SQ_FAILED(sq_getinteger(v, 6, &dir)))
+            if (numArgs == 6 && SQ_FAILED(sq_getinteger(v, 6, &dir)))
             {
                 return sq_throwerror(v, _SC("failed to get direction"));
             }
@@ -317,7 +317,7 @@ private:
         }
         auto count = sq_gettop(v) - 2;
         SQInteger dir;
-        if (count == 2)
+        if (count == 0)
         {
             dir = (SQInteger)actor->getCostume().getFacing();
             sq_pushinteger(v, dir);
@@ -537,7 +537,7 @@ private:
         SQBool selectable;
         sq_tobool(v, numArgs + 1, &selectable);
 
-        if (numArgs == 2)
+        if (numArgs == 1)
         {
             SQInteger actorIndex = 0;
             if (SQ_SUCCEEDED(sq_getinteger(v, 2, &actorIndex)))

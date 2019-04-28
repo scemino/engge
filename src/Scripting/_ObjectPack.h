@@ -281,8 +281,8 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        auto numArgs = sq_gettop(v) - 3;
-        if (numArgs == 1)
+        auto numArgs = sq_gettop(v) - 2;
+        if (numArgs == 0)
         {
             sq_pushinteger(v, obj->getState());
             return 1;
@@ -427,13 +427,13 @@ private:
     static SQInteger objectAt(HSQUIRRELVM v)
     {
         SQInteger x, y;
-        auto numArgs = sq_gettop(v) - 1;
+        auto numArgs = sq_gettop(v);
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (numArgs == 2)
+        if (numArgs == 3)
         {
             Object *spot = ScriptEngine::getObject(v, 3);
             if (!spot)

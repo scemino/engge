@@ -15,13 +15,13 @@ private:
 class _SoundTrigger : public Trigger
 {
 public:
-    _SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds)
+    _SoundTrigger(Engine &engine, const std::vector<std::shared_ptr<SoundDefinition>> &sounds)
         : _engine(engine), _distribution(0, sounds.size() - 1)
     {
         _soundsDefinitions.resize(sounds.size());
         for (size_t i = 0; i < sounds.size(); i++)
         {
-            _soundsDefinitions[i] = std::shared_ptr<SoundDefinition>(sounds[i]);
+            _soundsDefinitions[i] = sounds[i];
         }
         _sounds.resize(sounds.size());
         for (size_t i = 0; i < sounds.size(); i++)
@@ -129,7 +129,7 @@ private:
             return sq_throwerror(v, _SC("failed to get triggerNumber"));
         }
 
-        auto numSounds = sq_gettop(v) - 5;
+        auto numSounds = sq_gettop(v) - 3;
         if (numSounds == 0)
         {
             pEntity->setTrigger(triggerNumber, std::make_shared<_NoTrigger>());
@@ -145,7 +145,12 @@ private:
             }
         }
 
-        pEntity->setTrigger(triggerNumber, std::make_shared<_SoundTrigger>(*g_pEngine, sounds));
+        std::vector<std::shared_ptr<SoundDefinition>> soundsShared;
+        std::transform(sounds.begin(),sounds.end(),std::back_inserter(soundsShared),[](SoundDefinition* pSoundDef){
+          return g_pEngine->getSoundManager().getSoundDefinition(pSoundDef);
+        });
+
+        pEntity->setTrigger(triggerNumber, std::make_shared<_SoundTrigger>(*g_pEngine, soundsShared));
         return 0;
     }
 

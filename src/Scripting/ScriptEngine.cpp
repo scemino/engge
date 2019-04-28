@@ -91,6 +91,7 @@ TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
     {
         return nullptr;
     }
+    sq_pop(v, 2);
 
     return dynamic_cast<TEntity *>(pObj);
 }
