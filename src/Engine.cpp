@@ -210,7 +210,16 @@ bool Engine::getInputActive() const { return _pImpl->_inputActive; }
 
 bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
-void Engine::follow(Actor *pActor) { _pImpl->_pFollowActor = pActor; }
+void Engine::follow(Actor *pActor)
+{
+    _pImpl->_pFollowActor = pActor;
+    if(pActor)
+    {
+        auto pos = pActor->getPosition();
+        setCameraAt(pos + pActor->getUsePosition());
+        setRoom(pActor->getRoom());
+    }
+}
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pImpl->_pVerbExecute = std::move(verbExecute); }
 
