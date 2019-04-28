@@ -58,7 +58,7 @@ public:
 
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);
-  SQInteger enterRoomFromDoor(Object *pObject);
+  SQInteger enterRoomFromDoor(Object *pDoor);
   std::wstring getText(int id) const;
   void setFadeAlpha(float fade);
   float getFadeAlpha() const;
