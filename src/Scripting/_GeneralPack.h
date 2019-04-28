@@ -30,6 +30,7 @@ private:
         engine.registerGlobalFunction(frameCounter, "frameCounter");
         engine.registerGlobalFunction(incutscene, "incutscene");
         engine.registerGlobalFunction(indialog, "indialog");
+        engine.registerGlobalFunction(integer, "int");
         engine.registerGlobalFunction(is_array, "is_array");
         engine.registerGlobalFunction(loadArray, "loadArray");
         engine.registerGlobalFunction(random, "random");
@@ -142,6 +143,17 @@ private:
     static SQInteger indialog(HSQUIRRELVM v)
     {
         sq_pushinteger(v, g_pEngine->getDialogManager().isActive() ? 1 : 0);
+        return 1;
+    }
+
+    static SQInteger integer(HSQUIRRELVM v)
+    {
+        SQFloat f = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &f)))
+        {
+            return sq_throwerror(v, "Failed to get float value");
+        }
+        sq_pushinteger(v, (SQInteger)f);
         return 1;
     }
 
@@ -463,8 +475,14 @@ private:
 
     static SQInteger screenSize(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: screenSize: not implemented" << std::endl;
-        return 0;
+        sq_newtable(v);
+        sq_pushstring(v, _SC("x"), -1);
+        sq_pushinteger(v, Screen::Width);
+        sq_newslot(v, -3, SQFalse);
+        sq_pushstring(v, _SC("y"), -1);
+        sq_pushinteger(v, Screen::Height);
+        sq_newslot(v, -3, SQFalse);
+        return 1;
     }
 
     static SQInteger setVerb(HSQUIRRELVM v)
