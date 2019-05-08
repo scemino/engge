@@ -239,6 +239,8 @@ sf::Time Engine::getTime() const { return _pImpl->_time; }
 
 void Engine::setVm(HSQUIRRELVM vm) { _pImpl->_vm = vm; }
 
+HSQUIRRELVM Engine::getVm() { return _pImpl->_vm; }
+
 SQInteger Engine::Impl::exitRoom(Object *pObject)
 {
     if (!_pRoom)

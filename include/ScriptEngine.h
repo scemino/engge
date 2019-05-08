@@ -46,6 +46,8 @@ public:
 
   static std::function<float(float)> getInterpolationMethod(InterpolationMethod index);
 
+  void getSource(const std::string &name, std::vector<char>& code);
+
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
   static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);

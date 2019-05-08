@@ -15,12 +15,12 @@ set(SOURCES
     src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
     src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
     src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp src/Graph.cpp src/PathFinder.cpp src/GGPack.cpp
-    src/Cutscene.cpp src/Entity.cpp src/RoomScaling.cpp
+    src/Cutscene.cpp src/Entity.cpp src/RoomScaling.cpp src/Debugger/Debugger.cpp src/Debugger/DebuggerServer.cpp
 )
 
 add_subdirectory(extlibs/squirrel)
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio)
+target_link_libraries(${PROJECT_NAME} squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio sfml-network)
 if (SFML_FOUND)
     include_directories(${SFML_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES})

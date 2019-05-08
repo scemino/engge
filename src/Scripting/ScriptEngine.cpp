@@ -152,7 +152,7 @@ static Platform _getPlatform()
 ScriptEngine::ScriptEngine(Engine &engine)
     : _engine(engine)
 {
-    v = sq_open(1024*2);
+    v = sq_open(1024 * 2);
     _engine.setVm(v);
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
@@ -415,10 +415,8 @@ void ScriptEngine::executeScript(const std::string &name)
     }
 }
 
-void ScriptEngine::executeNutScript(const std::string &name)
+void ScriptEngine::getSource(const std::string &name, std::vector<char> &code)
 {
-    std::vector<char> code;
-
     std::ifstream is(name);
     if (is.is_open())
     {
@@ -428,20 +426,27 @@ void ScriptEngine::executeNutScript(const std::string &name)
         is.seekg(0, std::ios::beg);
         code.resize(len + 1);
         is.read(code.data(), len);
+        return;
     }
-    else
-    {
-        auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
-        _engine.getSettings().readEntry(entryName, code);
 
+    auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
+    if (_engine.getSettings().hasEntry(entryName))
+    {
+        _engine.getSettings().readEntry(entryName, code);
         // decode bnut
         int cursor = code.size() & 0xff;
-        for (char & i : code)
+        for (char &i : code)
         {
             i ^= _bnutPass[cursor];
             cursor = (cursor + 1) % 4096;
         }
     }
+}
+
+void ScriptEngine::executeNutScript(const std::string &name)
+{
+    std::vector<char> code;
+    getSource(name, code);
 
 #if 1
     std::ofstream o;

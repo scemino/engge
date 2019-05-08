@@ -4,13 +4,12 @@
 #include "ScriptEngine.h"
 #include "PanInputEventHandler.h"
 #include "Dialog/_AstDump.h"
+#include "Debugger.h"
+#include "DebuggerServer.h"
 
-int main(int argc, char **argv)
-{
-
+int main(int argc, char **argv) {
     ng::EngineSettings settings("./resources/");
-    if (argc == 2)
-    {
+    if (argc==2) {
         auto filename = argv[1];
         std::cout << argc << std::endl;
         ng::_AstDump::dump(settings, filename);
@@ -20,8 +19,10 @@ int main(int argc, char **argv)
     auto engine = std::make_unique<ng::Engine>(settings);
     auto game = std::make_unique<ng::Game>(*engine);
     auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
-    try
-    {
+    ng::Debugger debugger(*engine, *scriptEngine);
+    ng::DebuggerServer _server(debugger, 55555);
+
+    try {
         scriptEngine->executeScript("test.nut");
         // scriptEngine->executeBootScript();
 
@@ -29,8 +30,7 @@ int main(int argc, char **argv)
         game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine));
         game->run();
     }
-    catch (std::exception &e)
-    {
+    catch (std::exception &e) {
         std::cerr << "Sorry, an error occured: " << e.what() << std::endl;
     }
 

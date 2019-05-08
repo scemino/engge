@@ -120,6 +120,7 @@ public:
   sf::Time getTime() const;
 
   void setVm(HSQUIRRELVM vm);
+  HSQUIRRELVM getVm();
 
  private:
   struct Impl;
