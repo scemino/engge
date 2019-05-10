@@ -16,7 +16,7 @@ private:
     void runSession(sf::TcpSocket &socket);
 
 private:
-    std::thread _thread;
+    std::thread _serverThread;
     int _port{0};
     Debugger& _debugger;
 };

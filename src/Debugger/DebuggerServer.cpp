@@ -6,7 +6,7 @@
 namespace ng
 {
 DebuggerServer::DebuggerServer(Debugger &debugger, int port)
-    : _thread(runServer, std::ref(*this)), _port(port), _debugger(debugger)
+    : _serverThread(runServer, std::ref(*this)), _port(port), _debugger(debugger)
 {
 }
 

@@ -18,7 +18,7 @@ static Debugger *_pDebugger = nullptr;
 static HSQUIRRELVM _v;
 static SQInteger _line;
 
-Debugger::Debugger(Engine& engine, ScriptEngine &scriptEngine)
+Debugger::Debugger(Engine &engine, ScriptEngine &scriptEngine)
     : _scriptEngine(scriptEngine)
 {
     _pDebugger = this;
@@ -127,6 +127,23 @@ void Debugger::getStackTrace(std::vector<StackFrame> &stackFrames)
         stackFrames.push_back(frame);
     }
 }
+
+void Debugger::getVariables(int level, std::vector<Variable> &variables)
+{
+    const SQChar *name = nullptr;
+    auto v = _vm;
+    SQInteger seq = 0;
+    while ((name = sq_getlocal(v, level, seq)))
+    {
+        seq++;
+        Variable variable;
+        variable.name = name;
+        sq_getstackobj(v, -1, &variable.object);
+        sq_pop(v, 1);
+
+        variables.push_back(variable);
+    }
+}   
 
 std::string Debugger::getSource(std::string path)
 {

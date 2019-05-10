@@ -12,28 +12,37 @@ namespace ng
 class Engine;
 class ScriptEngine;
 
-struct Breakpoint {
+struct Breakpoint
+{
     std::string name;
     std::string path;
     SQInteger line;
 };
 
-class DebuggerListener {
- public:
-    virtual void onBreakpointAdded(const Breakpoint& breakpoint) = 0;
-    virtual void onBreakpointHit(const Breakpoint& breakpoint) = 0;
+class DebuggerListener
+{
+public:
+    virtual void onBreakpointAdded(const Breakpoint &breakpoint) = 0;
+    virtual void onBreakpointHit(const Breakpoint &breakpoint) = 0;
 };
 
-struct StackFrame {
+struct StackFrame
+{
     std::string source;
     std::string functionName;
     int32_t line;
 };
 
+struct Variable
+{
+    std::string name;
+    HSQOBJECT object;
+};
+
 class Debugger
 {
- public:
-    Debugger(Engine& engine, ScriptEngine& scriptEngine);
+public:
+    Debugger(Engine &engine, ScriptEngine &scriptEngine);
 
     void pause();
     void resume();
@@ -42,25 +51,26 @@ class Debugger
     static void execute(std::string code);
 
     void addBreakpoint(std::string filename, SQInteger line);
-    void removeBreakpoint(const Breakpoint& breakpoint);
-    const std::vector<Breakpoint>& getBreakpoints() const;
+    void removeBreakpoint(const Breakpoint &breakpoint);
+    const std::vector<Breakpoint> &getBreakpoints() const;
 
-    void getStackTrace(std::vector<StackFrame>& stackFrames);
+    void getStackTrace(std::vector<StackFrame> &stackFrames);
+    void getVariables(int level, std::vector<Variable> &variables);
     std::string getSource(std::string path);
 
-    void add(DebuggerListener* listener);
-    void remove(DebuggerListener* listener);
+    void add(DebuggerListener *listener);
+    void remove(DebuggerListener *listener);
 
- private:
+private:
     static void debugHook(HSQUIRRELVM v, SQInteger type,
-        const SQChar *sourcename, SQInteger line, const SQChar *funcname);
+                          const SQChar *sourcename, SQInteger line, const SQChar *funcname);
 
- private:
-    ScriptEngine& _scriptEngine;
+private:
+    ScriptEngine &_scriptEngine;
     std::mutex _mutex;
     bool _pause{false};
     std::vector<Breakpoint> _breakpoints;
-    std::vector<DebuggerListener*> _listeners;
+    std::vector<DebuggerListener *> _listeners;
     HSQUIRRELVM _vm{nullptr};
 };
-}
+} // namespace ng
