@@ -43,18 +43,18 @@ void Debugger::remove(DebuggerListener *listener)
 
 void Debugger::pause()
 {
-    _pause = true;
+    _state = DebuggerState::Pause;
 }
 
 void Debugger::resume()
 {
-    _pause = false;
+    _state = DebuggerState::Running;
     _mutex.unlock();
 }
 
 void Debugger::step()
 {
-    _pause = true;
+    _state = DebuggerState::Pause;
     _mutex.unlock();
 }
 
@@ -143,13 +143,12 @@ void Debugger::getVariables(int level, std::vector<Variable> &variables)
 
         variables.push_back(variable);
     }
-}   
+}
 
 std::string Debugger::getSource(std::string path)
 {
-    auto name = path.substr(2);
     std::vector<char> buffer;
-    _scriptEngine.getSource(name, buffer);
+    _scriptEngine.getSource(path, buffer);
 
     std::string content;
     std::copy_n(buffer.begin(), buffer.size() - 1, std::back_inserter(content));
@@ -165,6 +164,16 @@ void Debugger::debugHook(HSQUIRRELVM v,
     std::string srcfile = sourcename ? sourcename : "unknown";
     if (type == 'l')
     {
+        if (_pDebugger->_state == DebuggerState::Pause)
+        {
+            _pDebugger->_mutex.lock();
+            _pDebugger->_vm = v;
+            for (const auto &listener : _pDebugger->_listeners)
+            {
+                listener->onPaused();
+            }
+            return;
+        }
         std::optional<Breakpoint> pBreakpoint;
         for (const auto &breakpoint : _pDebugger->_breakpoints)
         {

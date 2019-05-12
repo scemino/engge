@@ -112,6 +112,18 @@ protected:
             nlohmann::json response;
             sendResponse(request, response);
         }
+        else if (cmd == "pause")
+        {
+            nlohmann::json response;
+            sendResponse(request, response);
+            _debugger.pause();
+        }
+        else if (cmd == "next" || cmd == "stepIn" || cmd == "stepOut")
+        {
+            nlohmann::json response;
+            sendResponse(request, response);
+            _debugger.step();
+        }
     }
 
     void stackTrace(nlohmann::json &request)
@@ -129,7 +141,7 @@ protected:
                 {"column", 0}};
             if (!frame.source.empty())
             {
-                nlohmann::json source{{"name", frame.functionName}, {"path", "./" + frame.source}};
+                nlohmann::json source{{"name", frame.functionName}, {"path", frame.source}};
                 stackFrame["source"] = source;
             }
             stackFrames.push_back(stackFrame);
@@ -410,6 +422,17 @@ protected:
         nlohmann::json body{
             {"reason", "breakpoint"},
             {"description", "Breakpoint hit"},
+            {"threadId", 1},
+            {"allThreadsStopped", true}};
+        sendEvent("stopped", body);
+        _variablesHandles.reset();
+    }
+
+    void onPaused() override
+    {
+        nlohmann::json body{
+            {"reason", "step"},
+            {"description", "Pause"},
             {"threadId", 1},
             {"allThreadsStopped", true}};
         sendEvent("stopped", body);

@@ -24,6 +24,7 @@ class DebuggerListener
 public:
     virtual void onBreakpointAdded(const Breakpoint &breakpoint) = 0;
     virtual void onBreakpointHit(const Breakpoint &breakpoint) = 0;
+    virtual void onPaused() = 0;
 };
 
 struct StackFrame
@@ -37,6 +38,12 @@ struct Variable
 {
     std::string name;
     HSQOBJECT object;
+};
+
+enum class DebuggerState
+{
+    Running,
+    Pause
 };
 
 class Debugger
@@ -68,9 +75,9 @@ private:
 private:
     ScriptEngine &_scriptEngine;
     std::mutex _mutex;
-    bool _pause{false};
     std::vector<Breakpoint> _breakpoints;
     std::vector<DebuggerListener *> _listeners;
     HSQUIRRELVM _vm{nullptr};
+    DebuggerState _state{DebuggerState::Running};
 };
 } // namespace ng
