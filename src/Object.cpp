@@ -30,6 +30,8 @@ struct Object::Impl
     HSQOBJECT _pTable;
     bool _hotspotVisible;
     bool _triggerEnabled{true};
+    Object *pParentObject{nullptr};
+    int dependentState{0};
 
     Impl()
         : _pAnim(std::nullopt),
@@ -239,6 +241,22 @@ void Object::setScale(float s)
 
 void Object::update(const sf::Time &elapsed)
 {
+    if (pImpl->pParentObject)
+    {
+        if (pImpl->pParentObject->getState() == pImpl->dependentState)
+        {
+            if (pImpl->_state == 4)
+            {
+                setStateAnimIndex(0);
+                setTouchable(true);
+            }
+        }
+        else if (pImpl->_state != 4)
+        {
+            setStateAnimIndex(4);
+            setTouchable(false);
+        }
+    }
     if (pImpl->_pAnim)
     {
         pImpl->_pAnim->update(elapsed);
@@ -288,6 +306,12 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
     {
         target.draw(*pImpl->_pAnim, states);
     }
+}
+
+void Object::dependentOn(Object *parentObject, int state)
+{
+    pImpl->dependentState = state;
+    pImpl->pParentObject = parentObject;
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)

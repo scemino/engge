@@ -501,7 +501,7 @@ class _RoomPack : public Pack
 
                 sq_pushobject(v, table);
                 sq_pushstring(v, tostring(obj->getName()).c_str(), -1);
-                sq_get(v, -2);
+                sq_rawget(v, -2);
                 sq_getstackobj(v, -1, &obj->getTable());
                 if (!sq_istable(obj->getTable()))
                 {

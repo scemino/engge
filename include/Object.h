@@ -89,6 +89,8 @@ public:
   Trigger* getTrigger();
   void enableTrigger(bool enabled);
 
+  void dependentOn(Object* parentObject, int state);
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 

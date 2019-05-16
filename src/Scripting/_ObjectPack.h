@@ -748,7 +748,22 @@ private:
 
     static SQInteger objectDependentOn(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectDependentOn: not implemented" << std::endl;
+        Object *childObject = ScriptEngine::getObject(v, 2);
+        if (!childObject)
+        {
+            return sq_throwerror(v, _SC("failed to get childObject"));
+        }
+        Object *parentObject = ScriptEngine::getObject(v, 3);
+        if (!parentObject)
+        {
+            return sq_throwerror(v, _SC("failed to get parentObject"));
+        }
+        SQInteger state;
+        if (SQ_FAILED(sq_getinteger(v, 4, &state)))
+        {
+            return sq_throwerror(v, _SC("failed to get state"));
+        }
+        childObject->dependentOn(parentObject, state);
         return 0;
     }
 

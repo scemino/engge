@@ -495,6 +495,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
     auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
     });
+    obj.setRoom(this);
     itLayer->get()->addEntity(obj);
     pImpl->_objects.push_back(std::move(object));
     return obj;
@@ -519,6 +520,7 @@ Object &Room::createObject(const std::string &image)
     auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
         return pLayer->getZOrder() == 0;
     });
+    obj.setRoom(this);
     itLayer->get()->addEntity(obj);
     pImpl->_objects.push_back(std::move(object));
     return obj;
