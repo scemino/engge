@@ -213,7 +213,7 @@ bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 void Engine::follow(Actor *pActor)
 {
     _pImpl->_pFollowActor = pActor;
-    if(pActor)
+    if (pActor)
     {
         auto pos = pActor->getPosition();
         setCameraAt(pos + pActor->getUsePosition());
@@ -287,7 +287,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     std::cout << "call enter room function of " << pRoom->getId() << std::endl;
     sq_pushobject(_vm, pRoom->getTable());
     sq_pushstring(_vm, _SC("enter"), -1);
-    if (SQ_FAILED(sq_get(_vm, -2)))
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
     {
         return sq_throwerror(_vm, _SC("can't find enter function"));
     }
@@ -313,6 +313,30 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     {
         return sq_throwerror(_vm, _SC("function enter call failed"));
     }
+
+    auto &objects = pRoom->getObjects();
+    for (size_t i = 0; i < objects.size(); i++)
+    {
+        auto &obj = objects[i];
+
+        if (obj->getId().empty())
+            continue;
+
+        sq_pushobject(_vm, obj->getTable());
+        sq_pushstring(_vm, _SC("enter"), -1);
+        if (SQ_FAILED(sq_rawget(_vm, -2)))
+        {
+            continue;
+        }
+
+        sq_remove(_vm, -2);
+        sq_pushobject(_vm, obj->getTable());
+        if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
+        {
+            return sq_throwerror(_vm, _SC("function object enter call failed"));
+        }
+    }
+
     return 0;
 }
 
@@ -341,24 +365,23 @@ SQInteger Engine::setRoom(Room *pRoom)
 SQInteger Engine::enterRoomFromDoor(Object *pDoor)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
-    std::cout << "enterRoomFromDoor" << std::endl;
 
     auto dir = pDoor->getUseDirection();
     Facing facing;
-    switch(dir)
+    switch (dir)
     {
-        case UseDirection::Back:
-            facing = Facing::FACE_FRONT;
-            break;
-        case UseDirection::Front:
-            facing = Facing::FACE_BACK;
-            break;
-        case UseDirection::Left:
-            facing = Facing::FACE_RIGHT;
-            break;
-        case UseDirection::Right:
-            facing = Facing::FACE_LEFT;
-            break;
+    case UseDirection::Back:
+        facing = Facing::FACE_FRONT;
+        break;
+    case UseDirection::Front:
+        facing = Facing::FACE_BACK;
+        break;
+    case UseDirection::Left:
+        facing = Facing::FACE_RIGHT;
+        break;
+    case UseDirection::Right:
+        facing = Facing::FACE_LEFT;
+        break;
     }
     auto pRoom = pDoor->getRoom();
     auto pOldRoom = _pImpl->_pRoom;
