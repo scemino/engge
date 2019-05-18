@@ -543,6 +543,15 @@ class _RoomPack : public Pack
             sq_newslot(v, -3, SQFalse);
 
             sq_pushobject(v, obj->getTable());
+            sq_pushstring(v, _SC("flags"), -1);
+            if(SQ_FAILED(sq_rawget(v, -2)))
+            {
+                sq_pushstring(v, _SC("flags"), -1);
+                sq_pushinteger(v, 0);
+                sq_newslot(v, -3, SQFalse);
+            }
+
+            sq_pushobject(v, obj->getTable());
             sq_pushobject(v, table);
             sq_setdelegate(v, -2);
         }
