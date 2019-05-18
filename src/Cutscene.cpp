@@ -12,10 +12,11 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
     _inputVerbs = _engine.getInputVerbs();
     _engine.setInputVerbs(false);
 
-    sq_addref(_v, &_thread);
-    sq_addref(_v, &_closureObj);
-    sq_addref(_v, &_closureCutsceneOverrideObj);
-    sq_addref(_v, &_envObj);
+    auto vm = engine.getVm();
+    sq_addref(vm, &_thread);
+    sq_addref(vm, &_closureObj);
+    sq_addref(vm, &_closureCutsceneOverrideObj);
+    sq_addref(vm, &_envObj);
 }
 
 bool Cutscene::isElapsed() { return _state == 5; }
@@ -115,9 +116,11 @@ void Cutscene::endCutscene()
         _engine.setRoom(_currentActor->getRoom());
     }
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
-    sq_release(_v, &_thread);
-    sq_release(_v, &_closureObj);
-    sq_release(_v, &_closureCutsceneOverrideObj);
-    sq_release(_v, &_envObj);
+
+    auto v = _engine.getVm();
+    sq_release(v, &_thread);
+    sq_release(v, &_closureObj);
+    sq_release(v, &_closureCutsceneOverrideObj);
+    sq_release(v, &_envObj);
 }
 } // namespace ng

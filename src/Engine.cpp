@@ -239,6 +239,8 @@ sf::Time Engine::getTime() const { return _pImpl->_time; }
 
 void Engine::setVm(HSQUIRRELVM vm) { _pImpl->_vm = vm; }
 
+HSQUIRRELVM Engine::getVm() { return _pImpl->_vm; }
+
 SQInteger Engine::Impl::exitRoom(Object *pObject)
 {
     if (!_pRoom)
@@ -253,7 +255,8 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     sq_pushstring(_vm, _SC("exit"), -1);
     if (SQ_FAILED(sq_get(_vm, -2)))
     {
-        return sq_throwerror(_vm, _SC("can't find exit function"));
+        std::cerr << "can't find exit function" << std::endl;
+        return 0;
     }
 
     SQInteger nparams, nfreevars;
@@ -289,7 +292,8 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     sq_pushstring(_vm, _SC("enter"), -1);
     if (SQ_FAILED(sq_rawget(_vm, -2)))
     {
-        return sq_throwerror(_vm, _SC("can't find enter function"));
+        std::cerr << "can't find enter function" << std::endl;
+        return 0;
     }
 
     SQInteger nparams, nfreevars;
