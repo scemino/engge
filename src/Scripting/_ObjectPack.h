@@ -220,9 +220,9 @@ private:
                 return sq_throwerror(v, _SC("failed to get object or actor"));
             }
         }
-        if(numArgs == 2)
+        if (numArgs == 2)
         {
-            const auto& hotspot = obj->getHotspot();
+            const auto &hotspot = obj->getHotspot();
             sq_newtable(v);
             sq_pushstring(v, _SC("x1"), -1);
             sq_pushinteger(v, hotspot.left);
@@ -428,7 +428,7 @@ private:
         }
         if (sq_gettype(v, 3) == OT_STRING)
         {
-            const SQChar* state;
+            const SQChar *state;
             if (SQ_FAILED(sq_getstring(v, 3, &state)))
             {
                 return sq_throwerror(v, _SC("failed to get state"));
@@ -621,6 +621,13 @@ private:
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
+        }
+        auto numArgs = sq_gettop(v);
+        if (numArgs == 2)
+        {
+            isTouchable = obj->isTouchable() ? 1 : 0;
+            sq_pushinteger(v, isTouchable);
+            return 1;
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &isTouchable)))
         {
