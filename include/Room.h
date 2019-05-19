@@ -45,6 +45,8 @@ public:
   TextObject &createTextObject(const std::string &fontName);
   void deleteObject(Object &textObject);
   sf::Vector2i getRoomSize() const;
+  int32_t getFullscreen() const;
+  int32_t getScreenHeight() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);
   void roomLayer(int layer, bool enabled);
   const RoomScaling &getRoomScaling() const;

@@ -16,7 +16,6 @@
 #include "InventoryObject.h"
 #include "Preferences.h"
 #include "Room.h"
-#include "Screen.h"
 #include "ScriptExecute.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
@@ -108,6 +107,7 @@ struct Engine::Impl
     void updateCurrentObject(const sf::Vector2f &mousPos);
     SQInteger enterRoom(Room *pRoom, Object *pObject);
     SQInteger exitRoom(Object *pObject);
+    void updateScreenSize();
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -156,14 +156,6 @@ Engine::Engine(EngineSettings &settings)
 
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
-
-    sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
-    for (auto i = 0; i < 9; i++)
-    {
-        auto left = (i / 3) * size.x;
-        auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
-        _pImpl->_verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
-    }
 }
 
 Engine::~Engine() = default;
@@ -173,6 +165,8 @@ int Engine::getFrameCounter() const { return _pImpl->_frameCounter; }
 sf::Vector2f Engine::getCameraAt() const { return _pImpl->_cameraPos; }
 
 void Engine::setWindow(sf::RenderWindow &window) { _pImpl->_pWindow = &window; }
+
+const sf::RenderWindow &Engine::getWindow() const { return *_pImpl->_pWindow; }
 
 TextureManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
 
@@ -284,6 +278,61 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     return 0;
 }
 
+void Engine::Impl::updateScreenSize()
+{
+    if (_pRoom)
+    {
+        if (_pRoom->getFullscreen() == 1)
+        {
+            auto roomSize=_pRoom->getRoomSize();
+            sf::View view(sf::FloatRect(0, 0, roomSize.x, roomSize.y));
+            _pWindow->setView(view);
+        }
+        else
+        {
+            auto height = _pRoom->getScreenHeight();
+            switch (height)
+            {
+            case 128:
+            {
+                sf::View view(sf::FloatRect(0, 0, 320, 180));
+                _pWindow->setView(view);
+                break;
+            }
+            case 172:
+            {
+                sf::View view(sf::FloatRect(0, 0, 428, 240));
+                _pWindow->setView(view);
+                break;
+            }
+            case 256:
+            {
+                sf::View view(sf::FloatRect(0, 0, 640, 360));
+                _pWindow->setView(view);
+                break;
+            }
+            default:
+            {
+                height = 180.f * height / 128.f;
+                auto ratio = 320.f / 180.f;
+                sf::View view(sf::FloatRect(0, 0, ratio * height, height));
+                _pWindow->setView(view);
+                break;
+            }
+            }
+        }
+
+        auto screen = _pWindow->getView().getSize();
+        sf::Vector2f size(screen.x / 6.f, screen.y / 14.f);
+        for (auto i = 0; i < 9; i++)
+        {
+            auto left = (i / 3) * size.x;
+            auto top = screen.y - size.y * 3 + (i % 3) * size.y;
+            _verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
+        }
+    }
+}
+
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 {
     // call enter room function
@@ -358,6 +407,7 @@ SQInteger Engine::setRoom(Room *pRoom)
 
     // set camera in room
     _pImpl->_pRoom = pRoom;
+    _pImpl->updateScreenSize();
 
     result = _pImpl->enterRoom(pRoom, nullptr);
     if (SQ_FAILED(result))
@@ -397,6 +447,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
         return result;
 
     _pImpl->_pRoom = pRoom;
+    _pImpl->updateScreenSize();
 
     auto actor = getCurrentActor();
     actor->getCostume().setFacing(facing);
@@ -500,11 +551,12 @@ void Engine::Impl::clampCamera()
         _cameraPos.y = 0;
     if (!_pRoom)
         return;
+    auto screen = _pWindow->getView().getSize();
     const auto &size = _pRoom->getRoomSize();
-    if (_cameraPos.x > size.x - Screen::Width)
-        _cameraPos.x = size.x - Screen::Width;
-    if (_cameraPos.y > size.y - Screen::Height)
-        _cameraPos.y = size.y - Screen::Height;
+    if (_cameraPos.x > size.x - screen.x)
+        _cameraPos.x = size.x - screen.x;
+    if (_cameraPos.y > size.y - screen.y)
+        _cameraPos.y = size.y - screen.y;
 }
 
 void Engine::Impl::updateCutscene(const sf::Time &elapsed)
@@ -547,13 +599,14 @@ void Engine::Impl::updateActorIcons(const sf::Time &elapsed)
 
 void Engine::Impl::updateMouseCursor()
 {
+    auto screen = _pWindow->getView().getSize();
     if (_mousePos.x < 20)
         _cursorDirection |= CursorDirection::Left;
-    else if (_mousePos.x > Screen::Width - 20)
+    else if (_mousePos.x > screen.x - 20)
         _cursorDirection |= CursorDirection::Right;
     if (_mousePos.y < 10)
         _cursorDirection |= CursorDirection::Up;
-    else if (_mousePos.y > Screen::Height - 10)
+    else if (_mousePos.y > screen.y - 10)
         _cursorDirection |= CursorDirection::Down;
     if (_pCurrentObject)
         _cursorDirection |= CursorDirection::Hotspot;
@@ -593,11 +646,12 @@ void Engine::update(const sf::Time &elapsed)
     if (!_pImpl->_pRoom)
         return;
 
+    auto screen = _pImpl->_pWindow->getView().getSize();
     _pImpl->_pRoom->update(elapsed);
     if (_pImpl->_pFollowActor)
     {
         auto pos = _pImpl->_pFollowActor->getPosition();
-        _pImpl->_cameraPos = pos - sf::Vector2f(Screen::HalfWidth, Screen::HalfHeight);
+        _pImpl->_cameraPos = pos - sf::Vector2f(screen.x / 2, screen.y / 2);
         _pImpl->clampCamera();
     }
 
@@ -751,7 +805,8 @@ void Engine::draw(sf::RenderWindow &window) const
 void Engine::Impl::drawFade(sf::RenderWindow &window) const
 {
     sf::RectangleShape fadeShape;
-    fadeShape.setSize(sf::Vector2f(Screen::Width, Screen::Height));
+    auto screen = _pWindow->getView().getSize();
+    fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
     fadeShape.setFillColor(_fadeColor);
     window.draw(fadeShape);
 }
@@ -761,7 +816,8 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
     if (!_inputActive)
         return;
 
-    auto cursorSize = sf::Vector2f(68.f * Screen::Width / 1284, 68.f * Screen::Height / 772);
+    auto screen = _pWindow->getView().getSize();
+    auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
     sf::RectangleShape shape;
     shape.setPosition(_mousePos);
     shape.setOrigin(cursorSize / 2.f);
@@ -775,12 +831,14 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 sf::IntRect Engine::Impl::getCursorRect() const
 {
     const auto &size = _pRoom->getRoomSize();
+    auto screen = _pWindow->getView().getSize();
+    auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
     if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
                                                            : _gameSheet.getRect("cursor_left");
     }
-    if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - Screen::Width)
+    if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - screen.x)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right")
                                                            : _gameSheet.getRect("cursor_right");
@@ -790,7 +848,7 @@ sf::IntRect Engine::Impl::getCursorRect() const
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back")
                                                            : _gameSheet.getRect("cursor_back");
     }
-    if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - Screen::Height)
+    if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - screen.y)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front")
                                                            : _gameSheet.getRect("cursor_front");
@@ -863,10 +921,11 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         text.setText(s);
     }
 
+    auto screen = _pWindow->getView().getSize();
     auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;
     if (y < 0)
         y = 0;
-    auto x = std::clamp((int)_mousePos.x, 20, Screen::Width - 20 - (int)text.getBoundRect().width / 2);
+    auto x = std::clamp((int)_mousePos.x, 20, (int)screen.x - 20 - (int)text.getBoundRect().width / 2);
     text.setPosition(x, y);
     window.draw(text, sf::RenderStates::Default);
 }
@@ -932,8 +991,9 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     sf::RenderStates states;
     states.texture = &_verbSheet.getTexture();
 
-    sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
+    auto screen = _pWindow->getView().getSize();
+    sf::Vector2f size(screen.x / 6.f, screen.y / 14.f);
+    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
     for (int x = 0; x < 3; x++)
     {
         auto maxW = 0;
@@ -948,7 +1008,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
 
         for (int y = 0; y < 3; y++)
         {
-            auto top = Screen::Height - size.y * 3 + y * size.y;
+            auto top = screen.y - size.y * 3 + y * size.y;
             auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb.id);
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);

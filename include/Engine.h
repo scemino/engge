@@ -52,6 +52,7 @@ public:
   sf::Vector2f getCameraAt() const;
 
   void setWindow(sf::RenderWindow &window);
+  const sf::RenderWindow& getWindow() const;
 
   TextureManager &getTextureManager();
   EngineSettings &getSettings();

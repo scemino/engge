@@ -2,7 +2,6 @@
 #include "squirrel.h"
 #include "Lip.h"
 #include "Engine.h"
-#include "Screen.h"
 #include "../_NGUtil.h"
 
 namespace ng
@@ -112,7 +111,7 @@ private:
             case Facing::FACE_FRONT:
                 return Facing::FACE_BACK;
             case Facing::FACE_LEFT:
-                return  Facing::FACE_RIGHT;
+                return Facing::FACE_RIGHT;
             case Facing::FACE_RIGHT:
                 return Facing::FACE_LEFT;
             }
@@ -531,36 +530,39 @@ private:
 
     static SQInteger actorSlotSelectable(HSQUIRRELVM v)
     {
-        auto numArgs = sq_gettop(v) - 1;
-        Actor *actor = nullptr;
-
-        SQBool selectable;
-        sq_tobool(v, numArgs + 1, &selectable);
-
-        if (numArgs == 1)
+        auto numArgs = sq_gettop(v);
+        if (numArgs == 2)
         {
-            SQInteger actorIndex = 0;
-            if (SQ_SUCCEEDED(sq_getinteger(v, 2, &actorIndex)))
+            std::cerr << "actorSlotSelectable not implemented" << std::endl;
+            return 0;
+        }
+        
+        if (numArgs == 3)
+        {
+            SQInteger selectable;
+            if (SQ_FAILED(sq_getinteger(v, 3, &selectable)))
             {
+                return sq_throwerror(v, _SC("failed to get selectable"));
+            }
+            if (sq_gettype(v, 2) == OT_INTEGER)
+            {
+                SQInteger actorIndex = 0;
+                if (SQ_FAILED(sq_getinteger(v, 2, &actorIndex)))
+                {
+                    return sq_throwerror(v, _SC("failed to get actor index"));
+                }
                 g_pEngine->actorSlotSelectable(actorIndex, selectable == SQTrue);
                 return 0;
             }
-
-            actor = ScriptEngine::getActor(v, 2);
+            auto actor = ScriptEngine::getActor(v, 2);
             if (!actor)
             {
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
-        }
-        else
-        {
-            actor = g_pEngine->getCurrentActor();
-        }
-        if (!actor)
+            g_pEngine->actorSlotSelectable(actor, selectable != 0);
             return 0;
-
-        g_pEngine->actorSlotSelectable(actor, selectable == SQTrue);
-        return 0;
+        }
+        return sq_throwerror(v, _SC("invalid number of arguments"));
     }
 
     static SQInteger actorTalking(HSQUIRRELVM v)
@@ -826,9 +828,10 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
+        auto screen = g_pEngine->getWindow().getView().getSize();
         auto pos = (sf::Vector2i)actor->getPosition();
         auto camera = g_pEngine->getCameraAt();
-        sf::IntRect rect(camera.x, camera.y, Screen::Width, Screen::Height);
+        sf::IntRect rect(camera.x - screen.x / 2.f, camera.y - screen.y / 2.f, screen.x, screen.y);
         auto isOnScreen = rect.contains(pos);
         sq_pushbool(v, isOnScreen ? SQTrue : SQFalse);
         return 1;
@@ -846,13 +849,13 @@ private:
         return 1;
     }
 
-  static SQInteger _sayLine(HSQUIRRELVM v)
+    static SQInteger _sayLine(HSQUIRRELVM v)
     {
         auto type = sq_gettype(v, 2);
-        Actor* actor;
+        Actor *actor;
         SQInteger numIds;
         SQInteger index;
-        if(type == OT_STRING)
+        if (type == OT_STRING)
         {
             actor = g_pEngine->getCurrentActor();
             numIds = sq_gettop(v) - 1;

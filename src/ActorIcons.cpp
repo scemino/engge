@@ -1,7 +1,6 @@
 
 #include "ActorIcons.h"
 #include "Engine.h"
-#include "Screen.h"
 
 namespace ng
 {
@@ -31,7 +30,8 @@ void ActorIcons::setMousePosition(const sf::Vector2f &pos)
 
 void ActorIcons::update(const sf::Time &elapsed)
 {
-    sf::FloatRect iconRect(Screen::Width - 16, 0, 16, 16 + (_isInside ? getIconsNum() * 15 : 0));
+    auto screen = _pEngine->getWindow().getView().getSize();
+    sf::FloatRect iconRect(screen.x - 16, 0, 16, 16 + (_isInside ? getIconsNum() * 15 : 0));
     bool wasInside = _isInside;
     _isInside = iconRect.contains(_mousePos);
     if (wasInside != _isInside)
@@ -53,7 +53,7 @@ void ActorIcons::update(const sf::Time &elapsed)
     if (_isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     {
         _isMouseButtonPressed = false;
-        sf::FloatRect iconRect(Screen::Width - 16, 15, 16, 16);
+        sf::FloatRect iconRect(screen.x - 16, 15, 16, 16);
         for (auto selectableActor : _actorsIconSlots)
         {
             if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
@@ -98,7 +98,8 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
         return;
 
     int numIcons = 0;
-    sf::Vector2f offset(Screen::Width - 8, 8);
+    auto screen = target.getView().getSize();
+    sf::Vector2f offset(screen.x - 8, 8);
 
     if (_pCurrentActor)
     {

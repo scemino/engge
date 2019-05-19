@@ -11,7 +11,6 @@
 #include "Room.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
-#include "Screen.h"
 #include "SpriteSheet.h"
 #include "TextObject.h"
 #include "_NGUtil.h"
@@ -27,6 +26,7 @@ struct Room::Impl
     std::vector<std::unique_ptr<RoomLayer>> _layers;
     std::vector<RoomScaling> _scalings;
     sf::Vector2i _roomSize;
+    int32_t _screenHeight{0};
     bool _showDrawWalkboxes{false};
     std::string _sheet;
     std::string _id;
@@ -348,7 +348,11 @@ bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
 
-HSQOBJECT& Room::getTable() { return pImpl->_table; }
+int32_t Room::getScreenHeight() const { return pImpl->_screenHeight; }
+
+int32_t Room::getFullscreen() const { return pImpl->_fullscreen; }
+
+HSQOBJECT &Room::getTable() { return pImpl->_table; }
 
 bool Room::walkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 
@@ -405,7 +409,7 @@ void Room::load(const char *name)
     GGPackValue hash;
     pImpl->_settings.readEntry(wimpyFilename, hash);
 
-#if 0
+#if 1
     std::ofstream out;
     out.open(wimpyFilename, std::ios::out);
     out << hash;
@@ -413,6 +417,7 @@ void Room::load(const char *name)
 #endif
 
     pImpl->_sheet = hash["sheet"].string_value;
+    pImpl->_screenHeight = hash["height"].int_value;
     pImpl->_roomSize = (sf::Vector2i)_parsePos(hash["roomsize"].string_value);
 
     // load json file
@@ -560,18 +565,17 @@ void Room::update(const sf::Time &elapsed)
 void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
-    auto ratio = ((float)Screen::Height) / pImpl->_roomSize.y;
+    auto screen = window.getView().getSize();
+    auto ratio = screen.y / pImpl->_roomSize.y;
     for (const auto &layer : pImpl->_layers)
     {
+        auto w = screen.x / 2.f;
+        auto h = screen.y / 2.f;
         auto parallax = layer->getParallax();
-        auto posX = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
-        auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
+        auto posX = (w - cameraPos.x) * parallax.x - w;
+        auto posY = (h - cameraPos.y) * parallax.y - h;
 
         sf::Transform t;
-        if (pImpl->_fullscreen == 1)
-        {
-            t.scale(ratio, ratio);
-        }
         t.translate(posX, posY);
         states.transform = t;
         layer->draw(window, states);
@@ -585,15 +589,11 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     for (const auto &layer : pImpl->_layers)
     {
         auto parallax = layer->getParallax();
-        auto posX = (Screen::HalfWidth - cameraPos.x) * parallax.x - Screen::HalfWidth;
-        auto posY = (Screen::HalfHeight - cameraPos.y) * parallax.y - Screen::HalfHeight;
+        auto posX = (screen.x / 2 - cameraPos.x) * parallax.x - screen.x / 2;
+        auto posY = (screen.y / 2 - cameraPos.y) * parallax.y - screen.y / 2;
 
         sf::Transform t2;
         t2.translate(posX, posY);
-        if (pImpl->_fullscreen == 1)
-        {
-            t2.scale(ratio, ratio);
-        }
         states.transform = t2;
         layer->drawForeground(window, states);
     }

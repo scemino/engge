@@ -2,7 +2,6 @@
 #include "Actor.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
-#include "Screen.h"
 #include "Text.h"
 #include "_SayFunction.h"
 
@@ -79,7 +78,8 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
     int dialog = 0;
     Text text;
-    auto scale = Screen::HalfHeight / 512.f;
+    auto screen = target.getView().getSize();
+    auto scale = screen.y / 2.f / 512.f;
     text.setFont(_font);
     text.scale(scale, scale);
     for (auto &dlg : _dialog)
@@ -87,7 +87,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         if (dlg.id == 0)
             continue;
 
-        text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
+        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 10);
         text.setString(dlg.text);
         text.setFillColor(text.getGlobalBounds().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(0).dialogHighlight : _pEngine->getVerbUiColors(0).dialogNormal);
         target.draw(text, states);
@@ -97,6 +97,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
 void DialogManager::update(const sf::Time &elapsed)
 {
+    auto screen = _pEngine->getWindow().getView().getSize();
     _isActive = !_functions.empty();
     _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
 
@@ -119,10 +120,10 @@ void DialogManager::update(const sf::Time &elapsed)
             continue;
 
         Text text;
-        auto scale = Screen::HalfHeight / 512.f;
+        auto scale = screen.y / 2.f / 512.f;
         text.scale(scale, scale);
         text.setFont(_font);
-        text.setPosition(0, Screen::Height - 3 * Screen::Height / 14.f + dialog * 10);
+        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 10);
         text.setString(dlg.text);
         if (text.getGlobalBounds().contains(_pEngine->getMousePos()))
         {

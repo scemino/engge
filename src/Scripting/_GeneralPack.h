@@ -3,7 +3,6 @@
 #include "squirrel.h"
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
-#include "Screen.h"
 
 namespace ng
 {
@@ -211,6 +210,7 @@ private:
     static SQInteger cameraAt(HSQUIRRELVM v)
     {
         std::cout << "cameraAt" << std::endl;
+        auto screen = g_pEngine->getWindow().getView().getSize();
         SQInteger x, y;
         auto numArgs = sq_gettop(v) - 1;
         if (numArgs == 2)
@@ -223,7 +223,7 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            g_pEngine->setCameraAt(sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight));
+            g_pEngine->setCameraAt(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f));
         }
         else
         {
@@ -236,7 +236,7 @@ private:
             }
 
             auto pos = spot->getPosition();
-            g_pEngine->setCameraAt(sf::Vector2f(pos.x - Screen::HalfWidth, pos.y - Screen::HalfHeight));
+            g_pEngine->setCameraAt(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
         }
         return 0;
     }
@@ -257,6 +257,7 @@ private:
     static SQInteger cameraPanTo(HSQUIRRELVM v)
     {
         SQInteger x, y, interpolation{0};
+        auto screen = g_pEngine->getWindow().getView().getSize();
         SQFloat t;
         if (sq_gettype(v, 2) == OT_TABLE)
         {
@@ -295,7 +296,7 @@ private:
         auto set = std::bind(&Engine::setCameraAt, g_pEngine, std::placeholders::_1);
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
-        auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - Screen::HalfWidth, y - Screen::HalfHeight), sf::seconds(t), method);
+        auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(cameraPanTo));
         return 0;
     }
@@ -475,12 +476,13 @@ private:
 
     static SQInteger screenSize(HSQUIRRELVM v)
     {
+        auto screen = g_pEngine->getWindow().getView().getSize();
         sq_newtable(v);
         sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, Screen::Width);
+        sq_pushinteger(v, screen.x);
         sq_newslot(v, -3, SQFalse);
         sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, Screen::Height);
+        sq_pushinteger(v, screen.y);
         sq_newslot(v, -3, SQFalse);
         return 1;
     }

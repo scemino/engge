@@ -1,4 +1,3 @@
-#include "Screen.h"
 #include "TextObject.h"
 #include "Text.h"
 #include "_NGUtil.h"

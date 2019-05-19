@@ -1,7 +1,6 @@
 #include "Engine.h"
 #include "Inventory.h"
 #include "InventoryObject.h"
-#include "Screen.h"
 
 namespace ng
 {
@@ -14,24 +13,6 @@ Inventory::Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
       _pCurrentActor(pCurrentActor),
       _pCurrentInventoryObject(nullptr)
 {
-    // inventory rects
-    auto x = 0, y = 0;
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
-    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
-    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
-    for (auto i = 0; i < 8; i++)
-    {
-        sf::Vector2f pos(x + scrollUpPosition.x + scrollUpSize.x, y + Screen::Height - 3 * Screen::Height / 14.f);
-        auto size = sf::Vector2f(206.f * Screen::Width / 1920.f, 112.f * Screen::Height / 1080.f);
-        _inventoryRects[i] = sf::IntRect(pos.x, pos.y, size.x, size.y);
-        x += size.x;
-        if (i == 3)
-        {
-            x = 0;
-            y += size.y;
-        }
-    }
 }
 
 void Inventory::setEngine(Engine *pEngine)
@@ -51,6 +32,26 @@ void Inventory::update(const sf::Time &elapsed)
     if (_pCurrentActor == nullptr)
         return;
     _pCurrentInventoryObject = nullptr;
+
+    auto screen = _pEngine->getWindow().getView().getSize();
+    // inventory rects
+    auto x = 0, y = 0;
+    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
+    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
+    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
+    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
+    for (auto i = 0; i < 8; i++)
+    {
+        sf::Vector2f pos(x + scrollUpPosition.x + scrollUpSize.x, y + screen.y - 3 * screen.y / 14.f);
+        auto size = sf::Vector2f(206.f * screen.x / 1920.f, 112.f * screen.y / 1080.f);
+        _inventoryRects[i] = sf::IntRect(pos.x, pos.y, size.x, size.y);
+        x += size.x;
+        if (i == 3)
+        {
+            x = 0;
+            y += size.y;
+        }
+    }
 
     for (int i = 0; i < 8; i++)
     {
@@ -81,13 +82,14 @@ int Inventory::getCurrentActorIndex() const
 
 void Inventory::drawUpArrow(sf::RenderTarget &target) const
 {
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
+    auto screen = _pEngine->getWindow().getView().getSize();
+    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
 
     int currentActorIndex = getCurrentActorIndex();
     auto rect = _gameSheet.getRect("scroll_up");
 
     sf::Vector2f scrollUpSize(rect.width * ratio.x, rect.height * ratio.y);
-    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
+    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
     sf::RectangleShape scrollUpShape;
     scrollUpShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
     scrollUpShape.setPosition(scrollUpPosition);
@@ -99,11 +101,12 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const
 
 void Inventory::drawDownArrow(sf::RenderTarget &target) const
 {
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 768.f);
+    auto screen = _pEngine->getWindow().getView().getSize();
+    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 768.f);
 
     int currentActorIndex = getCurrentActorIndex();
     auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
+    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
 
     auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
@@ -118,15 +121,16 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const
 
 void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    auto screen = _pEngine->getWindow().getView().getSize();
     int currentActorIndex = getCurrentActorIndex();
     if (currentActorIndex == -1)
         return;
 
-    auto ratio = sf::Vector2f(Screen::Width / 1280.f, Screen::Height / 720.f);
+    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
 
     // inventory arrows
     auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
+    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
 
     auto inventoryFrameRect = _gameSheet.getRect("inventory_background");
@@ -136,15 +140,15 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
     inventoryShape.setFillColor(c);
     inventoryShape.setTexture(&_gameSheet.getTexture());
     inventoryShape.setTextureRect(inventoryFrameRect);
-    auto sizeBack = sf::Vector2f(206.f * Screen::Width / 1920.f, 112.f * Screen::Height / 1080.f);
+    auto sizeBack = sf::Vector2f(206.f * screen.x / 1920.f, 112.f * screen.y / 1080.f);
     inventoryShape.setSize(sizeBack);
-    auto gapX = 10.f * Screen::Width / 1920.f;
-    auto gapY = 10.f * Screen::Height / 1080.f;
+    auto gapX = 10.f * screen.x / 1920.f;
+    auto gapY = 10.f * screen.y / 1080.f;
     for (auto i = 0; i < 8; i++)
     {
         auto x = (i % 4) * (sizeBack.x + gapX);
         auto y = (i / 4) * (sizeBack.y + gapY);
-        inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x, y + Screen::Height - 3 * Screen::Height / 14.f));
+        inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x, y + screen.y - 3 * screen.y / 14.f));
         target.draw(inventoryShape);
     }
 
@@ -153,7 +157,7 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
         return;
 
     auto startX = sizeBack.x / 2.f + scrollUpPosition.x + scrollUpSize.x;
-    auto startY = sizeBack.y / 2.f + Screen::Height - 3 * Screen::Height / 14.f;
+    auto startY = sizeBack.y / 2.f + screen.y - 3 * screen.y / 14.f;
 
     auto x = 0, y = 0;
     int i = 0;

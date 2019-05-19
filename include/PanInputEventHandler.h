@@ -3,7 +3,6 @@
 #include "Game.h"
 #include "Engine.h"
 #include "Room.h"
-#include "Screen.h"
 
 namespace ng
 {
@@ -13,7 +12,6 @@ class PanInputEventHandler : public InputEventHandler
     PanInputEventHandler(Engine &engine, sf::RenderWindow &window)
         : _engine(engine),
           _window(window),
-          _view(sf::FloatRect(0, 0, Screen::Width, Screen::Height)),
           _isMousePressed(false),
           _isKeyPressed(false)
     {
@@ -73,7 +71,6 @@ class PanInputEventHandler : public InputEventHandler
   private:
     Engine &_engine;
     sf::RenderWindow &_window;
-    sf::View _view;
     bool _isMousePressed, _isKeyPressed;
     sf::Vector2i _pos = sf::Mouse::getPosition();
 };

@@ -6,7 +6,6 @@
 #include "PathFinder.h"
 #include "Room.h"
 #include "RoomScaling.h"
-#include "Screen.h"
 #include "SoundDefinition.h"
 #include "SoundManager.h"
 #include "Text.h"
@@ -440,7 +439,8 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
 void Actor::Impl::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     Text text;
-    auto scale = Screen::HalfHeight / 512.f;
+    auto screen = target.getView().getSize();
+    auto scale = screen.y / 2.f / 512.f;
     text.setScale(scale, scale);
     text.setFont(_font);
     text.setFillColor(_talkColor);
