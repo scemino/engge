@@ -27,6 +27,7 @@ private:
         engine.registerGlobalFunction(cutsceneOverride, "cutsceneOverride");
         engine.registerGlobalFunction(distance, "distance");
         engine.registerGlobalFunction(frameCounter, "frameCounter");
+        engine.registerGlobalFunction(in_array, "in_array");
         engine.registerGlobalFunction(incutscene, "incutscene");
         engine.registerGlobalFunction(indialog, "indialog");
         engine.registerGlobalFunction(integer, "int");
@@ -130,6 +131,51 @@ private:
     static SQInteger frameCounter(HSQUIRRELVM v)
     {
         sq_pushinteger(v, g_pEngine->getFrameCounter());
+        return 1;
+    }
+
+    static SQInteger in_array(HSQUIRRELVM v)
+    {
+        HSQOBJECT obj;
+        sq_resetobject(&obj);
+        if (SQ_FAILED(sq_getstackobj(v, 2, &obj)))
+        {
+            return sq_throwerror(v, "Failed to get object");
+        }
+        HSQOBJECT array;
+        sq_resetobject(&array);
+        if (SQ_FAILED(sq_getstackobj(v, 3, &array)))
+        {
+            return sq_throwerror(v, "Failed to get array");
+        }
+
+        std::vector<HSQOBJECT> objs;
+
+        sq_pushobject(v, array);
+        sq_pushnull(v); //null iterator
+        while (SQ_SUCCEEDED(sq_next(v, -2)))
+        {
+            HSQOBJECT tmp;
+            sq_getstackobj(v, -1, &tmp);
+            objs.push_back(tmp);
+            sq_pop(v, 2); //pops key and val before the nex iteration
+        }
+        sq_pop(v, 1); //pops the null iterator
+
+        for (auto &&o : objs)
+        {
+            sq_pushobject(v, obj);
+            sq_pushobject(v, o);
+            if (sq_cmp(v) == 0)
+            {
+                sq_pop(v, 2);
+                sq_pushinteger(v, 1);
+                return 1;
+            }
+            sq_pop(v, 2);
+        }
+
+        sq_pushinteger(v, 0);
         return 1;
     }
 
