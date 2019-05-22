@@ -633,8 +633,8 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_frameCounter++;
     auto wasMouseDown = _pImpl->_isMouseDown;
     auto wasMouseRightDown = _pImpl->_isMouseRightDown;
-    _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-    _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right);
+    _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && _pImpl->_pWindow->hasFocus();
+    _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && _pImpl->_pWindow->hasFocus();
     bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
     auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
 
