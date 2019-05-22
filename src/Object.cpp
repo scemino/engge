@@ -122,7 +122,7 @@ void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 
 bool Object::isTouchable() const
 {
-    if(!isVisible())
+    if (!isVisible())
         return false;
     if (pImpl->_trigger)
         return false;
@@ -301,6 +301,14 @@ void Object::dependentOn(Object *parentObject, int state)
 {
     pImpl->dependentState = state;
     pImpl->pParentObject = parentObject;
+}
+
+void Object::setFps(int fps)
+{
+    if (pImpl->_pAnim.has_value())
+    {
+        pImpl->_pAnim->setFps(fps);
+    }
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)

@@ -802,8 +802,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get fps"));
         }
-        // TODO: obj->setFps(icon);
-        std::cerr << "TODO: setFps: not implemented" << std::endl;
+        obj->setFps(fps);
         return 0;
     }
 

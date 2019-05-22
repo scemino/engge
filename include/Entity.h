@@ -35,6 +35,7 @@ public:
   virtual void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const;
 
   virtual Room *getRoom() = 0;
+  virtual void setFps(int fps) = 0;
 
 protected:
   sf::Transformable _transform;

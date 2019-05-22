@@ -548,4 +548,13 @@ void Actor::trigSound(const std::string &name)
     pImpl->_engine.getSoundManager().playSound(soundId);
 }
 
+void Actor::setFps(int fps)
+{
+    auto pAnim = pImpl->_costume.getAnimation();
+    if (pAnim)
+    {
+        pAnim->setFps(fps);
+    }
+}
+
 } // namespace ng

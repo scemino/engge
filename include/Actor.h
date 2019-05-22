@@ -48,6 +48,8 @@ public:
   const Room *getRoom() const;
   void setRoom(Room *pRoom);
 
+  void setFps(int fps) override;
+
   void setHotspot(const sf::IntRect &hotspot);
 
   void update(const sf::Time &time) override;

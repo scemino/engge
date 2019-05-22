@@ -43,4 +43,13 @@ void CostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) c
         target.draw(*layer, states);
     }
 }
+
+void CostumeAnimation::setFps(int fps)
+{
+    for (auto &layer : _layers)
+    {
+        layer->setFps(fps);
+    }
+}
+
 } // namespace ng

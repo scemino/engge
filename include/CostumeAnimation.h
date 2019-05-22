@@ -14,7 +14,7 @@ enum class AnimationState
 class CostumeAnimation : public sf::Drawable
 {
 public:
-  CostumeAnimation(std::string name);
+  explicit CostumeAnimation(std::string name);
   ~CostumeAnimation();
 
   const std::string &getName() const { return _name; }
@@ -23,6 +23,7 @@ public:
   void play(bool loop = false);
   void pause() { _state = AnimationState::Pause; }
   bool isPlaying() const { return _state == AnimationState::Play; }
+  void setFps(int fps);
 
   void update(const sf::Time &elapsed);
 

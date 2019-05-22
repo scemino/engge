@@ -90,6 +90,8 @@ public:
 
   void dependentOn(Object* parentObject, int state);
 
+  void setFps(int fps) override;
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
