@@ -74,7 +74,6 @@ struct Actor::Impl
           _costume(engine.getTextureManager()),
           _color(sf::Color::White),
           _zorder(0),
-          _isVisible(true),
           _use(true),
           _pRoom(nullptr),
           _speed(30, 15),
@@ -89,7 +88,6 @@ struct Actor::Impl
     sf::Color _color;
     sf::Vector2i _renderOffset;
     int _zorder;
-    bool _isVisible;
     bool _use;
     Room *_pRoom;
     sf::IntRect _hotspot;
@@ -120,11 +118,6 @@ void Actor::setIcon(const std::string &icon)
 const std::string &Actor::getIcon() const
 {
     return pImpl->_icon;
-}
-
-void Actor::setVisible(bool isVisible)
-{
-    pImpl->_isVisible = isVisible;
 }
 
 void Actor::useWalkboxes(bool use)
@@ -501,6 +494,7 @@ void Actor::setCostume(const std::string &name, const std::string &sheet)
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    if(!isVisible()) return;
     auto size = pImpl->_pRoom->getRoomSize();
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
     auto transform = _transform;

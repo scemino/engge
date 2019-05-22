@@ -13,6 +13,9 @@ public:
   virtual void update(const sf::Time &elapsed);
   virtual int getZOrder() const = 0;
 
+  void setVisible(bool isVisible);
+  bool isVisible() const;
+
   void setLit(bool isLit);
   bool isLit() const;
 
@@ -40,5 +43,6 @@ private:
   std::map<int, std::shared_ptr<Trigger>> _triggers;
   sf::Vector2f _usePos;
   bool _isLit;
+  bool _isVisible{true};
 };
 } // namespace ng

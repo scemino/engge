@@ -19,6 +19,16 @@ bool Entity::isLit() const
     return _isLit;
 }
 
+void Entity::setVisible(bool isVisible)
+{
+    _isVisible = isVisible;
+}
+
+bool Entity::isVisible() const
+{
+    return _isVisible;
+}
+
 void Entity::setUsePosition(const sf::Vector2f &pos)
 {
     _usePos = pos;

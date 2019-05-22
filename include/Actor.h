@@ -24,8 +24,6 @@ public:
   void setIcon(const std::string &icon);
   const std::string &getIcon() const;
 
-  void setVisible(bool isVisible);
-
   void useWalkboxes(bool use);
 
   int getZOrder() const override;

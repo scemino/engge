@@ -72,7 +72,6 @@ public:
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;
 
-  void setVisible(bool isVisible);
   void setScale(float s);
 
   Room *getRoom() override;

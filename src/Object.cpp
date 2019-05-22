@@ -9,7 +9,6 @@ struct Object::Impl
 {
     std::vector<std::unique_ptr<Animation>> _anims;
     std::optional<Animation> _pAnim;
-    bool _isVisible;
     std::wstring _name, _id;
     int _zorder;
     UseDirection _direction;
@@ -34,7 +33,6 @@ struct Object::Impl
 
     Impl()
         : _pAnim(std::nullopt),
-          _isVisible(true),
           _zorder(0),
           _direction(UseDirection::Front),
           _prop(false),
@@ -124,6 +122,8 @@ void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 
 bool Object::isTouchable() const
 {
+    if(!isVisible())
+        return false;
     if (pImpl->_trigger)
         return false;
     if (pImpl->_spot)
@@ -144,15 +144,6 @@ sf::Vector2f Object::getDefaultPosition() const
     return pImpl->_defaultPosition;
 }
 
-void Object::setVisible(bool isVisible)
-{
-    pImpl->_isVisible = isVisible;
-    if (!pImpl->_isVisible)
-    {
-        pImpl->_isTouchable = false;
-    }
-}
-
 sf::IntRect Object::getRealHotspot() const
 {
     auto rect = getHotspot();
@@ -166,12 +157,11 @@ void Object::setStateAnimIndex(int animIndex)
     pImpl->_state = animIndex;
     if (animIndex == 4)
     {
-        pImpl->_isTouchable = false;
-        pImpl->_isVisible = false;
+        setVisible(false);
     }
     else if (animIndex == 0)
     {
-        pImpl->_isVisible = true;
+        setVisible(true);
     }
     setAnimation(s.str());
 }
@@ -297,7 +287,7 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
 
 void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if (!pImpl->_isVisible)
+    if (!isVisible())
         return;
     states.transform *= _transform.getTransform();
 
