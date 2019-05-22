@@ -337,7 +337,12 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        pActor->setVisible(false);
+        SQInteger hidden = 0;
+        if (SQ_FAILED(sq_getinteger(v, 3, &hidden)))
+        {
+            return sq_throwerror(v, _SC("failed to get hidden"));
+        }
+        pActor->setVisible(hidden == 0);
         return 0;
     }
 
@@ -536,7 +541,7 @@ private:
             std::cerr << "actorSlotSelectable not implemented" << std::endl;
             return 0;
         }
-        
+
         if (numArgs == 3)
         {
             SQInteger selectable;
