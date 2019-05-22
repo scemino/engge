@@ -108,6 +108,7 @@ struct Engine::Impl
     SQInteger enterRoom(Room *pRoom, Object *pObject);
     SQInteger exitRoom(Object *pObject);
     void updateScreenSize();
+    void setCurrentRoom(Room *pRoom);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -393,6 +394,18 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     return 0;
 }
 
+void Engine::Impl::setCurrentRoom(Room *pRoom)
+{
+    if(pRoom)
+    {
+        std::ostringstream s;
+        s << "currentRoom = " << pRoom->getId();
+        _pScriptExecute->execute(s.str());
+    }
+    _pRoom = pRoom;
+    updateScreenSize();
+}
+
 SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
@@ -405,9 +418,7 @@ SQInteger Engine::setRoom(Room *pRoom)
     if (SQ_FAILED(result))
         return result;
 
-    // set camera in room
-    _pImpl->_pRoom = pRoom;
-    _pImpl->updateScreenSize();
+    _pImpl->setCurrentRoom(pRoom);
 
     result = _pImpl->enterRoom(pRoom, nullptr);
     if (SQ_FAILED(result))
@@ -446,8 +457,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     if (SQ_FAILED(result))
         return result;
 
-    _pImpl->_pRoom = pRoom;
-    _pImpl->updateScreenSize();
+    _pImpl->setCurrentRoom(pRoom);
 
     auto actor = getCurrentActor();
     actor->getCostume().setFacing(facing);
