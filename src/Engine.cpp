@@ -87,6 +87,7 @@ struct Engine::Impl
     bool _isMouseDown{false};
     bool _isMouseRightDown{false};
     int _frameCounter{0};
+    std::optional<sf::IntRect> _cameraBounds;
 
     explicit Impl(EngineSettings &settings);
 
@@ -285,7 +286,7 @@ void Engine::Impl::updateScreenSize()
     {
         if (_pRoom->getFullscreen() == 1)
         {
-            auto roomSize=_pRoom->getRoomSize();
+            auto roomSize = _pRoom->getRoomSize();
             sf::View view(sf::FloatRect(0, 0, roomSize.x, roomSize.y));
             _pWindow->setView(view);
         }
@@ -396,12 +397,13 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 
 void Engine::Impl::setCurrentRoom(Room *pRoom)
 {
-    if(pRoom)
+    if (pRoom)
     {
         std::ostringstream s;
         s << "currentRoom = " << pRoom->getId();
         _pScriptExecute->execute(s.str());
     }
+    _cameraBounds = std::nullopt;
     _pRoom = pRoom;
     updateScreenSize();
 }
@@ -553,12 +555,30 @@ void Engine::moveCamera(const sf::Vector2f &offset)
     _pImpl->clampCamera();
 }
 
+void Engine::setCameraBounds(const sf::IntRect &cameraBounds)
+{
+    _pImpl->_cameraBounds = cameraBounds;
+}
+
 void Engine::Impl::clampCamera()
 {
     if (_cameraPos.x < 0)
         _cameraPos.x = 0;
     if (_cameraPos.y < 0)
         _cameraPos.y = 0;
+
+    if (_cameraBounds)
+    {
+        if (_cameraPos.x < _cameraBounds->left)
+            _cameraPos.x = _cameraBounds->left;
+        if (_cameraPos.x > _cameraBounds->left + _cameraBounds->width)
+            _cameraPos.x = _cameraBounds->left + _cameraBounds->width;
+        if (_cameraPos.y < _cameraBounds->top)
+            _cameraPos.y = _cameraBounds->top;
+        if (_cameraPos.y > _cameraBounds->top + _cameraBounds->height)
+            _cameraPos.y = _cameraBounds->top + _cameraBounds->height;
+    }
+
     if (!_pRoom)
         return;
     auto screen = _pWindow->getView().getSize();

@@ -49,6 +49,7 @@ public:
 
   void setCameraAt(const sf::Vector2f &at);
   void moveCamera(const sf::Vector2f &offset);
+  void setCameraBounds(const sf::IntRect &cameraBounds);
   sf::Vector2f getCameraAt() const;
 
   void setWindow(sf::RenderWindow &window);

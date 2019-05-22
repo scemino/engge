@@ -243,7 +243,24 @@ private:
 
     static SQInteger cameraBounds(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: cameraBounds: not implemented" << std::endl;
+        SQInteger xMin, xMax, yMin, yMax;
+        if (SQ_FAILED(sq_getinteger(v, 2, &xMin)))
+        {
+            return sq_throwerror(v, _SC("failed to get xMin"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 3, &xMax)))
+        {
+            return sq_throwerror(v, _SC("failed to get xMax"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 4, &yMin)))
+        {
+            return sq_throwerror(v, _SC("failed to get yMin"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 5, &yMax)))
+        {
+            return sq_throwerror(v, _SC("failed to get yMax"));
+        }
+        g_pEngine->setCameraBounds(sf::IntRect(xMin, yMin, xMax - xMin, yMax - yMin));
         return 0;
     }
 
