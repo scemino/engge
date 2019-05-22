@@ -88,6 +88,7 @@ struct Engine::Impl
     bool _isMouseRightDown{false};
     int _frameCounter{0};
     std::optional<sf::IntRect> _cameraBounds;
+    HSQOBJECT _pDefaultObject;
 
     explicit Impl(EngineSettings &settings);
 
@@ -134,6 +135,7 @@ Engine::Impl::Impl(EngineSettings &settings)
     _verbSheet.setTextureManager(&_textureManager);
     _gameSheet.setSettings(&settings);
     _gameSheet.setTextureManager(&_textureManager);
+    sq_resetobject(&_pDefaultObject);
 }
 
 Engine::Engine(EngineSettings &settings)
@@ -1138,6 +1140,11 @@ void Engine::cutscene(std::unique_ptr<Cutscene> function)
 bool Engine::inCutscene() const
 {
     return _pImpl->_pCutscene && !_pImpl->_pCutscene->isElapsed();
+}
+
+HSQOBJECT& Engine::getDefaultObject()
+{
+    return _pImpl->_pDefaultObject;
 }
 
 } // namespace ng

@@ -19,14 +19,11 @@ public:
     void execute(const std::string &code) override
     {
         sq_resetobject(&_result);
-        std::string c;
-        c.append("return ");
-        c.append(code);
         _pos = 0;
         auto top = sq_gettop(_vm);
         // compile
         sq_pushroottable(_vm);
-        if (SQ_FAILED(sq_compilebuffer(_vm, c.data(), c.size(), _SC("_DefaultScriptExecute"), SQTrue)))
+        if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue)))
         {
             std::cerr << "Error executing code " << code << std::endl;
             return;
@@ -44,7 +41,11 @@ public:
 
     bool executeCondition(const std::string &code) override
     {
-        execute(code);
+        std::string c;
+        c.append("return ");
+        c.append(code);
+
+        execute(c);
         if (_result._type == OT_BOOL)
         {
             std::cout << code << " returns " << sq_objtobool(&_result) << std::endl;
@@ -63,7 +64,11 @@ public:
 
     std::string executeDollar(const std::string &code) override
     {
-        execute(code);
+        std::string c;
+        c.append("return ");
+        c.append(code);
+
+        execute(c);
         // get the result
         if (_result._type != OT_STRING)
         {
@@ -240,8 +245,8 @@ private:
 class _VerbExecute : public Function
 {
 public:
-    _VerbExecute(HSQUIRRELVM v, Actor &actor, Object &object, const std::string &verb)
-        : _vm(v), _object(object), _verb(verb)
+    _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Object &object, const std::string &verb)
+        : _engine(engine), _vm(v), _object(object), _verb(verb)
     {
     }
 
@@ -267,7 +272,44 @@ private:
             sq_pop(_vm, 2); //pops the roottable and the function
             return;
         }
+        if (callDefaultObjectVerb())
+            return;
+
         callVerbDefault(_object.getTable());
+    }
+
+    bool callDefaultObjectVerb()
+    {
+        auto &obj = _engine.getDefaultObject();
+        auto pActor = _engine.getCurrentActor();
+
+        sq_pushobject(_vm, obj);
+        sq_pushstring(_vm, _verb.data(), -1);
+
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_remove(_vm, -2);
+            sq_pushobject(_vm, obj);
+            if (pActor)
+            {
+                sq_pushobject(_vm, pActor->getTable());
+            }
+            else
+            {
+                sq_pushnull(_vm);
+            }
+            sq_pushobject(_vm, _object.getTable());
+            if (SQ_FAILED(sq_call(_vm, 3, SQFalse, SQTrue)))
+            {
+                std::cout << "failed to execute verb " << _verb.data() << std::endl;
+                sqstd_printcallstack(_vm);
+                return false;
+            }
+            sq_pop(_vm, 2); //pops the roottable and the function
+            return true;
+        }
+
+        return false;
     }
 
     void callVerbDefault(HSQOBJECT obj)
@@ -285,6 +327,7 @@ private:
     }
 
 private:
+    Engine &_engine;
     HSQUIRRELVM _vm;
     Object &_object;
     const std::string &_verb;
@@ -314,7 +357,7 @@ private:
         if (!pActor)
             return;
         auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
-        auto verb = std::make_unique<_VerbExecute>(_vm, *pActor, *pObject, pVerb->func);
+        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject, pVerb->func);
         auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
         auto sentence = std::make_unique<_CompositeFunction>();
         sentence->push_back(std::move(walk));

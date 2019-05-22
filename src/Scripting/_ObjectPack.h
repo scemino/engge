@@ -950,7 +950,9 @@ private:
 
     static SQInteger setDefaultObject(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: setDefaultObject: not implemented" << std::endl;
+        auto& defaultObj = g_pEngine->getDefaultObject();
+        sq_getstackobj(v, 2, &defaultObj);
+        sq_addref(v, &defaultObj);
         return 0;
     }
 

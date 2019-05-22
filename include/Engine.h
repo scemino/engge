@@ -124,6 +124,8 @@ public:
   void setVm(HSQUIRRELVM vm);
   HSQUIRRELVM getVm();
 
+  HSQOBJECT& getDefaultObject();
+
  private:
   struct Impl;
   std::unique_ptr<Impl> _pImpl;
