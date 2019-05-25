@@ -15,13 +15,13 @@ namespace ng
 {
 class _StopThread : public Function
 {
-  private:
+private:
     Engine &_engine;
     HSQUIRRELVM _v;
     HSQOBJECT _threadObj;
     bool _done;
 
-  public:
+public:
     _StopThread(Engine &engine, HSQUIRRELVM v, HSQOBJECT threadObj)
         : _engine(engine), _v(v), _threadObj(threadObj), _done(false)
     {
@@ -44,11 +44,11 @@ class _StopThread : public Function
 
 class _WakeupThread : public Function
 {
-  private:
+private:
     HSQUIRRELVM _vm;
     bool _done;
 
-  public:
+public:
     explicit _WakeupThread(HSQUIRRELVM vm)
         : _vm(vm), _done(false)
     {
@@ -77,12 +77,12 @@ class _WakeupThread : public Function
 
 class _BreakFunction : public Function
 {
-  protected:
+protected:
     Engine &_engine;
     HSQUIRRELVM _vm;
     bool _done;
 
-  public:
+public:
     explicit _BreakFunction(Engine &engine, HSQUIRRELVM vm)
         : _engine(engine), _vm(vm), _done(false)
     {
@@ -119,7 +119,7 @@ class _BreakFunction : public Function
 
 class _BreakHereFunction : public _BreakFunction
 {
-  public:
+public:
     explicit _BreakHereFunction(Engine &engine, HSQUIRRELVM vm)
         : _BreakFunction(engine, vm)
     {
@@ -133,11 +133,11 @@ class _BreakHereFunction : public _BreakFunction
 
 class _BreakWhileAnimatingFunction : public _BreakFunction
 {
-  private:
+private:
     std::string _name;
     CostumeAnimation *_pAnimation;
 
-  public:
+public:
     _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _pAnimation(actor.getCostume().getAnimation())
     {
@@ -160,10 +160,10 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
 
 class _BreakWhileAnimatingObjectFunction : public _BreakFunction
 {
-  private:
-    std::optional<Animation>& _animation;
+private:
+    std::optional<Animation> &_animation;
 
-  public:
+public:
     _BreakWhileAnimatingObjectFunction(Engine &engine, HSQUIRRELVM vm, Object &object)
         : _BreakFunction(engine, vm), _animation(object.getAnimation())
     {
@@ -182,10 +182,10 @@ class _BreakWhileAnimatingObjectFunction : public _BreakFunction
 
 class _BreakWhileWalkingFunction : public _BreakFunction
 {
-  private:
+private:
     Actor &_actor;
 
-  public:
+public:
     explicit _BreakWhileWalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
@@ -204,10 +204,10 @@ class _BreakWhileWalkingFunction : public _BreakFunction
 
 class _BreakWhileTalkingFunction : public _BreakFunction
 {
-  private:
+private:
     Actor &_actor;
 
-  public:
+public:
     explicit _BreakWhileTalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor)
     {
@@ -226,10 +226,10 @@ class _BreakWhileTalkingFunction : public _BreakFunction
 
 class _BreakWhileSoundFunction : public _BreakFunction
 {
-  private:
+private:
     SoundId &_soundId;
 
-  public:
+public:
     _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, SoundId &soundId)
         : _BreakFunction(engine, vm), _soundId(soundId)
     {
@@ -248,13 +248,13 @@ class _BreakWhileSoundFunction : public _BreakFunction
 
 class _BreakWhileRunningFunction : public Function
 {
-  private:
+private:
     Engine &_engine;
     HSQUIRRELVM _vm;
     HSQUIRRELVM _thread;
     bool _done;
 
-  public:
+public:
     _BreakWhileRunningFunction(Engine &engine, HSQUIRRELVM vm, HSQUIRRELVM thread)
         : _engine(engine), _vm(vm), _thread(thread), _done(false)
     {
@@ -282,7 +282,7 @@ class _BreakWhileRunningFunction : public Function
 
 class _BreakWhileDialogFunction : public _BreakFunction
 {
-  public:
+public:
     _BreakWhileDialogFunction(Engine &engine, HSQUIRRELVM vm)
         : _BreakFunction(engine, vm)
     {
@@ -301,7 +301,7 @@ class _BreakWhileDialogFunction : public _BreakFunction
 
 class _BreakWhileCutsceneFunction : public _BreakFunction
 {
-  public:
+public:
     _BreakWhileCutsceneFunction(Engine &engine, HSQUIRRELVM vm)
         : _BreakFunction(engine, vm)
     {
@@ -320,7 +320,7 @@ class _BreakWhileCutsceneFunction : public _BreakFunction
 
 class _BreakWhileInputOffFunction : public _BreakFunction
 {
-  public:
+public:
     _BreakWhileInputOffFunction(Engine &engine, HSQUIRRELVM vm)
         : _BreakFunction(engine, vm)
     {
@@ -339,12 +339,12 @@ class _BreakWhileInputOffFunction : public _BreakFunction
 
 class _BreakTimeFunction : public TimeFunction
 {
-  private:
+private:
     HSQUIRRELVM _vm;
     Engine &_engine;
     bool _done{false};
 
-  public:
+public:
     _BreakTimeFunction(Engine &engine, HSQUIRRELVM vm, const sf::Time &time)
         : TimeFunction(time), _vm(vm), _engine(engine)
     {
@@ -352,7 +352,8 @@ class _BreakTimeFunction : public TimeFunction
 
     void operator()(const sf::Time &elapsed) override
     {
-        if(_done) return;
+        if (_done)
+            return;
         TimeFunction::operator()(elapsed);
         if (isElapsed())
         {
@@ -370,19 +371,19 @@ class _BreakTimeFunction : public TimeFunction
 
 class _CallbackFunction : public TimeFunction
 {
-  private:
+private:
     HSQUIRRELVM _v;
     bool _done;
     HSQOBJECT _method;
 
-  public:
+public:
     _CallbackFunction(HSQUIRRELVM v, sf::Time duration, HSQOBJECT method)
         : TimeFunction(duration), _v(v), _done(false), _method(method)
     {
         sq_addref(_v, &_method);
     }
 
-  private:
+private:
     void onElapsed() override
     {
         if (_done)
@@ -401,11 +402,11 @@ class _CallbackFunction : public TimeFunction
 
 class _SystemPack : public Pack
 {
-  private:
+private:
     static Engine *g_pEngine;
     static ScriptEngine *_pScriptEngine;
 
-  private:
+private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
@@ -492,20 +493,21 @@ class _SystemPack : public Pack
     static SQInteger breakwhileanimating(HSQUIRRELVM v)
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
-        if (!pActor)
+        if (pActor)
         {
-            auto *pObj = ScriptEngine::getObject(v, 2);
-            if(!pObj)
-            {
-                auto result = sq_suspendvm(v);
-                g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, v, *pObj));
-                return result;
-            }
-            return sq_throwerror(v, _SC("failed to get actor or object"));
+            auto result = sq_suspendvm(v);
+            g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
+            return result;
         }
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
-        return result;
+
+        auto *pObj = ScriptEngine::getObject(v, 2);
+        if (pObj)
+        {
+            auto result = sq_suspendvm(v);
+            g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, v, *pObj));
+            return result;
+        }
+        return sq_throwerror(v, _SC("failed to get actor or object"));
     }
 
     static SQInteger breakwhilecamera(HSQUIRRELVM v)
@@ -709,7 +711,7 @@ class _SystemPack : public Pack
         sq_addref(v, &thread_obj);
 
         std::cout << "start thread (" << (name ? name : "anonymous")
-            << "): " << thread << std::endl;
+                  << "): " << thread << std::endl;
         g_pEngine->addThread(thread);
 
         // call the closure in the thread
