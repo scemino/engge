@@ -15,9 +15,9 @@ float RoomScaling::getScaling(float yPos) const
         const auto &scaling = _scalings[i];
         if (yPos < scaling.yPos)
         {
-            Scaling prevScaling{1,0};
-            if (i > 0)
-                prevScaling = _scalings[i - 1];
+            if (i == 0)
+                return _scalings[i].scale;
+            auto prevScaling = _scalings[i - 1];
             auto dY = scaling.yPos - prevScaling.yPos;
             auto dScale = scaling.scale - prevScaling.scale;
             auto p = (yPos - prevScaling.yPos) / dY;
@@ -31,6 +31,11 @@ float RoomScaling::getScaling(float yPos) const
 std::vector<Scaling> &RoomScaling::getScalings()
 {
     return _scalings;
+}
+
+const std::string &RoomScaling::getName() const
+{
+    return _trigger;
 }
 
 } // namespace ng

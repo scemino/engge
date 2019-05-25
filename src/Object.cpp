@@ -311,6 +311,11 @@ void Object::setFps(int fps)
     }
 }
 
+bool Object::isTrigger() const
+{
+    return pImpl->_trigger;
+}
+
 std::wostream &operator<<(std::wostream &os, const Object &obj)
 {
     return os << obj.getName() << L" (" << obj.getPosition().x << L"," << obj.getPosition().y << L":" << obj.getZOrder() << L")";

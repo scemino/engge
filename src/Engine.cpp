@@ -16,6 +16,7 @@
 #include "InventoryObject.h"
 #include "Preferences.h"
 #include "Room.h"
+#include "RoomScaling.h"
 #include "ScriptExecute.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
@@ -678,6 +679,29 @@ void Engine::update(const sf::Time &elapsed)
     if (!_pImpl->_pRoom)
         return;
 
+    auto actor = getCurrentActor();
+    if (actor)
+    {
+        auto &scalings = _pImpl->_pRoom->getScalings();
+        auto &objects = _pImpl->_pRoom->getObjects();
+        for (auto &&object : objects)
+        {
+            if (!object->isTrigger())
+                continue;
+            if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
+            {
+                auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const RoomScaling &s) {
+                    return s.getName() == tostring(object->getId());
+                });
+                if (it != scalings.end())
+                {
+                    _pImpl->_pRoom->setRoomScaling(*it);
+                    break;
+                }
+            }
+        }
+    }
+
     auto screen = _pImpl->_pWindow->getView().getSize();
     _pImpl->_pRoom->update(elapsed);
     if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible())
@@ -1142,7 +1166,7 @@ bool Engine::inCutscene() const
     return _pImpl->_pCutscene && !_pImpl->_pCutscene->isElapsed();
 }
 
-HSQOBJECT& Engine::getDefaultObject()
+HSQOBJECT &Engine::getDefaultObject()
 {
     return _pImpl->_pDefaultObject;
 }

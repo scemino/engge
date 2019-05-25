@@ -49,6 +49,7 @@ public:
   int32_t getScreenHeight() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);
   void roomLayer(int layer, bool enabled);
+  void setRoomScaling(const RoomScaling & scaling);
   const RoomScaling &getRoomScaling() const;
   HSQOBJECT &getTable();
 
@@ -57,6 +58,7 @@ public:
   sf::Color getAmbientLight() const;
 
   void removeEntity(Entity *pEntity);
+  std::vector<RoomScaling>& getScalings();
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;

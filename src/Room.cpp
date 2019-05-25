@@ -25,6 +25,7 @@ struct Room::Impl
     std::vector<Walkbox> _walkboxes;
     std::vector<std::unique_ptr<RoomLayer>> _layers;
     std::vector<RoomScaling> _scalings;
+    RoomScaling _scaling;
     sf::Vector2i _roomSize;
     int32_t _screenHeight{0};
     bool _showDrawWalkboxes{false};
@@ -263,25 +264,42 @@ struct Room::Impl
                 }
                 _scalings.push_back(scaling);
             }
-            else if (jWimpy["scaling"][0].isArray())
+            else if (jWimpy["scaling"][0].isHash())
             {
                 for (auto jScaling : jWimpy["scaling"].array_value)
                 {
                     RoomScaling scaling;
+                    if (jScaling["trigger"].isString())
+                    {
+                        scaling.setTrigger(jScaling["trigger"].string_value);
+                    }
                     for (auto jSubScaling : jScaling["scaling"].array_value)
                     {
-                        if (jSubScaling["trigger"].isString())
+                        if(jSubScaling.isString())
                         {
-                            scaling.setTrigger(jSubScaling["trigger"].string_value);
+                            auto value = jSubScaling.string_value;
+                            auto index = value.find('@');
+                            auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                            auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
+                            Scaling s{};
+                            s.scale = scale;
+                            s.yPos = yPos;
+                            scaling.getScalings().push_back(s);
+                        } 
+                        else if(jSubScaling.isArray())
+                        {
+                            for (auto jSubScalingScaling : jSubScaling.array_value)
+                            {
+                                auto value = jSubScalingScaling.string_value;
+                                auto index = value.find('@');
+                                auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                                auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
+                                Scaling s{};
+                                s.scale = scale;
+                                s.yPos = yPos;
+                                scaling.getScalings().push_back(s);
+                            }
                         }
-                        auto value = jSubScaling.string_value;
-                        auto index = value.find('@');
-                        auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
-                        auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
-                        Scaling s{};
-                        s.scale = scale;
-                        s.yPos = yPos;
-                        scaling.getScalings().push_back(s);
                     }
                     _scalings.push_back(scaling);
                 }
@@ -601,7 +619,12 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
 const RoomScaling &Room::getRoomScaling() const
 {
-    return pImpl->_scalings[0];
+    return pImpl->_scaling;
+}
+
+void Room::setRoomScaling(const RoomScaling & scaling)
+{
+    pImpl->_scaling  = scaling;
 }
 
 void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
@@ -624,6 +647,11 @@ bool Room::inWalkbox(const sf::Vector2f &pos) const
         return w.inside((sf::Vector2i)pos);
     });
     return inWalkbox;
+}
+
+std::vector<RoomScaling>& Room::getScalings()
+{
+    return pImpl->_scalings;
 }
 
 std::vector<sf::Vector2i> Room::calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const

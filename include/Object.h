@@ -31,6 +31,7 @@ public:
   void setSpot(bool spot);
 
   void setTrigger(bool trigger);
+  bool isTrigger() const;
 
   void setTouchable(bool isTouchable);
   bool isTouchable() const;
