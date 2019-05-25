@@ -813,6 +813,26 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
     {
         follow(_pImpl->_pCurrentActor);
     }
+    
+    auto v = _pImpl->_vm;
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC("onActorSelected"), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
+    {
+        std::cerr << "failed to get onActorSelected function" << std::endl;
+        return;
+    }
+
+    sq_remove(v, -2);
+    sq_pushroottable(v);
+    sq_pushobject(v, pCurrentActor->getTable());
+    sq_pushbool(v, false);
+    if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
+    {
+        std::cerr << "failed to call onActorSelected function" << std::endl;
+        return;
+    }
+    sq_pop(v, 2); //pops the roottable and the function
 }
 
 bool Engine::Impl::clickedAt(const sf::Vector2f &pos)

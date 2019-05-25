@@ -914,34 +914,12 @@ private:
 
     static SQInteger selectActor(HSQUIRRELVM v)
     {
-        HSQOBJECT envObj;
-        sq_resetobject(&envObj);
-        sq_getstackobj(v, 1, &envObj);
-
         auto *actor = ScriptEngine::getActor(v, 2);
         if (!actor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
         g_pEngine->setCurrentActor(actor);
-
-        sq_pushroottable(v);
-        sq_pushstring(v, _SC("onActorSelected"), -1);
-        if (SQ_FAILED(sq_get(v, -2)))
-        {
-            return sq_throwerror(v, _SC("failed to get onActorSelected function"));
-        }
-
-        sq_remove(v, -2);
-        sq_pushobject(v, envObj);
-        sq_pushobject(v, actor->getTable());
-        sq_pushbool(v, false);
-        if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
-        {
-            return sq_throwerror(v, _SC("failed to call onActorSelected function"));
-        }
-        sq_pop(v, 2); //pops the roottable and the function
-
         return 0;
     }
 
