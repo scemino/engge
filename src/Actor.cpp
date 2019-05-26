@@ -526,23 +526,12 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     states.transform *= transform.getTransform();
     target.draw(pImpl->_costume, states);
 
-    sf::RectangleShape rectangle;
-    rectangle.setFillColor(sf::Color::Red);
-    rectangle.setSize(sf::Vector2f(2, 2));
-    rectangle.setOrigin(sf::Vector2f(1, 1));
-    target.draw(rectangle, states);
-
-    auto usePos = getUsePosition();
-    sf::Vector2f p;
-    if(usePos.x!=0 || usePos.y!=0)
-    {
-        auto pos = getPosition();
-        p = sf::Vector2f((usePos.x - pos.x)/2, (usePos.y-pos.y)/2);
-    }
-    rectangle.setFillColor(sf::Color::Magenta);
-    rectangle.setSize(sf::Vector2f(2, 2));
-    rectangle.setOrigin(sf::Vector2f(1, 1) + p);
-    target.draw(rectangle, states);
+    // draw actor position
+    // sf::RectangleShape rectangle;
+    // rectangle.setFillColor(sf::Color::Red);
+    // rectangle.setSize(sf::Vector2f(2, 2));
+    // rectangle.setOrigin(sf::Vector2f(1, 1));
+    // target.draw(rectangle, states);
 }
 
 void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
