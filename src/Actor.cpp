@@ -16,7 +16,7 @@ struct Actor::Impl
 {
     class WalkingState
     {
-      public:
+    public:
         WalkingState();
 
         void setActor(Actor *pActor);
@@ -25,10 +25,10 @@ struct Actor::Impl
         void stop();
         bool isWalking() const { return _isWalking; }
 
-      private:
+    private:
         Facing getFacing();
 
-      private:
+    private:
         Actor *_pActor;
         std::vector<sf::Vector2i> _path;
         std::optional<Facing> _facing;
@@ -37,7 +37,7 @@ struct Actor::Impl
 
     class TalkingState : public sf::Drawable
     {
-      public:
+    public:
         TalkingState();
 
         void setActor(Actor *pActor);
@@ -50,10 +50,10 @@ struct Actor::Impl
         bool isTalkingIdDone(int id) const { return _id != id && std::find(_ids.begin(), _ids.end(), id) == _ids.end(); }
         void setTalkColor(sf::Color color) { _talkColor = color; }
 
-      private:
+    private:
         void load(int id);
 
-      private:
+    private:
         Actor *_pActor;
         FntFont _font;
         bool _isTalking;
@@ -130,6 +130,11 @@ Costume &Actor::getCostume()
     return pImpl->_costume;
 }
 
+Costume &Actor::getCostume() const
+{
+    return pImpl->_costume;
+}
+
 void Actor::setTalkColor(sf::Color color)
 {
     pImpl->_talkingState.setTalkColor(color);
@@ -183,6 +188,22 @@ Room *Actor::getRoom()
 void Actor::setHotspot(const sf::IntRect &hotspot)
 {
     pImpl->_hotspot = hotspot;
+}
+
+bool Actor::contains(const sf::Vector2f &pos) const
+{
+    auto pAnim = pImpl->_costume.getAnimation();
+    if (!pAnim)
+        return false;
+
+    auto size = pImpl->_pRoom->getRoomSize();
+    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
+    auto transform = _transform;
+    transform.scale(scale, scale);
+    transform.move((sf::Vector2f)-pImpl->_renderOffset * scale);
+    auto t = transform.getInverseTransform();
+    auto pos2 = t.transformPoint(pos);
+    return pAnim->contains(pos2);
 }
 
 void Actor::pickupObject(std::unique_ptr<InventoryObject> pObject)
@@ -373,7 +394,8 @@ void Actor::Impl::TalkingState::load(int id)
         return;
     }
     _sound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
-    if(_sound) _sound->setVolume(_pActor->pImpl->_volume);
+    if (_sound)
+        _sound->setVolume(_pActor->pImpl->_volume);
 
     std::string path;
     path.append(name).append(".lip");
@@ -494,7 +516,8 @@ void Actor::setCostume(const std::string &name, const std::string &sheet)
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if(!isVisible()) return;
+    if (!isVisible())
+        return;
     auto size = pImpl->_pRoom->getRoomSize();
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
     auto transform = _transform;
@@ -502,6 +525,24 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     transform.move((sf::Vector2f)-pImpl->_renderOffset * scale);
     states.transform *= transform.getTransform();
     target.draw(pImpl->_costume, states);
+
+    sf::RectangleShape rectangle;
+    rectangle.setFillColor(sf::Color::Red);
+    rectangle.setSize(sf::Vector2f(2, 2));
+    rectangle.setOrigin(sf::Vector2f(1, 1));
+    target.draw(rectangle, states);
+
+    auto usePos = getUsePosition();
+    sf::Vector2f p;
+    if(usePos.x!=0 || usePos.y!=0)
+    {
+        auto pos = getPosition();
+        p = sf::Vector2f((usePos.x - pos.x)/2, (usePos.y-pos.y)/2);
+    }
+    rectangle.setFillColor(sf::Color::Magenta);
+    rectangle.setSize(sf::Vector2f(2, 2));
+    rectangle.setOrigin(sf::Vector2f(1, 1) + p);
+    target.draw(rectangle, states);
 }
 
 void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const

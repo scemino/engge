@@ -151,9 +151,40 @@ public:
 private:
     bool isElapsed() override { return !_actor.isWalking(); }
 
-    void operator()(const sf::Time &elapsed) override
+private:
+    Actor &_actor;
+};
+
+class _ActorWalkToActor : public Function
+{
+public:
+    _ActorWalkToActor(Actor &actor, const Actor &destActor)
+        : _actor(actor)
     {
+        auto usePos = destActor.getUsePosition();
+        sf::Vector2f dest(usePos.x, actor.getRoom()->getRoomSize().y - usePos.y);
+        auto facing = getOppositeFacing(destActor.getCostume().getFacing());
+        _actor.walkTo(dest, facing);
     }
+
+    Facing getOppositeFacing(Facing facing)
+    {
+        switch (facing)
+        {
+        case Facing::FACE_FRONT:
+            return Facing::FACE_BACK;
+        case Facing::FACE_BACK:
+            return Facing::FACE_FRONT;
+        case Facing::FACE_LEFT:
+            return Facing::FACE_RIGHT;
+        case Facing::FACE_RIGHT:
+            return Facing::FACE_LEFT;
+        }
+        return Facing::FACE_BACK;
+    }
+
+private:
+    bool isElapsed() override { return !_actor.isWalking(); }
 
 private:
     Actor &_actor;
@@ -245,7 +276,7 @@ private:
 class _VerbExecute : public Function
 {
 public:
-    _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Object &object, const std::string &verb)
+    _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, const std::string &verb)
         : _engine(engine), _vm(v), _object(object), _verb(verb)
     {
     }
@@ -329,7 +360,7 @@ private:
 private:
     Engine &_engine;
     HSQUIRRELVM _vm;
-    Object &_object;
+    Entity &_object;
     const std::string &_verb;
     bool _done{false};
 };
@@ -358,6 +389,29 @@ private:
             return;
         auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject, pVerb->func);
+        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
+        auto sentence = std::make_unique<_CompositeFunction>();
+        sentence->push_back(std::move(walk));
+        sentence->push_back(std::move(verb));
+        sentence->push_back(std::move(postWalk));
+        _engine.addFunction(std::move(sentence));
+    }
+
+    void execute(Actor *pActor, const Verb *pVerb) override
+    {
+        auto obj = pActor->getTable();
+        getVerb(obj, pVerb);
+        if (!pVerb)
+            return;
+
+        if (callObjectPreWalk(obj, pVerb->id))
+            return;
+
+        auto pCurrentActor = _engine.getCurrentActor();
+        if (!pCurrentActor)
+            return;
+        auto walk = std::make_unique<_ActorWalkToActor>(*pCurrentActor, *pActor);
+        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pCurrentActor, *pActor, pVerb->func);
         auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
         auto sentence = std::make_unique<_CompositeFunction>();
         sentence->push_back(std::move(walk));

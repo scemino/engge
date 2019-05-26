@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <optional>
+#include "squirrel.h"
 #include "SFML/Graphics.hpp"
 
 namespace ng
@@ -36,6 +37,8 @@ public:
 
   virtual Room *getRoom() = 0;
   virtual void setFps(int fps) = 0;
+
+  virtual HSQOBJECT &getTable() = 0;
 
 protected:
   sf::Transformable _transform;

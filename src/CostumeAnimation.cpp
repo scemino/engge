@@ -52,4 +52,14 @@ void CostumeAnimation::setFps(int fps)
     }
 }
 
+bool CostumeAnimation::contains(const sf::Vector2f& pos) const
+{
+    for (auto &layer : _layers)
+    {
+        if(layer->contains(pos))
+            return true;
+    }
+    return false;
+}
+
 } // namespace ng

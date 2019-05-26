@@ -25,6 +25,8 @@ public:
   bool isPlaying() const { return _state == AnimationState::Play; }
   void setFps(int fps);
 
+  bool contains(const sf::Vector2f& pos) const;
+
   void update(const sf::Time &elapsed);
 
 private:

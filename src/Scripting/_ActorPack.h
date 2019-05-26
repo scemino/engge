@@ -648,8 +648,9 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        auto pos = obj->getUsePosition();
-        actor->setUsePosition(pos);
+        auto usePos = obj->getUsePosition();
+        auto pos = obj->getPosition();
+        actor->setUsePosition(pos + usePos);
         return 0;
     }
 

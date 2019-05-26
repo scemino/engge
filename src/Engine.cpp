@@ -60,6 +60,7 @@ struct Engine::Impl
     TextDatabase _textDb;
     Font _fntFont;
     Actor *_pCurrentActor;
+    Actor *_pActor{nullptr};
     std::array<VerbSlot, 6> _verbSlots;
     std::array<VerbUiColors, 6> _verbUiColors;
     bool _inputActive;
@@ -108,10 +109,13 @@ struct Engine::Impl
     void updateActorIcons(const sf::Time &elapsed);
     void updateMouseCursor();
     void updateCurrentObject(const sf::Vector2f &mousPos);
+    void updateCurrentActor(const sf::Vector2f &mousPos);
     SQInteger enterRoom(Room *pRoom, Object *pObject);
     SQInteger exitRoom(Object *pObject);
     void updateScreenSize();
+    void updateRoomScalings();
     void setCurrentRoom(Room *pRoom);
+    int32_t getFlags(Actor *pActor);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -661,6 +665,72 @@ void Engine::Impl::updateCurrentObject(const sf::Vector2f &mousPos)
     }
 }
 
+int32_t Engine::Impl::getFlags(Actor *pActor)
+{
+    SQInteger flags = 0;
+    sq_pushobject(_vm, pActor->getTable());
+    sq_pushstring(_vm, _SC("flags"), -1);
+    if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+    {
+        sq_getinteger(_vm, -1, &flags);
+    }
+    sq_pop(_vm, 2);
+    return flags;
+}
+
+void Engine::Impl::updateCurrentActor(const sf::Vector2f &mousPos)
+{
+    _pActor = nullptr;
+    int zorder = -10000;
+    for (auto &&actor : _actors)
+    {
+        if (actor.get() == _pCurrentActor)
+            continue;
+        if (actor->getRoom() != _pRoom)
+            continue;
+
+        // select actor only if talkable flag is set
+        auto flags = getFlags(actor.get());
+        if (!(flags & 0x2000))
+            continue;
+
+        if (actor->contains(mousPos))
+        {
+            if (actor->getZOrder() > zorder)
+            {
+                _pActor = actor.get();
+                zorder = actor->getZOrder();
+            }
+        }
+    }
+}
+
+void Engine::Impl::updateRoomScalings()
+{
+    auto actor = _pCurrentActor;
+    if (!actor)
+        return;
+
+    auto &scalings = _pRoom->getScalings();
+    auto &objects = _pRoom->getObjects();
+    for (auto &&object : objects)
+    {
+        if (!object->isTrigger())
+            continue;
+        if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
+        {
+            auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const RoomScaling &s) {
+                return s.getName() == tostring(object->getId());
+            });
+            if (it != scalings.end())
+            {
+                _pRoom->setRoomScaling(*it);
+                break;
+            }
+        }
+    }
+}
+
 void Engine::update(const sf::Time &elapsed)
 {
     _pImpl->_frameCounter++;
@@ -679,28 +749,7 @@ void Engine::update(const sf::Time &elapsed)
     if (!_pImpl->_pRoom)
         return;
 
-    auto actor = getCurrentActor();
-    if (actor)
-    {
-        auto &scalings = _pImpl->_pRoom->getScalings();
-        auto &objects = _pImpl->_pRoom->getObjects();
-        for (auto &&object : objects)
-        {
-            if (!object->isTrigger())
-                continue;
-            if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
-            {
-                auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const RoomScaling &s) {
-                    return s.getName() == tostring(object->getId());
-                });
-                if (it != scalings.end())
-                {
-                    _pImpl->_pRoom->setRoomScaling(*it);
-                    break;
-                }
-            }
-        }
-    }
+    _pImpl->updateRoomScalings();
 
     auto screen = _pImpl->_pWindow->getView().getSize();
     _pImpl->_pRoom->update(elapsed);
@@ -720,6 +769,7 @@ void Engine::update(const sf::Time &elapsed)
     auto mousePosInRoom = _pImpl->_mousePos + _pImpl->_cameraPos;
 
     _pImpl->updateCurrentObject(mousePosInRoom);
+    _pImpl->updateCurrentActor(mousePosInRoom);
 
     _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
     _pImpl->_inventory.update(elapsed);
@@ -760,6 +810,10 @@ void Engine::update(const sf::Time &elapsed)
         _pImpl->_pVerb = &_pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + verbId);
         _pImpl->_useFlag = UseFlag::None;
         _pImpl->_pUseObject = nullptr;
+    }
+    else if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject && _pImpl->_pActor)
+    {
+        _pImpl->_pVerbExecute->execute(_pImpl->_pActor, getVerb(3));
     }
     else if (_pImpl->_pVerb && _pImpl->_pVerb->id == 1 && !_pImpl->_pCurrentObject && _pImpl->_pCurrentActor)
     {
@@ -813,7 +867,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
     {
         follow(_pImpl->_pCurrentActor);
     }
-    
+
     auto v = _pImpl->_vm;
     sq_pushroottable(v);
     sq_pushstring(v, _SC("onActorSelected"), -1);
@@ -908,7 +962,6 @@ sf::IntRect Engine::Impl::getCursorRect() const
 {
     const auto &size = _pRoom->getRoomSize();
     auto screen = _pWindow->getView().getSize();
-    auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
     if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
@@ -947,7 +1000,22 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     text.setFont(_fntFont);
     text.setColor(sf::Color::White);
 
-    if (_pCurrentObject)
+    if (_pActor && (pVerb->id == 1 || pVerb->id == 3))
+    {
+        std::wstring s;
+        pVerb = _pEngine->getVerb(3);
+        if (!pVerb->text.empty())
+        {
+            auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
+            s.append(_pEngine->getText(id));
+        }
+        s.append(L" ").append(towstring(_pActor->getName()));
+        text.setText(s);
+
+        sf::RenderStates states;
+        states.transform.translate(-_cameraPos);
+    }
+    else if (_pCurrentObject)
     {
         if (pVerb->id == 1 && _isMouseRightDown)
         {
@@ -996,6 +1064,13 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         appendUseFlag(s);
         text.setText(s);
     }
+
+    // do display cursor position:
+    // auto mousePosInRoom = _mousePos + _cameraPos;
+    // std::wstringstream s;
+    // std::wstring txt = text.getText();
+    // s << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";
+    // text.setText(s.str());
 
     auto screen = _pWindow->getView().getSize();
     auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;

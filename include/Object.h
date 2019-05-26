@@ -52,7 +52,7 @@ public:
   void setDefaultVerb(int verb);
   int getDefaultVerb() const;
 
-  HSQOBJECT &getTable();
+  HSQOBJECT &getTable() override;
 
   std::vector<std::unique_ptr<Animation>> &getAnims();
 

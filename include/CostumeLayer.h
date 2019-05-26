@@ -33,6 +33,7 @@ public:
   void setLoop(bool loop) { _loop = loop; }
   void setTexture(sf::Texture *pTexture) { _pTexture = pTexture; }
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
+  bool contains(const sf::Vector2f& pos) const;
 
   bool update(const sf::Time &elapsed);
 

@@ -29,6 +29,7 @@ public:
   int getZOrder() const override;
 
   void setCostume(const std::string &name, const std::string &sheet = "");
+  Costume &getCostume() const;
   Costume &getCostume();
 
   void setTalkColor(sf::Color color);
@@ -51,6 +52,7 @@ public:
   void setFps(int fps) override;
 
   void setHotspot(const sf::IntRect &hotspot);
+  bool contains(const sf::Vector2f& pos) const;
 
   void update(const sf::Time &time) override;
 
@@ -70,7 +72,7 @@ public:
 
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-  HSQOBJECT &getTable();
+  HSQOBJECT &getTable() override;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
