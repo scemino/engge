@@ -115,7 +115,7 @@ struct Engine::Impl
     void updateScreenSize();
     void updateRoomScalings();
     void setCurrentRoom(Room *pRoom);
-    int32_t getFlags(Actor *pActor);
+    int32_t getFlags(const HSQOBJECT &obj);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -636,16 +636,18 @@ void Engine::Impl::updateActorIcons(const sf::Time &elapsed)
 
 void Engine::Impl::updateMouseCursor()
 {
+    auto flags = _pCurrentObject ? getFlags(_pCurrentObject->getTable()) : 0;
     auto screen = _pWindow->getView().getSize();
-    if (_mousePos.x < 20)
+    _cursorDirection = CursorDirection::None;
+    if ((_mousePos.x < 20) || (flags & 0x140) == 0x140)
         _cursorDirection |= CursorDirection::Left;
-    else if (_mousePos.x > screen.x - 20)
+    else if ((_mousePos.x > screen.x - 20) || (flags & 0x240) == 0x240)
         _cursorDirection |= CursorDirection::Right;
-    if (_mousePos.y < 10)
-        _cursorDirection |= CursorDirection::Up;
-    else if (_mousePos.y > screen.y - 10)
+    if ((flags & 0x840) == 0x840)
         _cursorDirection |= CursorDirection::Down;
-    if (_pCurrentObject)
+    else if ((flags & 0x440) == 0x440)
+        _cursorDirection |= CursorDirection::Up;
+    if ((_cursorDirection == CursorDirection::None) && _pCurrentObject)
         _cursorDirection |= CursorDirection::Hotspot;
 }
 
@@ -665,10 +667,10 @@ void Engine::Impl::updateCurrentObject(const sf::Vector2f &mousPos)
     }
 }
 
-int32_t Engine::Impl::getFlags(Actor *pActor)
+int32_t Engine::Impl::getFlags(const HSQOBJECT &obj)
 {
     SQInteger flags = 0;
-    sq_pushobject(_vm, pActor->getTable());
+    sq_pushobject(_vm, obj);
     sq_pushstring(_vm, _SC("flags"), -1);
     if (SQ_SUCCEEDED(sq_get(_vm, -2)))
     {
@@ -690,7 +692,7 @@ void Engine::Impl::updateCurrentActor(const sf::Vector2f &mousPos)
             continue;
 
         // select actor only if talkable flag is set
-        auto flags = getFlags(actor.get());
+        auto flags = getFlags(actor->getTable());
         if (!(flags & 0x2000))
             continue;
 
@@ -962,27 +964,27 @@ sf::IntRect Engine::Impl::getCursorRect() const
 {
     const auto &size = _pRoom->getRoomSize();
     auto screen = _pWindow->getView().getSize();
-    if (_cursorDirection & CursorDirection::Left && _cameraPos.x > 0)
+    if (_cursorDirection & CursorDirection::Left)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
                                                            : _gameSheet.getRect("cursor_left");
     }
-    if (_cursorDirection & CursorDirection::Right && _cameraPos.x < size.x - screen.x)
+    if (_cursorDirection & CursorDirection::Right)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right")
                                                            : _gameSheet.getRect("cursor_right");
     }
-    if (_cursorDirection & CursorDirection::Up && _cameraPos.y > 0)
+    if (_cursorDirection & CursorDirection::Up)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back")
                                                            : _gameSheet.getRect("cursor_back");
     }
-    if (_cursorDirection & CursorDirection::Down && _cameraPos.y < size.y - screen.y)
+    if (_cursorDirection & CursorDirection::Down)
     {
-        return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_front")
-                                                           : _gameSheet.getRect("cursor_front");
+        return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor_front")
+                                                             : _gameSheet.getRect("cursor_front");
     }
-    return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
+    return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
 }
 
 void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
