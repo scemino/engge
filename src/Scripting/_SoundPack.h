@@ -63,6 +63,7 @@ private:
         engine.registerGlobalFunction(defineSound, "defineSound");
         engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
         engine.registerGlobalFunction(isSoundPlaying, "isSoundPlaying");
+        engine.registerGlobalFunction(loadSound, "loadSound");
         engine.registerGlobalFunction(loopSound, "loopSound");
         engine.registerGlobalFunction(loopObjectSound, "loopObjectSound");
         engine.registerGlobalFunction(loopMusic, "loopMusic");
@@ -204,6 +205,12 @@ private:
         }
         sq_pushuserpointer(v, pSoundId.get());
         return 1;
+    }
+
+    static SQInteger loadSound(HSQUIRRELVM v)
+    {
+        std::cerr << "TODO: loadSound: not implemented" << std::endl;
+        return 0;
     }
 
     static SQInteger loopSound(HSQUIRRELVM v)
