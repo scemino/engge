@@ -387,11 +387,14 @@ private:
         auto pActor = _engine.getCurrentActor();
         if (!pActor)
             return;
-        auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
+        auto sentence = std::make_unique<_CompositeFunction>();
+        if (pVerb->id != 2 || !isFarLook(obj))
+        {
+            auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
+            sentence->push_back(std::move(walk));
+        }
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject, pVerb->func);
         auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
-        auto sentence = std::make_unique<_CompositeFunction>();
-        sentence->push_back(std::move(walk));
         sentence->push_back(std::move(verb));
         sentence->push_back(std::move(postWalk));
         _engine.addFunction(std::move(sentence));
@@ -410,11 +413,14 @@ private:
         auto pCurrentActor = _engine.getCurrentActor();
         if (!pCurrentActor)
             return;
-        auto walk = std::make_unique<_ActorWalkToActor>(*pCurrentActor, *pActor);
+        auto sentence = std::make_unique<_CompositeFunction>();
+        if (pVerb->id != 2 || !isFarLook(obj))
+        {
+            auto walk = std::make_unique<_ActorWalkToActor>(*pCurrentActor, *pActor);
+            sentence->push_back(std::move(walk));
+        }
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pCurrentActor, *pActor, pVerb->func);
         auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
-        auto sentence = std::make_unique<_CompositeFunction>();
-        sentence->push_back(std::move(walk));
         sentence->push_back(std::move(verb));
         sentence->push_back(std::move(postWalk));
         _engine.addFunction(std::move(sentence));
@@ -454,6 +460,12 @@ private:
             return;
 
         callVerbDefault(obj);
+    }
+
+    bool isFarLook(const HSQOBJECT& obj)
+    {
+        auto flags = getFlags(obj);
+        return ((flags & 0x8) == 0x8);
     }
 
     bool useFlags(const InventoryObject *pObject)
@@ -502,6 +514,19 @@ private:
         return false;
     }
 
+    int32_t getFlags(const HSQOBJECT &obj)
+    {
+        SQInteger flags = 0;
+        sq_pushobject(_vm, obj);
+        sq_pushstring(_vm, _SC("flags"), -1);
+        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        {
+            sq_getinteger(_vm, -1, &flags);
+        }
+        sq_pop(_vm, 2);
+        return flags;
+    }
+
     bool callObjectPreWalk(HSQOBJECT obj, int verb)
     {
         sq_pushobject(_vm, obj);
@@ -536,7 +561,7 @@ private:
         }
     }
 
-    void getVerb(HSQOBJECT obj, const Verb *&pVerb)
+    void getVerb(const HSQOBJECT& obj, const Verb *&pVerb)
     {
         int verb;
         if (pVerb)
