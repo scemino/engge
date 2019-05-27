@@ -5,6 +5,63 @@
 
 namespace ng
 {
+class _PickupAnim : public Function
+{
+public:
+    _PickupAnim(Actor &actor, std::unique_ptr<InventoryObject> obj, const std::string &anim)
+        : _actor(actor), _object(std::move(obj)), _animName(anim)
+    {
+    }
+
+private:
+    bool isElapsed() override { return _state == 5; }
+
+    void playAnim(const std::string &name)
+    {
+        std::cout << "Play anim " << name << std::endl;
+        _actor.getCostume().setState(name);
+        _pAnim = _actor.getCostume().getAnimation();
+        if (_pAnim)
+        {
+            _pAnim->play(false);
+        }
+    }
+
+    void operator()(const sf::Time &elapsed) override
+    {
+        switch (_state)
+        {
+        case 0:
+            playAnim(_animName);
+            _state = 1;
+            break;
+        case 1:
+            if (!_pAnim->isPlaying())
+                _state = 2;
+            break;
+        case 2:
+            _actor.pickupObject(std::move(_object));
+            _state = 3;
+            break;
+        case 3:
+            playAnim("stand");
+            _state = 4;
+            break;
+        case 4:
+            if (!_pAnim->isPlaying())
+                _state = 5;
+            break;
+        }
+    }
+
+private:
+    int32_t _state{0};
+    Actor &_actor;
+    std::unique_ptr<InventoryObject> _object;
+    std::string _animName;
+    CostumeAnimation *_pAnim{nullptr};
+};
+
 class _ObjectPack : public Pack
 {
 private:
@@ -847,6 +904,13 @@ private:
 
     static SQInteger pickupObject(HSQUIRRELVM v)
     {
+        HSQOBJECT envObj;
+        sq_resetobject(&envObj);
+        if (SQ_FAILED(sq_getstackobj(v, 1, &envObj)))
+        {
+            return sq_throwerror(v, _SC("failed to get this"));
+        }
+
         auto pObj = std::make_unique<HSQOBJECT>();
         sq_resetobject(pObj.get());
         if (SQ_FAILED(sq_getstackobj(v, 2, pObj.get())))
@@ -897,23 +961,59 @@ private:
             name = towstring(strName);
         }
 
-        auto actor = ScriptEngine::getActor(v, 3);
-        if (!actor)
-        {
-            actor = g_pEngine->getCurrentActor();
-        }
-        if (!actor)
-        {
-            std::cerr << "There is no actor to pickup object " << icon << std::endl;
-            return 0;
-        }
-
         auto pObject = std::make_unique<InventoryObject>();
         pObject->setRoom(g_pEngine->getRoom());
         pObject->setName(name);
         pObject->setIcon(icon);
         pObject->setHandle(std::move(pObj));
-        actor->pickupObject(std::move(pObject));
+
+        auto actor = ScriptEngine::getActor(v, 3);
+        if (!actor)
+        {
+            actor = g_pEngine->getCurrentActor();
+            if (!actor)
+            {
+                std::cerr << "There is no actor to pickup object " << icon << std::endl;
+                return 0;
+            }
+
+            sq_pushobject(v, envObj);
+            sq_pushstring(v, _SC("flags"), -1);
+            if (SQ_FAILED(sq_get(v, -2)))
+            {
+                sq_pop(v, 2);
+                return sq_throwerror(v, _SC("failed to get object flags"));
+            }
+
+            SQInteger flags;
+            if (SQ_FAILED(sq_getinteger(v, -1, &flags)))
+            {
+                sq_pop(v, 2);
+                return sq_throwerror(v, _SC("failed to get object flags"));
+            }
+
+            std::string anim;
+            if ((flags & 0x8000) == 0x8000) // HIGH
+            {
+                anim = "reach_high";
+            }
+            else if ((flags & 0x10000) == 0x10000) // MED
+            {
+                anim = "reach_med";
+            }
+            else if ((flags & 0x20000) == 0x20000) // LOW
+            {
+                anim = "reach_low";
+            }
+
+            auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(pObject), anim);
+            g_pEngine->addFunction(std::move(pPickupAnim));
+        }
+        else
+        {
+            actor->pickupObject(std::move(pObject));
+        }
+
         return 0;
     }
 
@@ -950,7 +1050,7 @@ private:
 
     static SQInteger setDefaultObject(HSQUIRRELVM v)
     {
-        auto& defaultObj = g_pEngine->getDefaultObject();
+        auto &defaultObj = g_pEngine->getDefaultObject();
         sq_getstackobj(v, 2, &defaultObj);
         sq_addref(v, &defaultObj);
         return 0;

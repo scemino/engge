@@ -9,5 +9,5 @@ if(doStart) {
   inputOn()
   inputVerbs(ON)
   selectActor(ray)
-  enterRoomFromDoor(dinerMainStreetDoor)
+  enterRoomFromDoor(highwayBridgeDoor)
 }
