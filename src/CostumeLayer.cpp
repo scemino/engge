@@ -91,6 +91,7 @@ void CostumeLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     else
     {
         x = sourceRect.left - size.x / 2.f;
+        offset.x = -offset.x;
     }
     sf::Sprite sprite(*_pTexture, rect);
     auto y = sourceRect.top - size.y / 2.f;
