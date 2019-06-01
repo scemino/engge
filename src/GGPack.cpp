@@ -186,7 +186,7 @@ GGPack::GGPack() = default;
 
 void GGPack::open(const std::string &path)
 {
-    _input.open(path);
+    _input.open(path, std::ios::binary);
     readPack();
 }
 
