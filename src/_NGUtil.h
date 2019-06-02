@@ -29,6 +29,18 @@ static void replaceAll(std::wstring &text, const std::wstring &search, const std
     }
 }
 
+static void removeFirstParenthesis(std::wstring &text)
+{
+    if (text.size() < 2)
+        return;
+    if (text.find(L"(") != 0)
+        return;
+    auto pos = text.find(L")");
+    if (pos == std::wstring::npos)
+        return;
+    text = text.substr(pos + 1);
+}
+
 static bool getLine(GGPackBufferStream &input, std::string &line)
 {
     char c;

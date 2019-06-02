@@ -183,7 +183,13 @@ EngineSettings &Engine::getSettings() { return _pImpl->_settings; }
 
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 
-std::wstring Engine::getText(int id) const { return _pImpl->_textDb.getText(id); }
+std::wstring Engine::getText(int id) const
+{
+    auto text = _pImpl->_textDb.getText(id);
+    replaceAll(text, L"\\\"", L"\"");
+    removeFirstParenthesis(text);
+    return text;
+}
 
 void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
 
@@ -676,7 +682,7 @@ int32_t Engine::Impl::getFlags(const HSQOBJECT &obj)
     {
         sq_getinteger(_vm, -1, &flags);
     }
-    sq_pop(_vm, 2);
+    sq_pop(_vm, 1);
     return flags;
 }
 
