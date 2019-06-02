@@ -27,6 +27,7 @@ public:
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
   void lockFacing(Facing facing);
+  void unlockFacing();
   void setFacing(Facing facing);
   Facing getFacing() const { return _facing; }
   void setState(const std::string &name);
@@ -52,6 +53,7 @@ private:
   std::unique_ptr<CostumeAnimation> _pCurrentAnimation;
   sf::Texture _texture;
   Facing _facing;
+  std::optional<Facing> _lockFacing;
   std::string _animation;
   std::set<std::string> _hiddenLayers;
   std::string _headAnimName;

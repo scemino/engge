@@ -49,6 +49,7 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
 
 void Costume::setFacing(Facing facing)
 {
+    if(_lockFacing.has_value()) return;
     if (_facing == facing)
         return;
     _facing = facing;
@@ -57,11 +58,13 @@ void Costume::setFacing(Facing facing)
 
 void Costume::lockFacing(Facing facing)
 {
-    // TODO: lock
-    if (_facing == facing)
-        return;
-    _facing = facing;
-    updateAnimation();
+    setFacing(facing);
+    _lockFacing = facing;
+}
+
+void Costume::unlockFacing()
+{
+    _lockFacing = std::nullopt;
 }
 
 void Costume::setState(const std::string &name)

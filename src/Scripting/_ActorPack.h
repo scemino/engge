@@ -416,6 +416,11 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get facing"));
         }
+        if (facing == 0)
+        {
+            actor->getCostume().unlockFacing();
+            return 0;
+        }
         actor->getCostume().lockFacing((Facing)facing);
         return 0;
     }
