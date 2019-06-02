@@ -45,6 +45,8 @@ private:
         engine.registerGlobalFunction(startDialog, "startDialog");
         engine.registerGlobalFunction(stopSentence, "stopSentence");
         engine.registerGlobalFunction(strfind, "strfind");
+        engine.registerGlobalFunction(strlines, "strlines");
+        engine.registerGlobalFunction(strreplace, "strreplace");
     }
 
     static SQInteger arrayShuffle(HSQUIRRELVM v)
@@ -711,6 +713,49 @@ private:
         return 1;
     }
 
+    static SQInteger strlines(HSQUIRRELVM v)
+    {
+        const SQChar *text;
+        if (SQ_FAILED(sq_getstring(v, 2, &text)))
+        {
+            return sq_throwerror(v, _SC("failed to get text"));
+        }
+        std::istringstream is(text);
+        sq_newarray(v, 0);
+        std::string line;
+        while (std::getline(is, line))
+        {
+            sq_pushstring(v, line.data(), -1);
+            sq_arrayappend(v, -2);
+        }
+        return 1;
+    }
+
+    static SQInteger strreplace(HSQUIRRELVM v)
+    {
+        const SQChar *input;
+        const SQChar *search;
+        const SQChar *replace;
+        if (SQ_FAILED(sq_getstring(v, 2, &input)))
+        {
+            return sq_throwerror(v, _SC("failed to get input"));
+        }
+        if (SQ_FAILED(sq_getstring(v, 3, &search)))
+        {
+            return sq_throwerror(v, _SC("failed to get search"));
+        }
+        if (SQ_FAILED(sq_getstring(v, 4, &replace)))
+        {
+            return sq_throwerror(v, _SC("failed to get replace"));
+        }
+        std::string strInput(input);
+        std::string strSearch(search);
+        std::string strReplace(replace);
+        replaceAll(strInput, strSearch, strReplace);
+        sq_pushstring(v, strInput.data(), -1);
+        return 1;
+    }
+
     static SQInteger translate(HSQUIRRELVM v)
     {
         const SQChar *idText;
@@ -724,6 +769,16 @@ private:
         auto text = g_pEngine->getText(id);
         sq_pushstring(v, tostring(text).c_str(), -1);
         return 1;
+    }
+
+    static void replaceAll(std::string &text, const std::string &search, const std::string &replace)
+    {
+        auto pos = text.find(search);
+        while (pos != std::string::npos)
+        {
+            text.replace(pos, search.size(), replace);
+            pos = text.find(search, pos + replace.size());
+        }
     }
 };
 
