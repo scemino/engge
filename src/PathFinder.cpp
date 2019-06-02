@@ -158,11 +158,11 @@ std::shared_ptr<Graph> PathFinder::createGraph()
             for (auto i = 0; i < w1.getVertices().size(); i++)
             {
                 auto v1 = w1.getVertex(i);
-                auto v1p = w2.getVertex((i + 1) % w1.getVertices().size());
+                auto v1p = w2.getVertex((i + 1) % w2.getVertices().size());
                 if (v1 == v1p)
                 {
                     auto v2 = w1.getVertex((i + 1) % w1.getVertices().size());
-                    auto v2p = w2.getVertex(i);
+                    auto v2p = w2.getVertex(i% w2.getVertices().size());
                     if (v2 == v2p)
                     {
                         _sharedLines.emplace_back(v1, v2);

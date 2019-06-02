@@ -17,9 +17,10 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    auto engine = std::make_unique<ng::Engine>(settings);
-    auto game = std::make_unique<ng::Game>(*engine);
-    auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
+	auto game = std::make_unique<ng::Game>();
+	auto engine = std::make_unique<ng::Engine>(settings);
+	game->setEngine(engine.get());
+	auto scriptEngine = std::make_unique<ng::ScriptEngine>(*engine);
     try
     {
         scriptEngine->executeScript("test.nut");

@@ -98,7 +98,7 @@ public:
   }
   GGPackBufferStream &ignore(std::streamsize n = 1, int delim = EOF)
   {
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n && _offset < _input.size(); i++)
     {
       if (_input[_offset++] == delim)
         return *this;
@@ -135,7 +135,7 @@ private:
   {
     bool operator()(const std::string &a, const std::string &b) const noexcept
     {
-      return ::strcasecmp(a.c_str(), b.c_str()) < 0;
+      return _stricmp(a.c_str(), b.c_str()) < 0;
     }
   };
 

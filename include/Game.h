@@ -18,9 +18,11 @@ public:
 class Game : public NonCopyable
 {
 public:
-  explicit Game(Engine &engine);
+  Game();
   ~Game();
+
   void run();
+  void setEngine(Engine* pEngine);
 
   sf::RenderWindow &getWindow() { return _window; }
   std::vector<std::unique_ptr<InputEventHandler>> &getInputEventHandlers() { return _inputEventHandlers; }
@@ -30,7 +32,7 @@ private:
   void update(const sf::Time &time);
   void render();
 
-  Engine &_engine;
+  Engine *_pEngine;
   sf::RenderWindow _window;
   std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
 };

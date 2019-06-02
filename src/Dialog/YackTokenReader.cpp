@@ -85,7 +85,7 @@ void YackTokenReader::load(const std::string &path)
     std::vector<char> buffer;
     _pSettings->readEntry(path, buffer);
 
-#if 1
+#if 0
     std::ofstream o;
     o.open(path);
     o.write(buffer.data(), buffer.size());

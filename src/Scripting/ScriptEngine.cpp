@@ -440,7 +440,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
         }
     }
 
-#if 1
+#if 0
     std::ofstream o;
     o.open(name);
     o.write(code.data(), code.size());

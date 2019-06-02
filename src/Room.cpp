@@ -427,7 +427,7 @@ void Room::load(const char *name)
     GGPackValue hash;
     pImpl->_settings.readEntry(wimpyFilename, hash);
 
-#if 1
+#if 0
     std::ofstream out;
     out.open(wimpyFilename, std::ios::out);
     out << hash;
