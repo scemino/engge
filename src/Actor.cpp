@@ -9,6 +9,7 @@
 #include "SoundDefinition.h"
 #include "SoundManager.h"
 #include "Text.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
@@ -413,6 +414,7 @@ void Actor::Impl::TalkingState::load(int id)
         _pActor->getCostume().setState((char *)anim.data());
         _sayText = matches.suffix();
     }
+    replaceAll(_sayText,L"\\\"",L"\"");
     _isTalking = true;
     _index = 0;
     _clock.restart();

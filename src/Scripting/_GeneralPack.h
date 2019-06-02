@@ -770,16 +770,6 @@ private:
         sq_pushstring(v, tostring(text).c_str(), -1);
         return 1;
     }
-
-    static void replaceAll(std::string &text, const std::string &search, const std::string &replace)
-    {
-        auto pos = text.find(search);
-        while (pos != std::string::npos)
-        {
-            text.replace(pos, search.size(), replace);
-            pos = text.find(search, pos + replace.size());
-        }
-    }
 };
 
 Engine *_GeneralPack::g_pEngine = nullptr;

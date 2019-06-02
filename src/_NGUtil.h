@@ -9,6 +9,26 @@
 
 namespace ng
 {
+static void replaceAll(std::string &text, const std::string &search, const std::string &replace)
+{
+    auto pos = text.find(search);
+    while (pos != std::string::npos)
+    {
+        text.replace(pos, search.size(), replace);
+        pos = text.find(search, pos + replace.size());
+    }
+}
+
+static void replaceAll(std::wstring &text, const std::wstring &search, const std::wstring &replace)
+{
+    auto pos = text.find(search);
+    while (pos != std::wstring::npos)
+    {
+        text.replace(pos, search.size(), replace);
+        pos = text.find(search, pos + replace.size());
+    }
+}
+
 static bool getLine(GGPackBufferStream &input, std::string &line)
 {
     char c;
