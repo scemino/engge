@@ -17,6 +17,7 @@ private:
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(actorAlpha, "actorAlpha");
         engine.registerGlobalFunction(actorAnimationNames, "actorAnimationNames");
+        engine.registerGlobalFunction(actorAnimationFlags, "actorAnimationFlags");
         engine.registerGlobalFunction(actorAt, "actorAt");
         engine.registerGlobalFunction(actorBlinkRate, "actorBlinkRate");
         engine.registerGlobalFunction(actorColor, "actorColor");
@@ -98,6 +99,26 @@ private:
         sq_getstring(v, 6, &reach);
         pActor->getCostume().setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "", reach ? reach : "");
         return 0;
+    }
+
+    static SQInteger actorAnimationFlags(HSQUIRRELVM v)
+    {
+        auto *pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        const auto table = pActor->getTable();
+        SQInteger flags = 0;
+        sq_pushobject(v, table);
+        sq_pushstring(v, _SC("flags"), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            sq_getinteger(v, -1, &flags);
+        }
+        sq_pop(v, 2);
+        sq_pushinteger(v, flags);
+        return 1;
     }
 
     static Facing _getFacing(SQInteger dir, Facing currentFacing)
@@ -839,7 +860,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        
+
         const Room* pActorRoom = actor->getRoom();
         const Room* pRoom = g_pEngine->getRoom();
         if(pActorRoom != pRoom)
