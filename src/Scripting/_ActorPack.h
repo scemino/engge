@@ -18,6 +18,7 @@ private:
         engine.registerGlobalFunction(actorAlpha, "actorAlpha");
         engine.registerGlobalFunction(actorAnimationNames, "actorAnimationNames");
         engine.registerGlobalFunction(actorAt, "actorAt");
+        engine.registerGlobalFunction(actorBlinkRate, "actorBlinkRate");
         engine.registerGlobalFunction(actorColor, "actorColor");
         engine.registerGlobalFunction(actorCostume, "actorCostume");
         engine.registerGlobalFunction(actorDistanceTo, "actorDistanceTo");
@@ -28,7 +29,6 @@ private:
         engine.registerGlobalFunction(actorInTrigger, "actorInTrigger");
         engine.registerGlobalFunction(actorInWalkbox, "actorInWalkbox");
         engine.registerGlobalFunction(actorLockFacing, "actorLockFacing");
-        engine.registerGlobalFunction(actorBlinkRate, "actorBlinkRate");
         engine.registerGlobalFunction(actorPlayAnimation, "actorPlayAnimation");
         engine.registerGlobalFunction(actorPosX, "actorPosX");
         engine.registerGlobalFunction(actorPosY, "actorPosY");
@@ -38,17 +38,17 @@ private:
         engine.registerGlobalFunction(actorSlotSelectable, "actorSlotSelectable");
         engine.registerGlobalFunction(actorStand, "actorStand");
         engine.registerGlobalFunction(actorStopWalking, "actorStopWalking");
-        engine.registerGlobalFunction(actorTalking, "actorTalking");
         engine.registerGlobalFunction(actorTalkColors, "actorTalkColors");
         engine.registerGlobalFunction(actorTalkOffset, "actorTalkOffset");
+        engine.registerGlobalFunction(actorTalking, "actorTalking");
         engine.registerGlobalFunction(actorTurnTo, "actorTurnTo");
         engine.registerGlobalFunction(actorUsePos, "actorUsePos");
         engine.registerGlobalFunction(actorUseWalkboxes, "actorUseWalkboxes");
         engine.registerGlobalFunction(actorVolume, "actorVolume");
-        engine.registerGlobalFunction(actorWalking, "actorWalking");
+        engine.registerGlobalFunction(actorWalkForward, "actorWalkForward");
         engine.registerGlobalFunction(actorWalkSpeed, "actorWalkSpeed");
         engine.registerGlobalFunction(actorWalkTo, "actorWalkTo");
-        engine.registerGlobalFunction(actorWalkForward, "actorWalkForward");
+        engine.registerGlobalFunction(actorWalking, "actorWalking");
         engine.registerGlobalFunction(addSelectableActor, "addSelectableActor");
         engine.registerGlobalFunction(createActor, "createActor");
         engine.registerGlobalFunction(flashSelectableActor, "flashSelectableActor");
@@ -839,6 +839,15 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
+        
+        const Room* pActorRoom = actor->getRoom();
+        const Room* pRoom = g_pEngine->getRoom();
+        if(pActorRoom != pRoom)
+        {
+            sq_pushbool(v, SQFalse);
+            return 1;
+        }
+
         auto screen = g_pEngine->getWindow().getView().getSize();
         auto pos = (sf::Vector2i)actor->getPosition();
         auto camera = g_pEngine->getCameraAt();
