@@ -289,7 +289,7 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     {
         return sq_throwerror(_vm, _SC("function exit call failed"));
     }
-
+    sq_pop(_vm, 1);
     return 0;
 }
 
@@ -394,6 +394,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
         sq_pushstring(_vm, _SC("enter"), -1);
         if (SQ_FAILED(sq_rawget(_vm, -2)))
         {
+            sq_pop(_vm, 1);
             continue;
         }
 
@@ -681,6 +682,7 @@ int32_t Engine::Impl::getFlags(const HSQOBJECT &obj)
     if (SQ_SUCCEEDED(sq_get(_vm, -2)))
     {
         sq_getinteger(_vm, -1, &flags);
+        sq_pop(_vm, 1);
     }
     sq_pop(_vm, 1);
     return flags;
@@ -885,16 +887,15 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
         return;
     }
 
-    sq_remove(v, -2);
+    sq_pop(v, 2);
     sq_pushroottable(v);
     sq_pushobject(v, pCurrentActor->getTable());
     sq_pushbool(v, false);
-    if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
+    if (SQ_FAILED(sq_call(v, 2, SQFalse, SQTrue)))
     {
         std::cerr << "failed to call onActorSelected function" << std::endl;
         return;
     }
-    sq_pop(v, 2); //pops the roottable and the function
 }
 
 bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
@@ -916,6 +917,7 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
         sq_getinteger(_vm, -1, &handled);
         return handled == 1;
     }
+    sq_pop(_vm, 1);
     return false;
 }
 
@@ -968,8 +970,6 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 
 sf::IntRect Engine::Impl::getCursorRect() const
 {
-    const auto &size = _pRoom->getRoomSize();
-    auto screen = _pWindow->getView().getSize();
     if (_cursorDirection & CursorDirection::Left)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
