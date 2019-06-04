@@ -1,7 +1,7 @@
 include("Defines.nut")
 include("Boot.nut")
 
-local doStart = false
+local doStart = true
 
 if(doStart) {
   start(true)
