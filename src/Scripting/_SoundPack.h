@@ -5,51 +5,6 @@
 
 namespace ng
 {
-class _NoTrigger : public Trigger
-{
-private:
-    void trig() override
-    {
-    }
-};
-class _SoundTrigger : public Trigger
-{
-public:
-    _SoundTrigger(Engine &engine, const std::vector<std::shared_ptr<SoundDefinition>> &sounds)
-        : _engine(engine), _distribution(0, sounds.size() - 1)
-    {
-        _soundsDefinitions.resize(sounds.size());
-        for (size_t i = 0; i < sounds.size(); i++)
-        {
-            _soundsDefinitions[i] = sounds[i];
-        }
-        _sounds.resize(sounds.size());
-        for (size_t i = 0; i < sounds.size(); i++)
-        {
-            _sounds[i] = nullptr;
-        }
-    }
-
-private:
-    void trig() override
-    {
-        int i = _distribution(_generator);
-        if (_sounds[i])
-        {
-            _sounds[i]->play();
-            return;
-        }
-        _sounds[i] = _engine.getSoundManager().playSound(_soundsDefinitions[i]);
-    }
-
-private:
-    Engine &_engine;
-    std::vector<std::shared_ptr<SoundDefinition>> _soundsDefinitions;
-    std::vector<std::shared_ptr<SoundId>> _sounds;
-    std::default_random_engine _generator;
-    std::uniform_int_distribution<int> _distribution;
-};
-
 class _SoundPack : public Pack
 {
 private:
@@ -133,7 +88,6 @@ private:
         auto numSounds = sq_gettop(v) - 3;
         if (numSounds == 0)
         {
-            pEntity->setTrigger(triggerNumber, std::make_shared<_NoTrigger>());
             return 0;
         }
 
@@ -146,12 +100,8 @@ private:
             }
         }
 
-        std::vector<std::shared_ptr<SoundDefinition>> soundsShared;
-        std::transform(sounds.begin(),sounds.end(),std::back_inserter(soundsShared),[](SoundDefinition* pSoundDef){
-          return g_pEngine->getSoundManager().getSoundDefinition(pSoundDef);
-        });
-
-        pEntity->setTrigger(triggerNumber, std::make_shared<_SoundTrigger>(*g_pEngine, soundsShared));
+        SoundTrigger *pSound = pEntity->createSoundTrigger(*g_pEngine, sounds);
+        pEntity->setTrigger(triggerNumber, pSound);
         return 0;
     }
 
@@ -174,7 +124,7 @@ private:
             return sq_throwerror(v, _SC("failed to get filename"));
         }
         auto sound = g_pEngine->getSoundManager().defineSound(filename);
-        sq_pushuserpointer(v, sound.get());
+        sq_pushuserpointer(v, sound);
         return 1;
     }
 
@@ -191,6 +141,12 @@ private:
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 5, &fadeInTime);
         auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, true);
+        if(!pSoundId)
+        {
+            sq_pushnull(v);
+            return 1;
+        }
+
         if (loopTimes != -1)
         {
             // TODO: loopTimes
@@ -203,7 +159,7 @@ private:
             auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 1.f, sf::seconds(fadeInTime));
             g_pEngine->addFunction(std::move(fadeTo));
         }
-        sq_pushuserpointer(v, pSoundId.get());
+        sq_pushuserpointer(v, pSoundId);
         return 1;
     }
 
@@ -237,11 +193,11 @@ private:
             auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 1.f, sf::seconds(fadeInTime));
             g_pEngine->addFunction(std::move(fadeTo));
         }
-        sq_pushuserpointer(v, pSoundId.get());
+        sq_pushuserpointer(v, pSoundId);
         return 1;
     }
 
-    static void _fadeOutSound(std::shared_ptr<SoundId> pSound, const sf::Time& time)
+    static void _fadeOutSound(SoundId *pSound, const sf::Time &time)
     {
         std::cout << "fadeOutSound " << pSound->getSoundDefinition()->getPath() << " in " << time.asSeconds() << " seconds" << std::endl;
         auto get = std::bind(&SoundId::getVolume, pSound);
@@ -284,7 +240,6 @@ private:
 
     static SQInteger isSoundPlaying(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: isSoundPlaying: not implemented" << std::endl;
         auto pSound = _getSound(v, 2);
         if (pSound)
         {
@@ -292,19 +247,19 @@ private:
             return 1;
         }
         auto pSoundDef = _getSoundDefinition(v, 2);
-        if (pSoundDef)
+        if (!pSoundDef)
         {
-            for (size_t i = 1; i <= g_pEngine->getSoundManager().getSize(); i++)
+            sq_pushinteger(v, 0);
+            return 1;
+        }
+
+        for (size_t i = 1; i <= g_pEngine->getSoundManager().getSize(); i++)
+        {
+            auto sound = g_pEngine->getSoundManager().getSound(i);
+            if (pSoundDef == sound->getSoundDefinition() && pSound->isPlaying())
             {
-                auto &&sound = g_pEngine->getSoundManager().getSound(i);
-                if (pSoundDef == sound->getSoundDefinition())
-                {
-                    if (pSound->isPlaying())
-                    {
-                        sq_pushinteger(v, 1);
-                        break;
-                    }
-                }
+                sq_pushinteger(v, 1);
+                return 1;
             }
         }
         sq_pushinteger(v, 0);
@@ -320,7 +275,7 @@ private:
         }
         // TODO: other params: object or actor, loopTimes, fadeInTime
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
-        sq_pushuserpointer(v, soundId.get());
+        sq_pushuserpointer(v, soundId);
 
         return 1;
     }
@@ -334,7 +289,7 @@ private:
             return sq_throwerror(v, _SC("failed to get music"));
         }
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
-        sq_pushuserpointer(v, soundId.get());
+        sq_pushuserpointer(v, soundId);
 
         return 1;
     }
@@ -347,14 +302,14 @@ private:
             return sq_throwerror(v, _SC("failed to get sound"));
         }
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
-        sq_pushuserpointer(v, soundId.get());
+        sq_pushuserpointer(v, soundId);
 
         return 1;
     }
 
-    static std::shared_ptr<SoundId> _getSound(HSQUIRRELVM v, SQInteger index)
+    static SoundId *_getSound(HSQUIRRELVM v, SQInteger index)
     {
-        SQUserPointer pSound = nullptr;
+        Sound *pSound = nullptr;
         if (SQ_FAILED(sq_getuserpointer(v, index, (SQUserPointer *)&pSound)))
         {
             SQInteger i = 0;
@@ -364,17 +319,17 @@ private:
             }
             return g_pEngine->getSoundManager().getSound(i);
         }
-        return g_pEngine->getSoundManager().getSound(pSound);
+        return g_pEngine->getSoundManager().getSoundFromId(pSound);
     }
 
-    static std::shared_ptr<SoundDefinition> _getSoundDefinition(HSQUIRRELVM v, SQInteger index)
+    static SoundDefinition *_getSoundDefinition(HSQUIRRELVM v, SQInteger index)
     {
-        SQUserPointer pSound = nullptr;
+        Sound *pSound = nullptr;
         if (SQ_FAILED(sq_getuserpointer(v, index, (SQUserPointer *)&pSound)))
         {
             return nullptr;
         }
-        return g_pEngine->getSoundManager().getSoundDefinition(pSound);
+        return g_pEngine->getSoundManager().getSoundDefinitionFromId(pSound);
     }
 
     static SQInteger playSoundVolume(HSQUIRRELVM v)
@@ -391,7 +346,7 @@ private:
         }
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
         soundId->setVolume(volume);
-        sq_pushuserpointer(v, soundId.get());
+        sq_pushuserpointer(v, soundId);
 
         return 1;
     }

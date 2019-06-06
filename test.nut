@@ -1,7 +1,7 @@
 include("Defines.nut")
 include("Boot.nut")
 
-local doStart = true
+local doStart = false
 
 if(doStart) {
   start(true)
@@ -9,5 +9,5 @@ if(doStart) {
   inputOn()
   inputVerbs(ON)
   selectActor(ray)
-  enterRoomFromDoor(highwayBridgeDoor)
+  enterRoomFromDoor(mainStreetAStreetDoor)
 }

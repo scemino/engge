@@ -54,9 +54,9 @@ sf::Vector2f Entity::getUsePosition() const
     return _usePos;
 }
 
-void Entity::setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger)
+void Entity::setTrigger(int triggerNumber, Trigger* pTrigger)
 {
-    _triggers[triggerNumber] = std::move(trigger);
+    _triggers[triggerNumber] = pTrigger;
 }
 
 void Entity::trig(int triggerNumber)
@@ -74,5 +74,13 @@ void Entity::trigSound(const std::string &name)
 
 void Entity::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
 {
+}
+
+SoundTrigger* Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds)
+{
+    auto trigger = std::make_unique<SoundTrigger>(engine, sounds);
+    SoundTrigger* pTrigger = trigger.get();
+    _soundTriggers.push_back(std::move(trigger));
+    return pTrigger;
 }
 } // namespace ng

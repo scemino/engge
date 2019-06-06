@@ -65,7 +65,7 @@ struct Actor::Impl
         sf::Clock _clock;
         std::vector<int> _ids;
         int _id{0};
-        std::shared_ptr<SoundId> _sound;
+        SoundId *_pSound{nullptr};
     };
 
     explicit Impl(Engine &engine)
@@ -375,9 +375,10 @@ void Actor::Impl::TalkingState::say(int id)
 void Actor::Impl::TalkingState::stop()
 {
     _ids.clear();
-    if (_sound)
+    if (_pSound)
     {
-        _sound->stop();
+        _pSound->stop();
+        _pSound = nullptr;
     }
     _id = 0;
     _isTalking = false;
@@ -393,9 +394,9 @@ void Actor::Impl::TalkingState::load(int id)
         std::cerr << "File " << name << ".ogg not found" << std::endl;
         return;
     }
-    _sound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
-    if (_sound)
-        _sound->setVolume(_pActor->pImpl->_volume);
+    _pSound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
+    if (_pSound)
+        _pSound->setVolume(_pActor->pImpl->_volume);
 
     std::string path;
     path.append(name).append(".lip");

@@ -79,7 +79,7 @@ public:
         return sq_objtostring(&_result);
     }
 
-    std::shared_ptr<SoundDefinition> getSoundDefinition(const std::string &name) override
+    SoundDefinition* getSoundDefinition(const std::string &name) override
     {
         sq_pushroottable(_vm);
         sq_pushstring(_vm, name.data(), -1);
@@ -93,8 +93,7 @@ public:
             return nullptr;
         }
 
-        std::shared_ptr<SoundDefinition> pSound = std::shared_ptr<SoundDefinition>(
-            static_cast<SoundDefinition *>(obj._unVal.pUserPointer));
+        SoundDefinition* pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
         return pSound;
     }
 

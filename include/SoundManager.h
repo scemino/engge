@@ -14,19 +14,19 @@ class SoundManager
 public:
   explicit SoundManager(EngineSettings &settings);
   
-  std::shared_ptr<SoundDefinition> defineSound(const std::string &name);
-  std::shared_ptr<SoundId> playSound(std::shared_ptr<SoundDefinition> soundDefinition, bool loop = false);
-  std::shared_ptr<SoundId> loopMusic(std::shared_ptr<SoundDefinition> soundDefinition);
+  SoundDefinition* defineSound(const std::string &name);
+  SoundId* playSound(SoundDefinition* pSoundDefinition, bool loop = false);
+  SoundId* loopMusic(SoundDefinition* pSoundDefinition);
   
   void stopAllSounds();
-  void stopSound(const std::shared_ptr<SoundId>& sound);
-  void stopSound(const std::shared_ptr<SoundDefinition>& soundDefinition);
+  void stopSound(SoundId* pSound);
+  void stopSound(const SoundDefinition* pSoundDefinition);
   
-  void setVolume(const std::shared_ptr<SoundDefinition>& soundDefinition, float volume);
+  void setVolume(const SoundDefinition* pSoundDefinition, float volume);
   
-  std::shared_ptr<SoundId> getSound(void* pSound);
-  std::shared_ptr<SoundDefinition> getSoundDefinition(void* pSoundDefinition);
-  std::shared_ptr<SoundId> getSound(size_t index);
+  SoundId* getSound(size_t index);
+  SoundId* getSoundFromId(Sound* id);
+  SoundDefinition *getSoundDefinitionFromId(Sound* id);
   
   size_t getSize() const { return _soundIds.size(); }
 
@@ -35,7 +35,7 @@ private:
 
 private:
   EngineSettings &_settings;
-  std::vector<std::shared_ptr<SoundDefinition>> _sounds;
-  std::array<std::shared_ptr<SoundId>, 32> _soundIds;
+  std::vector<std::unique_ptr<SoundDefinition>> _sounds;
+  std::array<std::unique_ptr<SoundId>, 32> _soundIds;
 };
 } // namespace ng

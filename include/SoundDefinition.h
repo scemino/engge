@@ -21,10 +21,7 @@ class SoundDefinition : public Sound
 
 public:
   explicit SoundDefinition(std::string path);
-  ~SoundDefinition() override
-  {
-    std::cout << "delete SoundDefinition: " << _path << std::endl;
-  }
+  ~SoundDefinition() override;
 
   void setSettings(EngineSettings &settings);
   const std::string &getPath() const { return _path; };
@@ -42,7 +39,7 @@ private:
 class SoundId : public Sound
 {
 public:
-  explicit SoundId(std::shared_ptr<SoundDefinition> soundDefinition);
+  explicit SoundId(SoundDefinition *pSoundDefinition);
   ~SoundId() override;
 
   void play(bool loop = false);
@@ -50,11 +47,11 @@ public:
 
   void setVolume(float volume);
   float getVolume() const;
-  std::shared_ptr<SoundDefinition> getSoundDefinition() { return _soundDefinition; }
+  SoundDefinition *getSoundDefinition() { return _pSoundDefinition; }
   bool isPlaying() const { return _sound.getStatus() == sf::SoundSource::Playing; }
 
 private:
-  std::shared_ptr<SoundDefinition> _soundDefinition;
+  SoundDefinition *_pSoundDefinition{nullptr};
   sf::Sound _sound;
 };
 } // namespace ng

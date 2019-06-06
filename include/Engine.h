@@ -104,7 +104,7 @@ public:
 
   void startDialog(const std::string &dialog, const std::string &node);
   void execute(const std::string &code);
-  std::shared_ptr<SoundDefinition> getSoundDefinition(const std::string &name);
+  SoundDefinition* getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
   std::string executeDollar(const std::string &code);
 

@@ -10,30 +10,31 @@ SoundManager::SoundManager(EngineSettings &settings)
 {
 }
 
-std::shared_ptr<SoundId> SoundManager::getSound(size_t index)
+SoundId *SoundManager::getSound(size_t index)
 {
     if (index < 1 || index > _soundIds.size())
         return nullptr;
-    return _soundIds.at(index - 1);
+    return _soundIds.at(index - 1).get();
 }
 
-std::shared_ptr<SoundDefinition> SoundManager::getSoundDefinition(void *pSoundDefinition)
+SoundId *SoundManager::getSoundFromId(Sound* id)
 {
-    auto it = std::find_if(_sounds.begin(), _sounds.end(), [pSoundDefinition](std::shared_ptr<SoundDefinition> sd) {
-        return sd.get() == pSoundDefinition;
-    });
-    if (it == _sounds.end())
-        return nullptr;
-    return *it;
+    for (auto &&soundId : _soundIds)
+    {
+        if (soundId.get() == (SoundId *)id)
+            return soundId.get();
+    }
+    return nullptr;
 }
-std::shared_ptr<SoundId> SoundManager::getSound(void *pSound)
+
+SoundDefinition *SoundManager::getSoundDefinitionFromId(Sound* id)
 {
-    auto it = std::find_if(_soundIds.begin(), _soundIds.end(), [pSound](std::shared_ptr<SoundId> sd) {
-        return sd.get() == pSound;
-    });
-    if (it == _soundIds.end())
-        return nullptr;
-    return *it;
+    for (auto &&soundDef : _sounds)
+    {
+        if (soundDef.get() == (SoundDefinition *)id)
+            return soundDef.get();
+    }
+    return nullptr;
 }
 
 int SoundManager::getSlotIndex()
@@ -46,20 +47,21 @@ int SoundManager::getSlotIndex()
     return -1;
 }
 
-std::shared_ptr<SoundDefinition> SoundManager::defineSound(const std::string &name)
+SoundDefinition *SoundManager::defineSound(const std::string &name)
 {
     if (!_settings.hasEntry(name))
         return nullptr;
 
-    auto sound = std::make_shared<SoundDefinition>(name);
+    auto sound = std::make_unique<SoundDefinition>(name);
     sound->setSettings(_settings);
-    _sounds.push_back(sound);
-    return sound;
+    auto pSound = sound.get();
+    _sounds.push_back(std::move(sound));
+    return pSound;
 }
 
-std::shared_ptr<SoundId> SoundManager::playSound(std::shared_ptr<SoundDefinition> soundDefinition, bool loop)
+SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, bool loop)
 {
-    auto soundId = std::make_shared<SoundId>(soundDefinition);
+    auto soundId = std::make_unique<SoundId>(pSoundDefinition);
     auto index = getSlotIndex();
     if (index == -1)
     {
@@ -67,15 +69,16 @@ std::shared_ptr<SoundId> SoundManager::playSound(std::shared_ptr<SoundDefinition
         return nullptr;
     }
     std::cout << " [" << index << "]"
-              << "play sound " << soundDefinition->getPath() << std::endl;
-    _soundIds.at(index) = soundId;
-    soundId->play(loop);
-    return soundId;
+              << "play sound " << pSoundDefinition->getPath() << std::endl;
+    SoundId *pSoundId = soundId.get();
+    _soundIds.at(index) = std::move(soundId);
+    pSoundId->play(loop);
+    return pSoundId;
 }
 
-std::shared_ptr<SoundId> SoundManager::loopMusic(std::shared_ptr<SoundDefinition> soundDefinition)
+SoundId *SoundManager::loopMusic(SoundDefinition *pSoundDefinition)
 {
-    auto soundId = std::make_shared<SoundId>(soundDefinition);
+    auto soundId = std::make_unique<SoundId>(pSoundDefinition);
     auto index = getSlotIndex();
     if (index == -1)
     {
@@ -83,16 +86,17 @@ std::shared_ptr<SoundId> SoundManager::loopMusic(std::shared_ptr<SoundDefinition
         return nullptr;
     }
     std::cout << " [" << index << "]"
-              << "loop music " << soundDefinition->getPath() << std::endl;
-    _soundIds.at(index) = soundId;
-    soundId->play(true);
-    return soundId;
+              << "loop music " << pSoundDefinition->getPath() << std::endl;
+    SoundId *pSoundId = soundId.get();
+    _soundIds.at(index) = std::move(soundId);
+    pSoundId->play(true);
+    return pSoundId;
 }
 
 void SoundManager::stopAllSounds()
 {
     std::cout << "stopAllSounds" << std::endl;
-    for (auto & _soundId : _soundIds)
+    for (auto &_soundId : _soundIds)
     {
         if (_soundId != nullptr)
         {
@@ -102,41 +106,41 @@ void SoundManager::stopAllSounds()
     }
 }
 
-void SoundManager::stopSound(const std::shared_ptr<SoundId>& sound)
+void SoundManager::stopSound(SoundId *pSound)
 {
-    if(!sound) return;
-    sound->stop();
-    for (auto & _soundId : _soundIds)
+    if (!pSound)
+        return;
+    for (auto &_soundId : _soundIds)
     {
-        if (_soundId != nullptr && _soundId == sound)
+        if (_soundId != nullptr && _soundId.get() == pSound)
         {
             _soundId->stop();
-            _soundId = nullptr;
+            _soundId.reset();
             return;
         }
     }
 }
 
-void SoundManager::stopSound(const std::shared_ptr<SoundDefinition>& soundDef)
+void SoundManager::stopSound(const SoundDefinition *pSoundDef)
 {
-    std::cout << "stopSound (sound definition: " << soundDef->getPath() << ")" << std::endl;
+    std::cout << "stopSound (sound definition: " << pSoundDef->getPath() << ")" << std::endl;
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);
-        if (sound && soundDef == sound->getSoundDefinition())
+        if (sound && pSoundDef == sound->getSoundDefinition())
         {
             stopSound(sound);
         }
     }
 }
 
-void SoundManager::setVolume(const std::shared_ptr<SoundDefinition>& soundDef, float volume)
+void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume)
 {
-    std::cout << "setVolume (sound definition: " << soundDef->getPath() << ")" << std::endl;
+    std::cout << "setVolume (sound definition: " << pSoundDef->getPath() << ")" << std::endl;
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);
-        if (sound && soundDef == sound->getSoundDefinition())
+        if (sound && pSoundDef == sound->getSoundDefinition())
         {
             sound->setVolume(volume);
         }

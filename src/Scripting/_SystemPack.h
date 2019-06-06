@@ -456,6 +456,8 @@ private:
     static SQInteger activeController(HSQUIRRELVM v)
     {
         std::cerr << "TODO: activeController: not implemented" << std::endl;
+        // harcode mouse
+        sq_pushinteger(v, 1);
         return 1;
     }
 
@@ -540,7 +542,7 @@ private:
             {
                 return nullptr;
             }
-            return g_pEngine->getSoundManager().getSound(i).get();
+            return g_pEngine->getSoundManager().getSound(i);
         }
         return pSound;
     }

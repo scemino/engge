@@ -10,6 +10,11 @@ SoundDefinition::SoundDefinition(std::string path)
 {
 }
 
+SoundDefinition::~SoundDefinition()
+  {
+    std::cout << "delete SoundDefinition " << _path << " " << std::hex << this << std::endl;
+  }
+
 void SoundDefinition::setSettings(EngineSettings &settings)
 {
     _pSettings = &settings;
@@ -28,28 +33,29 @@ void SoundDefinition::load()
     }
 }
 
-SoundId::SoundId(std::shared_ptr<SoundDefinition> soundDefinition)
-    : _soundDefinition(std::move(soundDefinition))
+SoundId::SoundId(SoundDefinition *pSoundDefinition)
+    : _pSoundDefinition(pSoundDefinition)
 {
 }
 
 SoundId::~SoundId()
 {
-    std::cout << "delete SoundId" << std::endl;
+    std::cout << "delete SoundId " << std::hex << this << std::endl;
     stop();
+    _pSoundDefinition = nullptr;
 }
 
 void SoundId::play(bool loop)
 {
-    _soundDefinition->load();
-    _sound.setBuffer(_soundDefinition->_buffer);
+    _pSoundDefinition->load();
+    _sound.setBuffer(_pSoundDefinition->_buffer);
     _sound.setLoop(loop);
     _sound.play();
 }
 
 void SoundId::setVolume(float volume)
 {
-    auto path = _soundDefinition->getPath();
+    auto path = _pSoundDefinition->getPath();
     std::cout << "setVolume(" << path << "," << volume << ")" << std::endl;
     _sound.setVolume(volume * 100.f);
 }
@@ -61,7 +67,7 @@ float SoundId::getVolume() const
 
 void SoundId::stop()
 {
-    auto path = _soundDefinition->getPath();
+    auto path = _pSoundDefinition->getPath();
     std::cout << "stopSoundId(" << path << ")" << std::endl;
     _sound.stop();
 }

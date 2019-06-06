@@ -8,7 +8,7 @@ namespace ng
 class PathFinder
 {
 public:
-  PathFinder(const std::vector<Walkbox> &walkboxes);
+  explicit PathFinder(const std::vector<Walkbox> &walkboxes);
 
   std::vector<sf::Vector2i> calculatePath(sf::Vector2i from, sf::Vector2i to);
   std::shared_ptr<Graph> getGraph() const { return _graph; }

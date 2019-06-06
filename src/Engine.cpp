@@ -18,6 +18,7 @@
 #include "Room.h"
 #include "RoomScaling.h"
 #include "ScriptExecute.h"
+#include "SoundDefinition.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
 #include "Text.h"
@@ -1200,7 +1201,7 @@ void Engine::execute(const std::string &code)
     _pImpl->_pScriptExecute->execute(code);
 }
 
-std::shared_ptr<SoundDefinition> Engine::getSoundDefinition(const std::string &name)
+SoundDefinition* Engine::getSoundDefinition(const std::string &name)
 {
     return _pImpl->_pScriptExecute->getSoundDefinition(name);
 }

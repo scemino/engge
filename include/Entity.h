@@ -3,10 +3,13 @@
 #include <optional>
 #include "squirrel.h"
 #include "SFML/Graphics.hpp"
+#include "SoundTrigger.h"
 
 namespace ng
 {
+class Engine;
 class Room;
+class SoundDefinition;
 class Trigger;
 class Entity : public sf::Drawable
 {
@@ -29,7 +32,7 @@ public:
 
   virtual void move(const sf::Vector2f &offset) = 0;
 
-  void setTrigger(int triggerNumber, std::shared_ptr<Trigger> trigger);
+  void setTrigger(int triggerNumber, Trigger* pTrigger);
   void trig(int triggerNumber);
 
   virtual void trigSound(const std::string &name);
@@ -40,11 +43,14 @@ public:
 
   virtual HSQOBJECT &getTable() = 0;
 
+  SoundTrigger* createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds);
+
 protected:
   sf::Transformable _transform;
 
 private:
-  std::map<int, std::shared_ptr<Trigger>> _triggers;
+  std::map<int, Trigger*> _triggers;
+  std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
   sf::Vector2f _usePos;
   bool _isLit;
   bool _isVisible{true};
