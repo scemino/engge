@@ -11,9 +11,9 @@ SoundDefinition::SoundDefinition(std::string path)
 }
 
 SoundDefinition::~SoundDefinition()
-  {
+{
     std::cout << "delete SoundDefinition " << _path << " " << std::hex << this << std::endl;
-  }
+}
 
 void SoundDefinition::setSettings(EngineSettings &settings)
 {
@@ -40,7 +40,7 @@ SoundId::SoundId(SoundDefinition *pSoundDefinition)
 
 SoundId::~SoundId()
 {
-    std::cout << "delete SoundId " << std::hex << this << std::endl;
+    std::cout << "delete SoundId (" << std::hex << this << ") " << _pSoundDefinition->getPath() << std::endl;
     stop();
     _pSoundDefinition = nullptr;
 }
@@ -70,6 +70,26 @@ void SoundId::stop()
     auto path = _pSoundDefinition->getPath();
     std::cout << "stopSoundId(" << path << ")" << std::endl;
     _sound.stop();
+}
+
+void SoundId::update(const sf::Time &elapsed)
+{
+    if (_fade)
+    {
+        if(_fade->isElapsed()){
+            _fade.reset();
+        } else{
+            (*_fade)(elapsed);
+        }
+    }
+}
+
+void SoundId::fadeTo(float volume, const sf::Time &duration)
+{
+    auto get = std::bind(&SoundId::getVolume, this);
+    auto set = std::bind(&SoundId::setVolume, this, std::placeholders::_1);
+    auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, volume, duration);
+    _fade = std::move(fadeTo);
 }
 
 } // namespace ng

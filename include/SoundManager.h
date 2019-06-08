@@ -30,6 +30,8 @@ public:
   
   size_t getSize() const { return _soundIds.size(); }
 
+  void update(const sf::Time &elapsed);
+
 private:
   int getSlotIndex();
 

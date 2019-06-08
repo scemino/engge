@@ -377,6 +377,11 @@ void Actor::Impl::TalkingState::stop()
     _ids.clear();
     if (_pSound)
     {
+        _pSound = _pActor->pImpl->_engine.getSoundManager().getSoundFromId(_pSound);
+    }
+
+    if(_pSound)
+    {
         _pSound->stop();
         _pSound = nullptr;
     }

@@ -17,7 +17,7 @@ SoundId *SoundManager::getSound(size_t index)
     return _soundIds.at(index - 1).get();
 }
 
-SoundId *SoundManager::getSoundFromId(Sound* id)
+SoundId *SoundManager::getSoundFromId(Sound *id)
 {
     for (auto &&soundId : _soundIds)
     {
@@ -27,7 +27,7 @@ SoundId *SoundManager::getSoundFromId(Sound* id)
     return nullptr;
 }
 
-SoundDefinition *SoundManager::getSoundDefinitionFromId(Sound* id)
+SoundDefinition *SoundManager::getSoundDefinitionFromId(Sound *id)
 {
     for (auto &&soundDef : _sounds)
     {
@@ -143,6 +143,17 @@ void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume)
         if (sound && pSoundDef == sound->getSoundDefinition())
         {
             sound->setVolume(volume);
+        }
+    }
+}
+
+void SoundManager::update(const sf::Time &elapsed)
+{
+    for (auto &&soundId : _soundIds)
+    {
+        if (soundId)
+        {
+            soundId->update(elapsed);
         }
     }
 }

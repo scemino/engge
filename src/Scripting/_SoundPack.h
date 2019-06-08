@@ -154,10 +154,7 @@ private:
         if (fadeInTime != 0)
         {
             pSoundId->setVolume(0.f);
-            auto get = std::bind(&SoundId::getVolume, pSoundId);
-            auto set = std::bind(&SoundId::setVolume, pSoundId, std::placeholders::_1);
-            auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 1.f, sf::seconds(fadeInTime));
-            g_pEngine->addFunction(std::move(fadeTo));
+            pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
         sq_pushuserpointer(v, pSoundId);
         return 1;
@@ -188,10 +185,7 @@ private:
         if (fadeInTime != 0)
         {
             pSoundId->setVolume(0.f);
-            auto get = std::bind(&SoundId::getVolume, pSoundId);
-            auto set = std::bind(&SoundId::setVolume, pSoundId, std::placeholders::_1);
-            auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 1.f, sf::seconds(fadeInTime));
-            g_pEngine->addFunction(std::move(fadeTo));
+            pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
         sq_pushuserpointer(v, pSoundId);
         return 1;
@@ -200,10 +194,7 @@ private:
     static void _fadeOutSound(SoundId *pSound, const sf::Time &time)
     {
         std::cout << "fadeOutSound " << pSound->getSoundDefinition()->getPath() << " in " << time.asSeconds() << " seconds" << std::endl;
-        auto get = std::bind(&SoundId::getVolume, pSound);
-        auto set = std::bind(&SoundId::setVolume, pSound, std::placeholders::_1);
-        auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, 0.f, time);
-        g_pEngine->addFunction(std::move(fadeTo));
+        pSound->fadeTo(0.f, time);
     }
 
     static SQInteger fadeOutSound(HSQUIRRELVM v)

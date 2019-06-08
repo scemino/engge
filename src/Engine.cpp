@@ -754,6 +754,7 @@ void Engine::update(const sf::Time &elapsed)
 
     _pImpl->_time += elapsed;
 
+    _pImpl->_soundManager.update(elapsed);
     _pImpl->updateCutscene(elapsed);
     _pImpl->updateFunctions(elapsed);
 
