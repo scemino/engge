@@ -1,6 +1,7 @@
 #include <fstream>
 #include <memory>
 #include "SoundDefinition.h"
+#include "SoundId.h"
 #include "SoundManager.h"
 
 namespace ng

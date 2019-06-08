@@ -8,6 +8,7 @@
 #include "Function.h"
 #include "Preferences.h"
 #include "Room.h"
+#include "SoundId.h"
 #include "SoundManager.h"
 #include "../_NGUtil.h"
 

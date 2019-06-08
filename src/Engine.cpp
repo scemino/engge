@@ -19,6 +19,7 @@
 #include "RoomScaling.h"
 #include "ScriptExecute.h"
 #include "SoundDefinition.h"
+#include "SoundId.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
 #include "Text.h"

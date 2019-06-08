@@ -7,6 +7,7 @@
 #include "Room.h"
 #include "RoomScaling.h"
 #include "SoundDefinition.h"
+#include "SoundId.h"
 #include "SoundManager.h"
 #include "Text.h"
 
