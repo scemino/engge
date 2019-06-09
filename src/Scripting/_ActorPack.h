@@ -209,8 +209,26 @@ private:
             pActor->setPosition(pos);
             return 0;
         }
-
-        if (numArgs >= 5)
+        else if (numArgs == 4)
+        {
+            auto *pActor = ScriptEngine::getActor(v, 2);
+            if (!pActor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
+            SQInteger x, y;
+            if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+            {
+                return sq_throwerror(v, _SC("failed to get x"));
+            }
+            if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+            {
+                return sq_throwerror(v, _SC("failed to get y"));
+            }
+            pActor->setPosition((sf::Vector2f)sf::Vector2i(x, y));
+            return 0;
+        }
+        else if (numArgs >= 5)
         {
             auto *pActor = ScriptEngine::getActor(v, 2);
             if (!pActor)
@@ -861,9 +879,9 @@ private:
             return sq_throwerror(v, _SC("failed to get actor"));
         }
 
-        const Room* pActorRoom = actor->getRoom();
-        const Room* pRoom = g_pEngine->getRoom();
-        if(pActorRoom != pRoom)
+        const Room *pActorRoom = actor->getRoom();
+        const Room *pRoom = g_pEngine->getRoom();
+        if (pActorRoom != pRoom)
         {
             sq_pushbool(v, SQFalse);
             return 1;
