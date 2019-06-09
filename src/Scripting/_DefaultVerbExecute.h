@@ -79,7 +79,7 @@ public:
         return sq_objtostring(&_result);
     }
 
-    SoundDefinition* getSoundDefinition(const std::string &name) override
+    SoundDefinition *getSoundDefinition(const std::string &name) override
     {
         sq_pushroottable(_vm);
         sq_pushstring(_vm, name.data(), -1);
@@ -93,7 +93,7 @@ public:
             return nullptr;
         }
 
-        SoundDefinition* pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
+        SoundDefinition *pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
         return pSound;
     }
 
@@ -198,10 +198,11 @@ public:
     }
 
 private:
-    bool isElapsed() override { return true; }
+    bool isElapsed() override { return _isElapsed; }
 
     void operator()(const sf::Time &elapsed) override
     {
+        _isElapsed = true;
         HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
         auto &objTarget = _objectTarget.getTable();
 
@@ -228,6 +229,7 @@ private:
     Actor &_actor;
     const InventoryObject &_objectSource;
     Object &_objectTarget;
+    bool _isElapsed{false};
 };
 
 class _PostWalk : public Function
@@ -302,10 +304,12 @@ private:
             sq_pop(_vm, 2); //pops the roottable and the function
             return;
         }
-        if (callDefaultObjectVerb())
+
+        if (callVerbDefault(_object.getTable()))
             return;
 
-        callVerbDefault(_object.getTable());
+        if (callDefaultObjectVerb())
+            return;
     }
 
     bool callDefaultObjectVerb()
@@ -342,7 +346,7 @@ private:
         return false;
     }
 
-    void callVerbDefault(HSQOBJECT obj)
+    bool callVerbDefault(HSQOBJECT obj)
     {
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, _SC("verbDefault"), -1);
@@ -353,7 +357,9 @@ private:
             sq_pushobject(_vm, obj);
             sq_call(_vm, 1, SQFalse, SQTrue);
             sq_pop(_vm, 2); //pops the roottable and the function
+            return true;
         }
+        return false;
     }
 
 private:
@@ -461,7 +467,7 @@ private:
         callVerbDefault(obj);
     }
 
-    bool isFarLook(const HSQOBJECT& obj)
+    bool isFarLook(const HSQOBJECT &obj)
     {
         auto flags = getFlags(obj);
         return ((flags & 0x8) == 0x8);
@@ -560,7 +566,7 @@ private:
         }
     }
 
-    void getVerb(const HSQOBJECT& obj, const Verb *&pVerb)
+    void getVerb(const HSQOBJECT &obj, const Verb *&pVerb)
     {
         int verb;
         if (pVerb)
