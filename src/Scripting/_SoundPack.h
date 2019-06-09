@@ -268,7 +268,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor or object"));
         }
-        SQInteger loopTimes = -1;
+        SQInteger loopTimes = 1;
         sq_getinteger(v, 4, &loopTimes);
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 5, &fadeInTime);
