@@ -49,7 +49,8 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
 
 void Costume::setFacing(Facing facing)
 {
-    if(_lockFacing.has_value()) return;
+    if (_lockFacing.has_value())
+        return;
     if (_facing == facing)
         return;
     _facing = facing;
@@ -58,7 +59,11 @@ void Costume::setFacing(Facing facing)
 
 void Costume::lockFacing(Facing facing)
 {
-    setFacing(facing);
+    if (_facing != facing)
+    {
+        _facing = facing;
+        updateAnimation();
+    }
     _lockFacing = facing;
 }
 
@@ -77,6 +82,9 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
 {
     _path = path;
     _sheet = sheet;
+
+    // don't know if it's necessary, reyes has no costume in the intro
+    setAnimation("stand_front");
 }
 
 bool Costume::setAnimation(const std::string &animName)
