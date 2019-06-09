@@ -84,6 +84,7 @@ private:
         engine.registerGlobalFunction(objectAlphaTo, "objectAlphaTo");
         engine.registerGlobalFunction(objectAt, "objectAt");
         engine.registerGlobalFunction(objectBumperCycle, "objectBumperCycle");
+        engine.registerGlobalFunction(objectCenter, "objectCenter");
         engine.registerGlobalFunction(objectColor, "objectColor");
         engine.registerGlobalFunction(objectDependentOn, "objectDependentOn");
         engine.registerGlobalFunction(objectFPS, "objectFPS");
@@ -787,6 +788,25 @@ private:
             return sq_throwerror(v, _SC("failed to get object"));
         }
         sq_pushinteger(v, (SQInteger)obj->getUsePosition().y);
+        return 1;
+    }
+
+    static SQInteger objectCenter(HSQUIRRELVM v)
+    {
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        auto rect = obj->getRealHotspot();
+        sf::Vector2f pos(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        sq_newtable(v);
+        sq_pushstring(v, _SC("x"), -1);
+        sq_pushinteger(v, pos.x);
+        sq_newslot(v, -3, SQFalse);
+        sq_pushstring(v, _SC("y"), -1);
+        sq_pushinteger(v, pos.y);
+        sq_newslot(v, -3, SQFalse);
         return 1;
     }
 
