@@ -1,9 +1,14 @@
+#include "Actor.h"
+#include "Engine.h"
+#include "Entity.h"
+#include "Room.h"
 #include "SoundId.h"
+#include "SoundManager.h"
 
 namespace ng
 {
-SoundId::SoundId(SoundDefinition *pSoundDefinition)
-    : _pSoundDefinition(pSoundDefinition)
+SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
+    : _soundManager(soundManager), _pSoundDefinition(pSoundDefinition), _category(category)
 {
 }
 
@@ -14,11 +19,22 @@ SoundId::~SoundId()
     _pSoundDefinition = nullptr;
 }
 
-void SoundId::play(bool loop)
+SoundDefinition *SoundId::getSoundDefinition()
 {
+    return _pSoundDefinition;
+}
+
+bool SoundId::isPlaying() const
+{
+    return _sound.getLoop() || _sound.getStatus() == sf::SoundSource::Playing;
+}
+
+void SoundId::play(int loopTimes)
+{
+    _loopTimes = loopTimes;
     _pSoundDefinition->load();
     _sound.setBuffer(_pSoundDefinition->_buffer);
-    _sound.setLoop(loop);
+    _sound.setLoop(loopTimes == -1);
     _sound.play();
 }
 
@@ -26,12 +42,12 @@ void SoundId::setVolume(float volume)
 {
     auto path = _pSoundDefinition->getPath();
     std::cout << "setVolume(" << path << "," << volume << ")" << std::endl;
-    _sound.setVolume(volume * 100.f);
+    _volume = volume;
 }
 
 float SoundId::getVolume() const
 {
-    return _sound.getVolume() / 100.f;
+    return _volume;
 }
 
 void SoundId::stop()
@@ -43,13 +59,73 @@ void SoundId::stop()
 
 void SoundId::update(const sf::Time &elapsed)
 {
-    if (_fade)
+    float entityVolume = 1.f;
+    if (_pEntity)
     {
-        if(_fade->isElapsed()){
-            _fade.reset();
-        } else{
-            (*_fade)(elapsed);
+        auto pActor = _soundManager.getEngine()->getCurrentActor();
+        if (pActor)
+        {
+            if (pActor->getRoom() != _pEntity->getRoom())
+                entityVolume = 0;
+            if (pActor->getRoom() != _pEntity->getRoom())
+                entityVolume = 0;
+            else
+            {
+                auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
+                auto diff = fabs(pActor->getPosition().x - _pEntity->getPosition().x);
+                entityVolume = (1.5f - (diff / width)) / 1.5f;
+                if (entityVolume < 0)
+                    entityVolume = 0;
+                float pan = (_pEntity->getPosition().x - pActor->getPosition().x) / (width / 2);
+                if (pan > 1.f)
+                    pan = 1.f;
+                if (pan < -1.f)
+                    pan = -1.f;
+                _sound.setPosition({pan, 0.f, pan < 0.f ? -pan - 1.f : pan - 1.f});
+            }
         }
+    }
+    float categoryVolume = 0;
+    switch (_category)
+    {
+    case SoundCategory::Music:
+        categoryVolume = _soundManager.getMusicVolume();
+        break;
+    case SoundCategory::Sound:
+        categoryVolume = _soundManager.getSoundVolume();
+        break;
+    case SoundCategory::Talk:
+        categoryVolume = _soundManager.getTalkVolume();
+        break;
+    }
+
+    float volume = _volume * categoryVolume * entityVolume;
+    _sound.setVolume(volume * 100.f);
+
+    if (!isPlaying())
+    {
+        if (_loopTimes > 1)
+        {
+            _loopTimes--;
+            _sound.play();
+        }
+        else
+        {
+            _soundManager.stopSound(this);
+            return;
+        }
+    }
+
+    if (!_fade)
+        return;
+
+    if (_fade->isElapsed())
+    {
+        _fade.reset();
+    }
+    else
+    {
+        (*_fade)(elapsed);
     }
 }
 
@@ -60,4 +136,10 @@ void SoundId::fadeTo(float volume, const sf::Time &duration)
     auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, volume, duration);
     _fade = std::move(fadeTo);
 }
+
+void SoundId::setEntity(Entity *pEntity)
+{
+    _pEntity = pEntity;
 }
+
+} // namespace ng

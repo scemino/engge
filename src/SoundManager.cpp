@@ -60,37 +60,48 @@ SoundDefinition *SoundManager::defineSound(const std::string &name)
     return pSound;
 }
 
-SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, bool loop)
+SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes)
 {
-    auto soundId = std::make_unique<SoundId>(pSoundDefinition);
-    auto index = getSlotIndex();
-    if (index == -1)
-    {
-        std::cerr << "cannot play sound no more channel available" << std::endl;
-        return nullptr;
-    }
-    std::cout << " [" << index << "]"
-              << "play sound " << pSoundDefinition->getPath() << std::endl;
-    SoundId *pSoundId = soundId.get();
-    _soundIds.at(index) = std::move(soundId);
-    pSoundId->play(loop);
-    return pSoundId;
+    return play(pSoundDefinition, SoundCategory::Sound, loopTimes);
 }
 
-SoundId *SoundManager::loopMusic(SoundDefinition *pSoundDefinition)
+SoundId *SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes)
 {
-    auto soundId = std::make_unique<SoundId>(pSoundDefinition);
+    return play(pSoundDefinition, SoundCategory::Talk, loopTimes);
+}
+
+SoundId *SoundManager::playMusic(SoundDefinition *pSoundDefinition, int loopTimes)
+{
+    return play(pSoundDefinition, SoundCategory::Music, loopTimes);
+}
+
+SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes)
+{
+    auto soundId = std::make_unique<SoundId>(*this, pSoundDefinition, category);
     auto index = getSlotIndex();
     if (index == -1)
     {
         std::cerr << "cannot play sound no more channel available" << std::endl;
         return nullptr;
     }
+    std::string sCategory;
+    switch (category)
+    {
+    case SoundCategory::Music:
+        sCategory = "music";
+        break;
+    case SoundCategory::Sound:
+        sCategory = "sound";
+        break;
+    case SoundCategory::Talk:
+        sCategory = "talk";
+        break;
+    }
     std::cout << " [" << index << "]"
-              << "loop music " << pSoundDefinition->getPath() << std::endl;
+              << "loop " << loopTimes << " " << sCategory << " " << pSoundDefinition->getPath() << std::endl;
     SoundId *pSoundId = soundId.get();
     _soundIds.at(index) = std::move(soundId);
-    pSoundId->play(true);
+    pSoundId->play(loopTimes);
     return pSoundId;
 }
 
@@ -99,7 +110,7 @@ void SoundManager::stopAllSounds()
     std::cout << "stopAllSounds" << std::endl;
     for (auto &_soundId : _soundIds)
     {
-        if (_soundId != nullptr)
+        if (_soundId)
         {
             _soundId->stop();
             _soundId.reset();
@@ -113,7 +124,7 @@ void SoundManager::stopSound(SoundId *pSound)
         return;
     for (auto &_soundId : _soundIds)
     {
-        if (_soundId != nullptr && _soundId.get() == pSound)
+        if (_soundId && _soundId.get() == pSound)
         {
             _soundId->stop();
             _soundId.reset();
@@ -158,5 +169,4 @@ void SoundManager::update(const sf::Time &elapsed)
         }
     }
 }
-
 } // namespace ng

@@ -112,7 +112,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get music"));
         }
-        g_pEngine->getSoundManager().loopMusic(pSound);
+        g_pEngine->getSoundManager().playMusic(pSound, -1);
         return 0;
     }
 
@@ -130,26 +130,29 @@ private:
 
     static SQInteger loopObjectSound(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: loopObjectSound: not implemented" << std::endl;
         auto pSound = _getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
+        auto pEntity = ScriptEngine::getEntity<Entity>(v, 3);
+        if (!pEntity)
+        {
+            return sq_throwerror(v, _SC("failed to get actor or object"));
+        }
         SQInteger loopTimes = -1;
         sq_getinteger(v, 4, &loopTimes);
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 5, &fadeInTime);
-        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, true);
-        if(!pSoundId)
+        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
+        if (!pSoundId)
         {
             sq_pushnull(v);
             return 1;
         }
-
-        if (loopTimes != -1)
+        if (pSoundId)
         {
-            // TODO: loopTimes
+            pSoundId->setEntity(pEntity);
         }
         if (fadeInTime != 0)
         {
@@ -177,11 +180,7 @@ private:
         sq_getinteger(v, 3, &loopTimes);
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 4, &fadeInTime);
-        if (loopTimes != -1)
-        {
-            // TODO: loopTimes
-        }
-        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, true);
+        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
         if (fadeInTime != 0)
         {
             pSoundId->setVolume(0.f);
@@ -264,8 +263,21 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
-        // TODO: other params: object or actor, loopTimes, fadeInTime
-        auto soundId = g_pEngine->getSoundManager().playSound(pSound);
+        auto pEntity = ScriptEngine::getEntity<Entity>(v, 3);
+        if (!pEntity)
+        {
+            return sq_throwerror(v, _SC("failed to get actor or object"));
+        }
+        SQInteger loopTimes = -1;
+        sq_getinteger(v, 4, &loopTimes);
+        SQFloat fadeInTime = 0;
+        sq_getfloat(v, 5, &fadeInTime);
+        auto soundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
+        if (soundId)
+        {
+            soundId->setEntity(pEntity);
+            soundId->fadeTo(1.f, sf::seconds(fadeInTime));
+        }
         sq_pushuserpointer(v, soundId);
 
         return 1;
@@ -273,13 +285,12 @@ private:
 
     static SQInteger playMusic(HSQUIRRELVM v)
     {
-        // TODO: set category to music
         auto pSound = _getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get music"));
         }
-        auto soundId = g_pEngine->getSoundManager().playSound(pSound);
+        auto soundId = g_pEngine->getSoundManager().playMusic(pSound);
         sq_pushuserpointer(v, soundId);
 
         return 1;
@@ -344,19 +355,34 @@ private:
 
     static SQInteger soundMixVolume(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: soundMixVolume: not implemented" << std::endl;
+        SQFloat volume = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        g_pEngine->getSoundManager().setSoundVolume(volume);
         return 0;
     }
 
     static SQInteger musicMixVolume(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: musicMixVolume: not implemented" << std::endl;
+        SQFloat volume = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        g_pEngine->getSoundManager().setMusicVolume(volume);
         return 0;
     }
 
     static SQInteger talkieMixVolume(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: talkieMixVolume: not implemented" << std::endl;
+        SQFloat volume = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        g_pEngine->getSoundManager().setTalkVolume(volume);
         return 0;
     }
 

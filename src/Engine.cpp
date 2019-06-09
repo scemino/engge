@@ -154,6 +154,7 @@ Engine::Engine(EngineSettings &settings)
     srand(seed);
 
     _pImpl->_pEngine = this;
+    _pImpl->_soundManager.setEngine(this);
     _pImpl->_dialogManager.setEngine(this);
     _pImpl->_actorIcons.setEngine(this);
     _pImpl->_inventory.setEngine(this);
