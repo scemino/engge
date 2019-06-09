@@ -891,11 +891,11 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
         return;
     }
 
-    sq_pop(v, 2);
+    sq_remove(v, -2);
     sq_pushroottable(v);
     sq_pushobject(v, pCurrentActor->getTable());
     sq_pushbool(v, false);
-    if (SQ_FAILED(sq_call(v, 2, SQFalse, SQTrue)))
+    if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
     {
         std::cerr << "failed to call onActorSelected function" << std::endl;
         return;
