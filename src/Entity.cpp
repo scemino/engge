@@ -54,7 +54,7 @@ sf::Vector2f Entity::getUsePosition() const
     return _usePos;
 }
 
-void Entity::setTrigger(int triggerNumber, Trigger* pTrigger)
+void Entity::setTrigger(int triggerNumber, Trigger *pTrigger)
 {
     _triggers[triggerNumber] = pTrigger;
 }
@@ -76,11 +76,34 @@ void Entity::drawForeground(sf::RenderTarget &target, sf::RenderStates states) c
 {
 }
 
-SoundTrigger* Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds)
+SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds)
 {
     auto trigger = std::make_unique<SoundTrigger>(engine, sounds);
-    SoundTrigger* pTrigger = trigger.get();
+    SoundTrigger *pTrigger = trigger.get();
     _soundTriggers.push_back(std::move(trigger));
     return pTrigger;
 }
+
+void Entity::setTouchable(bool isTouchable)
+{
+    _isTouchable = isTouchable;
+}
+
+bool Entity::isTouchable() const
+{
+    if (!isVisible())
+        return false;
+    return _isTouchable;
+}
+
+void Entity::setRenderOffset(const sf::Vector2i &offset)
+{
+    _renderOffset = offset;
+}
+
+sf::Vector2i Entity::getRenderOffset() const
+{
+    return _renderOffset;
+}
+
 } // namespace ng

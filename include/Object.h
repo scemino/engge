@@ -33,8 +33,7 @@ public:
   void setTrigger(bool trigger);
   bool isTrigger() const;
 
-  void setTouchable(bool isTouchable);
-  bool isTouchable() const;
+  bool isTouchable() const override;
 
   void setUseDirection(UseDirection direction);
   UseDirection getUseDirection() const;
@@ -74,6 +73,7 @@ public:
   const sf::Color &getColor() const;
 
   void setScale(float s);
+  float getScale() const;
 
   Room *getRoom() override;
   const Room *getRoom() const;

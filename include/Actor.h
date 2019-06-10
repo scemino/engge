@@ -43,7 +43,6 @@ public:
   sf::Color getColor();
 
   void move(const sf::Vector2f &offset) override;
-  void setRenderOffset(const sf::Vector2i &offset);
 
   Room *getRoom() override;
   const Room *getRoom() const;

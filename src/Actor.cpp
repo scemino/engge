@@ -87,7 +87,6 @@ struct Actor::Impl
     Costume _costume;
     std::string _name, _icon;
     sf::Color _color;
-    sf::Vector2i _renderOffset;
     int _zorder;
     bool _use;
     Room *_pRoom;
@@ -176,11 +175,6 @@ sf::Color Actor::getColor()
     return pImpl->_color;
 }
 
-void Actor::setRenderOffset(const sf::Vector2i &offset)
-{
-    pImpl->_renderOffset = offset;
-}
-
 Room *Actor::getRoom()
 {
     return pImpl->_pRoom;
@@ -201,7 +195,7 @@ bool Actor::contains(const sf::Vector2f &pos) const
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
     auto transform = _transform;
     transform.scale(scale, scale);
-    transform.move((sf::Vector2f)-pImpl->_renderOffset * scale);
+    transform.move((sf::Vector2f)-getRenderOffset() * scale);
     auto t = transform.getInverseTransform();
     auto pos2 = t.transformPoint(pos);
     return pAnim->contains(pos2);
@@ -381,7 +375,7 @@ void Actor::Impl::TalkingState::stop()
         _pSound = _pActor->pImpl->_engine.getSoundManager().getSoundFromId(_pSound);
     }
 
-    if(_pSound)
+    if (_pSound)
     {
         _pSound->stop();
         _pSound = nullptr;
@@ -526,7 +520,7 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
     auto transform = _transform;
     transform.scale(scale, scale);
-    transform.move((sf::Vector2f)-pImpl->_renderOffset * scale);
+    transform.move((sf::Vector2f)-getRenderOffset() * scale);
     states.transform *= transform.getTransform();
     target.draw(pImpl->_costume, states);
 

@@ -185,6 +185,8 @@ ScriptEngine::ScriptEngine(Engine &engine)
         {"EMPTY", 1},
         {"FADE_IN", 0},
         {"FADE_OUT", 1},
+        {"FADE_WOBBLE", 2},
+        {"FADE_WOBBLE_TO_SEPIA", 3},
         {"FACE_FRONT", 0x4},
         {"FACE_BACK", 0x8},
         {"FACE_LEFT", 0x2},

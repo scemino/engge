@@ -80,8 +80,6 @@ void Object::setTrigger(bool trigger)
     pImpl->_trigger = trigger;
 }
 
-void Object::setTouchable(bool isTouchable) { pImpl->_isTouchable = isTouchable; }
-
 void Object::setUseDirection(UseDirection direction) { pImpl->_direction = direction; }
 UseDirection Object::getUseDirection() const { return pImpl->_direction; }
 
@@ -226,6 +224,11 @@ const sf::Color &Object::getColor() const
 void Object::setScale(float s)
 {
     _transform.setScale(s, s);
+}
+
+float Object::getScale() const
+{
+    return _transform.getScale().x;
 }
 
 void Object::update(const sf::Time &elapsed)

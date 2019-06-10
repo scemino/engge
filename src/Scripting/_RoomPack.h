@@ -9,7 +9,7 @@ namespace ng
 {
 class _ChangeColor : public TimeFunction
 {
-  public:
+public:
     _ChangeColor(Engine &engine, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
         : TimeFunction(time),
           _engine(engine),
@@ -49,7 +49,7 @@ class _ChangeColor : public TimeFunction
         _engine.setFadeColor(sf::Color::Transparent);
     }
 
-  private:
+private:
     sf::Color plusColor(const sf::Color &color1, float f)
     {
         auto a = static_cast<sf::Uint8>(color1.a + f * _a);
@@ -59,7 +59,7 @@ class _ChangeColor : public TimeFunction
         return sf::Color(r, g, b, a);
     }
 
-  private:
+private:
     Engine &_engine;
     bool _isLooping;
     std::function<float(float)> _anim;
@@ -71,10 +71,10 @@ class _ChangeColor : public TimeFunction
 
 class _RoomPack : public Pack
 {
-  private:
+private:
     static Engine *g_pEngine;
 
-  private:
+private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
@@ -369,7 +369,14 @@ class _RoomPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get time"));
         }
-        _fadeTo(type == 0 ? 0.f : 1.f, sf::seconds(t));
+        if (type < 2)
+        {
+            _fadeTo(type == 0 ? 0.f : 1.f, sf::seconds(t));
+        }
+        else
+        {
+            std::cerr << "roomFade not implemented" << std::endl;
+        }
         return 0;
     }
 
@@ -544,7 +551,7 @@ class _RoomPack : public Pack
 
             sq_pushobject(v, obj->getTable());
             sq_pushstring(v, _SC("flags"), -1);
-            if(SQ_FAILED(sq_rawget(v, -2)))
+            if (SQ_FAILED(sq_rawget(v, -2)))
             {
                 sq_pushstring(v, _SC("flags"), -1);
                 sq_pushinteger(v, 0);

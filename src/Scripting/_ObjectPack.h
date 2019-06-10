@@ -96,23 +96,26 @@ private:
         engine.registerGlobalFunction(objectOffset, "objectOffset");
         engine.registerGlobalFunction(objectOffsetTo, "objectOffsetTo");
         engine.registerGlobalFunction(objectOwner, "objectOwner");
+        engine.registerGlobalFunction(objectParallaxLayer, "objectParallaxLayer");
+        engine.registerGlobalFunction(objectParent, "objectParent");
         engine.registerGlobalFunction(objectPosX, "objectPosX");
         engine.registerGlobalFunction(objectPosY, "objectPosY");
+        engine.registerGlobalFunction(objectRenderOffset, "objectRenderOffset");
         engine.registerGlobalFunction(objectRoom, "objectRoom");
         engine.registerGlobalFunction(objectRotate, "objectRotate");
         engine.registerGlobalFunction(objectRotateTo, "objectRotateTo");
         engine.registerGlobalFunction(objectScale, "objectScale");
+        engine.registerGlobalFunction(objectScaleTo, "objectScaleTo");
         engine.registerGlobalFunction(objectScreenSpace, "objectScreenSpace");
+        engine.registerGlobalFunction(objectShader, "objectShader");
         engine.registerGlobalFunction(objectSort, "objectSort");
         engine.registerGlobalFunction(objectState, "objectState");
         engine.registerGlobalFunction(objectTouchable, "objectTouchable");
-        engine.registerGlobalFunction(objectParallaxLayer, "objectParallaxLayer");
         engine.registerGlobalFunction(objectUsePos, "objectUsePos");
         engine.registerGlobalFunction(objectUsePosX, "objectUsePosX");
         engine.registerGlobalFunction(objectUsePosY, "objectUsePosY");
         engine.registerGlobalFunction(objectValidUsePos, "objectValidUsePos");
         engine.registerGlobalFunction(objectValidVerb, "objectValidVerb");
-        engine.registerGlobalFunction(objectShader, "objectShader");
         engine.registerGlobalFunction(pickupObject, "pickupObject");
         engine.registerGlobalFunction(playObjectState, "playObjectState");
         engine.registerGlobalFunction(removeInventory, "removeInventory");
@@ -539,17 +542,47 @@ private:
 
     static SQInteger objectScale(HSQUIRRELVM v)
     {
-        SQFloat scale;
+        SQFloat value;
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
+        if (SQ_FAILED(sq_getfloat(v, 3, &value)))
+        {
+            return sq_throwerror(v, _SC("failed to get scale"));
+        }
+        obj->setScale(value);
+        return 0;
+    }
+
+    static SQInteger objectScaleTo(HSQUIRRELVM v)
+    {
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQFloat scale;
         if (SQ_FAILED(sq_getfloat(v, 3, &scale)))
         {
             return sq_throwerror(v, _SC("failed to get scale"));
         }
-        obj->setScale(scale);
+        SQFloat t;
+        if (SQ_FAILED(sq_getfloat(v, 4, &t)))
+        {
+            return sq_throwerror(v, _SC("failed to get time"));
+        }
+        SQInteger interpolation;
+        if (SQ_FAILED(sq_getinteger(v, 5, &interpolation)))
+        {
+            interpolation = 0;
+        }
+        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
+        auto get = std::bind(&Object::getScale, obj);
+        auto set = std::bind(&Object::setScale, obj, std::placeholders::_1);
+        auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, scale, sf::seconds(t), method);
+        g_pEngine->addFunction(std::move(scalteTo));
         return 0;
     }
 
@@ -575,6 +608,27 @@ private:
         auto pos = obj->getPosition();
         sq_pushinteger(v, static_cast<SQInteger>(pos.y));
         return 1;
+    }
+
+    static SQInteger objectRenderOffset(HSQUIRRELVM v)
+    {
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQInteger x;
+        if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        SQInteger y;
+        if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        obj->setRenderOffset({static_cast<int>(x), static_cast<int>(y)});
+        return 0;
     }
 
     static SQInteger objectRoom(HSQUIRRELVM v)
@@ -672,13 +726,18 @@ private:
         return 0;
     }
 
+    static SQInteger objectParent(HSQUIRRELVM v)
+    {
+        return sq_throwerror(v, _SC("objectParent not implemented"));
+    }
+
     static SQInteger objectTouchable(HSQUIRRELVM v)
     {
         SQInteger isTouchable;
-        auto *obj = ScriptEngine::getObject(v, 2);
+        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get object or actor"));
         }
         auto numArgs = sq_gettop(v);
         if (numArgs == 2)

@@ -23,6 +23,12 @@ public:
   void setLit(bool isLit);
   bool isLit() const;
 
+  void setTouchable(bool isTouchable);
+  virtual bool isTouchable() const;
+
+  void setRenderOffset(const sf::Vector2i &offset);
+  sf::Vector2i getRenderOffset() const;
+
   void setUsePosition(const sf::Vector2f &pos);
   void setPosition(const sf::Vector2f &pos);
 
@@ -54,5 +60,7 @@ private:
   sf::Vector2f _usePos;
   bool _isLit;
   bool _isVisible{true};
+  bool _isTouchable{true};
+  sf::Vector2i _renderOffset;
 };
 } // namespace ng
