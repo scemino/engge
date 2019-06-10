@@ -110,6 +110,17 @@ void DialogManager::update(const sf::Time &elapsed)
         return;
     }
 
+    if (_pLabel && !_isActive)
+    {
+        auto name = _pLabel->name;
+        auto it = std::find_if(_pCompilationUnit->labels.begin(), _pCompilationUnit->labels.end(), [&name](const std::unique_ptr<Ast::Label> &label) {
+            return label->name == name;
+        });
+        it++;
+        if (it != _pCompilationUnit->labels.end())
+            selectLabel(it->get()->name);
+    }
+
     if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
         return;
 
@@ -134,17 +145,6 @@ void DialogManager::update(const sf::Time &elapsed)
             break;
         }
         dialog++;
-    }
-
-    if (_pLabel && !_isActive)
-    {
-        auto name = _pLabel->name;
-        auto it = std::find_if(_pCompilationUnit->labels.begin(), _pCompilationUnit->labels.end(), [&name](const std::unique_ptr<Ast::Label> &label) {
-            return label->name == name;
-        });
-        it++;
-        if (it != _pCompilationUnit->labels.end())
-            selectLabel(it->get()->name);
     }
 }
 
