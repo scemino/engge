@@ -164,7 +164,11 @@ Engine::Engine(EngineSettings &settings)
 
     // load all messages
     _pImpl->_textDb.setSettings(settings);
-    _pImpl->_textDb.load("ThimbleweedText_en.tsv");
+
+    std::stringstream s;
+    auto lang = std::any_cast<std::string>(_pImpl->_preferences.getUserPreference("language", std::string("en")));
+    s << "ThimbleweedText_" << lang << ".tsv";
+    _pImpl->_textDb.load(s.str());
 
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
@@ -506,6 +510,7 @@ void Engine::setInputVerbs(bool on)
 
 sf::IntRect Engine::Impl::getVerbRect(int id, std::string lang, bool isRetro) const
 {
+    lang = std::any_cast<std::string>(_preferences.getUserPreference("language", std::string("en")));
     std::string s;
     std::string name;
     switch (id)
@@ -1204,7 +1209,7 @@ void Engine::execute(const std::string &code)
     _pImpl->_pScriptExecute->execute(code);
 }
 
-SoundDefinition* Engine::getSoundDefinition(const std::string &name)
+SoundDefinition *Engine::getSoundDefinition(const std::string &name)
 {
     return _pImpl->_pScriptExecute->getSoundDefinition(name);
 }
