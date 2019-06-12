@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <fstream>
 #include <map>
 #include <any>
 #include "JsonTokenReader.h"
@@ -35,6 +36,33 @@ public:
         }
     }
 
+    void save()
+    {
+        std::ofstream os;
+        os.open("Prefs.json");
+        for (auto &&pref : _values)
+        {
+            os << pref.first << ": ";
+            if (pref.second.type() == typeid(std::string))
+            {
+                os << "\"" << std::any_cast<std::string>(pref.second) << "\"";
+            }
+            else if (pref.second.type() == typeid(double))
+            {
+                os << std::any_cast<double>(pref.second);
+            }
+            else if (pref.second.type() == typeid(int))
+            {
+                os << std::any_cast<int>(pref.second);
+            }
+            else if (pref.second.type() == typeid(bool))
+            {
+                os << (std::any_cast<bool>(pref.second) ? 1 : 0);
+            }
+            os << std::endl;
+        }
+    }
+
     void setUserPreference(const std::string &name, std::any value)
     {
         _values[name] = value;
@@ -58,7 +86,7 @@ public:
         }
         return it->second;
     }
-    
+
 private:
     std::map<std::string, std::any> _values;
 };
