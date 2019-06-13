@@ -12,6 +12,32 @@ struct Verb
     std::string func;
     std::string text;
     std::string key;
+
+    static std::string getName(int id)
+    {
+        switch (id)
+        {
+        case 6:
+            return "verbClose";
+        case 9:
+            return "verbGive";
+        case 2:
+            return "verbLookAt";
+        case 5:
+            return "verbOpen";
+        case 4:
+            return "verbPickup";
+        case 8:
+            return "verbPull";
+        case 7:
+            return "verbPush";
+        case 3:
+            return "verbTalkTo";
+        case 10:
+            return "verbUse";
+        }
+        return "";
+    }
 };
 
 class VerbSlot

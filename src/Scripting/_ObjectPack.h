@@ -955,8 +955,27 @@ private:
 
     static SQInteger objectValidVerb(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectValidVerb: not implemented" << std::endl;
-        return 0;
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQInteger verb;
+        if (SQ_FAILED(sq_getinteger(v, 3, &verb)))
+        {
+            return sq_throwerror(v, _SC("failed to get verb"));
+        }
+        std::string name = Verb::getName(verb);
+        sq_pushobject(v, obj->getTable());
+        sq_pushstring(v, name.data(), -1);
+        SQInteger isValid = 0;
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            isValid = 1;
+        }
+        sq_pop(v, 2);
+        sq_pushinteger(v, isValid);
+        return 1;
     }
 
     static SQInteger objectShader(HSQUIRRELVM v)
