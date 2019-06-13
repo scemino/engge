@@ -243,7 +243,8 @@ public:
 
     bool isElapsed() override
     {
-        return !_soundId.isPlaying();
+        auto pSoundId = _engine.getSoundManager().getSoundFromId(&_soundId);
+        return !pSoundId || !pSoundId->isPlaying();
     }
 };
 
