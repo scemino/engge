@@ -616,13 +616,20 @@ private:
 
     static SQInteger actorTalking(HSQUIRRELVM v)
     {
-        // TODO: with no actor specified
-        auto actor = ScriptEngine::getActor(v, 2);
-        if (!actor)
+        Actor *pActor;
+        if (sq_gettop(v) == 2)
         {
-            return sq_throwerror(v, _SC("failed to get actor"));
+            pActor = ScriptEngine::getActor(v, 2);
+            if (!pActor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
         }
-        sq_pushbool(v, actor->isTalking());
+        else
+        {
+            pActor = g_pEngine->getCurrentActor();
+        }
+        sq_pushbool(v, pActor && pActor->isTalking());
         return 1;
     }
 
