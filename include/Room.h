@@ -2,7 +2,7 @@
 #include <vector>
 #include "squirrel.h"
 #include "nlohmann/json.hpp"
-#include "NonCopyable.h"
+#include "ScriptObject.h"
 
 namespace ng
 {
@@ -14,14 +14,11 @@ class TextureManager;
 class TextObject;
 class Walkbox;
 
-class Room : public NonCopyable
+class Room : public ScriptObject
 {
 public:
-  static int RoomType;
-
-public:
   Room(TextureManager &textureManager, EngineSettings &settings);
-  ~Room();
+  ~Room() override;
 
   void setId(const std::string &id);
   const std::string &getId() const;

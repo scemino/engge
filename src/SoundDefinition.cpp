@@ -3,6 +3,8 @@
 
 namespace ng
 {
+Sound::~Sound() = default;
+
 SoundDefinition::SoundDefinition(std::string path)
     : _pSettings(nullptr), _path(std::move(path)), _isLoaded(false)
 {

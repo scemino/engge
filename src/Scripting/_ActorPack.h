@@ -165,32 +165,9 @@ private:
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
 
-            HSQOBJECT object;
-            sq_resetobject(&object);
-            if (SQ_FAILED(sq_getstackobj(v, 3, &object)))
+            auto *pRoom = ScriptEngine::getRoom(v, 3);
+            if (pRoom)
             {
-                return sq_throwerror(v, _SC("failed to get object or room"));
-            }
-
-            sq_pushobject(v, object);
-            sq_pushstring(v, _SC("_type"), -1);
-            SQInteger type = 0;
-            if (SQ_SUCCEEDED(sq_rawget(v, -2)))
-            {
-                sq_remove(v, -2);
-                if (SQ_FAILED(sq_getinteger(v, -1, &type)))
-                {
-                    return sq_throwerror(v, _SC("failed to get object or room"));
-                }
-            }
-
-            if (type == Room::RoomType)
-            {
-                auto *pRoom = ScriptEngine::getRoom(v, 3);
-                if (!pRoom)
-                {
-                    return sq_throwerror(v, _SC("failed to get room"));
-                }
                 pActor->setRoom(pRoom);
                 return 0;
             }
@@ -198,13 +175,13 @@ private:
             auto *pObj = ScriptEngine::getObject(v, 3);
             if (!pObj)
             {
-                return sq_throwerror(v, _SC("failed to get object"));
+                return sq_throwerror(v, _SC("failed to get object or room"));
             }
             auto usePos = pObj->getUsePosition();
             auto pos = pObj->getPosition();
             pos.x += usePos.x;
             pos.y -= usePos.y;
-            auto pRoom = pObj->getRoom();
+            pRoom = pObj->getRoom();
             pActor->setRoom(pRoom);
             pActor->setPosition(pos);
             return 0;
@@ -238,7 +215,7 @@ private:
             auto *pRoom = ScriptEngine::getRoom(v, 3);
             if (!pRoom)
             {
-                return sq_throwerror(v, _SC("failed to get roomTable"));
+                return sq_throwerror(v, _SC("failed to get room"));
             }
             SQInteger x, y, dir = 0;
             if (SQ_FAILED(sq_getinteger(v, 4, &x)))
@@ -330,7 +307,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto object = ScriptEngine::getEntity<Entity>(v, 3);
+        auto object = ScriptEngine::getEntity(v, 3);
         if (!object)
         {
             return sq_throwerror(v, _SC("failed to get object or actor"));

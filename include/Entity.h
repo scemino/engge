@@ -4,6 +4,7 @@
 #include "squirrel.h"
 #include "SFML/Graphics.hpp"
 #include "SoundTrigger.h"
+#include "ScriptObject.h"
 
 namespace ng
 {
@@ -11,7 +12,7 @@ class Engine;
 class Room;
 class SoundDefinition;
 class Trigger;
-class Entity : public sf::Drawable
+class Entity : public ScriptObject, public sf::Drawable
 {
 public:
   virtual void update(const sf::Time &elapsed);

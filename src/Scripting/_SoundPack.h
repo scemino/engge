@@ -74,7 +74,7 @@ private:
 
     static SQInteger actorSound(HSQUIRRELVM v)
     {
-        auto pEntity = ScriptEngine::getEntity<Entity>(v, 2);
+        auto pEntity = ScriptEngine::getEntity(v, 2);
         if (!pEntity)
         {
             return sq_throwerror(v, _SC("failed to get actor or object"));
@@ -135,7 +135,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
-        auto pEntity = ScriptEngine::getEntity<Entity>(v, 3);
+        auto pEntity = ScriptEngine::getEntity(v, 3);
         if (!pEntity)
         {
             return sq_throwerror(v, _SC("failed to get actor or object"));
@@ -263,7 +263,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
-        auto pEntity = ScriptEngine::getEntity<Entity>(v, 3);
+        auto pEntity = ScriptEngine::getEntity(v, 3);
         if (!pEntity)
         {
             return sq_throwerror(v, _SC("failed to get actor or object"));

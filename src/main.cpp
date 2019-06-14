@@ -34,6 +34,10 @@ int main(int argc, char **argv)
     {
         std::cerr << "Sorry, an error occured: " << e.what() << std::endl;
     }
+    catch (...)
+    {
+        std::cerr << "Sorry, an error occured" << std::endl;
+    }
 
     return 0;
 }

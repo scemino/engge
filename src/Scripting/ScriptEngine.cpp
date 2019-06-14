@@ -4,6 +4,8 @@
 #include "sqstdaux.h"
 #include "sqstdstring.h"
 #include "sqstdmath.h"
+#include "Entity.h"
+#include "Room.h"
 #include "ScriptEngine.h"
 #include "SoundDefinition.h"
 #include "VerbExecute.h"
@@ -61,8 +63,8 @@ void ScriptEngine::registerConstants(std::initializer_list<std::tuple<const SQCh
     }
 }
 
-template <typename TEntity>
-TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
+template <typename TScriptObject>
+TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index)
 {
     auto type = sq_gettype(v, index);
     // is it a table?
@@ -86,14 +88,34 @@ TEntity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
         return nullptr;
     }
 
-    Entity *pObj = nullptr;
+    ScriptObject *pObj = nullptr;
     if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
     {
         return nullptr;
     }
     sq_pop(v, 2);
 
-    return dynamic_cast<TEntity *>(pObj);
+    return dynamic_cast<TScriptObject *>(pObj);
+}
+
+Entity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getScriptObject<Entity>(v, index);   
+}
+
+Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getScriptObject<Object>(v, index);
+}
+
+Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getScriptObject<Room>(v, index);
+}
+
+Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getScriptObject<Actor>(v, index);
 }
 
 template <class T>
@@ -307,49 +329,6 @@ ScriptEngine::~ScriptEngine()
 Engine &ScriptEngine::getEngine()
 {
     return _engine;
-}
-
-Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
-{
-    return ScriptEngine::getEntity<Object>(v, index);
-}
-
-Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
-{
-    auto type = sq_gettype(v, index);
-    // is it a table?
-    if (type != OT_TABLE)
-    {
-        sq_pushbool(v, SQFalse);
-        return nullptr;
-    }
-
-    HSQOBJECT object;
-    sq_resetobject(&object);
-    if (SQ_FAILED(sq_getstackobj(v, index, &object)))
-    {
-        return nullptr;
-    }
-
-    sq_pushobject(v, object);
-    sq_pushstring(v, _SC("instance"), -1);
-    if (SQ_FAILED(sq_get(v, -2)))
-    {
-        return nullptr;
-    }
-
-    Room *pObj = nullptr;
-    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
-    {
-        return nullptr;
-    }
-
-    return pObj;
-}
-
-Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
-{
-    return ScriptEngine::getEntity<Actor>(v, index);
 }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)

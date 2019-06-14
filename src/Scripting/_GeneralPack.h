@@ -111,12 +111,12 @@ private:
             sq_pushinteger(v, d);
             return 1;
         }
-        auto obj1 = ScriptEngine::getEntity<Entity>(v, 2);
+        auto obj1 = ScriptEngine::getEntity(v, 2);
         if (!obj1)
         {
             return sq_throwerror(v, "failed to get object1 or actor1");
         }
-        auto obj2 = ScriptEngine::getEntity<Entity>(v, 3);
+        auto obj2 = ScriptEngine::getEntity(v, 3);
         if (!obj2)
         {
             return sq_throwerror(v, "failed to get object2 or actor2");
@@ -212,7 +212,6 @@ private:
 
     static SQInteger loadArray(HSQUIRRELVM v)
     {
-        sq_newarray(v, 0);
         const SQChar *filename;
         if (SQ_FAILED(sq_getstring(v, 2, &filename)))
         {
@@ -222,6 +221,8 @@ private:
         g_pEngine->getSettings().readEntry(filename, buffer);
         GGPackBufferStream input(buffer);
         std::string line;
+
+        sq_newarray(v, 0);
         while (getLine(input, line))
         {
             sq_pushstring(v, line.data(), -1);
@@ -326,7 +327,7 @@ private:
         SQFloat t;
         if (sq_gettype(v, 2) == OT_TABLE)
         {
-            auto *pEntity = ScriptEngine::getEntity<Entity>(v, 2);
+            auto *pEntity = ScriptEngine::getEntity(v, 2);
             if (!pEntity)
             {
                 return sq_throwerror(v, _SC("failed to get actor/object"));

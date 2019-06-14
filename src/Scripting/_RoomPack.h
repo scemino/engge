@@ -85,7 +85,6 @@ private:
         engine.registerGlobalFunction(enableTrigger, "enableTrigger");
         engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
         engine.registerGlobalFunction(findRoom, "findRoom");
-        engine.registerGlobalFunction(isRoom, "isRoom");
         engine.registerGlobalFunction(lightBrightness, "lightBrightness");
         engine.registerGlobalFunction(lightConeAngle, "lightConeAngle");
         engine.registerGlobalFunction(lightConeDirection, "lightConeDirection");
@@ -282,12 +281,6 @@ private:
         return 1;
     }
 
-    static SQInteger isRoom(HSQUIRRELVM v)
-    {
-        std::cerr << "TODO: isRoom: not implemented" << std::endl;
-        return 0;
-    }
-
     static SQInteger walkboxHidden(HSQUIRRELVM v)
     {
         const SQChar *name = nullptr;
@@ -451,10 +444,6 @@ private:
 
         // define instance
         sq_pushobject(v, table);
-        sq_pushstring(v, _SC("_type"), -1);
-        sq_pushinteger(v, Room::RoomType);
-        sq_newslot(v, -3, SQFalse);
-
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pRoom);
         sq_newslot(v, -3, SQFalse);

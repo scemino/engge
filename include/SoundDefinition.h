@@ -5,6 +5,7 @@
 #include "SFML/Audio.hpp"
 #include "EngineSettings.h"
 #include "Function.h"
+#include "ScriptObject.h"
 
 namespace ng
 {
@@ -17,10 +18,10 @@ enum class SoundCategory
     Talk
 };
 
-class Sound
+class Sound : public ScriptObject
 {
 public:
-  virtual ~Sound() {}
+  ~Sound() override;
 };
 
 class SoundDefinition : public Sound

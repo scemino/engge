@@ -7,6 +7,8 @@
 
 namespace ng
 {
+class Entity;
+class Room;
 class ScriptEngine;
 class Pack
 {
@@ -34,9 +36,10 @@ public:
   template <class TPack>
   void addPack();
 
-  template <typename TEntity>
-  static TEntity *getEntity(HSQUIRRELVM v, SQInteger index);
+  template <typename TScriptObject>
+  static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
 
+  static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
   static Object *getObject(HSQUIRRELVM v, SQInteger index);
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);

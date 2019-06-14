@@ -342,8 +342,6 @@ struct Room::Impl
     }
 };
 
-int Room::RoomType = 1;
-
 Room::Room(TextureManager &textureManager, EngineSettings &settings)
     : pImpl(std::make_unique<Impl>(textureManager, settings))
 {
@@ -497,11 +495,9 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         if (json["frames"][n].is_null())
             continue;
         auto frame = json["frames"][n]["frame"];
-        auto r = _toRect(frame);
-        animation->getRects().push_back(r);
-        auto spriteSourceSize = json["frames"][n]["spriteSourceSize"];
+        animation->getRects().push_back(_toRect(frame));
         animation->getSizes().push_back(_toSize(json["frames"][n]["sourceSize"]));
-        animation->getSourceRects().push_back(_toRect(spriteSourceSize));
+        animation->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
     }
     animation->reset();
     object->getAnims().push_back(std::move(animation));

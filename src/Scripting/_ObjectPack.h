@@ -155,7 +155,7 @@ private:
 
     static SQInteger isObject(HSQUIRRELVM v)
     {
-        auto object = ScriptEngine::getEntity<Object>(v, 2);
+        auto object = ScriptEngine::getObject(v, 2);
         sq_pushbool(v, object ? SQTrue : SQFalse);
         return 1;
     }
@@ -333,10 +333,10 @@ private:
     {
         SQInteger x = 0;
         SQInteger y = 0;
-        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto *obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get object or actor"));
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &x)))
         {
@@ -386,7 +386,7 @@ private:
         SQInteger x = 0;
         SQInteger y = 0;
         SQFloat t = 0;
-        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto *obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get entity"));
@@ -734,7 +734,7 @@ private:
     static SQInteger objectTouchable(HSQUIRRELVM v)
     {
         SQInteger isTouchable;
-        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto *obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object or actor"));
@@ -757,10 +757,10 @@ private:
     static SQInteger objectLit(HSQUIRRELVM v)
     {
         SQInteger isLit;
-        auto *obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto *obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get actor or object"));
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &isLit)))
         {
@@ -928,10 +928,10 @@ private:
 
     static SQInteger objectFPS(HSQUIRRELVM v)
     {
-        auto obj = ScriptEngine::getEntity<Entity>(v, 2);
+        auto obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get object or actor"));
         }
         SQInteger fps;
         if (SQ_FAILED(sq_getinteger(v, 3, &fps)))
@@ -1117,7 +1117,7 @@ private:
 
     static SQInteger createTextObject(HSQUIRRELVM v)
     {
-        auto numArgs = sq_gettop(v) - 1;
+        auto numArgs = sq_gettop(v);
 
         const SQChar *fontName;
         if (SQ_FAILED(sq_getstring(v, 2, &fontName)))
@@ -1133,7 +1133,7 @@ private:
         }
         std::string s(text);
         obj.setText(s);
-        if (numArgs == 3)
+        if (numArgs == 4)
         {
             SQInteger alignment;
             if (SQ_FAILED(sq_getinteger(v, 4, &alignment)))
