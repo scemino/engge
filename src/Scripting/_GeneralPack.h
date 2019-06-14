@@ -32,6 +32,7 @@ private:
         engine.registerGlobalFunction(indialog, "indialog");
         engine.registerGlobalFunction(integer, "int");
         engine.registerGlobalFunction(is_array, "is_array");
+        engine.registerGlobalFunction(is_function, "is_function");
         engine.registerGlobalFunction(loadArray, "loadArray");
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
@@ -207,6 +208,13 @@ private:
     static SQInteger is_array(HSQUIRRELVM v)
     {
         sq_pushbool(v, sq_gettype(v, 2) == OT_ARRAY ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger is_function(HSQUIRRELVM v)
+    {
+        auto type = sq_gettype(v, 2);
+        sq_pushbool(v, type == OT_CLOSURE || type == OT_NATIVECLOSURE ? SQTrue : SQFalse);
         return 1;
     }
 
