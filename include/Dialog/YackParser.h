@@ -74,6 +74,14 @@ public:
 
   void accept(AstVisitor &visitor) override;
 };
+class TempOnceCondition : public Condition
+{
+public:
+  TempOnceCondition() = default;
+  ~TempOnceCondition() override;
+
+  void accept(AstVisitor &visitor) override;
+};
 class Statement : public Node
 {
 public:
@@ -239,6 +247,7 @@ public:
   virtual void visit(const OnceCondition &node);
   virtual void visit(const ShowOnceCondition &node);
   virtual void visit(const OnceEverCondition &node);
+  virtual void visit(const TempOnceCondition &node);
   virtual void visit(const Shutup &node);
   virtual void visit(const Pause &node);
   virtual void visit(const WaitFor &node);

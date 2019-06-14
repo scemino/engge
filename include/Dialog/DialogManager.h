@@ -32,6 +32,8 @@ private:
     void visit(const Ast::CodeCondition &node) override;
     void visit(const Ast::OnceCondition &node) override;
     void visit(const Ast::ShowOnceCondition &node) override;
+    void visit(const Ast::OnceEverCondition &node) override;
+    void visit(const Ast::TempOnceCondition &node) override;
 
   private:
     DialogVisitor &_dialogVisitor;

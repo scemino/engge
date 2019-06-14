@@ -9,6 +9,7 @@ Ast::CodeCondition::~CodeCondition() = default;
 Ast::OnceCondition::~OnceCondition() = default;
 Ast::ShowOnceCondition::~ShowOnceCondition() = default;
 Ast::OnceEverCondition::~OnceEverCondition() = default;
+Ast::TempOnceCondition::~TempOnceCondition() = default;
 Ast::Statement::~Statement() = default;
 Ast::Goto::~Goto() = default;
 Ast::Code::~Code() = default;
@@ -94,6 +95,10 @@ std::unique_ptr<Ast::Condition> YackParser::parseCondition()
     else if (conditionText == "onceever")
     {
         return std::make_unique<Ast::OnceEverCondition>();
+    }
+    else if (conditionText == "temponce")
+    {
+        return std::make_unique<Ast::TempOnceCondition>();
     }
     auto pCondition = std::make_unique<Ast::CodeCondition>();
     pCondition->code = conditionText;

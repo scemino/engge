@@ -21,6 +21,7 @@ void AllowObjects::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void WaitWhile::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Limit::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void OnceEverCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
+void TempOnceCondition::accept(AstVisitor &visitor) { visitor.visit(*this); }
 
 AstVisitor::~AstVisitor() = default;
 void AstVisitor::visit(const Statement &node) { defaultVisit(node); }
@@ -33,6 +34,7 @@ void AstVisitor::visit(const CodeCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const OnceCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const ShowOnceCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const OnceEverCondition &node) { defaultVisit(node); }
+void AstVisitor::visit(const TempOnceCondition &node) { defaultVisit(node); }
 void AstVisitor::visit(const Shutup &node) { defaultVisit(node); }
 void AstVisitor::visit(const Pause &node) { defaultVisit(node); }
 void AstVisitor::visit(const WaitFor &node) { defaultVisit(node); }

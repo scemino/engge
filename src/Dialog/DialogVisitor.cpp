@@ -64,6 +64,18 @@ void DialogVisitor::ConditionVisitor::visit(const Ast::ShowOnceCondition &node)
     _isAccepted = std::find(_dialogVisitor._nodesVisited.begin(), _dialogVisitor._nodesVisited.end(), _statement.expression.get()) == _dialogVisitor._nodesVisited.end();
 }
 
+void DialogVisitor::ConditionVisitor::visit(const Ast::OnceEverCondition &node)
+{
+    // TODO: OnceEverCondition
+    _isAccepted = true;
+}
+
+void DialogVisitor::ConditionVisitor::visit(const Ast::TempOnceCondition &node)
+{
+    // TODO: TempOnceCondition
+    _isAccepted = true;
+}
+
 bool DialogVisitor::acceptConditions(const Ast::Statement &statement)
 {
     ConditionVisitor conditionVisitor(*this, statement);
