@@ -34,20 +34,20 @@ private:
         engine.registerGlobalFunction(is_array, "is_array");
         engine.registerGlobalFunction(is_function, "is_function");
         engine.registerGlobalFunction(loadArray, "loadArray");
+        engine.registerGlobalFunction(markProgress, "markProgress");
+        engine.registerGlobalFunction(markStat, "markStat");
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
-        engine.registerGlobalFunction(markProgress, "markProgress");
-        engine.registerGlobalFunction(markStat, "markStat");
         engine.registerGlobalFunction(screenSize, "screenSize");
-        engine.registerGlobalFunction(strsplit, "strsplit");
-        engine.registerGlobalFunction(translate, "translate");
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
         engine.registerGlobalFunction(stopSentence, "stopSentence");
         engine.registerGlobalFunction(strfind, "strfind");
         engine.registerGlobalFunction(strlines, "strlines");
         engine.registerGlobalFunction(strreplace, "strreplace");
+        engine.registerGlobalFunction(strsplit, "strsplit");
+        engine.registerGlobalFunction(translate, "translate");
     }
 
     static SQInteger arrayShuffle(HSQUIRRELVM v)
@@ -439,19 +439,6 @@ private:
     {
         g_pEngine->cutsceneOverride();
         return 0;
-    }
-
-    static SQInteger int_rand(SQInteger min, SQInteger max)
-    {
-        max++;
-        auto value = rand() % (max - min) + min;
-        return value;
-    }
-
-    static float float_rand(float min, float max)
-    {
-        float scale = rand() / (float)RAND_MAX; /* [0, 1.0] */
-        return min + scale * (max - min);       /* [min, max] */
     }
 
     static SQInteger random(HSQUIRRELVM v)

@@ -18,6 +18,23 @@ enum class Facing
 };
 
 class Actor;
+class Costume;
+class BlinkState
+{
+public:
+    explicit BlinkState(Costume& costume);
+    
+    void setRate(double min, double max);
+    void update(sf::Time elapsed);
+
+private:
+    Costume& _costume;
+    double _min{0};
+    double _max{0};
+    sf::Time _value;
+    int32_t _state{-1};
+    sf::Time _elapsed;
+};
 
 class Costume : public sf::Drawable
 {
@@ -38,6 +55,8 @@ public:
 
   void setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim);
   void setActor(Actor *pActor) { _pActor = pActor; }
+
+  void setBlinkRate(double min, double max);
 
   void update(const sf::Time &elapsed);
 
@@ -62,5 +81,6 @@ private:
   std::string _reachAnimName;
   int _headIndex;
   Actor *_pActor;
+  BlinkState _blinkState;
 };
 } // namespace ng

@@ -9,6 +9,19 @@
 
 namespace ng
 {
+static SQInteger int_rand(SQInteger min, SQInteger max)
+{
+    max++;
+    auto value = rand() % (max - min) + min;
+    return value;
+}
+
+static float float_rand(float min, float max)
+{
+    float scale = rand() / (float)RAND_MAX; /* [0, 1.0] */
+    return min + scale * (max - min);       /* [min, max] */
+}
+
 static void replaceAll(std::string &text, const std::string &search, const std::string &replace)
 {
     auto pos = text.find(search);

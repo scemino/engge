@@ -6,6 +6,55 @@
 
 namespace ng
 {
+BlinkState::BlinkState(Costume &costume) : _costume(costume)
+{
+}
+
+void BlinkState::setRate(double min, double max)
+{
+    _min = min;
+    _max = max;
+    if (min == 0 && max == 0)
+    {
+        // blinking is disabled
+        _state = -1;
+    }
+    else
+    {
+        _state = 0;
+        _value = sf::seconds(float_rand(_min, _max));
+    }
+    _elapsed = sf::seconds(0);
+    _costume.setLayerVisible("blink", false);
+}
+
+void BlinkState::update(sf::Time elapsed)
+{
+    if (_state == 0)
+    {
+        // wait to blink
+        _elapsed += elapsed;
+        if (_elapsed > _value)
+        {
+            _state = 1;
+            _costume.setLayerVisible("blink", true);
+            _elapsed = sf::seconds(0);
+        }
+    }
+    else if (_state == 1)
+    {
+        // wait time the eyes are closed
+        _elapsed += elapsed;
+        if (_elapsed > sf::seconds(0.2))
+        {
+            _costume.setLayerVisible("blink", false);
+            _value = sf::seconds(float_rand(_min, _max));
+            _elapsed = sf::seconds(0);
+            _state = 0;
+        }
+    }
+}
+
 Costume::Costume(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _textureManager(textureManager),
@@ -17,7 +66,8 @@ Costume::Costume(TextureManager &textureManager)
       _walkAnimName("walk"),
       _reachAnimName("reach"),
       _headIndex(0),
-      _pActor(nullptr)
+      _pActor(nullptr),
+      _blinkState(*this)
 {
     _hiddenLayers.emplace("blink");
     _hiddenLayers.emplace("eyes_left");
@@ -246,6 +296,7 @@ void Costume::update(const sf::Time &elapsed)
     if (!_pCurrentAnimation)
         return;
     _pCurrentAnimation->update(elapsed);
+    _blinkState.update(elapsed);
 }
 
 void Costume::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -292,5 +343,10 @@ void Costume::setAnimationNames(const std::string &headAnim, const std::string &
     {
         _reachAnimName = reachAnim;
     }
+}
+
+void Costume::setBlinkRate(double min, double max)
+{
+    _blinkState.setRate(min, max);
 }
 } // namespace ng

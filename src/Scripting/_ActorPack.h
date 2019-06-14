@@ -458,7 +458,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get max"));
         }
-        // TODO: blink rate
+        pActor->getCostume().setBlinkRate(min, max);
         return 0;
     }
 
