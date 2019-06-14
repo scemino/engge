@@ -922,7 +922,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get icon"));
         }
-        // TODO: obj->setIcon(icon);
+        std::cerr << "TODO: objectIcon not implemented " << std::endl;
         return 0;
     }
 
@@ -1180,11 +1180,11 @@ private:
 
     static SQInteger createObject(HSQUIRRELVM v)
     {
-        auto numArgs = sq_gettop(v) - 1;
-        if (numArgs == 1)
+        auto numArgs = sq_gettop(v);
+        if (numArgs == 2)
         {
             std::vector<std::string> anims;
-            for (int i = 0; i < numArgs; i++)
+            for (int i = 0; i < numArgs - 1; i++)
             {
                 const SQChar *animName;
                 sq_getstring(v, 2 + i, &animName);
@@ -1214,19 +1214,31 @@ private:
             sq_pop(v, 1); //pops the null iterator
             auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
             ScriptEngine::pushObject(v, object);
+            return 1;
         }
-        else if (sq_isstring(obj))
+        
+        if (sq_isstring(obj))
         {
             const SQChar *image;
             sq_getstring(v, 3, &image);
             std::string s;
             s.append(image);
             std::size_t pos = s.find('.');
+            if(pos == std::string::npos)
+            {
+                std::vector<std::string> anims{s};
+                auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
+                ScriptEngine::pushObject(v, object);
+                return 1;
+            }
+            
             s = s.substr(0, pos);
             auto &object = g_pEngine->getRoom()->createObject(s);
             ScriptEngine::pushObject(v, object);
+            return 1;
         }
-        return 1;
+
+        return sq_throwerror(v, _SC("createObject called with invalid number of arguments"));
     }
 };
 
