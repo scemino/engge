@@ -427,7 +427,6 @@ private:
         engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
-        engine.registerGlobalFunction(dumpvar, "dumpvar");
         engine.registerGlobalFunction(exCommand, "exCommand");
         engine.registerGlobalFunction(gameTime, "gameTime");
         engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
@@ -606,12 +605,6 @@ private:
             return result;
         }
         return breakwhilesound(v);
-    }
-
-    static SQInteger dumpvar(HSQUIRRELVM v)
-    {
-        std::cerr << "TODO: exCommand: not implemented" << std::endl;
-        return 0;
     }
 
     static SQInteger exCommand(HSQUIRRELVM v)
@@ -964,15 +957,7 @@ private:
 
     static SQInteger is_string(HSQUIRRELVM v)
     {
-        HSQOBJECT object;
-        sq_resetobject(&object);
-        if (SQ_FAILED(sq_getstackobj(v, 2, &object)))
-        {
-            sq_push(v, SQFalse);
-            return 1;
-        }
-
-        sq_push(v, sq_isstring(object) ? SQTrue : SQFalse);
+        sq_pushbool(v, sq_gettype(v, 2) == OT_STRING ? SQTrue : SQFalse);
         return 1;
     }
 
@@ -1012,8 +997,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get pauseable"));
         }
-
-        // TODO: set thread pauseable
+        std::cerr << "TODO: threadpauseable: not implemented" << std::endl;
         return 0;
     }
 };
