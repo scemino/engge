@@ -98,8 +98,8 @@ void SoundId::update(const sf::Time &elapsed)
         categoryVolume = _soundManager.getTalkVolume();
         break;
     }
-
-    float volume = _volume * categoryVolume * entityVolume;
+    auto masterVolume = _soundManager.getMasterVolume();
+    float volume = masterVolume * _volume * categoryVolume * entityVolume;
     _sound.setVolume(volume * 100.f);
 
     if (!isPlaying())

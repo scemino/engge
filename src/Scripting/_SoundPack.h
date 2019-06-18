@@ -22,6 +22,7 @@ private:
         engine.registerGlobalFunction(loopSound, "loopSound");
         engine.registerGlobalFunction(loopObjectSound, "loopObjectSound");
         engine.registerGlobalFunction(loopMusic, "loopMusic");
+        engine.registerGlobalFunction(masterSoundVolume, "masterSoundVolume");
         engine.registerGlobalFunction(playMusic, "playMusic");
         engine.registerGlobalFunction(playSound, "playSound");
         engine.registerGlobalFunction(playSoundVolume, "playSoundVolume");
@@ -113,6 +114,17 @@ private:
             return sq_throwerror(v, _SC("failed to get music"));
         }
         g_pEngine->getSoundManager().playMusic(pSound, -1);
+        return 0;
+    }
+
+    static SQInteger masterSoundVolume(HSQUIRRELVM v)
+    {
+        SQFloat volume = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &volume)))
+        {
+            return sq_throwerror(v, _SC("failed to get volume"));
+        }
+        g_pEngine->getSoundManager().setMasterVolume(volume);
         return 0;
     }
 
