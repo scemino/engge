@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "squirrel.h"
-#include "nlohmann/json.hpp"
 #include "ScriptObject.h"
 
 namespace ng
@@ -57,6 +56,9 @@ public:
 
   void removeEntity(Entity *pEntity);
   std::vector<RoomScaling>& getScalings();
+
+  float getRotation() const;
+  void setRotation(float angle);
 
   Light* createLight(sf::Color color, sf::Vector2i pos);
 

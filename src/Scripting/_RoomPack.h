@@ -3,6 +3,7 @@
 #include "squirrel.h"
 #include "Animation.h"
 #include "Engine.h"
+#include "Function.h"
 #include "Light.h"
 #include "_RoomTrigger.h"
 
@@ -285,7 +286,17 @@ private:
 
     static SQInteger roomRotateTo(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: roomRotateTo: not implemented" << std::endl;
+        auto pRoom = g_pEngine->getRoom();
+        SQFloat rotation = 0;
+        if (SQ_FAILED(sq_getfloat(v, 2, &rotation)))
+        {
+            return sq_throwerror(v, _SC("failed to get rotation"));
+        }
+        auto get = std::bind(&Room::getRotation, pRoom);
+        auto set = std::bind(&Room::setRotation, pRoom, std::placeholders::_1);
+        auto t = sf::seconds(0.200);
+        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, rotation, t);
+        g_pEngine->addFunction(std::move(rotateTo));
         return 0;
     }
 

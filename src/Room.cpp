@@ -41,6 +41,7 @@ struct Room::Impl
     SpriteSheet _spriteSheet;
     Room *_pRoom{nullptr};
     std::vector<std::unique_ptr<Light>> _lights;
+    float _rotation{0};
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
         : _textureManager(textureManager),
@@ -277,7 +278,7 @@ struct Room::Impl
                     }
                     for (auto jSubScaling : jScaling["scaling"].array_value)
                     {
-                        if(jSubScaling.isString())
+                        if (jSubScaling.isString())
                         {
                             auto value = jSubScaling.string_value;
                             auto index = value.find('@');
@@ -287,8 +288,8 @@ struct Room::Impl
                             s.scale = scale;
                             s.yPos = yPos;
                             scaling.getScalings().push_back(s);
-                        } 
-                        else if(jSubScaling.isArray())
+                        }
+                        else if (jSubScaling.isArray())
                         {
                             for (auto jSubScalingScaling : jSubScaling.array_value)
                             {
@@ -584,22 +585,24 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
     auto screen = window.getView().getSize();
-    auto ratio = screen.y / pImpl->_roomSize.y;
+    auto w = screen.x / 2.f;
+    auto h = screen.y / 2.f;
+        
     for (const auto &layer : pImpl->_layers)
     {
-        auto w = screen.x / 2.f;
-        auto h = screen.y / 2.f;
         auto parallax = layer->getParallax();
         auto posX = (w - cameraPos.x) * parallax.x - w;
         auto posY = (h - cameraPos.y) * parallax.y - h;
 
         sf::Transform t;
+        t.rotate(pImpl->_rotation, w, h);
         t.translate(posX, posY);
         states.transform = t;
         layer->draw(window, states);
     }
 
     sf::Transform t;
+    t.rotate(pImpl->_rotation, w, h);
     t.translate(-cameraPos);
     states.transform = t;
     drawWalkboxes(window, states);
@@ -611,6 +614,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         auto posY = (screen.y / 2 - cameraPos.y) * parallax.y - screen.y / 2;
 
         sf::Transform t2;
+        t2.rotate(pImpl->_rotation, w, h);
         t2.translate(posX, posY);
         states.transform = t2;
         layer->drawForeground(window, states);
@@ -622,9 +626,9 @@ const RoomScaling &Room::getRoomScaling() const
     return pImpl->_scaling;
 }
 
-void Room::setRoomScaling(const RoomScaling & scaling)
+void Room::setRoomScaling(const RoomScaling &scaling)
 {
-    pImpl->_scaling  = scaling;
+    pImpl->_scaling = scaling;
 }
 
 void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
@@ -649,7 +653,7 @@ bool Room::inWalkbox(const sf::Vector2f &pos) const
     return inWalkbox;
 }
 
-std::vector<RoomScaling>& Room::getScalings()
+std::vector<RoomScaling> &Room::getScalings()
 {
     return pImpl->_scalings;
 }
@@ -659,10 +663,20 @@ std::vector<sf::Vector2i> Room::calculatePath(const sf::Vector2i &start, const s
     return pImpl->_pf->calculatePath(start, end);
 }
 
-Light* Room::createLight(sf::Color color, sf::Vector2i pos)
+float Room::getRotation() const
+{
+    return pImpl->_rotation;
+}
+
+void Room::setRotation(float angle)
+{
+    pImpl->_rotation = angle;
+}
+
+Light *Room::createLight(sf::Color color, sf::Vector2i pos)
 {
     auto light = std::make_unique<Light>(color, pos);
-    Light* pLight = light.get();
+    Light *pLight = light.get();
     pImpl->_lights.emplace_back(std::move(light));
     return pLight;
 }
