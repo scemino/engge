@@ -100,7 +100,7 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index)
 
 Entity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
 {
-    return ScriptEngine::getScriptObject<Entity>(v, index);   
+    return ScriptEngine::getScriptObject<Entity>(v, index);
 }
 
 Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
@@ -116,6 +116,11 @@ Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
 Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
 {
     return ScriptEngine::getScriptObject<Actor>(v, index);
+}
+
+Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index)
+{
+    return ScriptEngine::getScriptObject<Light>(v, index);
 }
 
 template <class T>
@@ -174,7 +179,7 @@ static Platform _getPlatform()
 ScriptEngine::ScriptEngine(Engine &engine)
     : _engine(engine)
 {
-    v = sq_open(1024*2);
+    v = sq_open(1024 * 2);
     _engine.setVm(v);
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
@@ -414,7 +419,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
 
         // decode bnut
         int cursor = code.size() & 0xff;
-        for (char & i : code)
+        for (char &i : code)
         {
             i ^= _bnutPass[cursor];
             cursor = (cursor + 1) % 4096;

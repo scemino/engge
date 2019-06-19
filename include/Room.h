@@ -8,6 +8,7 @@ namespace ng
 {
 class EngineSettings;
 class Entity;
+class Light;
 class Object;
 class RoomScaling;
 class TextureManager;
@@ -56,6 +57,8 @@ public:
 
   void removeEntity(Entity *pEntity);
   std::vector<RoomScaling>& getScalings();
+
+  Light* createLight(sf::Color color, sf::Vector2i pos);
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;

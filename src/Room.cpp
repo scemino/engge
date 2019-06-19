@@ -7,6 +7,7 @@
 #include "squirrel.h"
 #include "nlohmann/json.hpp"
 #include "Animation.h"
+#include "Light.h"
 #include "PathFinder.h"
 #include "Room.h"
 #include "RoomLayer.h"
@@ -39,6 +40,7 @@ struct Room::Impl
     sf::Color _ambientColor{255, 255, 255, 255};
     SpriteSheet _spriteSheet;
     Room *_pRoom{nullptr};
+    std::vector<std::unique_ptr<Light>> _lights;
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
         : _textureManager(textureManager),
@@ -655,6 +657,14 @@ std::vector<RoomScaling>& Room::getScalings()
 std::vector<sf::Vector2i> Room::calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const
 {
     return pImpl->_pf->calculatePath(start, end);
+}
+
+Light* Room::createLight(sf::Color color, sf::Vector2i pos)
+{
+    auto light = std::make_unique<Light>(color, pos);
+    Light* pLight = light.get();
+    pImpl->_lights.emplace_back(std::move(light));
+    return pLight;
 }
 
 } // namespace ng

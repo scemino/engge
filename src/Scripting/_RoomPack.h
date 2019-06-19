@@ -3,6 +3,7 @@
 #include "squirrel.h"
 #include "Animation.h"
 #include "Engine.h"
+#include "Light.h"
 #include "_RoomTrigger.h"
 
 namespace ng
@@ -115,56 +116,159 @@ private:
 
     static SQInteger createLight(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: createLight: not implemented" << std::endl;
-        sq_pushnull(v);
+        SQInteger color;
+        if (SQ_FAILED(sq_getinteger(v, 2, &color)))
+        {
+            return sq_throwerror(v, _SC("failed to get color"));
+        }
+        SQInteger x;
+        if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        SQInteger y;
+        if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        auto pRoom = g_pEngine->getRoom();
+        auto pLight = pRoom->createLight(_toColor(color), sf::Vector2i(x, y));
+
+        ScriptEngine::pushObject(v, *pLight);
+        sq_getstackobj(v, -1, &pLight->getTable());
+        sq_addref(v, &pLight->getTable());
         return 1;
     }
 
     static SQInteger lightBrightness(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightBrightness: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQFloat brightness;
+        if (SQ_FAILED(sq_getfloat(v, 3, &brightness)))
+        {
+            return sq_throwerror(v, _SC("failed to get brightness"));
+        }
+        pLight->setBrightness(brightness);
         return 0;
     }
 
     static SQInteger lightConeDirection(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightConeDirection: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQFloat direction;
+        if (SQ_FAILED(sq_getfloat(v, 3, &direction)))
+        {
+            return sq_throwerror(v, _SC("failed to get direction"));
+        }
+        pLight->setConeDirection(direction);
         return 0;
     }
 
     static SQInteger lightConeAngle(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightConeAngle: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQFloat angle;
+        if (SQ_FAILED(sq_getfloat(v, 3, &angle)))
+        {
+            return sq_throwerror(v, _SC("failed to get angle"));
+        }
+        pLight->setConeAngle(angle);
         return 0;
     }
 
     static SQInteger lightConeFalloff(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightConeFalloff: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQFloat falloff;
+        if (SQ_FAILED(sq_getfloat(v, 3, &falloff)))
+        {
+            return sq_throwerror(v, _SC("failed to get falloff"));
+        }
+        pLight->setConeFalloff(falloff);
         return 0;
     }
 
     static SQInteger lightCutOffRadius(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightCutOffRadius: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQFloat cutOffRadius;
+        if (SQ_FAILED(sq_getfloat(v, 3, &cutOffRadius)))
+        {
+            return sq_throwerror(v, _SC("failed to get cutOffRadius"));
+        }
+        pLight->setCutOffRadius(cutOffRadius);
         return 0;
     }
 
     static SQInteger lightHalfRadius(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightHalfRadius: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQFloat halfRadius;
+        if (SQ_FAILED(sq_getfloat(v, 3, &halfRadius)))
+        {
+            return sq_throwerror(v, _SC("failed to get halfRadius"));
+        }
+        pLight->setHalfRadius(halfRadius);
         return 0;
     }
 
     static SQInteger lightTurnOn(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightTurnOn: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQInteger on;
+        if (SQ_FAILED(sq_getinteger(v, 3, &on)))
+        {
+            return sq_throwerror(v, _SC("failed to get on"));
+        }
+        pLight->setOn(on != 0);
         return 0;
     }
 
     static SQInteger lightZRange(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: lightZRange: not implemented" << std::endl;
+        auto pLight = ScriptEngine::getLight(v, 2);
+        if (!pLight)
+        {
+            return sq_throwerror(v, _SC("failed to get light"));
+        }
+        SQInteger nearY, farY;
+        if (SQ_FAILED(sq_getinteger(v, 3, &nearY)))
+        {
+            return sq_throwerror(v, _SC("failed to get nearY"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 4, &farY)))
+        {
+            return sq_throwerror(v, _SC("failed to get farY"));
+        }
+        pLight->setZRange(nearY, farY);
         return 0;
     }
 

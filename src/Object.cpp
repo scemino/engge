@@ -25,7 +25,7 @@ struct Object::Impl
     int _state;
     int _verb;
     std::vector<std::shared_ptr<Trigger>> _triggers;
-    HSQOBJECT _pTable;
+    HSQOBJECT _pTable{};
     bool _hotspotVisible;
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};

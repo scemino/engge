@@ -8,6 +8,7 @@
 namespace ng
 {
 class Entity;
+class Light;
 class Room;
 class ScriptEngine;
 class Pack
@@ -43,6 +44,7 @@ public:
   static Object *getObject(HSQUIRRELVM v, SQInteger index);
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);
+  static Light *getLight(HSQUIRRELVM v, SQInteger index);
 
   template <class T>
   static void pushObject(HSQUIRRELVM v, T &object);

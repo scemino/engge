@@ -16,6 +16,7 @@ set(SOURCES
     src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
     src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp src/Graph.cpp src/PathFinder.cpp src/GGPack.cpp
     src/Cutscene.cpp src/Entity.cpp src/RoomScaling.cpp src/SoundTrigger.cpp src/SoundId.cpp src/JsonTokenReader.cpp
+    src/Light.cpp
 )
 
 add_subdirectory(extlibs/squirrel)
