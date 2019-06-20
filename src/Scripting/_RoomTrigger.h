@@ -43,7 +43,7 @@ class _RoomTrigger : public Trigger
     }
     ~_RoomTrigger() override
     {
-        std::wcout << L"Delete room trigger (" << _object.getName() << L")" << std::endl;
+        std::wcout << L"Delete room trigger" << std::endl;
         sq_release(_v, &thread_obj);
         sq_release(_v, &_inside);
         sq_release(_v, &_outside);

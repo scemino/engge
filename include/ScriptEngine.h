@@ -20,9 +20,10 @@ public:
 class ScriptEngine
 {
 public:
-  explicit ScriptEngine(Engine &engine);
+  explicit ScriptEngine();
   ~ScriptEngine();
 
+  void setEngine(Engine &engine);
   Engine &getEngine();
 
   template <typename TConstant>
@@ -58,7 +59,7 @@ private:
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
 private:
-  Engine &_engine;
+  Engine *_pEngine{nullptr};
   HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
 };

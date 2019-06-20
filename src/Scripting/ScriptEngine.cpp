@@ -176,11 +176,9 @@ static Platform _getPlatform()
 #endif
 }
 
-ScriptEngine::ScriptEngine(Engine &engine)
-    : _engine(engine)
+ScriptEngine::ScriptEngine()
 {
     v = sq_open(1024 * 2);
-    _engine.setVm(v);
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
     sq_seterrorhandler(v);
@@ -312,18 +310,6 @@ ScriptEngine::ScriptEngine(Engine &engine)
         {"KEY_PAD8", 0x40000056},
         {"KEY_PAD9", 0x40000061},
     });
-
-    addPack<_ActorPack>();
-    addPack<_GeneralPack>();
-    addPack<_ObjectPack>();
-    addPack<_RoomPack>();
-    addPack<_SoundPack>();
-    addPack<_SystemPack>();
-
-    auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
-    engine.setVerbExecute(std::move(pVerbExecute));
-    auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(v);
-    engine.setScriptExecute(std::move(pScriptExecute));
 }
 
 ScriptEngine::~ScriptEngine()
@@ -331,9 +317,26 @@ ScriptEngine::~ScriptEngine()
     sq_close(v);
 }
 
+void ScriptEngine::setEngine(Engine &engine)
+{
+    _pEngine = &engine;
+    engine.setVm(v);
+    auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
+    engine.setVerbExecute(std::move(pVerbExecute));
+    auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(v);
+    engine.setScriptExecute(std::move(pScriptExecute));
+
+    addPack<_ActorPack>();
+    addPack<_GeneralPack>();
+    addPack<_ObjectPack>();
+    addPack<_RoomPack>();
+    addPack<_SoundPack>();
+    addPack<_SystemPack>();
+}
+
 Engine &ScriptEngine::getEngine()
 {
-    return _engine;
+    return *_pEngine;
 }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
@@ -415,7 +418,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
     else
     {
         auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
-        _engine.getSettings().readEntry(entryName, code);
+        _pEngine->getSettings().readEntry(entryName, code);
 
         // decode bnut
         int cursor = code.size() & 0xff;
