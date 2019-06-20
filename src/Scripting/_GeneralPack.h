@@ -506,20 +506,11 @@ private:
 
     static SQInteger cameraInRoom(HSQUIRRELVM v)
     {
-        HSQOBJECT table;
-        sq_getstackobj(v, 2, &table);
-
-        // get room instance
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("instance"), -1);
-        if (SQ_FAILED(sq_get(v, -2)))
+        Room *pRoom = ScriptEngine::getRoom(v, 2);
+        if (!pRoom)
         {
-            return sq_throwerror(v, _SC("can't find instance entry"));
+            return sq_throwerror(v, _SC("failed to get room"));
         }
-        Room *pRoom = nullptr;
-        sq_getuserpointer(v, -1, (SQUserPointer *)&pRoom);
-        sq_pop(v, 2);
-
         return g_pEngine->setRoom(pRoom);
     }
 

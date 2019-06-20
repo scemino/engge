@@ -118,6 +118,7 @@ public:
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);
   void setUseFlag(UseFlag flag, const InventoryObject *object);
+  void flashSelectableActor(bool on);
 
   sf::Time getTime() const;
 

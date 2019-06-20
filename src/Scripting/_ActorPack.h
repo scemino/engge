@@ -240,10 +240,14 @@ private:
         return sq_throwerror(v, _SC("invalid number of arguments"));
     }
 
-    static SQInteger
-    flashSelectableActor(HSQUIRRELVM v)
+    static SQInteger flashSelectableActor(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: flashSelectableActor: not implemented" << std::endl;
+        SQInteger on;
+        if (SQ_FAILED(sq_getinteger(v, 2, &on)))
+        {
+            return sq_throwerror(v, _SC("failed to get on"));
+        }
+        g_pEngine->flashSelectableActor(on != 0);
         return 0;
     }
 

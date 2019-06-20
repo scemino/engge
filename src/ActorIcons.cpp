@@ -1,4 +1,4 @@
-
+#include <math.h>
 #include "ActorIcons.h"
 #include "Engine.h"
 
@@ -7,11 +7,9 @@ namespace ng
 ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots,
                        std::array<VerbUiColors, 6> &verbUiColors,
                        Actor *&pCurrentActor)
-    : _pEngine(nullptr),
-      _actorsIconSlots(actorsIconSlots),
+    : _actorsIconSlots(actorsIconSlots),
       _verbUiColors(verbUiColors),
-      _pCurrentActor(pCurrentActor),
-      _isMouseButtonPressed(false)
+      _pCurrentActor(pCurrentActor)
 {
 }
 
@@ -30,6 +28,16 @@ void ActorIcons::setMousePosition(const sf::Vector2f &pos)
 
 void ActorIcons::update(const sf::Time &elapsed)
 {
+    if (_on)
+    {
+        _time += elapsed;
+        _alpha = 160 + 96 * sinf(M_PI * 4 * _time.asSeconds());
+
+        if (_time > sf::seconds(40))
+        {
+            flash(false);
+        }
+    }
     auto screen = _pEngine->getWindow().getView().getSize();
     sf::FloatRect iconRect(screen.x - 16, 0, 16, 16 + (_isInside ? getIconsNum() * 15 : 0));
     bool wasInside = _isInside;
@@ -37,6 +45,10 @@ void ActorIcons::update(const sf::Time &elapsed)
     if (wasInside != _isInside)
     {
         _clock.restart();
+        if(_isInside)
+        {
+            flash(false);
+        }
     }
     _position = _clock.getElapsedTime() / sf::milliseconds(250);
     if (_position > 1)
@@ -53,7 +65,7 @@ void ActorIcons::update(const sf::Time &elapsed)
     if (_isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     {
         _isMouseButtonPressed = false;
-        sf::FloatRect iconRect(screen.x - 16, 15, 16, 16);
+        iconRect = sf::FloatRect(screen.x - 16, 15, 16, 16);
         for (auto selectableActor : _actorsIconSlots)
         {
             if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
@@ -92,6 +104,13 @@ int ActorIcons::getIconsNum() const
     return numIcons;
 }
 
+void ActorIcons::flash(bool on)
+{
+    _time = sf::seconds(0);
+    _alpha = 0x60;
+    _on = on;
+}
+
 void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_pCurrentActor)
@@ -101,17 +120,14 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
     auto screen = target.getView().getSize();
     sf::Vector2f offset(screen.x - 8, 8);
 
-    if (_pCurrentActor)
-    {
-        sf::Uint8 alpha = _isInside ? 0xFF : 0x60;
+    sf::Uint8 alpha = _isInside ? 0xFF : _alpha;
 
-        auto i = getCurrentActorIndex();
-        const auto &icon = _actorsIconSlots.at(i).pActor->getIcon();
+    auto currentActorIndex = getCurrentActorIndex();
+    const auto &icon = _actorsIconSlots.at(currentActorIndex).pActor->getIcon();
 
-        offset.y = getOffsetY(numIcons);
-        drawActorIcon(target, icon, i, offset, alpha);
-        numIcons++;
-    }
+    offset.y = getOffsetY(numIcons);
+    drawActorIcon(target, icon, currentActorIndex, offset, alpha);
+    numIcons++;
 
     if (!_isInside)
         return;

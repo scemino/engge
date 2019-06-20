@@ -97,7 +97,7 @@ struct Actor::Impl
     sf::Vector2i _speed;
     float _volume;
     std::shared_ptr<Path> _path;
-    HSQOBJECT _table;
+    HSQOBJECT _table{};
 };
 
 void Actor::setName(const std::string &name)
@@ -329,7 +329,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             _pActor->getCostume().getAnimation()->play(true);
             std::cout << "go to : " << _path[0].x << "," << _path[0].y << std::endl;
         }
-    };
+    }
 }
 
 Actor::Impl::TalkingState::TalkingState()

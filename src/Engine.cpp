@@ -1283,4 +1283,9 @@ HSQOBJECT &Engine::getDefaultObject()
     return _pImpl->_pDefaultObject;
 }
 
+void Engine::flashSelectableActor(bool on)
+{
+    _pImpl->_actorIcons.flash(on);
+}
+
 } // namespace ng

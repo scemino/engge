@@ -32,7 +32,7 @@ private:
   void update(const sf::Time &time);
   void render();
 
-  Engine *_pEngine;
+  Engine *_pEngine{};
   sf::RenderWindow _window;
   std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
 };
