@@ -12,6 +12,7 @@ class Object;
 class RoomScaling;
 class TextureManager;
 class TextObject;
+class ThreadBase;
 class Walkbox;
 
 class Room : public ScriptObject
@@ -61,6 +62,10 @@ public:
   void setRotation(float angle);
 
   Light* createLight(sf::Color color, sf::Vector2i pos);
+  void addThread(std::unique_ptr<ThreadBase> thread);
+  bool isThreadAlive(HSQUIRRELVM thread) const;
+  void stopThread(HSQUIRRELVM thread);
+  void exit();
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;

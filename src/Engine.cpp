@@ -24,6 +24,7 @@
 #include "SpriteSheet.h"
 #include "Text.h"
 #include "TextDatabase.h"
+#include "Thread.h"
 #include "Verb.h"
 #include "VerbExecute.h"
 #include "_NGUtil.h"
@@ -55,7 +56,7 @@ struct Engine::Impl
     std::vector<std::unique_ptr<Room>> _rooms;
     std::vector<std::unique_ptr<Function>> _newFunctions;
     std::vector<std::unique_ptr<Function>> _functions;
-    std::unique_ptr<Cutscene> _pCutscene;
+    Cutscene* _pCutscene{nullptr};
     sf::Color _fadeColor{sf::Color::Transparent};
     sf::RenderWindow *_pWindow{nullptr};
     sf::Vector2f _cameraPos;
@@ -77,7 +78,7 @@ struct Engine::Impl
     std::unique_ptr<VerbExecute> _pVerbExecute;
     std::unique_ptr<ScriptExecute> _pScriptExecute;
     const Verb *_pVerb;
-    std::vector<HSQUIRRELVM> _threads;
+    std::vector<std::unique_ptr<ThreadBase>> _threads;
     DialogManager _dialogManager;
     Preferences _preferences;
     SoundManager _soundManager;
@@ -86,7 +87,7 @@ struct Engine::Impl
     UseFlag _useFlag{UseFlag::None};
     ActorIcons _actorIcons;
     Inventory _inventory;
-    HSQUIRRELVM _vm;
+    HSQUIRRELVM _vm{};
     sf::Time _time;
     bool _isMouseDown{false};
     bool _isMouseRightDown{false};
@@ -125,7 +126,6 @@ Engine::Impl::Impl(EngineSettings &settings)
       _settings(settings),
       _textureManager(settings),
       _pRoom(nullptr),
-      _pCutscene(nullptr),
       _pCurrentActor(nullptr),
       _inputActive(false),
       _showCursor(false),
@@ -241,7 +241,7 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pImpl->
 
 void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute) { _pImpl->_pScriptExecute = std::move(scriptExecute); }
 
-void Engine::addThread(HSQUIRRELVM thread) { _pImpl->_threads.push_back(thread); }
+void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.push_back(std::move(thread)); }
 
 sf::Vector2f Engine::getMousePos() const { return _pImpl->_mousePos; }
 
@@ -297,6 +297,7 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
         return sq_throwerror(_vm, _SC("function exit call failed"));
     }
     sq_pop(_vm, 1);
+    pOldRoom->exit();
     return 0;
 }
 
@@ -618,7 +619,7 @@ void Engine::Impl::updateCutscene(const sf::Time &elapsed)
         (*_pCutscene)(elapsed);
         if (_pCutscene->isElapsed())
         {
-            _pCutscene.release();
+            _pCutscene = nullptr;
         }
     }
 }
@@ -1196,7 +1197,13 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
 
 bool Engine::isThreadAlive(HSQUIRRELVM thread) const
 {
-    return std::find(_pImpl->_threads.begin(), _pImpl->_threads.end(), thread) != _pImpl->_threads.end();
+    auto pRoom = _pImpl->_pRoom;
+    if (pRoom && pRoom->isThreadAlive(thread))
+        return true;
+
+    return std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase> &t) {
+               return t->getThread() == thread;
+           }) != _pImpl->_threads.end();
 }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node)
@@ -1226,7 +1233,15 @@ std::string Engine::executeDollar(const std::string &code)
 
 void Engine::stopThread(HSQUIRRELVM thread)
 {
-    auto it = std::find(_pImpl->_threads.begin(), _pImpl->_threads.end(), thread);
+    auto pRoom = getRoom();
+    if (pRoom && pRoom->isThreadAlive(thread))
+    {
+        pRoom->stopThread(thread);
+        return;
+    }
+    auto it = std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase> &t) {
+        return t->getThread() == thread;
+    });
     if (it == _pImpl->_threads.end())
         return;
     _pImpl->_threads.erase(it);
@@ -1270,7 +1285,8 @@ void Engine::cutsceneOverride()
 
 void Engine::cutscene(std::unique_ptr<Cutscene> function)
 {
-    _pImpl->_pCutscene = std::move(function);
+    _pImpl->_pCutscene = function.get();
+    addThread(std::move(function));
 }
 
 bool Engine::inCutscene() const

@@ -400,7 +400,7 @@ private:
         }
 
         // create thread and store it on the stack
-        auto thread = sq_newthread(v, 1024);
+        sq_newthread(v, 1024);
         HSQOBJECT threadObj;
         sq_resetobject(&threadObj);
         if (SQ_FAILED(sq_getstackobj(v, -1, &threadObj)))
@@ -426,8 +426,6 @@ private:
                 return sq_throwerror(v, _SC("failed to get cutscene override closure"));
             }
         }
-
-        g_pEngine->addThread(thread);
 
         auto scene = std::make_unique<Cutscene>(*g_pEngine, v, threadObj, closureObj, closureCutsceneOverrideObj, env_obj);
         g_pEngine->cutscene(std::move(scene));

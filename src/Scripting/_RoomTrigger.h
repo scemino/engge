@@ -122,7 +122,6 @@ class _RoomTrigger : public Trigger
         }
 
         std::wcout << L"call room " << towstring(name) << L" trigger (" << _object.getName() << L")" << std::endl;
-        _engine.addThread(thread_obj._unVal.pThread);
         if (SQ_FAILED(sq_call(thread_obj._unVal.pThread, params.size() - 1, SQFalse, SQTrue)))
         {
             std::cerr << "failed to call room " << name << " trigger" << std::endl;

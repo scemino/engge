@@ -1,10 +1,13 @@
+#include "Actor.h"
 #include "Cutscene.h"
+#include "Engine.h"
 
 namespace ng
 {
 Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj)
     : _engine(engine), _v(v), _thread(thread), _state(0), _closureObj(closureObj), _closureCutsceneOverrideObj(closureCutsceneOverrideObj), _envObj(envObj)
 {
+    _engineVm = engine.getVm();
     _hasCutsceneOverride = !sq_isnull(_closureCutsceneOverrideObj);
     _inputActive = _engine.getInputActive();
     _engine.setInputActive(false);
@@ -12,11 +15,23 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
     _inputVerbs = _engine.getInputVerbs();
     _engine.setInputVerbs(false);
 
-    auto vm = engine.getVm();
-    sq_addref(vm, &_thread);
-    sq_addref(vm, &_closureObj);
-    sq_addref(vm, &_closureCutsceneOverrideObj);
-    sq_addref(vm, &_envObj);
+    sq_addref(_engineVm, &_thread);
+    sq_addref(_engineVm, &_closureObj);
+    sq_addref(_engineVm, &_closureCutsceneOverrideObj);
+    sq_addref(_engineVm, &_envObj);
+}
+
+Cutscene::~Cutscene()
+{
+    sq_release(_engineVm, &_thread);
+    sq_release(_engineVm, &_closureObj);
+    sq_release(_engineVm, &_closureCutsceneOverrideObj);
+    sq_release(_engineVm, &_envObj);
+}
+
+HSQUIRRELVM Cutscene::getThread()
+{
+    return _thread._unVal.pThread;
 }
 
 bool Cutscene::isElapsed() { return _state == 5; }
@@ -107,7 +122,6 @@ void Cutscene::checkEndCutsceneOverride()
 void Cutscene::endCutscene()
 {
     _state = 5;
-    _engine.stopThread(_thread._unVal.pThread);
     _engine.setInputActive(_inputActive);
     _engine.setInputVerbs(_inputVerbs);
     if (_currentActor)
@@ -116,11 +130,6 @@ void Cutscene::endCutscene()
         _engine.setRoom(_currentActor->getRoom());
     }
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
-
-    auto v = _engine.getVm();
-    sq_release(v, &_thread);
-    sq_release(v, &_closureObj);
-    sq_release(v, &_closureCutsceneOverrideObj);
-    sq_release(v, &_envObj);
+    _engine.stopThread(_thread._unVal.pThread);
 }
 } // namespace ng

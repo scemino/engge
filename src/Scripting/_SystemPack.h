@@ -10,6 +10,7 @@
 #include "Room.h"
 #include "SoundId.h"
 #include "SoundManager.h"
+#include "Thread.h"
 #include "../_NGUtil.h"
 
 namespace ng
@@ -18,13 +19,12 @@ class _StopThread : public Function
 {
 private:
     Engine &_engine;
-    HSQUIRRELVM _v;
-    HSQOBJECT _threadObj;
+    const HSQOBJECT& _threadObj;
     bool _done;
 
 public:
-    _StopThread(Engine &engine, HSQUIRRELVM v, HSQOBJECT threadObj)
-        : _engine(engine), _v(v), _threadObj(threadObj), _done(false)
+    _StopThread(Engine &engine, const HSQOBJECT& threadObj)
+        : _engine(engine), _threadObj(threadObj), _done(false)
     {
     }
 
@@ -38,7 +38,6 @@ public:
         if (_done)
             return;
         _engine.stopThread(_threadObj._unVal.pThread);
-        sq_release(_v, &_threadObj);
         _done = true;
     }
 };
@@ -46,12 +45,13 @@ public:
 class _WakeupThread : public Function
 {
 private:
+    Engine& _engine;
     HSQUIRRELVM _vm;
     bool _done;
 
 public:
-    explicit _WakeupThread(HSQUIRRELVM vm)
-        : _vm(vm), _done(false)
+    explicit _WakeupThread(Engine& engine, HSQUIRRELVM vm)
+        : _engine(engine), _vm(vm), _done(false)
     {
     }
 
@@ -66,13 +66,17 @@ public:
             return;
 
         _done = true;
+        if (!_engine.isThreadAlive(_vm) || sq_getvmstate(_vm) == SQ_VMSTATE_IDLE)
+        {
+            return;
+        }
+
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
             std::cerr << "_WakeupThread: failed to wakeup: " << _vm << std::endl;
             sqstd_printcallstack(_vm);
             return;
         }
-        // std::cout << typeid(this).name() << ": OK to wakeup: " << _vm << std::endl;
     }
 };
 
@@ -99,21 +103,11 @@ public:
         if (_done)
             return;
 
-        if (!_engine.isThreadAlive(_vm))
-        {
-            return;
-        }
         if (!isElapsed())
             return;
 
         _done = true;
-        if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-        {
-            std::cerr << getName() << " failed: thread not suspended: " << _vm << std::endl;
-            return;
-        }
-
-        auto wakeupThread = std::make_unique<_WakeupThread>(_vm);
+        auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
         _engine.addFunction(std::move(wakeupThread));
     }
 };
@@ -270,7 +264,7 @@ public:
         if (!_engine.isThreadAlive(_thread) || sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
         {
             _engine.stopThread(_thread);
-            auto wakeupThread = std::make_unique<_WakeupThread>(_vm);
+            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
             _engine.addFunction(std::move(wakeupThread));
             _done = true;
         }
@@ -360,12 +354,7 @@ public:
         if (isElapsed())
         {
             _done = true;
-            if (!_engine.isThreadAlive(_vm))
-                return;
-            if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-                return;
-
-            auto wakeupThread = std::make_unique<_WakeupThread>(_vm);
+            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
             _engine.addFunction(std::move(wakeupThread));
         }
     }
@@ -646,7 +635,7 @@ private:
         }
         std::cout << "stopthread " << thread_obj._unVal.pThread << std::endl;
 
-        auto stopThread = std::make_unique<_StopThread>(*g_pEngine, v, thread_obj);
+        auto stopThread = std::make_unique<_StopThread>(*g_pEngine, thread_obj);
         g_pEngine->addFunction(std::move(stopThread));
 
         return 0;
@@ -654,11 +643,15 @@ private:
 
     static SQInteger startglobalthread(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: startglobalthread: not implemented yet" << std::endl;
-        return startthread(v);
+        return startthread(v, true);
     }
 
     static SQInteger startthread(HSQUIRRELVM v)
+    {
+        return startthread(v, false);
+    }
+
+    static SQInteger startthread(HSQUIRRELVM v, bool global)
     {
         SQInteger size = sq_gettop(v);
 
@@ -704,24 +697,24 @@ private:
             sq_getstring(v, -1, &name);
         }
 
-        // create a table for a thread
-        sq_addref(v, &thread_obj);
-
         std::cout << "start thread (" << (name ? name : "anonymous")
                   << "): " << thread << std::endl;
-        g_pEngine->addThread(thread);
+        auto vm = g_pEngine->getVm();
+        auto pUniquethread = std::make_unique<Thread>(vm, thread_obj, env_obj, closureObj, args);
+        auto pThread = pUniquethread.get();
+
+        if (global)
+        {
+            g_pEngine->addThread(std::move(pUniquethread));
+        }
+        else
+        {
+            g_pEngine->getRoom()->addThread(std::move(pUniquethread));
+        }
 
         // call the closure in the thread
-        SQInteger top = sq_gettop(thread);
-        sq_pushobject(thread, closureObj);
-        sq_pushobject(thread, env_obj);
-        for (auto arg : args)
+        if (!pThread->call())
         {
-            sq_pushobject(thread, arg);
-        }
-        if (SQ_FAILED(sq_call(thread, 1 + args.size(), SQFalse, SQTrue)))
-        {
-            sq_settop(thread, top);
             return sq_throwerror(v, _SC("call failed"));
         }
 

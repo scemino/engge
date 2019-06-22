@@ -1,17 +1,19 @@
 #pragma once
 #include "squirrel.h"
-#include "Engine.h"
-#include "Actor.h"
 #include "Function.h"
+#include "ThreadBase.h"
 
 namespace ng
 {
+class Actor;
+class Engine;
 class Room;
-class Cutscene : public Function
+class Cutscene : public ThreadBase, public Function
 {
 private:
   Engine &_engine;
   HSQUIRRELVM _v;
+  HSQUIRRELVM _engineVm;
   HSQOBJECT _thread;
   int _state{0};
   HSQOBJECT _closureObj;
@@ -24,6 +26,9 @@ private:
 
 public:
   Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj);
+  ~Cutscene() override;
+
+  HSQUIRRELVM getThread() override;
 
 public:
   bool isElapsed() override;

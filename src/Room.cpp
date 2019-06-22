@@ -14,6 +14,7 @@
 #include "RoomScaling.h"
 #include "SpriteSheet.h"
 #include "TextObject.h"
+#include "Thread.h"
 #include "_NGUtil.h"
 
 namespace ng
@@ -42,6 +43,7 @@ struct Room::Impl
     Room *_pRoom{nullptr};
     std::vector<std::unique_ptr<Light>> _lights;
     float _rotation{0};
+    std::vector<std::unique_ptr<ThreadBase>> _threads;
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
         : _textureManager(textureManager),
@@ -587,7 +589,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     auto screen = window.getView().getSize();
     auto w = screen.x / 2.f;
     auto h = screen.y / 2.f;
-        
+
     for (const auto &layer : pImpl->_layers)
     {
         auto parallax = layer->getParallax();
@@ -679,6 +681,33 @@ Light *Room::createLight(sf::Color color, sf::Vector2i pos)
     Light *pLight = light.get();
     pImpl->_lights.emplace_back(std::move(light));
     return pLight;
+}
+
+void Room::addThread(std::unique_ptr<ThreadBase> thread)
+{
+    pImpl->_threads.emplace_back(std::move(thread));
+}
+
+void Room::exit()
+{
+    pImpl->_threads.clear();
+}
+
+bool Room::isThreadAlive(HSQUIRRELVM thread) const
+{
+    return std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase>& t){
+        return t->getThread() == thread;
+    }) != pImpl->_threads.end();
+}
+
+void Room::stopThread(HSQUIRRELVM thread)
+{
+    auto it = std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase> &t) {
+        return t->getThread() == thread;
+    });
+    if (it == pImpl->_threads.end())
+        return;
+    pImpl->_threads.erase(it);
 }
 
 } // namespace ng

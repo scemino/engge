@@ -20,6 +20,7 @@ class ScriptExecute;
 class SoundDefinition;
 class SoundManager;
 class TextureManager;
+class ThreadBase;
 struct Verb;
 class VerbExecute;
 
@@ -98,7 +99,7 @@ public:
   void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);
   const Verb *getVerb(int id) const;
 
-  void addThread(HSQUIRRELVM thread);
+  void addThread(std::unique_ptr<ThreadBase> thread);
   void stopThread(HSQUIRRELVM thread);
   bool isThreadAlive(HSQUIRRELVM thread) const;
 
