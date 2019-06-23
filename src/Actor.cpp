@@ -10,6 +10,7 @@
 #include "SoundId.h"
 #include "SoundManager.h"
 #include "Text.h"
+#include "_NGUtil.h"
 
 namespace ng
 {
@@ -409,9 +410,9 @@ void Actor::Impl::TalkingState::load(int id)
     std::wsmatch matches;
     if (std::regex_search(_sayText, matches, re))
     {
-        auto anim = matches[1].str();
+        auto anim = matches[2].str();
         std::wcout << "talk anim " << anim << std::endl;
-        _pActor->getCostume().setState((char *)anim.data());
+        _pActor->getCostume().setState(tostring(anim));
         _sayText = matches.suffix();
     }
     _isTalking = true;
