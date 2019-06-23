@@ -354,6 +354,11 @@ public:
         if (isElapsed())
         {
             _done = true;
+            if (!_engine.isThreadAlive(_vm))
+                return;
+            if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
+                return;
+
             auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
             _engine.addFunction(std::move(wakeupThread));
         }
