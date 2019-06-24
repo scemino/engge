@@ -1,17 +1,17 @@
 #pragma once
-#include "squirrel.h"
-#include "Lip.h"
-#include "Engine.h"
 #include "../_NGUtil.h"
+#include "Engine.h"
+#include "Lip.h"
+#include "squirrel.h"
 
 namespace ng
 {
 class _ActorPack : public Pack
 {
-private:
+  private:
     static Engine *g_pEngine;
 
-private:
+  private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
@@ -97,7 +97,8 @@ private:
         sq_getstring(v, 4, &stand);
         sq_getstring(v, 5, &walk);
         sq_getstring(v, 6, &reach);
-        pActor->getCostume().setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "", reach ? reach : "");
+        pActor->getCostume().setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "",
+                                               reach ? reach : "");
         return 0;
     }
 
@@ -127,28 +128,28 @@ private:
         {
             switch (currentFacing)
             {
-            case Facing::FACE_BACK:
-                return Facing::FACE_FRONT;
-            case Facing::FACE_FRONT:
-                return Facing::FACE_BACK;
-            case Facing::FACE_LEFT:
-                return Facing::FACE_RIGHT;
-            case Facing::FACE_RIGHT:
-                return Facing::FACE_LEFT;
+                case Facing::FACE_BACK:
+                    return Facing::FACE_FRONT;
+                case Facing::FACE_FRONT:
+                    return Facing::FACE_BACK;
+                case Facing::FACE_LEFT:
+                    return Facing::FACE_RIGHT;
+                case Facing::FACE_RIGHT:
+                    return Facing::FACE_LEFT;
             }
         }
         else
         {
             switch (currentFacing)
             {
-            case Facing::FACE_BACK:
-                return Facing::FACE_BACK;
-            case Facing::FACE_FRONT:
-                return Facing::FACE_FRONT;
-            case Facing::FACE_LEFT:
-                return Facing::FACE_LEFT;
-            case Facing::FACE_RIGHT:
-                return Facing::FACE_RIGHT;
+                case Facing::FACE_BACK:
+                    return Facing::FACE_BACK;
+                case Facing::FACE_FRONT:
+                    return Facing::FACE_FRONT;
+                case Facing::FACE_LEFT:
+                    return Facing::FACE_LEFT;
+                case Facing::FACE_RIGHT:
+                    return Facing::FACE_RIGHT;
             }
         }
     }
@@ -382,10 +383,7 @@ private:
         return 0;
     }
 
-    static SQInteger actorHideLayer(HSQUIRRELVM v)
-    {
-        return actorShowHideLayer(v, false);
-    }
+    static SQInteger actorHideLayer(HSQUIRRELVM v) { return actorShowHideLayer(v, false); }
 
     static SQInteger actorInTrigger(HSQUIRRELVM v)
     {
@@ -553,18 +551,29 @@ private:
         return 0;
     }
 
-    static SQInteger actorShowLayer(HSQUIRRELVM v)
-    {
-        return actorShowHideLayer(v, true);
-    }
+    static SQInteger actorShowLayer(HSQUIRRELVM v) { return actorShowHideLayer(v, true); }
 
     static SQInteger actorSlotSelectable(HSQUIRRELVM v)
     {
         auto numArgs = sq_gettop(v);
         if (numArgs == 2)
         {
-            std::cerr << "actorSlotSelectable not implemented" << std::endl;
-            return 0;
+            SQInteger selectable;
+            if (SQ_FAILED(sq_getinteger(v, 2, &selectable)))
+            {
+                return sq_throwerror(v, _SC("failed to get selectable"));
+            }
+            if (selectable == 2)
+            {
+                g_pEngine->enableActorSlotSelectable(false);
+                return 0;
+            }
+            if (selectable == 3) 
+            {
+                g_pEngine->enableActorSlotSelectable(true);
+                return 0;
+            }
+            return sq_throwerror(v, _SC("invalid selectable value"));
         }
 
         if (numArgs == 3)
@@ -936,10 +945,7 @@ private:
         return 0;
     }
 
-    static SQInteger mumbleLine(HSQUIRRELVM v)
-    {
-        return _sayLine(v);
-    }
+    static SQInteger mumbleLine(HSQUIRRELVM v) { return _sayLine(v); }
 
     static SQInteger sayLine(HSQUIRRELVM v)
     {

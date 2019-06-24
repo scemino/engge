@@ -1,15 +1,12 @@
-#include <math.h>
 #include "ActorIcons.h"
 #include "Engine.h"
+#include <math.h>
 
 namespace ng
 {
-ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots,
-                       std::array<VerbUiColors, 6> &verbUiColors,
+ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, std::array<VerbUiColors, 6> &verbUiColors,
                        Actor *&pCurrentActor)
-    : _actorsIconSlots(actorsIconSlots),
-      _verbUiColors(verbUiColors),
-      _pCurrentActor(pCurrentActor)
+    : _actorsIconSlots(actorsIconSlots), _verbUiColors(verbUiColors), _pCurrentActor(pCurrentActor)
 {
 }
 
@@ -21,10 +18,7 @@ void ActorIcons::setEngine(Engine *pEngine)
     _gameSheet.load("GameSheet");
 }
 
-void ActorIcons::setMousePosition(const sf::Vector2f &pos)
-{
-    _mousePos = pos;
-}
+void ActorIcons::setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
 
 void ActorIcons::update(const sf::Time &elapsed)
 {
@@ -45,7 +39,7 @@ void ActorIcons::update(const sf::Time &elapsed)
     if (wasInside != _isInside)
     {
         _clock.restart();
-        if(_isInside)
+        if (_isInside)
         {
             flash(false);
         }
@@ -62,7 +56,7 @@ void ActorIcons::update(const sf::Time &elapsed)
         return;
     }
 
-    if (_isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+    if (_isEnabled && _isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     {
         _isMouseButtonPressed = false;
         iconRect = sf::FloatRect(screen.x - 16, 15, 16, 16);
@@ -111,6 +105,8 @@ void ActorIcons::flash(bool on)
     _on = on;
 }
 
+void ActorIcons::enable(bool enabled) { _isEnabled = enabled; }
+
 void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!_pCurrentActor)
@@ -120,7 +116,15 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
     auto screen = target.getView().getSize();
     sf::Vector2f offset(screen.x - 8, 8);
 
-    sf::Uint8 alpha = _isInside ? 0xFF : _alpha;
+    sf::Uint8 alpha;
+    if(_isEnabled)
+    {
+        alpha = _isInside ? 0xFF : _alpha;
+    }
+    else
+    {
+        alpha = 0x60;
+    }
 
     auto currentActorIndex = getCurrentActorIndex();
     const auto &icon = _actorsIconSlots.at(currentActorIndex).pActor->getIcon();
@@ -140,7 +144,7 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
         offset.y = getOffsetY(numIcons);
         const auto &icon = selectableActor.pActor->getIcon();
-        drawActorIcon(target, icon, i, offset, 0xFF);
+        drawActorIcon(target, icon, i, offset, _isEnabled ? 0xFF : 0x60);
         numIcons++;
     }
 
@@ -148,13 +152,15 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
     drawActorIcon(target, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128), offset, 0xFF);
 }
 
-void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot, const sf::Vector2f &offset, sf::Uint8 alpha) const
+void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot,
+                               const sf::Vector2f &offset, sf::Uint8 alpha) const
 {
     const auto &colors = _verbUiColors[actorSlot];
     drawActorIcon(target, icon, colors.inventoryBackground, colors.inventoryFrame, offset, alpha);
 }
 
-void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, sf::Color backColor, sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const
+void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, sf::Color backColor,
+                               sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const
 {
     sf::RenderStates states;
     const auto &texture = _gameSheet.getTexture();
@@ -167,7 +173,8 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
     auto frameSourceSize = _gameSheet.getSourceSize("icon_frame");
 
     sf::Sprite s;
-    sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left, -backSourceSize.y / 2.f + backSpriteSourceSize.top);
+    sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left,
+                     -backSourceSize.y / 2.f + backSpriteSourceSize.top);
     s.scale(0.5f, 0.5f);
     sf::Color c(backColor);
     c.a = alpha;
@@ -189,7 +196,8 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
     s.setTextureRect(rect);
     target.draw(s, states);
 
-    pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left, -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
+    pos = sf::Vector2f(-frameSourceSize.x / 2.f + frameSpriteSourceSize.left,
+                       -frameSourceSize.y / 2.f + frameSpriteSourceSize.top);
     s.setOrigin(-pos);
     c = frameColor;
     c.a = alpha;

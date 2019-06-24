@@ -1,16 +1,8 @@
-#include <memory>
-#include <iomanip>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <regex>
-#include <string>
-#include <math.h>
-#include "ActorIcons.h"
+#include "Engine.h"
 #include "ActorIconSlot.h"
+#include "ActorIcons.h"
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
-#include "Engine.h"
 #include "Font.h"
 #include "Inventory.h"
 #include "InventoryObject.h"
@@ -28,22 +20,29 @@
 #include "Verb.h"
 #include "VerbExecute.h"
 #include "_NGUtil.h"
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <math.h>
+#include <memory>
+#include <regex>
+#include <sstream>
+#include <string>
 
 namespace ng
 {
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs)
 {
-    lhs = static_cast<CursorDirection>(
-        static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
-        static_cast<std::underlying_type<CursorDirection>::type>(rhs));
+    lhs = static_cast<CursorDirection>(static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
+                                       static_cast<std::underlying_type<CursorDirection>::type>(rhs));
     return lhs;
 }
 
 bool operator&(CursorDirection lhs, CursorDirection rhs)
 {
-    return static_cast<CursorDirection>(
-               static_cast<std::underlying_type<CursorDirection>::type>(lhs) &
-               static_cast<std::underlying_type<CursorDirection>::type>(rhs)) > CursorDirection::None;
+    return static_cast<CursorDirection>(static_cast<std::underlying_type<CursorDirection>::type>(lhs) &
+                                        static_cast<std::underlying_type<CursorDirection>::type>(rhs)) >
+           CursorDirection::None;
 }
 
 struct Engine::Impl
@@ -56,7 +55,7 @@ struct Engine::Impl
     std::vector<std::unique_ptr<Room>> _rooms;
     std::vector<std::unique_ptr<Function>> _newFunctions;
     std::vector<std::unique_ptr<Function>> _functions;
-    Cutscene* _pCutscene{nullptr};
+    Cutscene *_pCutscene{nullptr};
     sf::Color _fadeColor{sf::Color::Transparent};
     sf::RenderWindow *_pWindow{nullptr};
     sf::Vector2f _cameraPos;
@@ -122,19 +121,9 @@ struct Engine::Impl
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
-    : _pEngine(nullptr),
-      _settings(settings),
-      _textureManager(settings),
-      _pRoom(nullptr),
-      _pCurrentActor(nullptr),
-      _inputActive(false),
-      _showCursor(false),
-      _inputVerbsActive(false),
-      _pFollowActor(nullptr),
-      _pCurrentObject(nullptr),
-      _pVerb(nullptr),
-      _soundManager(settings),
-      _cursorDirection(CursorDirection::None),
+    : _pEngine(nullptr), _settings(settings), _textureManager(settings), _pRoom(nullptr), _pCurrentActor(nullptr),
+      _inputActive(false), _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
+      _pCurrentObject(nullptr), _pVerb(nullptr), _soundManager(settings), _cursorDirection(CursorDirection::None),
       _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
       _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
@@ -145,8 +134,7 @@ Engine::Impl::Impl(EngineSettings &settings)
     sq_resetobject(&_pDefaultObject);
 }
 
-Engine::Engine(EngineSettings &settings)
-    : _pImpl(std::make_unique<Impl>(settings))
+Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(settings))
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -216,9 +204,15 @@ std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actor
 
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
 
-void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb) { _pImpl->_verbSlots.at(characterSlot).setVerb(verbSlot, verb); }
+void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb)
+{
+    _pImpl->_verbSlots.at(characterSlot).setVerb(verbSlot, verb);
+}
 
-void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors) { _pImpl->_verbUiColors.at(characterSlot) = colors; }
+void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors)
+{
+    _pImpl->_verbUiColors.at(characterSlot) = colors;
+}
 
 VerbUiColors &Engine::getVerbUiColors(int characterSlot) { return _pImpl->_verbUiColors.at(characterSlot); }
 
@@ -237,9 +231,15 @@ void Engine::follow(Actor *pActor)
     }
 }
 
-void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) { _pImpl->_pVerbExecute = std::move(verbExecute); }
+void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
+{
+    _pImpl->_pVerbExecute = std::move(verbExecute);
+}
 
-void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute) { _pImpl->_pScriptExecute = std::move(scriptExecute); }
+void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute)
+{
+    _pImpl->_pScriptExecute = std::move(scriptExecute);
+}
 
 void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.push_back(std::move(thread)); }
 
@@ -316,32 +316,32 @@ void Engine::Impl::updateScreenSize()
             auto height = _pRoom->getScreenHeight();
             switch (height)
             {
-            case 128:
-            {
-                sf::View view(sf::FloatRect(0, 0, 320, 180));
-                _pWindow->setView(view);
-                break;
-            }
-            case 172:
-            {
-                sf::View view(sf::FloatRect(0, 0, 428, 240));
-                _pWindow->setView(view);
-                break;
-            }
-            case 256:
-            {
-                sf::View view(sf::FloatRect(0, 0, 640, 360));
-                _pWindow->setView(view);
-                break;
-            }
-            default:
-            {
-                height = 180.f * height / 128.f;
-                auto ratio = 320.f / 180.f;
-                sf::View view(sf::FloatRect(0, 0, ratio * height, height));
-                _pWindow->setView(view);
-                break;
-            }
+                case 128:
+                {
+                    sf::View view(sf::FloatRect(0, 0, 320, 180));
+                    _pWindow->setView(view);
+                    break;
+                }
+                case 172:
+                {
+                    sf::View view(sf::FloatRect(0, 0, 428, 240));
+                    _pWindow->setView(view);
+                    break;
+                }
+                case 256:
+                {
+                    sf::View view(sf::FloatRect(0, 0, 640, 360));
+                    _pWindow->setView(view);
+                    break;
+                }
+                default:
+                {
+                    height = 180.f * height / 128.f;
+                    auto ratio = 320.f / 180.f;
+                    sf::View view(sf::FloatRect(0, 0, ratio * height, height));
+                    _pWindow->setView(view);
+                    break;
+                }
             }
         }
 
@@ -459,18 +459,18 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     Facing facing;
     switch (dir)
     {
-    case UseDirection::Back:
-        facing = Facing::FACE_FRONT;
-        break;
-    case UseDirection::Front:
-        facing = Facing::FACE_BACK;
-        break;
-    case UseDirection::Left:
-        facing = Facing::FACE_RIGHT;
-        break;
-    case UseDirection::Right:
-        facing = Facing::FACE_LEFT;
-        break;
+        case UseDirection::Back:
+            facing = Facing::FACE_FRONT;
+            break;
+        case UseDirection::Front:
+            facing = Facing::FACE_BACK;
+            break;
+        case UseDirection::Left:
+            facing = Facing::FACE_RIGHT;
+            break;
+        case UseDirection::Right:
+            facing = Facing::FACE_LEFT;
+            break;
     }
     auto pRoom = pDoor->getRoom();
     auto pOldRoom = _pImpl->_pRoom;
@@ -499,15 +499,9 @@ void Engine::setInputActive(bool active)
     _pImpl->_showCursor = active;
 }
 
-void Engine::inputSilentOff()
-{
-    _pImpl->_inputActive = false;
-}
+void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
 
-void Engine::setInputVerbs(bool on)
-{
-    _pImpl->_inputVerbsActive = on;
-}
+void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
 sf::IntRect Engine::Impl::getVerbRect(int id, std::string lang, bool isRetro) const
 {
@@ -516,36 +510,36 @@ sf::IntRect Engine::Impl::getVerbRect(int id, std::string lang, bool isRetro) co
     std::string name;
     switch (id)
     {
-    case 1:
-        name = "walkto";
-        break;
-    case 2:
-        name = "lookat";
-        break;
-    case 3:
-        name = "talkto";
-        break;
-    case 4:
-        name = "pickup";
-        break;
-    case 5:
-        name = "open";
-        break;
-    case 6:
-        name = "close";
-        break;
-    case 7:
-        name = "push";
-        break;
-    case 8:
-        name = "pull";
-        break;
-    case 9:
-        name = "give";
-        break;
-    case 10:
-        name = "use";
-        break;
+        case 1:
+            name = "walkto";
+            break;
+        case 2:
+            name = "lookat";
+            break;
+        case 3:
+            name = "talkto";
+            break;
+        case 4:
+            name = "pickup";
+            break;
+        case 5:
+            name = "open";
+            break;
+        case 6:
+            name = "close";
+            break;
+        case 7:
+            name = "push";
+            break;
+        case 8:
+            name = "pull";
+            break;
+        case 9:
+            name = "give";
+            break;
+        case 10:
+            name = "use";
+            break;
     }
     s.append(name).append(isRetro ? "_retro" : "").append("_").append(lang);
     return _verbSheet.getRect(s);
@@ -567,10 +561,7 @@ const Verb *Engine::getVerb(int id) const
     return nullptr;
 }
 
-void Engine::setCameraAt(const sf::Vector2f &at)
-{
-    _pImpl->_cameraPos = at;
-}
+void Engine::setCameraAt(const sf::Vector2f &at) { _pImpl->_cameraPos = at; }
 
 void Engine::moveCamera(const sf::Vector2f &offset)
 {
@@ -578,10 +569,7 @@ void Engine::moveCamera(const sf::Vector2f &offset)
     _pImpl->clampCamera();
 }
 
-void Engine::setCameraBounds(const sf::IntRect &cameraBounds)
-{
-    _pImpl->_cameraBounds = cameraBounds;
-}
+void Engine::setCameraBounds(const sf::IntRect &cameraBounds) { _pImpl->_cameraBounds = cameraBounds; }
 
 void Engine::Impl::clampCamera()
 {
@@ -831,7 +819,8 @@ void Engine::update(const sf::Time &elapsed)
         _pImpl->_useFlag = UseFlag::None;
         _pImpl->_pUseObject = nullptr;
     }
-    else if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject && _pImpl->_pActor)
+    else if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject &&
+             _pImpl->_pActor)
     {
         _pImpl->_pVerbExecute->execute(_pImpl->_pActor, getVerb(3));
     }
@@ -1000,7 +989,8 @@ sf::IntRect Engine::Impl::getCursorRect() const
         return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor_front")
                                                              : _gameSheet.getRect("cursor_front");
     }
-    return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor") : _gameSheet.getRect("cursor");
+    return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor")
+                                                         : _gameSheet.getRect("cursor");
 }
 
 void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
@@ -1103,17 +1093,17 @@ void Engine::Impl::appendUseFlag(std::wstring &sentence) const
 {
     switch (_useFlag)
     {
-    case UseFlag::UseWith:
-        sentence.append(L" ").append(_pEngine->getText(10000));
-        break;
-    case UseFlag::UseIn:
-        sentence.append(L" ").append(_pEngine->getText(10002));
-        break;
-    case UseFlag::UseOn:
-        sentence.append(L" ").append(_pEngine->getText(10001));
-        break;
-    case UseFlag::None:
-        break;
+        case UseFlag::UseWith:
+            sentence.append(L" ").append(_pEngine->getText(10000));
+            break;
+        case UseFlag::UseIn:
+            sentence.append(L" ").append(_pEngine->getText(10002));
+            break;
+        case UseFlag::UseOn:
+            sentence.append(L" ").append(_pEngine->getText(10001));
+            break;
+        case UseFlag::None:
+            break;
     }
 }
 
@@ -1201,9 +1191,9 @@ bool Engine::isThreadAlive(HSQUIRRELVM thread) const
     if (pRoom && pRoom->isThreadAlive(thread))
         return true;
 
-    return std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase> &t) {
-               return t->getThread() == thread;
-           }) != _pImpl->_threads.end();
+    return std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(),
+                        [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; }) !=
+           _pImpl->_threads.end();
 }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node)
@@ -1211,25 +1201,16 @@ void Engine::startDialog(const std::string &dialog, const std::string &node)
     _pImpl->_dialogManager.start(dialog, node);
 }
 
-void Engine::execute(const std::string &code)
-{
-    _pImpl->_pScriptExecute->execute(code);
-}
+void Engine::execute(const std::string &code) { _pImpl->_pScriptExecute->execute(code); }
 
 SoundDefinition *Engine::getSoundDefinition(const std::string &name)
 {
     return _pImpl->_pScriptExecute->getSoundDefinition(name);
 }
 
-bool Engine::executeCondition(const std::string &code)
-{
-    return _pImpl->_pScriptExecute->executeCondition(code);
-}
+bool Engine::executeCondition(const std::string &code) { return _pImpl->_pScriptExecute->executeCondition(code); }
 
-std::string Engine::executeDollar(const std::string &code)
-{
-    return _pImpl->_pScriptExecute->executeDollar(code);
-}
+std::string Engine::executeDollar(const std::string &code) { return _pImpl->_pScriptExecute->executeDollar(code); }
 
 void Engine::stopThread(HSQUIRRELVM thread)
 {
@@ -1239,9 +1220,8 @@ void Engine::stopThread(HSQUIRRELVM thread)
         pRoom->stopThread(thread);
         return;
     }
-    auto it = std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase> &t) {
-        return t->getThread() == thread;
-    });
+    auto it = std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(),
+                           [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; });
     if (it == _pImpl->_threads.end())
         return;
     _pImpl->_threads.erase(it);
@@ -1256,9 +1236,7 @@ void Engine::addSelectableActor(int index, Actor *pActor)
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 {
     auto it = std::find_if(_pImpl->_actorsIconSlots.begin(), _pImpl->_actorsIconSlots.end(),
-                           [&pActor](auto &selectableActor) {
-                               return selectableActor.pActor == pActor;
-                           });
+                           [&pActor](auto &selectableActor) { return selectableActor.pActor == pActor; });
     if (it != _pImpl->_actorsIconSlots.end())
     {
         it->selectable = selectable;
@@ -1269,6 +1247,8 @@ void Engine::actorSlotSelectable(int index, bool selectable)
 {
     _pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
 }
+
+void Engine::enableActorSlotSelectable(bool enable) { _pImpl->_actorIcons.enable(enable); }
 
 void Engine::setUseFlag(UseFlag flag, const InventoryObject *object)
 {
@@ -1289,19 +1269,10 @@ void Engine::cutscene(std::unique_ptr<Cutscene> function)
     addThread(std::move(function));
 }
 
-bool Engine::inCutscene() const
-{
-    return _pImpl->_pCutscene && !_pImpl->_pCutscene->isElapsed();
-}
+bool Engine::inCutscene() const { return _pImpl->_pCutscene && !_pImpl->_pCutscene->isElapsed(); }
 
-HSQOBJECT &Engine::getDefaultObject()
-{
-    return _pImpl->_pDefaultObject;
-}
+HSQOBJECT &Engine::getDefaultObject() { return _pImpl->_pDefaultObject; }
 
-void Engine::flashSelectableActor(bool on)
-{
-    _pImpl->_actorIcons.flash(on);
-}
+void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
 } // namespace ng
