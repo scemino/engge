@@ -254,6 +254,7 @@ ScriptEngine::ScriptEngine()
         {"EX_OPTIONS_MUSIC", 0x0C},
         {"GRASS_BACKANDFORTH", 0x00},
         {"EFFECT_NONE", 0x00},
+        {"DOOR", 0x40},
         {"DOOR_LEFT", 0x140},
         {"DOOR_RIGHT", 0x240},
         {"DOOR_BACK", 0x440},
