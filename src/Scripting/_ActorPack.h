@@ -1012,14 +1012,12 @@ class _ActorPack : public Pack
         sq_pushstring(v, name, -1);
         if (SQ_FAILED(sq_get(v, -2)))
         {
-            sq_pop(v, 2);
             return SQ_ERROR;
         }
 
         field = 0;
         if (SQ_FAILED(sq_getinteger(v, -1, &field)))
         {
-            sq_pop(v, 2);
             return SQ_ERROR;
         }
         sq_pop(v, 1);
@@ -1079,19 +1077,6 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get verbHighlightTint"));
         }
 
-        // TODO:
-        SQInteger dialogNormal = verbNormal;
-        // if (SQ_FAILED(readFieldInt(v, _SC("dialogNormal"), dialogNormal)))
-        // {
-        //     dialogNormal = verbNormal;
-        // }
-
-        SQInteger dialogHighlight = verbHighlight;
-        // if (SQ_FAILED(readFieldInt(v, _SC("dialogHighlight"), dialogHighlight)))
-        // {
-        //     dialogHighlight = verbHighlight;
-        // }
-
         SQInteger inventoryFrame = 0;
         if (SQ_FAILED(readFieldInt(v, _SC("inventoryFrame"), inventoryFrame)))
         {
@@ -1104,7 +1089,17 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get inventoryBackground"));
         }
 
-        sq_pop(v, 2);
+        SQInteger retroNormal = verbNormal;
+        readFieldInt(v, _SC("retroNormal"), retroNormal);
+
+        SQInteger retroHighlight = verbNormalTint;
+        readFieldInt(v, _SC("retroHighlight"), retroHighlight);
+
+        SQInteger dialogNormal = verbNormal;
+        readFieldInt(v, _SC("dialogNormal"), dialogNormal);
+
+        SQInteger dialogHighlight = verbHighlight;
+        readFieldInt(v, _SC("dialogHighlight"), dialogHighlight);
 
         VerbUiColors colors;
         colors.sentence = _fromRgb(sentence);
@@ -1116,6 +1111,8 @@ class _ActorPack : public Pack
         colors.dialogHighlight = _fromRgb(dialogHighlight);
         colors.inventoryFrame = _fromRgb(inventoryFrame);
         colors.inventoryBackground = _fromRgb(inventoryBackground);
+        colors.retroNormal = _fromRgb(retroNormal);
+        colors.retroHighlight = _fromRgb(retroHighlight);
         g_pEngine->setVerbUiColors(actorSlot - 1, colors);
         return 0;
     }

@@ -70,5 +70,7 @@ struct VerbUiColors
     sf::Color dialogHighlight;
     sf::Color inventoryFrame;
     sf::Color inventoryBackground;
+    sf::Color retroNormal;
+    sf::Color retroHighlight;
 };
 } // namespace ng
