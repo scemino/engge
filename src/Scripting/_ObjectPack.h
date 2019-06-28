@@ -1142,7 +1142,7 @@ private:
             }
             obj.setAlignment((TextAlignment)alignment);
         }
-        ScriptEngine::pushObject(v, obj);
+        _createObject(v, obj);
         return 1;
     }
 
@@ -1191,7 +1191,7 @@ private:
                 anims.emplace_back(animName);
             }
             auto &obj = g_pEngine->getRoom()->createObject(anims);
-            ScriptEngine::pushObject(v, obj);
+            _createObject(v, obj);
             return 1;
         }
 
@@ -1213,7 +1213,7 @@ private:
             }
             sq_pop(v, 1); //pops the null iterator
             auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
-            ScriptEngine::pushObject(v, object);
+            _createObject(v, object);
             return 1;
         }
         
@@ -1228,17 +1228,24 @@ private:
             {
                 std::vector<std::string> anims{s};
                 auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
-                ScriptEngine::pushObject(v, object);
+                _createObject(v, object);
                 return 1;
             }
             
             s = s.substr(0, pos);
             auto &object = g_pEngine->getRoom()->createObject(s);
-            ScriptEngine::pushObject(v, object);
+            _createObject(v, object);
             return 1;
         }
 
         return sq_throwerror(v, _SC("createObject called with invalid number of arguments"));
+    }
+
+    static void _createObject(HSQUIRRELVM v, Object& object)
+    {
+        ScriptEngine::pushObject(v, object);
+        auto& table = object.getTable();
+        sq_getstackobj(v, -1, &table);
     }
 };
 

@@ -430,6 +430,7 @@ void Engine::Impl::setCurrentRoom(Room *pRoom)
     updateScreenSize();
 }
 
+Room *pLastRoom = nullptr;
 SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
@@ -441,6 +442,16 @@ SQInteger Engine::setRoom(Room *pRoom)
     auto result = _pImpl->exitRoom(nullptr);
     if (SQ_FAILED(result))
         return result;
+
+    if(pRoom->getFullscreen()==1)
+    {
+        pLastRoom = _pImpl->_pRoom;
+        setInputVerbs(false);
+    }
+    else if(_pImpl->_pRoom->getFullscreen()==1)
+    {
+        setInputVerbs(true);
+    }
 
     _pImpl->setCurrentRoom(pRoom);
 
@@ -485,10 +496,14 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
 
     auto actor = getCurrentActor();
     actor->getCostume().setFacing(facing);
-    actor->setRoom(pRoom);
-    auto pos = pDoor->getPosition();
-    actor->setPosition(pos + sf::Vector2f(pDoor->getUsePosition().x, -pDoor->getUsePosition().y));
-    setCameraAt(pos + pDoor->getUsePosition());
+
+    if(pRoom->getFullscreen() != 1)
+    {
+        actor->setRoom(pRoom);
+        auto pos = pDoor->getPosition();
+        actor->setPosition(pos + sf::Vector2f(pDoor->getUsePosition().x, -pDoor->getUsePosition().y));
+        setCameraAt(pos + pDoor->getUsePosition());
+    }
 
     return _pImpl->enterRoom(pRoom, pDoor);
 }

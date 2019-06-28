@@ -35,7 +35,6 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     txt.setFont(_font);
     txt.setFillColor(getColor());
     txt.setString(_text);
-    txt.setPosition(getPosition());
     auto bounds = txt.getGlobalBounds();
     sf::Vector2f offset;
     if (_alignment & TextAlignment::Center)
