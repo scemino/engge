@@ -427,7 +427,26 @@ class _ActorPack : public Pack
         sq_getstackobj(v, 3, &obj);
         if (sq_istable(obj))
         {
-            std::cerr << "TODO: actorLockFacing with table" << std::endl;
+            SQInteger back = static_cast<SQInteger>(Facing::FACE_BACK);
+            SQInteger front = static_cast<SQInteger>(Facing::FACE_FRONT);
+            SQInteger left = static_cast<SQInteger>(Facing::FACE_LEFT);
+            SQInteger right = static_cast<SQInteger>(Facing::FACE_RIGHT);
+            SQInteger reset = 0;
+            readFieldInt(v, _SC("back"), back);
+            readFieldInt(v, _SC("front"), front);
+            readFieldInt(v, _SC("left"), left);
+            readFieldInt(v, _SC("right"), right);
+            readFieldInt(v, _SC("reset"), reset);
+            if(reset)
+            {
+                actor->getCostume().resetLockFacing();
+                return 0;
+            }
+            actor->getCostume().lockFacing(
+                static_cast<Facing>(left), 
+                static_cast<Facing>(right), 
+                static_cast<Facing>(front), 
+                static_cast<Facing>(back));
             return 0;
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &facing)))
@@ -439,7 +458,8 @@ class _ActorPack : public Pack
             actor->getCostume().unlockFacing();
             return 0;
         }
-        actor->getCostume().lockFacing((Facing)facing);
+        auto allFacing = static_cast<Facing>(facing);
+        actor->getCostume().lockFacing(allFacing, allFacing, allFacing, allFacing);
         return 0;
     }
 

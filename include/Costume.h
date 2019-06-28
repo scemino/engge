@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_map>
 #include <sstream>
 #include <set>
 #include "SFML/Graphics.hpp"
@@ -43,8 +44,9 @@ public:
   ~Costume() override;
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
-  void lockFacing(Facing facing);
+  void lockFacing(Facing left, Facing right, Facing front, Facing back);
   void unlockFacing();
+  void resetLockFacing();
   void setFacing(Facing facing);
   Facing getFacing() const { return _facing; }
   void setState(const std::string &name);
@@ -72,7 +74,6 @@ private:
   std::unique_ptr<CostumeAnimation> _pCurrentAnimation;
   sf::Texture _texture;
   Facing _facing;
-  std::optional<Facing> _lockFacing;
   std::string _animation;
   std::set<std::string> _hiddenLayers;
   std::string _headAnimName;
@@ -82,5 +83,7 @@ private:
   int _headIndex;
   Actor *_pActor;
   BlinkState _blinkState;
+  std::unordered_map<Facing,Facing> _facings;
+  bool _lockFacing{false};
 };
 } // namespace ng

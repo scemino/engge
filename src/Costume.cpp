@@ -72,6 +72,7 @@ Costume::Costume(TextureManager &textureManager)
     _hiddenLayers.emplace("blink");
     _hiddenLayers.emplace("eyes_left");
     _hiddenLayers.emplace("eyes_right");
+    resetLockFacing();
 }
 
 Costume::~Costume() = default;
@@ -99,27 +100,35 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
 
 void Costume::setFacing(Facing facing)
 {
-    if (_lockFacing.has_value())
-        return;
+    if(_lockFacing)
+    {
+        facing = _facings[facing];
+    }
     if (_facing == facing)
         return;
     _facing = facing;
     updateAnimation();
 }
 
-void Costume::lockFacing(Facing facing)
+void Costume::lockFacing(Facing left, Facing right, Facing front, Facing back)
 {
-    if (_facing != facing)
-    {
-        _facing = facing;
-        updateAnimation();
-    }
-    _lockFacing = facing;
+    _facings[Facing::FACE_LEFT] = left;
+    _facings[Facing::FACE_RIGHT] = right;
+    _facings[Facing::FACE_FRONT] = front;
+    _facings[Facing::FACE_BACK] = back;
+}
+
+void Costume::resetLockFacing()
+{
+    _facings[Facing::FACE_LEFT] = Facing::FACE_LEFT;
+    _facings[Facing::FACE_RIGHT] = Facing::FACE_RIGHT;
+    _facings[Facing::FACE_FRONT] = Facing::FACE_FRONT;
+    _facings[Facing::FACE_BACK] = Facing::FACE_BACK;
 }
 
 void Costume::unlockFacing()
 {
-    _lockFacing = std::nullopt;
+    _lockFacing = false;
 }
 
 void Costume::setState(const std::string &name)
