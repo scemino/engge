@@ -1,9 +1,10 @@
 #pragma once
-#include "NonCopyable.h"
-#include "SFML/Graphics.hpp"
-#include "Verb.h"
-#include "squirrel.h"
 #include <memory>
+#include "SFML/Graphics.hpp"
+#include "squirrel.h"
+#include "ActorIcons.h"
+#include "NonCopyable.h"
+#include "Verb.h"
 
 namespace ng {
 class Actor;
@@ -109,7 +110,7 @@ class Engine : public NonCopyable {
     void addSelectableActor(int index, Actor *pActor);
     void actorSlotSelectable(Actor *pActor, bool selectable);
     void actorSlotSelectable(int index, bool selectable);
-    void enableActorSlotSelectable(bool enable);
+    void setActorSlotSelectable(ActorSlotSelectableMode mode);
     void setUseFlag(UseFlag flag, const InventoryObject *object);
     void flashSelectableActor(bool on);
 

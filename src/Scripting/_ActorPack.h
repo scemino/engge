@@ -583,14 +583,10 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get selectable"));
             }
-            if (selectable == 2)
+            if(selectable >= 0 && selectable <= 3)
             {
-                g_pEngine->enableActorSlotSelectable(false);
-                return 0;
-            }
-            if (selectable == 3) 
-            {
-                g_pEngine->enableActorSlotSelectable(true);
+                auto mode = static_cast<ActorSlotSelectableMode>(selectable);
+                g_pEngine->setActorSlotSelectable(mode);
                 return 0;
             }
             return sq_throwerror(v, _SC("invalid selectable value"));

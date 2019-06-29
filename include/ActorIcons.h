@@ -6,6 +6,13 @@
 
 namespace ng
 {
+enum class ActorSlotSelectableMode {
+  Off = 0,
+  On = 1,
+  TemporaryUnselectable = 2,
+  TemporarySelectable = 3
+};
+
 class Engine;
 class ActorIcons : public sf::Drawable
 {
@@ -18,7 +25,7 @@ class ActorIcons : public sf::Drawable
     void update(const sf::Time &elapsed);
     bool isMouseOver() const { return _isInside; }
     void flash(bool on);
-    void enable(bool enabled);
+    void setMode(ActorSlotSelectableMode mode);
 
   private:
     void drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot, const sf::Vector2f &offset,
@@ -44,6 +51,6 @@ class ActorIcons : public sf::Drawable
     bool _isMouseButtonPressed{false};
     sf::Time _time;
     sf::Uint8 _alpha{0};
-    bool _isEnabled{true};
+    ActorSlotSelectableMode _mode{ActorSlotSelectableMode::On};
 };
 } // namespace ng

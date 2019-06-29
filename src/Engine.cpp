@@ -1263,7 +1263,10 @@ void Engine::actorSlotSelectable(int index, bool selectable)
     _pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
 }
 
-void Engine::enableActorSlotSelectable(bool enable) { _pImpl->_actorIcons.enable(enable); }
+void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode)
+{
+    _pImpl->_actorIcons.setMode(mode); 
+}
 
 void Engine::setUseFlag(UseFlag flag, const InventoryObject *object)
 {

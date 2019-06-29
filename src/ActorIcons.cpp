@@ -56,7 +56,8 @@ void ActorIcons::update(const sf::Time &elapsed)
         return;
     }
 
-    if (_isEnabled && _isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+    auto isEnabled = _mode == ActorSlotSelectableMode::On || _mode == ActorSlotSelectableMode::TemporarySelectable;
+    if (isEnabled && _isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     {
         _isMouseButtonPressed = false;
         iconRect = sf::FloatRect(screen.x - 16, 15, 16, 16);
@@ -105,11 +106,11 @@ void ActorIcons::flash(bool on)
     _on = on;
 }
 
-void ActorIcons::enable(bool enabled) { _isEnabled = enabled; }
+void ActorIcons::setMode(ActorSlotSelectableMode mode) { _mode = mode; }
 
 void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if (!_pCurrentActor)
+    if (!_pCurrentActor || _mode == ActorSlotSelectableMode::Off)
         return;
 
     int numIcons = 0;
@@ -117,7 +118,8 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
     sf::Vector2f offset(screen.x - 8, 8);
 
     sf::Uint8 alpha;
-    if(_isEnabled)
+    auto isEnabled = _mode == ActorSlotSelectableMode::On || _mode == ActorSlotSelectableMode::TemporarySelectable;
+    if(isEnabled)
     {
         alpha = _isInside ? 0xFF : _alpha;
     }
@@ -144,7 +146,7 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
         offset.y = getOffsetY(numIcons);
         const auto &icon = selectableActor.pActor->getIcon();
-        drawActorIcon(target, icon, i, offset, _isEnabled ? 0xFF : 0x60);
+        drawActorIcon(target, icon, i, offset, isEnabled ? 0xFF : 0x60);
         numIcons++;
     }
 
