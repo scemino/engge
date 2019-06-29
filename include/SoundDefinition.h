@@ -35,7 +35,6 @@ public:
   void setSettings(EngineSettings &settings);
   const std::string &getPath() const { return _path; };
 
-private:
   void load();
 
 private:

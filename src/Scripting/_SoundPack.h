@@ -177,7 +177,12 @@ private:
 
     static SQInteger loadSound(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: loadSound: not implemented" << std::endl;
+        auto pSound = _getSoundDefinition(v, 2);
+        if (!pSound)
+        {
+            return sq_throwerror(v, _SC("failed to get sound"));
+        }
+        pSound->load();
         return 0;
     }
 
