@@ -1,31 +1,41 @@
 language: cpp
 dist: xenial
 
-addons:
-  apt_packages:
-    - cmake
-    - libxrandr-dev
-    - libudev-dev
-    - libopenal-dev
-    - libflac-dev
-    - libvorbis-dev
-    - libgl1-mesa-dev
-    - unzip
-
-before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo apt-get update -q
-  - sudo apt-get install g++-8 -y
-
-before_script:
-  - wget "https://github.com/SFML/SFML/releases/download/2.5.1/SFML-2.5.1-sources.zip" && unzip SFML-2.5.1-sources.zip && cd SFML-2.5.1 && mkdir build && cd build &&
-    cmake .. $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install
-  - cmake --build . --target install
-  - cd ../..
-
-script:
-  - export CC=gcc-8
-  - export CXX=g++-8
-  - mkdir build && cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS -DSFML_DIR=$TRAVIS_BUILD_DIR/SFML-2.5.1/install/lib/cmake/SFML -DCMAKE_INSTALL_PREFIX=../install
-  - cmake --build . --config Release
+matrix:
+  include:
+    - name: Linux
+      addons:
+        apt_packages:
+          - cmake
+          - libxrandr-dev
+          - libudev-dev
+          - libopenal-dev
+          - libflac-dev
+          - libvorbis-dev
+          - libgl1-mesa-dev
+          - unzip
+      before_install:
+        - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        - sudo apt-get update -q
+        - sudo apt-get install g++-8 -y
+      before_script:
+        - wget "https://github.com/SFML/SFML/releases/download/2.5.1/SFML-2.5.1-sources.zip" && unzip SFML-2.5.1-sources.zip && cd SFML-2.5.1 && mkdir build && cd build &&
+          cmake .. $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install
+        - cmake --build . --target install
+        - cd ../..
+      script:
+        - export CC=gcc-8
+        - export CXX=g++-8
+        - mkdir build && cd build
+        - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS -DSFML_DIR=$TRAVIS_BUILD_DIR/SFML-2.5.1/install/lib/cmake/SFML -DCMAKE_INSTALL_PREFIX=../install
+        - cmake --build . --config Release
+    - name: macOS
+      compiler: clang
+      os: osx
+      osx_image: xcode10.2
+      before_script:
+        - brew install sfml
+      script:
+        - mkdir build && cd build
+        - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS
+        - cmake --build . --config Release
