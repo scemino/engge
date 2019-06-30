@@ -598,7 +598,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
         sf::Transform t;
         t.rotate(pImpl->_rotation, w, h);
-        t.translate(posX, posY);
+        t.translate(posX + (w - w * parallax.x), posY + (w - w * parallax.y));
         states.transform = t;
         layer->draw(window, states);
     }
@@ -612,12 +612,12 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     for (const auto &layer : pImpl->_layers)
     {
         auto parallax = layer->getParallax();
-        auto posX = (screen.x / 2 - cameraPos.x) * parallax.x - screen.x / 2;
-        auto posY = (screen.y / 2 - cameraPos.y) * parallax.y - screen.y / 2;
+        auto posX = (w - cameraPos.x) * parallax.x - w;
+        auto posY = (h - cameraPos.y) * parallax.y - h;
 
         sf::Transform t2;
         t2.rotate(pImpl->_rotation, w, h);
-        t2.translate(posX, posY);
+        t2.translate(posX + (w - w * parallax.x), posY + (w - w * parallax.y));
         states.transform = t2;
         layer->drawForeground(window, states);
     }
