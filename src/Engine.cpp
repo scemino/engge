@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "ActorIconSlot.h"
 #include "ActorIcons.h"
+#include "Camera.h"
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
 #include "Font.h"
@@ -58,7 +59,6 @@ struct Engine::Impl
     Cutscene *_pCutscene{nullptr};
     sf::Color _fadeColor{sf::Color::Transparent};
     sf::RenderWindow *_pWindow{nullptr};
-    sf::Vector2f _cameraPos;
     TextDatabase _textDb;
     Font _fntFont;
     Actor *_pCurrentActor;
@@ -91,8 +91,8 @@ struct Engine::Impl
     bool _isMouseDown{false};
     bool _isMouseRightDown{false};
     int _frameCounter{0};
-    std::optional<sf::IntRect> _cameraBounds;
-    HSQOBJECT _pDefaultObject;
+    HSQOBJECT _pDefaultObject{};
+    Camera _camera;
 
     explicit Impl(EngineSettings &settings);
 
@@ -146,6 +146,7 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
     _pImpl->_dialogManager.setEngine(this);
     _pImpl->_actorIcons.setEngine(this);
     _pImpl->_inventory.setEngine(this);
+    _pImpl->_camera.setEngine(this);
     _pImpl->_fntFont.setTextureManager(&_pImpl->_textureManager);
     _pImpl->_fntFont.setSettings(&settings);
     _pImpl->_fntFont.load("FontModernSheet");
@@ -165,8 +166,6 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
 Engine::~Engine() = default;
 
 int Engine::getFrameCounter() const { return _pImpl->_frameCounter; }
-
-sf::Vector2f Engine::getCameraAt() const { return _pImpl->_cameraPos; }
 
 void Engine::setWindow(sf::RenderWindow &window) { _pImpl->_pWindow = &window; }
 
@@ -226,7 +225,7 @@ void Engine::follow(Actor *pActor)
     if (pActor)
     {
         auto pos = pActor->getPosition();
-        setCameraAt(pos + pActor->getUsePosition());
+        _pImpl->_camera.at(pos + pActor->getUsePosition());
         setRoom(pActor->getRoom());
     }
 }
@@ -250,6 +249,8 @@ Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
 SoundManager &Engine::getSoundManager() { return _pImpl->_soundManager; }
 
 DialogManager &Engine::getDialogManager() { return _pImpl->_dialogManager; }
+
+Camera &Engine::getCamera() { return _pImpl->_camera; }
 
 sf::Time Engine::getTime() const { return _pImpl->_time; }
 
@@ -425,7 +426,7 @@ void Engine::Impl::setCurrentRoom(Room *pRoom)
         s << "currentRoom = " << pRoom->getId();
         _pScriptExecute->execute(s.str());
     }
-    _cameraBounds = std::nullopt;
+    _camera.resetBounds();
     _pRoom = pRoom;
     updateScreenSize();
 }
@@ -443,12 +444,12 @@ SQInteger Engine::setRoom(Room *pRoom)
     if (SQ_FAILED(result))
         return result;
 
-    if(pRoom->getFullscreen()==1)
+    if (pRoom->getFullscreen() == 1)
     {
         pLastRoom = _pImpl->_pRoom;
         setInputVerbs(false);
     }
-    else if(_pImpl->_pRoom->getFullscreen()==1)
+    else if (_pImpl->_pRoom->getFullscreen() == 1)
     {
         setInputVerbs(true);
     }
@@ -497,12 +498,12 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     auto actor = getCurrentActor();
     actor->getCostume().setFacing(facing);
 
-    if(pRoom->getFullscreen() != 1)
+    if (pRoom->getFullscreen() != 1)
     {
         actor->setRoom(pRoom);
         auto pos = pDoor->getPosition();
         actor->setPosition(pos + sf::Vector2f(pDoor->getUsePosition().x, -pDoor->getUsePosition().y));
-        setCameraAt(pos + pDoor->getUsePosition());
+        _pImpl->_camera.at(pos + pDoor->getUsePosition());
     }
 
     return _pImpl->enterRoom(pRoom, pDoor);
@@ -574,45 +575,6 @@ const Verb *Engine::getVerb(int id) const
         }
     }
     return nullptr;
-}
-
-void Engine::setCameraAt(const sf::Vector2f &at) { _pImpl->_cameraPos = at; }
-
-void Engine::moveCamera(const sf::Vector2f &offset)
-{
-    _pImpl->_cameraPos += offset;
-    _pImpl->clampCamera();
-}
-
-void Engine::setCameraBounds(const sf::IntRect &cameraBounds) { _pImpl->_cameraBounds = cameraBounds; }
-
-void Engine::Impl::clampCamera()
-{
-    if (_cameraPos.x < 0)
-        _cameraPos.x = 0;
-    if (_cameraPos.y < 0)
-        _cameraPos.y = 0;
-
-    if (_cameraBounds)
-    {
-        if (_cameraPos.x < _cameraBounds->left)
-            _cameraPos.x = _cameraBounds->left;
-        if (_cameraPos.x > _cameraBounds->left + _cameraBounds->width)
-            _cameraPos.x = _cameraBounds->left + _cameraBounds->width;
-        if (_cameraPos.y < _cameraBounds->top)
-            _cameraPos.y = _cameraBounds->top;
-        if (_cameraPos.y > _cameraBounds->top + _cameraBounds->height)
-            _cameraPos.y = _cameraBounds->top + _cameraBounds->height;
-    }
-
-    if (!_pRoom)
-        return;
-    auto screen = _pWindow->getView().getSize();
-    const auto &size = _pRoom->getRoomSize();
-    if (_cameraPos.x > size.x - screen.x)
-        _cameraPos.x = size.x - screen.x;
-    if (_cameraPos.y > size.y - screen.y)
-        _cameraPos.y = size.y - screen.y;
 }
 
 void Engine::Impl::updateCutscene(const sf::Time &elapsed)
@@ -779,8 +741,7 @@ void Engine::update(const sf::Time &elapsed)
     if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible())
     {
         auto pos = _pImpl->_pFollowActor->getPosition();
-        _pImpl->_cameraPos = pos - sf::Vector2f(screen.x / 2, screen.y / 2);
-        _pImpl->clampCamera();
+        _pImpl->_camera.at(pos - sf::Vector2f(screen.x / 2, screen.y / 2));
     }
 
     _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
@@ -789,7 +750,7 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_cursorDirection = CursorDirection::None;
     _pImpl->updateMouseCursor();
 
-    auto mousePosInRoom = _pImpl->_mousePos + _pImpl->_cameraPos;
+    auto mousePosInRoom = _pImpl->_mousePos + _pImpl->_camera.getAt();
 
     _pImpl->updateCurrentObject(mousePosInRoom);
     _pImpl->updateCurrentActor(mousePosInRoom);
@@ -940,7 +901,7 @@ void Engine::draw(sf::RenderWindow &window) const
     if (!_pImpl->_pRoom)
         return;
 
-    _pImpl->_pRoom->draw(window, _pImpl->_cameraPos);
+    _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
 
     window.draw(_pImpl->_dialogManager);
 
@@ -1019,6 +980,8 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     if (!pVerb)
         return;
 
+    auto cameraPos = _camera.getAt();
+
     NGText text;
     text.setFont(_fntFont);
     text.setColor(sf::Color::White);
@@ -1036,7 +999,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         text.setText(s);
 
         sf::RenderStates states;
-        states.transform.translate(-_cameraPos);
+        states.transform.translate(-cameraPos);
     }
     else if (_pCurrentObject)
     {
@@ -1067,7 +1030,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         text.setText(s);
 
         sf::RenderStates states;
-        states.transform.translate(-_cameraPos);
+        states.transform.translate(-cameraPos);
         _pCurrentObject->drawHotspot(window, states);
     }
     else
@@ -1263,10 +1226,7 @@ void Engine::actorSlotSelectable(int index, bool selectable)
     _pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
 }
 
-void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode)
-{
-    _pImpl->_actorIcons.setMode(mode); 
-}
+void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { _pImpl->_actorIcons.setMode(mode); }
 
 void Engine::setUseFlag(UseFlag flag, const InventoryObject *object)
 {

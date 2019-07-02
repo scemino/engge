@@ -1,13 +1,15 @@
 #pragma once
-#include <memory>
-#include "SFML/Graphics.hpp"
-#include "squirrel.h"
 #include "ActorIcons.h"
 #include "NonCopyable.h"
+#include "SFML/Graphics.hpp"
 #include "Verb.h"
+#include "squirrel.h"
+#include <memory>
 
-namespace ng {
+namespace ng
+{
 class Actor;
+class Camera;
 class Cutscene;
 class DialogManager;
 class EngineSettings;
@@ -24,7 +26,8 @@ class ThreadBase;
 struct Verb;
 class VerbExecute;
 
-enum class CursorDirection {
+enum class CursorDirection
+{
     None = 0,
     Left = 1,
     Right = 1u << 1u,
@@ -33,17 +36,19 @@ enum class CursorDirection {
     Hotspot = 1u << 4u
 };
 
-enum class UseFlag { None = 0, UseWith = 1, UseOn = 2, UseIn = 3 };
+enum class UseFlag
+{
+    None = 0,
+    UseWith = 1,
+    UseOn = 2,
+    UseIn = 3
+};
 
-class Engine : public NonCopyable {
+class Engine : public NonCopyable
+{
   public:
     explicit Engine(EngineSettings &settings);
     ~Engine();
-
-    void setCameraAt(const sf::Vector2f &at);
-    void moveCamera(const sf::Vector2f &offset);
-    void setCameraBounds(const sf::IntRect &cameraBounds);
-    sf::Vector2f getCameraAt() const;
 
     void setWindow(sf::RenderWindow &window);
     const sf::RenderWindow &getWindow() const;
@@ -106,6 +111,7 @@ class Engine : public NonCopyable {
     Preferences &getPreferences();
     SoundManager &getSoundManager();
     DialogManager &getDialogManager();
+    Camera &getCamera();
 
     void addSelectableActor(int index, Actor *pActor);
     void actorSlotSelectable(Actor *pActor, bool selectable);

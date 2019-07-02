@@ -1,5 +1,6 @@
 #pragma once
 #include "SFML/Graphics.hpp"
+#include "Camera.h"
 #include "Game.h"
 #include "Engine.h"
 #include "Room.h"
@@ -42,7 +43,7 @@ class PanInputEventHandler : public InputEventHandler
             auto delta = pos2 - _pos;
             if (abs(delta.x) < 50)
             {
-                _engine.moveCamera(-(sf::Vector2f)delta);
+                _engine.getCamera().move(-(sf::Vector2f)delta);
             }
             _pos = pos2;
         }

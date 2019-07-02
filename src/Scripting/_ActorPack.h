@@ -902,7 +902,7 @@ class _ActorPack : public Pack
 
         auto screen = g_pEngine->getWindow().getView().getSize();
         auto pos = (sf::Vector2i)actor->getPosition();
-        auto camera = g_pEngine->getCameraAt();
+        auto camera = g_pEngine->getCamera().getAt();
         sf::IntRect rect(camera.x - screen.x / 2.f, camera.y - screen.y / 2.f, screen.x, screen.y);
         auto isOnScreen = rect.contains(pos);
         sq_pushbool(v, isOnScreen ? SQTrue : SQFalse);

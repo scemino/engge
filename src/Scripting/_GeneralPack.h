@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "squirrel.h"
+#include "Camera.h"
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
 
@@ -280,7 +281,7 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            g_pEngine->setCameraAt(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f));
+            g_pEngine->getCamera().at(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f));
         }
         else
         {
@@ -293,7 +294,7 @@ private:
             }
 
             auto pos = spot->getPosition();
-            g_pEngine->setCameraAt(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
+            g_pEngine->getCamera().at(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
         }
         return 0;
     }
@@ -317,7 +318,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get yMax"));
         }
-        g_pEngine->setCameraBounds(sf::IntRect(xMin, yMin, xMax - xMin, yMax - yMin));
+        g_pEngine->getCamera().setBounds(sf::IntRect(xMin, yMin, xMax - xMin, yMax - yMin));
         return 0;
     }
 
@@ -366,8 +367,10 @@ private:
                 interpolation = 0;
             }
         }
-        auto get = std::bind(&Engine::getCameraAt, g_pEngine);
-        auto set = std::bind(&Engine::setCameraAt, g_pEngine, std::placeholders::_1);
+
+        auto& camera = g_pEngine->getCamera();
+        auto get = std::bind(&Camera::getAt, &camera);
+        auto set = std::bind(&Camera::at, &camera, std::placeholders::_1);
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
         auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f), sf::seconds(t), method);
@@ -377,7 +380,7 @@ private:
 
     static SQInteger cameraPos(HSQUIRRELVM v)
     {
-        auto pos = g_pEngine->getCameraAt();
+        auto pos = g_pEngine->getCamera().getAt();
         sq_newtable(v);
         sq_pushstring(v, _SC("x"), -1);
         sq_pushinteger(v, static_cast<int>(pos.x));
