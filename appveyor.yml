@@ -1,0 +1,31 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+
+platform: x64
+
+environment:
+  MSVC_DEFAULT_OPTIONS: ON
+  SFML_DIR: C:\Libraries\SFML-2.5.1
+  
+configuration: Release
+
+init:
+  - cmd: cmake --version
+  - cmd: msbuild /version
+  - cmd: echo %SFML_DIR%
+  
+before_build:
+  - ps: echo $env:SFML_DIR
+  - ps: cd C:\Libraries
+  - ps: Start-FileDownload "https://www.sfml-dev.org/files/SFML-2.5.1-windows-vc15-64-bit.zip"
+  - ps: 7z.exe x SFML-2.5.1-windows-vc15-64-bit.zip
+  - ps: cd C:\projects\engge
+  - ps: mkdir build
+  - ps: mkdir install
+  - ps: cd build
+  - ps: cmake .. -G "Visual Studio 15 2017 Win64" -DSFML_DIR=$env:SFML_DIR -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install
+  - ps: dir
+    
+build:
+  parallel: true
+  project: build\engge.sln
