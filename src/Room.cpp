@@ -598,7 +598,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
         sf::Transform t;
         t.rotate(pImpl->_rotation, w, h);
-        t.translate(posX + (w - w * parallax.x), posY + (w - w * parallax.y));
+        t.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
         states.transform = t;
         layer->draw(window, states);
     }
@@ -617,7 +617,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
         sf::Transform t2;
         t2.rotate(pImpl->_rotation, w, h);
-        t2.translate(posX + (w - w * parallax.x), posY + (w - w * parallax.y));
+        t2.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
         states.transform = t2;
         layer->drawForeground(window, states);
     }
