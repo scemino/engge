@@ -727,6 +727,7 @@ void Engine::update(const sf::Time &elapsed)
 
     _pImpl->_time += elapsed;
 
+    _pImpl->_camera.update(elapsed);
     _pImpl->_soundManager.update(elapsed);
     _pImpl->updateCutscene(elapsed);
     _pImpl->updateFunctions(elapsed);
@@ -740,8 +741,13 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_pRoom->update(elapsed);
     if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible())
     {
-        auto pos = _pImpl->_pFollowActor->getPosition();
-        _pImpl->_camera.at(pos - sf::Vector2f(screen.x / 2, screen.y / 2));
+        auto pos = _pImpl->_pFollowActor->getPosition() - sf::Vector2f(screen.x / 2, screen.y / 2);
+        auto margin = screen.x / 4;
+        auto cameraPos = _pImpl->_camera.getAt();
+        if (_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin) || (cameraPos.x < pos.x - margin))
+        {
+            _pImpl->_camera.panTo(pos, sf::seconds(4), InterpolationMethod::EaseOut);
+        }
     }
 
     _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));

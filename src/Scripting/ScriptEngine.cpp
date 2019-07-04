@@ -485,6 +485,8 @@ std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMe
     case InterpolationMethod::SlowEaseOut:
     case InterpolationMethod::EaseOut:
         return Interpolations::easeOut;
+    case InterpolationMethod::EaseOutCubic:
+        return Interpolations::easeOutCubic;
     default:
         return Interpolations::linear;
     }

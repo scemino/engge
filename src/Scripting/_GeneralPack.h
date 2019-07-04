@@ -368,13 +368,7 @@ private:
             }
         }
 
-        auto& camera = g_pEngine->getCamera();
-        auto get = std::bind(&Camera::getAt, &camera);
-        auto set = std::bind(&Camera::at, &camera, std::placeholders::_1);
-        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-
-        auto cameraPanTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f), sf::seconds(t), method);
-        g_pEngine->addFunction(std::move(cameraPanTo));
+        g_pEngine->getCamera().panTo(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
