@@ -2,6 +2,7 @@
 #include <time.h>
 #include "squirrel.h"
 #include "Actor.h"
+#include "Camera.h"
 #include "Animation.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
@@ -314,6 +315,25 @@ public:
     }
 };
 
+class _BreakWhileCameraFunction : public _BreakFunction
+{
+public:
+    _BreakWhileCameraFunction(Engine &engine, HSQUIRRELVM vm)
+        : _BreakFunction(engine, vm)
+    {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileCameraFunction";
+    }
+
+    bool isElapsed() override
+    {
+        return !_engine.getCamera().isMoving();
+    }
+};
+
 class _BreakWhileInputOffFunction : public _BreakFunction
 {
 public:
@@ -509,8 +529,9 @@ private:
 
     static SQInteger breakwhilecamera(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: breakwhilecamera: not implemented" << std::endl;
-        return 0;
+        auto result = sq_suspendvm(v);
+        g_pEngine->addFunction(std::make_unique<_BreakWhileCameraFunction>(*g_pEngine, v));
+        return result;
     }
 
     static SQInteger breakwhilecutscene(HSQUIRRELVM v)
