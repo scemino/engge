@@ -257,7 +257,7 @@ struct Room::Impl
                 {
                     auto value = jScaling.string_value;
                     auto index = value.find('@');
-                    auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                    auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
                     auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
                     Scaling s{};
                     s.scale = scale;
@@ -281,7 +281,7 @@ struct Room::Impl
                         {
                             auto value = jSubScaling.string_value;
                             auto index = value.find('@');
-                            auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                            auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
                             auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
                             Scaling s{};
                             s.scale = scale;
@@ -294,7 +294,7 @@ struct Room::Impl
                             {
                                 auto value = jSubScalingScaling.string_value;
                                 auto index = value.find('@');
-                                auto scale = std::strtof(value.substr(0, index - 1).c_str(), nullptr);
+                                auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
                                 auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
                                 Scaling s{};
                                 s.scale = scale;
