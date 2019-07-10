@@ -61,7 +61,7 @@ struct Engine::Impl
     sf::RenderWindow *_pWindow{nullptr};
     TextDatabase _textDb;
     Font _fntFont;
-    Actor *_pCurrentActor;
+    Actor *_pCurrentActor{nullptr};
     Actor *_pActor{nullptr};
     std::array<VerbSlot, 6> _verbSlots;
     std::array<VerbUiColors, 6> _verbUiColors;
@@ -111,7 +111,7 @@ struct Engine::Impl
     void updateActorIcons(const sf::Time &elapsed);
     void updateMouseCursor();
     void updateCurrentObject(const sf::Vector2f &mousPos);
-    void updateCurrentActor(const sf::Vector2f &mousPos);
+    void updateHoverActor(const sf::Vector2f &mousPos);
     SQInteger enterRoom(Room *pRoom, Object *pObject);
     SQInteger exitRoom(Object *pObject);
     void updateScreenSize();
@@ -121,9 +121,9 @@ struct Engine::Impl
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
-    : _pEngine(nullptr), _settings(settings), _textureManager(settings), _pRoom(nullptr), _pCurrentActor(nullptr),
-      _inputActive(false), _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
-      _pCurrentObject(nullptr), _pVerb(nullptr), _soundManager(settings), _cursorDirection(CursorDirection::None),
+    : _pEngine(nullptr), _settings(settings), _textureManager(settings), _pRoom(nullptr), _inputActive(false),
+      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr), _pCurrentObject(nullptr), _pVerb(nullptr),
+      _soundManager(settings), _cursorDirection(CursorDirection::None),
       _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
       _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
@@ -221,13 +221,22 @@ bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
 void Engine::follow(Actor *pActor)
 {
+    auto panCamera = (_pImpl->_pFollowActor && pActor && _pImpl->_pFollowActor != pActor &&
+                      _pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
     _pImpl->_pFollowActor = pActor;
-    if (pActor)
+    if (!pActor)
+        return;
+
+    auto pos = pActor->getPosition();
+    auto screen = _pImpl->_pWindow->getView().getSize();
+    setRoom(pActor->getRoom());
+    if (panCamera)
     {
-        auto pos = pActor->getPosition();
-        _pImpl->_camera.at(pos + pActor->getUsePosition());
-        setRoom(pActor->getRoom());
+        _pImpl->_camera.panTo(pos + pActor->getUsePosition() - sf::Vector2f(screen.x / 2, screen.y / 2), sf::seconds(4),
+                              InterpolationMethod::EaseOut);
+        return;
     }
+    _pImpl->_camera.at(pos + pActor->getUsePosition() - sf::Vector2f(screen.x / 2, screen.y / 2));
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
@@ -662,7 +671,7 @@ int32_t Engine::Impl::getFlags(const HSQOBJECT &obj)
     return flags;
 }
 
-void Engine::Impl::updateCurrentActor(const sf::Vector2f &mousPos)
+void Engine::Impl::updateHoverActor(const sf::Vector2f &mousPos)
 {
     _pActor = nullptr;
     int zorder = -10000;
@@ -759,7 +768,7 @@ void Engine::update(const sf::Time &elapsed)
     auto mousePosInRoom = _pImpl->_mousePos + _pImpl->_camera.getAt();
 
     _pImpl->updateCurrentObject(mousePosInRoom);
-    _pImpl->updateCurrentActor(mousePosInRoom);
+    _pImpl->updateHoverActor(mousePosInRoom);
 
     _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
     _pImpl->_inventory.update(elapsed);
@@ -1058,7 +1067,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     }
 
     // do display cursor position:
-    // auto mousePosInRoom = _mousePos + _cameraPos;
+    // auto mousePosInRoom = _mousePos + _camera.getAt();
     // std::wstringstream s;
     // std::wstring txt = text.getText();
     // s << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";

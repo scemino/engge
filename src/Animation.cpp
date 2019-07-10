@@ -1,8 +1,8 @@
 #include <utility>
 
-#include <iostream>
 #include "Animation.h"
 #include "Object.h"
+#include <iostream>
 
 namespace ng
 {
@@ -20,8 +20,9 @@ void Animation::reset()
     _index = _rects.size() - 1;
     auto &sourceRect = _sourceRects.at(_index);
     auto size = _sizes.at(_index);
+    sf::Vector2i origin(size.x / 2 - sourceRect.left, (size.y + 1) / 2 - sourceRect.top);
     _sprite.setTextureRect(_rects.at(_index));
-    _sprite.setOrigin(sf::Vector2f(size.x/ 2.f - sourceRect.left, size.y / 2.f - sourceRect.top));
+    _sprite.setOrigin((sf::Vector2f)origin);
 }
 
 void Animation::play(bool loop)
@@ -47,9 +48,9 @@ void Animation::update(const sf::Time &elapsed)
 
         auto sourceRect = _sourceRects.at(_index);
         auto size = _sizes.at(_index);
+        sf::Vector2i origin(size.x / 2 - sourceRect.left, (size.y + 1) / 2 - sourceRect.top);
         _sprite.setTextureRect(_rects.at(_index));
-        _sprite.setOrigin(sf::Vector2f(size.x / 2.f - sourceRect.left, size.y / 2.f - sourceRect.top));
-
+        _sprite.setOrigin((sf::Vector2f)origin);
         updateTrigger();
     }
 }

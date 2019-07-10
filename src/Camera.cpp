@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Camera.h"
 #include "Engine.h"
 #include "Room.h"
@@ -27,14 +28,8 @@ void Camera::Impl::clampCamera(sf::Vector2f &at)
 
     if (_bounds)
     {
-        if (at.x < _bounds->left)
-            at.x = _bounds->left;
-        if (at.x > _bounds->left + _bounds->width)
-            at.x = _bounds->left + _bounds->width;
-        if (at.y < _bounds->top)
-            at.y = _bounds->top;
-        if (at.y > _bounds->top + _bounds->height)
-            at.y = _bounds->top + _bounds->height;
+        at.x = std::clamp<int>(at.x, _bounds->left, _bounds->left + _bounds->width);
+        at.y = std::clamp<int>(at.y, _bounds->top, _bounds->top + _bounds->height);
     }
 
     auto pRoom = _pEngine->getRoom();
@@ -43,10 +38,8 @@ void Camera::Impl::clampCamera(sf::Vector2f &at)
         return;
     auto screen = window.getView().getSize();
     const auto &size = pRoom->getRoomSize();
-    if (at.x > size.x - screen.x)
-        at.x = size.x - screen.x;
-    if (at.y > size.y - screen.y)
-        at.y = size.y - screen.y;
+    at.x = std::clamp<int>(at.x, 0, size.x - screen.x);
+    at.y = std::clamp<int>(at.y, 0, size.y - screen.y);
 }
 
 Camera::Camera() : _pImpl(std::make_unique<Impl>()) {}
@@ -60,6 +53,8 @@ void Camera::at(const sf::Vector2f &at)
     _pImpl->_at = at;
     _pImpl->clampCamera(_pImpl->_at);
     _pImpl->_target = _pImpl->_at;
+    _pImpl->_time = sf::seconds(0);
+    _pImpl->_isMoving = false;
 }
 
 sf::Vector2f Camera::getAt() const { return _pImpl->_at; }
@@ -69,6 +64,7 @@ void Camera::move(const sf::Vector2f &offset)
     _pImpl->_at += offset;
     _pImpl->clampCamera(_pImpl->_at);
     _pImpl->_target = _pImpl->_at;
+    _pImpl->_isMoving = false;
 }
 
 void Camera::setBounds(const sf::IntRect &cameraBounds)

@@ -69,8 +69,7 @@ void ActorIcons::update(const sf::Time &elapsed)
 
             if (iconRect.contains(_mousePos))
             {
-                _pCurrentActor = selectableActor.pActor;
-                _pEngine->setCurrentActor(_pCurrentActor);
+                _pEngine->setCurrentActor(selectableActor.pActor);
                 return;
             }
             iconRect.top += 15;

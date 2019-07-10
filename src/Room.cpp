@@ -113,13 +113,11 @@ struct Room::Impl
                 for (const auto &jName : jLayer["name"].array_value)
                 {
                     auto layerName = jName.string_value;
-                    // layer.getNames().push_back(layerName);
-
-                    const auto &rect = _spriteSheet.getRect(layerName);
+                    auto rect = _spriteSheet.getRect(layerName); 
+                    auto sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
                     sf::Sprite s;
                     s.setTexture(_textureManager.get(_sheet));
                     s.setTextureRect(rect);
-                    const auto &sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
                     s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
                     s.move(sf::Vector2f(offsetX, 0));
                     offsetX += rect.width;
@@ -129,12 +127,11 @@ struct Room::Impl
             else
             {
                 auto layerName = jLayer["name"].string_value;
-
-                const auto &rect = _spriteSheet.getRect(layerName);
+                auto rect = _spriteSheet.getRect(layerName);
+                auto sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
                 sf::Sprite s;
                 s.setTexture(_textureManager.get(_sheet));
                 s.setTextureRect(rect);
-                const auto &sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
                 s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
                 layer->getSprites().push_back(s);
             }
