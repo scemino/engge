@@ -59,7 +59,7 @@ private:
   std::map<int, Trigger*> _triggers;
   std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
   sf::Vector2f _usePos;
-  bool _isLit;
+  bool _isLit{true};
   bool _isVisible{true};
   bool _isTouchable{true};
   sf::Vector2i _renderOffset;
