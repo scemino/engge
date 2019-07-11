@@ -85,6 +85,7 @@ class Engine : public NonCopyable
     void setVerbUiColors(int characterSlot, VerbUiColors colors);
     VerbUiColors &getVerbUiColors(int characterSlot);
 
+    void setInputHUD(bool on);
     void setInputActive(bool active);
     void inputSilentOff();
     void setInputVerbs(bool on);

@@ -65,6 +65,7 @@ struct Engine::Impl
     Actor *_pActor{nullptr};
     std::array<VerbSlot, 6> _verbSlots;
     std::array<VerbUiColors, 6> _verbUiColors;
+    bool _inputHUD{false};
     bool _inputActive;
     bool _showCursor;
     bool _inputVerbsActive;
@@ -518,6 +519,11 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     return _pImpl->enterRoom(pRoom, pDoor);
 }
 
+void Engine::setInputHUD(bool on)
+{
+    _pImpl->_inputHUD = on;
+}
+
 void Engine::setInputActive(bool active)
 {
     _pImpl->_inputActive = active;
@@ -920,7 +926,7 @@ void Engine::draw(sf::RenderWindow &window) const
 
     window.draw(_pImpl->_dialogManager);
 
-    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive)
+    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive && !_pImpl->_inputHUD)
     {
         _pImpl->drawVerbs(window);
         window.draw(_pImpl->_inventory);

@@ -446,6 +446,7 @@ private:
         engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
         engine.registerGlobalFunction(getUserPref, "getUserPref");
         engine.registerGlobalFunction(include, "include");
+        engine.registerGlobalFunction(inputHUD, "inputHUD");
         engine.registerGlobalFunction(inputOff, "inputOff");
         engine.registerGlobalFunction(inputOn, "inputOn");
         engine.registerGlobalFunction(inputSilentOff, "inputSilentOff");
@@ -918,6 +919,17 @@ private:
         }
         std::cout << "include " << filename << std::endl;
         _pScriptEngine->executeNutScript(filename);
+        return 0;
+    }
+
+    static SQInteger inputHUD(HSQUIRRELVM v)
+    {
+        SQInteger on;
+        if (SQ_FAILED(sq_getinteger(v, 2, &on)))
+        {
+            return sq_throwerror(v, _SC("failed to get on"));
+        }
+        g_pEngine->setInputHUD(on);
         return 0;
     }
 
