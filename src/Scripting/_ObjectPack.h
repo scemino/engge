@@ -682,18 +682,18 @@ private:
 
     static SQInteger objectRotateTo(HSQUIRRELVM v)
     {
-        SQInteger dir;
-        SQInteger t;
+        SQFloat value;
+        SQFloat t;
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        if (SQ_FAILED(sq_getinteger(v, 3, &dir)))
+        if (SQ_FAILED(sq_getfloat(v, 3, &value)))
         {
-            return sq_throwerror(v, _SC("failed to get direction"));
+            return sq_throwerror(v, _SC("failed to get value"));
         }
-        if (SQ_FAILED(sq_getinteger(v, 4, &t)))
+        if (SQ_FAILED(sq_getfloat(v, 4, &t)))
         {
             return sq_throwerror(v, _SC("failed to get time"));
         }
@@ -705,7 +705,7 @@ private:
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&Object::getRotation, obj);
         auto set = std::bind(&Object::setRotation, obj, std::placeholders::_1);
-        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, dir, sf::seconds(t), method, (InterpolationMethod)interpolation == InterpolationMethod::Looping);
+        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, value, sf::seconds(t), method, (InterpolationMethod)interpolation == InterpolationMethod::Looping);
         g_pEngine->addFunction(std::move(rotateTo));
         return 0;
     }

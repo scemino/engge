@@ -100,7 +100,14 @@ HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
 std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_anims; }
 
 void Object::setRotation(float angle) { _transform.setRotation(angle); }
-float Object::getRotation() const { return _transform.getRotation(); }
+float Object::getRotation() const 
+{
+    // SFML give rotation in degree between [0, 360]
+    float angle = _transform.getRotation();
+    // convert it to [-180, 180]
+    if(angle > 180) angle -= 360;
+    return angle;
+}
 
 Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
