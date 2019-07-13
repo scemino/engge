@@ -25,6 +25,9 @@ public:
     void update(const sf::Time &elapsed);
 
 private:
+    void updateVolume();
+
+private:
     SoundManager &_soundManager;
     SoundDefinition *_pSoundDefinition{nullptr};
     sf::Sound _sound;

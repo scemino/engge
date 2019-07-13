@@ -35,6 +35,7 @@ void SoundId::play(int loopTimes)
     _pSoundDefinition->load();
     _sound.setBuffer(_pSoundDefinition->_buffer);
     _sound.setLoop(loopTimes == -1);
+    updateVolume();
     _sound.play();
 }
 
@@ -57,7 +58,7 @@ void SoundId::stop()
     _sound.stop();
 }
 
-void SoundId::update(const sf::Time &elapsed)
+void SoundId::updateVolume()
 {
     float entityVolume = 1.f;
     if (_pEntity)
@@ -101,7 +102,11 @@ void SoundId::update(const sf::Time &elapsed)
     auto masterVolume = _soundManager.getMasterVolume();
     float volume = masterVolume * _volume * categoryVolume * entityVolume;
     _sound.setVolume(volume * 100.f);
+}
 
+void SoundId::update(const sf::Time &elapsed)
+{
+    updateVolume();
     if (!isPlaying())
     {
         if (_loopTimes > 1)
