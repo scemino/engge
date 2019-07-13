@@ -59,7 +59,7 @@ private:
     float                      m_letterSpacingFactor; ///< Spacing factor between letters
     float                      m_lineSpacingFactor;   ///< Spacing factor between lines
     sf::Uint32                 m_style;               ///< Text style (see Style enum)
-    sf::Color                  m_fillColor;           ///< Text fill color
+    mutable sf::Color          m_fillColor;           ///< Text fill color
     sf::Color                  m_outlineColor;        ///< Text outline color
     float                      m_outlineThickness;    ///< Thickness of the text's outline
     mutable sf::VertexArray    m_vertices;            ///< Vertex array containing the fill geometry

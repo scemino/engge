@@ -44,6 +44,7 @@ sf::Vector2f _parsePos(const std::string &text);
 sf::IntRect _parseRect(const std::string &text);
 void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices, int roomHeight);
 
+sf::Color _toColor(std::string color);
 sf::Color _toColor(SQInteger color);
 sf::Color _fromRgb(SQInteger color);
 } // namespace ng

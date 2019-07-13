@@ -3,6 +3,7 @@
 #include "SFML/Graphics/Text.hpp"
 #include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
+#include "_NGUtil.h"
 
 namespace
 {
@@ -411,7 +412,7 @@ void Text::ensureGeometryUpdate() const
         prevChar = curChar;
 
         // Handle special characters
-        if ((curChar == L' ') || (curChar == L'\n') || (curChar == L'\t'))
+        if ((curChar == L' ') || (curChar == L'\n') || (curChar == L'\t') || (curChar == L'#'))
         {
             // Update the current bounds (min coordinates)
             minX = std::min(minX, x);
@@ -428,6 +429,15 @@ void Text::ensureGeometryUpdate() const
             case L'\n':
                 y += lineSpacing;
                 x = 0;
+                break;
+            case L'#':
+                auto strColor = m_string.substring(i + 1, 6);
+                auto color = _toColor(strColor.toAnsiString());
+                if (color != m_fillColor)
+                {
+                    m_fillColor = color;
+                }
+                i += 7;
                 break;
             }
 

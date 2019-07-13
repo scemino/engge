@@ -350,6 +350,12 @@ void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices,
     } while (text.length() - 1 != endPos);
 }
 
+sf::Color _toColor(std::string color)
+{
+    auto c = std::strtol(color.c_str(),nullptr,16);
+    return _fromRgb(c);
+}
+
 sf::Color _toColor(SQInteger color)
 {
     sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF);
