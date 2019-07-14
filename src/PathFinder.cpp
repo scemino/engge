@@ -2,7 +2,7 @@
 #include <math.h>
 #include <sstream>
 #include "PathFinder.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

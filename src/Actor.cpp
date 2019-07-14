@@ -10,7 +10,7 @@
 #include "SoundId.h"
 #include "SoundManager.h"
 #include "Text.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

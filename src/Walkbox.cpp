@@ -3,7 +3,7 @@
 #include <math.h>
 #include <algorithm>
 #include "Walkbox.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

@@ -1,7 +1,7 @@
 #include <string>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "_NGUtil.h"
+#include "_Util.h"
 #include "SpriteSheet.h"
 
 namespace ng

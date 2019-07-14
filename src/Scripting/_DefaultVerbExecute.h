@@ -3,7 +3,7 @@
 #include "squirrel.h"
 #include "Engine.h"
 #include "ScriptExecute.h"
-#include "../_NGUtil.h"
+#include "../_Util.h"
 
 namespace ng
 {

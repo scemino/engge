@@ -2,7 +2,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include "Costume.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

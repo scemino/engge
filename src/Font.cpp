@@ -1,6 +1,6 @@
 #include <fstream>
 #include "Font.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

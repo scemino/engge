@@ -3,7 +3,7 @@
 #include "SFML/Graphics/Text.hpp"
 #include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace
 {

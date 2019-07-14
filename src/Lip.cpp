@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "Lip.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

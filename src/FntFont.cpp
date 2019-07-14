@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 #include "FntFont.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 #define PLACEHOLDER_CHAR '?'
 

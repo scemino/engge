@@ -1,7 +1,7 @@
 #include <regex>
 #include <fstream>
 #include "TextDatabase.h"
-#include "_NGUtil.h"
+#include "_Util.h"
 
 namespace ng
 {

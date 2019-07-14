@@ -5,7 +5,7 @@
 #include "_ExecuteCodeFunction.h"
 #include "_ShutupFunction.h"
 #include "_PauseFunction.h"
-#include "../_NGUtil.h"
+#include "../_Util.h"
 
 namespace ng
 {
