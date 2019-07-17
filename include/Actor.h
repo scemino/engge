@@ -42,10 +42,8 @@ public:
   void setColor(sf::Color color);
   sf::Color getColor();
 
-  void move(const sf::Vector2f &offset) override;
-
   Room *getRoom() override;
-  const Room *getRoom() const;
+  const Room *getRoom() const override;
   void setRoom(Room *pRoom);
 
   void setFps(int fps) override;

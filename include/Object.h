@@ -62,10 +62,6 @@ public:
   void setAnimation(const std::string &name);
   std::optional<Animation>& getAnimation();
 
-  void setDefaultPosition(const sf::Vector2f &pos);
-  sf::Vector2f getDefaultPosition() const override;
-  void move(const sf::Vector2f &offset) override;
-
   void setRotation(float angle);
   float getRotation() const;
 
@@ -76,7 +72,7 @@ public:
   float getScale() const;
 
   Room *getRoom() override;
-  const Room *getRoom() const;
+  const Room *getRoom() const override;
   void setRoom(Room *pRoom);
 
   void update(const sf::Time &elapsed) override;

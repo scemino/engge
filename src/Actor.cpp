@@ -99,6 +99,7 @@ struct Actor::Impl
     float _volume;
     std::shared_ptr<Path> _path;
     HSQOBJECT _table{};
+    sf::Vector2f _offset;
 };
 
 void Actor::setName(const std::string &name)
@@ -194,10 +195,10 @@ bool Actor::contains(const sf::Vector2f &pos) const
 
     auto size = pImpl->_pRoom->getRoomSize();
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
-    auto transform = _transform;
+    auto transform = getTransform();
     transform.scale(scale, scale);
-    transform.move((sf::Vector2f)-getRenderOffset() * scale);
-    auto t = transform.getInverseTransform();
+    transform.translate((sf::Vector2f)-getRenderOffset() * scale);
+    auto t = transform.getInverse();
     auto pos2 = t.transformPoint(pos);
     return pAnim->contains(pos2);
 }
@@ -501,11 +502,6 @@ void Actor::setRoom(Room *pRoom)
     pImpl->_pRoom->setAsParallaxLayer(this, 0);
 }
 
-void Actor::move(const sf::Vector2f &offset)
-{
-    _transform.move(offset);
-}
-
 void Actor::setCostume(const std::string &name, const std::string &sheet)
 {
     std::string path;
@@ -517,12 +513,13 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!isVisible())
         return;
+    
     auto size = pImpl->_pRoom->getRoomSize();
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
-    auto transform = _transform;
+    auto transform = getTransform();
     transform.scale(scale, scale);
-    transform.move((sf::Vector2f)-getRenderOffset() * scale);
-    states.transform *= transform.getTransform();
+    transform.translate((sf::Vector2f)-getRenderOffset() * scale);
+    states.transform *= transform;
     target.draw(pImpl->_costume, states);
 
     // draw actor position
@@ -544,7 +541,7 @@ void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) co
         return;
 
     auto actorTransform = states.transform;
-    states.transform = actorTransform * _transform.getTransform();
+    states.transform = actorTransform * getTransform();
     pImpl->_talkingState.draw(target, states);
 }
 

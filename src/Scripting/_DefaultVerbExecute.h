@@ -161,7 +161,7 @@ public:
         : _actor(actor)
     {
         auto usePos = destActor.getUsePosition();
-        sf::Vector2f dest(usePos.x, actor.getRoom()->getRoomSize().y - usePos.y);
+        sf::Vector2f dest(usePos.x, usePos.y);
         auto facing = getOppositeFacing(destActor.getCostume().getFacing());
         _actor.walkTo(dest, facing);
     }

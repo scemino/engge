@@ -1,19 +1,19 @@
 #pragma once
-#include "squirrel.h"
 #include "InventoryObject.h"
 #include "TextObject.h"
+#include "squirrel.h"
 
 namespace ng
 {
 class _PickupAnim : public Function
 {
-public:
+  public:
     _PickupAnim(Actor &actor, std::unique_ptr<InventoryObject> obj, const std::string &anim)
         : _actor(actor), _object(std::move(obj)), _animName(anim)
     {
     }
 
-private:
+  private:
     bool isElapsed() override { return _state == 5; }
 
     void playAnim(const std::string &name)
@@ -31,30 +31,30 @@ private:
     {
         switch (_state)
         {
-        case 0:
-            playAnim(_animName);
-            _state = 1;
-            break;
-        case 1:
-            if (!_pAnim->isPlaying())
-                _state = 2;
-            break;
-        case 2:
-            _actor.pickupObject(std::move(_object));
-            _state = 3;
-            break;
-        case 3:
-            playAnim("stand");
-            _state = 4;
-            break;
-        case 4:
-            if (!_pAnim->isPlaying())
-                _state = 5;
-            break;
+            case 0:
+                playAnim(_animName);
+                _state = 1;
+                break;
+            case 1:
+                if (!_pAnim->isPlaying())
+                    _state = 2;
+                break;
+            case 2:
+                _actor.pickupObject(std::move(_object));
+                _state = 3;
+                break;
+            case 3:
+                playAnim("stand");
+                _state = 4;
+                break;
+            case 4:
+                if (!_pAnim->isPlaying())
+                    _state = 5;
+                break;
         }
     }
 
-private:
+  private:
     int32_t _state{0};
     Actor &_actor;
     std::unique_ptr<InventoryObject> _object;
@@ -64,10 +64,10 @@ private:
 
 class _ObjectPack : public Pack
 {
-private:
+  private:
     static Engine *g_pEngine;
 
-private:
+  private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
@@ -241,9 +241,7 @@ private:
 
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
 
-        auto getAlpha = [](const Object &o) {
-            return (o.getColor().a / 255.f);
-        };
+        auto getAlpha = [](const Object &o) { return (o.getColor().a / 255.f); };
         auto setAlpha = [](Object &o, float a) {
             const auto &c = o.getColor();
             return o.setColor(sf::Color(c.r, c.g, c.b, (sf::Uint8)(a * 255.f)));
@@ -346,7 +344,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get y"));
         }
-        obj->move(sf::Vector2f(x, y));
+        obj->setOffset(sf::Vector2f(x, y));
         return 0;
     }
 
@@ -409,9 +407,9 @@ private:
             interpolation = 0;
         }
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&Entity::getPosition, obj);
-        auto set = std::bind(&Entity::setPosition, obj, std::placeholders::_1);
-        auto destination = obj->getDefaultPosition() + sf::Vector2f(x, -y);
+        auto get = std::bind(&Entity::getOffset, obj);
+        auto set = std::bind(&Entity::setOffset, obj, std::placeholders::_1);
+        auto destination = sf::Vector2f(x, y);
         auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 
@@ -448,7 +446,8 @@ private:
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&Object::getPosition, obj);
         auto set = std::bind(&Object::setPosition, obj, std::placeholders::_1);
-        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t), method);
+        auto offsetTo =
+            std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t), method);
         g_pEngine->addFunction(std::move(offsetTo));
 
         return 0;
@@ -705,7 +704,9 @@ private:
         auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
         auto get = std::bind(&Object::getRotation, obj);
         auto set = std::bind(&Object::setRotation, obj, std::placeholders::_1);
-        auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, value, sf::seconds(t), method, (InterpolationMethod)interpolation == InterpolationMethod::Looping);
+        auto rotateTo =
+            std::make_unique<ChangeProperty<float>>(get, set, value, sf::seconds(t), method,
+                                                    (InterpolationMethod)interpolation == InterpolationMethod::Looping);
         g_pEngine->addFunction(std::move(rotateTo));
         return 0;
     }
@@ -726,10 +727,7 @@ private:
         return 0;
     }
 
-    static SQInteger objectParent(HSQUIRRELVM v)
-    {
-        return sq_throwerror(v, _SC("objectParent not implemented"));
-    }
+    static SQInteger objectParent(HSQUIRRELVM v) { return sq_throwerror(v, _SC("objectParent not implemented")); }
 
     static SQInteger objectTouchable(HSQUIRRELVM v)
     {
@@ -1204,19 +1202,19 @@ private:
             const SQChar *name;
             std::vector<std::string> anims;
             sq_push(v, 3);
-            sq_pushnull(v); //null iterator
+            sq_pushnull(v); // null iterator
             while (SQ_SUCCEEDED(sq_next(v, -2)))
             {
                 sq_getstring(v, -1, &name);
                 anims.emplace_back(name);
                 sq_pop(v, 2);
             }
-            sq_pop(v, 1); //pops the null iterator
+            sq_pop(v, 1); // pops the null iterator
             auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
             _createObject(v, object);
             return 1;
         }
-        
+
         if (sq_isstring(obj))
         {
             const SQChar *image;
@@ -1224,14 +1222,14 @@ private:
             std::string s;
             s.append(image);
             std::size_t pos = s.find('.');
-            if(pos == std::string::npos)
+            if (pos == std::string::npos)
             {
                 std::vector<std::string> anims{s};
                 auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
                 _createObject(v, object);
                 return 1;
             }
-            
+
             s = s.substr(0, pos);
             auto &object = g_pEngine->getRoom()->createObject(s);
             _createObject(v, object);
@@ -1241,10 +1239,10 @@ private:
         return sq_throwerror(v, _SC("createObject called with invalid number of arguments"));
     }
 
-    static void _createObject(HSQUIRRELVM v, Object& object)
+    static void _createObject(HSQUIRRELVM v, Object &object)
     {
         ScriptEngine::pushObject(v, object);
-        auto& table = object.getTable();
+        auto &table = object.getTable();
         sq_getstackobj(v, -1, &table);
     }
 };

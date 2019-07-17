@@ -34,10 +34,10 @@ public:
   void setPosition(const sf::Vector2f &pos);
 
   sf::Vector2f getPosition() const;
-  virtual sf::Vector2f getDefaultPosition() const;
   sf::Vector2f getUsePosition() const;
 
-  virtual void move(const sf::Vector2f &offset) = 0;
+  void setOffset(const sf::Vector2f &offset);
+  sf::Vector2f getOffset() const;
 
   void setTrigger(int triggerNumber, Trigger* pTrigger);
   void trig(int triggerNumber);
@@ -46,6 +46,7 @@ public:
   virtual void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const;
 
   virtual Room *getRoom() = 0;
+  virtual const Room *getRoom() const = 0;
   virtual void setFps(int fps) = 0;
 
   virtual HSQOBJECT &getTable() = 0;
@@ -53,12 +54,14 @@ public:
   SoundTrigger* createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds);
 
 protected:
+  sf::Transform getTransform() const;
   sf::Transformable _transform;
 
 private:
   std::map<int, Trigger*> _triggers;
   std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
   sf::Vector2f _usePos;
+  sf::Vector2f _offset;
   bool _isLit{true};
   bool _isVisible{true};
   bool _isTouchable{true};

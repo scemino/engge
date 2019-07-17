@@ -1,6 +1,7 @@
 #include <utility>
 
 #include "Entity.h"
+#include "Room.h"
 #include "Trigger.h"
 
 namespace ng
@@ -44,9 +45,21 @@ sf::Vector2f Entity::getPosition() const
     return _transform.getPosition();
 }
 
-sf::Vector2f Entity::getDefaultPosition() const
+void Entity::setOffset(const sf::Vector2f &offset)
 {
-    return getPosition();
+    _offset = offset;
+}
+
+sf::Vector2f Entity::getOffset() const
+{
+    return _offset;
+}
+
+sf::Transform Entity::getTransform() const
+{
+    auto transform = _transform;
+    transform.move(_offset.x, _offset.y);
+    return transform.getTransform();
 }
 
 sf::Vector2f Entity::getUsePosition() const

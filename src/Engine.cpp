@@ -459,7 +459,7 @@ SQInteger Engine::setRoom(Room *pRoom)
         pLastRoom = _pImpl->_pRoom;
         setInputVerbs(false);
     }
-    else if (_pImpl->_pRoom->getFullscreen() == 1)
+    else if (_pImpl->_pRoom && _pImpl->_pRoom->getFullscreen() == 1)
     {
         setInputVerbs(true);
     }

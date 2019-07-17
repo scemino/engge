@@ -26,7 +26,7 @@ struct Object::Impl
     int _verb;
     std::vector<std::shared_ptr<Trigger>> _triggers;
     HSQOBJECT _pTable{};
-    bool _hotspotVisible;
+    bool _hotspotVisible{true};
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};
     int dependentState{0};
@@ -42,8 +42,7 @@ struct Object::Impl
           _isTouchable(true),
           _pRoom(nullptr),
           _state(0),
-          _verb(1),
-          _hotspotVisible(false)
+          _verb(1)
     {
     }
 };
@@ -138,21 +137,11 @@ bool Object::isTouchable() const
     return pImpl->_isTouchable;
 }
 
-void Object::setDefaultPosition(const sf::Vector2f &pos)
-{
-    pImpl->_defaultPosition = pos;
-    setPosition(pos);
-}
-
-sf::Vector2f Object::getDefaultPosition() const
-{
-    return pImpl->_defaultPosition;
-}
-
 sf::IntRect Object::getRealHotspot() const
 {
     auto rect = getHotspot();
-    return (sf::IntRect)_transform.getTransform().transformRect((sf::FloatRect)rect);
+    auto transform = getTransform();
+    return (sf::IntRect)transform.transformRect((sf::FloatRect)rect);
 }
 
 void Object::setStateAnimIndex(int animIndex)
@@ -207,11 +196,6 @@ void Object::setAnimation(const std::string &name)
 std::optional<Animation> &Object::getAnimation()
 {
     return pImpl->_pAnim;
-}
-
-void Object::move(const sf::Vector2f &offset)
-{
-    _transform.move(offset);
 }
 
 void Object::setColor(const sf::Color &color)
@@ -274,7 +258,7 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
     if (!pImpl->_hotspotVisible)
         return;
 
-    states.transform *= _transform.getTransform();
+    states.transform *= getTransform();
     auto rect = getHotspot();
 
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
@@ -297,9 +281,10 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
 
 void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    auto transform = getTransform();
     if (!isVisible())
         return;
-    states.transform *= _transform.getTransform();
+    states.transform *= transform;
 
     if (pImpl->_pAnim)
     {

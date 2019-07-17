@@ -188,7 +188,7 @@ struct Room::Impl
             bool isTrigger = jObject["trigger"].isInteger() && jObject["trigger"].int_value == 1;
             object->setTrigger(isTrigger);
 
-            object->setDefaultPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
+            object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
             object->setUsePosition(usePos);
 
             // animations
