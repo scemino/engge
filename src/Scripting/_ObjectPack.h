@@ -238,19 +238,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-
-        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-
-        auto getAlpha = [](const Object &o) { return (o.getColor().a / 255.f); };
-        auto setAlpha = [](Object &o, float a) {
-            const auto &c = o.getColor();
-            return o.setColor(sf::Color(c.r, c.g, c.b, (sf::Uint8)(a * 255.f)));
-        };
-        auto getalpha = std::bind(getAlpha, std::cref(*obj));
-        auto setalpha = std::bind(setAlpha, std::ref(*obj), std::placeholders::_1);
-        auto alphaTo = std::make_unique<ChangeProperty<float>>(getalpha, setalpha, alpha, sf::seconds(time), method);
-        g_pEngine->addFunction(std::move(alphaTo));
-
+        obj->alphaTo(alpha, sf::seconds(time), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -406,13 +394,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&Entity::getOffset, obj);
-        auto set = std::bind(&Entity::setOffset, obj, std::placeholders::_1);
-        auto destination = sf::Vector2f(x, y);
-        auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, sf::seconds(t), method);
-        g_pEngine->addFunction(std::move(offsetTo));
-
+        obj->offsetTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -443,13 +425,8 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&Object::getPosition, obj);
-        auto set = std::bind(&Object::setPosition, obj, std::placeholders::_1);
-        auto offsetTo =
-            std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, sf::Vector2f(x, y), sf::seconds(t), method);
-        g_pEngine->addFunction(std::move(offsetTo));
 
+        obj->moveTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -577,11 +554,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&Object::getScale, obj);
-        auto set = std::bind(&Object::setScale, obj, std::placeholders::_1);
-        auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, scale, sf::seconds(t), method);
-        g_pEngine->addFunction(std::move(scalteTo));
+        obj->scaleTo(scale, sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -701,13 +674,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        auto method = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
-        auto get = std::bind(&Object::getRotation, obj);
-        auto set = std::bind(&Object::setRotation, obj, std::placeholders::_1);
-        auto rotateTo =
-            std::make_unique<ChangeProperty<float>>(get, set, value, sf::seconds(t), method,
-                                                    (InterpolationMethod)interpolation == InterpolationMethod::Looping);
-        g_pEngine->addFunction(std::move(rotateTo));
+        obj->rotateTo(value, sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 

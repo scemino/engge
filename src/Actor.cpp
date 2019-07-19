@@ -74,7 +74,6 @@ struct Actor::Impl
         : _engine(engine),
           _settings(engine.getSettings()),
           _costume(engine.getTextureManager()),
-          _color(sf::Color::White),
           _zorder(0),
           _use(true),
           _pRoom(nullptr),
@@ -87,7 +86,6 @@ struct Actor::Impl
     const EngineSettings &_settings;
     Costume _costume;
     std::string _name, _icon;
-    sf::Color _color;
     int _zorder;
     bool _use;
     Room *_pRoom;
@@ -165,16 +163,6 @@ bool Actor::isTalking() const
 bool Actor::isTalkingIdDone(int id) const
 {
     return pImpl->_talkingState.isTalkingIdDone(id);
-}
-
-void Actor::setColor(sf::Color color)
-{
-    pImpl->_color = color;
-}
-
-sf::Color Actor::getColor()
-{
-    return pImpl->_color;
 }
 
 Room *Actor::getRoom()

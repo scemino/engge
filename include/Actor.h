@@ -39,9 +39,6 @@ public:
   bool isTalking() const;
   bool isTalkingIdDone(int id) const;
 
-  void setColor(sf::Color color);
-  sf::Color getColor();
-
   Room *getRoom() override;
   const Room *getRoom() const override;
   void setRoom(Room *pRoom);

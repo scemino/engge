@@ -62,15 +62,6 @@ public:
   void setAnimation(const std::string &name);
   std::optional<Animation>& getAnimation();
 
-  void setRotation(float angle);
-  float getRotation() const;
-
-  void setColor(const sf::Color &color);
-  const sf::Color &getColor() const;
-
-  void setScale(float s);
-  float getScale() const;
-
   Room *getRoom() override;
   const Room *getRoom() const override;
   void setRoom(Room *pRoom);
@@ -88,7 +79,6 @@ public:
   void dependentOn(Object* parentObject, int state);
 
   void setFps(int fps) override;
-
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 

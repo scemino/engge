@@ -2,6 +2,8 @@
 #include <memory>
 #include <optional>
 #include "squirrel.h"
+#include "Function.h"
+#include "Interpolations.h"
 #include "SFML/Graphics.hpp"
 #include "SoundTrigger.h"
 #include "ScriptObject.h"
@@ -39,6 +41,15 @@ public:
   void setOffset(const sf::Vector2f &offset);
   sf::Vector2f getOffset() const;
 
+  void setRotation(float angle);
+  float getRotation() const;
+
+  void setScale(float s);
+  float getScale() const;
+
+  void setColor(const sf::Color &color);
+  const sf::Color &getColor() const;
+
   void setTrigger(int triggerNumber, Trigger* pTrigger);
   void trig(int triggerNumber);
 
@@ -53,6 +64,12 @@ public:
 
   SoundTrigger* createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds);
 
+  void alphaTo(float destination, sf::Time time, InterpolationMethod method);
+  void offsetTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method);
+  void moveTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method);
+  void rotateTo(float destination, sf::Time time, InterpolationMethod method);
+  void scaleTo(float destination, sf::Time time, InterpolationMethod method);
+
 protected:
   sf::Transform getTransform() const;
   sf::Transformable _transform;
@@ -66,5 +83,7 @@ private:
   bool _isVisible{true};
   bool _isTouchable{true};
   sf::Vector2i _renderOffset;
+  std::vector<std::unique_ptr<Function>> _functions;
+  sf::Color _color{sf::Color::White};
 };
 } // namespace ng

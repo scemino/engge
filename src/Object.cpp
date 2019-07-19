@@ -1,6 +1,8 @@
 #include <sstream>
 #include "Animation.h"
+#include "Function.h"
 #include "Object.h"
+#include "ScriptEngine.h"
 #include "Trigger.h"
 
 namespace ng
@@ -17,7 +19,6 @@ struct Object::Impl
     bool _trigger{false};
     sf::Vector2f _usePos;
     sf::Vector2f _defaultPosition;
-    sf::Color _color;
     sf::IntRect _hotspot;
     float _angle;
     bool _isTouchable;
@@ -26,7 +27,7 @@ struct Object::Impl
     int _verb;
     std::vector<std::shared_ptr<Trigger>> _triggers;
     HSQOBJECT _pTable{};
-    bool _hotspotVisible{true};
+    bool _hotspotVisible{false};
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};
     int dependentState{0};
@@ -37,7 +38,6 @@ struct Object::Impl
           _direction(UseDirection::Front),
           _prop(false),
           _spot(false),
-          _color(sf::Color::White),
           _angle(0),
           _isTouchable(true),
           _pRoom(nullptr),
@@ -97,16 +97,6 @@ int Object::getDefaultVerb() const { return pImpl->_verb; }
 HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
 
 std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_anims; }
-
-void Object::setRotation(float angle) { _transform.setRotation(angle); }
-float Object::getRotation() const 
-{
-    // SFML give rotation in degree between [0, 360]
-    float angle = _transform.getRotation();
-    // convert it to [-180, 180]
-    if(angle > 180) angle -= 360;
-    return angle;
-}
 
 Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
@@ -189,8 +179,6 @@ void Object::setAnimation(const std::string &name)
     auto &anim = *(it->get());
     pImpl->_pAnim = anim;
     pImpl->_pAnim->setObject(this);
-    auto &sprite = pImpl->_pAnim->getSprite();
-    sprite.setColor(pImpl->_color);
 }
 
 std::optional<Animation> &Object::getAnimation()
@@ -198,32 +186,9 @@ std::optional<Animation> &Object::getAnimation()
     return pImpl->_pAnim;
 }
 
-void Object::setColor(const sf::Color &color)
-{
-    pImpl->_color = color;
-    if (pImpl->_pAnim)
-    {
-        pImpl->_pAnim->getSprite().setColor(color);
-    }
-}
-
-const sf::Color &Object::getColor() const
-{
-    return pImpl->_color;
-}
-
-void Object::setScale(float s)
-{
-    _transform.setScale(s, s);
-}
-
-float Object::getScale() const
-{
-    return _transform.getScale().x;
-}
-
 void Object::update(const sf::Time &elapsed)
 {
+    Entity::update(elapsed);
     if (pImpl->pParentObject)
     {
         if (pImpl->pParentObject->getState() == pImpl->dependentState)
@@ -288,6 +253,7 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     if (pImpl->_pAnim)
     {
+        pImpl->_pAnim->getSprite().setColor(getColor());
         target.draw(*pImpl->_pAnim, states);
     }
 }
