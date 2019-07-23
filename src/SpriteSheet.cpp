@@ -29,8 +29,10 @@ void SpriteSheet::load(const std::string &name)
         out.write(buffer.data(), buffer.size());
         out.close();
 #endif
-
-        json = nlohmann::json::parse(buffer.data());
+        if(!buffer.empty())
+        {
+            json = nlohmann::json::parse(buffer.data());
+        }
     }
 
     auto jFrames = json["frames"];

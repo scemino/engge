@@ -2,13 +2,15 @@
 #include <functional>
 #include <string>
 #include "squirrel.h"
-#include "Engine.h"
 #include "Interpolations.h"
 
 namespace ng
 {
+class Actor;
+class Engine;
 class Entity;
 class Light;
+class Object;
 class Room;
 class ScriptEngine;
 class Pack

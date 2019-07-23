@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include "SFML/Graphics.hpp"
 #include "Costume.h"
 #include "_Util.h"
 

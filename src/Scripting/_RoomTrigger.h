@@ -38,12 +38,13 @@ class _RoomTrigger : public Trigger
             sq_getstring(_v, -1, &_outsideName);
         }
         sq_settop(_v, top);
+        _triggerName = _object.getName();
 
-        std::wcout << L"Add room trigger (" << _object.getName() << L")" << std::endl;
+        std::wcout << L"Add room trigger (" << _triggerName << L")" << std::endl;
     }
     ~_RoomTrigger() override
     {
-        std::wcout << L"Delete room trigger" << std::endl;
+        std::wcout << L"Delete room trigger" << _triggerName << std::endl;
         sq_release(_v, &thread_obj);
         sq_release(_v, &_inside);
         sq_release(_v, &_outside);
@@ -141,5 +142,6 @@ class _RoomTrigger : public Trigger
     SQInteger _outsideParamsCount{0};
     const SQChar *_insideName{nullptr};
     const SQChar *_outsideName{nullptr};
+    std::wstring _triggerName;
 };
 } // namespace ng

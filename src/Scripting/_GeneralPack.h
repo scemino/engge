@@ -445,19 +445,17 @@ private:
             sq_getinteger(v, 2, &min);
             sq_getinteger(v, 3, &max);
             auto value = int_rand(min, max);
+            std::cout << "random " << value << std::endl;
             sq_pushinteger(v, value);
-
             return 1;
         }
-        {
-            SQFloat min = 0;
-            SQFloat max = 0;
-            sq_getfloat(v, 2, &min);
-            sq_getfloat(v, 3, &max);
-            auto value = float_rand(min, max);
-            sq_pushfloat(v, value);
-            return 1;
-        }
+        SQFloat min = 0;
+        SQFloat max = 0;
+        sq_getfloat(v, 2, &min);
+        sq_getfloat(v, 3, &max);
+        auto value = float_rand(min, max);
+        sq_pushfloat(v, value);
+        return 1;
     }
 
     static SQInteger randomOdds(HSQUIRRELVM v)

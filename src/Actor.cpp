@@ -1,4 +1,5 @@
 #include <regex>
+#include "SFML/Graphics.hpp"
 #include "Actor.h"
 #include "Engine.h"
 #include "InventoryObject.h"

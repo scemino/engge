@@ -1,42 +1,40 @@
 #pragma once
 
-#include "squirrel.h"
+#include "../_Util.h"
 #include "Engine.h"
 #include "ScriptExecute.h"
-#include "../_Util.h"
+#include "squirrel.h"
 
 namespace ng
 {
 class _DefaultScriptExecute : public ScriptExecute
 {
-public:
-    explicit _DefaultScriptExecute(HSQUIRRELVM vm)
-        : _vm(vm)
+    class _RestoreStack
     {
-    }
+      private:
+        HSQUIRRELVM _vm;
+        SQInteger _top;
 
-public:
+      public:
+        explicit _RestoreStack(HSQUIRRELVM vm) : _vm(vm)
+        {
+            _top = sq_gettop(_vm);
+        }
+
+        ~_RestoreStack()
+        {
+            sq_settop(_vm, _top);
+        }
+    };
+
+  public:
+    explicit _DefaultScriptExecute(HSQUIRRELVM vm) : _vm(vm) {}
+
+  public:
     void execute(const std::string &code) override
     {
-        sq_resetobject(&_result);
-        _pos = 0;
-        auto top = sq_gettop(_vm);
-        // compile
-        sq_pushroottable(_vm);
-        if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue)))
-        {
-            std::cerr << "Error executing code " << code << std::endl;
-            return;
-        }
-        sq_push(_vm, -2);
-        // call
-        if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue)))
-        {
-            std::cerr << "Error calling code " << code << std::endl;
-            return;
-        }
-        sq_getstackobj(_vm, -1, &_result);
-        sq_settop(_vm, top);
+        _RestoreStack restore(_vm);
+        executeCode(code);
     }
 
     bool executeCondition(const std::string &code) override
@@ -45,7 +43,8 @@ public:
         c.append("return ");
         c.append(code);
 
-        execute(c);
+        _RestoreStack restore(_vm);
+        executeCode(c);
         if (_result._type == OT_BOOL)
         {
             std::cout << code << " returns " << sq_objtobool(&_result) << std::endl;
@@ -68,15 +67,17 @@ public:
         c.append("return ");
         c.append(code);
 
-        execute(c);
+        _RestoreStack restore(_vm);
+        executeCode(c);
         // get the result
         if (_result._type != OT_STRING)
         {
             std::cerr << "Error getting result " << code << std::endl;
             return "";
         }
-        std::cout << code << " returns " << sq_objtostring(&_result) << std::endl;
-        return sq_objtostring(&_result);
+        std::string result = sq_objtostring(&_result);
+        std::cout << code << " returns " << result << std::endl;
+        return result;
     }
 
     SoundDefinition *getSoundDefinition(const std::string &name) override
@@ -97,13 +98,31 @@ public:
         return pSound;
     }
 
-private:
-    static int _pos;
-    HSQUIRRELVM _vm;
-    HSQOBJECT _result;
-};
+  private:
+    void executeCode(const std::string &code)
+    {
+        sq_resetobject(&_result);
+        // compile
+        sq_pushroottable(_vm);
+        if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue)))
+        {
+            std::cerr << "Error executing code " << code << std::endl;
+            return;
+        }
+        sq_push(_vm, -2);
+        // call
+        if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue)))
+        {
+            std::cerr << "Error calling code " << code << std::endl;
+            return;
+        }
+        sq_getstackobj(_vm, -1, &_result);
+    }
 
-int _DefaultScriptExecute::_pos = 0;
+  private:
+    HSQUIRRELVM _vm;
+    HSQOBJECT _result{};
+};
 
 class _CompositeFunction : public Function
 {
@@ -123,22 +142,21 @@ class _CompositeFunction : public Function
         }
     }
 
-public:
+  public:
     _CompositeFunction &push_back(std::unique_ptr<Function> func)
     {
         _functions.push_back(std::move(func));
         return *this;
     }
 
-private:
+  private:
     std::vector<std::unique_ptr<Function>> _functions;
 };
 
 class _ActorWalk : public Function
 {
-public:
-    _ActorWalk(Actor &actor, const Object &object)
-        : _actor(actor)
+  public:
+    _ActorWalk(Actor &actor, const Object &object) : _actor(actor)
     {
         auto pos = object.getPosition();
         auto usePos = object.getUsePosition();
@@ -147,18 +165,17 @@ public:
         _actor.walkTo(dest, facing);
     }
 
-private:
+  private:
     bool isElapsed() override { return !_actor.isWalking(); }
 
-private:
+  private:
     Actor &_actor;
 };
 
 class _ActorWalkToActor : public Function
 {
-public:
-    _ActorWalkToActor(Actor &actor, const Actor &destActor)
-        : _actor(actor)
+  public:
+    _ActorWalkToActor(Actor &actor, const Actor &destActor) : _actor(actor)
     {
         auto usePos = destActor.getUsePosition();
         sf::Vector2f dest(usePos.x, usePos.y);
@@ -170,34 +187,34 @@ public:
     {
         switch (facing)
         {
-        case Facing::FACE_FRONT:
-            return Facing::FACE_BACK;
-        case Facing::FACE_BACK:
-            return Facing::FACE_FRONT;
-        case Facing::FACE_LEFT:
-            return Facing::FACE_RIGHT;
-        case Facing::FACE_RIGHT:
-            return Facing::FACE_LEFT;
+            case Facing::FACE_FRONT:
+                return Facing::FACE_BACK;
+            case Facing::FACE_BACK:
+                return Facing::FACE_FRONT;
+            case Facing::FACE_LEFT:
+                return Facing::FACE_RIGHT;
+            case Facing::FACE_RIGHT:
+                return Facing::FACE_LEFT;
         }
         return Facing::FACE_BACK;
     }
 
-private:
+  private:
     bool isElapsed() override { return !_actor.isWalking(); }
 
-private:
+  private:
     Actor &_actor;
 };
 
 class _Use : public Function
 {
-public:
+  public:
     _Use(HSQUIRRELVM v, Actor &actor, const InventoryObject &objectSource, Object &objectTarget)
         : _vm(v), _actor(actor), _objectSource(objectSource), _objectTarget(objectTarget)
     {
     }
 
-private:
+  private:
     bool isElapsed() override { return _isElapsed; }
 
     void operator()(const sf::Time &elapsed) override
@@ -219,12 +236,12 @@ private:
             sq_pushobject(_vm, objSource);
             sq_pushobject(_vm, objTarget);
             sq_call(_vm, 2, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
             return;
         }
     }
 
-private:
+  private:
     HSQUIRRELVM _vm;
     Actor &_actor;
     const InventoryObject &_objectSource;
@@ -234,11 +251,8 @@ private:
 
 class _PostWalk : public Function
 {
-public:
-    _PostWalk(const HSQUIRRELVM &v, const HSQOBJECT &object, int verb)
-        : _vm(v), _object(object), _verb(verb)
-    {
-    }
+  public:
+    _PostWalk(const HSQUIRRELVM &v, const HSQOBJECT &object, int verb) : _vm(v), _object(object), _verb(verb) {}
 
     bool isElapsed() override { return _done; }
 
@@ -266,7 +280,7 @@ public:
         _handled = false;
     }
 
-private:
+  private:
     const HSQUIRRELVM &_vm;
     const HSQOBJECT &_object;
     int _verb;
@@ -276,13 +290,13 @@ private:
 
 class _VerbExecute : public Function
 {
-public:
+  public:
     _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, const std::string &verb)
         : _engine(engine), _vm(v), _object(object), _verb(verb)
     {
     }
 
-private:
+  private:
     bool isElapsed() override { return _done; }
 
     void operator()(const sf::Time &elapsed) override
@@ -301,7 +315,7 @@ private:
                 sqstd_printcallstack(_vm);
                 return;
             }
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
             return;
         }
 
@@ -339,7 +353,7 @@ private:
                 sqstd_printcallstack(_vm);
                 return false;
             }
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
             return true;
         }
 
@@ -356,13 +370,13 @@ private:
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);
             sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
             return true;
         }
         return false;
     }
 
-private:
+  private:
     Engine &_engine;
     HSQUIRRELVM _vm;
     Entity &_object;
@@ -372,13 +386,10 @@ private:
 
 class _DefaultVerbExecute : public VerbExecute
 {
-public:
-    _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine)
-        : _vm(vm), _engine(engine)
-    {
-    }
+  public:
+    _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine) : _vm(vm), _engine(engine) {}
 
-private:
+  private:
     void execute(Object *pObject, const Verb *pVerb) override
     {
         auto obj = pObject->getTable();
@@ -485,18 +496,18 @@ private:
             UseFlag useFlag;
             switch (flags)
             {
-            case 2:
-                useFlag = UseFlag::UseWith;
-                break;
-            case 4:
-                useFlag = UseFlag::UseOn;
-                break;
-            case 8:
-                useFlag = UseFlag::UseIn;
-                break;
-            default:
-                useFlag = UseFlag::None;
-                break;
+                case 2:
+                    useFlag = UseFlag::UseWith;
+                    break;
+                case 4:
+                    useFlag = UseFlag::UseOn;
+                    break;
+                case 8:
+                    useFlag = UseFlag::UseIn;
+                    break;
+                default:
+                    useFlag = UseFlag::None;
+                    break;
             }
             _engine.setUseFlag(useFlag, pObject);
             return true;
@@ -513,7 +524,7 @@ private:
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);
             sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
             return true;
         }
         return false;
@@ -562,7 +573,7 @@ private:
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);
             sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
         }
     }
 
@@ -596,7 +607,7 @@ private:
         return defaultVerb;
     }
 
-private:
+  private:
     HSQUIRRELVM _vm;
     Engine &_engine;
 };

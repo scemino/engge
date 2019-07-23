@@ -9,7 +9,7 @@ include_directories(include/ extlibs/squirrel/include/)
 link_directories(extlibs/squirrel/squirrel/ extlibs/squirrel/sqstdlib/)
 
 set(SOURCES
-    src/Game.cpp src/main.cpp src/Actor.cpp src/Animation.cpp src/Costume.cpp src/CostumeAnimation.cpp
+    src/Game.cpp src/Actor.cpp src/Animation.cpp src/Costume.cpp src/CostumeAnimation.cpp
     src/TextDatabase.cpp src/Engine.cpp src/Font.cpp src/CostumeLayer.cpp src/Object.cpp src/Room.cpp
     src/Scripting/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/TextObject.cpp src/RoomLayer.cpp src/Lip.cpp
     src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
@@ -20,10 +20,15 @@ set(SOURCES
 )
 
 add_subdirectory(extlibs/squirrel)
-add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio)
+add_subdirectory(tests)
+add_executable(${PROJECT_NAME} ${SOURCES} src/main.cpp)
+add_library(engge_core STATIC ${SOURCES})
+target_include_directories (engge_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME} engge_core squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio)
+target_link_libraries(engge_core squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio)
 if (SFML_FOUND)
-    include_directories(${SFML_INCLUDE_DIR})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${SFML_INCLUDE_DIR})
+    target_include_directories(engge_core PUBLIC ${SFML_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES})
 else()
     message (FATAL_ERROR "Cannot find SFML")

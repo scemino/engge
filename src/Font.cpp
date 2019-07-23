@@ -26,8 +26,11 @@ void Font::load(const std::string &path)
 
     std::vector<char> buffer;
     _settings->readEntry(_jsonFilename, buffer);
-    _json = nlohmann::json::parse(buffer.data());
 
+    if(!buffer.empty())
+    {
+        _json = nlohmann::json::parse(buffer.data());
+    }
     _texture = _textureManager->get(_path);
 }
 

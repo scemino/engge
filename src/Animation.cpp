@@ -1,8 +1,8 @@
+#include <iostream>
 #include <utility>
-
+#include "SFML/Graphics.hpp"
 #include "Animation.h"
 #include "Object.h"
-#include <iostream>
 
 namespace ng
 {
