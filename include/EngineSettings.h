@@ -9,13 +9,11 @@ namespace ng
 class EngineSettings
 {
 private:
-  const std::string _gamePath;
   GGPack _pack1;
   GGPack _pack2;
 
 public:
-  explicit EngineSettings(std::string gamePath)
-      : _gamePath(std::move(gamePath))
+  EngineSettings()
   {
     _pack1.open("ThimbleweedPark.ggpack1");
     _pack2.open("ThimbleweedPark.ggpack2");
@@ -51,7 +49,5 @@ public:
       _pack2.readHashEntry(name, hash);
     }
   }
-
-  const std::string &getGamePath() const { return _gamePath; }
 };
 } // namespace ng

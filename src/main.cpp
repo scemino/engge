@@ -7,8 +7,7 @@
 
 int main(int argc, char **argv)
 {
-
-    ng::EngineSettings settings("./resources/");
+    ng::EngineSettings settings;
     if (argc == 2)
     {
         auto filename = argv[1];
