@@ -20,6 +20,7 @@ bool getLine(GGPackBufferStream &input, std::string &line);
 
 std::wstring towstring(const std::string &text);
 std::string tostring(const std::wstring &text);
+std::string str_toupper(std::string s);
 
 bool getLine(GGPackBufferStream &input, std::wstring &wline);
 

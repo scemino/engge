@@ -338,14 +338,6 @@ void Actor::Impl::TalkingState::setActor(Actor *pActor)
     _font.loadFromFile("SayLineFont.fnt");
 }
 
-static std::string str_toupper(std::string s)
-{
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c) { return ::toupper(c); } // correct
-    );
-    return s;
-}
-
 void Actor::Impl::TalkingState::say(int id)
 {
     if (_isTalking)

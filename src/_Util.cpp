@@ -2,6 +2,14 @@
 
 namespace ng
 {
+std::string str_toupper(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c) { return ::toupper(c); } // correct
+    );
+    return s;
+}
+
 SQInteger int_rand(SQInteger min, SQInteger max)
 {
     max++;
