@@ -156,7 +156,6 @@ class _ActorPack : public Pack
 
     static SQInteger actorAt(HSQUIRRELVM v)
     {
-        std::cout << "actorAt" << std::endl;
         auto numArgs = sq_gettop(v);
         if (numArgs == 3)
         {
@@ -498,7 +497,7 @@ class _ActorPack : public Pack
         }
         SQInteger loop = 0;
         sq_getinteger(v, 4, &loop);
-        std::cout << "Play anim " << animation << (loop == 1 ? " (loop)" : "") << std::endl;
+        trace("Play anim {}{}", animation, (loop == 1 ? " (loop)" : ""));
         pActor->getCostume().setState(animation);
         auto pAnim = pActor->getCostume().getAnimation();
         if (pAnim)
@@ -552,7 +551,6 @@ class _ActorPack : public Pack
 
     static SQInteger actorRoom(HSQUIRRELVM v)
     {
-        std::cout << "actorRoom" << std::endl;
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
         if (pRoom)
@@ -689,7 +687,7 @@ class _ActorPack : public Pack
 
     static SQInteger actorTurnTo(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: actorTurnTo: not implemented" << std::endl;
+        error("TODO: actorTurnTo: not implemented");
         return 0;
     }
 
@@ -800,7 +798,6 @@ class _ActorPack : public Pack
 
     static SQInteger actorWalkTo(HSQUIRRELVM v)
     {
-        std::cout << "actorWalkTo" << std::endl;
         auto *pActor = ScriptEngine::getActor(v, 2);
         if (!pActor)
         {

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include "FntFont.h"
+#include "Logger.h"
 #include "_Util.h"
 
 #define PLACEHOLDER_CHAR '?'
@@ -58,12 +59,12 @@ void FntFont::setSettings(EngineSettings *settings)
 bool FntFont::loadFromFile(const std::string &path)
 {
     // Parse .fnt file
-    std::cout << "FntFont: parsing \"" << path << "\"..." << std::endl;
+    trace("FntFont: parsing \"{}\"...", path);
     if (!parse(path))
         return false;
 
     // Load resources
-    std::cout << "FntFont: loading textures..." << std::endl;
+    trace("FntFont: loading textures...");
     m_textures.resize(m_chars.pages.size());
 
     for (size_t i = 0; i < m_chars.pages.size(); i++)
@@ -73,8 +74,7 @@ bool FntFont::loadFromFile(const std::string &path)
         _pSettings->readEntry(texPath, buffer);
         if (!m_textures[i].loadFromMemory(buffer.data(), buffer.size()))
         {
-            std::cout << "ERROR: FntFont::loadFromFile(): "
-                      << "Couldn't load texture file \"" << texPath << "\"" << std::endl;
+            trace("ERROR: FntFont::loadFromFile(): Couldn't load texture file \"{}\"", texPath);
             return false;
         }
     }
@@ -112,7 +112,7 @@ bool FntFont::parse(const std::string &path)
         lineStream << line;
         lineStream >> tag;
 
-        //std::cout << lineStream.str() << std::endl;
+        //trace(lineStream.str());
 
         if (tag == "info")
         {

@@ -1,6 +1,7 @@
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
 #include "Actor.h"
+#include "Logger.h"
 #include "_SayFunction.h"
 #include "_ExecuteCodeFunction.h"
 #include "_ShutupFunction.h"
@@ -167,43 +168,43 @@ void DialogVisitor::visit(const Ast::Pause &node)
 void DialogVisitor::visit(const Ast::WaitFor &node)
 {
     // TODO: waitfor
-    std::cout << "TODO: waitfor" << std::endl;
+    trace("TODO: waitfor");
 }
 
 void DialogVisitor::visit(const Ast::Override &node)
 {
     // TODO: override
-    std::cout << "TODO: override" << std::endl;
+    trace("TODO: override");
 }
 
 void DialogVisitor::visit(const Ast::Parrot &node)
 {
     // TODO: parrot
-    std::cout << "TODO: parrot" << std::endl;
+    trace("TODO: parrot");
 }
 
 void DialogVisitor::visit(const Ast::Dialog &node)
 {
     // TODO: dialog
-    std::cout << "TODO: dialog" << std::endl;
+    trace("TODO: dialog");
 }
 
 void DialogVisitor::visit(const Ast::AllowObjects &node)
 {
     // TODO: allowObjects
-    std::cout << "TODO: allowObjects" << std::endl;
+    trace("TODO: allowObjects");
 }
 
 void DialogVisitor::visit(const Ast::WaitWhile &node)
 {
     // TODO: waitWhile
-    std::cout << "TODO: waitWhile" << std::endl;
+    trace("TODO: waitWhile");
 }
 
 void DialogVisitor::visit(const Ast::Limit &node)
 {
     // TODO: limit
-    std::cout << "TODO: limit" << std::endl;
+    trace("TODO: limit");
 }
 
 int DialogVisitor::getId(const std::string &text)

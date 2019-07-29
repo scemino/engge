@@ -1,6 +1,7 @@
 #include "Actor.h"
 #include "Cutscene.h"
 #include "Engine.h"
+#include "Logger.h"
 
 namespace ng
 {
@@ -47,22 +48,22 @@ void Cutscene::operator()(const sf::Time &elapsed)
     switch (_state)
     {
     case 0:
-        std::cout << "startCutscene" << std::endl;
+        trace("startCutscene");
         startCutscene();
         break;
     case 1:
         checkEndCutscene();
         break;
     case 2:
-        std::cout << "doCutsceneOverride" << std::endl;
+        trace("doCutsceneOverride");
         doCutsceneOverride();
         break;
     case 3:
-        std::cout << "checkEndCutsceneOverride" << std::endl;
+        trace("checkEndCutsceneOverride");
         checkEndCutsceneOverride();
         break;
     case 4:
-        std::cout << "endCutscene" << std::endl;
+        trace("endCutscene");
         endCutscene();
         break;
     case 5:
@@ -73,12 +74,12 @@ void Cutscene::operator()(const sf::Time &elapsed)
 void Cutscene::startCutscene()
 {
     _state = 1;
-    std::cout << "start cutscene: " << _thread._unVal.pThread << std::endl;
+    trace("start cutscene: {}", (long)_thread._unVal.pThread);
     sq_pushobject(_thread._unVal.pThread, _closureObj);
     sq_pushobject(_thread._unVal.pThread, _envObj);
     if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
     {
-        std::cerr << "Couldn't call cutscene" << std::endl;
+        error("Couldn't call cutscene");
     }
 }
 
@@ -88,7 +89,7 @@ void Cutscene::checkEndCutscene()
     if (s == SQ_VMSTATE_IDLE)
     {
         _state = 4;
-        std::cout << "end cutscene: " << _thread._unVal.pThread << std::endl;
+        trace("end cutscene: {}", (long)_thread._unVal.pThread);
     }
 }
 
@@ -97,12 +98,12 @@ void Cutscene::doCutsceneOverride()
     if (_hasCutsceneOverride)
     {
         _state = 3;
-        std::cout << "start cutsceneOverride: " << _thread._unVal.pThread << std::endl;
+        trace("start cutsceneOverride: {}", (long)_thread._unVal.pThread);
         sq_pushobject(_thread._unVal.pThread, _closureCutsceneOverrideObj);
         sq_pushobject(_thread._unVal.pThread, _envObj);
         if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
         {
-            std::cerr << "Couldn't call cutsceneOverride" << std::endl;
+            error("Couldn't call cutsceneOverride");
         }
         return;
     }
@@ -115,7 +116,7 @@ void Cutscene::checkEndCutsceneOverride()
     if (s == SQ_VMSTATE_IDLE)
     {
         _state = 4;
-        std::cout << "end checkEndCutsceneOverride: " << _thread._unVal.pThread << std::endl;
+        trace("end checkEndCutsceneOverride: {}", (long)_thread._unVal.pThread);
     }
 }
 

@@ -1,5 +1,6 @@
 #include <fstream>
 #include <memory>
+#include "Logger.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
 #include "SoundManager.h"
@@ -81,7 +82,7 @@ SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
     auto index = getSlotIndex();
     if (index == -1)
     {
-        std::cerr << "cannot play sound no more channel available" << std::endl;
+        error("cannot play sound no more channel available");
         return nullptr;
     }
     std::string sCategory;
@@ -97,8 +98,7 @@ SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
         sCategory = "talk";
         break;
     }
-    std::cout << " [" << index << "]"
-              << "loop " << loopTimes << " " << sCategory << " " << pSoundDefinition->getPath() << std::endl;
+    trace(" [{}]loop {} {} {}", index, loopTimes, sCategory, pSoundDefinition->getPath());
     SoundId *pSoundId = soundId.get();
     _soundIds.at(index) = std::move(soundId);
     pSoundId->play(loopTimes);
@@ -107,7 +107,7 @@ SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
 
 void SoundManager::stopAllSounds()
 {
-    std::cout << "stopAllSounds" << std::endl;
+    trace("stopAllSounds");
     for (auto &_soundId : _soundIds)
     {
         if (_soundId)
@@ -135,7 +135,7 @@ void SoundManager::stopSound(SoundId *pSound)
 
 void SoundManager::stopSound(const SoundDefinition *pSoundDef)
 {
-    std::cout << "stopSound (sound definition: " << pSoundDef->getPath() << ")" << std::endl;
+    trace("stopSound (sound definition: {})", pSoundDef->getPath());
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);
@@ -148,7 +148,7 @@ void SoundManager::stopSound(const SoundDefinition *pSoundDef)
 
 void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume)
 {
-    std::cout << "setVolume (sound definition: " << pSoundDef->getPath() << ")" << std::endl;
+    trace("setVolume (sound definition: {})", pSoundDef->getPath());
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);

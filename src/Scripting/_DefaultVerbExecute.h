@@ -2,6 +2,7 @@
 
 #include "squirrel.h"
 #include "Engine.h"
+#include "Logger.h"
 #include "ScriptExecute.h"
 #include "../_Util.h"
 
@@ -25,14 +26,14 @@ public:
         sq_pushroottable(_vm);
         if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue)))
         {
-            std::cerr << "Error executing code " << code << std::endl;
+            error("Error executing code {}", code);
             return;
         }
         sq_push(_vm, -2);
         // call
         if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue)))
         {
-            std::cerr << "Error calling code " << code << std::endl;
+            error("Error calling code {}", code);
             return;
         }
         sq_getstackobj(_vm, -1, &_result);
@@ -48,17 +49,17 @@ public:
         execute(c);
         if (_result._type == OT_BOOL)
         {
-            std::cout << code << " returns " << sq_objtobool(&_result) << std::endl;
+            trace("{} returns {}", code, sq_objtobool(&_result));
             return sq_objtobool(&_result);
         }
 
         if (_result._type == OT_INTEGER)
         {
-            std::cout << code << " returns " << sq_objtointeger(&_result) << std::endl;
+            trace("{} return {}", code, sq_objtointeger(&_result));
             return sq_objtointeger(&_result) != 0;
         }
 
-        std::cerr << "Error getting result " << code << std::endl;
+        error("Error getting result {}", code);
         return false;
     }
 
@@ -72,10 +73,10 @@ public:
         // get the result
         if (_result._type != OT_STRING)
         {
-            std::cerr << "Error getting result " << code << std::endl;
+            error("Error getting result {}", code);
             return "";
         }
-        std::cout << code << " returns " << sq_objtostring(&_result) << std::endl;
+        trace("{} returns {}", code, sq_objtostring(&_result));
         return sq_objtostring(&_result);
     }
 
@@ -89,7 +90,7 @@ public:
 
         if (!sq_isuserpointer(obj))
         {
-            std::cerr << "getSoundDefinition: sound should be a userpointer" << std::endl;
+            error("getSoundDefinition: sound should be a userpointer");
             return nullptr;
         }
 
@@ -99,8 +100,8 @@ public:
 
 private:
     static int _pos;
-    HSQUIRRELVM _vm;
-    HSQOBJECT _result;
+    HSQUIRRELVM _vm{};
+    HSQOBJECT _result{};
 };
 
 int _DefaultScriptExecute::_pos = 0;
@@ -297,7 +298,7 @@ private:
             sq_pushobject(_vm, _object.getTable());
             if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
             {
-                std::cout << "failed to execute verb " << _verb.data() << std::endl;
+                trace("failed to execute verb {}", _verb.data());
                 sqstd_printcallstack(_vm);
                 return;
             }
@@ -335,7 +336,7 @@ private:
             sq_pushobject(_vm, _object.getTable());
             if (SQ_FAILED(sq_call(_vm, 3, SQFalse, SQTrue)))
             {
-                std::cout << "failed to execute verb " << _verb.data() << std::endl;
+                trace("failed to execute verb {}", _verb.data());
                 sqstd_printcallstack(_vm);
                 return false;
             }
@@ -591,7 +592,7 @@ private:
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
             sq_getinteger(_vm, -1, &defaultVerb);
-            std::cout << "defaultVerb: " << defaultVerb << std::endl;
+            trace("defaultVerb: {}", defaultVerb);
         }
         return defaultVerb;
     }

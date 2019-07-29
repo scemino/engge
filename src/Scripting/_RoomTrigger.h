@@ -19,7 +19,7 @@ class _RoomTrigger : public Trigger
         sq_newthread(_v, 1024);
         if (SQ_FAILED(sq_getstackobj(_v, -1, &thread_obj)))
         {
-            std::cerr << "Couldn't get coroutine thread from stack" << std::endl;
+            error("Couldn't get coroutine thread from stack");
             return;
         }
         sq_addref(_v, &thread_obj);
@@ -38,12 +38,9 @@ class _RoomTrigger : public Trigger
             sq_getstring(_v, -1, &_outsideName);
         }
         sq_settop(_v, top);
-
-        std::wcout << L"Add room trigger (" << _object.getName() << L")" << std::endl;
     }
     ~_RoomTrigger() override
     {
-        std::wcout << L"Delete room trigger" << std::endl;
         sq_release(_v, &thread_obj);
         sq_release(_v, &_inside);
         sq_release(_v, &_outside);
@@ -121,10 +118,9 @@ class _RoomTrigger : public Trigger
             sq_pushobject(thread_obj._unVal.pThread, param);
         }
 
-        std::wcout << L"call room " << towstring(name) << L" trigger (" << _object.getName() << L")" << std::endl;
         if (SQ_FAILED(sq_call(thread_obj._unVal.pThread, params.size() - 1, SQFalse, SQTrue)))
         {
-            std::cerr << "failed to call room " << name << " trigger" << std::endl;
+            error("failed to call room {} trigger", name);
             return;
         }
     }

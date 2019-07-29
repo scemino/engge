@@ -1,17 +1,20 @@
 #include <memory>
 #include "Game.h"
 #include "Engine.h"
+#include "Logger.h"
 #include "ScriptEngine.h"
 #include "PanInputEventHandler.h"
 #include "Dialog/_AstDump.h"
 
 int main(int argc, char **argv)
 {
+    auto pLogger = std::make_unique<ng::Logger>();
+    ng::Locator::registerService(pLogger.get());
+
     ng::EngineSettings settings;
     if (argc == 2)
     {
         auto filename = argv[1];
-        std::cout << argc << std::endl;
         ng::_AstDump::dump(settings, filename);
         return 0;
     }
@@ -32,11 +35,11 @@ int main(int argc, char **argv)
     }
     catch (std::exception &e)
     {
-        std::cerr << "Sorry, an error occured: " << e.what() << std::endl;
+        ng::error("Sorry, an error occured: {}", e.what());
     }
     catch (...)
     {
-        std::cerr << "Sorry, an error occured" << std::endl;
+        ng::error("Sorry, an error occured");
     }
 
     return 0;

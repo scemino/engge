@@ -1,4 +1,5 @@
 #include <utility>
+#include "Logger.h"
 #include "SoundDefinition.h"
 
 namespace ng
@@ -12,7 +13,6 @@ SoundDefinition::SoundDefinition(std::string path)
 
 SoundDefinition::~SoundDefinition()
 {
-    std::cout << "delete SoundDefinition " << _path << " " << std::hex << this << std::endl;
 }
 
 void SoundDefinition::setSettings(EngineSettings &settings)
@@ -29,7 +29,7 @@ void SoundDefinition::load()
     _isLoaded = _buffer.loadFromMemory(buffer.data(), buffer.size());
     if (!_isLoaded)
     {
-        std::cerr << "Can't load the sound " << _path << std::endl;
+        error("Can't load the sound {}", _path);
     }
 }
 

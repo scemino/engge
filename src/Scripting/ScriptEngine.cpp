@@ -5,6 +5,7 @@
 #include "sqstdstring.h"
 #include "sqstdmath.h"
 #include "Entity.h"
+#include "Logger.h"
 #include "Room.h"
 #include "ScriptEngine.h"
 #include "SoundDefinition.h"
@@ -362,7 +363,7 @@ SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
 
 void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
 {
-    std::cerr << desc << source << '(' << line << ',' << column << ')' << std::endl;
+    error("{} {}({},{})", desc, source, line, column);
 }
 
 void ScriptEngine::errorfunc(HSQUIRRELVM v, const SQChar *s, ...)
@@ -395,7 +396,7 @@ void ScriptEngine::executeScript(const std::string &name)
 {
     if (SQ_FAILED(sqstd_dofile(v, name.c_str(), SQFalse, SQTrue)))
     {
-        std::cerr << "failed to execute " << name << std::endl;
+        error("failed to execute {}", name);
         sq_getlasterror(v);
         aux_printerror(v);
         return;
@@ -409,7 +410,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
     std::ifstream is(name);
     if (is.is_open())
     {
-        std::cout << "Load local file file " << name << std::endl;
+        trace("Load local file file {}", name);
         is.seekg(-1, std::ios::end);
         auto len = (size_t)is.tellg();
         is.seekg(0, std::ios::beg);
@@ -440,14 +441,14 @@ void ScriptEngine::executeNutScript(const std::string &name)
     sq_pushroottable(v);
     if (SQ_FAILED(sq_compilebuffer(v, code.data(), code.size() - 1, _SC(name.data()), SQTrue)))
     {
-        std::cerr << "Error compiling " << name << std::endl;
+        error("Error compiling {}", name);
         return;
     }
     sq_push(v, -2);
     // call
     if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
     {
-        std::cerr << "Error calling " << name << std::endl;
+        error("Error calling {}", name);
         sqstd_printcallstack(v);
         return;
     }
@@ -468,7 +469,7 @@ void ScriptEngine::executeBootScript()
     sq_pushbool(v, SQTrue);
     if (SQ_FAILED(sq_call(v, 2, SQFalse, SQTrue)))
     {
-        std::cerr << "Error calling start" << std::endl;
+        error("Error calling start");
         return;
     }
 }

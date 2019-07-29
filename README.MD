@@ -11,9 +11,10 @@ engge is an **experimental** game engine, its purpose is to be able (one day) to
 * Buy [Thimbleweed park](https://thimbleweedpark.com)
 * Go to your installation folder and copy these files:  **ThimbleweedPark.ggpack1** and **ThimbleweedPark.ggpack2** to **engge** directory
 * **engge** has these following dependencies
-  * [SFML library](https://www.sfml-dev.org/)
-  * [nlohmann/json library](https://github.com/nlohmann/json): the headers are located under *include/nlohmann* directory
-  * [squirrel](http://www.squirrel-lang.org/): this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
+  * [SFML](https://www.sfml-dev.org/): Simple and Fast Multimedia Library
+  * [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
+  * [nlohmann/json](https://github.com/nlohmann/json): JSON for Modern C++
+  * [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
 
 ## Compiling
 

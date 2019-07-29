@@ -2,6 +2,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include "Costume.h"
+#include "Logger.h"
 #include "_Util.h"
 
 namespace ng
@@ -171,7 +172,6 @@ bool Costume::setAnimation(const std::string &animName)
     for (auto j : hash["animations"].array_value)
     {
         auto name = j["name"].string_value;
-        // std::cout << "Anim: " << name << std::endl;
         if (animName != name)
             continue;
 
@@ -241,7 +241,7 @@ bool Costume::setAnimation(const std::string &animName)
             layer->setActor(_pActor);
             _pCurrentAnimation->getLayers().push_back(layer);
         }
-        std::cout << "found animation: " << name << std::endl;
+        trace("found animation: {}", name);
         return true;
     }
     return false;
@@ -322,7 +322,6 @@ void Costume::setHeadIndex(int index)
     {
         std::ostringstream s;
         s << _headAnimName << (i + 1);
-        // std::cout << "setLayerVisible(" << s.str() << "," << (_headIndex == i) << ")" << std::endl;
         auto layerName = s.str();
         auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](CostumeLayer *pLayer) {
             return pLayer->getName() == layerName;

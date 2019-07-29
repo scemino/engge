@@ -7,6 +7,7 @@
 #include "Font.h"
 #include "Inventory.h"
 #include "InventoryObject.h"
+#include "Logger.h"
 #include "Preferences.h"
 #include "Room.h"
 #include "RoomScaling.h"
@@ -139,7 +140,7 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
 {
     time_t t;
     auto seed = (unsigned)time(&t);
-    std::cout << "seed: " << seed << std::endl;
+    info("seed: {}", seed);
     srand(seed);
 
     _pImpl->_pEngine = this;
@@ -276,19 +277,19 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     auto pOldRoom = _pRoom;
 
     // call exit room function
-    std::cout << "call exit room function of " << pOldRoom->getId() << std::endl;
+    trace("call exit room function of {}", pOldRoom->getId());
 
     sq_pushobject(_vm, pOldRoom->getTable());
     sq_pushstring(_vm, _SC("exit"), -1);
     if (SQ_FAILED(sq_get(_vm, -2)))
     {
-        std::cerr << "can't find exit function" << std::endl;
+        error("can't find exit function");
         return 0;
     }
 
     SQInteger nparams, nfreevars;
     sq_getclosureinfo(_vm, -1, &nparams, &nfreevars);
-    std::cout << "enter function found with " << nparams << " parameters" << std::endl;
+    trace("enter function found with {} parameters", nparams);
 
     sq_remove(_vm, -2);
     sq_pushobject(_vm, pOldRoom->getTable());
@@ -370,18 +371,18 @@ void Engine::Impl::updateScreenSize()
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 {
     // call enter room function
-    std::cout << "call enter room function of " << pRoom->getId() << std::endl;
+    trace("call enter room function of {}", pRoom->getId());
     sq_pushobject(_vm, pRoom->getTable());
     sq_pushstring(_vm, _SC("enter"), -1);
     if (SQ_FAILED(sq_rawget(_vm, -2)))
     {
-        std::cerr << "can't find enter function" << std::endl;
+        error("can't find enter function");
         return 0;
     }
 
     SQInteger nparams, nfreevars;
     sq_getclosureinfo(_vm, -1, &nparams, &nfreevars);
-    std::cout << "enter function found with " << nparams << " parameters" << std::endl;
+    trace("enter function found with {} parameters", nparams);
 
     sq_remove(_vm, -2);
     sq_pushobject(_vm, pRoom->getTable());
@@ -879,7 +880,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
     sq_pushstring(v, _SC("onActorSelected"), -1);
     if (SQ_FAILED(sq_get(v, -2)))
     {
-        std::cerr << "failed to get onActorSelected function" << std::endl;
+        error("failed to get onActorSelected function");
         return;
     }
 
@@ -889,7 +890,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
     sq_pushbool(v, false);
     if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
     {
-        std::cerr << "failed to call onActorSelected function" << std::endl;
+        error("failed to call onActorSelected function");
         return;
     }
 }

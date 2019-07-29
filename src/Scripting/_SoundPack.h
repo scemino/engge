@@ -209,7 +209,6 @@ private:
 
     static void _fadeOutSound(SoundId *pSound, const sf::Time &time)
     {
-        std::cout << "fadeOutSound " << pSound->getSoundDefinition()->getPath() << " in " << time.asSeconds() << " seconds" << std::endl;
         pSound->fadeTo(0.f, time);
     }
 
@@ -227,7 +226,7 @@ private:
             auto pSoundDefinition = _getSoundDefinition(v, 2);
             if (pSoundDefinition == nullptr)
             {
-                std::cerr << "no sound to fadeOutSound" << std::endl;
+                error("no sound to fadeOutSound");
                 return 0;
             }
             auto size = g_pEngine->getSoundManager().getSize();

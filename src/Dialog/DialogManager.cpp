@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
+#include "Logger.h"
 #include "Text.h"
 #include "_SayFunction.h"
 
@@ -34,7 +35,7 @@ void DialogManager::start(const std::string &name, const std::string &node)
     std::string path;
     path.append(name).append(".byack");
 
-    std::cout << "start dialog " << name << " from node " << node << std::endl;
+    trace("start dialog {} from node {}", name, node);
 
     YackTokenReader reader;
     reader.setSettings(_pEngine->getSettings());

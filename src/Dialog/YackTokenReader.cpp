@@ -1,5 +1,6 @@
 #include <algorithm>
 #include "Dialog/YackTokenReader.h"
+#include "Logger.h"
 
 namespace ng
 {
@@ -207,7 +208,7 @@ TokenId YackTokenReader::readTokenId()
         {
             return readIdentifier(c);
         }
-        std::cerr << "unknown character: " << c << std::endl;
+        error("unknown character: {}", c);
         return TokenId::None;
     }
 }

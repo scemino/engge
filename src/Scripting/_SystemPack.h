@@ -7,6 +7,7 @@
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
 #include "Function.h"
+#include "Logger.h"
 #include "Preferences.h"
 #include "Room.h"
 #include "SoundId.h"
@@ -20,11 +21,11 @@ class _StopThread : public Function
 {
 private:
     Engine &_engine;
-    const HSQOBJECT& _threadObj;
+    HSQOBJECT _threadObj;
     bool _done;
 
 public:
-    _StopThread(Engine &engine, const HSQOBJECT& threadObj)
+    _StopThread(Engine &engine, HSQOBJECT threadObj)
         : _engine(engine), _threadObj(threadObj), _done(false)
     {
     }
@@ -74,7 +75,7 @@ public:
 
         if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
         {
-            std::cerr << "_WakeupThread: failed to wakeup: " << _vm << std::endl;
+            error("_WakeupThread: failed to wakeup: {}", (long)_vm);
             sqstd_printcallstack(_vm);
             return;
         }
@@ -131,11 +132,12 @@ class _BreakWhileAnimatingFunction : public _BreakFunction
 {
 private:
     std::string _name;
+    Actor &_actor;
     CostumeAnimation *_pAnimation;
 
 public:
     _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
-        : _BreakFunction(engine, vm), _pAnimation(actor.getCostume().getAnimation())
+        : _BreakFunction(engine, vm), _actor(actor), _pAnimation(actor.getCostume().getAnimation())
     {
         if (_pAnimation)
         {
@@ -150,7 +152,8 @@ public:
 
     bool isElapsed() override
     {
-        return !_pAnimation || !_pAnimation->isPlaying();
+        auto pAnim = _actor.getCostume().getAnimation();
+        return pAnim != _pAnimation || !_pAnimation->isPlaying();
     }
 };
 
@@ -358,7 +361,6 @@ class _BreakTimeFunction : public TimeFunction
 private:
     HSQUIRRELVM _vm;
     Engine &_engine;
-    bool _done{false};
 
 public:
     _BreakTimeFunction(Engine &engine, HSQUIRRELVM vm, const sf::Time &time)
@@ -410,7 +412,7 @@ private:
         sq_pushroottable(_v);
         if (SQ_FAILED(sq_call(_v, 1, SQFalse, SQTrue)))
         {
-            std::cerr << "failed to call callback" << std::endl;
+            error("failed to call callback");
         }
         sq_release(_v, &_method);
     }
@@ -471,7 +473,7 @@ private:
 
     static SQInteger activeController(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: activeController: not implemented" << std::endl;
+        error("TODO: activeController: not implemented");
         // harcode mouse
         sq_pushinteger(v, 1);
         return 1;
@@ -625,7 +627,7 @@ private:
 
     static SQInteger exCommand(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: exCommand: not implemented" << std::endl;
+        error("TODO: exCommand: not implemented");
         return 0;
     }
 
@@ -637,7 +639,7 @@ private:
 
     static SQInteger logEvent(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: logEvent: not implemented" << std::endl;
+        error("TODO: logEvent: not implemented");
         return 0;
     }
 
@@ -660,7 +662,7 @@ private:
         {
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
-        std::cout << "stopthread " << thread_obj._unVal.pThread << std::endl;
+        trace("stopthread {}", (long)thread_obj._unVal.pThread);
 
         auto stopThread = std::make_unique<_StopThread>(*g_pEngine, thread_obj);
         g_pEngine->addFunction(std::move(stopThread));
@@ -724,8 +726,7 @@ private:
             sq_getstring(v, -1, &name);
         }
 
-        std::cout << "start thread (" << (name ? name : "anonymous")
-                  << "): " << thread << std::endl;
+        trace("start thread ({}): {}", (name ? name : "anonymous"), (long)thread);
         auto vm = g_pEngine->getVm();
         auto pUniquethread = std::make_unique<Thread>(vm, thread_obj, env_obj, closureObj, args);
         auto pThread = pUniquethread.get();
@@ -763,7 +764,7 @@ private:
 
     static SQInteger getPrivatePref(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: getPrivatePref: not implemented" << std::endl;
+        error("TODO: getPrivatePref: not implemented");
         if (sq_gettype(v, 3) == OT_INTEGER)
         {
             sq_pushinteger(v, 0);
@@ -781,7 +782,7 @@ private:
 
     static SQInteger setPrivatePref(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: setPrivatePref: not implemented" << std::endl;
+        error("TODO: setPrivatePref: not implemented");
         return 0;
     }
 
@@ -917,7 +918,7 @@ private:
         {
             return sq_throwerror(v, "failed to get filename");
         }
-        std::cout << "include " << filename << std::endl;
+        trace("include {}", filename);
         _pScriptEngine->executeNutScript(filename);
         return 0;
     }
@@ -960,7 +961,7 @@ private:
 
     static SQInteger inputState(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: inputState: not implemented" << std::endl;
+        error("TODO: inputState: not implemented");
         if (sq_gettop(v) >= 2)
         {
             sq_pushnull(v);
@@ -994,7 +995,7 @@ private:
 
     static SQInteger inputController(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: inputController: not implemented" << std::endl;
+        error("TODO: inputController: not implemented");
         return 0;
     }
 
@@ -1011,7 +1012,7 @@ private:
 
     static SQInteger threadid(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: threadid: not implemented" << std::endl;
+        error("TODO: threadid: not implemented");
         return 0;
     }
 
@@ -1028,7 +1029,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get pauseable"));
         }
-        std::cerr << "TODO: threadpauseable: not implemented" << std::endl;
+        error("TODO: threadpauseable: not implemented");
         return 0;
     }
 };

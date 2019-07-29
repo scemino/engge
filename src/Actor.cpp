@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "InventoryObject.h"
 #include "Lip.h"
+#include "Logger.h"
 #include "PathFinder.h"
 #include "Room.h"
 #include "RoomScaling.h"
@@ -305,7 +306,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         if (_path.empty())
         {
             _isWalking = false;
-            std::cout << "Play anim stand" << std::endl;
+            trace("Play anim stand");
             if (_facing.has_value())
             {
                 _pActor->getCostume().setFacing(_facing.value());
@@ -317,7 +318,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             _pActor->getCostume().setFacing(getFacing());
             _pActor->getCostume().setState("walk");
             _pActor->getCostume().getAnimation()->play(true);
-            std::cout << "go to : " << _path[0].x << "," << _path[0].y << std::endl;
+            trace("go to : {},{}", _path[0].x, _path[0].y);
         }
     }
 }
@@ -373,7 +374,7 @@ void Actor::Impl::TalkingState::load(int id)
     auto soundDefinition = _pActor->pImpl->_engine.getSoundManager().defineSound(name + ".ogg");
     if (!soundDefinition)
     {
-        std::cerr << "File " << name << ".ogg not found" << std::endl;
+        error("File {}.ogg not found", name);
         return;
     }
     _pSound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
@@ -382,7 +383,7 @@ void Actor::Impl::TalkingState::load(int id)
 
     std::string path;
     path.append(name).append(".lip");
-    std::cout << "load lip " << path << std::endl;
+    trace("load lip {}", path);
     _lip.setSettings(_pActor->pImpl->_engine.getSettings());
     _lip.load(path);
 
@@ -392,7 +393,6 @@ void Actor::Impl::TalkingState::load(int id)
     if (std::regex_search(_sayText, matches, re))
     {
         auto anim = matches[2].str();
-        std::wcout << "talk anim " << anim << std::endl;
         _pActor->getCostume().setState(tostring(anim));
         _sayText = matches.suffix();
     }

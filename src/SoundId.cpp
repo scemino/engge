@@ -1,6 +1,7 @@
 #include "Actor.h"
 #include "Engine.h"
 #include "Entity.h"
+#include "Logger.h"
 #include "Room.h"
 #include "SoundId.h"
 #include "SoundManager.h"
@@ -14,7 +15,7 @@ SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, 
 
 SoundId::~SoundId()
 {
-    std::cout << "delete SoundId (" << std::hex << this << ") " << _pSoundDefinition->getPath() << std::endl;
+    trace("delete SoundId ({}) {}", (long)this, _pSoundDefinition->getPath());
     stop();
     _pSoundDefinition = nullptr;
 }
@@ -42,7 +43,7 @@ void SoundId::play(int loopTimes)
 void SoundId::setVolume(float volume)
 {
     auto path = _pSoundDefinition->getPath();
-    std::cout << "setVolume(" << path << "," << volume << ")" << std::endl;
+    trace("setVolume({},{})", path, volume);
     _volume = volume;
 }
 
@@ -54,7 +55,7 @@ float SoundId::getVolume() const
 void SoundId::stop()
 {
     auto path = _pSoundDefinition->getPath();
-    std::cout << "stopSoundId(" << path << ")" << std::endl;
+    trace("stopSoundId({})", path);
     _sound.stop();
 }
 

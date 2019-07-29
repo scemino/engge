@@ -8,6 +8,7 @@
 #include "nlohmann/json.hpp"
 #include "Animation.h"
 #include "Light.h"
+#include "Logger.h"
 #include "PathFinder.h"
 #include "Room.h"
 #include "RoomLayer.h"
@@ -145,7 +146,7 @@ struct Room::Impl
                 auto parallax = jLayer["parallax"].double_value;
                 layer->setParallax(sf::Vector2f(parallax, 1));
             }
-            std::cout << "Read layer zsort: " << layer->getZOrder() << std::endl;
+            // trace("Read layer zsort: {}", layer->getZOrder());
             _layers.push_back(std::move(layer));
         }
 
@@ -234,7 +235,6 @@ struct Room::Impl
                 object->setStateAnimIndex(0);
             }
             object->setRoom(_pRoom);
-            // std::cout << "Object " << *object << std::endl;
             itLayer->get()->addEntity(*object);
             _objects.push_back(std::move(object));
         }
@@ -419,7 +419,7 @@ void Room::load(const char *name)
     // load wimpy file
     std::string wimpyFilename;
     wimpyFilename.append(name).append(".wimpy");
-    std::cout << "Load room " << wimpyFilename << std::endl;
+    trace("Load room {}", wimpyFilename);
 
     if (!pImpl->_settings.hasEntry(wimpyFilename))
         return;
@@ -637,7 +637,7 @@ void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
     });
     if (it == pImpl->_walkboxes.end())
     {
-        std::cerr << "walkbox " << name << " has not been found" << std::endl;
+        error("walkbox {} has not been found", name);
         return;
     }
     it->setEnabled(isEnabled);

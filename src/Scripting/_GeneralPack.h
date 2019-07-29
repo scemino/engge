@@ -267,7 +267,6 @@ private:
 
     static SQInteger cameraAt(HSQUIRRELVM v)
     {
-        std::cout << "cameraAt" << std::endl;
         auto screen = g_pEngine->getWindow().getView().getSize();
         SQInteger x, y;
         auto numArgs = sq_gettop(v) - 1;
@@ -387,7 +386,6 @@ private:
 
     static SQInteger cutscene(HSQUIRRELVM v)
     {
-        std::cout << "cutscene" << std::endl;
         auto numArgs = sq_gettop(v);
         HSQOBJECT env_obj;
         sq_resetobject(&env_obj);
@@ -511,13 +509,13 @@ private:
 
     static SQInteger markProgress(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: markProgress: not implemented" << std::endl;
+        error("TODO: markProgress: not implemented");
         return 0;
     }
 
     static SQInteger markStat(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: markStat: not implemented" << std::endl;
+        error("TODO: markStat: not implemented");
         return 0;
     }
 
@@ -667,7 +665,7 @@ private:
 
     static SQInteger stopSentence(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: stopSentence: not implemented" << std::endl;
+        error("TODO: stopSentence: not implemented");
         return 0;
     }
 

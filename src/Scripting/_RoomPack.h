@@ -367,13 +367,12 @@ private:
     static SQInteger enterRoomFromDoor(HSQUIRRELVM v)
     {
         auto obj = ScriptEngine::getObject(v, 2);
-        std::wcout << L"enterRoomFromDoor " << obj->getName() << std::endl;
         return g_pEngine->enterRoomFromDoor(obj);
     }
 
     static SQInteger roomEffect(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: roomEffect: not implemented" << std::endl;
+        error("TODO: roomEffect: not implemented");
         return 0;
     }
 
@@ -405,14 +404,13 @@ private:
         }
         SQBool hidden;
         sq_tobool(v, 3, &hidden);
-        std::cout << "walkboxHidden(" << name << "," << ((hidden == SQTrue) ? "true" : "false") << ")" << std::endl;
         g_pEngine->getRoom()->setWalkboxEnabled(name, hidden == SQFalse);
         return 0;
     }
 
     static SQInteger removeTrigger(HSQUIRRELVM v)
     {
-        std::cout << "removeTrigger" << std::endl;
+        trace("removeTrigger");
         if (sq_gettype(v, 2) == OT_CLOSURE)
         {
             HSQOBJECT closure;
@@ -483,14 +481,14 @@ private:
         }
         else
         {
-            std::cerr << "roomFade not implemented" << std::endl;
+            error("roomFade not implemented");
         }
         return 0;
     }
 
     static SQInteger roomOverlayColor(HSQUIRRELVM v)
     {
-        std::cout << "roomOverlayColor" << std::endl;
+        trace("roomOverlayColor");
         SQInteger startColor, endColor;
         auto numArgs = sq_gettop(v);
         if (SQ_FAILED(sq_getinteger(v, 2, &startColor)))
@@ -576,7 +574,6 @@ private:
             {
                 const SQChar *key = nullptr;
                 sq_getstring(v, -2, &key);
-                // std::cout << "### Obj " << key << std::endl;
                 HSQOBJECT object;
                 sq_resetobject(&object);
                 if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object)))

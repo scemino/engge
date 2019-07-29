@@ -1,4 +1,5 @@
 #include "JsonTokenReader.h"
+#include "Logger.h"
 
 namespace ng
 {
@@ -96,7 +97,7 @@ TokenId TokenReader::readTokenId()
         {
             return readString();
         }
-        std::cerr << "unknown character: " << c << std::endl;
+        error("unknown character: {}",c);
         return TokenId::None;
     }
 }

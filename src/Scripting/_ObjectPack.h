@@ -18,7 +18,7 @@ class _PickupAnim : public Function
 
     void playAnim(const std::string &name)
     {
-        std::cout << "Play anim " << name << std::endl;
+        trace("Play anim {}", name);
         _actor.getCostume().setState(name);
         _pAnim = _actor.getCostume().getAnimation();
         if (_pAnim)
@@ -162,13 +162,13 @@ class _ObjectPack : public Pack
 
     static SQInteger jiggleInventory(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: jiggleInventory: not implemented" << std::endl;
+        error("TODO: jiggleInventory: not implemented");
         return 0;
     }
 
     static SQInteger jiggleObject(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: jiggleObject: not implemented" << std::endl;
+        error("TODO: jiggleObject: not implemented");
         return 0;
     }
 
@@ -244,7 +244,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectBumperCycle(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectBumperCycle: not implemented" << std::endl;
+        error("TODO: objectBumperCycle: not implemented");
         return 0;
     }
 
@@ -338,7 +338,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectScreenSpace(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectScreenSpace: not implemented" << std::endl;
+        error("TODO: objectScreenSpace: not implemented");
         return 0;
     }
 
@@ -362,7 +362,6 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get state"));
         }
         obj->setStateAnimIndex(state);
-        std::wcout << obj->getId() << L" objectState(" << state << L")" << std::endl;
 
         return 0;
     }
@@ -478,7 +477,7 @@ class _ObjectPack : public Pack
 
     static SQInteger removeInventory(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: removeInventory: not implemented" << std::endl;
+        error("TODO: removeInventory: not implemented");
         return 0;
     }
 
@@ -759,7 +758,7 @@ class _ObjectPack : public Pack
 
         if (!pActor)
         {
-            std::cerr << "Inventory object not found" << std::endl;
+            error("Inventory object not found");
             sq_pushnull(v);
             return 1;
         }
@@ -887,7 +886,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get icon"));
         }
-        std::cerr << "TODO: objectIcon not implemented " << std::endl;
+        error("TODO: objectIcon not implemented ");
         return 0;
     }
 
@@ -945,7 +944,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectShader(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: objectShader: not implemented" << std::endl;
+        error("TODO: objectShader: not implemented");
         return 0;
     }
 
@@ -1036,7 +1035,7 @@ class _ObjectPack : public Pack
             actor = g_pEngine->getCurrentActor();
             if (!actor)
             {
-                std::cerr << "There is no actor to pickup object " << icon << std::endl;
+                error("There is no actor to pickup object {}");
                 return 0;
             }
 
@@ -1121,13 +1120,13 @@ class _ObjectPack : public Pack
 
     static SQInteger shakeObject(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: shakeObject: not implemented" << std::endl;
+        error("TODO: shakeObject: not implemented");
         return 0;
     }
 
     static SQInteger stopObjectMotors(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: stopObjectMotors: not implemented" << std::endl;
+        error("TODO: stopObjectMotors: not implemented");
         return 0;
     }
 

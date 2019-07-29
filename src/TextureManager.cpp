@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Logger.h"
 #include "TextureManager.h"
 
 namespace ng
@@ -12,7 +13,7 @@ TextureManager::~TextureManager() = default;
 
 void TextureManager::load(const std::string &id)
 {
-    std::cout << "Load texture " << id << std::endl;
+    info("Load texture {}", id);
     std::string path;
     path.append(id).append(".png");
     auto texture = std::make_shared<sf::Texture>();
@@ -27,7 +28,7 @@ void TextureManager::load(const std::string &id)
 
     if (!texture->loadFromMemory(data.data(), data.size()))
     {
-        std::cerr << "Fail to load texture " << path << std::endl;
+        error("Fail to load texture {}", path);
     }
 
     _textureMap.insert(std::make_pair(id, texture));
