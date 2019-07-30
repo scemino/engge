@@ -375,11 +375,13 @@ void Actor::Impl::TalkingState::load(int id)
     if (!soundDefinition)
     {
         error("File {}.ogg not found", name);
-        return;
     }
-    _pSound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
-    if (_pSound)
-        _pSound->setVolume(_pActor->pImpl->_volume);
+    else
+    {
+        _pSound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
+        if (_pSound)
+            _pSound->setVolume(_pActor->pImpl->_volume);
+    }
 
     std::string path;
     path.append(name).append(".lip");
@@ -406,6 +408,7 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
     if (!_isTalking)
         return;
 
+    if(_lip.getData().empty()) return;
     auto time = _lip.getData()[_index].time;
     if (_clock.getElapsedTime() > time)
     {
