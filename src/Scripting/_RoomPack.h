@@ -342,7 +342,7 @@ private:
                 return sq_throwerror(v, _SC("failed to get outsideTriggerFunction"));
             }
         }
-        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, v, *object, inside, outside);
+        auto trigger = std::make_shared<_RoomTrigger>(*g_pEngine, *object, inside, outside);
         object->addTrigger(trigger);
 
         return 0;
