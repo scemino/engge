@@ -48,7 +48,7 @@ public:
   void unlockFacing();
   void resetLockFacing();
   void setFacing(Facing facing);
-  Facing getFacing() const { return _facing; }
+  Facing getFacing() const;
   void setState(const std::string &name);
   bool setAnimation(const std::string &name);
   CostumeAnimation *getAnimation() { return _pCurrentAnimation.get(); }

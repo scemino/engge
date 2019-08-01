@@ -99,12 +99,17 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
     }
 }
 
-void Costume::setFacing(Facing facing)
+Facing Costume::getFacing() const
 {
     if(_lockFacing)
     {
-        facing = _facings[facing];
+        return _facings.at(_facing);
     }
+    return _facing;
+}
+
+void Costume::setFacing(Facing facing)
+{
     if (_facing == facing)
         return;
     _facing = facing;
@@ -117,6 +122,7 @@ void Costume::lockFacing(Facing left, Facing right, Facing front, Facing back)
     _facings[Facing::FACE_RIGHT] = right;
     _facings[Facing::FACE_FRONT] = front;
     _facings[Facing::FACE_BACK] = back;
+    _lockFacing = true;
 }
 
 void Costume::resetLockFacing()
@@ -272,7 +278,7 @@ void Costume::updateAnimation()
     {
         std::string name(_animation);
         name.append("_");
-        switch (_facing)
+        switch (getFacing())
         {
         case Facing::FACE_BACK:
             name.append("back");
@@ -295,7 +301,7 @@ void Costume::updateAnimation()
         auto &layers = _pCurrentAnimation->getLayers();
         for (auto layer : layers)
         {
-            layer->setLeftDirection(_facing == Facing::FACE_LEFT);
+            layer->setLeftDirection(getFacing() == Facing::FACE_LEFT);
         }
     }
 }
