@@ -184,6 +184,7 @@ class _ActorPack : public Pack
             pRoom = pObj->getRoom();
             pActor->setRoom(pRoom);
             pActor->setPosition(pos);
+            pActor->getCostume().setFacing(_toFacing(pObj->getUseDirection()));
             return 0;
         }
         else if (numArgs == 4)
@@ -553,6 +554,7 @@ class _ActorPack : public Pack
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
+        trace("actorRoom({})=>{}", pActor->getName(), pRoom->getId());
         if (pRoom)
         {
             sq_pushobject(v, pRoom->getTable());
