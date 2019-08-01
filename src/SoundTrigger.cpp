@@ -22,7 +22,7 @@ SoundTrigger::SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> 
 
 SoundTrigger::~SoundTrigger() = default;
 
-void SoundTrigger::trig()
+void SoundTrigger::trigCore()
 {
     int i = _distribution(_generator);
     _sounds[i] = _engine.getSoundManager().playSound(_soundsDefinitions[i]);

@@ -4,14 +4,22 @@ namespace ng
 {
 class Trigger
 {
-public:
-  Trigger() = default;
-  virtual ~Trigger() = default;
-  virtual void trig() = 0;
-  bool isEnabled() const { return _isEnabled; }
-  void disable() { _isEnabled = false; }
+  public:
+    Trigger() = default;
+    virtual ~Trigger() = default;
+    void trig()
+    {
+        if (!isEnabled())
+            return;
+        trigCore();
+    }
+    bool isEnabled() const { return _isEnabled; }
+    void disable() { _isEnabled = false; }
 
- private:
-  bool _isEnabled{true};
+  protected:
+    virtual void trigCore() = 0;
+
+  private:
+    bool _isEnabled{true};
 };
-}
+} // namespace ng

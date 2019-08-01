@@ -66,7 +66,7 @@ class _RoomTrigger : public Trigger
     HSQOBJECT &getOutside() { return _outside; }
 
   private:
-    void trig() override
+    void trigCore() override
     {
         auto actor = _engine.getCurrentActor();
         if (!actor)

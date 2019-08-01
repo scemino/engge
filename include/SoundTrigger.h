@@ -15,7 +15,7 @@ public:
     ~SoundTrigger() override;
 
 private:
-    void trig() override;
+    void trigCore() override;
 
 private:
     Engine &_engine;
