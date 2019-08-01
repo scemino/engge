@@ -452,7 +452,7 @@ TextObject &Room::createTextObject(const std::string &fontName)
 {
     auto object = std::make_unique<TextObject>();
     std::string path;
-    path.append(fontName).append(".fnt");
+    path.append(fontName).append("Font.fnt");
     object->getFont().setSettings(&pImpl->_settings);
     object->getFont().loadFromFile(path);
     auto &obj = *object;
