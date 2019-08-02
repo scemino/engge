@@ -408,11 +408,16 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
     if (!_isTalking)
         return;
 
-    if(_lip.getData().empty()) return;
+    if(_lip.getData().empty())
+    { 
+        _isTalking = false;
+        _id = 0;
+        return;
+    }
     auto time = _lip.getData()[_index].time;
     if (_clock.getElapsedTime() > time)
     {
-        _index = _index + 1;
+        _index++;
     }
     if (_index == _lip.getData().size())
     {
