@@ -48,6 +48,7 @@ void DialogManager::start(const std::string &name, const std::string &node)
 
 void DialogManager::selectLabel(const std::string &name)
 {
+    trace("select label {}", name);
     _isActive = false;
     for (auto &line : _dialog)
     {
@@ -88,7 +89,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         if (dlg.id == 0)
             continue;
 
-        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 10);
+        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         text.setString(dlg.text);
         text.setFillColor(text.getGlobalBounds().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(0).dialogHighlight : _pEngine->getVerbUiColors(0).dialogNormal);
         target.draw(text, states);
@@ -131,11 +132,12 @@ void DialogManager::update(const sf::Time &elapsed)
         if (dlg.id == 0)
             continue;
 
+        // HACK: bad, bad, this code is the same as in the draw function
         Text text;
         auto scale = screen.y / 2.f / 512.f;
         text.scale(scale, scale);
         text.setFont(_font);
-        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 10);
+        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         text.setString(dlg.text);
         if (text.getGlobalBounds().contains(_pEngine->getMousePos()))
         {
