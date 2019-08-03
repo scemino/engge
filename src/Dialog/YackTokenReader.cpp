@@ -216,9 +216,16 @@ TokenId YackTokenReader::readTokenId()
 TokenId YackTokenReader::readCode()
 {
     char c;
+    char previousChar = '\0';
     while ((c = _stream.peek()) != '\n' && c != '\0')
     {
         _stream.ignore();
+        if(previousChar == ' ' && c == '[' && _stream.peek() != ' ')
+        {
+            _stream.seek(_stream.tell()-1);
+            return TokenId::Code;
+        }
+        previousChar = c;
     }
     return TokenId::Code;
 }
