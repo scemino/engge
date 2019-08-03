@@ -97,12 +97,19 @@ void DialogVisitor::visit(const Ast::Say &node)
 {
     auto &actors = _pEngine->getActors();
     Actor *pActor = nullptr;
-    for (auto &actor : actors)
+    if(node.actor=="agent")
     {
-        if (actor->getName() == node.actor)
+        pActor = _pEngine->getCurrentActor();
+    }
+    else
+    {
+        for (auto &actor : actors)
         {
-            pActor = actor.get();
-            break;
+            if (actor->getName() == node.actor)
+            {
+                pActor = actor.get();
+                break;
+            }
         }
     }
     auto id = getId(node.text);
