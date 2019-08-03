@@ -71,7 +71,6 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index)
     // is it a table?
     if (type != OT_TABLE)
     {
-        sq_pushbool(v, SQFalse);
         return nullptr;
     }
 
@@ -122,6 +121,18 @@ Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
 Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index)
 {
     return ScriptEngine::getScriptObject<Light>(v, index);
+}
+
+bool ScriptEngine::tryGetLight(HSQUIRRELVM v, SQInteger index, Light*& light)
+{
+    HSQOBJECT obj;
+    light = nullptr;
+    if(SQ_SUCCEEDED(sq_getstackobj(v, index, &obj)) && sq_isinteger(obj) && sq_objtointeger(&obj) == 0)
+    {
+        return false;
+    }
+    light = ScriptEngine::getScriptObject<Light>(v, index);
+    return true;
 }
 
 template <class T>

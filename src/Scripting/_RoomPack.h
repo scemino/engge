@@ -143,27 +143,30 @@ private:
 
     static SQInteger lightBrightness(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQFloat brightness;
         if (SQ_FAILED(sq_getfloat(v, 3, &brightness)))
-        {
             return sq_throwerror(v, _SC("failed to get brightness"));
-        }
+
         pLight->setBrightness(brightness);
         return 0;
     }
 
     static SQInteger lightConeDirection(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQFloat direction;
         if (SQ_FAILED(sq_getfloat(v, 3, &direction)))
         {
@@ -175,11 +178,13 @@ private:
 
     static SQInteger lightConeAngle(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQFloat angle;
         if (SQ_FAILED(sq_getfloat(v, 3, &angle)))
         {
@@ -191,11 +196,13 @@ private:
 
     static SQInteger lightConeFalloff(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQFloat falloff;
         if (SQ_FAILED(sq_getfloat(v, 3, &falloff)))
         {
@@ -207,11 +214,13 @@ private:
 
     static SQInteger lightCutOffRadius(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQFloat cutOffRadius;
         if (SQ_FAILED(sq_getfloat(v, 3, &cutOffRadius)))
         {
@@ -223,11 +232,13 @@ private:
 
     static SQInteger lightHalfRadius(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQFloat halfRadius;
         if (SQ_FAILED(sq_getfloat(v, 3, &halfRadius)))
         {
@@ -239,11 +250,13 @@ private:
 
     static SQInteger lightTurnOn(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+
         SQInteger on;
         if (SQ_FAILED(sq_getinteger(v, 3, &on)))
         {
@@ -255,11 +268,13 @@ private:
 
     static SQInteger lightZRange(HSQUIRRELVM v)
     {
-        auto pLight = ScriptEngine::getLight(v, 2);
+        Light* pLight;
+        if(!ScriptEngine::tryGetLight(v, 2, pLight))
+            return 0;
+
         if (!pLight)
-        {
             return sq_throwerror(v, _SC("failed to get light"));
-        }
+            
         SQInteger nearY, farY;
         if (SQ_FAILED(sq_getinteger(v, 3, &nearY)))
         {

@@ -46,6 +46,7 @@ public:
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);
   static Light *getLight(HSQUIRRELVM v, SQInteger index);
+  static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light*& light);
 
   template <class T>
   static void pushObject(HSQUIRRELVM v, T &object);
