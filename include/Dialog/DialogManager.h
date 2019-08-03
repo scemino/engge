@@ -4,7 +4,7 @@
 #include "SFML/Graphics.hpp"
 #include "YackParser.h"
 #include "Function.h"
-#include "FntFont.h"
+#include "Font.h"
 
 namespace ng
 {
@@ -99,6 +99,6 @@ private:
   bool _isActive{false};
   DialogVisitor _dialogVisitor;
   std::vector<std::unique_ptr<Function>> _functions;
-  FntFont _font;
+  Font _font;
 };
 } // namespace ng

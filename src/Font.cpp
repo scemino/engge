@@ -31,20 +31,20 @@ void Font::load(const std::string &path)
     _texture = _textureManager->get(_path);
 }
 
-sf::IntRect Font::getRect(char letter) const
+sf::IntRect Font::getRect(uint32_t letter) const
 {
-    const auto &s = std::to_string((int)letter);
+    auto s = std::to_string(letter);
     return _toRect(_json["frames"][s]["frame"]);
 }
 
-sf::IntRect Font::getSize(char letter) const
+sf::IntRect Font::getSize(uint32_t letter) const
 {
-    const auto &s = std::to_string((int)letter);
+    auto s = std::to_string(letter);
     return _toRect(_json["frames"][s]["spriteSourceSize"]);
 }
 
 NGText::NGText()
-    : _alignment(NGTextAlignment::Center)
+    : _alignment(NGTextAlignment::Left)
 {
 }
 

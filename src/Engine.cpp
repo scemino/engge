@@ -223,8 +223,9 @@ bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
 void Engine::follow(Actor *pActor)
 {
-    auto panCamera = (_pImpl->_pFollowActor && pActor && _pImpl->_pFollowActor != pActor &&
-                      _pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
+    auto panCamera = (_pImpl->_pFollowActor && pActor && _pImpl->_pFollowActor != pActor 
+        && _pImpl->_pFollowActor->getRoom() && pActor->getRoom()
+        && _pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
     _pImpl->_pFollowActor = pActor;
     if (!pActor)
         return;
@@ -446,6 +447,8 @@ Room *pLastRoom = nullptr;
 SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
+
+    if(!pRoom) return 0;
 
     auto pOldRoom = _pImpl->_pRoom;
     if (pRoom == pOldRoom)
@@ -1005,6 +1008,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     auto cameraPos = _camera.getAt();
 
     NGText text;
+    text.setAlignment(NGTextAlignment::Center);
     text.setFont(_fntFont);
     text.setColor(sf::Color::White);
 

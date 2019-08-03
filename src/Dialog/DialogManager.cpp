@@ -21,8 +21,9 @@ void DialogManager::setEngine(Engine *pEngine)
 {
     _pEngine = pEngine;
     _dialogVisitor.setEngine(_pEngine);
+    _font.setTextureManager(&pEngine->getTextureManager());
     _font.setSettings(&pEngine->getSettings());
-    _font.loadFromFile("DialogFont.fnt");
+    _font.load("FontModernSheet");
 }
 
 void DialogManager::addFunction(std::unique_ptr<Function> function)
@@ -79,19 +80,20 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         return;
 
     int dialog = 0;
-    Text text;
     auto screen = target.getView().getSize();
-    auto scale = screen.y / 2.f / 512.f;
+    NGText text;
     text.setFont(_font);
-    text.scale(scale, scale);
     for (auto &dlg : _dialog)
     {
         if (dlg.id == 0)
             continue;
 
         text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
-        text.setString(dlg.text);
-        text.setFillColor(text.getGlobalBounds().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(0).dialogHighlight : _pEngine->getVerbUiColors(0).dialogNormal);
+        sf::String s;
+        s = L"● ";
+        s += dlg.text;
+        text.setText(s);
+        text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(0).dialogHighlight : _pEngine->getVerbUiColors(0).dialogNormal);
         target.draw(text, states);
         dialog++;
     }
@@ -133,13 +135,14 @@ void DialogManager::update(const sf::Time &elapsed)
             continue;
 
         // HACK: bad, bad, this code is the same as in the draw function
-        Text text;
-        auto scale = screen.y / 2.f / 512.f;
-        text.scale(scale, scale);
+        NGText text;
         text.setFont(_font);
         text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
-        text.setString(dlg.text);
-        if (text.getGlobalBounds().contains(_pEngine->getMousePos()))
+        sf::String s;
+        s = L"● ";
+        s += dlg.text;
+        text.setText(s);
+        if (text.getBoundRect().contains(_pEngine->getMousePos()))
         {
             auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
             _functions.push_back(std::move(say));

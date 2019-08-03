@@ -17,8 +17,8 @@ public:
   void load(const std::string &path);
 
   const sf::Texture &getTexture() const { return _texture; }
-  sf::IntRect getRect(char letter) const;
-  sf::IntRect getSize(char letter) const;
+  sf::IntRect getRect(uint32_t letter) const;
+  sf::IntRect getSize(uint32_t letter) const;
 
 private:
   EngineSettings *_settings{nullptr};
