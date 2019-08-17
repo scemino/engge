@@ -5,7 +5,7 @@
 namespace ng
 {
 CostumeAnimation::CostumeAnimation(std::string name)
-    : _name(std::move(name)), _state(AnimationState::Pause), _loop(false)
+    : _name(std::move(name)), _state(AnimationState::Pause)
 {
 }
 
@@ -14,10 +14,6 @@ CostumeAnimation::~CostumeAnimation() = default;
 void CostumeAnimation::play(bool loop)
 {
     _loop = loop;
-    for (auto &layer : _layers)
-    {
-        layer->setLoop(loop);
-    }
     _state = AnimationState::Play;
 }
 
@@ -25,12 +21,12 @@ void CostumeAnimation::update(const sf::Time &elapsed)
 {
     if (!isPlaying())
         return;
-    bool isFinished = !_loop;
+    bool loop = _loop;
     for (auto &layer : _layers)
     {
-        isFinished &= layer->update(elapsed);
+        loop |= !layer->update(elapsed);
     }
-    if (isFinished)
+    if (!loop)
     {
         pause();
     }

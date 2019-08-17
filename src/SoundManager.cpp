@@ -61,14 +61,14 @@ SoundDefinition *SoundManager::defineSound(const std::string &name)
     return pSound;
 }
 
-SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes)
+SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity* pEntity)
 {
-    return play(pSoundDefinition, SoundCategory::Sound, loopTimes);
+    return play(pSoundDefinition, SoundCategory::Sound, loopTimes, pEntity);
 }
 
-SoundId *SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes)
+SoundId *SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity* pEntity)
 {
-    return play(pSoundDefinition, SoundCategory::Talk, loopTimes);
+    return play(pSoundDefinition, SoundCategory::Talk, loopTimes, pEntity);
 }
 
 SoundId *SoundManager::playMusic(SoundDefinition *pSoundDefinition, int loopTimes)
@@ -76,9 +76,10 @@ SoundId *SoundManager::playMusic(SoundDefinition *pSoundDefinition, int loopTime
     return play(pSoundDefinition, SoundCategory::Music, loopTimes);
 }
 
-SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes)
+SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes, Entity* pEntity)
 {
     auto soundId = std::make_unique<SoundId>(*this, pSoundDefinition, category);
+    soundId->setEntity(pEntity);
     auto index = getSlotIndex();
     if (index == -1)
     {

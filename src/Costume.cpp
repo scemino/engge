@@ -244,10 +244,15 @@ bool Costume::setAnimation(const std::string &animName)
             {
                 layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.string_value));
             }
+            if(!jLayer["loop"].isNull() && jLayer["loop"].int_value == 1)
+            {
+                layer->setLoop(true);
+            }
             layer->setActor(_pActor);
             _pCurrentAnimation->getLayers().push_back(layer);
         }
         trace("found animation: {}", name);
+        _pCurrentAnimation->play();
         return true;
     }
     return false;

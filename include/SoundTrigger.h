@@ -5,13 +5,14 @@
 
 namespace ng
 {
+class Entity;
 class Engine;
 class SoundDefinition;
 class SoundId;
 class SoundTrigger : public Trigger
 {
 public:
-    SoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds);
+    SoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds, Entity* pEntity);
     ~SoundTrigger() override;
 
 private:
@@ -19,6 +20,7 @@ private:
 
 private:
     Engine &_engine;
+    Entity* _pEntity{nullptr};
     std::vector<SoundDefinition*> _soundsDefinitions;
     std::vector<SoundId*> _sounds;
     std::default_random_engine _generator;

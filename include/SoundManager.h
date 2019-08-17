@@ -5,6 +5,7 @@
 
 namespace ng
 {
+class Entity;
 class Engine;
 class EngineSettings;
 class SoundDefinition;
@@ -19,8 +20,8 @@ public:
   Engine * getEngine() const { return _pEngine; }
 
   SoundDefinition *defineSound(const std::string &name);
-  SoundId *playSound(SoundDefinition *pSoundDefinition, int loopTimes = 1);
-  SoundId *playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes = 1);
+  SoundId *playSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, Entity* pEntity = nullptr);
+  SoundId *playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, Entity* pEntity = nullptr);
   SoundId *playMusic(SoundDefinition *pSoundDefinition, int loopTimes = 1);
 
   void stopAllSounds();
@@ -47,7 +48,7 @@ public:
 
 private:
   int getSlotIndex();
-  SoundId *play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes = 1);
+  SoundId *play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes = 1, Entity* pEntity = nullptr);
 
 private:
   EngineSettings &_settings;

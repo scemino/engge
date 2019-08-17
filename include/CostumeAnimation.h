@@ -36,6 +36,6 @@ private:
   std::string _name;
   std::vector<CostumeLayer *> _layers;
   AnimationState _state;
-  bool _loop;
+  bool _loop{false};
 };
 } // namespace ng

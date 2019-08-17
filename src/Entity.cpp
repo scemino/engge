@@ -127,7 +127,7 @@ void Entity::drawForeground(sf::RenderTarget &target, sf::RenderStates states) c
 
 SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds)
 {
-    auto trigger = std::make_unique<SoundTrigger>(engine, sounds);
+    auto trigger = std::make_unique<SoundTrigger>(engine, sounds, this);
     SoundTrigger *pTrigger = trigger.get();
     _soundTriggers.push_back(std::move(trigger));
     return pTrigger;

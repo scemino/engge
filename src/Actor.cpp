@@ -391,7 +391,7 @@ void Actor::Impl::TalkingState::load(int id)
     }
     else
     {
-        _pSound = _pActor->pImpl->_engine.getSoundManager().playSound(soundDefinition);
+        _pSound = _pActor->pImpl->_engine.getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
         if (_pSound)
             _pSound->setVolume(_pActor->pImpl->_volume);
     }
