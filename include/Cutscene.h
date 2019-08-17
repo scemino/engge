@@ -12,19 +12,16 @@ class Cutscene : public ThreadBase, public Function
 {
 private:
   Engine &_engine;
-  HSQUIRRELVM _v;
-  HSQUIRRELVM _engineVm;
-  HSQOBJECT _thread;
+  HSQUIRRELVM _v{};
+  HSQUIRRELVM _engineVm{};
+  HSQOBJECT _thread{};
   int _state{0};
-  HSQOBJECT _closureObj;
-  HSQOBJECT _closureCutsceneOverrideObj;
-  HSQOBJECT _envObj;
+  HSQOBJECT _closureObj{};
+  HSQOBJECT _closureCutsceneOverrideObj{};
+  HSQOBJECT _envObj{};
   bool _inputActive{false};
   bool _inputVerbs{false};
-  Actor *_currentActor{nullptr};
-  Actor *_pFollowActor{nullptr};
   bool _hasCutsceneOverride{false};
-  sf::Vector2f _cameraAt;
 
 public:
   Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj);
