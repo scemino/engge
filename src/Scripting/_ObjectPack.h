@@ -1030,52 +1030,51 @@ class _ObjectPack : public Pack
         pObject->setHandle(std::move(pObj));
 
         auto actor = ScriptEngine::getActor(v, 3);
-        if (!actor)
-        {
-            actor = g_pEngine->getCurrentActor();
-            if (!actor)
-            {
-                error("There is no actor to pickup object {}");
-                return 0;
-            }
-
-            sq_pushobject(v, envObj);
-            sq_pushstring(v, _SC("flags"), -1);
-            if (SQ_FAILED(sq_get(v, -2)))
-            {
-                sq_pop(v, 2);
-                return sq_throwerror(v, _SC("failed to get object flags"));
-            }
-
-            SQInteger flags;
-            if (SQ_FAILED(sq_getinteger(v, -1, &flags)))
-            {
-                sq_pop(v, 2);
-                return sq_throwerror(v, _SC("failed to get object flags"));
-            }
-
-            std::string anim;
-            if ((flags & 0x8000) == 0x8000) // HIGH
-            {
-                anim = "reach_high";
-            }
-            else if ((flags & 0x10000) == 0x10000) // MED
-            {
-                anim = "reach_med";
-            }
-            else if ((flags & 0x20000) == 0x20000) // LOW
-            {
-                anim = "reach_low";
-            }
-
-            auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(pObject), anim);
-            g_pEngine->addFunction(std::move(pPickupAnim));
-        }
-        else
+        if (actor)
         {
             actor->pickupObject(std::move(pObject));
+            return 0;
         }
 
+        actor = g_pEngine->getCurrentActor();
+        if (!actor)
+        {
+            error("There is no actor to pickup object {}");
+            return 0;
+        }
+
+        sq_pushobject(v, envObj);
+        sq_pushstring(v, _SC("flags"), -1);
+        if (SQ_FAILED(sq_get(v, -2)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get object flags"));
+        }
+
+        SQInteger flags;
+        if (SQ_FAILED(sq_getinteger(v, -1, &flags)))
+        {
+            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("failed to get object flags"));
+        }
+
+        std::string anim;
+        if ((flags & 0x8000) == 0x8000) // HIGH
+        {
+            anim = "reach_high";
+        }
+        else if ((flags & 0x10000) == 0x10000) // MED
+        {
+            anim = "reach_med";
+        }
+        else if ((flags & 0x20000) == 0x20000) // LOW
+        {
+            anim = "reach_low";
+        }
+
+        auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(pObject), anim);
+        g_pEngine->addFunction(std::move(pPickupAnim));
+        
         return 0;
     }
 

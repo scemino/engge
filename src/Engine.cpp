@@ -205,6 +205,8 @@ std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actor
 
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
 
+Actor *Engine::getFollowActor() { return _pImpl->_pFollowActor; }
+
 void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb)
 {
     _pImpl->_verbSlots.at(characterSlot).setVerb(verbSlot, verb);
@@ -870,7 +872,7 @@ void Engine::update(const sf::Time &elapsed)
     }
 }
 
-void Engine::setCurrentActor(Actor *pCurrentActor)
+void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
 {
     _pImpl->_pCurrentActor = pCurrentActor;
     if (_pImpl->_pCurrentActor)
@@ -890,7 +892,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor)
     sq_remove(v, -2);
     sq_pushroottable(v);
     sq_pushobject(v, pCurrentActor->getTable());
-    sq_pushbool(v, false);
+    sq_pushbool(v, userSelected);
     if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
     {
         error("failed to call onActorSelected function");

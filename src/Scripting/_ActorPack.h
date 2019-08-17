@@ -800,21 +800,38 @@ class _ActorPack : public Pack
 
     static SQInteger actorWalkTo(HSQUIRRELVM v)
     {
+        auto numArgs = sq_gettop(v);
         auto *pActor = ScriptEngine::getActor(v, 2);
         if (!pActor)
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto *pObject = ScriptEngine::getObject(v, 3);
-        if (!pObject)
+        if(numArgs == 3)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            auto *pObject = ScriptEngine::getObject(v, 3);
+            if (!pObject)
+            {
+                return sq_throwerror(v, _SC("failed to get object"));
+            }
+
+            auto pos = pObject->getPosition();
+            auto usePos = pObject->getUsePosition();
+
+            pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
         }
-
-        auto pos = pObject->getPosition();
-        auto usePos = pObject->getUsePosition();
-
-        pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
+        else
+        {
+            SQInteger x, y;
+            if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+            {
+                return sq_throwerror(v, _SC("failed to get x"));
+            }
+            if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+            {
+                return sq_throwerror(v, _SC("failed to get y"));
+            }
+            pActor->walkTo(sf::Vector2f(x, y));
+        }
 
         return 0;
     }
@@ -982,7 +999,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        g_pEngine->setCurrentActor(actor);
+        g_pEngine->setCurrentActor(actor, false);
         return 0;
     }
 

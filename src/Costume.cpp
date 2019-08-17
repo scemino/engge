@@ -324,6 +324,7 @@ void Costume::draw(sf::RenderTarget &target, sf::RenderStates states) const
 void Costume::setHeadIndex(int index)
 {
     _headIndex = index;
+    if(!_pCurrentAnimation) return;
     for (int i = 0; i < 6; i++)
     {
         std::ostringstream s;

@@ -22,7 +22,9 @@ private:
   bool _inputActive{false};
   bool _inputVerbs{false};
   Actor *_currentActor{nullptr};
+  Actor *_pFollowActor{nullptr};
   bool _hasCutsceneOverride{false};
+  sf::Vector2f _cameraAt;
 
 public:
   Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj);

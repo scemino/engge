@@ -1,4 +1,5 @@
 #include "Actor.h"
+#include "Camera.h"
 #include "Cutscene.h"
 #include "Engine.h"
 #include "Logger.h"
@@ -13,8 +14,12 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
     _inputActive = _engine.getInputActive();
     _engine.setInputActive(false);
     _currentActor = _engine.getCurrentActor();
+    _pFollowActor = _engine.getFollowActor();
     _inputVerbs = _engine.getInputVerbs();
     _engine.setInputVerbs(false);
+    _cameraAt = _engine.getCamera().getAt();
+
+    trace("Start cutscene with actor "+(_currentActor?_currentActor->getName():"null"));
 
     sq_addref(_engineVm, &_thread);
     sq_addref(_engineVm, &_closureObj);
@@ -122,13 +127,19 @@ void Cutscene::checkEndCutsceneOverride()
 
 void Cutscene::endCutscene()
 {
+    trace("End cutscene with actor "+(_currentActor?_currentActor->getName():"null"));
     _state = 5;
     _engine.setInputActive(_inputActive);
     _engine.setInputVerbs(_inputVerbs);
     if (_currentActor)
     {
-        _engine.setCurrentActor(_currentActor);
+        _engine.setCurrentActor(_currentActor, false);
         _engine.setRoom(_currentActor->getRoom());
+    }
+    _engine.getCamera().at(_cameraAt);
+    if (_pFollowActor)
+    {
+        _engine.follow(_pFollowActor);
     }
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
     _engine.stopThread(_thread._unVal.pThread);

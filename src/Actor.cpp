@@ -370,7 +370,20 @@ void Actor::Impl::TalkingState::stop()
 void Actor::Impl::TalkingState::load(int id)
 {
     _id = id;
-    std::string name = str_toupper(_pActor->getName()).append("_").append(std::to_string(id));
+    auto v = _pActor->pImpl->_engine.getVm();
+    sq_pushobject(v, _pActor->pImpl->_table);
+    sq_pushstring(v, _SC("_talkieKey"), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pushobject(v, _pActor->pImpl->_table);
+        sq_pushstring(v, _SC("_key"), -1);
+        sq_rawget(v, -2);
+    }
+    const SQChar *key;
+    sq_getstring(v, -1, &key);
+    sq_pop(v, 2);
+
+    std::string name = str_toupper(key).append("_").append(std::to_string(id));
     auto soundDefinition = _pActor->pImpl->_engine.getSoundManager().defineSound(name + ".ogg");
     if (!soundDefinition)
     {

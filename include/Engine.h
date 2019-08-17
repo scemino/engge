@@ -78,8 +78,9 @@ class Engine : public NonCopyable
     void draw(sf::RenderWindow &window) const;
     int getFrameCounter() const;
 
-    void setCurrentActor(Actor *pCurrentActor);
+    void setCurrentActor(Actor *pCurrentActor, bool userSelected);
     Actor *getCurrentActor();
+    Actor *getFollowActor();
 
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);

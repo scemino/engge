@@ -9,11 +9,7 @@ class Room;
 class InventoryObject
 {
 public:
-  InventoryObject()
-      : _pRoom(nullptr),
-        _verb(2) // look at
-  {
-  }
+  InventoryObject() {}
   void setRoom(const Room *pRoom) { _pRoom = pRoom; }
   const Room *getRoom() const { return _pRoom; }
   void setName(const std::wstring &name) { _name = name; }
@@ -26,10 +22,10 @@ public:
   int getDefaultVerb() const { return _verb; }
 
 private:
-  const Room *_pRoom;
+  const Room *_pRoom{nullptr};
   std::string _icon;
   std::wstring _name;
-  int _verb;
+  int _verb{2}; // look at;
   std::unique_ptr<HSQOBJECT> _pHandle;
 };
 } // namespace ng
