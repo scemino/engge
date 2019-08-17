@@ -554,7 +554,7 @@ class _ActorPack : public Pack
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
-        trace("actorRoom({})=>{}", pActor->getName(), pRoom->getId());
+        trace("actorRoom({})=>{}", pActor->getName(), pRoom?pRoom->getId():"null");
         if (pRoom)
         {
             sq_pushobject(v, pRoom->getTable());
@@ -753,7 +753,23 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get distance"));
         }
-        actor->walkTo(actor->getPosition() + sf::Vector2f(distance, 0));
+        sf::Vector2f direction;
+        switch(actor->getCostume().getFacing())
+        {
+            case Facing::FACE_FRONT:
+                direction = sf::Vector2f(0, distance);
+                break;
+            case Facing::FACE_BACK:
+                direction = sf::Vector2f(0, -distance);
+                break;
+            case Facing::FACE_LEFT:
+                direction = sf::Vector2f(-distance, 0);
+                break;
+            case Facing::FACE_RIGHT:
+                direction = sf::Vector2f(distance, 0);
+                break;
+        }
+        actor->walkTo(actor->getPosition() + direction);
         return 0;
     }
 
