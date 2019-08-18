@@ -65,7 +65,7 @@ struct Actor::Impl
         int _index;
         sf::Vector2i _talkOffset{0, 90};
         sf::Color _talkColor;
-        sf::Clock _clock;
+        sf::Time _elapsed;
         std::vector<int> _ids;
         int _id{0};
         SoundId *_pSound{nullptr};
@@ -413,7 +413,7 @@ void Actor::Impl::TalkingState::load(int id)
     }
     _isTalking = true;
     _index = 0;
-    _clock.restart();
+    _elapsed = sf::seconds(0);
 }
 
 void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
@@ -428,7 +428,8 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
         return;
     }
     auto time = _lip.getData()[_index].time;
-    if (_clock.getElapsedTime() > time)
+    _elapsed += elapsed;
+    if (_elapsed > time)
     {
         _index++;
     }
