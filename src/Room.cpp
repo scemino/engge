@@ -20,13 +20,21 @@
 
 namespace ng
 {
+struct CmpLayer 
+{
+    bool operator()(int a, int b) const
+    {
+        return a > b;
+    }
+};
+
 struct Room::Impl
 {
     TextureManager &_textureManager;
     EngineSettings &_settings;
     std::vector<std::unique_ptr<Object>> _objects;
     std::vector<Walkbox> _walkboxes;
-    std::vector<std::unique_ptr<RoomLayer>> _layers;
+    std::map<int, std::unique_ptr<RoomLayer>, CmpLayer> _layers;
     std::vector<RoomScaling> _scalings;
     RoomScaling _scaling;
     sf::Vector2i _roomSize;
@@ -35,7 +43,7 @@ struct Room::Impl
     std::string _sheet;
     std::string _id;
     int _fullscreen{0};
-    HSQOBJECT _table;
+    HSQOBJECT _table{};
     std::shared_ptr<Path> _path;
     std::shared_ptr<PathFinder> _pf;
     std::vector<Walkbox> _graphWalkboxes;
@@ -52,6 +60,10 @@ struct Room::Impl
     {
         _spriteSheet.setTextureManager(&textureManager);
         _spriteSheet.setSettings(&settings);
+        for(int i = -3; i < 6; ++i)
+        {
+            _layers[i] = std::make_unique<RoomLayer>();
+        }
     }
 
     void setRoom(Room *pRoom)
@@ -68,7 +80,6 @@ struct Room::Impl
         }
         if (jWimpy["background"].isArray())
         {
-            auto layer = std::make_unique<RoomLayer>();
             for (auto &bg : jWimpy["background"].array_value)
             {
                 auto frame = _spriteSheet.getRect(bg.string_value);
@@ -77,9 +88,8 @@ struct Room::Impl
                 sprite.setTexture(_textureManager.get(_sheet));
                 sprite.setTextureRect(frame);
                 width += sprite.getTextureRect().width;
-                layer->getSprites().push_back(sprite);
+                _layers[0]->getSprites().push_back(sprite);
             }
-            _layers.push_back(std::move(layer));
         }
         else if (jWimpy["background"].isString())
         {
@@ -87,9 +97,7 @@ struct Room::Impl
             auto sprite = sf::Sprite();
             sprite.setTexture(_textureManager.get(_sheet));
             sprite.setTextureRect(frame);
-            auto layer = std::make_unique<RoomLayer>();
-            layer->getSprites().push_back(sprite);
-            _layers.push_back(std::move(layer));
+            _layers[0]->getSprites().push_back(sprite);
         }
         // room width seems to be not enough :S
         if (width > _roomSize.x)
@@ -105,8 +113,8 @@ struct Room::Impl
 
         for (auto jLayer : jWimpy["layers"].array_value)
         {
-            auto layer = std::make_unique<RoomLayer>();
             auto zsort = jLayer["zsort"].int_value;
+            auto& layer = _layers[zsort];
             layer->setZOrder(zsort);
             if (jLayer["name"].isArray())
             {
@@ -146,20 +154,11 @@ struct Room::Impl
                 auto parallax = jLayer["parallax"].double_value;
                 layer->setParallax(sf::Vector2f(parallax, 1));
             }
-            // trace("Read layer zsort: {}", layer->getZOrder());
-            _layers.push_back(std::move(layer));
         }
-
-        // push default layer
-        auto layer = std::make_unique<RoomLayer>();
-        _layers.push_back(std::move(layer));
     }
 
     void loadObjects(GGPackValue &jWimpy)
     {
-        auto itLayer = std::find_if(std::begin(_layers), std::end(_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
-            return pLayer->getZOrder() == 0;
-        });
         auto &texture = _textureManager.get(_sheet);
 
         for (auto jObject : jWimpy["objects"].array_value)
@@ -235,7 +234,7 @@ struct Room::Impl
                 object->setStateAnimIndex(0);
             }
             object->setRoom(_pRoom);
-            itLayer->get()->addEntity(*object);
+            _layers[0]->addEntity(*object);
             _objects.push_back(std::move(object));
         }
 
@@ -380,35 +379,20 @@ sf::Color Room::getAmbientLight() const { return pImpl->_ambientColor; }
 
 void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
 {
-    auto itEndLayers = std::end(pImpl->_layers);
-    auto it = std::find_if(std::begin(pImpl->_layers), itEndLayers, [layerNum](const std::unique_ptr<RoomLayer> &layer) {
-        return layer->getZOrder() == layerNum;
-    });
-    if (it == itEndLayers)
-        return;
-    auto itMainLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
-        return pLayer->getZOrder() == 0;
-    });
-    itMainLayer->get()->removeEntity(*pEntity);
-    it->get()->addEntity(*pEntity);
+    removeEntity(pEntity);
+    pImpl->_layers[layerNum]->addEntity(*pEntity);
 }
 
 void Room::roomLayer(int layerNum, bool enabled)
 {
-    auto itEndLayers = std::end(pImpl->_layers);
-    auto it = std::find_if(std::begin(pImpl->_layers), itEndLayers, [layerNum](const std::unique_ptr<RoomLayer> &layer) {
-        return layer->getZOrder() == layerNum;
-    });
-    if (it == itEndLayers)
-        return;
-    it->get()->setEnabled(enabled);
+    pImpl->_layers[layerNum]->setEnabled(enabled);
 }
 
 void Room::removeEntity(Entity *pEntity)
 {
     for (auto &layer : pImpl->_layers)
     {
-        layer->removeEntity(*pEntity);
+        layer.second->removeEntity(*pEntity);
     }
 }
 
@@ -458,20 +442,13 @@ TextObject &Room::createTextObject(const std::string &fontName)
     auto &obj = *object;
     obj.setVisible(true);
     pImpl->_objects.push_back(std::move(object));
-    auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
-        return pLayer->getZOrder() == 0;
-    });
-    itLayer->get()->addEntity(obj);
+    pImpl->_layers[0]->addEntity(obj);
     return obj;
 }
 
 void Room::deleteObject(Object &object)
 {
-    auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
-        return pLayer->getZOrder() == 0;
-    });
-    itLayer->get()->removeEntity(object);
-    //pImpl->_objects.erase(it);
+    pImpl->_layers[0]->removeEntity(object);
 }
 
 Object &Room::createObject(const std::vector<std::string> &anims)
@@ -513,12 +490,9 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         }
     }
     auto &obj = *object;
-    auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
-        return pLayer->getZOrder() == 0;
-    });
     obj.setRoom(this);
     obj.setZOrder(1);
-    itLayer->get()->addEntity(obj);
+    pImpl->_layers[0]->addEntity(obj);
     pImpl->_objects.push_back(std::move(object));
     return obj;
 }
@@ -539,12 +513,9 @@ Object &Room::createObject(const std::string &image)
 
     object->setAnimation("state0");
     auto &obj = *object;
-    auto itLayer = std::find_if(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](const std::unique_ptr<RoomLayer> &pLayer) {
-        return pLayer->getZOrder() == 0;
-    });
     obj.setZOrder(1);
     obj.setRoom(this);
-    itLayer->get()->addEntity(obj);
+    pImpl->_layers[0]->addEntity(obj);
     pImpl->_objects.push_back(std::move(object));
     return obj;
 }
@@ -572,12 +543,10 @@ void Room::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) cons
 
 void Room::update(const sf::Time &elapsed)
 {
-    std::for_each(std::begin(pImpl->_layers), std::end(pImpl->_layers),
-                  [elapsed](std::unique_ptr<RoomLayer> &layer) { layer->update(elapsed); });
-
-    std::sort(std::begin(pImpl->_layers), std::end(pImpl->_layers), [](std::unique_ptr<RoomLayer> &a, std::unique_ptr<RoomLayer> &b) {
-        return a->getZOrder() > b->getZOrder();
-    });
+    for (auto &&layer : pImpl->_layers)
+    {
+        layer.second->update(elapsed);
+    }
 }
 
 void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
@@ -589,7 +558,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
     for (const auto &layer : pImpl->_layers)
     {
-        auto parallax = layer->getParallax();
+        auto parallax = layer.second->getParallax();
         auto posX = (w - cameraPos.x) * parallax.x - w;
         auto posY = (h - cameraPos.y) * parallax.y - h;
 
@@ -597,7 +566,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         t.rotate(pImpl->_rotation, w, h);
         t.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
         states.transform = t;
-        layer->draw(window, states);
+        layer.second->draw(window, states);
     }
 
     sf::Transform t;
@@ -608,7 +577,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
     for (const auto &layer : pImpl->_layers)
     {
-        auto parallax = layer->getParallax();
+        auto parallax = layer.second->getParallax();
         auto posX = (w - cameraPos.x) * parallax.x - w;
         auto posY = (h - cameraPos.y) * parallax.y - h;
 
@@ -616,7 +585,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         t2.rotate(pImpl->_rotation, w, h);
         t2.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
         states.transform = t2;
-        layer->drawForeground(window, states);
+        layer.second->drawForeground(window, states);
     }
 }
 
