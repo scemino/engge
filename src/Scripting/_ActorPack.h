@@ -93,10 +93,39 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        sq_getstring(v, 3, &head);
-        sq_getstring(v, 4, &stand);
-        sq_getstring(v, 5, &walk);
-        sq_getstring(v, 6, &reach);
+        HSQOBJECT obj;
+        sq_resetobject(&obj);
+        sq_getstackobj(v, 3, &obj);
+
+        sq_pushobject(v, obj);
+        sq_pushstring(v, _SC("head"), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            sq_getstring(v, -1, &head);
+        }
+        sq_pop(v, 1);
+
+        sq_pushstring(v, _SC("stand"), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            sq_getstring(v, -1, &stand);
+        }
+        sq_pop(v, 1);
+
+        sq_pushstring(v, _SC("walk"), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            sq_getstring(v, -1, &walk);
+        }
+        sq_pop(v, 1);
+
+        sq_pushstring(v, _SC("reach"), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        {
+            sq_getstring(v, -1, &reach);
+        }
+        sq_pop(v, 1);
+
         pActor->getCostume().setAnimationNames(head ? head : "", stand ? stand : "", walk ? walk : "",
                                                reach ? reach : "");
         return 0;
