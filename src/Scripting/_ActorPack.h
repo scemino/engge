@@ -1050,18 +1050,27 @@ class _ActorPack : public Pack
 
     static SQInteger stopTalking(HSQUIRRELVM v)
     {
-        Actor *actor = nullptr;
         auto numArgs = sq_gettop(v) - 1;
         if (numArgs == 1)
         {
-            actor = ScriptEngine::getActor(v, 2);
+            if(sq_gettype(v, 2) == OT_INTEGER)
+            {
+                for (auto &&a : g_pEngine->getActors())
+                {
+                    a->stopTalking();
+                }
+                return 0;
+            }
+            auto actor = ScriptEngine::getActor(v, 2);
             if (!actor)
             {
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
+            actor->stopTalking();
+            return 0;
         }
-        actor = g_pEngine->getCurrentActor();
-        actor->stopTalking();
+        
+        g_pEngine->getCurrentActor()->stopTalking();
         return 0;
     }
 

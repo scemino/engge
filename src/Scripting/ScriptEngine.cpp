@@ -203,6 +203,7 @@ ScriptEngine::ScriptEngine()
     sq_pushinteger(v, (SQInteger)_getPlatform());
     sq_newslot(v, -3, SQFalse);
     registerConstants<int>({
+        {"ALL", 1},
         {"HERE", 0},
         {"GONE", 4},
         {"OFF", 0},
