@@ -466,16 +466,13 @@ class _ActorPack : public Pack
             readFieldInt(v, _SC("left"), left);
             readFieldInt(v, _SC("right"), right);
             readFieldInt(v, _SC("reset"), reset);
-            if(reset)
+            if (reset)
             {
                 actor->getCostume().resetLockFacing();
                 return 0;
             }
-            actor->getCostume().lockFacing(
-                static_cast<Facing>(left), 
-                static_cast<Facing>(right), 
-                static_cast<Facing>(front), 
-                static_cast<Facing>(back));
+            actor->getCostume().lockFacing(static_cast<Facing>(left), static_cast<Facing>(right),
+                                           static_cast<Facing>(front), static_cast<Facing>(back));
             return 0;
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &facing)))
@@ -583,7 +580,7 @@ class _ActorPack : public Pack
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
-        trace("actorRoom({})=>{}", pActor->getName(), pRoom?pRoom->getId():"null");
+        trace("actorRoom({})=>{}", pActor->getName(), pRoom ? pRoom->getId() : "null");
         if (pRoom)
         {
             sq_pushobject(v, pRoom->getTable());
@@ -612,7 +609,7 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get selectable"));
             }
-            if(selectable >= 0 && selectable <= 3)
+            if (selectable >= 0 && selectable <= 3)
             {
                 auto mode = static_cast<ActorSlotSelectableMode>(selectable);
                 g_pEngine->setActorSlotSelectable(mode);
@@ -718,7 +715,40 @@ class _ActorPack : public Pack
 
     static SQInteger actorTurnTo(HSQUIRRELVM v)
     {
-        error("TODO: actorTurnTo: not implemented");
+        Actor *actor = ScriptEngine::getActor(v, 2);
+        if (!actor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+
+        if (sq_gettype(v, 3) == OT_INTEGER)
+        {
+            SQInteger facing = 0;
+            if (SQ_FAILED(sq_getinteger(v, 3, &facing)))
+            {
+                return sq_throwerror(v, _SC("failed to get facing"));
+            }
+            actor->getCostume().setFacing((Facing)facing);
+            return 0;
+        }
+
+        Entity *entity = ScriptEngine::getEntity(v, 3);
+        if (!entity)
+        {
+            return sq_throwerror(v, _SC("failed to get entity to face to"));
+        }
+
+        Facing facing;
+        auto distance = entity->getRealPosition() - actor->getRealPosition();
+        if (distance.x == 0)
+        {
+            facing = distance.y > 0 ? Facing::FACE_FRONT : Facing::FACE_BACK;
+        }
+        else
+        {
+            facing = distance.x > 0 ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
+        }
+        actor->getCostume().setFacing(facing);
         return 0;
     }
 
@@ -783,7 +813,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get distance"));
         }
         sf::Vector2f direction;
-        switch(actor->getCostume().getFacing())
+        switch (actor->getCostume().getFacing())
         {
             case Facing::FACE_FRONT:
                 direction = sf::Vector2f(0, distance);
@@ -851,7 +881,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        if(numArgs == 3)
+        if (numArgs == 3)
         {
             auto *pObject = ScriptEngine::getObject(v, 3);
             if (!pObject)
@@ -863,21 +893,19 @@ class _ActorPack : public Pack
             auto usePos = pObject->getUsePosition();
 
             pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
-        }
-        else
-        {
-            SQInteger x, y;
-            if (SQ_FAILED(sq_getinteger(v, 3, &x)))
-            {
-                return sq_throwerror(v, _SC("failed to get x"));
-            }
-            if (SQ_FAILED(sq_getinteger(v, 4, &y)))
-            {
-                return sq_throwerror(v, _SC("failed to get y"));
-            }
-            pActor->walkTo(sf::Vector2f(x, y));
+            return 0;
         }
 
+        SQInteger x, y;
+        if (SQ_FAILED(sq_getinteger(v, 3, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        if (SQ_FAILED(sq_getinteger(v, 4, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        pActor->walkTo(sf::Vector2f(x, y));
         return 0;
     }
 
@@ -947,22 +975,22 @@ class _ActorPack : public Pack
 
     static SQInteger isActorOnScreen(HSQUIRRELVM v)
     {
-        auto actor = ScriptEngine::getActor(v, 2);
-        if (!actor)
+        auto entity = ScriptEngine::getEntity(v, 2);
+        if (!entity)
         {
-            return sq_throwerror(v, _SC("failed to get actor"));
+            return sq_throwerror(v, _SC("failed to get entity"));
         }
 
-        const Room *pActorRoom = actor->getRoom();
+        const Room *pEntityRoom = entity->getRoom();
         const Room *pRoom = g_pEngine->getRoom();
-        if (pActorRoom != pRoom)
+        if (pEntityRoom != pRoom)
         {
             sq_pushbool(v, SQFalse);
             return 1;
         }
 
         auto screen = g_pEngine->getWindow().getView().getSize();
-        auto pos = (sf::Vector2i)actor->getRealPosition();
+        auto pos = (sf::Vector2i)entity->getRealPosition();
         auto camera = g_pEngine->getCamera().getAt();
         sf::IntRect rect(camera.x - screen.x / 2.f, camera.y - screen.y / 2.f, screen.x, screen.y);
         auto isOnScreen = rect.contains(pos);
@@ -1053,7 +1081,7 @@ class _ActorPack : public Pack
         auto numArgs = sq_gettop(v) - 1;
         if (numArgs == 1)
         {
-            if(sq_gettype(v, 2) == OT_INTEGER)
+            if (sq_gettype(v, 2) == OT_INTEGER)
             {
                 for (auto &&a : g_pEngine->getActors())
                 {
@@ -1069,7 +1097,7 @@ class _ActorPack : public Pack
             actor->stopTalking();
             return 0;
         }
-        
+
         g_pEngine->getCurrentActor()->stopTalking();
         return 0;
     }
