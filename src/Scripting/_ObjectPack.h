@@ -497,8 +497,8 @@ class _ObjectPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get spot"));
             }
-            x = spot->getPosition().x;
-            y = spot->getPosition().y;
+            x = spot->getRealPosition().x;
+            y = spot->getRealPosition().y;
         }
         else
         {
@@ -564,7 +564,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        auto pos = obj->getPosition();
+        auto pos = obj->getRealPosition();
         sq_pushinteger(v, static_cast<SQInteger>(pos.x));
         return 1;
     }
@@ -576,7 +576,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        auto pos = obj->getPosition();
+        auto pos = obj->getRealPosition();
         sq_pushinteger(v, static_cast<SQInteger>(pos.y));
         return 1;
     }
@@ -758,7 +758,6 @@ class _ObjectPack : public Pack
 
         if (!pActor)
         {
-            error("Inventory object not found");
             sq_pushnull(v);
             return 1;
         }

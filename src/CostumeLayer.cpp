@@ -5,18 +5,7 @@
 
 namespace ng
 {
-CostumeLayer::CostumeLayer()
-    : _pTexture(nullptr),
-      _fps(10),
-      _flags(0),
-      _index(0),
-      _isVisible(true),
-      _pActor(nullptr),
-      _loop(false),
-      _leftDirection(false)
-{
-}
-
+CostumeLayer::CostumeLayer() = default;
 CostumeLayer::~CostumeLayer() = default;
 
 bool CostumeLayer::update(const sf::Time &elapsed)

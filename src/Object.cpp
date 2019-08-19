@@ -10,41 +10,26 @@ namespace ng
 struct Object::Impl
 {
     std::vector<std::unique_ptr<Animation>> _anims;
-    std::optional<Animation> _pAnim;
+    std::optional<Animation> _pAnim{std::nullopt};
     std::wstring _name, _id;
-    int _zorder;
-    UseDirection _direction;
-    bool _prop;
-    bool _spot;
+    int _zorder{0};
+    UseDirection _direction{UseDirection::Front};
+    bool _prop{false};
+    bool _spot{false};
     bool _trigger{false};
     sf::Vector2f _usePos;
     sf::Vector2f _defaultPosition;
     sf::IntRect _hotspot;
-    float _angle;
-    bool _isTouchable;
-    Room *_pRoom;
-    int _state;
-    int _verb;
+    bool _isTouchable{true};
+    Room *_pRoom{nullptr};
+    int _state{0};
+    int _verb{1};
     std::vector<std::shared_ptr<Trigger>> _triggers;
     HSQOBJECT _pTable{};
     bool _hotspotVisible{false};
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};
     int dependentState{0};
-
-    Impl()
-        : _pAnim(std::nullopt),
-          _zorder(0),
-          _direction(UseDirection::Front),
-          _prop(false),
-          _spot(false),
-          _angle(0),
-          _isTouchable(true),
-          _pRoom(nullptr),
-          _state(0),
-          _verb(1)
-    {
-    }
 };
 
 Object::Object()
@@ -279,7 +264,7 @@ bool Object::isTrigger() const
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)
 {
-    return os << obj.getName() << L" (" << obj.getPosition().x << L"," << obj.getPosition().y << L":" << obj.getZOrder() << L")";
+    return os << obj.getName() << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":" << obj.getZOrder() << L")";
 }
 
 } // namespace ng

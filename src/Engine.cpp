@@ -232,7 +232,7 @@ void Engine::follow(Actor *pActor)
     if (!pActor)
         return;
 
-    auto pos = pActor->getPosition();
+    auto pos = pActor->getRealPosition();
     auto screen = _pImpl->_pWindow->getView().getSize();
     setRoom(pActor->getRoom());
     if (panCamera)
@@ -517,7 +517,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     if (pRoom->getFullscreen() != 1)
     {
         actor->setRoom(pRoom);
-        auto pos = pDoor->getPosition();
+        auto pos = pDoor->getRealPosition();
         actor->setPosition(pos + sf::Vector2f(pDoor->getUsePosition().x, -pDoor->getUsePosition().y));
         _pImpl->_camera.at(pos + pDoor->getUsePosition());
     }

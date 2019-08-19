@@ -123,8 +123,8 @@ private:
         {
             return sq_throwerror(v, "failed to get object2 or actor2");
         }
-        auto pos1 = obj1->getPosition();
-        auto pos2 = obj1->getPosition();
+        auto pos1 = obj1->getRealPosition();
+        auto pos2 = obj1->getRealPosition();
         auto dx = pos1.x - pos2.x;
         auto dy = pos1.y - pos2.y;
         auto d = std::sqrt(dx * dx + dy * dy);
@@ -292,7 +292,7 @@ private:
                 return result;
             }
 
-            auto pos = spot->getPosition();
+            auto pos = spot->getRealPosition();
             g_pEngine->getCamera().at(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
         }
         return 0;
@@ -340,8 +340,8 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get actor/object"));
             }
-            x = static_cast<int>(pEntity->getPosition().x);
-            y = static_cast<int>(pEntity->getPosition().y);
+            x = static_cast<int>(pEntity->getRealPosition().x);
+            y = static_cast<int>(pEntity->getRealPosition().y);
             if (SQ_FAILED(sq_getfloat(v, 3, &t)))
             {
                 return sq_throwerror(v, _SC("failed to get time"));

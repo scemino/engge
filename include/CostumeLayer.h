@@ -25,6 +25,7 @@ public:
   int getFlags() const { return _flags; }
   void setFlags(int flags) { _flags = flags; }
   int getIndex() const { return _index; }
+  void reset() { _index=0; }
   void setVisible(bool isVisible) { _isVisible = isVisible; }
   int getVisible() const { return _isVisible; }
   std::vector<std::optional<int>> &getTriggers() { return _triggers; }
@@ -50,14 +51,14 @@ private:
   std::vector<sf::Vector2i> _offsets;
   std::vector<std::optional<int>> _triggers;
   std::vector<std::optional<std::string>> _soundTriggers;
-  sf::Texture *_pTexture;
-  int _fps;
-  int _flags;
+  sf::Texture *_pTexture{nullptr};
+  int _fps{10};
+  int _flags{0};
   sf::Time _time;
-  int _index;
-  bool _isVisible;
-  Actor *_pActor;
-  bool _loop;
-  bool _leftDirection;
+  int _index{0};
+  bool _isVisible{true};
+  Actor *_pActor{nullptr};
+  bool _loop{false};
+  bool _leftDirection{false};
 };
 } // namespace ng

@@ -74,11 +74,11 @@ void SoundId::updateVolume()
             else
             {
                 auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
-                auto diff = fabs(pActor->getPosition().x - _pEntity->getPosition().x);
+                auto diff = fabs(pActor->getRealPosition().x - _pEntity->getRealPosition().x);
                 entityVolume = (1.5f - (diff / width)) / 1.5f;
                 if (entityVolume < 0)
                     entityVolume = 0;
-                float pan = (_pEntity->getPosition().x - pActor->getPosition().x) / (width / 2);
+                float pan = (_pEntity->getRealPosition().x - pActor->getRealPosition().x) / (width / 2);
                 if (pan > 1.f)
                     pan = 1.f;
                 if (pan < -1.f)

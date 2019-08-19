@@ -72,7 +72,7 @@ class _RoomTrigger : public Trigger
         if (!actor)
             return;
 
-        auto inObjectHotspot = _object.getRealHotspot().contains((sf::Vector2i)actor->getPosition());
+        auto inObjectHotspot = _object.getRealHotspot().contains((sf::Vector2i)actor->getRealPosition());
         if (!_isInside && inObjectHotspot)
         {
             _isInside = true;

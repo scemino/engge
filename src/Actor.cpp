@@ -183,7 +183,7 @@ bool Actor::contains(const sf::Vector2f &pos) const
         return false;
 
     auto size = pImpl->_pRoom->getRoomSize();
-    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
+    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
     auto transform = getTransform();
     transform.scale(scale, scale);
     transform.translate((sf::Vector2f)-getRenderOffset() * scale);
@@ -251,6 +251,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
     _pActor->getCostume().setState("walk");
     _pActor->getCostume().getAnimation()->play(true);
     _isWalking = true;
+    trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
 
 void Actor::Impl::WalkingState::stop()
@@ -260,7 +261,7 @@ void Actor::Impl::WalkingState::stop()
 
 Facing Actor::Impl::WalkingState::getFacing()
 {
-    auto pos = _pActor->getPosition();
+    auto pos = _pActor->getRealPosition();
     auto dx = _path[0].x - pos.x;
     auto dy = _path[0].y - pos.y;
     if (fabs(dx) > fabs(dy))
@@ -273,7 +274,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     if (!_isWalking)
         return;
 
-    auto pos = _pActor->getPosition();
+    auto pos = _pActor->getRealPosition();
     auto delta = (_path[0] - (sf::Vector2i)pos);
     auto speed = _pActor->getWalkSpeed();
     auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
@@ -318,7 +319,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             _pActor->getCostume().setFacing(getFacing());
             _pActor->getCostume().setState("walk");
             _pActor->getCostume().getAnimation()->play(true);
-            trace("go to : {},{}", _path[0].x, _path[0].y);
+            trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
         }
     }
 }
@@ -491,7 +492,7 @@ const Room *Actor::getRoom() const
 
 int Actor::getZOrder() const
 {
-    return static_cast<int>(getRoom()->getRoomSize().y - getPosition().y);
+    return static_cast<int>(getRoom()->getRoomSize().y - getRealPosition().y);
 }
 
 void Actor::setRoom(Room *pRoom)
@@ -517,7 +518,7 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
         return;
     
     auto size = pImpl->_pRoom->getRoomSize();
-    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getPosition().y);
+    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
     auto transform = getTransform();
     transform.scale(scale, scale);
     transform.translate((sf::Vector2f)-getRenderOffset() * scale);
@@ -559,7 +560,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if (pImpl->_pRoom == nullptr)
         return;
 
-    auto path = pImpl->_pRoom->calculatePath((sf::Vector2i)getPosition(), (sf::Vector2i)destination);
+    auto path = pImpl->_pRoom->calculatePath((sf::Vector2i)getRealPosition(), (sf::Vector2i)destination);
     pImpl->_path = std::make_unique<Path>(path);
 
     if (path.size() < 2)

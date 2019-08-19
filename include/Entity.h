@@ -36,6 +36,7 @@ public:
   void setPosition(const sf::Vector2f &pos);
 
   sf::Vector2f getPosition() const;
+  sf::Vector2f getRealPosition() const;
   sf::Vector2f getUsePosition() const;
 
   void setOffset(const sf::Vector2f &offset);

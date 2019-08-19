@@ -207,7 +207,7 @@ class _ActorPack : public Pack
                 return sq_throwerror(v, _SC("failed to get object or room"));
             }
             auto usePos = pObj->getUsePosition();
-            auto pos = pObj->getPosition();
+            auto pos = pObj->getRealPosition();
             pos.x += usePos.x;
             pos.y -= usePos.y;
             pRoom = pObj->getRoom();
@@ -328,7 +328,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        auto pos = actor->getPosition() - object->getPosition();
+        auto pos = actor->getRealPosition() - object->getRealPosition();
         auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
         sq_pushinteger(v, dist);
         return 1;
@@ -351,7 +351,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get distance"));
         }
-        auto pos = actor->getPosition() - object->getPosition();
+        auto pos = actor->getRealPosition() - object->getRealPosition();
         auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
         sq_pushbool(v, dist < distance);
         return 1;
@@ -426,7 +426,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        bool isInside = object->getRealHotspot().contains((sf::Vector2i)(actor->getPosition()));
+        bool isInside = object->getRealHotspot().contains((sf::Vector2i)(actor->getRealPosition()));
         sq_pushbool(v, isInside);
         return 1;
     }
@@ -439,7 +439,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get actor"));
         }
 
-        auto inWalkbox = g_pEngine->getRoom()->inWalkbox(actor->getPosition());
+        auto inWalkbox = g_pEngine->getRoom()->inWalkbox(actor->getRealPosition());
         sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);
         return 1;
     }
@@ -527,7 +527,7 @@ class _ActorPack : public Pack
         }
         SQInteger loop = 0;
         sq_getinteger(v, 4, &loop);
-        trace("Play anim {}{}", animation, (loop == 1 ? " (loop)" : ""));
+        trace("Play anim {} {}{}", pActor->getName(), animation, (loop == 1 ? " (loop)" : ""));
         pActor->getCostume().setState(animation);
         auto pAnim = pActor->getCostume().getAnimation();
         if (pAnim)
@@ -544,7 +544,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        sq_pushinteger(v, pActor->getPosition().x);
+        sq_pushinteger(v, pActor->getRealPosition().x);
         return 1;
     }
 
@@ -555,7 +555,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        sq_pushinteger(v, pActor->getPosition().y);
+        sq_pushinteger(v, pActor->getRealPosition().y);
         return 1;
     }
 
@@ -735,7 +735,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         auto usePos = obj->getUsePosition();
-        auto pos = obj->getPosition();
+        auto pos = obj->getRealPosition();
         actor->setUsePosition(pos + usePos);
         return 0;
     }
@@ -798,7 +798,7 @@ class _ActorPack : public Pack
                 direction = sf::Vector2f(distance, 0);
                 break;
         }
-        actor->walkTo(actor->getPosition() + direction);
+        actor->walkTo(actor->getRealPosition() + direction);
         return 0;
     }
 
@@ -859,7 +859,7 @@ class _ActorPack : public Pack
                 return sq_throwerror(v, _SC("failed to get object"));
             }
 
-            auto pos = pObject->getPosition();
+            auto pos = pObject->getRealPosition();
             auto usePos = pObject->getUsePosition();
 
             pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
@@ -962,7 +962,7 @@ class _ActorPack : public Pack
         }
 
         auto screen = g_pEngine->getWindow().getView().getSize();
-        auto pos = (sf::Vector2i)actor->getPosition();
+        auto pos = (sf::Vector2i)actor->getRealPosition();
         auto camera = g_pEngine->getCamera().getAt();
         sf::IntRect rect(camera.x - screen.x / 2.f, camera.y - screen.y / 2.f, screen.x, screen.y);
         auto isOnScreen = rect.contains(pos);
@@ -1084,7 +1084,7 @@ class _ActorPack : public Pack
         sq_newarray(v, 0);
         for (const auto &actor : g_pEngine->getActors())
         {
-            if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
+            if (object->getRealHotspot().contains((sf::Vector2i)actor->getRealPosition()))
             {
                 sq_pushobject(v, actor->getTable());
                 sq_arrayappend(v, -2);

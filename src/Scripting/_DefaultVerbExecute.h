@@ -141,7 +141,7 @@ public:
     _ActorWalk(Actor &actor, const Object &object)
         : _actor(actor)
     {
-        auto pos = object.getPosition();
+        auto pos = object.getRealPosition();
         auto usePos = object.getUsePosition();
         auto dest = sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y);
         auto facing = _toFacing(object.getUseDirection());

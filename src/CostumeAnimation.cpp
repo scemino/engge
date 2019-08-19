@@ -24,7 +24,12 @@ void CostumeAnimation::update(const sf::Time &elapsed)
     bool loop = _loop;
     for (auto &layer : _layers)
     {
-        loop |= !layer->update(elapsed);
+        bool end = layer->update(elapsed);
+        if(_loop && end)
+        {
+            layer->reset();
+        }
+        loop |= !end;
     }
     if (!loop)
     {

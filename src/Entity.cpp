@@ -51,6 +51,11 @@ sf::Vector2f Entity::getPosition() const
     return _transform.getPosition();
 }
 
+sf::Vector2f Entity::getRealPosition() const
+{
+    return getPosition() + _offset;
+}
+
 void Entity::setOffset(const sf::Vector2f &offset)
 {
     _offset = offset;
