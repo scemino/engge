@@ -363,9 +363,11 @@ private:
             return sq_throwerror(v, _SC("failed to get volume"));
         }
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
-        soundId->setVolume(volume);
+        if(soundId)
+        {
+            soundId->setVolume(volume);
+        }
         sq_pushuserpointer(v, soundId);
-
         return 1;
     }
 
