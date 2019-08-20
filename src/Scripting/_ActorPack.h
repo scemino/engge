@@ -364,19 +364,32 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto count = sq_gettop(v) - 2;
+        auto count = sq_gettop(v);
         SQInteger dir;
-        if (count == 0)
+        if (count == 2)
         {
             dir = (SQInteger)actor->getCostume().getFacing();
             sq_pushinteger(v, dir);
             return 1;
         }
-        if (SQ_FAILED(sq_getinteger(v, 3, &dir)))
+
+        if(sq_gettype(v, 3) == OT_INTEGER)
         {
-            return sq_throwerror(v, _SC("failed to get direction"));
+            if (SQ_FAILED(sq_getinteger(v, 3, &dir)))
+            {
+                return sq_throwerror(v, _SC("failed to get direction"));
+            }
+            actor->getCostume().setFacing((Facing)dir);
+            return 0;
         }
-        actor->getCostume().setFacing((Facing)dir);
+
+        auto actor2 = ScriptEngine::getActor(v, 3);
+        if (!actor2)
+        {
+            return sq_throwerror(v, _SC("failed to get actor to face to"));
+        }
+        auto facing = _getFacingToFaceTo(actor, actor2);
+        actor->getCostume().setFacing(facing);
         return 0;
     }
 
@@ -738,8 +751,15 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get entity to face to"));
         }
 
+        auto facing = _getFacingToFaceTo(actor, entity);
+        actor->getCostume().setFacing(facing);
+        return 0;
+    }
+
+    static Facing _getFacingToFaceTo(Actor* pActor, Entity* pEntity)
+    {
         Facing facing;
-        auto distance = entity->getRealPosition() - actor->getRealPosition();
+        auto distance = pEntity->getRealPosition() - pActor->getRealPosition();
         if (distance.x == 0)
         {
             facing = distance.y > 0 ? Facing::FACE_FRONT : Facing::FACE_BACK;
@@ -748,8 +768,7 @@ class _ActorPack : public Pack
         {
             facing = distance.x > 0 ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
         }
-        actor->getCostume().setFacing(facing);
-        return 0;
+        return facing;
     }
 
     static SQInteger actorUsePos(HSQUIRRELVM v)
