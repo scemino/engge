@@ -125,7 +125,7 @@ void Cutscene::endCutscene()
     _state = 5;
     _engine.setInputActive(_inputActive);
     _engine.setInputVerbs(_inputVerbs);
-    _engine.follow(_engine.getFollowActor());
+    _engine.follow(_engine.getCurrentActor());
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
     _engine.stopThread(_thread._unVal.pThread);
 }
