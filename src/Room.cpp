@@ -83,8 +83,9 @@ struct Room::Impl
             for (auto &bg : jWimpy["background"].array_value)
             {
                 auto frame = _spriteSheet.getRect(bg.string_value);
+                auto sourceRect = _spriteSheet.getSpriteSourceSize(bg.string_value);
                 auto sprite = sf::Sprite();
-                sprite.move(width, 0);
+                sprite.move(sourceRect.left + width, sourceRect.top);
                 sprite.setTexture(_textureManager.get(_sheet));
                 sprite.setTextureRect(frame);
                 width += sprite.getTextureRect().width;
@@ -94,7 +95,9 @@ struct Room::Impl
         else if (jWimpy["background"].isString())
         {
             auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
+            auto sourceRect = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
             auto sprite = sf::Sprite();
+            sprite.move(sourceRect.left, sourceRect.top);
             sprite.setTexture(_textureManager.get(_sheet));
             sprite.setTextureRect(frame);
             _layers[0]->getSprites().push_back(sprite);
