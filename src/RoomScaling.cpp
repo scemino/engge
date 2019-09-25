@@ -10,6 +10,7 @@ void RoomScaling::setTrigger(const std::string &trigger)
 
 float RoomScaling::getScaling(float yPos) const
 {
+    if(_scalings.empty()) return 1.0f;
     for (size_t i = 0; i < _scalings.size(); i++)
     {
         const auto &scaling = _scalings[i];
@@ -25,7 +26,7 @@ float RoomScaling::getScaling(float yPos) const
             return scale;
         }
     }
-    return 1.f;
+    return _scalings[_scalings.size() - 1].scale;
 }
 
 std::vector<Scaling> &RoomScaling::getScalings()
