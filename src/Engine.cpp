@@ -445,7 +445,6 @@ void Engine::Impl::setCurrentRoom(Room *pRoom)
     updateScreenSize();
 }
 
-Room *pLastRoom = nullptr;
 SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
@@ -462,7 +461,6 @@ SQInteger Engine::setRoom(Room *pRoom)
 
     if (pRoom->getFullscreen() == 1)
     {
-        pLastRoom = _pImpl->_pRoom;
         setInputVerbs(false);
     }
     else if (_pImpl->_pRoom && _pImpl->_pRoom->getFullscreen() == 1)
@@ -821,40 +819,46 @@ void Engine::update(const sf::Time &elapsed)
         _pImpl->_pVerb = &_pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + verbId);
         _pImpl->_useFlag = UseFlag::None;
         _pImpl->_pUseObject = nullptr;
+        return;
     }
-    else if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject &&
+    
+    if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject &&
              _pImpl->_pActor)
     {
         _pImpl->_pVerbExecute->execute(_pImpl->_pActor, getVerb(3));
+        return;
     }
-    else if (_pImpl->_pVerb && _pImpl->_pVerb->id == 1 && !_pImpl->_pCurrentObject && _pImpl->_pCurrentActor)
+    
+    if (_pImpl->_pVerb && _pImpl->_pVerb->id == 1 && !_pImpl->_pCurrentObject && _pImpl->_pCurrentActor)
     {
         _pImpl->_pCurrentActor->walkTo(mousePosInRoom);
+        return;
     }
-    else if (_pImpl->_pCurrentObject)
+
+    if (_pImpl->_pCurrentObject)
     {
         if (_pImpl->_pUseObject)
         {
             _pImpl->_pVerbExecute->use(_pImpl->_pUseObject, _pImpl->_pCurrentObject);
+            return;
         }
-        else
+        
+        auto pVerb = _pImpl->_pVerb;
+        if (!isRightClick)
         {
-            auto pVerb = _pImpl->_pVerb;
-            if (!isRightClick)
-            {
-                _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
-            }
-            else
-            {
-                if (pVerb && pVerb->id == 1)
-                {
-                    pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb());
-                }
-                _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
-            }
+            _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
+            return;
         }
+        
+        if (pVerb && pVerb->id == 1)
+        {
+            pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb());
+        }
+        _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
+        return;
     }
-    else if (_pImpl->_inventory.getCurrentInventoryObject())
+    
+    if (_pImpl->_inventory.getCurrentInventoryObject())
     {
         auto pVerb = _pImpl->_pVerb;
         auto pInventoryObj = _pImpl->_inventory.getCurrentInventoryObject();
@@ -863,8 +867,10 @@ void Engine::update(const sf::Time &elapsed)
             pVerb = getVerb(pInventoryObj->getDefaultVerb());
         }
         _pImpl->_pVerbExecute->execute(pInventoryObj, pVerb);
+        return;
     }
-    else if (currentActorIndex != -1)
+    
+    if (currentActorIndex != -1)
     {
         _pImpl->_pVerb = getVerb(1);
         _pImpl->_useFlag = UseFlag::None;
@@ -1070,7 +1076,10 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         }
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         std::wstring s;
-        s.append(_pEngine->getText(id));
+        if (pInventoryObj || pVerb->id != 1)
+        {
+            s.append(_pEngine->getText(id));
+        }
         if (pInventoryObj)
         {
             s.append(L" ").append(pInventoryObj->getName());

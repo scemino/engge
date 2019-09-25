@@ -2,7 +2,6 @@
 #include "ActorIcons.h"
 #include "NonCopyable.h"
 #include "SFML/Graphics.hpp"
-#include "Verb.h"
 #include "squirrel.h"
 #include <memory>
 
