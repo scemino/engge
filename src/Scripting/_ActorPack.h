@@ -379,6 +379,13 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get direction"));
             }
+            // FACE_FLIP ?
+            if(dir == 0x10)
+            {
+                auto facing = _flip(actor->getCostume().getFacing());
+                actor->getCostume().setFacing(facing);
+                return 0;    
+            }
             actor->getCostume().setFacing((Facing)dir);
             return 0;
         }
@@ -769,6 +776,22 @@ class _ActorPack : public Pack
             facing = distance.x > 0 ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
         }
         return facing;
+    }
+
+    static Facing _flip(Facing facing)
+    {
+        switch(facing)
+        {
+            case Facing::FACE_BACK:
+            return Facing::FACE_FRONT;
+            case Facing::FACE_FRONT:
+            return Facing::FACE_BACK;
+            case Facing::FACE_LEFT:
+            return Facing::FACE_RIGHT;
+            case Facing::FACE_RIGHT:
+            return Facing::FACE_LEFT;
+        }
+        throw std::out_of_range("Invalid facing");
     }
 
     static SQInteger actorUsePos(HSQUIRRELVM v)
