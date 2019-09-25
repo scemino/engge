@@ -249,6 +249,11 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
     _pImpl->_pVerbExecute = std::move(verbExecute);
 }
 
+void Engine::setDefaultVerb()
+{
+    _pImpl->_pVerb = getVerb(1);
+}
+
 void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute)
 {
     _pImpl->_pScriptExecute = std::move(scriptExecute);
@@ -1031,9 +1036,6 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         }
         s.append(L" ").append(towstring(_pActor->getName()));
         text.setText(s);
-
-        sf::RenderStates states;
-        states.transform.translate(-cameraPos);
     }
     else if (_pCurrentObject)
     {
@@ -1076,6 +1078,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         }
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         std::wstring s;
+        // don't draw "walk to" if the cursor is not on a inventory object
         if (pInventoryObj || pVerb->id != 1)
         {
             s.append(_pEngine->getText(id));

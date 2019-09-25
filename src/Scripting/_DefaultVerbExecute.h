@@ -275,6 +275,29 @@ private:
     bool _handled{false};
 };
 
+class _SetDefaultVerb : public Function
+{
+public:
+    explicit _SetDefaultVerb(Engine &engine)
+        : _engine(engine)
+    {
+    }
+
+    bool isElapsed() override { return _done; }
+
+    void operator()(const sf::Time &elapsed) override
+    {
+        if(_done) return;
+
+        _done = true;
+        _engine.setDefaultVerb();
+    }
+
+private:
+    Engine &_engine;
+    bool _done{false};
+};
+
 class _VerbExecute : public Function
 {
 public:
@@ -400,9 +423,11 @@ private:
             sentence->push_back(std::move(walk));
         }
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject, pVerb->func);
-        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
         sentence->push_back(std::move(verb));
+        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
         sentence->push_back(std::move(postWalk));
+        auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
+        sentence->push_back(std::move(setDefaultVerb));
         _engine.addFunction(std::move(sentence));
     }
 
@@ -426,9 +451,11 @@ private:
             sentence->push_back(std::move(walk));
         }
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pCurrentActor, *pActor, pVerb->func);
-        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
         sentence->push_back(std::move(verb));
+        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
         sentence->push_back(std::move(postWalk));
+        auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
+        sentence->push_back(std::move(setDefaultVerb));
         _engine.addFunction(std::move(sentence));
     }
 
@@ -439,6 +466,8 @@ private:
         auto sentence = std::make_unique<_CompositeFunction>();
         sentence->push_back(std::move(walk));
         sentence->push_back(std::move(action));
+        auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
+        sentence->push_back(std::move(setDefaultVerb));
         _engine.addFunction(std::move(sentence));
     }
 
@@ -463,9 +492,13 @@ private:
 
         auto func = pVerb->func;
         if (callVerb(obj, func))
+        {
+            _engine.setDefaultVerb();
             return;
+        }
 
         callVerbDefault(obj);
+        _engine.setDefaultVerb();
     }
 
     bool isFarLook(const HSQOBJECT &obj)

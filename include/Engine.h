@@ -84,6 +84,9 @@ class Engine : public NonCopyable
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);
     VerbUiColors &getVerbUiColors(int characterSlot);
+    void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
+    const Verb *getVerb(int id) const;
+    void setDefaultVerb();
 
     void setInputHUD(bool on);
     void setInputActive(bool active);
@@ -93,10 +96,8 @@ class Engine : public NonCopyable
     bool getInputVerbs() const;
 
     void follow(Actor *pActor);
-    void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
     void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);
-    const Verb *getVerb(int id) const;
-
+    
     void addThread(std::unique_ptr<ThreadBase> thread);
     void stopThread(HSQUIRRELVM thread);
     bool isThreadAlive(HSQUIRRELVM thread) const;
