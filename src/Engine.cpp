@@ -733,9 +733,13 @@ void Engine::Impl::updateRoomScalings()
             if (it != scalings.end())
             {
                 _pRoom->setRoomScaling(*it);
-                break;
+                return;
             }
         }
+    }
+    if(!scalings.empty())
+    {
+        _pRoom->setRoomScaling(scalings[0]);
     }
 }
 
