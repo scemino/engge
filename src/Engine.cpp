@@ -810,22 +810,22 @@ void Engine::update(const sf::Time &elapsed)
 
     // input click on a verb ?
     auto verbId = -1;
+    int currentActorIndex = _pImpl->getCurrentActorIndex();
     if (_pImpl->_inputVerbsActive)
     {
-        for (auto i = 0; i < 9; i++)
+        for (size_t i = 0; i < _pImpl->_verbRects.size(); i++)
         {
             if (_pImpl->_verbRects.at(i).contains((sf::Vector2i)_pImpl->_mousePos))
             {
-                verbId = i;
+                verbId = _pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + i).id;
                 break;
             }
         }
     }
 
-    int currentActorIndex = _pImpl->getCurrentActorIndex();
     if (verbId != -1 && currentActorIndex != -1)
     {
-        _pImpl->_pVerb = &_pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + verbId);
+        _pImpl->_pVerb = getVerb(verbId);
         _pImpl->_useFlag = UseFlag::None;
         _pImpl->_pUseObject = nullptr;
         return;
@@ -1162,7 +1162,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         {
             if (_verbRects.at(i).contains((sf::Vector2i)_mousePos))
             {
-                verbId = i;
+                verbId = _verbSlots.at(currentActorIndex).getVerb(1 + i).id;
                 break;
             }
         }
