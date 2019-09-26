@@ -48,8 +48,7 @@ public:
   void setId(const std::wstring &id);
   const std::wstring &getId() const;
 
-  void setDefaultVerb(int verb);
-  int getDefaultVerb() const;
+  int getDefaultVerb(HSQUIRRELVM vm) const;
 
   HSQOBJECT &getTable() override;
 

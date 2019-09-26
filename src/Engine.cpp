@@ -861,7 +861,7 @@ void Engine::update(const sf::Time &elapsed)
         
         if (pVerb && pVerb->id == 1)
         {
-            pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb());
+            pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb(_pImpl->_vm));
         }
         _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
         return;
@@ -1045,7 +1045,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     {
         if (pVerb->id == 1 && _isMouseRightDown)
         {
-            pVerb = _pEngine->getVerb(_pCurrentObject->getDefaultVerb());
+            pVerb = _pEngine->getVerb(_pCurrentObject->getDefaultVerb(_vm));
         }
 
         std::wstring s;
@@ -1154,8 +1154,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     auto verbId = -1;
     if (_pCurrentObject)
     {
-        auto defaultVerb = _pCurrentObject->getDefaultVerb();
-        verbId = _verbSlots.at(currentActorIndex).getVerbIndex(defaultVerb);
+        verbId = _pCurrentObject->getDefaultVerb(_vm);
     }
     else
     {
@@ -1193,8 +1192,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
             auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb.id);
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
-            int index = x * 3 + y;
-            auto color = index == verbId ? _verbUiColors.at(currentActorIndex).verbHighlight
+            auto color = verb.id == verbId ? _verbUiColors.at(currentActorIndex).verbHighlight
                                          : _verbUiColors.at(currentActorIndex).verbNormalTint;
             sf::RectangleShape verbShape;
             verbShape.setFillColor(color);

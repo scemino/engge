@@ -23,7 +23,6 @@ struct Object::Impl
     bool _isTouchable{true};
     Room *_pRoom{nullptr};
     int _state{0};
-    int _verb{1};
     std::vector<std::shared_ptr<Trigger>> _triggers;
     HSQOBJECT _pTable{};
     bool _hotspotVisible{false};
@@ -76,8 +75,18 @@ const std::wstring &Object::getName() const { return pImpl->_name; }
 void Object::setId(const std::wstring &id) { pImpl->_id = id; }
 const std::wstring &Object::getId() const { return pImpl->_id; }
 
-void Object::setDefaultVerb(int verb) { pImpl->_verb = verb; }
-int Object::getDefaultVerb() const { return pImpl->_verb; }
+int Object::getDefaultVerb(HSQUIRRELVM v) const
+{
+    sq_pushobject(v, pImpl->_pTable);
+    sq_pushstring(v, _SC("defaultVerb"), -1);
+    if (SQ_SUCCEEDED(sq_get(v, -2)))
+    {
+        SQInteger value = 0;
+        sq_getinteger(v, -1, &value);
+        return value;
+    }
+    return 2; // lookat
+}
 
 HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
 
