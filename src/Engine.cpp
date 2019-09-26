@@ -957,6 +957,15 @@ void Engine::draw(sf::RenderWindow &window) const
     _pImpl->drawFade(window);
     _pImpl->drawCursor(window);
     _pImpl->drawCursorText(window);
+
+    // display stack size
+    NGText text;
+    text.setFont(_pImpl->_fntFont);
+    text.setColor(sf::Color::White);
+    std::wstringstream s;
+    s << L"stack: " << sq_gettop(_pImpl->_vm);
+    text.setText(s.str());
+    window.draw(text, sf::RenderStates::Default);
 }
 
 void Engine::Impl::drawFade(sf::RenderWindow &window) const
