@@ -521,7 +521,7 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
     auto transform = getTransform();
     transform.scale(scale, scale);
-    transform.translate((sf::Vector2f)-getRenderOffset() * scale);
+    transform.translate(getRenderOffset().x*scale, -getRenderOffset().y*scale);
     states.transform *= transform;
     target.draw(pImpl->_costume, states);
 
