@@ -83,8 +83,10 @@ int Object::getDefaultVerb(HSQUIRRELVM v) const
     {
         SQInteger value = 0;
         sq_getinteger(v, -1, &value);
+        sq_pop(v, 2);
         return value;
     }
+    sq_pop(v, 1);
     return 2; // lookat
 }
 

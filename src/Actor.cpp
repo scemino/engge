@@ -376,6 +376,7 @@ void Actor::Impl::TalkingState::load(int id)
     sq_pushstring(v, _SC("_talkieKey"), -1);
     if (SQ_FAILED(sq_rawget(v, -2)))
     {
+        sq_pop(v, 1);
         sq_pushobject(v, _pActor->pImpl->_table);
         sq_pushstring(v, _SC("_key"), -1);
         sq_rawget(v, -2);

@@ -236,7 +236,7 @@ private:
 class _PostWalk : public Function
 {
 public:
-    _PostWalk(const HSQUIRRELVM &v, const HSQOBJECT &object, int verb)
+    _PostWalk(const HSQUIRRELVM &v, HSQOBJECT object, int verb)
         : _vm(v), _object(object), _verb(verb)
     {
     }
@@ -264,12 +264,13 @@ public:
                 return;
             }
         }
+        sq_pop(_vm, 1);
         _handled = false;
     }
 
 private:
     const HSQUIRRELVM &_vm;
-    const HSQOBJECT &_object;
+    HSQOBJECT _object;
     int _verb;
     bool _done{false};
     bool _handled{false};
@@ -325,9 +326,10 @@ private:
                 sqstd_printcallstack(_vm);
                 return;
             }
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 1);
             return;
         }
+        sq_pop(_vm, 1);
 
         if (callVerbDefault(_object.getTable()))
             return;
@@ -380,7 +382,7 @@ private:
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);
             sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 1);
             return true;
         }
         return false;
@@ -583,6 +585,7 @@ private:
             if (handled == 1)
                 return true;
         }
+        sq_pop(_vm, 1);
         return false;
     }
 
