@@ -52,6 +52,7 @@ struct Actor::Impl
         bool isTalking() const { return _isTalking; }
         bool isTalkingIdDone(int id) const { return _id != id && std::find(_ids.begin(), _ids.end(), id) == _ids.end(); }
         void setTalkColor(sf::Color color) { _talkColor = color; }
+        sf::Color getTalkColor() const { return _talkColor; }
 
     private:
         void load(int id);
@@ -139,6 +140,11 @@ Costume &Actor::getCostume() const
 void Actor::setTalkColor(sf::Color color)
 {
     pImpl->_talkingState.setTalkColor(color);
+}
+
+sf::Color Actor::getTalkColor() const
+{
+    return pImpl->_talkingState.getTalkColor();
 }
 
 void Actor::setTalkOffset(const sf::Vector2i &offset)

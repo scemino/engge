@@ -21,6 +21,7 @@
 #include "Thread.h"
 #include "Verb.h"
 #include "VerbExecute.h"
+#include "_DebugTools.h"
 #include "_Util.h"
 #include <fstream>
 #include <iomanip>
@@ -50,6 +51,7 @@ bool operator&(CursorDirection lhs, CursorDirection rhs)
 struct Engine::Impl
 {
     Engine *_pEngine;
+    std::unique_ptr<_DebugTools> _pDebugTools;
     EngineSettings &_settings;
     TextureManager _textureManager;
     Room *_pRoom;
@@ -144,6 +146,7 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
     srand(seed);
 
     _pImpl->_pEngine = this;
+    _pImpl->_pDebugTools = std::make_unique<_DebugTools>(*this);
     _pImpl->_soundManager.setEngine(this);
     _pImpl->_dialogManager.setEngine(this);
     _pImpl->_actorIcons.setEngine(this);
@@ -199,6 +202,8 @@ void Engine::addRoom(std::unique_ptr<Room> room) { _pImpl->_rooms.push_back(std:
 
 const std::vector<std::unique_ptr<Room>> &Engine::getRooms() const { return _pImpl->_rooms; }
 
+std::vector<std::unique_ptr<Room>> &Engine::getRooms() { return _pImpl->_rooms; }
+
 void Engine::addFunction(std::unique_ptr<Function> function) { _pImpl->_newFunctions.push_back(std::move(function)); }
 
 std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actors; }
@@ -225,9 +230,9 @@ bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
 void Engine::follow(Actor *pActor)
 {
-    auto panCamera = (_pImpl->_pFollowActor && pActor && _pImpl->_pFollowActor != pActor 
-        && _pImpl->_pFollowActor->getRoom() && pActor->getRoom()
-        && _pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
+    auto panCamera =
+        (_pImpl->_pFollowActor && pActor && _pImpl->_pFollowActor != pActor && _pImpl->_pFollowActor->getRoom() &&
+         pActor->getRoom() && _pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
     _pImpl->_pFollowActor = pActor;
     if (!pActor)
         return;
@@ -249,10 +254,7 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
     _pImpl->_pVerbExecute = std::move(verbExecute);
 }
 
-void Engine::setDefaultVerb()
-{
-    _pImpl->_pVerb = getVerb(1);
-}
+void Engine::setDefaultVerb() { _pImpl->_pVerb = getVerb(1); }
 
 void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute)
 {
@@ -454,7 +456,8 @@ SQInteger Engine::setRoom(Room *pRoom)
 {
     _pImpl->_fadeColor = sf::Color::Transparent;
 
-    if(!pRoom) return 0;
+    if (!pRoom)
+        return 0;
 
     auto pOldRoom = _pImpl->_pRoom;
     if (pRoom == pOldRoom)
@@ -528,10 +531,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     return _pImpl->enterRoom(pRoom, pDoor);
 }
 
-void Engine::setInputHUD(bool on)
-{
-    _pImpl->_inputHUD = on;
-}
+void Engine::setInputHUD(bool on) { _pImpl->_inputHUD = on; }
 
 void Engine::setInputActive(bool active)
 {
@@ -737,7 +737,7 @@ void Engine::Impl::updateRoomScalings()
             }
         }
     }
-    if(!scalings.empty())
+    if (!scalings.empty())
     {
         _pRoom->setRoomScaling(scalings[0]);
     }
@@ -745,9 +745,10 @@ void Engine::Impl::updateRoomScalings()
 
 void Engine::update(const sf::Time &elapsed)
 {
+    ImGuiIO& io = ImGui::GetIO();
     _pImpl->_frameCounter++;
-    auto wasMouseDown = _pImpl->_isMouseDown;
-    auto wasMouseRightDown = _pImpl->_isMouseRightDown;
+    auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
+    auto wasMouseRightDown = !io.WantCaptureMouse && _pImpl->_isMouseRightDown;
     _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && _pImpl->_pWindow->hasFocus();
     _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && _pImpl->_pWindow->hasFocus();
     bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
@@ -830,14 +831,14 @@ void Engine::update(const sf::Time &elapsed)
         _pImpl->_pUseObject = nullptr;
         return;
     }
-    
+
     if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject &&
-             _pImpl->_pActor)
+        _pImpl->_pActor)
     {
         _pImpl->_pVerbExecute->execute(_pImpl->_pActor, getVerb(3));
         return;
     }
-    
+
     if (_pImpl->_pVerb && _pImpl->_pVerb->id == 1 && !_pImpl->_pCurrentObject && _pImpl->_pCurrentActor)
     {
         _pImpl->_pCurrentActor->walkTo(mousePosInRoom);
@@ -851,14 +852,14 @@ void Engine::update(const sf::Time &elapsed)
             _pImpl->_pVerbExecute->use(_pImpl->_pUseObject, _pImpl->_pCurrentObject);
             return;
         }
-        
+
         auto pVerb = _pImpl->_pVerb;
         if (!isRightClick)
         {
             _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
             return;
         }
-        
+
         if (pVerb && pVerb->id == 1)
         {
             pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb(_pImpl->_vm));
@@ -866,7 +867,7 @@ void Engine::update(const sf::Time &elapsed)
         _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
         return;
     }
-    
+
     if (_pImpl->_inventory.getCurrentInventoryObject())
     {
         auto pVerb = _pImpl->_pVerb;
@@ -878,7 +879,7 @@ void Engine::update(const sf::Time &elapsed)
         _pImpl->_pVerbExecute->execute(pInventoryObj, pVerb);
         return;
     }
-    
+
     if (currentActorIndex != -1)
     {
         _pImpl->_pVerb = getVerb(1);
@@ -957,15 +958,7 @@ void Engine::draw(sf::RenderWindow &window) const
     _pImpl->drawFade(window);
     _pImpl->drawCursor(window);
     _pImpl->drawCursorText(window);
-
-    // display stack size
-    NGText text;
-    text.setFont(_pImpl->_fntFont);
-    text.setColor(sf::Color::White);
-    std::wstringstream s;
-    s << L"stack: " << sq_gettop(_pImpl->_vm);
-    text.setText(s.str());
-    window.draw(text, sf::RenderStates::Default);
+    _pImpl->_pDebugTools->render();
 }
 
 void Engine::Impl::drawFade(sf::RenderWindow &window) const
@@ -1202,7 +1195,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
             auto rect = getVerbRect(verb.id);
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
             auto color = verb.id == verbId ? _verbUiColors.at(currentActorIndex).verbHighlight
-                                         : _verbUiColors.at(currentActorIndex).verbNormalTint;
+                                           : _verbUiColors.at(currentActorIndex).verbNormalTint;
             sf::RectangleShape verbShape;
             verbShape.setFillColor(color);
             verbShape.setPosition(left, top);

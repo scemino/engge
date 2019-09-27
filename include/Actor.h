@@ -33,6 +33,8 @@ public:
   Costume &getCostume();
 
   void setTalkColor(sf::Color color);
+  sf::Color getTalkColor() const;
+  
   void setTalkOffset(const sf::Vector2i &offset);
   void say(int id);
   void stopTalking();

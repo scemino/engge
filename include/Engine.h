@@ -66,6 +66,7 @@ class Engine : public NonCopyable
     void addActor(std::unique_ptr<Actor> actor);
     void addRoom(std::unique_ptr<Room> room);
     const std::vector<std::unique_ptr<Room>> &getRooms() const;
+    std::vector<std::unique_ptr<Room>> &getRooms();
     void addFunction(std::unique_ptr<Function> function);
     void cutscene(std::unique_ptr<Cutscene> function);
     bool inCutscene() const;

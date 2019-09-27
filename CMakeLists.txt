@@ -4,6 +4,7 @@ project(engge)
 set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 find_package( SFML REQUIRED COMPONENTS system window graphics audio )
+find_package(ImGui-SFML REQUIRED)
 
 include_directories(include/ extlibs/squirrel/include/ extlibs/spdlog/include/)
 link_directories(extlibs/squirrel/squirrel/ extlibs/squirrel/sqstdlib/)
@@ -28,4 +29,5 @@ if (SFML_FOUND)
 else()
     message (FATAL_ERROR "Cannot find SFML")
 endif()
+target_link_libraries(${PROJECT_NAME} ImGui-SFML::ImGui-SFML)
 
