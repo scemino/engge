@@ -73,21 +73,48 @@ class _DebugTools
         ImGui::Combo("", &_selectedActor, actor_getter, static_cast<void *>(&actors), actors.size());
         auto &actor = actors[_selectedActor];
         auto isVisible = actor->isVisible();
-        if (ImGui::Checkbox("visible", &isVisible))
+        if (ImGui::Checkbox("Visible", &isVisible))
         {
             actor->setVisible(isVisible);
         }
         auto isTouchable = actor->isTouchable();
-        if (ImGui::Checkbox("touchable", &isTouchable))
+        if (ImGui::Checkbox("Touchable", &isTouchable))
         {
             actor->setTouchable(isTouchable);
         }
-        ImGui::Text("talking: %s", actor->isTalking() ? "true" : "false");
-        ImGui::Text("walking: %s", actor->isWalking() ? "true" : "false");
+        auto pRoom = actor->getRoom();
+        ImGui::Text("Room: %s", pRoom ? pRoom->getId().c_str() : "(none)");
+        ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
+        ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
+        auto color = actor->getColor();
+        if (ColorEdit4("Color", color))
+        {
+            actor->setColor(color);
+        }
         auto talkColor = actor->getTalkColor();
-        if (ColorEdit4("talk color", talkColor))
+        if (ColorEdit4("Talk color", talkColor))
         {
             actor->setTalkColor(talkColor);
+        }
+        auto offset = actor->getOffset();
+        if (InputFloat2("Offset", offset))
+        {
+            actor->setOffset(offset);
+        }
+        auto walkSpeed = actor->getWalkSpeed();
+        if (InputInt2("Walk speed", walkSpeed))
+        {
+            actor->setWalkSpeed(walkSpeed);
+        }
+        auto hotspotVisible = actor->isHotspotVisible();
+        if (ImGui::Checkbox("Show hotspot", &hotspotVisible))
+        {
+            actor->showHotspot(hotspotVisible);
+        }
+        auto hotspot = actor->getHotspot();
+        if (InputInt4("Hotspot", hotspot))
+        {
+            actor->setHotspot(hotspot);
         }
         ImGui::End();
     }
@@ -107,22 +134,40 @@ class _DebugTools
         ImGui::Begin("Objects", &_showObjects);
         auto &objects = _engine.getRoom()->getObjects();
         ImGui::Combo("", &_selectedObject, objectGetter, static_cast<void *>(&objects), objects.size());
-        auto &object = objects[_selectedObject];
-        auto isVisible = object->isVisible();
-        ImGui::TextUnformatted(tostring(object->getName()).c_str());
-        if (ImGui::Checkbox("visible", &isVisible))
+        if (!objects.empty())
         {
-            object->setVisible(isVisible);
-        }
-        auto zorder = object->getZOrder();
-        if (ImGui::InputInt("zorder", &zorder))
-        {
-            object->setZOrder(zorder);
-        }
-        auto isTouchable = object->isTouchable();
-        if (ImGui::Checkbox("touchable", &isTouchable))
-        {
-            object->setTouchable(isTouchable);
+            auto &object = objects[_selectedObject];
+            auto isVisible = object->isVisible();
+            ImGui::TextUnformatted(tostring(object->getName()).c_str());
+            if (ImGui::Checkbox("Visible", &isVisible))
+            {
+                object->setVisible(isVisible);
+            }
+            auto isTouchable = object->isTouchable();
+            if (ImGui::Checkbox("Touchable", &isTouchable))
+            {
+                object->setTouchable(isTouchable);
+            }
+            auto zorder = object->getZOrder();
+            if (ImGui::InputInt("Z-Order", &zorder))
+            {
+                object->setZOrder(zorder);
+            }
+            auto offset = object->getOffset();
+            if (InputFloat2("Offset", offset))
+            {
+                object->setOffset(offset);
+            }
+            auto hotspotVisible = object->isHotspotVisible();
+            if (ImGui::Checkbox("Show hotspot", &hotspotVisible))
+            {
+                object->showHotspot(hotspotVisible);
+            }
+            auto hotspot = object->getHotspot();
+            if (InputInt4("Hotspot", hotspot))
+            {
+                object->setHotspot(hotspot);
+            }
         }
         ImGui::End();
     }
@@ -133,8 +178,13 @@ class _DebugTools
         auto &rooms = _engine.getRooms();
         ImGui::Combo("", &_selectedRoom, roomGetter, static_cast<void *>(&rooms), rooms.size());
         auto &room = rooms[_selectedRoom];
+        auto showWalkboxes = room->areDrawWalkboxesVisible();
+        if (ImGui::Checkbox("Walkboxes", &showWalkboxes))
+        {
+            room->showDrawWalkboxes(showWalkboxes);
+        }
         auto rotation = room->getRotation();
-        if (ImGui::InputFloat("rotation", &rotation))
+        if (ImGui::SliderFloat("rotation", &rotation, -180.f, 180.f, "%.0f deg"))
         {
             room->setRotation(rotation);
         }
@@ -166,6 +216,44 @@ class _DebugTools
             color.g = static_cast<sf::Uint8>(imColor[1] * 255.f);
             color.b = static_cast<sf::Uint8>(imColor[2] * 255.f);
             color.a = static_cast<sf::Uint8>(imColor[3] * 255.f);
+            return true;
+        }
+        return false;
+    }
+
+    static bool InputInt2(const char *label, sf::Vector2i &vector)
+    {
+        int vec[2] = {vector.x, vector.y};
+        if (ImGui::InputInt2(label, vec))
+        {
+            vector.x = vec[0];
+            vector.y = vec[1];
+            return true;
+        }
+        return false;
+    }
+
+    static bool InputInt4(const char *label, sf::IntRect &rect)
+    {
+        int r[4] = {rect.left, rect.top, rect.width, rect.height};
+        if (ImGui::InputInt4(label, r))
+        {
+            rect.left = r[0];
+            rect.top = r[1];
+            rect.width = r[2];
+            rect.height = r[3];
+            return true;
+        }
+        return false;
+    }
+
+    static bool InputFloat2(const char *label, sf::Vector2f &vector)
+    {
+        float vec[2] = {vector.x, vector.y};
+        if (ImGui::InputFloat2(label, vec))
+        {
+            vector.x = vec[0];
+            vector.y = vec[1];
             return true;
         }
         return false;

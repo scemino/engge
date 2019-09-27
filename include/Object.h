@@ -41,6 +41,8 @@ public:
   void setHotspot(const sf::IntRect &hotspot);
   const sf::IntRect &getHotspot() const;
   sf::IntRect getRealHotspot() const;
+  void showHotspot(bool show);
+  bool isHotspotVisible() const;
 
   void setName(const std::wstring &name);
   const std::wstring &getName() const;

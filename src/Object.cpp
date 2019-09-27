@@ -214,12 +214,15 @@ void Object::update(const sf::Time &elapsed)
     }
 }
 
+void Object::showHotspot(bool show) { pImpl->_hotspotVisible = show; }
+
+bool Object::isHotspotVisible() const { return pImpl->_hotspotVisible; }
+
 void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!pImpl->_hotspotVisible)
         return;
 
-    states.transform *= getTransform();
     auto rect = getHotspot();
 
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
@@ -252,6 +255,8 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
         pImpl->_pAnim->getSprite().setColor(getColor());
         target.draw(*pImpl->_pAnim, states);
     }
+
+    drawHotspot(target, states);
 }
 
 void Object::dependentOn(Object *parentObject, int state)

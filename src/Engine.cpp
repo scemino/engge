@@ -1070,10 +1070,6 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
             s.append(L" ").append(_pCurrentObject->getName());
         }
         text.setText(s);
-
-        sf::RenderStates states;
-        states.transform.translate(-cameraPos);
-        _pCurrentObject->drawHotspot(window, states);
     }
     else
     {

@@ -48,6 +48,9 @@ public:
   void setFps(int fps) override;
 
   void setHotspot(const sf::IntRect &hotspot);
+  sf::IntRect getHotspot() const;
+  void showHotspot(bool show);
+  bool isHotspotVisible() const;
   bool contains(const sf::Vector2f& pos) const;
 
   void update(const sf::Time &time) override;

@@ -1,4 +1,3 @@
-#include <regex>
 #include "Actor.h"
 #include "Engine.h"
 #include "InventoryObject.h"
@@ -12,6 +11,7 @@
 #include "SoundManager.h"
 #include "Text.h"
 #include "_Util.h"
+#include <regex>
 
 namespace ng
 {
@@ -19,7 +19,7 @@ struct Actor::Impl
 {
     class WalkingState
     {
-    public:
+      public:
         WalkingState();
 
         void setActor(Actor *pActor);
@@ -28,10 +28,10 @@ struct Actor::Impl
         void stop();
         bool isWalking() const { return _isWalking; }
 
-    private:
+      private:
         Facing getFacing();
 
-    private:
+      private:
         Actor *_pActor;
         std::vector<sf::Vector2i> _path;
         std::optional<Facing> _facing;
@@ -40,7 +40,7 @@ struct Actor::Impl
 
     class TalkingState : public sf::Drawable
     {
-    public:
+      public:
         TalkingState();
 
         void setActor(Actor *pActor);
@@ -50,14 +50,17 @@ struct Actor::Impl
         void say(int id);
         void stop();
         bool isTalking() const { return _isTalking; }
-        bool isTalkingIdDone(int id) const { return _id != id && std::find(_ids.begin(), _ids.end(), id) == _ids.end(); }
+        bool isTalkingIdDone(int id) const
+        {
+            return _id != id && std::find(_ids.begin(), _ids.end(), id) == _ids.end();
+        }
         void setTalkColor(sf::Color color) { _talkColor = color; }
         sf::Color getTalkColor() const { return _talkColor; }
 
-    private:
+      private:
         void load(int id);
 
-    private:
+      private:
         Actor *_pActor;
         FntFont _font;
         bool _isTalking;
@@ -73,18 +76,37 @@ struct Actor::Impl
     };
 
     explicit Impl(Engine &engine)
-        : _engine(engine),
-          _settings(engine.getSettings()),
-          _costume(engine.getTextureManager()),
-          _zorder(0),
-          _use(true),
-          _pRoom(nullptr),
-          _speed(30, 15),
-          _volume(1.f)
+        : _engine(engine), _settings(engine.getSettings()), _costume(engine.getTextureManager()), _zorder(0),
+          _use(true), _pRoom(nullptr), _speed(30, 15), _volume(1.f)
     {
     }
 
+    void setActor(Actor *pActor)
+    {
+        _pActor = pActor;
+        _talkingState.setActor(pActor);
+        _walkingState.setActor(pActor);
+        _costume.setActor(pActor);
+    }
+
+    void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
+    {
+        if (!_hotspotVisible)
+            return;
+
+        states.transform *= _pActor->getTransform();
+        auto rect = _pActor->getHotspot();
+
+        sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
+        s.setPosition(rect.left, rect.top);
+        s.setOutlineThickness(1);
+        s.setOutlineColor(sf::Color::Red);
+        s.setFillColor(sf::Color::Transparent);
+        target.draw(s, states);
+    }
+
     Engine &_engine;
+    Actor *_pActor{nullptr};
     const EngineSettings &_settings;
     Costume _costume;
     std::string _name, _icon;
@@ -100,87 +122,46 @@ struct Actor::Impl
     std::shared_ptr<Path> _path;
     HSQOBJECT _table{};
     sf::Vector2f _offset;
+    bool _hotspotVisible{false};
 };
 
-void Actor::setName(const std::string &name)
-{
-    pImpl->_name = name;
-}
+void Actor::setName(const std::string &name) { pImpl->_name = name; }
 
-const std::string &Actor::getName() const
-{
-    return pImpl->_name;
-}
+const std::string &Actor::getName() const { return pImpl->_name; }
 
-void Actor::setIcon(const std::string &icon)
-{
-    pImpl->_icon = icon;
-}
+void Actor::setIcon(const std::string &icon) { pImpl->_icon = icon; }
 
-const std::string &Actor::getIcon() const
-{
-    return pImpl->_icon;
-}
+const std::string &Actor::getIcon() const { return pImpl->_icon; }
 
-void Actor::useWalkboxes(bool use)
-{
-    pImpl->_use = use;
-}
+void Actor::useWalkboxes(bool use) { pImpl->_use = use; }
 
-Costume &Actor::getCostume()
-{
-    return pImpl->_costume;
-}
+Costume &Actor::getCostume() { return pImpl->_costume; }
 
-Costume &Actor::getCostume() const
-{
-    return pImpl->_costume;
-}
+Costume &Actor::getCostume() const { return pImpl->_costume; }
 
-void Actor::setTalkColor(sf::Color color)
-{
-    pImpl->_talkingState.setTalkColor(color);
-}
+void Actor::setTalkColor(sf::Color color) { pImpl->_talkingState.setTalkColor(color); }
 
-sf::Color Actor::getTalkColor() const
-{
-    return pImpl->_talkingState.getTalkColor();
-}
+sf::Color Actor::getTalkColor() const { return pImpl->_talkingState.getTalkColor(); }
 
-void Actor::setTalkOffset(const sf::Vector2i &offset)
-{
-    pImpl->_talkingState.setTalkOffset(offset);
-}
+void Actor::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkingState.setTalkOffset(offset); }
 
-void Actor::say(int id)
-{
-    pImpl->_talkingState.say(id);
-}
+void Actor::say(int id) { pImpl->_talkingState.say(id); }
 
-void Actor::stopTalking()
-{
-    pImpl->_talkingState.stop();
-}
+void Actor::stopTalking() { pImpl->_talkingState.stop(); }
 
-bool Actor::isTalking() const
-{
-    return pImpl->_talkingState.isTalking();
-}
+bool Actor::isTalking() const { return pImpl->_talkingState.isTalking(); }
 
-bool Actor::isTalkingIdDone(int id) const
-{
-    return pImpl->_talkingState.isTalkingIdDone(id);
-}
+bool Actor::isTalkingIdDone(int id) const { return pImpl->_talkingState.isTalkingIdDone(id); }
 
-Room *Actor::getRoom()
-{
-    return pImpl->_pRoom;
-}
+Room *Actor::getRoom() { return pImpl->_pRoom; }
 
-void Actor::setHotspot(const sf::IntRect &hotspot)
-{
-    pImpl->_hotspot = hotspot;
-}
+void Actor::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
+
+sf::IntRect Actor::getHotspot() const { return pImpl->_hotspot; }
+
+void Actor::showHotspot(bool show) { pImpl->_hotspotVisible = show; }
+
+bool Actor::isHotspotVisible() const { return pImpl->_hotspotVisible; }
 
 bool Actor::contains(const sf::Vector2f &pos) const
 {
@@ -198,55 +179,25 @@ bool Actor::contains(const sf::Vector2f &pos) const
     return pAnim->contains(pos2);
 }
 
-void Actor::pickupObject(std::unique_ptr<InventoryObject> pObject)
-{
-    pImpl->_objects.push_back(std::move(pObject));
-}
+void Actor::pickupObject(std::unique_ptr<InventoryObject> pObject) { pImpl->_objects.push_back(std::move(pObject)); }
 
-const std::vector<std::unique_ptr<InventoryObject>> &Actor::getObjects() const
-{
-    return pImpl->_objects;
-}
+const std::vector<std::unique_ptr<InventoryObject>> &Actor::getObjects() const { return pImpl->_objects; }
 
-void Actor::setWalkSpeed(const sf::Vector2i &speed)
-{
-    pImpl->_speed = speed;
-}
+void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }
 
-const sf::Vector2i &Actor::getWalkSpeed() const
-{
-    return pImpl->_speed;
-}
+const sf::Vector2i &Actor::getWalkSpeed() const { return pImpl->_speed; }
 
-void Actor::stopWalking()
-{
-    pImpl->_walkingState.stop();
-}
+void Actor::stopWalking() { pImpl->_walkingState.stop(); }
 
-bool Actor::isWalking() const
-{
-    return pImpl->_walkingState.isWalking();
-}
+bool Actor::isWalking() const { return pImpl->_walkingState.isWalking(); }
 
-void Actor::setVolume(float volume)
-{
-    pImpl->_volume = volume;
-}
+void Actor::setVolume(float volume) { pImpl->_volume = volume; }
 
-HSQOBJECT &Actor::getTable()
-{
-    return pImpl->_table;
-}
+HSQOBJECT &Actor::getTable() { return pImpl->_table; }
 
-Actor::Impl::WalkingState::WalkingState()
-    : _pActor(nullptr), _facing(Facing::FACE_FRONT), _isWalking(false)
-{
-}
+Actor::Impl::WalkingState::WalkingState() : _pActor(nullptr), _facing(Facing::FACE_FRONT), _isWalking(false) {}
 
-void Actor::Impl::WalkingState::setActor(Actor *pActor)
-{
-    _pActor = pActor;
-}
+void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
 
 void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing)
 {
@@ -260,10 +211,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
     trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
 
-void Actor::Impl::WalkingState::stop()
-{
-    _isWalking = false;
-}
+void Actor::Impl::WalkingState::stop() { _isWalking = false; }
 
 Facing Actor::Impl::WalkingState::getFacing()
 {
@@ -330,9 +278,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     }
 }
 
-Actor::Impl::TalkingState::TalkingState()
-    : _pActor(nullptr), _isTalking(false),
-      _index(0), _talkColor(sf::Color::White)
+Actor::Impl::TalkingState::TalkingState() : _pActor(nullptr), _isTalking(false), _index(0), _talkColor(sf::Color::White)
 {
 }
 
@@ -429,8 +375,8 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
     if (!_isTalking)
         return;
 
-    if(_lip.getData().empty())
-    { 
+    if (_lip.getData().empty())
+    {
         _isTalking = false;
         _id = 0;
         return;
@@ -482,25 +428,13 @@ void Actor::Impl::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates 
     target.draw(text, states);
 }
 
-Actor::Actor(Engine &engine)
-    : pImpl(std::make_unique<Impl>(engine))
-{
-    pImpl->_talkingState.setActor(this);
-    pImpl->_walkingState.setActor(this);
-    pImpl->_costume.setActor(this);
-}
+Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine)) { pImpl->setActor(this); }
 
 Actor::~Actor() = default;
 
-const Room *Actor::getRoom() const
-{
-    return pImpl->_pRoom;
-}
+const Room *Actor::getRoom() const { return pImpl->_pRoom; }
 
-int Actor::getZOrder() const
-{
-    return static_cast<int>(getRoom()->getRoomSize().y - getRealPosition().y);
-}
+int Actor::getZOrder() const { return static_cast<int>(getRoom()->getRoomSize().y - getRealPosition().y); }
 
 void Actor::setRoom(Room *pRoom)
 {
@@ -523,12 +457,12 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!isVisible())
         return;
-    
+
     auto size = pImpl->_pRoom->getRoomSize();
     auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
     auto transform = getTransform();
     transform.scale(scale, scale);
-    transform.translate(getRenderOffset().x*scale, -getRenderOffset().y*scale);
+    transform.translate(getRenderOffset().x * scale, -getRenderOffset().y * scale);
     states.transform *= transform;
     target.draw(pImpl->_costume, states);
 
@@ -538,6 +472,8 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
     // rectangle.setSize(sf::Vector2f(2, 2));
     // rectangle.setOrigin(sf::Vector2f(1, 1));
     // target.draw(rectangle, states);
+
+    pImpl->drawHotspot(target, states);
 }
 
 void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
