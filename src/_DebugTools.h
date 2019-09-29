@@ -1,3 +1,15 @@
+#include "squirrel.h"
+#include "../extlibs/squirrel/squirrel/sqpcheader.h"
+#include "../extlibs/squirrel/squirrel/sqvm.h"
+#include "../extlibs/squirrel/squirrel/sqstring.h"
+#include "../extlibs/squirrel/squirrel/sqtable.h"
+#include "../extlibs/squirrel/squirrel/sqarray.h"
+#include "../extlibs/squirrel/squirrel/sqfuncproto.h"
+#include "../extlibs/squirrel/squirrel/sqclosure.h"
+#include "../extlibs/squirrel/squirrel/squserdata.h"
+#include "../extlibs/squirrel/squirrel/sqcompiler.h"
+#include "../extlibs/squirrel/squirrel/sqfuncstate.h"
+#include "../extlibs/squirrel/squirrel/sqclass.h"
 #include "Object.h"
 #include "_Util.h"
 #include "imgui-SFML.h"
@@ -12,9 +24,22 @@ class _DebugTools
 
     void render()
     {
+        static auto stackGetter = [](void *vec, int idx, const char **out_text) {
+            auto &vector = *static_cast<std::vector<std::string> *>(vec);
+            if (idx < 0 || idx >= static_cast<int>(vector.size()))
+            {
+                return false;
+            }
+            *out_text = vector.at(idx).c_str();
+            return true;
+        };
+
         ImGui::Begin("Debug");
         std::stringstream s;
         s << "Stack: " << sq_gettop(_engine.getVm());
+        std::vector<std::string> stack;
+        getStack(stack);
+        ImGui::Combo("", &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
         ImGui::TextUnformatted(s.str().c_str());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
@@ -56,6 +81,77 @@ class _DebugTools
     }
 
   private:
+    void getStack(std::vector<std::string>& stack)
+    {
+        HSQOBJECT obj;
+        auto size = sq_gettop(_engine.getVm());
+        for(size_t i=1;i<=size;++i){
+            auto type = sq_gettype(_engine.getVm(),-i);
+            sq_getstackobj(_engine.getVm(),-i,&obj);
+            std::ostringstream s;
+            s << "#" << i << ": ";
+            switch (type)
+            {
+            case OT_NULL:
+                s << "null";
+                break;
+            case OT_INTEGER:
+                s << sq_objtointeger(&obj);
+                break;
+            case OT_FLOAT:
+                s << sq_objtofloat(&obj);
+                break;
+            case OT_BOOL:
+                s << (sq_objtobool(&obj)==SQTrue?"true":"false");
+                break;
+            case OT_USERPOINTER:
+            {
+                s << "userpointer";
+                auto ptr = _userpointer(obj);
+                auto p = (ScriptObject*)ptr;
+                break;
+            }
+            case OT_STRING:
+                s << sq_objtostring(&obj);
+                break;
+            case OT_TABLE:
+                s << "table";
+                break;
+            case OT_ARRAY:
+                s << "array";
+                break;
+            case OT_CLOSURE:
+            {
+                s << "closure: ";
+                auto pName = _closure(obj)->_function->_name;
+                s << (pName._type!=OT_NULL?_stringval(pName):"null");
+                break;
+            }
+            case OT_NATIVECLOSURE:
+                s << "native closure";
+                break;
+            case OT_GENERATOR:
+                s << "generator";
+                break;
+            case OT_USERDATA:
+                s << "user data";
+                break;
+            case OT_THREAD:
+                s << "thread";
+                break;
+            case OT_INSTANCE:
+                s << "instance";
+                break;
+            case OT_WEAKREF:
+                s << "weak ref";
+                break;
+            default:
+                s << "?";
+                break;
+            }
+            stack.push_back(s.str());
+        }
+    }
     void showActors()
     {
         static auto actor_getter = [](void *vec, int idx, const char **out_text) {
@@ -267,5 +363,6 @@ class _DebugTools
     int _selectedActor{0};
     int _selectedObject{0};
     int _selectedRoom{0};
+    int _selectedStack{0};
 };
 } // namespace ng

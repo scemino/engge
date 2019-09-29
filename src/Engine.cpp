@@ -411,6 +411,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     {
         return sq_throwerror(_vm, _SC("function enter call failed"));
     }
+    sq_pop(_vm, 1);
 
     auto &objects = pRoom->getObjects();
     for (size_t i = 0; i < objects.size(); i++)
@@ -434,6 +435,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
         {
             return sq_throwerror(_vm, _SC("function object enter call failed"));
         }
+        sq_pop(_vm, 1);
     }
 
     return 0;
@@ -905,7 +907,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
         return;
     }
 
-    sq_remove(v, -2);
+    sq_pop(v, 2);
     sq_pushroottable(v);
     sq_pushobject(v, pCurrentActor->getTable());
     sq_pushbool(v, userSelected);

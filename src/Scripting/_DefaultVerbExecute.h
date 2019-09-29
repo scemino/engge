@@ -87,6 +87,7 @@ public:
         sq_get(_vm, -2);
         HSQOBJECT obj;
         sq_getstackobj(_vm, -1, &obj);
+        sq_pop(_vm, 2);
 
         if (!sq_isuserpointer(obj))
         {
