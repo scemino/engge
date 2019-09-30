@@ -223,6 +223,30 @@ public:
     }
 };
 
+class _BreakWhileAnyActorTalkingFunction : public _BreakFunction
+{
+public:
+    explicit _BreakWhileAnyActorTalkingFunction(Engine &engine, HSQUIRRELVM vm)
+        : _BreakFunction(engine, vm)
+    {
+    }
+
+    const std::string getName() override
+    {
+        return "_BreakWhileAnyActorTalkingFunction";
+    }
+
+    bool isElapsed() override
+    {
+        for(auto&& actor : _engine.getActors())
+        {
+            if(actor->isTalking())
+                return false;
+        }
+        return true;
+    }
+};
+
 class _BreakWhileSoundFunction : public _BreakFunction
 {
 private:
@@ -599,13 +623,19 @@ private:
 
     static SQInteger breakwhiletalking(HSQUIRRELVM v)
     {
-        auto *pActor = ScriptEngine::getActor(v, 2);
-        if (!pActor)
+        if(sq_gettop(v) == 2)
         {
-            return sq_throwerror(v, _SC("failed to get actor"));
+            auto *pActor = ScriptEngine::getActor(v, 2);
+            if (!pActor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
+            auto result = sq_suspendvm(v);
+            g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, v, *pActor));
+            return result;
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, v, *pActor));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileAnyActorTalkingFunction>(*g_pEngine, v));
         return result;
     }
 
@@ -970,6 +1000,23 @@ private:
         return 0;
     }
 
+    static SQInteger inputController(HSQUIRRELVM v)
+    {
+        error("TODO: inputController: not implemented");
+        return 0;
+    }
+
+    static SQInteger inputVerbs(HSQUIRRELVM v)
+    {
+        SQInteger on;
+        if (SQ_FAILED(sq_getinteger(v, 2, &on)))
+        {
+            return sq_throwerror(v, _SC("failed to get isActive"));
+        }
+        g_pEngine->setInputVerbs(on);
+        return 1;
+    }
+
     static SQInteger is_table(HSQUIRRELVM v)
     {
         sq_pushbool(v, sq_gettype(v, 2) == OT_TABLE ? SQTrue : SQFalse);
@@ -990,23 +1037,6 @@ private:
     static SQInteger is_string(HSQUIRRELVM v)
     {
         sq_pushbool(v, sq_gettype(v, 2) == OT_STRING ? SQTrue : SQFalse);
-        return 1;
-    }
-
-    static SQInteger inputController(HSQUIRRELVM v)
-    {
-        error("TODO: inputController: not implemented");
-        return 0;
-    }
-
-    static SQInteger inputVerbs(HSQUIRRELVM v)
-    {
-        SQInteger on;
-        if (SQ_FAILED(sq_getinteger(v, 2, &on)))
-        {
-            return sq_throwerror(v, _SC("failed to get isActive"));
-        }
-        g_pEngine->setInputVerbs(on);
         return 1;
     }
 
