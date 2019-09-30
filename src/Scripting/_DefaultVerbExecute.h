@@ -625,13 +625,17 @@ private:
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, _SC("defaultVerb"), -1);
 
-        SQInteger defaultVerb = 0;
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
+            SQInteger defaultVerb = 0;
             sq_getinteger(_vm, -1, &defaultVerb);
             trace("defaultVerb: {}", defaultVerb);
+            sq_pop(_vm, 2);
+            return defaultVerb;
         }
-        return defaultVerb;
+        sq_pop(_vm, 1);
+
+        return 2;
     }
 
 private:
