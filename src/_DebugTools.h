@@ -44,6 +44,23 @@ class _DebugTools
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
         ImGui::Separator();
+        ImGui::Text("Cursor visible: %s", _engine.isCursorVisible() ? "yes" : "no");
+        auto inputActive = _engine.getInputActive();
+        if(ImGui::Checkbox("Input active", &inputActive))
+        {
+            _engine.setInputActive(inputActive);
+        }
+        auto inputVerbs = _engine.getInputVerbs();
+        if(ImGui::Checkbox("Input verbs", &inputVerbs))
+        {
+            _engine.setInputVerbs(inputVerbs);
+        }
+        auto inputHUD = _engine.getInputHUD();
+        if(ImGui::Checkbox("Input HUD", &inputHUD))
+        {
+            _engine.setInputHUD(inputHUD);
+        }
+        ImGui::Separator();
         ImGui::Checkbox("Actors", &_showActors);
         ImGui::Checkbox("Objects", &_showObjects);
         ImGui::Checkbox("Rooms", &_showRooms);

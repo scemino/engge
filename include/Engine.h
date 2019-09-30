@@ -89,11 +89,15 @@ class Engine : public NonCopyable
     const Verb *getVerb(int id) const;
     void setDefaultVerb();
 
-    void setInputHUD(bool on);
     void setInputActive(bool active);
-    void inputSilentOff();
-    void setInputVerbs(bool on);
     bool getInputActive() const;
+    void inputSilentOff();
+    bool isCursorVisible() const;
+
+    void setInputHUD(bool on);
+    bool getInputHUD() const;
+    
+    void setInputVerbs(bool on);
     bool getInputVerbs() const;
 
     void follow(Actor *pActor);

@@ -535,6 +535,10 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
 
 void Engine::setInputHUD(bool on) { _pImpl->_inputHUD = on; }
 
+bool Engine::getInputHUD() const { return _pImpl->_inputHUD; }
+
+bool Engine::isCursorVisible() const { return _pImpl->_showCursor; }
+
 void Engine::setInputActive(bool active)
 {
     _pImpl->_inputActive = active;
