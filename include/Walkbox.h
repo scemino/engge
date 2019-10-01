@@ -28,8 +28,6 @@ public:
   static float distanceToSegment(const sf::Vector2i &p, const sf::Vector2i &v, const sf::Vector2i &w);
   sf::Vector2i getClosestPointOnEdge(const sf::Vector2i &p3, float& dist) const;
 
-  void setColor(const sf::Color &color) { _color = color; }
-
   friend std::ostream &operator<<(std::ostream &os, const Walkbox &walkbox);
 
 private:
@@ -40,6 +38,5 @@ private:
   std::vector<sf::Vector2i> _polygon;
   std::string _name;
   bool _isEnabled{true};
-  sf::Color _color{sf::Color::Green};
 };
 } // namespace ng

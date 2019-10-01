@@ -36,6 +36,7 @@ public:
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
   bool inWalkbox(const sf::Vector2f &pos) const;
   std::vector<sf::Vector2i> calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const;
+  std::vector<Walkbox>& getWalkboxes();
 
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   Object &createObject(const std::vector<std::string> &anims);

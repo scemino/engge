@@ -169,6 +169,7 @@ class _DebugTools
             stack.push_back(s.str());
         }
     }
+
     void showActors()
     {
         static auto actor_getter = [](void *vec, int idx, const char **out_text) {
@@ -287,15 +288,27 @@ class _DebugTools
 
     void showRooms()
     {
+        static auto walkboxGetter = [](void *vec, int idx, const char **out_text) {
+            auto &vector = *static_cast<std::vector<std::string> *>(vec);
+            if (idx < 0 || idx >= static_cast<int>(vector.size()))
+            {
+                return false;
+            }
+            *out_text = vector.at(idx).c_str();
+            return true;
+        };
+
         ImGui::Begin("Rooms", &_showRooms);
         auto &rooms = _engine.getRooms();
-        ImGui::Combo("", &_selectedRoom, roomGetter, static_cast<void *>(&rooms), rooms.size());
+        ImGui::Combo("##rooms", &_selectedRoom, roomGetter, static_cast<void *>(&rooms), rooms.size());
         auto &room = rooms[_selectedRoom];
         auto showWalkboxes = room->areDrawWalkboxesVisible();
         if (ImGui::Checkbox("Walkboxes", &showWalkboxes))
         {
             room->showDrawWalkboxes(showWalkboxes);
         }
+        updateWalkboxInfos(room.get());
+        ImGui::Combo("##walkboxes", &_selectedWalkbox, walkboxGetter, static_cast<void *>(&_walkboxInfos), _walkboxInfos.size());
         auto rotation = room->getRotation();
         if (ImGui::SliderFloat("rotation", &rotation, -180.f, 180.f, "%.0f deg"))
         {
@@ -307,6 +320,29 @@ class _DebugTools
             room->setAmbientLight(ambient);
         }
         ImGui::End();
+    }
+
+    void updateWalkboxInfos(Room* pRoom)
+    {
+        _walkboxInfos.clear();
+        if(!pRoom) return;
+        auto& walkboxes = pRoom->getWalkboxes();
+        for(size_t i=0; i<walkboxes.size(); ++i)
+        {
+            auto walkbox = walkboxes.at(i);
+            auto name = walkbox.getName();
+            std::ostringstream s;
+            if(!name.empty())
+            {   
+                s << name;
+            }
+            else
+            {         
+                s << "Walkbox #" << i;
+            }
+            s << " " << (walkbox.isEnabled()?"[enabled]":"[disabled]");
+            _walkboxInfos.push_back(s.str());
+        }
     }
 
     static bool roomGetter(void *vec, int idx, const char **out_text)
@@ -381,5 +417,7 @@ class _DebugTools
     int _selectedObject{0};
     int _selectedRoom{0};
     int _selectedStack{0};
+    int _selectedWalkbox{0};
+    std::vector<std::string> _walkboxInfos;
 };
 } // namespace ng

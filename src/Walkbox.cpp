@@ -10,12 +10,12 @@ namespace ng
 Walkbox::Walkbox() = default;
 
 Walkbox::Walkbox(const Walkbox &w)
-    : _polygon(w._polygon), _name(w._name), _isEnabled(w._isEnabled), _color(w._color)
+    : _polygon(w._polygon), _name(w._name), _isEnabled(w._isEnabled)
 {
 }
 
 Walkbox::Walkbox(std::vector<sf::Vector2i> polygon)
-    : _polygon(std::move(polygon)), _isEnabled(true), _color(sf::Color::Green)
+    : _polygon(std::move(polygon)), _isEnabled(true)
 {
 }
 
@@ -85,7 +85,7 @@ sf::Vector2i Walkbox::getClosestPointOnEdge(const sf::Vector2i &p3, float &mindi
 
 void Walkbox::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    auto color = _isEnabled ? _color : sf::Color::Red;
+    auto color = _isEnabled ? sf::Color::Green : sf::Color::Red;
     sf::VertexArray triangle(sf::LinesStrip, _polygon.size() + 1);
     for (int i = 0; i < _polygon.size(); ++i)
     {

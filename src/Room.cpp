@@ -366,6 +366,8 @@ void Room::showDrawWalkboxes(bool show) { pImpl->_showDrawWalkboxes = show; }
 
 bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 
+std::vector<Walkbox>& Room::getWalkboxes() { return pImpl->_walkboxes; }
+
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
 
 int32_t Room::getScreenHeight() const { return pImpl->_screenHeight; }
