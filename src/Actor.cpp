@@ -493,6 +493,7 @@ void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) co
 
 void Actor::update(const sf::Time &elapsed)
 {
+    Entity::update(elapsed);
     pImpl->_costume.update(elapsed);
     pImpl->_walkingState.update(elapsed);
     pImpl->_talkingState.update(elapsed);
