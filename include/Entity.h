@@ -24,7 +24,7 @@ public:
   const std::wstring &getName() const;
 
   void setVisible(bool isVisible);
-  bool isVisible() const;
+  virtual bool isVisible() const;
 
   void setLit(bool isLit);
   bool isLit() const;

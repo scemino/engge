@@ -135,16 +135,22 @@ sf::IntRect Object::getRealHotspot() const
     return (sf::IntRect)transform.transformRect((sf::FloatRect)rect);
 }
 
+bool Object::isVisible() const
+{
+    if(pImpl->_state == ObjectStateConstants::GONE) return false;
+    return Entity::isVisible();
+}
+
 void Object::setStateAnimIndex(int animIndex)
 {
     std::ostringstream s;
     s << "state" << animIndex;
     pImpl->_state = animIndex;
-    if (animIndex == 4)
+    if (animIndex == ObjectStateConstants::GONE)
     {
         setVisible(false);
     }
-    else if (animIndex == 0)
+    else if (animIndex == ObjectStateConstants::HERE)
     {
         setVisible(true);
     }
@@ -192,19 +198,7 @@ void Object::update(const sf::Time &elapsed)
     Entity::update(elapsed);
     if (pImpl->pParentObject)
     {
-        if (pImpl->pParentObject->getState() == pImpl->dependentState)
-        {
-            if (pImpl->_state == 4)
-            {
-                setStateAnimIndex(0);
-                setTouchable(true);
-            }
-        }
-        else if (pImpl->_state != 4)
-        {
-            setStateAnimIndex(4);
-            setTouchable(false);
-        }
+        setVisible(pImpl->pParentObject->getState() == pImpl->dependentState);
     }
     if (pImpl->_pAnim)
     {

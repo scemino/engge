@@ -1003,8 +1003,14 @@ class _ObjectPack : public Pack
 
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("flags"), -1);
+        if (SQ_FAILED(sq_rawget(v, -2)))
+        {
+            sq_pushstring(v, _SC("flags"), -1);
+            sq_pushinteger(v, 0);
+            sq_newslot(v, -3, SQFalse);
+        }
         SQInteger flags = 0;
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        if (SQ_SUCCEEDED(sq_rawget(v, -2)))
         {
             sq_getinteger(v, -1, &flags);
         }

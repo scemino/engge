@@ -256,11 +256,16 @@ class _DebugTools
         if (!objects.empty())
         {
             auto &object = objects[_selectedObject];
-            auto isVisible = object->isVisible();
             ImGui::TextUnformatted(tostring(object->getName()).c_str());
+            auto isVisible = object->isVisible();
             if (ImGui::Checkbox("Visible", &isVisible))
             {
                 object->setVisible(isVisible);
+            }
+            auto state = object->getState();
+            if (ImGui::InputInt("State", &state))
+            {
+                object->setStateAnimIndex(state);
             }
             auto isTouchable = object->isTouchable();
             if (ImGui::Checkbox("Touchable", &isTouchable))

@@ -18,6 +18,19 @@ class Actor;
 class Animation;
 class Room;
 
+namespace ObjectStateConstants
+{
+static const int ALL = 1;
+static const int HERE = 0;
+static const int GONE = 4;
+static const int OFF = 0;
+static const int ON = 1;
+static const int FULL = 0;
+static const int EMPTY = 1;
+static const int OPEN = 1;
+static const int CLOSED = 0;
+}
+
 class Object : public Entity
 {
 public:
@@ -57,6 +70,7 @@ public:
 
   std::vector<std::unique_ptr<Animation>> &getAnims();
 
+  bool isVisible() const override;
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
   void playAnim(const std::string& anim, bool loop);

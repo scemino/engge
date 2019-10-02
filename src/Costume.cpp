@@ -31,7 +31,7 @@ void BlinkState::setRate(double min, double max)
 
 void BlinkState::update(sf::Time elapsed)
 {
-    if (_state == 0)
+    if (_state == ObjectStateConstants::CLOSED)
     {
         // wait to blink
         _elapsed += elapsed;
@@ -42,7 +42,7 @@ void BlinkState::update(sf::Time elapsed)
             _elapsed = sf::seconds(0);
         }
     }
-    else if (_state == 1)
+    else if (_state == ObjectStateConstants::OPEN)
     {
         // wait time the eyes are closed
         _elapsed += elapsed;

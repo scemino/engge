@@ -665,16 +665,15 @@ void Engine::Impl::updateCurrentObject(const sf::Vector2f &mousPos)
 {
     _pCurrentObject = nullptr;
     const auto &objects = _pRoom->getObjects();
-    auto it = std::find_if(objects.cbegin(), objects.cend(), [mousPos](const std::unique_ptr<Object> &pObj) {
+    std::for_each(objects.cbegin(), objects.cend(), [mousPos,this](const auto &pObj) {
         if (!pObj->isTouchable())
-            return false;
+            return;
         auto rect = pObj->getRealHotspot();
-        return rect.contains((sf::Vector2i)mousPos);
+        if(!rect.contains((sf::Vector2i)mousPos))
+            return;
+        if(!_pCurrentObject || pObj->getZOrder() < _pCurrentObject->getZOrder())
+            _pCurrentObject = pObj.get();
     });
-    if (it != objects.cend())
-    {
-        _pCurrentObject = it->get();
-    }
 }
 
 int32_t Engine::Impl::getFlags(const HSQOBJECT &obj)
