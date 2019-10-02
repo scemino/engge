@@ -214,4 +214,7 @@ void Entity::scaleTo(float destination, sf::Time time, InterpolationMethod metho
     _functions.push_back(std::move(scalteTo));
 }
 
+void Entity::setName(const std::wstring &name) { _name = name; }
+const std::wstring &Entity::getName() const { return _name; }
+
 } // namespace ng

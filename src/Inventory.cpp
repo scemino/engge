@@ -1,17 +1,15 @@
 #include "Engine.h"
 #include "Inventory.h"
-#include "InventoryObject.h"
+#include "Object.h"
 
 namespace ng
 {
 Inventory::Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
                      std::array<VerbUiColors, 6> &verbUiColors,
                      Actor *&pCurrentActor)
-    : _pEngine(nullptr),
-      _actorsIconSlots(actorsIconSlots),
+    : _actorsIconSlots(actorsIconSlots),
       _verbUiColors(verbUiColors),
-      _pCurrentActor(pCurrentActor),
-      _pCurrentInventoryObject(nullptr)
+      _pCurrentActor(pCurrentActor)
 {
 }
 
@@ -53,15 +51,16 @@ void Inventory::update(const sf::Time &elapsed)
         }
     }
 
-    for (int i = 0; i < 8; i++)
+    for (size_t i = 0; i < _inventoryRects.size(); i++)
     {
-        const auto &r = _inventoryRects[i];
+        const auto &r = _inventoryRects.at(i);
         if (r.contains((sf::Vector2i)_mousePos))
         {
             auto &objects = _pCurrentActor->getObjects();
             if (i < objects.size())
             {
                 _pCurrentInventoryObject = objects[i].get();
+                return;
             }
         }
     }
@@ -170,13 +169,13 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
         auto sourceSize = _inventoryItems.getSourceSize(icon);
         sf::Vector2f origin(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
 
-        sf::RectangleShape inventoryShape;
-        inventoryShape.setOrigin(-origin);
-        inventoryShape.setPosition(sf::Vector2f(x + startX, y + startY));
-        inventoryShape.setSize(sf::Vector2f(rect.width, rect.height));
-        inventoryShape.setTexture(&_inventoryItems.getTexture());
-        inventoryShape.setTextureRect(rect);
-        target.draw(inventoryShape);
+        sf::RectangleShape objShape;
+        objShape.setOrigin(-origin);
+        objShape.setPosition(sf::Vector2f(x + startX, y + startY));
+        objShape.setSize(sf::Vector2f(rect.width, rect.height));
+        objShape.setTexture(&_inventoryItems.getTexture());
+        objShape.setTextureRect(rect);
+        target.draw(objShape);
         i++;
         if (i == 8)
             break;

@@ -83,6 +83,12 @@ std::string tostring(const std::wstring &text)
     return converter.to_bytes(text);
 }
 
+std::string toUtf8(const std::wstring& text)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    return converter.to_bytes(text);
+}
+
 bool getLine(GGPackBufferStream &input, std::wstring &wline)
 {
     std::string line;
@@ -282,6 +288,22 @@ Facing _toFacing(UseDirection direction)
         return Facing::FACE_RIGHT;
     }
     throw std::logic_error("Invalid direction");
+}
+
+Facing getOppositeFacing(Facing facing)
+{
+    switch (facing)
+    {
+        case Facing::FACE_FRONT:
+            return Facing::FACE_BACK;
+        case Facing::FACE_BACK:
+            return Facing::FACE_FRONT;
+        case Facing::FACE_LEFT:
+            return Facing::FACE_RIGHT;
+        case Facing::FACE_RIGHT:
+            return Facing::FACE_LEFT;
+    }
+    return Facing::FACE_BACK;
 }
 
 sf::IntRect _toRect(const nlohmann::json &json)

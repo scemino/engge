@@ -6,7 +6,6 @@
 #include "Dialog/DialogManager.h"
 #include "Font.h"
 #include "Inventory.h"
-#include "InventoryObject.h"
 #include "Logger.h"
 #include "Preferences.h"
 #include "Room.h"
@@ -76,7 +75,7 @@ struct Engine::Impl
     Actor *_pFollowActor;
     std::array<sf::IntRect, 9> _verbRects;
     Object *_pCurrentObject;
-    const InventoryObject *_pUseObject{nullptr};
+    Entity *_pUseObject{nullptr};
     sf::Vector2f _mousePos;
     std::unique_ptr<VerbExecute> _pVerbExecute;
     std::unique_ptr<ScriptExecute> _pScriptExecute;
@@ -841,7 +840,7 @@ void Engine::update(const sf::Time &elapsed)
     if (_pImpl->_pVerb && (_pImpl->_pVerb->id == 1 || _pImpl->_pVerb->id == 3) && !_pImpl->_pCurrentObject &&
         _pImpl->_pActor)
     {
-        _pImpl->_pVerbExecute->execute(_pImpl->_pActor, getVerb(3));
+        _pImpl->_pVerbExecute->execute(getVerb(3), _pImpl->_pActor, nullptr);
         return;
     }
 
@@ -855,14 +854,14 @@ void Engine::update(const sf::Time &elapsed)
     {
         if (_pImpl->_pUseObject)
         {
-            _pImpl->_pVerbExecute->use(_pImpl->_pUseObject, _pImpl->_pCurrentObject);
+            _pImpl->_pVerbExecute->execute(_pImpl->_pVerb, _pImpl->_pUseObject, _pImpl->_pCurrentObject);
             return;
         }
 
         auto pVerb = _pImpl->_pVerb;
         if (!isRightClick)
         {
-            _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
+            _pImpl->_pVerbExecute->execute(pVerb, _pImpl->_pCurrentObject, nullptr);
             return;
         }
 
@@ -870,7 +869,7 @@ void Engine::update(const sf::Time &elapsed)
         {
             pVerb = getVerb(_pImpl->_pCurrentObject->getDefaultVerb(_pImpl->_vm));
         }
-        _pImpl->_pVerbExecute->execute(_pImpl->_pCurrentObject, pVerb);
+        _pImpl->_pVerbExecute->execute(pVerb, _pImpl->_pCurrentObject, nullptr);
         return;
     }
 
@@ -880,9 +879,9 @@ void Engine::update(const sf::Time &elapsed)
         auto pInventoryObj = _pImpl->_inventory.getCurrentInventoryObject();
         if (!pVerb || pVerb->id == 1)
         {
-            pVerb = getVerb(pInventoryObj->getDefaultVerb());
+            pVerb = getVerb(pInventoryObj->getDefaultVerb(_pImpl->_vm));
         }
-        _pImpl->_pVerbExecute->execute(pInventoryObj, pVerb);
+        _pImpl->_pVerbExecute->execute(pVerb, pInventoryObj, nullptr);
         return;
     }
 
@@ -1046,7 +1045,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
             auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
             s.append(_pEngine->getText(id));
         }
-        s.append(L" ").append(towstring(_pActor->getName()));
+        s.append(L" ").append(_pActor->getName());
         text.setText(s);
     }
     else if (_pCurrentObject)
@@ -1079,10 +1078,10 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     }
     else
     {
-        auto pInventoryObj = _inventory.getCurrentInventoryObject();
+        const Object* pInventoryObj = _inventory.getCurrentInventoryObject();
         if (pVerb->id == 1 && pInventoryObj)
         {
-            pVerb = _pEngine->getVerb(pInventoryObj->getDefaultVerb());
+            pVerb = _pEngine->getVerb(pInventoryObj->getDefaultVerb(_vm));
         }
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         std::wstring s;
@@ -1274,7 +1273,7 @@ void Engine::actorSlotSelectable(int index, bool selectable)
 
 void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { _pImpl->_actorIcons.setMode(mode); }
 
-void Engine::setUseFlag(UseFlag flag, const InventoryObject *object)
+void Engine::setUseFlag(UseFlag flag, Entity *object)
 {
     _pImpl->_useFlag = flag;
     _pImpl->_pUseObject = object;

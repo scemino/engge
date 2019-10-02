@@ -1,5 +1,4 @@
 #pragma once
-#include "InventoryObject.h"
 #include "TextObject.h"
 #include "squirrel.h"
 
@@ -8,7 +7,7 @@ namespace ng
 class _PickupAnim : public Function
 {
   public:
-    _PickupAnim(Actor &actor, std::unique_ptr<InventoryObject> obj, const std::string &anim)
+    _PickupAnim(Actor &actor, std::unique_ptr<Object> obj, const std::string &anim)
         : _actor(actor), _object(std::move(obj)), _animName(anim)
     {
     }
@@ -57,7 +56,7 @@ class _PickupAnim : public Function
   private:
     int32_t _state{0};
     Actor &_actor;
-    std::unique_ptr<InventoryObject> _object;
+    std::unique_ptr<Object> _object;
     std::string _animName;
     CostumeAnimation *_pAnim{nullptr};
 };
@@ -736,26 +735,13 @@ class _ObjectPack : public Pack
 
     static SQInteger objectOwner(HSQUIRRELVM v)
     {
-        HSQOBJECT obj;
-        sq_resetobject(&obj);
-        if (SQ_FAILED(sq_getstackobj(v, 2, &obj)))
+        auto *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
 
-        Actor *pActor = nullptr;
-        for (const auto &actor : g_pEngine->getActors())
-        {
-            for (const auto &inventoryObj : actor->getObjects())
-            {
-                if (inventoryObj->getHandle()->_unVal.pTable == obj._unVal.pTable)
-                {
-                    pActor = actor.get();
-                    break;
-                }
-            }
-        }
-
+        Actor *pActor = obj->getOwner();
         if (!pActor)
         {
             sq_pushnull(v);
@@ -965,96 +951,62 @@ class _ObjectPack : public Pack
 
     static SQInteger pickupObject(HSQUIRRELVM v)
     {
-        HSQOBJECT envObj;
-        sq_resetobject(&envObj);
-        if (SQ_FAILED(sq_getstackobj(v, 1, &envObj)))
-        {
-            return sq_throwerror(v, _SC("failed to get this"));
-        }
+        auto object = std::make_unique<Object>();
+        auto& table = object->getTable();
+        sq_getstackobj(v, 2, &table);
 
-        auto pObj = std::make_unique<HSQOBJECT>();
-        sq_resetobject(pObj.get());
-        if (SQ_FAILED(sq_getstackobj(v, 2, pObj.get())))
-        {
-            return sq_throwerror(v, _SC("failed to get object"));
-        }
-        sq_addref(v, pObj.get());
-        sq_pushobject(v, *pObj);
-        sq_pushstring(v, _SC("icon"), -1);
-        if (SQ_FAILED(sq_get(v, -2)))
-        {
-            sq_pop(v, 2);
-            return sq_throwerror(v, _SC("failed to get object icon"));
-        }
-
-        const SQChar *icon;
-        if (SQ_FAILED(sq_getstring(v, -1, &icon)))
-        {
-            sq_pop(v, 2);
-            return sq_throwerror(v, _SC("failed to get object icon"));
-        }
-
-        sq_pushobject(v, *pObj);
+        sq_pushobject(v, table);
         sq_pushstring(v, _SC("name"), -1);
-        if (SQ_FAILED(sq_get(v, -2)))
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
         {
-            sq_pop(v, 2);
-            return sq_throwerror(v, _SC("failed to get object name"));
+            const SQChar* name;
+            sq_getstring(v, -1, &name);
+
+            if (strlen(name) > 0 && name[0] == '@')
+            {
+                std::string s(name);
+                s = s.substr(1);
+                auto id = std::strtol(s.c_str(), nullptr, 10);
+                auto text = g_pEngine->getText(id);
+                object->setId(text);
+                object->setName(text);
+            }
+            else
+            {
+                object->setId(towstring(name));
+                object->setName(towstring(name));
+            }
         }
 
-        std::wstring name;
-        const SQChar *strName = nullptr;
-        if (SQ_FAILED(sq_getstring(v, -1, &strName)))
+        sq_pushobject(v, table);
+        sq_pushstring(v, _SC("icon"), -1);
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
         {
-            sq_pop(v, 2);
-            return sq_throwerror(v, _SC("failed to get object name"));
+            const SQChar* icon;
+            sq_getstring(v, -1, &icon);
+            object->setIcon(icon);
         }
-
-        if (strlen(strName) > 0 && strName[0] == '@')
-        {
-            std::string s(strName);
-            s = s.substr(1);
-            auto id = std::strtol(s.c_str(), nullptr, 10);
-            name = g_pEngine->getText(id);
-        }
-        else
-        {
-            name = towstring(strName);
-        }
-
-        auto pObject = std::make_unique<InventoryObject>();
-        pObject->setRoom(g_pEngine->getRoom());
-        pObject->setName(name);
-        pObject->setIcon(icon);
-        pObject->setHandle(std::move(pObj));
 
         auto actor = ScriptEngine::getActor(v, 3);
         if (actor)
         {
-            actor->pickupObject(std::move(pObject));
+            actor->pickupObject(std::move(object));
             return 0;
         }
 
         actor = g_pEngine->getCurrentActor();
         if (!actor)
         {
-            error("There is no actor to pickup object {}");
+            error("There is no actor to pickup object");
             return 0;
         }
 
-        sq_pushobject(v, envObj);
+        sq_pushobject(v, table);
         sq_pushstring(v, _SC("flags"), -1);
-        if (SQ_FAILED(sq_get(v, -2)))
+        SQInteger flags = 0;
+        if (SQ_SUCCEEDED(sq_get(v, -2)))
         {
-            sq_pop(v, 2);
-            return sq_throwerror(v, _SC("failed to get object flags"));
-        }
-
-        SQInteger flags;
-        if (SQ_FAILED(sq_getinteger(v, -1, &flags)))
-        {
-            sq_pop(v, 2);
-            return sq_throwerror(v, _SC("failed to get object flags"));
+            sq_getinteger(v, -1, &flags);
         }
 
         std::string anim;
@@ -1071,7 +1023,7 @@ class _ObjectPack : public Pack
             anim = "reach_low";
         }
 
-        auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(pObject), anim);
+        auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(object), anim);
         g_pEngine->addFunction(std::move(pPickupAnim));
         
         return 0;

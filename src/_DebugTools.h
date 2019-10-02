@@ -172,19 +172,24 @@ class _DebugTools
 
     void showActors()
     {
-        static auto actor_getter = [](void *vec, int idx, const char **out_text) {
-            auto &vector = *static_cast<std::vector<std::unique_ptr<Actor>> *>(vec);
+        static auto actorGetter = [](void *vec, int idx, const char **out_text) {
+            auto &vector = *static_cast<std::vector<std::string> *>(vec);
             if (idx < 0 || idx >= static_cast<int>(vector.size()))
             {
                 return false;
             }
-            *out_text = vector.at(idx)->getName().c_str();
+            *out_text = vector.at(idx).c_str();
             return true;
         };
 
         ImGui::Begin("Actors", &_showActors);
         auto &actors = _engine.getActors();
-        ImGui::Combo("", &_selectedActor, actor_getter, static_cast<void *>(&actors), actors.size());
+        _actorInfos.clear();
+        for(auto&& actor : actors)
+        {
+            _actorInfos.push_back(toUtf8(actor->getName()));
+        }
+        ImGui::Combo("", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
         auto isVisible = actor->isVisible();
         if (ImGui::Checkbox("Visible", &isVisible))
@@ -419,5 +424,6 @@ class _DebugTools
     int _selectedStack{0};
     int _selectedWalkbox{0};
     std::vector<std::string> _walkboxInfos;
+    std::vector<std::string> _actorInfos;
 };
 } // namespace ng

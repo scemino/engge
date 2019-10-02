@@ -20,6 +20,9 @@ public:
   virtual void update(const sf::Time &elapsed);
   virtual int getZOrder() const = 0;
 
+  void setName(const std::wstring &name);
+  const std::wstring &getName() const;
+
   void setVisible(bool isVisible);
   bool isVisible() const;
 
@@ -86,5 +89,6 @@ private:
   sf::Vector2i _renderOffset;
   std::vector<std::unique_ptr<Function>> _functions;
   sf::Color _color{sf::Color::White};
+  std::wstring _name;
 };
 } // namespace ng

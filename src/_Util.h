@@ -20,6 +20,7 @@ bool getLine(GGPackBufferStream &input, std::string &line);
 
 std::wstring towstring(const std::string &text);
 std::string tostring(const std::wstring &text);
+std::string toUtf8(const std::wstring &text);
 std::string str_toupper(std::string s);
 
 bool getLine(GGPackBufferStream &input, std::wstring &wline);
@@ -37,6 +38,7 @@ float length(const sf::Vector2i &v);
 
 Facing _toFacing(UseDirection direction);
 UseDirection _toDirection(const std::string &text);
+Facing getOppositeFacing(Facing facing);
 
 sf::IntRect _toRect(const nlohmann::json &json);
 sf::Vector2i _toSize(const nlohmann::json &json);

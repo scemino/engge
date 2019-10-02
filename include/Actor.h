@@ -9,8 +9,8 @@
 namespace ng
 {
 class Engine;
-class InventoryObject;
 class Lip;
+class Object;
 class Room;
 
 class Actor : public Entity
@@ -19,8 +19,6 @@ public:
   explicit Actor(Engine &engine);
   virtual ~Actor() override;
 
-  void setName(const std::string &name);
-  const std::string &getName() const;
   void setIcon(const std::string &icon);
   const std::string &getIcon() const;
 
@@ -55,8 +53,8 @@ public:
 
   void update(const sf::Time &time) override;
 
-  void pickupObject(std::unique_ptr<InventoryObject> pObject);
-  const std::vector<std::unique_ptr<InventoryObject>> &getObjects() const;
+  void pickupObject(std::unique_ptr<Object> pObject);
+  const std::vector<std::unique_ptr<Object>> &getObjects() const;
 
   void setWalkSpeed(const sf::Vector2i &speed);
   const sf::Vector2i &getWalkSpeed() const;

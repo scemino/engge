@@ -12,8 +12,8 @@ class Camera;
 class Cutscene;
 class DialogManager;
 class EngineSettings;
+class Entity;
 class Function;
-class InventoryObject;
 class Object;
 class Preferences;
 class Room;
@@ -124,7 +124,7 @@ class Engine : public NonCopyable
     void actorSlotSelectable(Actor *pActor, bool selectable);
     void actorSlotSelectable(int index, bool selectable);
     void setActorSlotSelectable(ActorSlotSelectableMode mode);
-    void setUseFlag(UseFlag flag, const InventoryObject *object);
+    void setUseFlag(UseFlag flag, Entity *object);
     void flashSelectableActor(bool on);
 
     sf::Time getTime() const;

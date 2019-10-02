@@ -29,6 +29,8 @@ struct Object::Impl
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};
     int dependentState{0};
+    std::string _icon;
+    Actor* _owner{nullptr};
 };
 
 Object::Object()
@@ -69,11 +71,14 @@ UseDirection Object::getUseDirection() const { return pImpl->_direction; }
 void Object::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
 const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
 
-void Object::setName(const std::wstring &name) { pImpl->_name = name; }
-const std::wstring &Object::getName() const { return pImpl->_name; }
-
 void Object::setId(const std::wstring &id) { pImpl->_id = id; }
 const std::wstring &Object::getId() const { return pImpl->_id; }
+
+void Object::setIcon(const std::string &icon) { pImpl->_icon = icon; }
+std::string Object::getIcon() const { return pImpl->_icon; }
+
+void Object::setOwner(Actor* pActor) { pImpl->_owner = pActor; }
+Actor* Object::getOwner() const { return pImpl->_owner; }
 
 int Object::getDefaultVerb(HSQUIRRELVM v) const
 {

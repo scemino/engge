@@ -1,111 +1,21 @@
 #pragma once
 
-#include "squirrel.h"
+#include "../_Util.h"
 #include "Engine.h"
 #include "Logger.h"
-#include "ScriptExecute.h"
-#include "../_Util.h"
+#include "squirrel.h"
 
 namespace ng
 {
-class _DefaultScriptExecute : public ScriptExecute
+static void pushObject(HSQUIRRELVM vm, Entity *pObj)
 {
-public:
-    explicit _DefaultScriptExecute(HSQUIRRELVM vm)
-        : _vm(vm)
+    if (pObj)
     {
+        sq_pushobject(vm, pObj->getTable());
+        return;
     }
-
-public:
-    void execute(const std::string &code) override
-    {
-        sq_resetobject(&_result);
-        _pos = 0;
-        auto top = sq_gettop(_vm);
-        // compile
-        sq_pushroottable(_vm);
-        if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue)))
-        {
-            error("Error executing code {}", code);
-            return;
-        }
-        sq_push(_vm, -2);
-        // call
-        if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue)))
-        {
-            error("Error calling code {}", code);
-            return;
-        }
-        sq_getstackobj(_vm, -1, &_result);
-        sq_settop(_vm, top);
-    }
-
-    bool executeCondition(const std::string &code) override
-    {
-        std::string c;
-        c.append("return ");
-        c.append(code);
-
-        execute(c);
-        if (_result._type == OT_BOOL)
-        {
-            trace("{} returns {}", code, sq_objtobool(&_result));
-            return sq_objtobool(&_result);
-        }
-
-        if (_result._type == OT_INTEGER)
-        {
-            trace("{} return {}", code, sq_objtointeger(&_result));
-            return sq_objtointeger(&_result) != 0;
-        }
-
-        error("Error getting result {}", code);
-        return false;
-    }
-
-    std::string executeDollar(const std::string &code) override
-    {
-        std::string c;
-        c.append("return ");
-        c.append(code);
-
-        execute(c);
-        // get the result
-        if (_result._type != OT_STRING)
-        {
-            error("Error getting result {}", code);
-            return "";
-        }
-        trace("{} returns {}", code, sq_objtostring(&_result));
-        return sq_objtostring(&_result);
-    }
-
-    SoundDefinition *getSoundDefinition(const std::string &name) override
-    {
-        sq_pushroottable(_vm);
-        sq_pushstring(_vm, name.data(), -1);
-        sq_get(_vm, -2);
-        HSQOBJECT obj;
-        sq_getstackobj(_vm, -1, &obj);
-        sq_pop(_vm, 2);
-
-        if (!sq_isuserpointer(obj))
-        {
-            error("getSoundDefinition: sound should be a userpointer");
-            return nullptr;
-        }
-
-        SoundDefinition *pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
-        return pSound;
-    }
-
-private:
-    static int _pos;
-    HSQUIRRELVM _vm{};
-    HSQOBJECT _result{};
-};
-
-int _DefaultScriptExecute::_pos = 0;
+    sq_pushnull(vm);
+}
 
 class _CompositeFunction : public Function
 {
@@ -125,120 +35,54 @@ class _CompositeFunction : public Function
         }
     }
 
-public:
+  public:
     _CompositeFunction &push_back(std::unique_ptr<Function> func)
     {
         _functions.push_back(std::move(func));
         return *this;
     }
 
-private:
+  private:
     std::vector<std::unique_ptr<Function>> _functions;
 };
 
 class _ActorWalk : public Function
 {
-public:
-    _ActorWalk(Actor &actor, const Object &object)
-        : _actor(actor)
+  public:
+    _ActorWalk(Actor &actor, const Entity *pEntity) : _actor(actor)
     {
-        auto pos = object.getRealPosition();
-        auto usePos = object.getUsePosition();
+        auto pos = pEntity->getRealPosition();
+        auto usePos = pEntity->getUsePosition();
         auto dest = sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y);
-        auto facing = _toFacing(object.getUseDirection());
+        auto facing = getFacing(pEntity);
         _actor.walkTo(dest, facing);
     }
 
-private:
+  private:
+    static Facing getFacing(const Entity *pEntity)
+    {
+        Facing facing;
+        const auto pActor = dynamic_cast<const Actor *>(pEntity);
+        if (pActor)
+        {
+            return getOppositeFacing(pActor->getCostume().getFacing());
+        }
+        const auto pObj = static_cast<const Object *>(pEntity);
+        return _toFacing(pObj->getUseDirection());
+    }
+
+  private:
     bool isElapsed() override { return !_actor.isWalking(); }
 
-private:
+  private:
     Actor &_actor;
-};
-
-class _ActorWalkToActor : public Function
-{
-public:
-    _ActorWalkToActor(Actor &actor, const Actor &destActor)
-        : _actor(actor)
-    {
-        auto usePos = destActor.getUsePosition();
-        sf::Vector2f dest(usePos.x, usePos.y);
-        auto facing = getOppositeFacing(destActor.getCostume().getFacing());
-        _actor.walkTo(dest, facing);
-    }
-
-    Facing getOppositeFacing(Facing facing)
-    {
-        switch (facing)
-        {
-        case Facing::FACE_FRONT:
-            return Facing::FACE_BACK;
-        case Facing::FACE_BACK:
-            return Facing::FACE_FRONT;
-        case Facing::FACE_LEFT:
-            return Facing::FACE_RIGHT;
-        case Facing::FACE_RIGHT:
-            return Facing::FACE_LEFT;
-        }
-        return Facing::FACE_BACK;
-    }
-
-private:
-    bool isElapsed() override { return !_actor.isWalking(); }
-
-private:
-    Actor &_actor;
-};
-
-class _Use : public Function
-{
-public:
-    _Use(HSQUIRRELVM v, Actor &actor, const InventoryObject &objectSource, Object &objectTarget)
-        : _vm(v), _actor(actor), _objectSource(objectSource), _objectTarget(objectTarget)
-    {
-    }
-
-private:
-    bool isElapsed() override { return _isElapsed; }
-
-    void operator()(const sf::Time &elapsed) override
-    {
-        _isElapsed = true;
-        HSQOBJECT objSource = *(HSQOBJECT *)_objectSource.getHandle();
-        auto &objTarget = _objectTarget.getTable();
-
-        auto &roomTable = _actor.getRoom()->getTable();
-        sq_pushobject(_vm, objSource);
-        sq_pushobject(_vm, roomTable);
-        sq_setdelegate(_vm, -2);
-
-        sq_pushobject(_vm, objSource);
-        sq_pushstring(_vm, _SC("verbUse"), -1);
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-        {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, objSource);
-            sq_pushobject(_vm, objTarget);
-            sq_call(_vm, 2, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
-            return;
-        }
-    }
-
-private:
-    HSQUIRRELVM _vm;
-    Actor &_actor;
-    const InventoryObject &_objectSource;
-    Object &_objectTarget;
-    bool _isElapsed{false};
 };
 
 class _PostWalk : public Function
 {
-public:
-    _PostWalk(const HSQUIRRELVM &v, HSQOBJECT object, int verb)
-        : _vm(v), _object(object), _verb(verb)
+  public:
+    _PostWalk(HSQUIRRELVM v, Entity *pObject, Entity *pObject2, int verb)
+        : _vm(v), _pObject(pObject), _pObject2(pObject2), _verb(verb)
     {
     }
 
@@ -247,15 +91,17 @@ public:
     void operator()(const sf::Time &elapsed) override
     {
         _done = true;
-        sq_pushobject(_vm, _object);
-        sq_pushstring(_vm, _SC("objectPostWalk"), -1);
+        Object *pObj = dynamic_cast<Object *>(_pObject);
+        auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
+        sq_pushobject(_vm, _pObject->getTable());
+        sq_pushstring(_vm, functionName, -1);
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
             sq_remove(_vm, -2);
-            sq_pushobject(_vm, _object);
+            sq_pushobject(_vm, _pObject->getTable());
             sq_pushinteger(_vm, _verb);
-            sq_pushnull(_vm);
-            sq_pushnull(_vm);
+            sq_pushobject(_vm, _pObject->getTable());
+            pushObject(_vm, _pObject2);
             sq_call(_vm, 4, SQTrue, SQTrue);
             SQInteger handled = 0;
             sq_getinteger(_vm, -1, &handled);
@@ -269,46 +115,45 @@ public:
         _handled = false;
     }
 
-private:
-    const HSQUIRRELVM &_vm;
-    HSQOBJECT _object;
-    int _verb;
+  private:
+    HSQUIRRELVM _vm{};
+    Entity *_pObject{nullptr};
+    Entity *_pObject2{nullptr};
+    int _verb{0};
     bool _done{false};
     bool _handled{false};
 };
 
 class _SetDefaultVerb : public Function
 {
-public:
-    explicit _SetDefaultVerb(Engine &engine)
-        : _engine(engine)
-    {
-    }
+  public:
+    explicit _SetDefaultVerb(Engine &engine) : _engine(engine) {}
 
     bool isElapsed() override { return _done; }
 
     void operator()(const sf::Time &elapsed) override
     {
-        if(_done) return;
+        if (_done)
+            return;
 
         _done = true;
         _engine.setDefaultVerb();
     }
 
-private:
+  private:
     Engine &_engine;
     bool _done{false};
 };
 
 class _VerbExecute : public Function
 {
-public:
+  public:
     _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, const std::string &verb)
         : _engine(engine), _vm(v), _object(object), _verb(verb)
     {
     }
 
-private:
+  private:
     bool isElapsed() override { return _done; }
 
     void operator()(const sf::Time &elapsed) override
@@ -366,7 +211,7 @@ private:
                 sqstd_printcallstack(_vm);
                 return false;
             }
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
             return true;
         }
 
@@ -389,7 +234,7 @@ private:
         return false;
     }
 
-private:
+  private:
     Engine &_engine;
     HSQUIRRELVM _vm;
     Entity &_object;
@@ -399,109 +244,46 @@ private:
 
 class _DefaultVerbExecute : public VerbExecute
 {
-public:
-    _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine)
-        : _vm(vm), _engine(engine)
-    {
-    }
+  public:
+    _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine) : _vm(vm), _engine(engine) {}
 
-private:
-    void execute(Object *pObject, const Verb *pVerb) override
+  private:
+    void execute(const Verb *pVerb, Entity *pObject1, Entity *pObject2) override
     {
-        auto obj = pObject->getTable();
+        auto obj = pObject1->getTable();
         getVerb(obj, pVerb);
         if (!pVerb)
             return;
 
-        if (callObjectPreWalk(obj, pVerb->id))
+        if (pVerb->id == VerbConstants::VERB_USE && useFlags(pObject1))
+            return;
+
+        if (callObjectOrActorPreWalk(pVerb->id, pObject1, pObject2))
             return;
 
         auto pActor = _engine.getCurrentActor();
         if (!pActor)
             return;
         auto sentence = std::make_unique<_CompositeFunction>();
-        if (pVerb->id != 2 || !isFarLook(obj))
+        if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) && !isInInventory(pObject1))
         {
-            auto walk = std::make_unique<_ActorWalk>(*pActor, *pObject);
+            auto walk = std::make_unique<_ActorWalk>(*pActor, pObject1);
             sentence->push_back(std::move(walk));
         }
-        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject, pVerb->func);
+        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject1, pVerb->func);
         sentence->push_back(std::move(verb));
-        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
+        auto postWalk = std::make_unique<_PostWalk>(_vm, pObject1, pObject2, pVerb->id);
         sentence->push_back(std::move(postWalk));
         auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
         sentence->push_back(std::move(setDefaultVerb));
         _engine.addFunction(std::move(sentence));
     }
 
-    void execute(Actor *pActor, const Verb *pVerb) override
+    bool isInInventory(Entity *pEntity)
     {
-        auto obj = pActor->getTable();
-        getVerb(obj, pVerb);
-        if (!pVerb)
-            return;
-
-        if (callObjectPreWalk(obj, pVerb->id))
-            return;
-
-        auto pCurrentActor = _engine.getCurrentActor();
-        if (!pCurrentActor)
-            return;
-        auto sentence = std::make_unique<_CompositeFunction>();
-        if (pVerb->id != 2 || !isFarLook(obj))
-        {
-            auto walk = std::make_unique<_ActorWalkToActor>(*pCurrentActor, *pActor);
-            sentence->push_back(std::move(walk));
-        }
-        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pCurrentActor, *pActor, pVerb->func);
-        sentence->push_back(std::move(verb));
-        auto postWalk = std::make_unique<_PostWalk>(_vm, obj, pVerb->id);
-        sentence->push_back(std::move(postWalk));
-        auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
-        sentence->push_back(std::move(setDefaultVerb));
-        _engine.addFunction(std::move(sentence));
-    }
-
-    void use(const InventoryObject *pObjectSource, Object *pObjectTarget) override
-    {
-        auto walk = std::make_unique<_ActorWalk>(*_engine.getCurrentActor(), *pObjectTarget);
-        auto action = std::make_unique<_Use>(_vm, *_engine.getCurrentActor(), *pObjectSource, *pObjectTarget);
-        auto sentence = std::make_unique<_CompositeFunction>();
-        sentence->push_back(std::move(walk));
-        sentence->push_back(std::move(action));
-        auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
-        sentence->push_back(std::move(setDefaultVerb));
-        _engine.addFunction(std::move(sentence));
-    }
-
-    void execute(const InventoryObject *pObject, const Verb *pVerb) override
-    {
-        HSQOBJECT obj = *(HSQOBJECT *)pObject->getHandle();
-
-        getVerb(obj, pVerb);
-        if (!pVerb)
-            return;
-
-        if (callObjectPreWalk(obj, pVerb->id))
-            return;
-
-        if (pVerb->id == 10 && useFlags(pObject))
-            return;
-
-        auto &roomTable = _engine.getRoom()->getTable();
-        sq_pushobject(_vm, obj);
-        sq_pushobject(_vm, roomTable);
-        sq_setdelegate(_vm, -2);
-
-        auto func = pVerb->func;
-        if (callVerb(obj, func))
-        {
-            _engine.setDefaultVerb();
-            return;
-        }
-
-        callVerbDefault(obj);
-        _engine.setDefaultVerb();
+        auto pObj = dynamic_cast<Object *>(pEntity);
+        if (!pObj) return false;
+        return pObj->getOwner() != nullptr;
     }
 
     bool isFarLook(const HSQOBJECT &obj)
@@ -510,9 +292,9 @@ private:
         return ((flags & 0x8) == 0x8);
     }
 
-    bool useFlags(const InventoryObject *pObject)
+    bool useFlags(Entity *pObject)
     {
-        HSQOBJECT obj = *(HSQOBJECT *)pObject->getHandle();
+        HSQOBJECT obj = pObject->getTable();
         SQInteger flags = 0;
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, _SC("flags"), -1);
@@ -522,35 +304,19 @@ private:
             UseFlag useFlag;
             switch (flags)
             {
-            case 2:
-                useFlag = UseFlag::UseWith;
-                break;
-            case 4:
-                useFlag = UseFlag::UseOn;
-                break;
-            case 8:
-                useFlag = UseFlag::UseIn;
-                break;
-            default:
-                useFlag = UseFlag::None;
-                break;
+                case 2:
+                    useFlag = UseFlag::UseWith;
+                    break;
+                case 4:
+                    useFlag = UseFlag::UseOn;
+                    break;
+                case 8:
+                    useFlag = UseFlag::UseIn;
+                    break;
+                default:
+                    return false;
             }
             _engine.setUseFlag(useFlag, pObject);
-            return true;
-        }
-        return false;
-    }
-
-    bool callVerb(HSQOBJECT obj, const std::string &verb)
-    {
-        sq_pushobject(_vm, obj);
-        sq_pushstring(_vm, verb.data(), -1);
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-        {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, obj);
-            sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
             return true;
         }
         return false;
@@ -569,17 +335,19 @@ private:
         return flags;
     }
 
-    bool callObjectPreWalk(HSQOBJECT obj, int verb)
+    bool callObjectOrActorPreWalk(int verb, Entity *pObj1, Entity *pObj2)
     {
-        sq_pushobject(_vm, obj);
-        sq_pushstring(_vm, _SC("objectPreWalk"), -1);
+        Object *pObj = dynamic_cast<Object *>(pObj1);
+        auto functionName = pObj ? "objectPreWalk" : "actorPreWalk";
+        sq_pushobject(_vm, pObj1->getTable());
+        sq_pushstring(_vm, functionName, -1);
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
             sq_remove(_vm, -2);
-            sq_pushobject(_vm, obj);
-            sq_pushinteger(_vm, verb);
-            sq_pushnull(_vm);
-            sq_pushnull(_vm);
+            sq_pushobject(_vm, pObj1->getTable());
+            sq_pushinteger(_vm, verb); // verb
+            pushObject(pObj1);
+            pushObject(pObj2);
             sq_call(_vm, 4, SQTrue, SQTrue);
             SQInteger handled = 0;
             sq_getinteger(_vm, -1, &handled);
@@ -589,6 +357,8 @@ private:
         sq_pop(_vm, 1);
         return false;
     }
+
+    void pushObject(Entity *pObj) { ng::pushObject(_vm, pObj); }
 
     void callVerbDefault(HSQOBJECT obj)
     {
@@ -600,7 +370,7 @@ private:
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);
             sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); //pops the roottable and the function
+            sq_pop(_vm, 2); // pops the roottable and the function
         }
     }
 
@@ -638,7 +408,7 @@ private:
         return 2;
     }
 
-private:
+  private:
     HSQUIRRELVM _vm;
     Engine &_engine;
 };

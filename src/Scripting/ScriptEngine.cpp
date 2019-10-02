@@ -16,6 +16,7 @@
 #include "_ActorPack.h"
 #include "_RoomPack.h"
 #include "_SoundPack.h"
+#include "_DefaultScriptExecute.h"
 #include "_DefaultVerbExecute.h"
 #include "_bnutPass.h"
 
@@ -279,16 +280,16 @@ ScriptEngine::ScriptEngine()
         {"FEMALE", 0x8000},
         {"MALE", 0x100000},
         {"PERSON", 0x200000},
-        {"VERB_CLOSE", 6},
-        {"VERB_GIVE", 9},
-        {"VERB_LOOKAT", 2},
-        {"VERB_OPEN", 5},
-        {"VERB_PICKUP", 4},
-        {"VERB_PULL", 8},
-        {"VERB_PUSH", 7},
-        {"VERB_TALKTO", 3},
-        {"VERB_USE", 10},
-        {"VERB_WALKTO", 1},
+        {"VERB_CLOSE",  VerbConstants::VERB_CLOSE},
+        {"VERB_GIVE",   VerbConstants::VERB_GIVE},
+        {"VERB_LOOKAT", VerbConstants::VERB_LOOKAT},
+        {"VERB_OPEN",   VerbConstants::VERB_OPEN},
+        {"VERB_PICKUP", VerbConstants::VERB_PICKUP},
+        {"VERB_PULL",   VerbConstants::VERB_PULL},
+        {"VERB_PUSH",   VerbConstants::VERB_PUSH},
+        {"VERB_TALKTO", VerbConstants::VERB_TALKTO},
+        {"VERB_USE",    VerbConstants::VERB_USE},
+        {"VERB_WALKTO", VerbConstants::VERB_WALKTO},
         {"VERBFLAG_INSTANT", 1},
         {"NO", 0},
         {"YES", 1},

@@ -39,14 +39,14 @@ void DialogVisitor::ConditionVisitor::visit(const Ast::CodeCondition &node)
     const auto &actors = _dialogVisitor._pEngine->getActors();
     
     // check if the code corresponds to an actor name
-    const auto &name = node.code;
+    const auto name = towstring(node.code);
     auto it = std::find_if(actors.cbegin(), actors.cend(), [&name](const std::unique_ptr<Actor> &actor) {
         return actor->getName() == name; });
     if (it != actors.end())
     {
         // yes, so we check if the current actor is the given actor name
         std::string code("currentActor==");
-        code.append(name);
+        code.append(tostring(name));
         _isAccepted = _dialogVisitor._pEngine->executeCondition(code);
         return;
     }
@@ -103,9 +103,10 @@ void DialogVisitor::visit(const Ast::Say &node)
     }
     else
     {
+        auto name = towstring(node.actor);
         for (auto &actor : actors)
         {
-            if (actor->getName() == node.actor)
+            if (actor->getName() == name)
             {
                 pActor = actor.get();
                 break;

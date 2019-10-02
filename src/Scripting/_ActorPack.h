@@ -544,7 +544,7 @@ class _ActorPack : public Pack
         }
         SQInteger loop = 0;
         sq_getinteger(v, 4, &loop);
-        trace("Play anim {} {}{}", pActor->getName(), animation, (loop == 1 ? " (loop)" : ""));
+        trace("Play anim {} {}{}", tostring(pActor->getName()), animation, (loop == 1 ? " (loop)" : ""));
         pActor->getCostume().setState(animation);
         auto pAnim = pActor->getCostume().getAnimation();
         if (pAnim)
@@ -600,7 +600,7 @@ class _ActorPack : public Pack
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
-        trace("actorRoom({})=>{}", pActor->getName(), pRoom ? pRoom->getId() : "null");
+        trace("actorRoom({})=>{}", tostring(pActor->getName()), pRoom ? pRoom->getId() : "null");
         if (pRoom)
         {
             sq_pushobject(v, pRoom->getTable());
@@ -974,7 +974,7 @@ class _ActorPack : public Pack
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("_key"), 4);
         const SQChar *key = nullptr;
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        if (SQ_SUCCEEDED(sq_rawget(v, -2)))
         {
             if (SQ_FAILED(sq_getstring(v, -1, &key)))
             {
@@ -987,7 +987,7 @@ class _ActorPack : public Pack
         const SQChar *icon = nullptr;
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("icon"), 4);
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        if (SQ_SUCCEEDED(sq_rawget(v, -2)))
         {
             sq_getstring(v, -1, &icon);
             pActor->setIcon(icon);
@@ -997,12 +997,14 @@ class _ActorPack : public Pack
 
         if (key)
         {
-            pActor->setName(key);
+            pActor->setName(towstring(key));
         }
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("instance"), -1);
         sq_pushuserpointer(v, pActor.get());
         sq_newslot(v, -3, SQFalse);
+
+        trace("Create actor {}", toUtf8(pActor->getName()));
 
         g_pEngine->addActor(std::move(pActor));
         return 1;

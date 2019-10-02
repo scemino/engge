@@ -1,6 +1,5 @@
 #include "Actor.h"
 #include "Engine.h"
-#include "InventoryObject.h"
 #include "Lip.h"
 #include "Logger.h"
 #include "PathFinder.h"
@@ -109,12 +108,12 @@ struct Actor::Impl
     Actor *_pActor{nullptr};
     const EngineSettings &_settings;
     Costume _costume;
-    std::string _name, _icon;
+    std::string _icon;
     int _zorder;
     bool _use;
     Room *_pRoom;
     sf::IntRect _hotspot;
-    std::vector<std::unique_ptr<InventoryObject>> _objects;
+    std::vector<std::unique_ptr<Object>> _objects;
     WalkingState _walkingState;
     TalkingState _talkingState;
     sf::Vector2i _speed;
@@ -124,10 +123,6 @@ struct Actor::Impl
     sf::Vector2f _offset;
     bool _hotspotVisible{false};
 };
-
-void Actor::setName(const std::string &name) { pImpl->_name = name; }
-
-const std::string &Actor::getName() const { return pImpl->_name; }
 
 void Actor::setIcon(const std::string &icon) { pImpl->_icon = icon; }
 
@@ -179,9 +174,13 @@ bool Actor::contains(const sf::Vector2f &pos) const
     return pAnim->contains(pos2);
 }
 
-void Actor::pickupObject(std::unique_ptr<InventoryObject> pObject) { pImpl->_objects.push_back(std::move(pObject)); }
+void Actor::pickupObject(std::unique_ptr<Object> pObject)
+{ 
+    pObject->setOwner(this);
+    pImpl->_objects.push_back(std::move(pObject));
+}
 
-const std::vector<std::unique_ptr<InventoryObject>> &Actor::getObjects() const { return pImpl->_objects; }
+const std::vector<std::unique_ptr<Object>> &Actor::getObjects() const { return pImpl->_objects; }
 
 void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }
 
@@ -208,7 +207,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
     _pActor->getCostume().setState("walk");
     _pActor->getCostume().getAnimation()->play(true);
     _isWalking = true;
-    trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
+    trace("{} go to : {},{}", tostring(_pActor->getName()), _path[0].x, _path[0].y);
 }
 
 void Actor::Impl::WalkingState::stop() { _isWalking = false; }
@@ -273,7 +272,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             _pActor->getCostume().setFacing(getFacing());
             _pActor->getCostume().setState("walk");
             _pActor->getCostume().getAnimation()->play(true);
-            trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
+            trace("{} go to : {},{}", tostring(_pActor->getName()), _path[0].x, _path[0].y);
         }
     }
 }

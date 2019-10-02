@@ -14,6 +14,7 @@ enum class UseDirection
   Right
 };
 
+class Actor;
 class Animation;
 class Room;
 
@@ -44,11 +45,11 @@ public:
   void showHotspot(bool show);
   bool isHotspotVisible() const;
 
-  void setName(const std::wstring &name);
-  const std::wstring &getName() const;
-
   void setId(const std::wstring &id);
   const std::wstring &getId() const;
+
+  void setIcon(const std::string &icon);
+  std::string getIcon() const;
 
   int getDefaultVerb(HSQUIRRELVM vm) const;
 
@@ -80,6 +81,10 @@ public:
   void dependentOn(Object* parentObject, int state);
 
   void setFps(int fps) override;
+
+  Actor* getOwner() const;
+  void setOwner(Actor* pActor);
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 

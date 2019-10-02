@@ -8,6 +8,7 @@
 namespace ng
 {
 class Engine;
+class Object;
 
 class Inventory : public sf::Drawable
 {
@@ -20,7 +21,8 @@ public:
   void update(const sf::Time &elapsed);
 
   void setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
-  const InventoryObject *getCurrentInventoryObject() const { return _pCurrentInventoryObject; }
+  const Object *getCurrentInventoryObject() const { return _pCurrentInventoryObject; }
+  Object *getCurrentInventoryObject() { return _pCurrentInventoryObject; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -31,13 +33,13 @@ private:
   int getCurrentActorIndex() const;
 
 private:
-  Engine *_pEngine;
+  Engine *_pEngine{nullptr};
   std::array<ActorIconSlot, 6> &_actorsIconSlots;
   std::array<VerbUiColors, 6> &_verbUiColors;
   SpriteSheet _gameSheet, _inventoryItems;
   Actor *&_pCurrentActor;
-  sf::IntRect _inventoryRects[8];
-  const InventoryObject *_pCurrentInventoryObject;
+  std::array<sf::IntRect,8> _inventoryRects;
+  Object *_pCurrentInventoryObject{nullptr};
   sf::Vector2f _mousePos;
 };
 } // namespace ng
