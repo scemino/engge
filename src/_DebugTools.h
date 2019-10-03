@@ -206,8 +206,11 @@ class _DebugTools
         ImGui::Text("Room: %s", pRoom ? pRoom->getId().c_str() : "(none)");
         ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
         ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
-        auto scale =  actor->getScale();
-        ImGui::Text("Scale: %.3f", scale);
+        if(pRoom)
+        {
+            auto scale =  actor->getScale();
+            ImGui::Text("Scale: %.3f", scale);
+        }
         auto color = actor->getColor();
         if (ColorEdit4("Color", color))
         {
