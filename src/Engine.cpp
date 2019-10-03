@@ -124,6 +124,8 @@ struct Engine::Impl
     int32_t getFlags(HSQOBJECT obj) const;
     int getDefaultVerb(HSQUIRRELVM vm, const Entity* pEntity) const;
     Entity* getHoveredEntity(const sf::Vector2f &mousPos);
+    void onVerbClick();
+    void onObjectClick(Entity* pObj);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -686,6 +688,47 @@ void Engine::Impl::updateMouseCursor()
         _cursorDirection |= CursorDirection::Hotspot;
 }
 
+void Engine::Impl::onVerbClick()
+{
+    sq_pushroottable(_vm);
+    sq_pushstring(_vm, _SC("onVerbClick"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        error("failed to get onVerbClick function");
+        return;
+    }
+
+    sq_remove(_vm, -2);
+    sq_pushroottable(_vm);
+    if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
+    {
+        error("failed to call onVerbClick function");
+        return;
+    }
+    sq_pop(_vm, 1);
+}
+
+void Engine::Impl::onObjectClick(Entity* pObj)
+{
+    sq_pushroottable(_vm);
+    sq_pushstring(_vm, _SC("onObjectClick"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        error("failed to get onObjectClick function");
+        return;
+    }
+
+    sq_remove(_vm, -2);
+    sq_pushroottable(_vm);
+    sq_pushobject(_vm, pObj->getTable());
+    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
+    {
+        error("failed to call onObjectClick function");
+        return;
+    }
+    sq_pop(_vm, 1);
+}
+
 Entity* Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
 {
     Entity* pCurrentObject = nullptr;
@@ -918,6 +961,8 @@ void Engine::update(const sf::Time &elapsed)
                 _pImpl->_pUseObject = nullptr;
                 _pImpl->_pObj1 = nullptr;
                 _pImpl->_pObj2 = nullptr;
+
+                _pImpl->onVerbClick();
                 return;
             }
         }
@@ -925,6 +970,7 @@ void Engine::update(const sf::Time &elapsed)
 
     if(_pImpl->_pHoveredEntity)
     {
+        _pImpl->onObjectClick(_pImpl->_pHoveredEntity);
         auto pVerb = _pImpl->_pVerbOverride;
         if(!pVerb)
         {
@@ -967,6 +1013,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
         error("failed to call onActorSelected function");
         return;
     }
+    sq_pop(v, 1);
 }
 
 bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
