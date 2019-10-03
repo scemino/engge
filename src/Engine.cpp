@@ -126,6 +126,8 @@ struct Engine::Impl
     Entity* getHoveredEntity(const sf::Vector2f &mousPos);
     void onVerbClick();
     void onObjectClick(Entity* pObj);
+    void actorEnter();
+    void actorExit();
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -312,6 +314,8 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     sq_getclosureinfo(_vm, -1, &nparams, &nfreevars);
     trace("enter function found with {} parameters", nparams);
 
+    actorExit();
+
     sq_remove(_vm, -2);
     sq_pushobject(_vm, pOldRoom->getTable());
     if (nparams == 2)
@@ -404,6 +408,75 @@ void Engine::Impl::updateScreenSize()
     }
 }
 
+void Engine::Impl::actorEnter()
+{
+    if(!_pCurrentActor) return;
+
+    sq_pushroottable(_vm);
+    sq_pushstring(_vm, _SC("actorEnter"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        sq_pop(_vm, 1);
+        return;
+    }
+
+    sq_remove(_vm, -2);
+    sq_pushroottable(_vm);
+    sq_pushobject(_vm, _pCurrentActor->getTable());
+    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
+    {
+        error("failed to call actorEnter function");
+        sq_pop(_vm, 1);
+        return;
+    }
+    sq_pop(_vm, 1);
+
+    if(!_pRoom) return;
+
+    sq_pushobject(_vm, _pRoom->getTable());
+    sq_pushstring(_vm, _SC("actorEnter"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        sq_pop(_vm, 1);
+        return;
+    }
+
+    sq_remove(_vm, -2);
+    sq_pushobject(_vm, _pRoom->getTable());
+    sq_pushobject(_vm, _pCurrentActor->getTable());
+    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
+    {
+        error("failed to call room actorEnter function");
+        sq_pop(_vm, 1);
+        return;
+    }
+    sq_pop(_vm, 1);
+}
+
+void Engine::Impl::actorExit()
+{
+    if(!_pCurrentActor || !_pRoom) return;
+
+    sq_pushobject(_vm, _pRoom->getTable());
+    sq_pushstring(_vm, _SC("actorExit"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        sq_pop(_vm, 1);
+        return;
+    }
+
+    sq_remove(_vm, -2);
+    sq_pushobject(_vm, _pRoom->getTable());
+    sq_pushobject(_vm, _pCurrentActor->getTable());
+    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
+    {
+        error("failed to call actorExit function");
+        sq_pop(_vm, 1);
+        return;
+    }
+    sq_pop(_vm, 1);
+}
+
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 {
     // call enter room function
@@ -438,6 +511,8 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
         return sq_throwerror(_vm, _SC("function enter call failed"));
     }
     sq_pop(_vm, 1);
+
+    actorEnter();
 
     auto &objects = pRoom->getObjects();
     for (size_t i = 0; i < objects.size(); i++)
