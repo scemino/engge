@@ -31,6 +31,20 @@ static const int OPEN = 1;
 static const int CLOSED = 0;
 }
 
+namespace ObjectFlagConstants
+{
+static const int GIVEABLE   = 0x1000;
+static const int TALKABLE   = 0x2000;
+static const int IMMEDIATE  = 0x4000;
+static const int FEMALE     = 0x80000;
+static const int MALE       = 0x100000;
+static const int PERSON     = 0x200000;
+static const int REACH_HIGH = 0x8000;
+static const int REACH_MED  = 0x10000;
+static const int REACH_LOW  = 0x20000;
+static const int REACH_NONE = 0x40000;
+}
+
 class Object : public Entity
 {
 public:

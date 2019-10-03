@@ -92,7 +92,7 @@ int Object::getDefaultVerb(HSQUIRRELVM v) const
         return value;
     }
     sq_pop(v, 1);
-    return 2; // lookat
+    return VerbConstants::VERB_LOOKAT;
 }
 
 HSQOBJECT &Object::getTable() { return pImpl->_pTable; }

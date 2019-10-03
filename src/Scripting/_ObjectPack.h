@@ -1016,15 +1016,15 @@ class _ObjectPack : public Pack
         }
 
         std::string anim;
-        if ((flags & 0x8000) == 0x8000) // HIGH
+        if ((flags & ObjectFlagConstants::REACH_HIGH) == ObjectFlagConstants::REACH_HIGH)
         {
             anim = "reach_high";
         }
-        else if ((flags & 0x10000) == 0x10000) // MED
+        else if ((flags & ObjectFlagConstants::REACH_MED) == ObjectFlagConstants::REACH_MED)
         {
             anim = "reach_med";
         }
-        else if ((flags & 0x20000) == 0x20000) // LOW
+        else if ((flags & ObjectFlagConstants::REACH_LOW) == ObjectFlagConstants::REACH_LOW)
         {
             anim = "reach_low";
         }

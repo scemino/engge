@@ -120,7 +120,7 @@ struct Engine::Impl
     void updateScreenSize();
     void updateRoomScalings();
     void setCurrentRoom(Room *pRoom);
-    int32_t getFlags(const HSQOBJECT &obj);
+    int32_t getFlags(const HSQOBJECT &obj) const;
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -676,7 +676,7 @@ void Engine::Impl::updateCurrentObject(const sf::Vector2f &mousPos)
     });
 }
 
-int32_t Engine::Impl::getFlags(const HSQOBJECT &obj)
+int32_t Engine::Impl::getFlags(const HSQOBJECT &obj) const
 {
     SQInteger flags = 0;
     sq_pushobject(_vm, obj);
@@ -703,7 +703,7 @@ void Engine::Impl::updateHoverActor(const sf::Vector2f &mousPos)
 
         // select actor only if talkable flag is set
         auto flags = getFlags(actor->getTable());
-        if (!(flags & 0x2000))
+        if (!(flags & ObjectFlagConstants::TALKABLE))
             continue;
 
         if (actor->contains(mousPos))
@@ -1024,21 +1024,19 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
 
     auto pVerb = _pVerb;
     if (!pVerb)
-        pVerb = _pEngine->getVerb(1);
+        pVerb = _pEngine->getVerb(VerbConstants::VERB_WALKTO);
     if (!pVerb)
         return;
-
-    auto cameraPos = _camera.getAt();
 
     NGText text;
     text.setAlignment(NGTextAlignment::Center);
     text.setFont(_fntFont);
     text.setColor(sf::Color::White);
 
-    if (_pActor && (pVerb->id == 1 || pVerb->id == 3))
+    if (_pActor && (pVerb->id == VerbConstants::VERB_WALKTO || pVerb->id == VerbConstants::VERB_TALKTO))
     {
         std::wstring s;
-        pVerb = _pEngine->getVerb(3);
+        pVerb = _pEngine->getVerb(VerbConstants::VERB_TALKTO);
         if (!pVerb->text.empty())
         {
             auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
@@ -1049,7 +1047,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     }
     else if (_pCurrentObject)
     {
-        if (pVerb->id == 1 && _isMouseRightDown)
+        if (pVerb->id == VerbConstants::VERB_WALKTO && _isMouseRightDown)
         {
             pVerb = _pEngine->getVerb(_pCurrentObject->getDefaultVerb(_vm));
         }
@@ -1064,7 +1062,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         {
             s.append(L" ").append(_pUseObject->getName());
         }
-        else
+        else if(pVerb->id != VerbConstants::VERB_TALKTO || (getFlags(_pCurrentObject->getTable())&ObjectFlagConstants::TALKABLE))
         {
             s.append(L" ").append(_pCurrentObject->getName());
         }
@@ -1078,14 +1076,14 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     else
     {
         const Object* pInventoryObj = _inventory.getCurrentInventoryObject();
-        if (pVerb->id == 1 && pInventoryObj)
+        if (pVerb->id == VerbConstants::VERB_WALKTO && pInventoryObj)
         {
             pVerb = _pEngine->getVerb(pInventoryObj->getDefaultVerb(_vm));
         }
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         std::wstring s;
         // don't draw "walk to" if the cursor is not on a inventory object
-        if (pInventoryObj || pVerb->id != 1)
+        if (pInventoryObj || pVerb->id != VerbConstants::VERB_WALKTO)
         {
             s.append(_pEngine->getText(id));
         }
