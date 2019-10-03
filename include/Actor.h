@@ -70,6 +70,7 @@ public:
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
 
   HSQOBJECT &getTable() override;
+  float getScale() const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

@@ -46,17 +46,17 @@ class _DebugTools
         ImGui::Separator();
         ImGui::Text("Cursor visible: %s", _engine.isCursorVisible() ? "yes" : "no");
         auto inputActive = _engine.getInputActive();
-        if(ImGui::Checkbox("Input active", &inputActive))
+        if (ImGui::Checkbox("Input active", &inputActive))
         {
             _engine.setInputActive(inputActive);
         }
         auto inputVerbs = _engine.getInputVerbs();
-        if(ImGui::Checkbox("Input verbs", &inputVerbs))
+        if (ImGui::Checkbox("Input verbs", &inputVerbs))
         {
             _engine.setInputVerbs(inputVerbs);
         }
         auto inputHUD = _engine.getInputHUD();
-        if(ImGui::Checkbox("Input HUD", &inputHUD))
+        if (ImGui::Checkbox("Input HUD", &inputHUD))
         {
             _engine.setInputHUD(inputHUD);
         }
@@ -98,73 +98,74 @@ class _DebugTools
     }
 
   private:
-    void getStack(std::vector<std::string>& stack)
+    void getStack(std::vector<std::string> &stack)
     {
         HSQOBJECT obj;
         auto size = sq_gettop(_engine.getVm());
-        for(size_t i=1;i<=size;++i){
-            auto type = sq_gettype(_engine.getVm(),-i);
-            sq_getstackobj(_engine.getVm(),-i,&obj);
+        for (size_t i = 1; i <= size; ++i)
+        {
+            auto type = sq_gettype(_engine.getVm(), -i);
+            sq_getstackobj(_engine.getVm(), -i, &obj);
             std::ostringstream s;
             s << "#" << i << ": ";
             switch (type)
             {
-            case OT_NULL:
-                s << "null";
-                break;
-            case OT_INTEGER:
-                s << sq_objtointeger(&obj);
-                break;
-            case OT_FLOAT:
-                s << sq_objtofloat(&obj);
-                break;
-            case OT_BOOL:
-                s << (sq_objtobool(&obj)==SQTrue?"true":"false");
-                break;
-            case OT_USERPOINTER:
-            {
-                s << "userpointer";
-                auto ptr = _userpointer(obj);
-                auto p = (ScriptObject*)ptr;
-                break;
-            }
-            case OT_STRING:
-                s << sq_objtostring(&obj);
-                break;
-            case OT_TABLE:
-                s << "table";
-                break;
-            case OT_ARRAY:
-                s << "array";
-                break;
-            case OT_CLOSURE:
-            {
-                s << "closure: ";
-                auto pName = _closure(obj)->_function->_name;
-                s << (pName._type!=OT_NULL?_stringval(pName):"null");
-                break;
-            }
-            case OT_NATIVECLOSURE:
-                s << "native closure";
-                break;
-            case OT_GENERATOR:
-                s << "generator";
-                break;
-            case OT_USERDATA:
-                s << "user data";
-                break;
-            case OT_THREAD:
-                s << "thread";
-                break;
-            case OT_INSTANCE:
-                s << "instance";
-                break;
-            case OT_WEAKREF:
-                s << "weak ref";
-                break;
-            default:
-                s << "?";
-                break;
+                case OT_NULL:
+                    s << "null";
+                    break;
+                case OT_INTEGER:
+                    s << sq_objtointeger(&obj);
+                    break;
+                case OT_FLOAT:
+                    s << sq_objtofloat(&obj);
+                    break;
+                case OT_BOOL:
+                    s << (sq_objtobool(&obj) == SQTrue ? "true" : "false");
+                    break;
+                case OT_USERPOINTER:
+                {
+                    s << "userpointer";
+                    auto ptr = _userpointer(obj);
+                    auto p = (ScriptObject *)ptr;
+                    break;
+                }
+                case OT_STRING:
+                    s << sq_objtostring(&obj);
+                    break;
+                case OT_TABLE:
+                    s << "table";
+                    break;
+                case OT_ARRAY:
+                    s << "array";
+                    break;
+                case OT_CLOSURE:
+                {
+                    s << "closure: ";
+                    auto pName = _closure(obj)->_function->_name;
+                    s << (pName._type != OT_NULL ? _stringval(pName) : "null");
+                    break;
+                }
+                case OT_NATIVECLOSURE:
+                    s << "native closure";
+                    break;
+                case OT_GENERATOR:
+                    s << "generator";
+                    break;
+                case OT_USERDATA:
+                    s << "user data";
+                    break;
+                case OT_THREAD:
+                    s << "thread";
+                    break;
+                case OT_INSTANCE:
+                    s << "instance";
+                    break;
+                case OT_WEAKREF:
+                    s << "weak ref";
+                    break;
+                default:
+                    s << "?";
+                    break;
             }
             stack.push_back(s.str());
         }
@@ -185,11 +186,11 @@ class _DebugTools
         ImGui::Begin("Actors", &_showActors);
         auto &actors = _engine.getActors();
         _actorInfos.clear();
-        for(auto&& actor : actors)
+        for (auto &&actor : actors)
         {
             _actorInfos.push_back(toUtf8(actor->getName()));
         }
-        ImGui::Combo("", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
+        ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
         auto isVisible = actor->isVisible();
         if (ImGui::Checkbox("Visible", &isVisible))
@@ -205,6 +206,8 @@ class _DebugTools
         ImGui::Text("Room: %s", pRoom ? pRoom->getId().c_str() : "(none)");
         ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
         ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
+        auto scale =  actor->getScale();
+        ImGui::Text("Scale: %.3f", scale);
         auto color = actor->getColor();
         if (ColorEdit4("Color", color))
         {
@@ -215,10 +218,25 @@ class _DebugTools
         {
             actor->setTalkColor(talkColor);
         }
+        auto pos = actor->getPosition();
+        if (InputFloat2("Position", pos))
+        {
+            actor->setPosition(pos);
+        }
+        auto usePos = actor->getUsePosition();
+        if (InputFloat2("Use Position", usePos))
+        {
+            actor->setUsePosition(usePos);
+        }
         auto offset = actor->getOffset();
         if (InputFloat2("Offset", offset))
         {
             actor->setOffset(offset);
+        }
+        auto renderOffset = actor->getRenderOffset();
+        if (InputInt2("Render Offset", renderOffset))
+        {
+            actor->setRenderOffset(renderOffset);
         }
         auto walkSpeed = actor->getWalkSpeed();
         if (InputInt2("Walk speed", walkSpeed))
@@ -252,7 +270,7 @@ class _DebugTools
 
         ImGui::Begin("Objects", &_showObjects);
         auto &objects = _engine.getRoom()->getObjects();
-        ImGui::Combo("", &_selectedObject, objectGetter, static_cast<void *>(&objects), objects.size());
+        ImGui::Combo("##Objects", &_selectedObject, objectGetter, static_cast<void *>(&objects), objects.size());
         if (!objects.empty())
         {
             auto &object = objects[_selectedObject];
@@ -277,10 +295,25 @@ class _DebugTools
             {
                 object->setZOrder(zorder);
             }
+            auto pos = object->getPosition();
+            if (InputFloat2("Position", pos))
+            {
+                object->setPosition(pos);
+            }
+            auto usePos = object->getUsePosition();
+            if (InputFloat2("Use Position", usePos))
+            {
+                object->setUsePosition(usePos);
+            }
             auto offset = object->getOffset();
             if (InputFloat2("Offset", offset))
             {
                 object->setOffset(offset);
+            }
+            auto renderOffset = object->getRenderOffset();
+            if (InputInt2("Render Offset", renderOffset))
+            {
+                object->setRenderOffset(renderOffset);
             }
             auto hotspotVisible = object->isHotspotVisible();
             if (ImGui::Checkbox("Show hotspot", &hotspotVisible))
@@ -318,7 +351,8 @@ class _DebugTools
             room->showDrawWalkboxes(showWalkboxes);
         }
         updateWalkboxInfos(room.get());
-        ImGui::Combo("##walkboxes", &_selectedWalkbox, walkboxGetter, static_cast<void *>(&_walkboxInfos), _walkboxInfos.size());
+        ImGui::Combo("##walkboxes", &_selectedWalkbox, walkboxGetter, static_cast<void *>(&_walkboxInfos),
+                     _walkboxInfos.size());
         auto rotation = room->getRotation();
         if (ImGui::SliderFloat("rotation", &rotation, -180.f, 180.f, "%.0f deg"))
         {
@@ -332,25 +366,26 @@ class _DebugTools
         ImGui::End();
     }
 
-    void updateWalkboxInfos(Room* pRoom)
+    void updateWalkboxInfos(Room *pRoom)
     {
         _walkboxInfos.clear();
-        if(!pRoom) return;
-        auto& walkboxes = pRoom->getWalkboxes();
-        for(size_t i=0; i<walkboxes.size(); ++i)
+        if (!pRoom)
+            return;
+        auto &walkboxes = pRoom->getWalkboxes();
+        for (size_t i = 0; i < walkboxes.size(); ++i)
         {
             auto walkbox = walkboxes.at(i);
             auto name = walkbox.getName();
             std::ostringstream s;
-            if(!name.empty())
-            {   
+            if (!name.empty())
+            {
                 s << name;
             }
             else
-            {         
+            {
                 s << "Walkbox #" << i;
             }
-            s << " " << (walkbox.isEnabled()?"[enabled]":"[disabled]");
+            s << " " << (walkbox.isEnabled() ? "[enabled]" : "[disabled]");
             _walkboxInfos.push_back(s.str());
         }
     }

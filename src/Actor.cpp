@@ -19,7 +19,7 @@ struct Actor::Impl
     class WalkingState
     {
       public:
-        WalkingState();
+        WalkingState() = default;
 
         void setActor(Actor *pActor);
         void setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing);
@@ -31,16 +31,16 @@ struct Actor::Impl
         Facing getFacing();
 
       private:
-        Actor *_pActor;
+        Actor *_pActor{nullptr};
         std::vector<sf::Vector2i> _path;
-        std::optional<Facing> _facing;
-        bool _isWalking;
+        std::optional<Facing> _facing{Facing::FACE_FRONT};
+        bool _isWalking{false};
     };
 
     class TalkingState : public sf::Drawable
     {
       public:
-        TalkingState();
+        TalkingState() = default;
 
         void setActor(Actor *pActor);
         void setTalkOffset(const sf::Vector2i &offset) { _talkOffset = offset; }
@@ -60,14 +60,14 @@ struct Actor::Impl
         void load(int id);
 
       private:
-        Actor *_pActor;
+        Actor *_pActor{nullptr};
         FntFont _font;
-        bool _isTalking;
+        bool _isTalking{false};
         std::wstring _sayText;
         Lip _lip;
-        int _index;
+        int _index{0};
         sf::Vector2i _talkOffset{0, 90};
-        sf::Color _talkColor;
+        sf::Color _talkColor{sf::Color::White};
         sf::Time _elapsed;
         std::vector<int> _ids;
         int _id{0};
@@ -75,8 +75,7 @@ struct Actor::Impl
     };
 
     explicit Impl(Engine &engine)
-        : _engine(engine), _settings(engine.getSettings()), _costume(engine.getTextureManager()), _zorder(0),
-          _use(true), _pRoom(nullptr), _speed(30, 15), _volume(1.f)
+        : _engine(engine), _settings(engine.getSettings()), _costume(engine.getTextureManager())
     {
     }
 
@@ -93,7 +92,6 @@ struct Actor::Impl
         if (!_hotspotVisible)
             return;
 
-        states.transform *= _pActor->getTransform();
         auto rect = _pActor->getHotspot();
 
         sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
@@ -102,6 +100,13 @@ struct Actor::Impl
         s.setOutlineColor(sf::Color::Red);
         s.setFillColor(sf::Color::Transparent);
         target.draw(s, states);
+
+        // draw actor position
+        sf::RectangleShape rectangle;
+        rectangle.setFillColor(sf::Color::Red);
+        rectangle.setSize(sf::Vector2f(2, 2));
+        rectangle.setOrigin(sf::Vector2f(1, 1));
+        target.draw(rectangle, states);
     }
 
     Engine &_engine;
@@ -109,15 +114,15 @@ struct Actor::Impl
     const EngineSettings &_settings;
     Costume _costume;
     std::string _icon;
-    int _zorder;
-    bool _use;
-    Room *_pRoom;
+    int _zorder{0};
+    bool _use{true};
+    Room *_pRoom{nullptr};
     sf::IntRect _hotspot;
     std::vector<std::unique_ptr<Object>> _objects;
     WalkingState _walkingState;
     TalkingState _talkingState;
-    sf::Vector2i _speed;
-    float _volume;
+    sf::Vector2i _speed{30, 15};
+    float _volume{1.f};
     std::shared_ptr<Path> _path;
     HSQOBJECT _table{};
     sf::Vector2f _offset;
@@ -193,8 +198,6 @@ bool Actor::isWalking() const { return pImpl->_walkingState.isWalking(); }
 void Actor::setVolume(float volume) { pImpl->_volume = volume; }
 
 HSQOBJECT &Actor::getTable() { return pImpl->_table; }
-
-Actor::Impl::WalkingState::WalkingState() : _pActor(nullptr), _facing(Facing::FACE_FRONT), _isWalking(false) {}
 
 void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
 
@@ -275,10 +278,6 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             trace("{} go to : {},{}", tostring(_pActor->getName()), _path[0].x, _path[0].y);
         }
     }
-}
-
-Actor::Impl::TalkingState::TalkingState() : _pActor(nullptr), _isTalking(false), _index(0), _talkColor(sf::Color::White)
-{
 }
 
 void Actor::Impl::TalkingState::setActor(Actor *pActor)
@@ -452,25 +451,23 @@ void Actor::setCostume(const std::string &name, const std::string &sheet)
     pImpl->_costume.loadCostume(path, sheet);
 }
 
+float Actor::getScale() const
+{
+    auto size = pImpl->_pRoom->getRoomSize();
+    return pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
+}
+
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!isVisible())
         return;
 
-    auto size = pImpl->_pRoom->getRoomSize();
-    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
+    auto scale = getScale();
     auto transform = getTransform();
     transform.scale(scale, scale);
-    transform.translate(getRenderOffset().x * scale, -getRenderOffset().y * scale);
+    transform.translate(getRenderOffset().x, -getRenderOffset().y);
     states.transform *= transform;
     target.draw(pImpl->_costume, states);
-
-    // draw actor position
-    // sf::RectangleShape rectangle;
-    // rectangle.setFillColor(sf::Color::Red);
-    // rectangle.setSize(sf::Vector2f(2, 2));
-    // rectangle.setOrigin(sf::Vector2f(1, 1));
-    // target.draw(rectangle, states);
 
     pImpl->drawHotspot(target, states);
 }
