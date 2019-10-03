@@ -66,7 +66,7 @@ struct Engine::Impl
     Actor *_pCurrentActor{nullptr};
     std::array<VerbSlot, 6> _verbSlots;
     std::array<VerbUiColors, 6> _verbUiColors;
-    bool _inputHUD{false};
+    bool _inputHUD{true};
     bool _inputActive;
     bool _showCursor;
     bool _inputVerbsActive;
@@ -1001,7 +1001,7 @@ void Engine::draw(sf::RenderWindow &window) const
 
     window.draw(_pImpl->_dialogManager);
 
-    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive && !_pImpl->_inputHUD)
+    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive && _pImpl->_inputHUD)
     {
         _pImpl->drawVerbs(window);
         window.draw(_pImpl->_inventory);
