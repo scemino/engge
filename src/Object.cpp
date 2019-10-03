@@ -20,7 +20,6 @@ struct Object::Impl
     sf::Vector2f _usePos;
     sf::Vector2f _defaultPosition;
     sf::IntRect _hotspot;
-    bool _isTouchable{true};
     Room *_pRoom{nullptr};
     int _state{0};
     std::vector<std::shared_ptr<Trigger>> _triggers;
@@ -112,7 +111,7 @@ bool Object::isTouchable() const
         return false;
     if (pImpl->_prop)
         return false;
-    return pImpl->_isTouchable;
+    return Entity::isTouchable();
 }
 
 sf::IntRect Object::getRealHotspot() const
