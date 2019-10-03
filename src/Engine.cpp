@@ -866,7 +866,7 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick)
     }
 
     // abort some invalid actions
-    if(!_pObj1)
+    if(!_pObj1 || !_pVerb)
     {
         return;
     }
