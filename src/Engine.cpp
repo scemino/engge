@@ -76,10 +76,12 @@ struct Engine::Impl
     Entity *_pUseObject{nullptr};
     Entity* _pObj1{nullptr};
     Entity* _pObj2{nullptr};
+    Entity* _pHoveredEntity{nullptr};
     sf::Vector2f _mousePos;
     std::unique_ptr<VerbExecute> _pVerbExecute;
     std::unique_ptr<ScriptExecute> _pScriptExecute;
     const Verb *_pVerb{nullptr};
+    const Verb *_pVerbOverride{nullptr};
     std::vector<std::unique_ptr<ThreadBase>> _threads;
     DialogManager _dialogManager;
     Preferences _preferences;
@@ -113,20 +115,20 @@ struct Engine::Impl
     void updateFunctions(const sf::Time &elapsed);
     void updateActorIcons(const sf::Time &elapsed);
     void updateMouseCursor();
-    void updateCurrentObject(Entity* pCurrentObject);
+    void updateHoveredEntity(bool isRightClick);
     SQInteger enterRoom(Room *pRoom, Object *pObject);
     SQInteger exitRoom(Object *pObject);
     void updateScreenSize();
     void updateRoomScalings();
     void setCurrentRoom(Room *pRoom);
-    int32_t getFlags(const HSQOBJECT &obj) const;
+    int32_t getFlags(HSQOBJECT obj) const;
     int getDefaultVerb(HSQUIRRELVM vm, const Entity* pEntity) const;
     Entity* getHoveredEntity(const sf::Vector2f &mousPos);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
     : _pEngine(nullptr), _settings(settings), _textureManager(settings), _pRoom(nullptr), _inputActive(false),
-      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr), _pVerb(nullptr),
+      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
       _soundManager(settings), _cursorDirection(CursorDirection::None),
       _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
       _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
@@ -726,8 +728,9 @@ Entity* Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
     return pCurrentObject;
 }
 
-void Engine::Impl::updateCurrentObject(Entity* pCurrentObject)
+void Engine::Impl::updateHoveredEntity(bool isRightClick)
 {
+    _pVerbOverride = nullptr;
     if(!_pVerb)
     {
         _pVerb = _pEngine->getVerb(VerbConstants::VERB_WALKTO);
@@ -736,11 +739,11 @@ void Engine::Impl::updateCurrentObject(Entity* pCurrentObject)
     if(_pUseObject)
     {
         _pObj1 = _pUseObject;
-        _pObj2 = pCurrentObject;
+        _pObj2 = _pHoveredEntity;
     }
     else
     {
-        _pObj1 = pCurrentObject;
+        _pObj1 = _pHoveredEntity;
         _pObj2 = nullptr;
     }
 
@@ -755,10 +758,17 @@ void Engine::Impl::updateCurrentObject(Entity* pCurrentObject)
         _pObj2 = nullptr;
     }
 
-    if((_pVerb->id == VerbConstants::VERB_WALKTO || _pVerb->id == VerbConstants::VERB_PICKUP) 
-        && _pObj1->isInventoryObject())
+    if(_pObj1 && isRightClick)
     {
-        _pObj1 = nullptr;
+        _pVerbOverride = _pEngine->getVerb(getDefaultVerb(_vm, _pObj1));
+    }
+
+    if(_pVerb->id == VerbConstants::VERB_WALKTO)
+    {
+        if(_pObj1 && _pObj1->isInventoryObject())
+        {
+            _pVerbOverride = _pEngine->getVerb(getDefaultVerb(_vm, _pObj1));
+        }
     }
     else if(_pVerb->id == VerbConstants::VERB_TALKTO)
     {
@@ -782,7 +792,7 @@ void Engine::Impl::updateCurrentObject(Entity* pCurrentObject)
     }
 }
 
-int32_t Engine::Impl::getFlags(const HSQOBJECT &obj) const
+int32_t Engine::Impl::getFlags(HSQOBJECT obj) const
 {
     SQInteger flags = 0;
     sq_pushobject(_vm, obj);
@@ -873,8 +883,8 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
     _pImpl->_inventory.update(elapsed);
     _pImpl->_dialogManager.update(elapsed);
-    auto pCurrentObject = _pImpl->getHoveredEntity(mousePosInRoom);
-    _pImpl->updateCurrentObject(pCurrentObject);
+    _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(mousePosInRoom);
+    _pImpl->updateHoveredEntity(isRightClick);
 
     if (!_pImpl->_inputActive)
         return;
@@ -913,15 +923,16 @@ void Engine::update(const sf::Time &elapsed)
         }
     }
 
-    if(pCurrentObject)
+    if(_pImpl->_pHoveredEntity)
     {
-        if(isRightClick)
+        auto pVerb = _pImpl->_pVerbOverride;
+        if(!pVerb)
         {
-            _pImpl->_pVerb = getVerb(_pImpl->getDefaultVerb(_pImpl->_vm, pCurrentObject));
+            pVerb = _pImpl->_pVerb;
         }
         if(_pImpl->_pObj1)
         {
-            _pImpl->_pVerbExecute->execute(_pImpl->_pVerb, _pImpl->_pObj1, _pImpl->_pObj2);
+            _pImpl->_pVerbExecute->execute(pVerb, _pImpl->_pObj1, _pImpl->_pObj2);
         }
         return;
     }
@@ -1060,9 +1071,9 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     if (!_inputActive)
         return;
 
-    auto pVerb = _pVerb;
+    auto pVerb = _pVerbOverride;
     if (!pVerb)
-        pVerb = _pEngine->getVerb(VerbConstants::VERB_WALKTO);
+        pVerb = _pVerb;
     if (!pVerb)
         return;
 
@@ -1072,7 +1083,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     text.setColor(sf::Color::White);
 
     std::wstring s;
-    if (pVerb->id != VerbConstants::VERB_WALKTO || _pObj1)
+    if (pVerb->id != VerbConstants::VERB_WALKTO || _pHoveredEntity)
     {
         auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
         s.append(_pEngine->getText(id));
@@ -1148,9 +1159,9 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         return;
 
     auto verbId = -1;
-    if (_pObj1)
+    if (_pHoveredEntity)
     {
-        verbId = getDefaultVerb(_vm, _pObj1);
+        verbId = getDefaultVerb(_vm, _pHoveredEntity);
     }
     else
     {

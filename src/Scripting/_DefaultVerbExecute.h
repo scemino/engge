@@ -321,7 +321,7 @@ class _DefaultVerbExecute : public VerbExecute
         return false;
     }
 
-    int32_t getFlags(const HSQOBJECT &obj)
+    int32_t getFlags(HSQOBJECT obj)
     {
         SQInteger flags = 0;
         sq_pushobject(_vm, obj);
@@ -373,7 +373,7 @@ class _DefaultVerbExecute : public VerbExecute
         }
     }
 
-    void getVerb(const HSQOBJECT &obj, const Verb *&pVerb)
+    void getVerb(HSQOBJECT obj, const Verb *&pVerb)
     {
         int verb;
         if (pVerb)
