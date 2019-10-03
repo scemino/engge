@@ -1158,8 +1158,13 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     if (!_inputActive || currentActorIndex == -1 || _verbSlots.at(currentActorIndex).getVerb(0).id == 0)
         return;
 
-    auto verbId = -1;
-    if (_pHoveredEntity)
+    auto pVerb = _pVerbOverride;
+    if(!pVerb)
+    {
+        pVerb = _pVerb;
+    }
+    auto verbId = pVerb->id;
+    if (_pHoveredEntity && verbId == VerbConstants::VERB_WALKTO)
     {
         verbId = getDefaultVerb(_vm, _pHoveredEntity);
     }
