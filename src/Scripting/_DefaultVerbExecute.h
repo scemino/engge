@@ -255,8 +255,14 @@ class _DefaultVerbExecute : public VerbExecute
         if (!pVerb)
             return;
 
-        if (pVerb->id == VerbConstants::VERB_USE && useFlags(pObject1))
+        if (pVerb->id == VerbConstants::VERB_USE && !pObject2 && useFlags(pObject1))
             return;
+
+        if(pVerb->id == VerbConstants::VERB_GIVE && !pObject2)
+        {
+            _engine.setUseFlag(UseFlag::GiveTo, pObject1);
+            return;
+        }
 
         if (callObjectOrActorPreWalk(pVerb->id, pObject1, pObject2))
             return;
@@ -265,7 +271,7 @@ class _DefaultVerbExecute : public VerbExecute
         if (!pActor)
             return;
         auto sentence = std::make_unique<_CompositeFunction>();
-        if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) && !isInInventory(pObject1))
+        if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) && !pObject1->isInventoryObject())
         {
             auto walk = std::make_unique<_ActorWalk>(*pActor, pObject1);
             sentence->push_back(std::move(walk));
@@ -279,14 +285,7 @@ class _DefaultVerbExecute : public VerbExecute
         _engine.addFunction(std::move(sentence));
     }
 
-    bool isInInventory(Entity *pEntity)
-    {
-        auto pObj = dynamic_cast<Object *>(pEntity);
-        if (!pObj) return false;
-        return pObj->getOwner() != nullptr;
-    }
-
-    bool isFarLook(const HSQOBJECT &obj)
+    bool isFarLook(HSQOBJECT obj)
     {
         auto flags = getFlags(obj);
         return ((flags & 0x8) == 0x8);
@@ -304,13 +303,13 @@ class _DefaultVerbExecute : public VerbExecute
             UseFlag useFlag;
             switch (flags)
             {
-                case 2:
+                case ObjectFlagConstants::USE_WITH:
                     useFlag = UseFlag::UseWith;
                     break;
-                case 4:
+                case ObjectFlagConstants::USE_ON:
                     useFlag = UseFlag::UseOn;
                     break;
-                case 8:
+                case ObjectFlagConstants::USE_IN:
                     useFlag = UseFlag::UseIn;
                     break;
                 default:

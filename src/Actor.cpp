@@ -198,6 +198,9 @@ bool Actor::isWalking() const { return pImpl->_walkingState.isWalking(); }
 void Actor::setVolume(float volume) { pImpl->_volume = volume; }
 
 HSQOBJECT &Actor::getTable() { return pImpl->_table; }
+HSQOBJECT &Actor::getTable() const { return pImpl->_table; }
+
+bool Actor::isInventoryObject() const { return false; }
 
 void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
 

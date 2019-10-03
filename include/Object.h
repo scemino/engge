@@ -33,6 +33,14 @@ static const int CLOSED = 0;
 
 namespace ObjectFlagConstants
 {
+static const int USE_WITH   = 2;
+static const int USE_ON     = 4;
+static const int USE_IN     = 8;
+static const int DOOR       = 0x40;
+static const int DOOR_LEFT  = 0x140;
+static const int DOOR_RIGHT = 0x240;
+static const int DOOR_BACK  = 0x440;
+static const int DOOR_FRONT = 0x840;
 static const int GIVEABLE   = 0x1000;
 static const int TALKABLE   = 0x2000;
 static const int IMMEDIATE  = 0x4000;
@@ -62,6 +70,7 @@ public:
   bool isTrigger() const;
 
   bool isTouchable() const override;
+  bool isInventoryObject() const override;
 
   void setUseDirection(UseDirection direction);
   UseDirection getUseDirection() const;
@@ -78,9 +87,8 @@ public:
   void setIcon(const std::string &icon);
   std::string getIcon() const;
 
-  int getDefaultVerb(HSQUIRRELVM vm) const;
-
   HSQOBJECT &getTable() override;
+  HSQOBJECT &getTable() const override;
 
   std::vector<std::unique_ptr<Animation>> &getAnims();
 

@@ -40,7 +40,8 @@ enum class UseFlag
     None = 0,
     UseWith = 1,
     UseOn = 2,
-    UseIn = 3
+    UseIn = 3,
+    GiveTo = 4
 };
 
 class Engine : public NonCopyable

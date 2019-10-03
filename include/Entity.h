@@ -32,6 +32,8 @@ public:
   void setTouchable(bool isTouchable);
   virtual bool isTouchable() const;
 
+  virtual bool isInventoryObject() const = 0;
+
   void setRenderOffset(const sf::Vector2i &offset);
   sf::Vector2i getRenderOffset() const;
 
@@ -65,6 +67,7 @@ public:
   virtual void setFps(int fps) = 0;
 
   virtual HSQOBJECT &getTable() = 0;
+  virtual HSQOBJECT &getTable() const = 0;
 
   SoundTrigger* createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds);
 

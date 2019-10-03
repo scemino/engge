@@ -80,22 +80,9 @@ std::string Object::getIcon() const { return pImpl->_icon; }
 void Object::setOwner(Actor* pActor) { pImpl->_owner = pActor; }
 Actor* Object::getOwner() const { return pImpl->_owner; }
 
-int Object::getDefaultVerb(HSQUIRRELVM v) const
-{
-    sq_pushobject(v, pImpl->_pTable);
-    sq_pushstring(v, _SC("defaultVerb"), -1);
-    if (SQ_SUCCEEDED(sq_get(v, -2)))
-    {
-        SQInteger value = 0;
-        sq_getinteger(v, -1, &value);
-        sq_pop(v, 2);
-        return value;
-    }
-    sq_pop(v, 1);
-    return VerbConstants::VERB_LOOKAT;
-}
-
 HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
+HSQOBJECT &Object::getTable() const { return pImpl->_pTable; }
+bool Object::isInventoryObject() const { return getOwner() != nullptr; }
 
 std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_anims; }
 

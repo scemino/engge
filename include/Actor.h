@@ -63,6 +63,8 @@ public:
   void stopWalking();
   bool isWalking() const;
 
+  bool isInventoryObject() const override;
+
   void setVolume(float volume);
 
   void trigSound(const std::string &name) override;
@@ -70,6 +72,7 @@ public:
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
 
   HSQOBJECT &getTable() override;
+  HSQOBJECT &getTable() const override;
   float getScale() const;
 
 private:
