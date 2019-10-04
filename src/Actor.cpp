@@ -55,6 +55,7 @@ struct Actor::Impl
         }
         void setTalkColor(sf::Color color) { _talkColor = color; }
         sf::Color getTalkColor() const { return _talkColor; }
+        int onTalkieID(int id);
 
       private:
         void load(int id);
@@ -328,6 +329,34 @@ void Actor::Impl::TalkingState::stop()
     _isTalking = false;
 }
 
+int Actor::Impl::TalkingState::onTalkieID(int id)
+{
+    auto v = _pActor->pImpl->_engine.getVm();
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC("onTalkieID"), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        error("failed to get onTalkieID function");
+        sq_pop(v, 1);
+        return id;
+    }
+    
+    SQInteger talkieID = id;
+    sq_pushroottable(v);
+    sq_pushobject(v, _pActor->pImpl->_table);
+    sq_pushinteger(v, talkieID);
+    if (SQ_FAILED(sq_call(v, 3, SQTrue, SQTrue)))
+    {
+        error("failed to call onTalkieID function");
+        sq_pop(v, 1);
+        return id;
+    }
+    
+    sq_getinteger(v, -1, &talkieID);
+    sq_pop(v, 1);
+    return talkieID;
+}
+
 void Actor::Impl::TalkingState::load(int id)
 {
     _id = id;
@@ -344,6 +373,8 @@ void Actor::Impl::TalkingState::load(int id)
     const SQChar *key;
     sq_getstring(v, -1, &key);
     sq_pop(v, 2);
+
+    id = onTalkieID(id);
 
     std::string name = str_toupper(key).append("_").append(std::to_string(id));
     auto soundDefinition = _pActor->pImpl->_engine.getSoundManager().defineSound(name + ".ogg");
