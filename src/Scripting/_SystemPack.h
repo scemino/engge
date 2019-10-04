@@ -669,7 +669,19 @@ private:
 
     static SQInteger logEvent(HSQUIRRELVM v)
     {
-        error("TODO: logEvent: not implemented");
+        auto numArgs = sq_gettop(v);
+        const SQChar* event = nullptr;
+        if (SQ_FAILED(sq_getstring(v, 2, &event)))
+        {
+            info(event);
+        }
+        if(numArgs == 3)
+        {
+            if (SQ_FAILED(sq_getstring(v, 3, &event)))
+            {
+                info(event);
+            }
+        }
         return 0;
     }
 
