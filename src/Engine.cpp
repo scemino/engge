@@ -1050,6 +1050,15 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(mousePosInRoom);
     _pImpl->updateHoveredEntity(isRightClick);
 
+    if(_pImpl->_pCurrentActor)
+    {
+        auto &objects = _pImpl->_pCurrentActor->getObjects();
+        for (auto &object : objects)
+        {
+            object->update(elapsed);
+        }
+    }
+
     if (!_pImpl->_inputActive)
         return;
 

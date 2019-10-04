@@ -28,8 +28,11 @@ struct Object::Impl
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};
     int dependentState{0};
-    std::string _icon;
     Actor* _owner{nullptr};
+    int _fps{0};
+    std::vector<std::string> _icons;
+    sf::Time _elapsed;
+    int _index{0};
 };
 
 Object::Object()
@@ -73,8 +76,25 @@ const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
 void Object::setId(const std::wstring &id) { pImpl->_id = id; }
 const std::wstring &Object::getId() const { return pImpl->_id; }
 
-void Object::setIcon(const std::string &icon) { pImpl->_icon = icon; }
-std::string Object::getIcon() const { return pImpl->_icon; }
+void Object::setIcon(const std::string &icon)
+{ 
+    pImpl->_icons.clear();
+    pImpl->_fps = 0;
+    pImpl->_index = 0;
+    pImpl->_elapsed = sf::seconds(0);
+    pImpl->_icons.push_back(icon);
+}
+
+std::string Object::getIcon() const { return pImpl->_icons[pImpl->_index]; }
+
+void Object::setIcon(int fps, const std::vector<std::string> &icons)
+{
+    pImpl->_icons.clear();
+    pImpl->_fps = fps;
+    pImpl->_index = 0;
+    pImpl->_elapsed = sf::seconds(0);
+    std::copy(icons.begin(), icons.end(), std::back_inserter(pImpl->_icons));
+}
 
 void Object::setOwner(Actor* pActor) { pImpl->_owner = pActor; }
 Actor* Object::getOwner() const { return pImpl->_owner; }
@@ -181,6 +201,19 @@ std::optional<Animation> &Object::getAnimation()
 
 void Object::update(const sf::Time &elapsed)
 {
+    if(isInventoryObject())
+    {
+        if (pImpl->_fps == 0)
+            return;
+        pImpl->_elapsed += elapsed;
+        if (pImpl->_elapsed.asSeconds() > (1.f / pImpl->_fps))
+        {
+            pImpl->_elapsed = sf::seconds(0);
+            pImpl->_index = (pImpl->_index + 1) % pImpl->_icons.size();
+        }
+        return;
+    }
+
     Entity::update(elapsed);
     if (pImpl->pParentObject)
     {

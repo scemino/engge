@@ -904,8 +904,7 @@ class _ObjectPack : public Pack
                 sq_pop(v, 2);
             }
             sq_pop(v, 2); // pops the null iterator and object
-            error("TODO: objectIcon with array not implemented");
-            // TODO: obj->setIcon(fps, icons);
+            obj->setIcon(fps, icons);
             return 0;
         }
         error("TODO: objectIcon with type {} not implemented", sq_gettype(v, 3));
