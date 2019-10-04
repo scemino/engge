@@ -234,6 +234,52 @@ bool Engine::getInputActive() const { return _pImpl->_inputActive; }
 
 bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
+void Engine::setInputState(int state)
+{
+    if((state & InputStateConstants::UI_INPUT_ON)==InputStateConstants::UI_INPUT_ON)
+    {
+        _pImpl->_inputActive = true;
+    }
+    if((state & InputStateConstants::UI_INPUT_OFF)==InputStateConstants::UI_INPUT_OFF)
+    {
+        _pImpl->_inputActive = false;
+    }
+    if((state & InputStateConstants::UI_VERBS_ON)==InputStateConstants::UI_VERBS_ON)
+    {
+        _pImpl->_inputVerbsActive = true;
+    }
+    if((state & InputStateConstants::UI_VERBS_OFF)==InputStateConstants::UI_VERBS_OFF)
+    {
+        _pImpl->_inputVerbsActive = false;
+    }
+    if((state & InputStateConstants::UI_CURSOR_ON)==InputStateConstants::UI_CURSOR_ON)
+    {
+        _pImpl->_showCursor = true;
+    }
+    if((state & InputStateConstants::UI_CURSOR_OFF)==InputStateConstants::UI_CURSOR_OFF)
+    {
+        _pImpl->_showCursor = false;
+    }
+    if((state & InputStateConstants::UI_HUDOBJECTS_ON)==InputStateConstants::UI_HUDOBJECTS_ON)
+    {
+        _pImpl->_inputHUD = true;
+    }
+    if((state & InputStateConstants::UI_HUDOBJECTS_OFF)==InputStateConstants::UI_HUDOBJECTS_OFF)
+    {
+        _pImpl->_inputHUD = false;
+    }
+}
+
+int Engine::getInputState() const
+{
+    int inputState = 0;
+    inputState |= (_pImpl->_inputActive ? InputStateConstants::UI_INPUT_ON: InputStateConstants::UI_INPUT_OFF);
+    inputState |= (_pImpl->_inputVerbsActive ? InputStateConstants::UI_VERBS_ON: InputStateConstants::UI_VERBS_OFF);
+    inputState |= (_pImpl->_showCursor ? InputStateConstants::UI_CURSOR_ON: InputStateConstants::UI_CURSOR_OFF);
+    inputState |= (_pImpl->_inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON: InputStateConstants::UI_HUDOBJECTS_OFF);
+    return inputState;
+}
+
 void Engine::follow(Actor *pActor)
 {
     auto panCamera =
@@ -1123,11 +1169,17 @@ void Engine::draw(sf::RenderWindow &window) const
 
     window.draw(_pImpl->_dialogManager);
 
-    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive && _pImpl->_inputHUD)
+    if (!_pImpl->_dialogManager.isActive())
     {
         _pImpl->drawVerbs(window);
-        window.draw(_pImpl->_inventory);
-        window.draw(_pImpl->_actorIcons);
+        if(_pImpl->_inputHUD)
+        {
+            window.draw(_pImpl->_inventory);
+        }
+        if(_pImpl->_inputActive)
+        {
+            window.draw(_pImpl->_actorIcons);
+        }
     }
 
     _pImpl->drawFade(window);
@@ -1147,7 +1199,7 @@ void Engine::Impl::drawFade(sf::RenderWindow &window) const
 
 void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 {
-    if (!_inputActive)
+    if (!_showCursor)
         return;
 
     auto screen = _pWindow->getView().getSize();
@@ -1164,6 +1216,9 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 
 sf::IntRect Engine::Impl::getCursorRect() const
 {
+    if (_dialogManager.isActive())
+        return _gameSheet.getRect("cursor");
+
     if (_cursorDirection & CursorDirection::Left)
     {
         return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
@@ -1190,7 +1245,10 @@ sf::IntRect Engine::Impl::getCursorRect() const
 
 void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
 {
-    if (!_inputActive)
+    if (!_showCursor)
+        return;
+
+    if (_dialogManager.isActive())
         return;
 
     auto pVerb = _pVerbOverride;
@@ -1277,7 +1335,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         return;
 
     int currentActorIndex = getCurrentActorIndex();
-    if (!_inputActive || currentActorIndex == -1 || _verbSlots.at(currentActorIndex).getVerb(0).id == 0)
+    if (currentActorIndex == -1 || _verbSlots.at(currentActorIndex).getVerb(0).id == 0)
         return;
 
     auto pVerb = _pVerbOverride;

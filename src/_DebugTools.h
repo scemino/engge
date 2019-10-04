@@ -44,21 +44,27 @@ class _DebugTools
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
         ImGui::Separator();
-        ImGui::Text("Cursor visible: %s", _engine.isCursorVisible() ? "yes" : "no");
-        auto inputActive = _engine.getInputActive();
+        auto inputState = _engine.getInputState();
+        auto inputActive = (inputState & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON;
         if (ImGui::Checkbox("Input active", &inputActive))
         {
-            _engine.setInputActive(inputActive);
+            _engine.setInputState(inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
         }
-        auto inputVerbs = _engine.getInputVerbs();
+        auto cursorVisible = (inputState & InputStateConstants::UI_CURSOR_ON) == InputStateConstants::UI_CURSOR_ON;
+        if (ImGui::Checkbox("Cusrsor visible", &cursorVisible))
+        {
+            _engine.setInputState(cursorVisible ? InputStateConstants::UI_CURSOR_ON : InputStateConstants::UI_CURSOR_OFF);
+        }
+        
+        auto inputVerbs = (inputState & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON;;
         if (ImGui::Checkbox("Input verbs", &inputVerbs))
         {
-            _engine.setInputVerbs(inputVerbs);
+            _engine.setInputState(inputVerbs ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
         }
-        auto inputHUD = _engine.getInputHUD();
+        auto inputHUD = (inputState & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON;;
         if (ImGui::Checkbox("Input HUD", &inputHUD))
         {
-            _engine.setInputHUD(inputHUD);
+            _engine.setInputState(inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
         }
         ImGui::Separator();
         ImGui::Checkbox("Actors", &_showActors);

@@ -991,12 +991,24 @@ private:
 
     static SQInteger inputState(HSQUIRRELVM v)
     {
-        error("TODO: inputState: not implemented");
-        if (sq_gettop(v) >= 2)
+        auto numArgs = sq_gettop(v);
+        if(numArgs == 1)
         {
-            sq_pushnull(v);
+            auto state = g_pEngine->getInputState();
+            sq_pushinteger(v, state);
             return 1;
         }
+        else if(numArgs == 2)
+        {
+             SQInteger state;
+            if (SQ_FAILED(sq_getinteger(v, 2, &state)))
+            {
+                return sq_throwerror(v, _SC("failed to get state"));
+            }
+            g_pEngine->setInputState(state);
+            return 0;
+        }
+        error("TODO: inputState: not implemented");
         return 0;
     }
 

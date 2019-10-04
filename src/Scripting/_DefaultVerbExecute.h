@@ -162,7 +162,7 @@ class _VerbExecute : public Function
         sq_pushobject(_vm, _object.getTable());
         sq_pushstring(_vm, _verb.data(), -1);
 
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
         {
             sq_remove(_vm, -2);
             sq_pushobject(_vm, _object.getTable());
@@ -223,7 +223,7 @@ class _VerbExecute : public Function
         sq_pushobject(_vm, obj);
         sq_pushstring(_vm, _SC("verbDefault"), -1);
 
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
         {
             sq_remove(_vm, -2);
             sq_pushobject(_vm, obj);

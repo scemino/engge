@@ -7,6 +7,18 @@
 
 namespace ng
 {
+namespace InputStateConstants
+{
+static const int UI_INPUT_ON = 1;
+static const int UI_INPUT_OFF = 2;
+static const int UI_VERBS_ON = 4;
+static const int UI_VERBS_OFF = 8;
+static const int UI_CURSOR_ON = 0x40;
+static const int UI_CURSOR_OFF = 0x80;
+static const int UI_HUDOBJECTS_ON = 0x10;
+static const int UI_HUDOBJECTS_OFF = 0x20;
+}
+
 class Actor;
 class Camera;
 class Cutscene;
@@ -100,6 +112,9 @@ class Engine : public NonCopyable
     
     void setInputVerbs(bool on);
     bool getInputVerbs() const;
+    
+    void setInputState(int state);
+    int getInputState() const;
 
     void follow(Actor *pActor);
     void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);

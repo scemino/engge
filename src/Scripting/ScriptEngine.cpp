@@ -322,6 +322,14 @@ ScriptEngine::ScriptEngine()
         {"KEY_PAD7", 0x4000005F},
         {"KEY_PAD8", 0x40000056},
         {"KEY_PAD9", 0x40000061},
+        {"UI_INPUT_ON", InputStateConstants::UI_INPUT_ON},
+        {"UI_INPUT_OFF", InputStateConstants::UI_INPUT_OFF},
+        {"UI_VERBS_ON", InputStateConstants::UI_VERBS_ON},
+        {"UI_VERBS_OFF", InputStateConstants::UI_VERBS_OFF},
+        {"UI_CURSOR_ON", InputStateConstants::UI_CURSOR_ON},
+        {"UI_CURSOR_OFF", InputStateConstants::UI_CURSOR_OFF},
+        {"UI_HUDOBJECTS_ON", InputStateConstants::UI_HUDOBJECTS_ON},
+        {"UI_HUDOBJECTS_OFF", InputStateConstants::UI_HUDOBJECTS_OFF},
     });
 }
 
