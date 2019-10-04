@@ -185,6 +185,13 @@ void Actor::pickupObject(std::unique_ptr<Object> pObject)
     pImpl->_objects.push_back(std::move(pObject));
 }
 
+void Actor::removeInventory(Object* pObject)
+{ 
+    if(!pObject) return;
+    pObject->setOwner(nullptr);
+    pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](std::unique_ptr<Object> &pObj){return pObj.get() == pObject;}), pImpl->_objects.end());
+}
+
 const std::vector<std::unique_ptr<Object>> &Actor::getObjects() const { return pImpl->_objects; }
 
 void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }

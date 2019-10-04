@@ -54,6 +54,7 @@ public:
   void update(const sf::Time &time) override;
 
   void pickupObject(std::unique_ptr<Object> pObject);
+  void removeInventory(Object* pObject);
   const std::vector<std::unique_ptr<Object>> &getObjects() const;
 
   void setWalkSpeed(const sf::Vector2i &speed);

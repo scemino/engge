@@ -446,7 +446,6 @@ class _ObjectPack : public Pack
 
     static SQInteger playObjectState(HSQUIRRELVM v)
     {
-        SQInteger index;
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {
@@ -454,6 +453,7 @@ class _ObjectPack : public Pack
         }
         if (sq_gettype(v, 3) == OT_INTEGER)
         {
+            SQInteger index;
             if (SQ_FAILED(sq_getinteger(v, 3, &index)))
             {
                 return sq_throwerror(v, _SC("failed to get state"));
@@ -476,7 +476,16 @@ class _ObjectPack : public Pack
 
     static SQInteger removeInventory(HSQUIRRELVM v)
     {
-        error("TODO: removeInventory: not implemented");
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        auto owner = obj->getOwner();
+        if(owner)
+        {
+            owner->removeInventory(obj);
+        }
         return 0;
     }
 
