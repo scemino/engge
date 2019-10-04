@@ -148,8 +148,8 @@ class _SetDefaultVerb : public Function
 class _VerbExecute : public Function
 {
   public:
-    _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, const std::string &verb)
-        : _engine(engine), _vm(v), _object(object), _verb(verb)
+    _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, const Verb *pVerb)
+        : _engine(engine), _vm(v), _actor(actor), _object(object), _pVerb(pVerb)
     {
     }
 
@@ -160,7 +160,7 @@ class _VerbExecute : public Function
     {
         _done = true;
         sq_pushobject(_vm, _object.getTable());
-        sq_pushstring(_vm, _verb.data(), -1);
+        sq_pushstring(_vm, _pVerb->func.data(), -1);
 
         if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
         {
@@ -168,11 +168,12 @@ class _VerbExecute : public Function
             sq_pushobject(_vm, _object.getTable());
             if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
             {
-                trace("failed to execute verb {}", _verb.data());
+                trace("failed to execute verb {}", _pVerb->func.data());
                 sqstd_printcallstack(_vm);
                 return;
             }
             sq_pop(_vm, 1);
+            onPickup();
             return;
         }
         sq_pop(_vm, 1);
@@ -184,13 +185,39 @@ class _VerbExecute : public Function
             return;
     }
 
+    void onPickup()
+    {
+        if(_pVerb->id != VerbConstants::VERB_PICKUP) 
+            return;
+
+        sq_pushroottable(_vm);
+        sq_pushstring(_vm, _SC("onPickup"), -1);
+        if (SQ_FAILED(sq_rawget(_vm, -2)))
+        {
+            error("failed to get onPickup function");
+            sq_pop(_vm, 1);
+            return;
+        }
+        
+        sq_pushroottable(_vm);
+        sq_pushobject(_vm, _actor.getTable());
+        sq_pushobject(_vm, _object.getTable());
+        if (SQ_FAILED(sq_call(_vm, 3, SQFalse, SQTrue)))
+        {
+            error("failed to call onPickup function");
+            sq_pop(_vm, 1);
+            return;
+        }
+        sq_pop(_vm, 2);
+    }
+
     bool callDefaultObjectVerb()
     {
         auto &obj = _engine.getDefaultObject();
         auto pActor = _engine.getCurrentActor();
 
         sq_pushobject(_vm, obj);
-        sq_pushstring(_vm, _verb.data(), -1);
+        sq_pushstring(_vm, _pVerb->func.data(), -1);
 
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))
         {
@@ -207,7 +234,7 @@ class _VerbExecute : public Function
             sq_pushobject(_vm, _object.getTable());
             if (SQ_FAILED(sq_call(_vm, 3, SQFalse, SQTrue)))
             {
-                trace("failed to execute verb {}", _verb.data());
+                trace("failed to execute verb {}", _pVerb->func.data());
                 sqstd_printcallstack(_vm);
                 return false;
             }
@@ -236,9 +263,10 @@ class _VerbExecute : public Function
 
   private:
     Engine &_engine;
-    HSQUIRRELVM _vm;
+    const Verb *_pVerb{nullptr};
+    HSQUIRRELVM _vm{};
     Entity &_object;
-    const std::string &_verb;
+    Actor& _actor;
     bool _done{false};
 };
 
@@ -276,7 +304,7 @@ class _DefaultVerbExecute : public VerbExecute
             auto walk = std::make_unique<_ActorWalk>(*pActor, pObject1);
             sentence->push_back(std::move(walk));
         }
-        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject1, pVerb->func);
+        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject1, pVerb);
         sentence->push_back(std::move(verb));
         auto postWalk = std::make_unique<_PostWalk>(_vm, pObject1, pObject2, pVerb->id);
         sentence->push_back(std::move(postWalk));
