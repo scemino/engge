@@ -866,12 +866,40 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        const SQChar *icon;
-        if (SQ_FAILED(sq_getstring(v, 3, &icon)))
+        if(sq_gettype(v, 3) == OT_STRING)
         {
-            return sq_throwerror(v, _SC("failed to get icon"));
+            const SQChar *icon;
+            if (SQ_FAILED(sq_getstring(v, 3, &icon)))
+            {
+                return sq_throwerror(v, _SC("failed to get icon"));
+            }
+            obj->setIcon(icon);
+            return 0;
         }
-        error("TODO: objectIcon not implemented ");
+        if(sq_gettype(v, 3) == OT_ARRAY)
+        {
+            SQInteger fps = 0;
+            const SQChar* icon = nullptr;
+            std::vector<std::string> icons;
+            sq_push(v, 3);
+            sq_pushnull(v); // null iterator
+            if(SQ_SUCCEEDED(sq_next(v, -2)))
+            {
+                sq_getinteger(v, -1, &fps);
+                sq_pop(v, 2);
+            }
+            while (SQ_SUCCEEDED(sq_next(v, -2)))
+            {
+                sq_getstring(v, -1, &icon);
+                icons.emplace_back(icon);
+                sq_pop(v, 2);
+            }
+            sq_pop(v, 2); // pops the null iterator and object
+            error("TODO: objectIcon with array not implemented");
+            // TODO: obj->setIcon(fps, icons);
+            return 0;
+        }
+        error("TODO: objectIcon with type {} not implemented", sq_gettype(v, 3));
         return 0;
     }
 
@@ -954,6 +982,11 @@ class _ObjectPack : public Pack
         auto object = std::make_unique<Object>();
         auto& table = object->getTable();
         sq_getstackobj(v, 2, &table);
+
+        sq_pushobject(v, table);
+        sq_pushstring(v, _SC("instance"), -1);
+        sq_pushuserpointer(v, object.get());
+        sq_newslot(v, -3, SQFalse);
 
         sq_pushobject(v, table);
         sq_pushstring(v, _SC("name"), -1);
