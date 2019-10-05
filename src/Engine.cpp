@@ -318,7 +318,11 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
 
 void Engine::setDefaultVerb()
 { 
-    _pImpl->_pVerb = getVerb(VerbConstants::VERB_WALKTO);
+    auto index = _pImpl->getCurrentActorIndex();
+    if(index == -1) return;
+
+    const auto& verbSlot = _pImpl->_verbSlots.at(index);
+    _pImpl->_pVerb = &verbSlot.getVerb(0);
     _pImpl->_useFlag = UseFlag::None;
     _pImpl->_pUseObject = nullptr;
     _pImpl->_pObj1 = nullptr;
@@ -718,11 +722,12 @@ sf::IntRect Engine::Impl::getVerbRect(const Verb& verb) const
 const Verb *Engine::getVerb(int id) const
 {
     auto index = _pImpl->getCurrentActorIndex();
+    const auto& verbSlot = _pImpl->_verbSlots.at(index);
     if (index < 0)
         return nullptr;
     for (auto i = 0; i < 10; i++)
     {
-        const auto &verb = _pImpl->_verbSlots.at(index).getVerb(i);
+        const auto &verb = verbSlot.getVerb(i);
         if (verb.id == id)
         {
             return &verb;
@@ -1473,4 +1478,5 @@ HSQOBJECT &Engine::getDefaultObject() { return _pImpl->_pDefaultObject; }
 
 void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
+const Verb *Engine::getActiveVerb() const { return _pImpl->_pVerb; }
 } // namespace ng

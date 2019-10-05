@@ -101,6 +101,7 @@ class Engine : public NonCopyable
     void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
     const Verb *getVerb(int id) const;
     void setDefaultVerb();
+    const Verb *getActiveVerb() const;
 
     void setInputActive(bool active);
     bool getInputActive() const;

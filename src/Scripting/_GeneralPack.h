@@ -16,6 +16,7 @@ private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
+        engine.registerGlobalFunction(activeVerb, "activeVerb");
         engine.registerGlobalFunction(arrayShuffle, "arrayShuffle");
         engine.registerGlobalFunction(assetExists, "assetExists");
         engine.registerGlobalFunction(cameraAt, "cameraAt");
@@ -49,6 +50,19 @@ private:
         engine.registerGlobalFunction(strreplace, "strreplace");
         engine.registerGlobalFunction(strsplit, "strsplit");
         engine.registerGlobalFunction(translate, "translate");
+    }
+
+    static SQInteger activeVerb(HSQUIRRELVM v)
+    {
+        const auto& pVerb = g_pEngine->getActiveVerb();
+        if(!pVerb)
+        {
+            sq_pushinteger(v, 0);
+            return 1;
+        }
+
+        sq_pushinteger(v, pVerb->id);
+        return 1;
     }
 
     static SQInteger arrayShuffle(HSQUIRRELVM v)
