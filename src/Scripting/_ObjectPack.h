@@ -519,7 +519,8 @@ class _ObjectPack : public Pack
                 return sq_throwerror(v, _SC("failed to get y"));
             }
         }
-        obj->setPosition(sf::Vector2f(x, y));
+        auto size = g_pEngine->getRoom()->getRoomSize();
+        obj->setPosition(sf::Vector2f(x, size.y - y));
         return 0;
     }
 
@@ -546,8 +547,8 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        SQFloat scale;
-        if (SQ_FAILED(sq_getfloat(v, 3, &scale)))
+        SQFloat value;
+        if (SQ_FAILED(sq_getfloat(v, 3, &value)))
         {
             return sq_throwerror(v, _SC("failed to get scale"));
         }
@@ -561,7 +562,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->scaleTo(scale, sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->scaleTo(value, sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
