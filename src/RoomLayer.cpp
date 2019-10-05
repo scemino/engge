@@ -23,7 +23,7 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     // draw layer objects
     for (const Entity &entity : _entities)
     {
-        if (entity.getZOrder() > 0)
+        if (entity.getZOrder() >= 0)
             continue;
 
         target.draw(entity, states);
@@ -38,7 +38,7 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     // draw layer objects
     for (const Entity &entity : _entities)
     {
-        if (entity.getZOrder() <= 0)
+        if (entity.getZOrder() < 0)
             continue;
 
         target.draw(entity, states);
