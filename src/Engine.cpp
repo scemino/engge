@@ -748,9 +748,9 @@ sf::IntRect Engine::Impl::getVerbRect(const Verb& verb) const
 const Verb *Engine::getVerb(int id) const
 {
     auto index = _pImpl->getCurrentActorIndex();
-    const auto& verbSlot = _pImpl->_verbSlots.at(index);
     if (index < 0)
         return nullptr;
+    const auto& verbSlot = _pImpl->_verbSlots.at(index);
     for (auto i = 0; i < 10; i++)
     {
         const auto &verb = verbSlot.getVerb(i);
