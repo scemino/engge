@@ -401,7 +401,7 @@ class _ObjectPack : public Pack
         SQInteger x = 0;
         SQInteger y = 0;
         SQFloat t = 0;
-        Object *obj = ScriptEngine::getObject(v, 2);
+        Entity *obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
