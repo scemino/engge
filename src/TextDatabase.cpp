@@ -14,6 +14,7 @@ void TextDatabase::setSettings(EngineSettings &settings)
 
 void TextDatabase::load(const std::string &path)
 {
+    _texts.clear();
     std::wregex re(L"^(\\d+)\\s+(.*)$");
     std::vector<char> buffer;
     _pSettings->readEntry(path, buffer);

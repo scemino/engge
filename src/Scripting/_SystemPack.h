@@ -867,7 +867,7 @@ private:
             }
         }
 
-        auto value = g_pEngine->getPreferences().getUserPreference(key, defaultValue);
+        auto value = g_pEngine->getPreferences().getUserPreferenceCore(key, defaultValue);
         const auto &valueType = value.type();
         if (valueType == typeid(std::string))
         {

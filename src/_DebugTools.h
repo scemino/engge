@@ -39,52 +39,13 @@ class _DebugTools
         s << "Stack: " << sq_gettop(_engine.getVm());
         std::vector<std::string> stack;
         getStack(stack);
-        ImGui::Combo("", &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
-        ImGui::TextUnformatted(s.str().c_str());
+        ImGui::Combo(s.str().c_str(), &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
+        // ImGui::TextUnformatted(s.str().c_str());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
-        ImGui::Separator();
-        auto inputState = _engine.getInputState();
-        auto inputActive = (inputState & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON;
-        if (ImGui::Checkbox("Input active", &inputActive))
-        {
-            _engine.setInputState(inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
-        }
-        auto cursorVisible = (inputState & InputStateConstants::UI_CURSOR_ON) == InputStateConstants::UI_CURSOR_ON;
-        if (ImGui::Checkbox("Cusrsor visible", &cursorVisible))
-        {
-            _engine.setInputState(cursorVisible ? InputStateConstants::UI_CURSOR_ON : InputStateConstants::UI_CURSOR_OFF);
-        }
-        
-        auto inputVerbs = (inputState & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON;;
-        if (ImGui::Checkbox("Input verbs", &inputVerbs))
-        {
-            _engine.setInputState(inputVerbs ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
-        }
-        auto inputHUD = (inputState & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON;;
-        if (ImGui::Checkbox("Input HUD", &inputHUD))
-        {
-            _engine.setInputState(inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
-        }
-        ImGui::Separator();
-        ImGui::Checkbox("Actors", &_showActors);
-        ImGui::Checkbox("Objects", &_showObjects);
-        ImGui::Checkbox("Rooms", &_showRooms);
-        ImGui::Separator();
-        auto &rooms = _engine.getRooms();
-        int currentRoom = 0;
-        for (int i = 0; i < rooms.size(); i++)
-        {
-            if (rooms[i].get() == _engine.getRoom())
-            {
-                currentRoom = i;
-                break;
-            }
-        }
-        if (ImGui::Combo("Room", &currentRoom, roomGetter, static_cast<void *>(&rooms), rooms.size()))
-        {
-            _engine.setRoom(rooms[currentRoom].get());
-        }
+        showInputState();
+        showDebugWindows();
+        showPrefs();
         ImGui::End();
 
         if (_showActors)
@@ -104,6 +65,81 @@ class _DebugTools
     }
 
   private:
+    void showDebugWindows()
+    {
+        if (!ImGui::CollapsingHeader("Windows"))
+            return;
+
+        ImGui::Checkbox("Actors", &_showActors);
+        ImGui::Checkbox("Objects", &_showObjects);
+        ImGui::Checkbox("Rooms", &_showRooms);
+    }
+
+    void showInputState()
+    {
+        if (!ImGui::CollapsingHeader("Input"))
+            return;
+
+        auto inputState = _engine.getInputState();
+        auto inputActive = (inputState & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON;
+        if (ImGui::Checkbox("Input active", &inputActive))
+        {
+            _engine.setInputState(inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
+        }
+        auto cursorVisible = (inputState & InputStateConstants::UI_CURSOR_ON) == InputStateConstants::UI_CURSOR_ON;
+        if (ImGui::Checkbox("Cusrsor visible", &cursorVisible))
+        {
+            _engine.setInputState(cursorVisible ? InputStateConstants::UI_CURSOR_ON
+                                                : InputStateConstants::UI_CURSOR_OFF);
+        }
+
+        auto inputVerbs = (inputState & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON;
+        if (ImGui::Checkbox("Input verbs", &inputVerbs))
+        {
+            _engine.setInputState(inputVerbs ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
+        }
+        auto inputHUD = (inputState & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON;
+        if (ImGui::Checkbox("Input HUD", &inputHUD))
+        {
+            _engine.setInputState(inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON
+                                           : InputStateConstants::UI_HUDOBJECTS_OFF);
+        }
+    }
+
+    void showPrefs()
+    {
+        if (!ImGui::CollapsingHeader("Preferences"))
+            return;
+
+        auto selectedLang = getSelectedLang();
+        if (ImGui::Combo("Language", &selectedLang, _langs, 5))
+        {
+            setSelectedLang(selectedLang);
+        }
+        auto retroVerbs = _engine.getPreferences().getUserPreference("retroVerbs", false);
+        if (ImGui::Checkbox("Retro Verbs", &retroVerbs))
+        {
+            _engine.getPreferences().setUserPreference("retroVerbs", retroVerbs);
+        }
+    }
+
+    int getSelectedLang()
+    {
+        auto lang = _engine.getPreferences().getUserPreference("language", std::string("en"));
+        auto selectedLang = 0;
+        for (size_t i = 0; i < 5; ++i)
+        {
+            if (!strcmp(lang.c_str(), _langs[i]))
+                return i;
+        }
+        return 0;
+    }
+
+    void setSelectedLang(int lang)
+    {
+        _engine.getPreferences().setUserPreference("language", std::string(_langs[lang]));
+    }
+
     void getStack(std::vector<std::string> &stack)
     {
         HSQOBJECT obj;
@@ -212,9 +248,9 @@ class _DebugTools
         ImGui::Text("Room: %s", pRoom ? pRoom->getId().c_str() : "(none)");
         ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
         ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
-        if(pRoom)
+        if (pRoom)
         {
-            auto scale =  actor->getScale();
+            auto scale = actor->getScale();
             ImGui::Text("Scale: %.3f", scale);
         }
         auto color = actor->getColor();
@@ -352,8 +388,20 @@ class _DebugTools
 
         ImGui::Begin("Rooms", &_showRooms);
         auto &rooms = _engine.getRooms();
-        ImGui::Combo("##rooms", &_selectedRoom, roomGetter, static_cast<void *>(&rooms), rooms.size());
-        auto &room = rooms[_selectedRoom];
+        int currentRoom = 0;
+        for (int i = 0; i < rooms.size(); i++)
+        {
+            if (rooms[i].get() == _engine.getRoom())
+            {
+                currentRoom = i;
+                break;
+            }
+        }
+        if (ImGui::Combo("Room", &currentRoom, roomGetter, static_cast<void *>(&rooms), rooms.size()))
+        {
+            _engine.setRoom(rooms[currentRoom].get());
+        }
+        auto &room = rooms[currentRoom];
         auto showWalkboxes = room->areDrawWalkboxesVisible();
         if (ImGui::Checkbox("Walkboxes", &showWalkboxes))
         {
@@ -469,10 +517,11 @@ class _DebugTools
     bool _showRooms{false};
     int _selectedActor{0};
     int _selectedObject{0};
-    int _selectedRoom{0};
     int _selectedStack{0};
     int _selectedWalkbox{0};
     std::vector<std::string> _walkboxInfos;
     std::vector<std::string> _actorInfos;
+    static const char *_langs[];
 };
+const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng

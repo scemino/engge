@@ -10,84 +10,25 @@ namespace ng
 class Preferences
 {
 public:
-    Preferences()
-    {
-        ng::Json::Parser parser;
-        ng::GGPackValue hash;
-        parser.parse("Prefs.json", hash);
+    Preferences();
 
-        for (auto &&pref : hash.hash_value)
-        {
-            std::any prefValue;
-            if (pref.second.isDouble())
-            {
-                prefValue = pref.second.double_value;
-            }
-            else if (pref.second.isString())
-            {
-                auto value = pref.second.string_value;
-                if (!value.empty() && value[0] == '\"' && value[value.size() - 1] == '\"')
-                {
-                    value = value.substr(1, value.size() - 2);
-                }
-                prefValue = value;
-            }
-            setUserPreference(pref.first, prefValue);
-        }
-    }
+    void save();
 
-    void save()
-    {
-        std::ofstream os;
-        os.open("Prefs.json");
-        for (auto &&pref : _values)
-        {
-            os << pref.first << ": ";
-            if (pref.second.type() == typeid(std::string))
-            {
-                os << "\"" << std::any_cast<std::string>(pref.second) << "\"";
-            }
-            else if (pref.second.type() == typeid(double))
-            {
-                os << std::any_cast<double>(pref.second);
-            }
-            else if (pref.second.type() == typeid(int))
-            {
-                os << std::any_cast<int>(pref.second);
-            }
-            else if (pref.second.type() == typeid(bool))
-            {
-                os << (std::any_cast<bool>(pref.second) ? 1 : 0);
-            }
-            os << std::endl;
-        }
-    }
+    void setUserPreference(const std::string &name, std::any value);
+    std::any getUserPreferenceCore(const std::string &name, std::any value) const;
+    template <typename T>
+    T getUserPreference(const std::string &name, T value) const;
+    void removeUserPreference(const std::string &name);
 
-    void setUserPreference(const std::string &name, std::any value)
-    {
-        _values[name] = value;
-    }
-
-    void removeUserPreference(const std::string &name)
-    {
-        auto it = _values.find(name);
-        if (it != _values.end())
-        {
-            _values.erase(it);
-        }
-    }
-
-    std::any getUserPreference(const std::string &name, std::any value) const
-    {
-        auto it = _values.find(name);
-        if (it == _values.end())
-        {
-            return value;
-        }
-        return it->second;
-    }
+    void subscribe(std::function<void(const std::string&,std::any)> function);
 
 private:
     std::map<std::string, std::any> _values;
+    std::vector<std::function<void(const std::string&,std::any)>> _functions;
 };
+template <typename T>
+T Preferences::getUserPreference(const std::string &name, T value) const
+{
+    return std::any_cast<T>(getUserPreferenceCore(name, value));
+}
 } // namespace ng

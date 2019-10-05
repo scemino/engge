@@ -101,7 +101,7 @@ struct Engine::Impl
 
     explicit Impl(EngineSettings &settings);
 
-    sf::IntRect getVerbRect(int id, std::string lang = "en", bool isRetro = false) const;
+    sf::IntRect getVerbRect(const Verb& verb) const;
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
     void drawCursorText(sf::RenderWindow &window) const;
@@ -172,6 +172,16 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
 
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
+
+    _pImpl->_preferences.subscribe([this](const std::string& name, std::any value)
+    {
+       if(name == "language")
+       {
+           std::stringstream ss;
+           ss << "ThimbleweedText_" << std::any_cast<std::string>(value) << ".tsv";
+           _pImpl->_textDb.load(ss.str());
+       } 
+    });
 }
 
 Engine::~Engine() = default;
@@ -696,45 +706,12 @@ void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
 
 void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
-sf::IntRect Engine::Impl::getVerbRect(int id, std::string lang, bool isRetro) const
+sf::IntRect Engine::Impl::getVerbRect(const Verb& verb) const
 {
-    lang = std::any_cast<std::string>(_preferences.getUserPreference("language", std::string("en")));
+    auto lang = _preferences.getUserPreference("language", std::string("en"));
+    auto isRetro = _preferences.getUserPreference("retroVerbs", false);
     std::string s;
-    std::string name;
-    switch (id)
-    {
-        case 1:
-            name = "walkto";
-            break;
-        case 2:
-            name = "lookat";
-            break;
-        case 3:
-            name = "talkto";
-            break;
-        case 4:
-            name = "pickup";
-            break;
-        case 5:
-            name = "open";
-            break;
-        case 6:
-            name = "close";
-            break;
-        case 7:
-            name = "push";
-            break;
-        case 8:
-            name = "pull";
-            break;
-        case 9:
-            name = "give";
-            break;
-        case 10:
-            name = "use";
-            break;
-    }
-    s.append(name).append(isRetro ? "_retro" : "").append("_").append(lang);
+    s.append(verb.image).append(isRetro ? "_retro" : "").append("_").append(lang);
     return _verbSheet.getRect(s);
 }
 
@@ -1381,7 +1358,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         for (int y = 0; y < 3; y++)
         {
             auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
-            auto rect = getVerbRect(verb.id);
+            auto rect = getVerbRect(verb);
             maxW = fmax(maxW, rect.width * ratio.x);
         }
         auto padding = (size.x - maxW) / 2.f;
@@ -1391,7 +1368,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         {
             auto top = screen.y - size.y * 3 + y * size.y;
             auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
-            auto rect = getVerbRect(verb.id);
+            auto rect = getVerbRect(verb);
             auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
             auto color = verb.id == verbId ? _verbUiColors.at(currentActorIndex).verbHighlight
                                            : _verbUiColors.at(currentActorIndex).verbNormalTint;
