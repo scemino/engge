@@ -128,6 +128,8 @@ struct Engine::Impl
     void onObjectClick(Entity* pObj);
     void actorEnter();
     void actorExit();
+    void onLanguageChange(const std::string& lang);
+    
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -142,6 +144,32 @@ Engine::Impl::Impl(EngineSettings &settings)
     _gameSheet.setSettings(&settings);
     _gameSheet.setTextureManager(&_textureManager);
     sq_resetobject(&_pDefaultObject);
+}
+
+void Engine::Impl::onLanguageChange(const std::string& lang)
+{
+    std::stringstream ss;
+    ss << "ThimbleweedText_" << lang  << ".tsv";
+    _textDb.load(ss.str());
+
+    sq_pushroottable(_vm);
+    sq_pushstring(_vm, _SC("onLanguageChange"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        error("failed to get onLanguageChange function");
+        sq_pop(_vm, 1);
+        return;
+    }
+
+    sq_remove(_vm, -2);
+    sq_pushroottable(_vm);
+    if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
+    {
+        error("failed to call onLanguageChange function");
+        sq_pop(_vm, 1);
+        return;
+    }
+    sq_pop(_vm, 1);
 }
 
 Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(settings))
@@ -177,9 +205,7 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
     {
        if(name == "language")
        {
-           std::stringstream ss;
-           ss << "ThimbleweedText_" << std::any_cast<std::string>(value) << ".tsv";
-           _pImpl->_textDb.load(ss.str());
+           _pImpl->onLanguageChange(std::any_cast<std::string>(value));
        } 
     });
 }
@@ -1110,9 +1136,10 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     auto v = _pImpl->_vm;
     sq_pushroottable(v);
     sq_pushstring(v, _SC("onActorSelected"), -1);
-    if (SQ_FAILED(sq_get(v, -2)))
+    if (SQ_FAILED(sq_rawget(v, -2)))
     {
         error("failed to get onActorSelected function");
+        sq_pop(v, 1);
         return;
     }
 
@@ -1123,6 +1150,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
     {
         error("failed to call onActorSelected function");
+        sq_pop(v, 1);
         return;
     }
     sq_pop(v, 1);
