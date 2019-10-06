@@ -969,7 +969,7 @@ int32_t Engine::Impl::getFlags(HSQOBJECT obj) const
     SQInteger flags = 0;
     sq_pushobject(_vm, obj);
     sq_pushstring(_vm, _SC("flags"), -1);
-    if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+    if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
     {
         sq_getinteger(_vm, -1, &flags);
         sq_pop(_vm, 1);
@@ -1173,6 +1173,7 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
         sq_call(_vm, 3, SQTrue, SQTrue);
         SQInteger handled = 0;
         sq_getinteger(_vm, -1, &handled);
+        sq_pop(_vm, 2);
         return handled == 1;
     }
     sq_pop(_vm, 1);
