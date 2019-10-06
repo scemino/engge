@@ -33,6 +33,7 @@ public:
     void setFillColor(const sf::Color& color);
     void setOutlineColor(const sf::Color& color);
     void setOutlineThickness(float thickness);
+    void setMaxWidth(int maxWidth);
 
     const sf::String& getString() const;
     const FntFont* getFont() const;
@@ -67,6 +68,7 @@ private:
     mutable sf::FloatRect      m_bounds;              ///< Bounding rectangle of the text (in local coordinates)
     mutable bool               m_geometryNeedUpdate;  ///< Does the geometry need to be recomputed?
     mutable const sf::Texture* m_fontTextureId;       ///< The font texture id
+    int                        _maxWidth{0};
 };
 
 } // namespace sf

@@ -31,10 +31,13 @@ void TextObject::setText(const std::string &text)
 
 void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    if(!isVisible())
+        return;
     Text txt;
     txt.setFont(_font);
     txt.setFillColor(getColor());
     txt.setString(_text);
+    txt.setMaxWidth(_maxWidth);
     auto bounds = txt.getGlobalBounds();
     sf::Vector2f offset;
     if (_alignment & TextAlignment::Center)

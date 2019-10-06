@@ -25,6 +25,7 @@ public:
   FntFont &getFont() { return _font; }
   void setText(const std::string &text);
   void setAlignment(TextAlignment alignment) { _alignment = alignment; }
+  void setMaxWidth(int maxWidth) { _maxWidth = maxWidth; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -33,5 +34,6 @@ private:
   FntFont _font;
   std::wstring _text;
   TextAlignment _alignment;
+  int _maxWidth{0};
 };
 } // namespace ng

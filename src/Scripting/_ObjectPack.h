@@ -491,9 +491,9 @@ class _ObjectPack : public Pack
 
     static SQInteger objectAt(HSQUIRRELVM v)
     {
-        SQInteger x, y;
         auto numArgs = sq_gettop(v);
         Object *obj = ScriptEngine::getObject(v, 2);
+        auto size = g_pEngine->getRoom()->getRoomSize();
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -510,6 +510,7 @@ class _ObjectPack : public Pack
         }
         else
         {
+            SQInteger x, y;
             if (SQ_FAILED(sq_getinteger(v, 3, &x)))
             {
                 return sq_throwerror(v, _SC("failed to get x"));
@@ -518,9 +519,9 @@ class _ObjectPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
+            y = size.y - y;
         }
-        auto size = g_pEngine->getRoom()->getRoomSize();
-        obj->setPosition(sf::Vector2f(x, size.y - y));
+        obj->setPosition(sf::Vector2f(x, y));
         return 0;
     }
 
@@ -1102,7 +1103,9 @@ class _ObjectPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get alignment"));
             }
-            obj.setAlignment((TextAlignment)alignment);
+            obj.setAlignment((TextAlignment)(alignment&(int)TextAlignment::All));
+            auto maxWidth = (alignment&~(int)TextAlignment::All);
+            obj.setMaxWidth(maxWidth);
         }
         _createObject(v, obj);
         return 1;

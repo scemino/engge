@@ -445,6 +445,12 @@ void Text::ensureGeometryUpdate() const
             maxX = std::max(maxX, x);
             maxY = std::max(maxY, y);
 
+            if(_maxWidth && x >= _maxWidth)
+            {
+                y += lineSpacing;
+                x = 0;
+            }
+
             // Next glyph, no need to create a quad for whitespace
             continue;
         }
@@ -517,5 +523,7 @@ void Text::ensureGeometryUpdate() const
     m_bounds.width = maxX - minX;
     m_bounds.height = maxY - minY;
 }
+
+void Text::setMaxWidth(int maxWidth) { _maxWidth = maxWidth; }
 
 } // namespace ng
