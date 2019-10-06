@@ -306,7 +306,7 @@ class _DefaultVerbExecute : public VerbExecute
         Entity* pObj = pObject2 ? pObject2 : pObject1;
         auto sentence = std::make_unique<_CompositeFunction>();
         if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) && 
-            (pVerb->id != VerbConstants::VERB_WALKTO || !pObj->isInventoryObject()))
+            !pObj->isInventoryObject())
         {
             auto walk = std::make_unique<_ActorWalk>(*pActor, pObj);
             sentence->push_back(std::move(walk));
