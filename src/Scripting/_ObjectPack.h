@@ -491,6 +491,7 @@ class _ObjectPack : public Pack
 
     static SQInteger objectAt(HSQUIRRELVM v)
     {
+        SQInteger x, y;
         auto numArgs = sq_gettop(v);
         Object *obj = ScriptEngine::getObject(v, 2);
         auto size = g_pEngine->getRoom()->getRoomSize();
@@ -510,7 +511,6 @@ class _ObjectPack : public Pack
         }
         else
         {
-            SQInteger x, y;
             if (SQ_FAILED(sq_getinteger(v, 3, &x)))
             {
                 return sq_throwerror(v, _SC("failed to get x"));
