@@ -17,6 +17,7 @@ class Camera
     bool isMoving() const;
     
     void setBounds(const sf::IntRect &cameraBounds);
+    std::optional<sf::IntRect> getBounds() const;
     void resetBounds();
     
     sf::Vector2f getAt() const;

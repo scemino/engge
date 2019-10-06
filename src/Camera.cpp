@@ -26,18 +26,19 @@ void Camera::Impl::clampCamera(sf::Vector2f &at)
     if (at.y < 0)
         at.y = 0;
 
+    auto pRoom = _pEngine->getRoom();
+    if (!pRoom)
+        return;
+    
+    const auto &size = pRoom->getRoomSize();
     if (_bounds)
     {
         at.x = std::clamp<int>(at.x, _bounds->left, _bounds->left + _bounds->width);
-        at.y = std::clamp<int>(at.y, _bounds->top, _bounds->top + _bounds->height);
+        at.y = std::clamp<int>(at.y, size.y - _bounds->top, size.y - _bounds->top + _bounds->height);
     }
 
-    auto pRoom = _pEngine->getRoom();
     const auto &window = _pEngine->getWindow();
-    if (!pRoom)
-        return;
     auto screen = window.getView().getSize();
-    const auto &size = pRoom->getRoomSize();
     at.x = std::clamp<int>(at.x, 0, size.x - screen.x);
     at.y = std::clamp<int>(at.y, 0, size.y - screen.y);
 }
@@ -72,6 +73,8 @@ void Camera::setBounds(const sf::IntRect &cameraBounds)
     _pImpl->_bounds = cameraBounds;
     _pImpl->clampCamera(_pImpl->_at);
 }
+
+std::optional<sf::IntRect> Camera::getBounds() const { return  _pImpl->_bounds; }
 
 void Camera::resetBounds() { _pImpl->_bounds = std::nullopt; }
 
