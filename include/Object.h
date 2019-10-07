@@ -14,6 +14,12 @@ enum class UseDirection
   Right
 };
 
+enum class ScreenSpace
+{
+  Room,
+  Object
+};
+
 class Actor;
 class Animation;
 class Room;
@@ -122,8 +128,11 @@ public:
   Actor* getOwner() const;
   void setOwner(Actor* pActor);
 
+  void setScreenSpace(ScreenSpace screenSpace);
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   struct Impl;

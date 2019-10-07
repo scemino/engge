@@ -2,6 +2,7 @@
 #include "Animation.h"
 #include "Function.h"
 #include "Object.h"
+#include "Room.h"
 #include "ScriptEngine.h"
 #include "Trigger.h"
 
@@ -33,6 +34,7 @@ struct Object::Impl
     std::vector<std::string> _icons;
     sf::Time _elapsed;
     int _index{0};
+    ScreenSpace _screenSpace{ScreenSpace::Room};
 };
 
 Object::Object()
@@ -236,6 +238,8 @@ void Object::showHotspot(bool show) { pImpl->_hotspotVisible = show; }
 
 bool Object::isHotspotVisible() const { return pImpl->_hotspotVisible; }
 
+void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->_screenSpace = screenSpace; }
+
 void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!pImpl->_hotspotVisible)
@@ -261,11 +265,40 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
     target.draw(hl, states);
 }
 
+void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
+{
+    if(pImpl->_screenSpace != ScreenSpace::Object) return;
+
+    const auto view = target.getView();
+    target.setView(sf::View(sf::FloatRect(0, 0, 1280, 720)));
+
+    auto size = getRoom()->getRoomSize();
+
+    sf::RenderStates s;
+    auto transform = _transform;
+    transform.move(getOffset());
+    transform.move(0, 720 - size.y);
+    s.transform = transform.getTransform();
+
+    if (pImpl->_pAnim)
+    {
+        pImpl->_pAnim->getSprite().setColor(getColor());
+        target.draw(*pImpl->_pAnim, s);
+    }
+
+    drawHotspot(target, s);
+    target.setView(view);
+}
+
 void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    auto transform = getTransform();
     if (!isVisible())
         return;
+    
+    if(pImpl->_screenSpace == ScreenSpace::Object)
+        return;
+
+    auto transform = getTransform();
     states.transform *= transform;
 
     if (pImpl->_pAnim)

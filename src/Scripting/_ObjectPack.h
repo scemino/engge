@@ -337,7 +337,12 @@ class _ObjectPack : public Pack
 
     static SQInteger objectScreenSpace(HSQUIRRELVM v)
     {
-        error("TODO: objectScreenSpace: not implemented");
+        auto obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        obj->setScreenSpace(ScreenSpace::Object);
         return 0;
     }
 
@@ -494,7 +499,6 @@ class _ObjectPack : public Pack
         SQInteger x, y;
         auto numArgs = sq_gettop(v);
         Object *obj = ScriptEngine::getObject(v, 2);
-        auto size = g_pEngine->getRoom()->getRoomSize();
         if (!obj)
         {
             return sq_throwerror(v, _SC("failed to get object"));
@@ -519,6 +523,7 @@ class _ObjectPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
+            auto size = g_pEngine->getRoom()->getRoomSize();
             y = size.y - y;
         }
         obj->setPosition(sf::Vector2f(x, y));
