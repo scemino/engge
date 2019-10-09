@@ -6,7 +6,6 @@
 #include "Dialog/DialogManager.h"
 #include "Font.h"
 #include "Inventory.h"
-#include "Logger.h"
 #include "Preferences.h"
 #include "Room.h"
 #include "RoomScaling.h"
@@ -23,6 +22,7 @@
 #include "VerbExecute.h"
 #include "_DebugTools.h"
 #include "_Util.h"
+#include "Logger.h"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
