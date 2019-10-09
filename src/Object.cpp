@@ -3,6 +3,7 @@
 #include "Function.h"
 #include "Object.h"
 #include "Room.h"
+#include "Screen.h"
 #include "ScriptEngine.h"
 #include "Trigger.h"
 
@@ -270,7 +271,7 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) c
     if(pImpl->_screenSpace != ScreenSpace::Object) return;
 
     const auto view = target.getView();
-    target.setView(sf::View(sf::FloatRect(0, 0, 1280, 720)));
+    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
     auto size = getRoom()->getRoomSize();
 

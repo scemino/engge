@@ -7,6 +7,24 @@
 
 namespace ng
 {
+namespace PreferenceNames
+{
+    static const std::string HudSentence = "hudSentence";
+    static const std::string UiBackingAlpha = "uiBackingAlpha";
+    static const std::string InvertVerbHighlight = "invertVerbHighlight";
+    static const std::string RetroVerbs = "retroVerbs";
+    static const std::string RetroFonts = "retroFonts";
+    static const std::string Language = "language";
+}
+namespace PreferenceDefaultValues
+{
+    static const bool HudSentence = false;
+    static const float UiBackingAlpha = 0.33f;
+    static const bool InvertVerbHighlight = true;
+    static const bool RetroVerbs = false;
+    static const bool RetroFonts = false;
+    static const std::string Language = "en";
+}
 class Preferences
 {
 public:

@@ -10,6 +10,7 @@
 #include "Preferences.h"
 #include "Room.h"
 #include "RoomScaling.h"
+#include "Screen.h"
 #include "ScriptExecute.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
@@ -74,9 +75,9 @@ struct Engine::Impl
     Actor *_pFollowActor;
     std::array<sf::IntRect, 9> _verbRects;
     Entity *_pUseObject{nullptr};
-    Entity* _pObj1{nullptr};
-    Entity* _pObj2{nullptr};
-    Entity* _pHoveredEntity{nullptr};
+    Entity *_pObj1{nullptr};
+    Entity *_pObj2{nullptr};
+    Entity *_pHoveredEntity{nullptr};
     sf::Vector2f _mousePos;
     std::unique_ptr<VerbExecute> _pVerbExecute;
     std::unique_ptr<ScriptExecute> _pScriptExecute;
@@ -101,7 +102,7 @@ struct Engine::Impl
 
     explicit Impl(EngineSettings &settings);
 
-    sf::IntRect getVerbRect(const Verb& verb) const;
+    sf::IntRect getVerbRect(const Verb &verb) const;
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
     void drawCursorText(sf::RenderWindow &window) const;
@@ -122,21 +123,20 @@ struct Engine::Impl
     void updateRoomScalings();
     void setCurrentRoom(Room *pRoom);
     int32_t getFlags(HSQOBJECT obj) const;
-    int getDefaultVerb(HSQUIRRELVM vm, const Entity* pEntity) const;
-    Entity* getHoveredEntity(const sf::Vector2f &mousPos);
+    int getDefaultVerb(HSQUIRRELVM vm, const Entity *pEntity) const;
+    Entity *getHoveredEntity(const sf::Vector2f &mousPos);
     void onVerbClick();
-    void onObjectClick(Entity* pObj);
+    void onObjectClick(Entity *pObj);
     void actorEnter();
     void actorExit();
-    void onLanguageChange(const std::string& lang);
-    
+    void onLanguageChange(const std::string &lang);
+    std::string getVerbName(const Verb &verb) const;
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
     : _pEngine(nullptr), _settings(settings), _textureManager(settings), _pRoom(nullptr), _inputActive(false),
-      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
-      _soundManager(settings), _cursorDirection(CursorDirection::None),
-      _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
+      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr), _soundManager(settings),
+      _cursorDirection(CursorDirection::None), _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
       _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
     _verbSheet.setSettings(&settings);
@@ -146,10 +146,10 @@ Engine::Impl::Impl(EngineSettings &settings)
     sq_resetobject(&_pDefaultObject);
 }
 
-void Engine::Impl::onLanguageChange(const std::string& lang)
+void Engine::Impl::onLanguageChange(const std::string &lang)
 {
     std::stringstream ss;
-    ss << "ThimbleweedText_" << lang  << ".tsv";
+    ss << "ThimbleweedText_" << lang << ".tsv";
     _textDb.load(ss.str());
 
     sq_pushroottable(_vm);
@@ -188,25 +188,30 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
     _pImpl->_camera.setEngine(this);
     _pImpl->_fntFont.setTextureManager(&_pImpl->_textureManager);
     _pImpl->_fntFont.setSettings(&settings);
-    _pImpl->_fntFont.load("FontModernSheet");
+
+    auto retroFonts = _pImpl->_preferences.getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+    _pImpl->_fntFont.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
     // load all messages
     _pImpl->_textDb.setSettings(settings);
 
     std::stringstream s;
-    auto lang = std::any_cast<std::string>(_pImpl->_preferences.getUserPreference("language", std::string("en")));
+    auto lang = std::any_cast<std::string>(_pImpl->_preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language));
     s << "ThimbleweedText_" << lang << ".tsv";
     _pImpl->_textDb.load(s.str());
 
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
 
-    _pImpl->_preferences.subscribe([this](const std::string& name, std::any value)
-    {
-       if(name == "language")
-       {
-           _pImpl->onLanguageChange(std::any_cast<std::string>(value));
-       } 
+    _pImpl->_preferences.subscribe([this](const std::string &name, std::any value) {
+        if (name == PreferenceNames::Language)
+        {
+            _pImpl->onLanguageChange(std::any_cast<std::string>(value));
+        }
+        else if (name == PreferenceNames::RetroFonts)
+        {
+            _pImpl->_fntFont.load(std::any_cast<bool>(value) ? "FontRetroSheet": "FontModernSheet");
+        }
     });
 }
 
@@ -272,35 +277,35 @@ bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
 void Engine::setInputState(int state)
 {
-    if((state & InputStateConstants::UI_INPUT_ON)==InputStateConstants::UI_INPUT_ON)
+    if ((state & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON)
     {
         _pImpl->_inputActive = true;
     }
-    if((state & InputStateConstants::UI_INPUT_OFF)==InputStateConstants::UI_INPUT_OFF)
+    if ((state & InputStateConstants::UI_INPUT_OFF) == InputStateConstants::UI_INPUT_OFF)
     {
         _pImpl->_inputActive = false;
     }
-    if((state & InputStateConstants::UI_VERBS_ON)==InputStateConstants::UI_VERBS_ON)
+    if ((state & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON)
     {
         _pImpl->_inputVerbsActive = true;
     }
-    if((state & InputStateConstants::UI_VERBS_OFF)==InputStateConstants::UI_VERBS_OFF)
+    if ((state & InputStateConstants::UI_VERBS_OFF) == InputStateConstants::UI_VERBS_OFF)
     {
         _pImpl->_inputVerbsActive = false;
     }
-    if((state & InputStateConstants::UI_CURSOR_ON)==InputStateConstants::UI_CURSOR_ON)
+    if ((state & InputStateConstants::UI_CURSOR_ON) == InputStateConstants::UI_CURSOR_ON)
     {
         _pImpl->_showCursor = true;
     }
-    if((state & InputStateConstants::UI_CURSOR_OFF)==InputStateConstants::UI_CURSOR_OFF)
+    if ((state & InputStateConstants::UI_CURSOR_OFF) == InputStateConstants::UI_CURSOR_OFF)
     {
         _pImpl->_showCursor = false;
     }
-    if((state & InputStateConstants::UI_HUDOBJECTS_ON)==InputStateConstants::UI_HUDOBJECTS_ON)
+    if ((state & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON)
     {
         _pImpl->_inputHUD = true;
     }
-    if((state & InputStateConstants::UI_HUDOBJECTS_OFF)==InputStateConstants::UI_HUDOBJECTS_OFF)
+    if ((state & InputStateConstants::UI_HUDOBJECTS_OFF) == InputStateConstants::UI_HUDOBJECTS_OFF)
     {
         _pImpl->_inputHUD = false;
     }
@@ -309,10 +314,10 @@ void Engine::setInputState(int state)
 int Engine::getInputState() const
 {
     int inputState = 0;
-    inputState |= (_pImpl->_inputActive ? InputStateConstants::UI_INPUT_ON: InputStateConstants::UI_INPUT_OFF);
-    inputState |= (_pImpl->_inputVerbsActive ? InputStateConstants::UI_VERBS_ON: InputStateConstants::UI_VERBS_OFF);
-    inputState |= (_pImpl->_showCursor ? InputStateConstants::UI_CURSOR_ON: InputStateConstants::UI_CURSOR_OFF);
-    inputState |= (_pImpl->_inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON: InputStateConstants::UI_HUDOBJECTS_OFF);
+    inputState |= (_pImpl->_inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
+    inputState |= (_pImpl->_inputVerbsActive ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
+    inputState |= (_pImpl->_showCursor ? InputStateConstants::UI_CURSOR_ON : InputStateConstants::UI_CURSOR_OFF);
+    inputState |= (_pImpl->_inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
     return inputState;
 }
 
@@ -343,11 +348,12 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
 }
 
 void Engine::setDefaultVerb()
-{ 
+{
     auto index = _pImpl->getCurrentActorIndex();
-    if(index == -1) return;
+    if (index == -1)
+        return;
 
-    const auto& verbSlot = _pImpl->_verbSlots.at(index);
+    const auto &verbSlot = _pImpl->_verbSlots.at(index);
     _pImpl->_pVerb = &verbSlot.getVerb(0);
     _pImpl->_useFlag = UseFlag::None;
     _pImpl->_pUseObject = nullptr;
@@ -424,7 +430,7 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     return 0;
 }
 
-int Engine::Impl::getDefaultVerb(HSQUIRRELVM v, const Entity* pEntity) const
+int Engine::Impl::getDefaultVerb(HSQUIRRELVM v, const Entity *pEntity) const
 {
     sq_pushobject(v, pEntity->getTable());
     sq_pushstring(v, _SC("defaultVerb"), -1);
@@ -496,7 +502,8 @@ void Engine::Impl::updateScreenSize()
 
 void Engine::Impl::actorEnter()
 {
-    if(!_pCurrentActor) return;
+    if (!_pCurrentActor)
+        return;
 
     sq_pushroottable(_vm);
     sq_pushstring(_vm, _SC("actorEnter"), -1);
@@ -517,7 +524,8 @@ void Engine::Impl::actorEnter()
     }
     sq_pop(_vm, 1);
 
-    if(!_pRoom) return;
+    if (!_pRoom)
+        return;
 
     sq_pushobject(_vm, _pRoom->getTable());
     sq_pushstring(_vm, _SC("actorEnter"), -1);
@@ -541,7 +549,8 @@ void Engine::Impl::actorEnter()
 
 void Engine::Impl::actorExit()
 {
-    if(!_pCurrentActor || !_pRoom) return;
+    if (!_pCurrentActor || !_pRoom)
+        return;
 
     sq_pushobject(_vm, _pRoom->getTable());
     sq_pushstring(_vm, _SC("actorExit"), -1);
@@ -736,12 +745,18 @@ void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
 
 void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
-sf::IntRect Engine::Impl::getVerbRect(const Verb& verb) const
+std::string Engine::Impl::getVerbName(const Verb &verb) const
 {
-    auto lang = _preferences.getUserPreference("language", std::string("en"));
-    auto isRetro = _preferences.getUserPreference("retroVerbs", false);
+    auto lang = _preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
+    auto isRetro = _preferences.getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
     std::string s;
     s.append(verb.image).append(isRetro ? "_retro" : "").append("_").append(lang);
+    return s;
+}
+
+sf::IntRect Engine::Impl::getVerbRect(const Verb &verb) const
+{
+    auto s = getVerbName(verb);
     return _verbSheet.getRect(s);
 }
 
@@ -750,7 +765,7 @@ const Verb *Engine::getVerb(int id) const
     auto index = _pImpl->getCurrentActorIndex();
     if (index < 0)
         return nullptr;
-    const auto& verbSlot = _pImpl->_verbSlots.at(index);
+    const auto &verbSlot = _pImpl->_verbSlots.at(index);
     for (auto i = 0; i < 10; i++)
     {
         const auto &verb = verbSlot.getVerb(i);
@@ -807,7 +822,8 @@ void Engine::Impl::updateMouseCursor()
     _cursorDirection = CursorDirection::None;
     if ((_mousePos.x < 20) || (flags & ObjectFlagConstants::DOOR_LEFT) == ObjectFlagConstants::DOOR_LEFT)
         _cursorDirection |= CursorDirection::Left;
-    else if ((_mousePos.x > screen.x - 20) || (flags & ObjectFlagConstants::DOOR_RIGHT) == ObjectFlagConstants::DOOR_RIGHT)
+    else if ((_mousePos.x > screen.x - 20) ||
+             (flags & ObjectFlagConstants::DOOR_RIGHT) == ObjectFlagConstants::DOOR_RIGHT)
         _cursorDirection |= CursorDirection::Right;
     if ((flags & ObjectFlagConstants::DOOR_FRONT) == ObjectFlagConstants::DOOR_FRONT)
         _cursorDirection |= CursorDirection::Down;
@@ -837,7 +853,7 @@ void Engine::Impl::onVerbClick()
     sq_pop(_vm, 1);
 }
 
-void Engine::Impl::onObjectClick(Entity* pObj)
+void Engine::Impl::onObjectClick(Entity *pObj)
 {
     sq_pushroottable(_vm);
     sq_pushstring(_vm, _SC("onObjectClick"), -1);
@@ -858,9 +874,9 @@ void Engine::Impl::onObjectClick(Entity* pObj)
     sq_pop(_vm, 1);
 }
 
-Entity* Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
+Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
 {
-    Entity* pCurrentObject = nullptr;
+    Entity *pCurrentObject = nullptr;
 
     // mouse on actor ?
     for (auto &&actor : _actors)
@@ -878,20 +894,20 @@ Entity* Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
             }
         }
     }
-    
+
     // mouse on object ?
     const auto &objects = _pRoom->getObjects();
-    std::for_each(objects.cbegin(), objects.cend(), [mousPos,&pCurrentObject](const auto &pObj) {
+    std::for_each(objects.cbegin(), objects.cend(), [mousPos, &pCurrentObject](const auto &pObj) {
         if (!pObj->isTouchable())
             return;
         auto rect = pObj->getRealHotspot();
-        if(!rect.contains((sf::Vector2i)mousPos))
+        if (!rect.contains((sf::Vector2i)mousPos))
             return;
-        if(!pCurrentObject || pObj->getZOrder() < pCurrentObject->getZOrder())
+        if (!pCurrentObject || pObj->getZOrder() < pCurrentObject->getZOrder())
             pCurrentObject = pObj.get();
     });
 
-    if(!pCurrentObject)
+    if (!pCurrentObject)
     {
         // mouse on inventory object ?
         pCurrentObject = _inventory.getCurrentInventoryObject();
@@ -903,12 +919,12 @@ Entity* Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
 void Engine::Impl::updateHoveredEntity(bool isRightClick)
 {
     _pVerbOverride = nullptr;
-    if(!_pVerb)
+    if (!_pVerb)
     {
         _pVerb = _pEngine->getVerb(VerbConstants::VERB_WALKTO);
     }
 
-    if(_pUseObject)
+    if (_pUseObject)
     {
         _pObj1 = _pUseObject;
         _pObj2 = _pHoveredEntity;
@@ -920,42 +936,42 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick)
     }
 
     // abort some invalid actions
-    if(!_pObj1 || !_pVerb)
+    if (!_pObj1 || !_pVerb)
     {
         return;
     }
-    
-    if(_pObj2 == _pObj1)
+
+    if (_pObj2 == _pObj1)
     {
         _pObj2 = nullptr;
     }
 
-    if(_pObj1 && isRightClick)
+    if (_pObj1 && isRightClick)
     {
         _pVerbOverride = _pEngine->getVerb(getDefaultVerb(_vm, _pObj1));
     }
 
-    if(_pVerb->id == VerbConstants::VERB_WALKTO)
+    if (_pVerb->id == VerbConstants::VERB_WALKTO)
     {
-        if(_pObj1 && _pObj1->isInventoryObject())
+        if (_pObj1 && _pObj1->isInventoryObject())
         {
             _pVerbOverride = _pEngine->getVerb(getDefaultVerb(_vm, _pObj1));
         }
     }
-    else if(_pVerb->id == VerbConstants::VERB_TALKTO)
+    else if (_pVerb->id == VerbConstants::VERB_TALKTO)
     {
         // select actor/object only if talkable flag is set
         auto flags = getFlags(_pObj1->getTable());
         if (!(flags & ObjectFlagConstants::TALKABLE))
             _pObj1 = nullptr;
     }
-    else if(_pVerb->id == VerbConstants::VERB_GIVE)
+    else if (_pVerb->id == VerbConstants::VERB_GIVE)
     {
-        if(!_pObj1->isInventoryObject())
+        if (!_pObj1->isInventoryObject())
             _pObj1 = nullptr;
 
         // select actor/object only if giveable flag is set
-        if(_pObj2)
+        if (_pObj2)
         {
             auto flags = getFlags(_pObj2->getTable());
             if (!(flags & ObjectFlagConstants::GIVEABLE))
@@ -1010,7 +1026,7 @@ void Engine::Impl::updateRoomScalings()
 
 void Engine::update(const sf::Time &elapsed)
 {
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO &io = ImGui::GetIO();
     _pImpl->_frameCounter++;
     auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
     auto wasMouseRightDown = !io.WantCaptureMouse && _pImpl->_isMouseRightDown;
@@ -1058,7 +1074,7 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(mousePosInRoom);
     _pImpl->updateHoveredEntity(isRightClick);
 
-    if(_pImpl->_pCurrentActor)
+    if (_pImpl->_pCurrentActor)
     {
         auto &objects = _pImpl->_pCurrentActor->getObjects();
         for (auto &object : objects)
@@ -1085,7 +1101,7 @@ void Engine::update(const sf::Time &elapsed)
     int currentActorIndex = _pImpl->getCurrentActorIndex();
     if (currentActorIndex == -1)
         return;
-    
+
     // input click on a verb ?
     if (_pImpl->_inputVerbsActive)
     {
@@ -1106,15 +1122,15 @@ void Engine::update(const sf::Time &elapsed)
         }
     }
 
-    if(_pImpl->_pHoveredEntity)
+    if (_pImpl->_pHoveredEntity)
     {
         _pImpl->onObjectClick(_pImpl->_pHoveredEntity);
         auto pVerb = _pImpl->_pVerbOverride;
-        if(!pVerb)
+        if (!pVerb)
         {
             pVerb = _pImpl->_pVerb;
         }
-        if(_pImpl->_pObj1)
+        if (_pImpl->_pObj1)
         {
             _pImpl->_pVerbExecute->execute(pVerb, _pImpl->_pObj1, _pImpl->_pObj2);
         }
@@ -1192,11 +1208,11 @@ void Engine::draw(sf::RenderWindow &window) const
     if (!_pImpl->_dialogManager.isActive())
     {
         _pImpl->drawVerbs(window);
-        if(_pImpl->_inputHUD)
+        if (_pImpl->_inputHUD)
         {
             window.draw(_pImpl->_inventory);
         }
-        if(_pImpl->_inputActive)
+        if (_pImpl->_inputActive)
         {
             window.draw(_pImpl->_actorIcons);
         }
@@ -1277,10 +1293,14 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     if (!pVerb)
         return;
 
+    auto currentActorIndex = getCurrentActorIndex();
+    if(currentActorIndex == -1)
+        return;
+
     NGText text;
     text.setAlignment(NGTextAlignment::Center);
     text.setFont(_fntFont);
-    text.setColor(sf::Color::White);
+    text.setColor(_verbUiColors.at(currentActorIndex).sentence);
 
     std::wstring s;
     if (pVerb->id != VerbConstants::VERB_WALKTO || _pHoveredEntity)
@@ -1298,7 +1318,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         s.append(L" ").append(_pObj2->getName());
     }
     text.setText(s);
-    
+
     // do display cursor position:
     // auto mousePosInRoom = _mousePos + _camera.getAt();
     // std::wstringstream s;
@@ -1359,7 +1379,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         return;
 
     auto pVerb = _pVerbOverride;
-    if(!pVerb)
+    if (!pVerb)
     {
         pVerb = _pVerb;
     }
@@ -1380,41 +1400,55 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
         }
     }
 
-    sf::RenderStates states;
-    states.texture = &_verbSheet.getTexture();
+    const auto view = window.getView();
+    window.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
-    auto screen = _pWindow->getView().getSize();
-    sf::Vector2f size(screen.x / 6.f, screen.y / 14.f);
-    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
+    // draw UI background
+    auto hudSentence = _preferences.getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
+    auto uiBackingAlpha = _preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
+    auto invertVerbHighlight = _preferences.getUserPreference(PreferenceNames::InvertVerbHighlight, PreferenceDefaultValues::InvertVerbHighlight);
+    sf::Color verbNormal; 
+    sf::Color verbHighlight;
+    if(invertVerbHighlight)
+    {
+        verbNormal = _verbUiColors.at(currentActorIndex).verbHighlightTint;
+        verbHighlight = _verbUiColors.at(currentActorIndex).verbNormalTint;
+    }
+    else
+    {
+        verbNormal = _verbUiColors.at(currentActorIndex).verbNormalTint;
+        verbHighlight = _verbUiColors.at(currentActorIndex).verbHighlightTint;
+    }
+    
+    auto uiBackingRect = hudSentence ? _gameSheet.getRect("ui_backing_tall") : _gameSheet.getRect("ui_backing");
+    sf::Sprite uiBacking;
+    uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * 255));
+    uiBacking.setPosition(0, 720 - uiBackingRect.height);
+    uiBacking.setTexture(_gameSheet.getTexture());
+    uiBacking.setTextureRect(uiBackingRect);
+    window.draw(uiBacking);
+
+    // draw verbs
+    sf::Vector2f size(uiBackingRect.width / 6, uiBackingRect.height / 3);
     for (int x = 0; x < 3; x++)
     {
-        auto maxW = 0;
         for (int y = 0; y < 3; y++)
         {
             auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
             auto rect = getVerbRect(verb);
-            maxW = fmax(maxW, rect.width * ratio.x);
-        }
-        auto padding = (size.x - maxW) / 2.f;
-        auto left = padding + x * size.x;
-
-        for (int y = 0; y < 3; y++)
-        {
-            auto top = screen.y - size.y * 3 + y * size.y;
-            auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
-            auto rect = getVerbRect(verb);
-            auto verbSize = sf::Vector2f(rect.width * ratio.x, rect.height * ratio.y);
-            auto color = verb.id == verbId ? _verbUiColors.at(currentActorIndex).verbHighlight
-                                           : _verbUiColors.at(currentActorIndex).verbNormalTint;
-            sf::RectangleShape verbShape;
-            verbShape.setFillColor(color);
-            verbShape.setPosition(left, top);
-            verbShape.setSize(verbSize);
-            verbShape.setTexture(&_verbSheet.getTexture());
-            verbShape.setTextureRect(rect);
-            window.draw(verbShape);
+            auto color = verb.id == verbId ? verbNormal : verbHighlight;
+            auto s = getVerbName(verb);
+            auto r = _verbSheet.getSpriteSourceSize(s);
+            sf::Sprite verbSprite;
+            verbSprite.setColor(color);
+            verbSprite.setPosition(r.left, r.top);
+            verbSprite.setTexture(_verbSheet.getTexture());
+            verbSprite.setTextureRect(rect);
+            window.draw(verbSprite);
         }
     }
+
+    window.setView(view);
 }
 
 bool Engine::isThreadAlive(HSQUIRRELVM thread) const

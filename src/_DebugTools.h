@@ -117,10 +117,30 @@ class _DebugTools
         {
             setSelectedLang(selectedLang);
         }
-        auto retroVerbs = _engine.getPreferences().getUserPreference("retroVerbs", false);
+        auto retroVerbs = _engine.getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
         if (ImGui::Checkbox("Retro Verbs", &retroVerbs))
         {
-            _engine.getPreferences().setUserPreference("retroVerbs", retroVerbs);
+            _engine.getPreferences().setUserPreference(PreferenceNames::RetroVerbs, retroVerbs);
+        }
+        auto retroFonts = _engine.getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+        if (ImGui::Checkbox("Retro Fonts", &retroFonts))
+        {
+            _engine.getPreferences().setUserPreference(PreferenceNames::RetroFonts, retroFonts);
+        }
+        auto invertVerbHighlight = _engine.getPreferences().getUserPreference(PreferenceNames::InvertVerbHighlight, true);
+        if (ImGui::Checkbox("Invert Verb Highlight", &invertVerbHighlight))
+        {
+            _engine.getPreferences().setUserPreference(PreferenceNames::InvertVerbHighlight, invertVerbHighlight);
+        }
+        auto hudSentence = _engine.getPreferences().getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
+        if (ImGui::Checkbox("HUD Sentence", &hudSentence))
+        {
+            _engine.getPreferences().setUserPreference(PreferenceNames::HudSentence, hudSentence);
+        }
+        auto uiBackingAlpha = _engine.getPreferences().getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
+        if (ImGui::SliderFloat("UI Backing Alpha", &uiBackingAlpha, 0.f, 1.f))
+        {
+            _engine.getPreferences().setUserPreference(PreferenceNames::UiBackingAlpha, uiBackingAlpha);
         }
     }
 
@@ -154,7 +174,7 @@ class _DebugTools
 
     int getSelectedLang()
     {
-        auto lang = _engine.getPreferences().getUserPreference("language", std::string("en"));
+        auto lang = _engine.getPreferences().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
         auto selectedLang = 0;
         for (size_t i = 0; i < 5; ++i)
         {
@@ -166,7 +186,7 @@ class _DebugTools
 
     void setSelectedLang(int lang)
     {
-        _engine.getPreferences().setUserPreference("language", std::string(_langs[lang]));
+        _engine.getPreferences().setUserPreference(PreferenceNames::Language, std::string(_langs[lang]));
     }
 
     void getStack(std::vector<std::string> &stack)
