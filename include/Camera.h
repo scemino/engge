@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+#include <optional>
 #include "SFML/Graphics.hpp"
 #include "Interpolations.h"
 
