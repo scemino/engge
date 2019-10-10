@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "SFML/Graphics.hpp"
 #include "squirrel.h"
 #include "ScriptObject.h"
 
@@ -14,6 +15,16 @@ class TextureManager;
 class TextObject;
 class ThreadBase;
 class Walkbox;
+
+namespace RoomEffectConstants
+{
+static const int EFFECT_NONE = 0;
+static const int EFFECT_SEPIA = 1;
+static const int EFFECT_EGA = 2;
+static const int EFFECT_VHS = 3;
+static const int EFFECT_GHOST = 4;
+static const int EFFECT_BLACKANDWHITE = 5;
+}
 
 class Room : public ScriptObject
 {
@@ -67,6 +78,9 @@ public:
   bool isThreadAlive(HSQUIRRELVM thread) const;
   void stopThread(HSQUIRRELVM thread);
   void exit();
+
+  void setEffect(int shader);
+  int getEffect() const;
 
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;

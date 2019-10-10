@@ -151,6 +151,9 @@ class Engine : public NonCopyable
 
     HSQOBJECT &getDefaultObject();
 
+    void setShader(const std::string& code);
+    std::string getShader() const;
+
   private:
     struct Impl;
     std::unique_ptr<Impl> _pImpl;

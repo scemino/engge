@@ -40,9 +40,9 @@ class _DebugTools
         std::vector<std::string> stack;
         getStack(stack);
         ImGui::Combo(s.str().c_str(), &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
-        // ImGui::TextUnformatted(s.str().c_str());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
+        
         showCamera();
         showInputState();
         showDebugWindows();
@@ -468,6 +468,12 @@ class _DebugTools
         if (ColorEdit4("ambient", ambient))
         {
             room->setAmbientLight(ambient);
+        }
+        auto effect = room->getEffect();
+        auto effects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0";
+        if(ImGui::Combo("Shader", &effect, effects))
+        {
+            room->setEffect(effect);
         }
         ImGui::End();
     }

@@ -387,7 +387,16 @@ private:
 
     static SQInteger roomEffect(HSQUIRRELVM v)
     {
-        error("TODO: roomEffect: not implemented");
+        SQInteger effect = 0;
+        if (SQ_FAILED(sq_getinteger(v, 2, &effect)))
+        {
+            return sq_throwerror(v, _SC("failed to get effect"));
+        }
+        auto pRoom = g_pEngine->getRoom();
+        if(pRoom)
+        {
+            pRoom->setEffect(static_cast<int>(effect));
+        }
         return 0;
     }
 

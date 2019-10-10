@@ -1,16 +1,16 @@
-#include <fstream>
-#include <math.h>
-#include <memory>
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <list>
-#include "squirrel.h"
+#include <math.h>
+#include <memory>
 #include "nlohmann/json.hpp"
+#include "squirrel.h"
+#include "Room.h"
 #include "Animation.h"
 #include "Light.h"
 #include "Logger.h"
 #include "PathFinder.h"
-#include "Room.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
 #include "SpriteSheet.h"
@@ -18,14 +18,12 @@
 #include "Thread.h"
 #include "_Util.h"
 
+
 namespace ng
 {
-struct CmpLayer 
+struct CmpLayer
 {
-    bool operator()(int a, int b) const
-    {
-        return a > b;
-    }
+    bool operator()(int a, int b) const { return a > b; }
 };
 
 struct Room::Impl
@@ -53,23 +51,58 @@ struct Room::Impl
     std::vector<std::unique_ptr<Light>> _lights;
     float _rotation{0};
     std::vector<std::unique_ptr<ThreadBase>> _threads;
+    sf::Shader _shader{};
+    int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
-        : _textureManager(textureManager),
-          _settings(settings)
+        : _textureManager(textureManager), _settings(settings)
     {
         _spriteSheet.setTextureManager(&textureManager);
         _spriteSheet.setSettings(&settings);
-        for(int i = -3; i < 6; ++i)
+        for (int i = -3; i < 6; ++i)
         {
             _layers[i] = std::make_unique<RoomLayer>();
         }
+
+        const std::string vertexShader = "void main()"
+                                         "{"
+                                         "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+                                         "    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
+                                         "    gl_FrontColor = gl_Color;"
+                                         "}";
+
+        // load vertex shader
+        if (!_shader.loadFromMemory(vertexShader, sf::Shader::Type::Vertex))
+        {
+            std::cerr << "Error loading shaders" << std::endl;
+            return;
+        }
     }
 
-    void setRoom(Room *pRoom)
+    void setEffect(int effect)
     {
-        _pRoom = pRoom;
+        if(effect == RoomEffectConstants::EFFECT_BLACKANDWHITE)
+        {
+            _selectedEffect = effect;
+            const std::string fragmentShader = "uniform sampler2D texture;\n"
+                                            "void main()\n"
+                                            "{\n"
+                                            "vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n"
+                                            "vec4 col = gl_Color * texColor;\n"
+                                            "float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));\n"
+                                            "gl_FragColor = vec4(gray, gray, gray, col.a);\n"
+                                            "}";
+            if (!_shader.loadFromMemory(fragmentShader, sf::Shader::Type::Fragment))
+            {
+                std::cerr << "Error loading shaders" << std::endl;
+            }
+            _shader.setUniform("texture", sf::Shader::CurrentTexture);
+            return;
+        }
+        _selectedEffect = RoomEffectConstants::EFFECT_NONE;
     }
+
+    void setRoom(Room *pRoom) { _pRoom = pRoom; }
 
     void loadBackgrounds(GGPackValue &jWimpy)
     {
@@ -117,7 +150,7 @@ struct Room::Impl
         for (auto jLayer : jWimpy["layers"].array_value)
         {
             auto zsort = jLayer["zsort"].int_value;
-            auto& layer = _layers[zsort];
+            auto &layer = _layers[zsort];
             layer->setZOrder(zsort);
             if (jLayer["name"].isArray())
             {
@@ -125,7 +158,7 @@ struct Room::Impl
                 for (const auto &jName : jLayer["name"].array_value)
                 {
                     auto layerName = jName.string_value;
-                    auto rect = _spriteSheet.getRect(layerName); 
+                    auto rect = _spriteSheet.getRect(layerName);
                     auto sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
                     sf::Sprite s;
                     s.setTexture(_textureManager.get(_sheet));
@@ -366,7 +399,7 @@ void Room::showDrawWalkboxes(bool show) { pImpl->_showDrawWalkboxes = show; }
 
 bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 
-std::vector<Walkbox>& Room::getWalkboxes() { return pImpl->_walkboxes; }
+std::vector<Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
 
@@ -388,10 +421,7 @@ void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
     pImpl->_layers[layerNum]->addEntity(*pEntity);
 }
 
-void Room::roomLayer(int layerNum, bool enabled)
-{
-    pImpl->_layers[layerNum]->setEnabled(enabled);
-}
+void Room::roomLayer(int layerNum, bool enabled) { pImpl->_layers[layerNum]->setEnabled(enabled); }
 
 void Room::removeEntity(Entity *pEntity)
 {
@@ -451,15 +481,9 @@ TextObject &Room::createTextObject(const std::string &fontName)
     return obj;
 }
 
-void Room::deleteObject(Object &object)
-{
-    pImpl->_layers[0]->removeEntity(object);
-}
+void Room::deleteObject(Object &object) { pImpl->_layers[0]->removeEntity(object); }
 
-Object &Room::createObject(const std::vector<std::string> &anims)
-{
-    return createObject(pImpl->_sheet, anims);
-}
+Object &Room::createObject(const std::vector<std::string> &anims) { return createObject(pImpl->_sheet, anims); }
 
 Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &anims)
 {
@@ -557,6 +581,11 @@ void Room::update(const sf::Time &elapsed)
 void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
+    if(pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE)
+    {
+        states.shader = &pImpl->_shader;
+    }
+    
     auto screen = window.getView().getSize();
     auto w = screen.x / 2.f;
     auto h = screen.y / 2.f;
@@ -594,21 +623,14 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     }
 }
 
-const RoomScaling &Room::getRoomScaling() const
-{
-    return pImpl->_scaling;
-}
+const RoomScaling &Room::getRoomScaling() const { return pImpl->_scaling; }
 
-void Room::setRoomScaling(const RoomScaling &scaling)
-{
-    pImpl->_scaling = scaling;
-}
+void Room::setRoomScaling(const RoomScaling &scaling) { pImpl->_scaling = scaling; }
 
 void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
 {
-    auto it = std::find_if(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(), [&name](const Walkbox &walkbox) {
-        return walkbox.getName() == name;
-    });
+    auto it = std::find_if(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(),
+                           [&name](const Walkbox &walkbox) { return walkbox.getName() == name; });
     if (it == pImpl->_walkboxes.end())
     {
         error("walkbox {} has not been found", name);
@@ -620,31 +642,21 @@ void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
 
 bool Room::inWalkbox(const sf::Vector2f &pos) const
 {
-    auto inWalkbox = std::any_of(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(), [pos](const Walkbox &w) {
-        return w.inside((sf::Vector2i)pos);
-    });
+    auto inWalkbox = std::any_of(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(),
+                                 [pos](const Walkbox &w) { return w.inside((sf::Vector2i)pos); });
     return inWalkbox;
 }
 
-std::vector<RoomScaling> &Room::getScalings()
-{
-    return pImpl->_scalings;
-}
+std::vector<RoomScaling> &Room::getScalings() { return pImpl->_scalings; }
 
 std::vector<sf::Vector2i> Room::calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const
 {
     return pImpl->_pf->calculatePath(start, end);
 }
 
-float Room::getRotation() const
-{
-    return pImpl->_rotation;
-}
+float Room::getRotation() const { return pImpl->_rotation; }
 
-void Room::setRotation(float angle)
-{
-    pImpl->_rotation = angle;
-}
+void Room::setRotation(float angle) { pImpl->_rotation = angle; }
 
 Light *Room::createLight(sf::Color color, sf::Vector2i pos)
 {
@@ -654,31 +666,31 @@ Light *Room::createLight(sf::Color color, sf::Vector2i pos)
     return pLight;
 }
 
-void Room::addThread(std::unique_ptr<ThreadBase> thread)
-{
-    pImpl->_threads.emplace_back(std::move(thread));
-}
+void Room::addThread(std::unique_ptr<ThreadBase> thread) { pImpl->_threads.emplace_back(std::move(thread)); }
 
-void Room::exit()
-{
-    pImpl->_threads.clear();
-}
+void Room::exit() { pImpl->_threads.clear(); }
 
 bool Room::isThreadAlive(HSQUIRRELVM thread) const
 {
-    return std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase>& t){
-        return t->getThread() == thread;
-    }) != pImpl->_threads.end();
+    return std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(),
+                        [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; }) !=
+           pImpl->_threads.end();
 }
 
 void Room::stopThread(HSQUIRRELVM thread)
 {
-    auto it = std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(), [&thread](const std::unique_ptr<ThreadBase> &t) {
-        return t->getThread() == thread;
-    });
+    auto it = std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(),
+                           [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; });
     if (it == pImpl->_threads.end())
         return;
     pImpl->_threads.erase(it);
 }
+
+void Room::setEffect(int effect)
+{
+    pImpl->setEffect(effect);
+}
+
+int Room::getEffect() const { return pImpl->_selectedEffect; }
 
 } // namespace ng
