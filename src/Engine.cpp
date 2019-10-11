@@ -1196,12 +1196,12 @@ void Engine::draw(sf::RenderWindow &window) const
     if (!_pImpl->_dialogManager.isActive())
     {
         _pImpl->drawVerbs(window);
-        if (_pImpl->_inputHUD)
-        {
-            window.draw(_pImpl->_inventory);
-        }
         if (_pImpl->_inputActive)
         {
+            if (_pImpl->_inputHUD)
+            {
+                window.draw(_pImpl->_inventory);
+            }
             window.draw(_pImpl->_actorIcons);
         }
     }
