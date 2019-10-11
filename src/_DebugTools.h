@@ -29,7 +29,7 @@ class _DebugTools
             if (idx < 0 || idx >= static_cast<int>(vector.size()))
             {
                 return false;
-            }
+            }   
             *out_text = vector.at(idx).c_str();
             return true;
         };
@@ -463,6 +463,16 @@ class _DebugTools
         if (ImGui::SliderFloat("rotation", &rotation, -180.f, 180.f, "%.0f deg"))
         {
             room->setRotation(rotation);
+        }
+        auto overlay = room->getOverlayColor();
+        if (ColorEdit4("Overlay", overlay))
+        {
+            room->setOverlayColor(overlay);
+        }
+        auto fade = room->getFadeAlpha();
+        if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f))
+        {
+            room->setFadeAlpha(fade);
         }
         auto ambient = room->getAmbientLight();
         if (ColorEdit4("ambient", ambient))

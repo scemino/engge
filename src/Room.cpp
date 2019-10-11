@@ -53,6 +53,8 @@ struct Room::Impl
     std::vector<std::unique_ptr<ThreadBase>> _threads;
     sf::Shader _shader{};
     int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
+    sf::Color _fadeColor{sf::Color::Transparent};
+    sf::Color _overlayColor{sf::Color::Transparent};
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
         : _textureManager(textureManager), _settings(settings)
@@ -377,6 +379,18 @@ struct Room::Impl
         }
         _pf = std::make_shared<PathFinder>(_graphWalkboxes);
     }
+
+    void drawFade(sf::RenderWindow &window) const
+    {
+        sf::RectangleShape fadeShape;
+        auto screen = window.getView().getSize();
+        fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
+        fadeShape.setFillColor(_overlayColor);
+        window.draw(fadeShape);
+
+        fadeShape.setFillColor(_fadeColor);
+        window.draw(fadeShape);
+    }
 };
 
 Room::Room(TextureManager &textureManager, EngineSettings &settings)
@@ -621,6 +635,8 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         states.transform = t2;
         layer.second->drawForeground(window, states);
     }
+
+    pImpl->drawFade(window);
 }
 
 const RoomScaling &Room::getRoomScaling() const { return pImpl->_scaling; }
@@ -692,5 +708,13 @@ void Room::setEffect(int effect)
 }
 
 int Room::getEffect() const { return pImpl->_selectedEffect; }
+
+void Room::setFadeAlpha(float fade) { pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
+
+float Room::getFadeAlpha() const { return pImpl->_fadeColor.a / 255.f; }
+
+void Room::setOverlayColor(sf::Color color) { pImpl->_overlayColor = color; }
+
+sf::Color Room::getOverlayColor() const { return pImpl->_overlayColor; }
 
 } // namespace ng

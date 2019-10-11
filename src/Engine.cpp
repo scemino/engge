@@ -60,7 +60,6 @@ struct Engine::Impl
     std::vector<std::unique_ptr<Function>> _newFunctions;
     std::vector<std::unique_ptr<Function>> _functions;
     Cutscene *_pCutscene{nullptr};
-    sf::Color _fadeColor{sf::Color::Transparent};
     sf::RenderWindow *_pWindow{nullptr};
     TextDatabase _textDb;
     Font _fntFont;
@@ -106,7 +105,6 @@ struct Engine::Impl
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
     void drawCursorText(sf::RenderWindow &window) const;
-    void drawFade(sf::RenderWindow &window) const;
     void clampCamera();
     int getCurrentActorIndex() const;
     sf::IntRect getCursorRect() const;
@@ -236,12 +234,6 @@ std::wstring Engine::getText(int id) const
     removeFirstParenthesis(text);
     return text;
 }
-
-void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
-
-float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a / 255.f; }
-
-void Engine::setFadeColor(sf::Color color) { _pImpl->_fadeColor = color; }
 
 void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
 
@@ -652,8 +644,6 @@ void Engine::Impl::setCurrentRoom(Room *pRoom)
 
 SQInteger Engine::setRoom(Room *pRoom)
 {
-    _pImpl->_fadeColor = sf::Color::Transparent;
-
     if (!pRoom)
         return 0;
 
@@ -685,8 +675,6 @@ SQInteger Engine::setRoom(Room *pRoom)
 
 SQInteger Engine::enterRoomFromDoor(Object *pDoor)
 {
-    _pImpl->_fadeColor = sf::Color::Transparent;
-
     auto dir = pDoor->getUseDirection();
     Facing facing;
     switch (dir)
@@ -1218,19 +1206,9 @@ void Engine::draw(sf::RenderWindow &window) const
         }
     }
 
-    _pImpl->drawFade(window);
     _pImpl->drawCursor(window);
     _pImpl->drawCursorText(window);
     _pImpl->_pDebugTools->render();
-}
-
-void Engine::Impl::drawFade(sf::RenderWindow &window) const
-{
-    sf::RectangleShape fadeShape;
-    auto screen = _pWindow->getView().getSize();
-    fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
-    fadeShape.setFillColor(_fadeColor);
-    window.draw(fadeShape);
 }
 
 void Engine::Impl::drawCursor(sf::RenderWindow &window) const

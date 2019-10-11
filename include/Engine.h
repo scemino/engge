@@ -72,9 +72,6 @@ class Engine : public NonCopyable
     SQInteger setRoom(Room *pRoom);
     SQInteger enterRoomFromDoor(Object *pDoor);
     std::wstring getText(int id) const;
-    void setFadeAlpha(float fade);
-    float getFadeAlpha() const;
-    void setFadeColor(sf::Color color);
 
     void addActor(std::unique_ptr<Actor> actor);
     void addRoom(std::unique_ptr<Room> room);

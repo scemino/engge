@@ -82,6 +82,11 @@ public:
   void setEffect(int shader);
   int getEffect() const;
 
+  void setFadeAlpha(float fade);
+  float getFadeAlpha() const;
+  void setOverlayColor(sf::Color color);
+  sf::Color getOverlayColor() const;
+
 private:
   void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
 

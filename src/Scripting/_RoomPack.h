@@ -12,9 +12,10 @@ namespace ng
 class _ChangeColor : public TimeFunction
 {
 public:
-    _ChangeColor(Engine &engine, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
+    _ChangeColor(Engine &engine, Room* pRoom, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
         : TimeFunction(time),
           _engine(engine),
+          _pRoom(pRoom),
           _isLooping(isLooping),
           _anim(std::move(anim)),
           _a(static_cast<sf::Int16>(endColor.a - startColor.a)),
@@ -30,7 +31,7 @@ public:
     void operator()(const sf::Time &elapsed) override
     {
         TimeFunction::operator()(elapsed);
-        _engine.setFadeColor(_current);
+        _pRoom->setOverlayColor(_current);
         if (!isElapsed())
         {
             auto t = _elapsed.asSeconds() / _time.asSeconds();
@@ -48,7 +49,7 @@ public:
 
     void onElapsed() override
     {
-        _engine.setFadeColor(sf::Color::Transparent);
+        _pRoom->setOverlayColor(_endColor);
     }
 
 private:
@@ -63,6 +64,7 @@ private:
 
 private:
     Engine &_engine;
+    Room* _pRoom{nullptr};
     bool _isLooping;
     std::function<float(float)> _anim;
     sf::Int16 _a, _r, _g, _b;
@@ -109,8 +111,9 @@ private:
 
     static void _fadeTo(float a, const sf::Time &time)
     {
-        auto get = std::bind(&Engine::getFadeAlpha, g_pEngine);
-        auto set = std::bind(&Engine::setFadeAlpha, g_pEngine, std::placeholders::_1);
+        auto pRoom = g_pEngine->getRoom();
+        auto get = std::bind(&Room::getFadeAlpha, pRoom);
+        auto set = std::bind(&Room::setFadeAlpha, pRoom, std::placeholders::_1);
         auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, a, time);
         g_pEngine->addFunction(std::move(fadeTo));
     }
@@ -513,15 +516,17 @@ private:
     static SQInteger roomOverlayColor(HSQUIRRELVM v)
     {
         trace("roomOverlayColor");
-        SQInteger startColor, endColor;
+        SQInteger startColor;
         auto numArgs = sq_gettop(v);
         if (SQ_FAILED(sq_getinteger(v, 2, &startColor)))
         {
             return sq_throwerror(v, _SC("failed to get startColor"));
         }
-        g_pEngine->setFadeColor(_toColor(startColor));
+        auto pRoom = g_pEngine->getRoom();
+        pRoom->setOverlayColor(_toColor(startColor));
         if (numArgs == 4)
         {
+            SQInteger endColor;
             if (SQ_FAILED(sq_getinteger(v, 3, &endColor)))
             {
                 return sq_throwerror(v, _SC("failed to get endColor"));
@@ -531,7 +536,7 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get duration"));
             }
-            auto fadeTo = std::make_unique<_ChangeColor>(*g_pEngine, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
+            auto fadeTo = std::make_unique<_ChangeColor>(*g_pEngine, pRoom, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
             g_pEngine->addFunction(std::move(fadeTo));
         }
         return 0;
