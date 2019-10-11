@@ -42,6 +42,12 @@ class _DebugTools
         ImGui::Combo(s.str().c_str(), &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
+
+        auto fade = _engine.getFadeAlpha();
+        if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f))
+        {
+            _engine.setFadeAlpha(fade);
+        }
         
         showCamera();
         showInputState();
@@ -473,11 +479,6 @@ class _DebugTools
         if (ColorEdit4("Overlay", overlay))
         {
             room->setOverlayColor(overlay);
-        }
-        auto fade = room->getFadeAlpha();
-        if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f))
-        {
-            room->setFadeAlpha(fade);
         }
         auto ambient = room->getAmbientLight();
         if (ColorEdit4("ambient", ambient))

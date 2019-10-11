@@ -151,6 +151,10 @@ class Engine : public NonCopyable
     void setShader(const std::string& code);
     std::string getShader() const;
 
+    void setFadeAlpha(float fade);
+    float getFadeAlpha() const;
+    void fadeTo(float destination, sf::Time time, InterpolationMethod method);
+
   private:
     struct Impl;
     std::unique_ptr<Impl> _pImpl;

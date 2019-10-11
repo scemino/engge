@@ -111,11 +111,7 @@ private:
 
     static void _fadeTo(float a, const sf::Time &time)
     {
-        auto pRoom = g_pEngine->getRoom();
-        auto get = std::bind(&Room::getFadeAlpha, pRoom);
-        auto set = std::bind(&Room::setFadeAlpha, pRoom, std::placeholders::_1);
-        auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, a, time);
-        g_pEngine->addFunction(std::move(fadeTo));
+        g_pEngine->fadeTo(a, time, (InterpolationMethod)0);
     }
 
     static SQInteger createLight(HSQUIRRELVM v)

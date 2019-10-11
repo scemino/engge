@@ -53,7 +53,6 @@ struct Room::Impl
     std::vector<std::unique_ptr<ThreadBase>> _threads;
     sf::Shader _shader{};
     int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
-    sf::Color _fadeColor{sf::Color::Transparent};
     sf::Color _overlayColor{sf::Color::Transparent};
 
     Impl(TextureManager &textureManager, EngineSettings &settings)
@@ -387,9 +386,6 @@ struct Room::Impl
         fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
         fadeShape.setFillColor(_overlayColor);
         window.draw(fadeShape);
-
-        fadeShape.setFillColor(_fadeColor);
-        window.draw(fadeShape);
     }
 };
 
@@ -490,6 +486,7 @@ TextObject &Room::createTextObject(const std::string &fontName)
     object->getFont().loadFromFile(path);
     auto &obj = *object;
     obj.setVisible(true);
+    obj.setRoom(this);
     pImpl->_objects.push_back(std::move(object));
     pImpl->_layers[0]->addEntity(obj);
     return obj;
@@ -533,8 +530,6 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         }
     }
     auto &obj = *object;
-    obj.setId(towstring(anims[0]));
-    obj.setName(towstring(anims[0]));
     obj.setRoom(this);
     obj.setZOrder(1);
     pImpl->_layers[0]->addEntity(obj);
@@ -558,8 +553,6 @@ Object &Room::createObject(const std::string &image)
 
     object->setAnimation("state0");
     auto &obj = *object;
-    obj.setId(towstring(image));
-    obj.setName(towstring(image));
     obj.setZOrder(1);
     obj.setRoom(this);
     pImpl->_layers[0]->addEntity(obj);
@@ -620,6 +613,19 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         states.transform = t;
         layer.second->draw(window, states);
     }
+}
+
+void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
+{
+    sf::RenderStates states;
+    if(pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE)
+    {
+        states.shader = &pImpl->_shader;
+    }
+    
+    auto screen = window.getView().getSize();
+    auto w = screen.x / 2.f;
+    auto h = screen.y / 2.f;
 
     sf::Transform t;
     t.rotate(pImpl->_rotation, w, h);
@@ -711,10 +717,6 @@ void Room::setEffect(int effect)
 }
 
 int Room::getEffect() const { return pImpl->_selectedEffect; }
-
-void Room::setFadeAlpha(float fade) { pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
-
-float Room::getFadeAlpha() const { return pImpl->_fadeColor.a / 255.f; }
 
 void Room::setOverlayColor(sf::Color color) { pImpl->_overlayColor = color; }
 

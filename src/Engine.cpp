@@ -10,6 +10,7 @@
 #include "Room.h"
 #include "RoomScaling.h"
 #include "Screen.h"
+#include "ScriptEngine.h"
 #include "ScriptExecute.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
@@ -98,6 +99,7 @@ struct Engine::Impl
     int _frameCounter{0};
     HSQOBJECT _pDefaultObject{};
     Camera _camera;
+    sf::Color _fadeColor{sf::Color::Transparent};
 
     explicit Impl(EngineSettings &settings);
 
@@ -129,6 +131,7 @@ struct Engine::Impl
     void actorExit();
     void onLanguageChange(const std::string &lang);
     std::string getVerbName(const Verb &verb) const;
+    void drawFade(sf::RenderTarget &target) const;
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -168,6 +171,15 @@ void Engine::Impl::onLanguageChange(const std::string &lang)
         return;
     }
     sq_pop(_vm, 1);
+}
+
+void Engine::Impl::drawFade(sf::RenderTarget &target) const
+{
+    sf::RectangleShape fadeShape;
+    auto screen = target.getView().getSize();
+    fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
+    fadeShape.setFillColor(_fadeColor);
+    target.draw(fadeShape);
 }
 
 Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(settings))
@@ -1190,6 +1202,8 @@ void Engine::draw(sf::RenderWindow &window) const
         return;
 
     _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
+    _pImpl->drawFade(window);
+    _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
 
     window.draw(_pImpl->_dialogManager);
 
@@ -1520,4 +1534,17 @@ HSQOBJECT &Engine::getDefaultObject() { return _pImpl->_pDefaultObject; }
 void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
 const Verb *Engine::getActiveVerb() const { return _pImpl->_pVerb; }
+
+void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
+
+float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a / 255.f; }
+
+void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method)
+{
+    auto m = ScriptEngine::getInterpolationMethod(method);
+    auto get = [this](){return getFadeAlpha();};
+    auto set = [this](const float& a){ setFadeAlpha(a);};
+    auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, m);
+    _pImpl->_functions.push_back(std::move(f));
+}
 } // namespace ng

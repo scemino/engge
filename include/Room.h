@@ -41,6 +41,7 @@ public:
 
   void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
 
   void showDrawWalkboxes(bool show);
   bool areDrawWalkboxesVisible() const;
@@ -82,8 +83,6 @@ public:
   void setEffect(int shader);
   int getEffect() const;
 
-  void setFadeAlpha(float fade);
-  float getFadeAlpha() const;
   void setOverlayColor(sf::Color color);
   sf::Color getOverlayColor() const;
 
