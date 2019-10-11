@@ -365,7 +365,7 @@ class _DebugTools
         ImGui::Begin("Objects", &_showObjects);
         auto &objects = _engine.getRoom()->getObjects();
         ImGui::Combo("##Objects", &_selectedObject, objectGetter, static_cast<void *>(&objects), objects.size());
-        if (!objects.empty())
+        if (!objects.empty() && _selectedObject < objects.size())
         {
             auto &object = objects[_selectedObject];
             ImGui::TextUnformatted(tostring(object->getName()).c_str());
@@ -418,6 +418,11 @@ class _DebugTools
             if (InputInt4("Hotspot", hotspot))
             {
                 object->setHotspot(hotspot);
+            }
+            auto color = object->getColor();
+            if (ColorEdit4("Color", color))
+            {
+                object->setColor(color);
             }
         }
         ImGui::End();
@@ -579,7 +584,7 @@ class _DebugTools
     Engine &_engine;
     bool _showActors{true};
     bool _showObjects{true};
-    bool _showRooms{false};
+    bool _showRooms{true};
     int _selectedActor{0};
     int _selectedObject{0};
     int _selectedStack{0};

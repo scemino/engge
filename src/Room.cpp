@@ -533,6 +533,8 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         }
     }
     auto &obj = *object;
+    obj.setId(towstring(anims[0]));
+    obj.setName(towstring(anims[0]));
     obj.setRoom(this);
     obj.setZOrder(1);
     pImpl->_layers[0]->addEntity(obj);
@@ -556,6 +558,8 @@ Object &Room::createObject(const std::string &image)
 
     object->setAnimation("state0");
     auto &obj = *object;
+    obj.setId(towstring(image));
+    obj.setName(towstring(image));
     obj.setZOrder(1);
     obj.setRoom(this);
     pImpl->_layers[0]->addEntity(obj);
@@ -622,6 +626,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     t.translate(-cameraPos);
     states.transform = t;
     drawWalkboxes(window, states);
+    pImpl->drawFade(window);
 
     for (const auto &layer : pImpl->_layers)
     {
@@ -635,8 +640,6 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
         states.transform = t2;
         layer.second->drawForeground(window, states);
     }
-
-    pImpl->drawFade(window);
 }
 
 const RoomScaling &Room::getRoomScaling() const { return pImpl->_scaling; }
