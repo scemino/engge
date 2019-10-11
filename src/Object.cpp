@@ -155,14 +155,8 @@ void Object::setStateAnimIndex(int animIndex)
     std::ostringstream s;
     s << "state" << animIndex;
     pImpl->_state = animIndex;
-    if (animIndex == ObjectStateConstants::GONE)
-    {
-        setVisible(false);
-    }
-    else if (animIndex == ObjectStateConstants::HERE)
-    {
-        setVisible(true);
-    }
+    
+    setVisible(animIndex != ObjectStateConstants::GONE);
     setAnimation(s.str());
 }
 
