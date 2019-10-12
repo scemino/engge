@@ -117,6 +117,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectValidVerb, "objectValidVerb");
         engine.registerGlobalFunction(pickupObject, "pickupObject");
         engine.registerGlobalFunction(playObjectState, "playObjectState");
+        engine.registerGlobalFunction(popInventory, "popInventory");
         engine.registerGlobalFunction(removeInventory, "removeInventory");
         engine.registerGlobalFunction(setDefaultObject, "setDefaultObject");
         engine.registerGlobalFunction(scale, "scale");
@@ -488,6 +489,17 @@ class _ObjectPack : public Pack
             return 0;
         }
         return sq_throwerror(v, _SC("failed to get state"));
+    }
+
+    static SQInteger popInventory(HSQUIRRELVM v)
+    {
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        error("TODO: popInventory not implemented");
+        return 0;
     }
 
     static SQInteger removeInventory(HSQUIRRELVM v)
