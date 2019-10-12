@@ -193,6 +193,15 @@ void Actor::removeInventory(Object* pObject)
     pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](std::unique_ptr<Object> &pObj){return pObj.get() == pObject;}), pImpl->_objects.end());
 }
 
+void Actor::clearInventory()
+{ 
+    for(auto&& obj : pImpl->_objects)
+    {
+        obj->setOwner(nullptr);
+    }
+    pImpl->_objects.clear();
+}
+
 const std::vector<std::unique_ptr<Object>> &Actor::getObjects() const { return pImpl->_objects; }
 
 void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }

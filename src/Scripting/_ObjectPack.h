@@ -167,7 +167,18 @@ class _ObjectPack : public Pack
 
     static SQInteger jiggleObject(HSQUIRRELVM v)
     {
-        error("TODO: jiggleObject: not implemented");
+        std::cerr << "TODO: jiggleObject: not implemented" << std::endl;
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQFloat amount = 0;
+        if (SQ_FAILED(sq_getfloat(v, 3, &amount)))
+        {
+            return sq_throwerror(v, _SC("failed to get amount"));
+        }
+        // obj->jiggle(amount);
         return 0;
     }
 
@@ -482,15 +493,22 @@ class _ObjectPack : public Pack
     static SQInteger removeInventory(HSQUIRRELVM v)
     {
         Object *obj = ScriptEngine::getObject(v, 2);
-        if (!obj)
+        if (obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            auto owner = obj->getOwner();
+            if(owner)
+            {
+                owner->removeInventory(obj);
+            }
+            return 0;
         }
-        auto owner = obj->getOwner();
-        if(owner)
+
+        Actor *actor = ScriptEngine::getActor(v, 2);
+        if (!actor)
         {
-            owner->removeInventory(obj);
+            return sq_throwerror(v, _SC("failed to get object or actor"));
         }
+        actor->clearInventory();
         return 0;
     }
 
