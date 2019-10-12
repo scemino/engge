@@ -1209,17 +1209,14 @@ void Engine::draw(sf::RenderWindow &window) const
 
     window.draw(_pImpl->_dialogManager);
 
-    if (!_pImpl->_dialogManager.isActive())
+    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive)
     {
         _pImpl->drawVerbs(window);
-        if (_pImpl->_inputActive)
+        if (_pImpl->_inputHUD)
         {
-            if (_pImpl->_inputHUD)
-            {
-                window.draw(_pImpl->_inventory);
-            }
-            window.draw(_pImpl->_actorIcons);
+            window.draw(_pImpl->_inventory);
         }
+        window.draw(_pImpl->_actorIcons);
     }
 
     _pImpl->drawCursor(window);
