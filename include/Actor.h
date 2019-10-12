@@ -54,6 +54,7 @@ public:
   void update(const sf::Time &time) override;
 
   void pickupObject(std::unique_ptr<Object> pObject);
+  void giveTo(Object* pObject, Actor* pActor);
   void removeInventory(Object* pObject);
   void clearInventory();
   const std::vector<std::unique_ptr<Object>> &getObjects() const;

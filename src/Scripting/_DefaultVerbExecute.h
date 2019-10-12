@@ -182,6 +182,33 @@ class _VerbExecute : public Function
         }
         sq_pop(_vm, 1);
 
+        if(_pVerb->id == VerbConstants::VERB_GIVE)
+        {
+            sq_pushroottable(_vm);
+            sq_pushstring(_vm, _SC("objectGive"), -1);
+
+            if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
+            {
+                sq_remove(_vm, -2);
+                sq_pushroottable(_vm);
+                sq_pushobject(_vm, _object.getTable());
+                sq_pushobject(_vm, _actor.getTable());
+                sq_pushobject(_vm, _pObject2->getTable());
+                if (SQ_FAILED(sq_call(_vm, 4, SQFalse, SQTrue)))
+                {
+                    trace("failed to execute objectGive");
+                    sqstd_printcallstack(_vm);
+                    return;
+                }
+                sq_pop(_vm, 1);
+
+                Object* pObject = dynamic_cast<Object*>(&_object);
+                Actor* pActor2 = dynamic_cast<Actor*>(_pObject2);
+                _actor.giveTo(pObject, pActor2);
+                return;
+            }
+        }
+
         if (callVerbDefault(_object.getTable()))
             return;
 

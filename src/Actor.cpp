@@ -186,6 +186,15 @@ void Actor::pickupObject(std::unique_ptr<Object> pObject)
     pImpl->_objects.push_back(std::move(pObject));
 }
 
+void Actor::giveTo(Object* pObject, Actor* pActor)
+{
+    if(!pObject||!pActor) return;
+    pObject->setOwner(pActor);
+    auto srcIt = std::find_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](std::unique_ptr<Object> &pObj){return pObj.get() == pObject;});
+    std::move(srcIt, srcIt+1, std::inserter(pActor->pImpl->_objects, std::end(pActor->pImpl->_objects)));
+    pImpl->_objects.erase(srcIt);
+}
+
 void Actor::removeInventory(Object* pObject)
 { 
     if(!pObject) return;
