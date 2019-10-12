@@ -659,6 +659,8 @@ SQInteger Engine::setRoom(Room *pRoom)
     if (!pRoom)
         return 0;
 
+    _pImpl->_fadeColor = sf::Color::Transparent;
+
     auto pOldRoom = _pImpl->_pRoom;
     if (pRoom == pOldRoom)
         return 0;
