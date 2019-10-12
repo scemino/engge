@@ -11,7 +11,6 @@ enum class InterpolationMethod
     EaseOut,
     SlowEaseIn,
     SlowEaseOut,
-    EaseOutCubic,
     Looping
 };
 

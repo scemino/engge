@@ -77,6 +77,10 @@ public:
       auto t = _elapsed.asSeconds() / _time.asSeconds();
       auto f = _anim(t);
       _current = _init + f * _delta;
+      if (_elapsed >= _time && _isLooping)
+      {
+        _elapsed = sf::seconds(0);
+      }
     }
   }
 
