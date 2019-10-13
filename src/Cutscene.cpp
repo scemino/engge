@@ -11,10 +11,9 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
 {
     _engineVm = engine.getVm();
     _hasCutsceneOverride = !sq_isnull(_closureCutsceneOverrideObj);
-    _inputActive = _engine.getInputActive();
+    _inputState = _engine.getInputState();
+    trace("Cutscene with inputState {}", _inputState);
     _engine.setInputActive(false);
-    _inputVerbs = _engine.getInputVerbs();
-    _engine.setInputVerbs(false);
 
     sq_addref(_engineVm, &_thread);
     sq_addref(_engineVm, &_closureObj);
@@ -123,8 +122,8 @@ void Cutscene::checkEndCutsceneOverride()
 void Cutscene::endCutscene()
 {
     _state = 5;
-    _engine.setInputActive(_inputActive);
-    _engine.setInputVerbs(_inputVerbs);
+    trace("End cutscene with inputState {}", _inputState);
+    _engine.setInputState(_inputState);
     _engine.follow(_engine.getCurrentActor());
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
     _engine.stopThread(_thread._unVal.pThread);

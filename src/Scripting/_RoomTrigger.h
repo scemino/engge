@@ -11,7 +11,7 @@ class _RoomTriggerThread : public ThreadBase
     explicit _RoomTriggerThread(HSQOBJECT thread_obj) : _thread_obj(thread_obj) {}
     virtual ~_RoomTriggerThread() = default;
 
-    virtual HSQUIRRELVM getThread() { return _thread_obj._unVal.pThread; }
+    HSQUIRRELVM getThread() override { return _thread_obj._unVal.pThread; }
 
   private:
     HSQOBJECT _thread_obj;
@@ -36,25 +36,33 @@ class _RoomTrigger : public Trigger
             return;
         }
         sq_addref(_vm, &thread_obj);
-        std::cout << "start thread: " << thread_obj._unVal.pThread << std::endl;
+        trace("start thread: {}", (long)thread_obj._unVal.pThread);
         auto pUniquethread = std::make_unique<_RoomTriggerThread>(thread_obj);
         _engine.addThread(std::move(pUniquethread));
 
+        const SQChar *insideName{nullptr};
         SQInteger nfreevars;
         sq_pushobject(_vm, _inside);
         sq_getclosureinfo(_vm, -1, &_insideParamsCount, &nfreevars);
         if (SQ_SUCCEEDED(sq_getclosurename(_vm, -1)))
         {
-            sq_getstring(_vm, -1, &_insideName);
+            sq_getstring(_vm, -1, &insideName);
+            if(insideName) _insideName = insideName;
         }
+
+        const SQChar *outsideName{nullptr};
         sq_pushobject(_vm, _outside);
         sq_getclosureinfo(_vm, -1, &_outsideParamsCount, &nfreevars);
         if (SQ_SUCCEEDED(sq_getclosurename(_vm, -1)))
         {
-            sq_getstring(_vm, -1, &_outsideName);
+            sq_getstring(_vm, -1, &outsideName);
+            if(outsideName) _outsideName = outsideName;
         }
         sq_settop(_vm, top);
+
+        trace("add trigger: {} [{},{}]", tostring(_object.getId()), _insideName, _outsideName);
     }
+
     ~_RoomTrigger() override
     {
         sq_release(_vm, &thread_obj);
@@ -92,7 +100,7 @@ class _RoomTrigger : public Trigger
 
             std::string name;
             name.append("inside");
-            if (_insideName)
+            if (!_insideName.empty())
             {
                 name.append(" ").append(_insideName);
             }
@@ -118,7 +126,7 @@ class _RoomTrigger : public Trigger
 
                 std::string name;
                 name.append("outside");
-                if (_outsideName)
+                if (!_outsideName.empty())
                 {
                     name.append(" ").append(_outsideName);
                 }
@@ -134,7 +142,7 @@ class _RoomTrigger : public Trigger
             sq_pushobject(thread_obj._unVal.pThread, param);
         }
 
-        trace("call room {} trigger", name);
+        trace("call room {} trigger ({})", name, (long)this);
         if (SQ_FAILED(sq_call(thread_obj._unVal.pThread, params.size() - 1, SQFalse, SQTrue)))
         {
             error("failed to call room {} trigger", name);
@@ -146,13 +154,13 @@ class _RoomTrigger : public Trigger
     Engine &_engine;
     HSQUIRRELVM _vm{};
     Object &_object;
-    HSQOBJECT _inside;
-    HSQOBJECT _outside;
-    HSQOBJECT thread_obj;
+    HSQOBJECT _inside{};
+    HSQOBJECT _outside{};
+    HSQOBJECT thread_obj{};
     bool _isInside{false};
     SQInteger _insideParamsCount{0};
     SQInteger _outsideParamsCount{0};
-    const SQChar *_insideName{nullptr};
-    const SQChar *_outsideName{nullptr};
+    std::string _insideName;
+    std::string _outsideName;
 };
 } // namespace ng

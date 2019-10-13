@@ -18,13 +18,13 @@ struct Object::Impl
     UseDirection _direction{UseDirection::Front};
     bool _prop{false};
     bool _spot{false};
-    bool _trigger{false};
+    bool _isTrigger{false};
     sf::Vector2f _usePos;
     sf::Vector2f _defaultPosition;
     sf::IntRect _hotspot;
     Room *_pRoom{nullptr};
     int _state{0};
-    std::vector<std::shared_ptr<Trigger>> _triggers;
+    std::optional<std::shared_ptr<Trigger>> _trigger;
     HSQOBJECT _pTable{};
     bool _hotspotVisible{false};
     bool _triggerEnabled{true};
@@ -67,7 +67,7 @@ void Object::setSpot(bool spot)
 
 void Object::setTrigger(bool trigger)
 {
-    pImpl->_trigger = trigger;
+    pImpl->_isTrigger = trigger;
 }
 
 void Object::setUseDirection(UseDirection direction) { pImpl->_direction = direction; }
@@ -112,23 +112,27 @@ Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
 void Object::setRoom(Room *pRoom) { pImpl->_pRoom = pRoom; }
 
-void Object::addTrigger(const std::shared_ptr<Trigger> &trigger) { pImpl->_triggers.push_back(trigger); }
+void Object::addTrigger(const std::shared_ptr<Trigger> &trigger)
+{ 
+    pImpl->_trigger = trigger;
+}
+
 void Object::removeTrigger()
 {
-    for (auto &trigger : pImpl->_triggers)
+    if(pImpl->_trigger.has_value())
     {
-        trigger->disable();
+        (*pImpl->_trigger)->disable();
     }
 }
 
-Trigger *Object::getTrigger() { return !pImpl->_triggers.empty() ? pImpl->_triggers[0].get() : nullptr; }
+Trigger *Object::getTrigger() { return pImpl->_trigger.has_value() ? (*pImpl->_trigger).get() : nullptr; }
 void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 
 bool Object::isTouchable() const
 {
     if (!isVisible())
         return false;
-    if (pImpl->_trigger)
+    if (pImpl->_isTrigger)
         return false;
     if (pImpl->_spot)
         return false;
@@ -220,12 +224,9 @@ void Object::update(const sf::Time &elapsed)
     {
         pImpl->_pAnim->update(elapsed);
     }
-    if (pImpl->_triggerEnabled)
+    if (pImpl->_triggerEnabled && pImpl->_trigger.has_value())
     {
-        for (auto &trigger : pImpl->_triggers)
-        {
-            trigger->trig();
-        }
+        (*pImpl->_trigger)->trig();
     }
 }
 
@@ -321,7 +322,7 @@ void Object::setFps(int fps)
 
 bool Object::isTrigger() const
 {
-    return pImpl->_trigger;
+    return pImpl->_isTrigger;
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)

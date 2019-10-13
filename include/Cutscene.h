@@ -19,8 +19,7 @@ private:
   HSQOBJECT _closureObj{};
   HSQOBJECT _closureCutsceneOverrideObj{};
   HSQOBJECT _envObj{};
-  bool _inputActive{false};
-  bool _inputVerbs{false};
+  int _inputState{0};
   bool _hasCutsceneOverride{false};
 
 public:
