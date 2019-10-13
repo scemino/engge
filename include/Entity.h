@@ -77,6 +77,8 @@ public:
   void rotateTo(float destination, sf::Time time, InterpolationMethod method);
   void scaleTo(float destination, sf::Time time, InterpolationMethod method);
 
+  virtual void stopObjectMotors();
+
 protected:
   sf::Transform getTransform() const;
   sf::Transformable _transform;

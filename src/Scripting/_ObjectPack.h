@@ -738,7 +738,21 @@ class _ObjectPack : public Pack
         return 0;
     }
 
-    static SQInteger objectParent(HSQUIRRELVM v) { return sq_throwerror(v, _SC("objectParent not implemented")); }
+    static SQInteger objectParent(HSQUIRRELVM v) 
+    { 
+        Object *objChild = ScriptEngine::getObject(v, 2);
+        if (!objChild)
+        {
+            return sq_throwerror(v, _SC("failed to get child object"));
+        }
+        Object *objParent = ScriptEngine::getObject(v, 3);
+        if (!objParent)
+        {
+            return sq_throwerror(v, _SC("failed to get parent object"));
+        }
+        objParent->addChild(objChild);
+        return 0;
+    }
 
     static SQInteger objectTouchable(HSQUIRRELVM v)
     {
@@ -1172,7 +1186,12 @@ class _ObjectPack : public Pack
 
     static SQInteger stopObjectMotors(HSQUIRRELVM v)
     {
-        error("TODO: stopObjectMotors: not implemented");
+        auto *obj = ScriptEngine::getEntity(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object or actor"));
+        }
+        obj->stopObjectMotors();
         return 0;
     }
 

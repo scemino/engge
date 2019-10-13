@@ -36,6 +36,7 @@ struct Object::Impl
     sf::Time _elapsed;
     int _index{0};
     ScreenSpace _screenSpace{ScreenSpace::Room};
+    std::vector<Object*> _children;
 };
 
 Object::Object()
@@ -323,6 +324,20 @@ void Object::setFps(int fps)
 bool Object::isTrigger() const
 {
     return pImpl->_isTrigger;
+}
+
+void Object::addChild(Object* child)
+{
+    pImpl->_children.push_back(child);
+}
+
+void Object::stopObjectMotors()
+{
+    Entity::stopObjectMotors();
+    for(auto&& child : pImpl->_children)
+    {
+        child->stopObjectMotors();
+    }
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)

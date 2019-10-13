@@ -205,6 +205,17 @@ struct Room::Impl
             auto objectName = jObject["name"].string_value;
             object->setId(towstring(objectName));
             object->setName(towstring(objectName));
+            // parent
+            if(jObject["parent"].isString())
+            {
+                auto parent = jObject["parent"].string_value;
+                auto it = std::find_if(_objects.begin(), _objects.end(),
+                           [&parent](const std::unique_ptr<Object> &o) { return o->getId() == towstring(parent); });
+                if (it != _objects.end())
+                {
+                    (*it)->addChild(object.get());
+                }
+            }
             // zsort
             object->setZOrder(jObject["zsort"].int_value);
             // prop

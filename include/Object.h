@@ -122,6 +122,7 @@ public:
   void enableTrigger(bool enabled);
 
   void dependentOn(Object* parentObject, int state);
+  void addChild(Object* child);
 
   void setFps(int fps) override;
 
@@ -129,6 +130,8 @@ public:
   void setOwner(Actor* pActor);
 
   void setScreenSpace(ScreenSpace screenSpace);
+
+  void stopObjectMotors() override;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
