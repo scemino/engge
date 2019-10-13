@@ -319,7 +319,7 @@ public:
 
     bool isElapsed() override
     {
-        return !_engine.getDialogManager().isActive();
+        return _engine.getDialogManager().getState() == DialogManagerState::None;
     }
 };
 
@@ -484,7 +484,11 @@ private:
         engine.registerGlobalFunction(inputController, "inputController");
         engine.registerGlobalFunction(inputVerbs, "inputVerbs");
         engine.registerGlobalFunction(logEvent, "logEvent");
+        engine.registerGlobalFunction(logInfo, "logInfo");
+        engine.registerGlobalFunction(logWarning, "logWarning");
         engine.registerGlobalFunction(microTime, "microTime");
+        engine.registerGlobalFunction(moveCursorTo, "moveCursorTo");
+        engine.registerGlobalFunction(pushSentence, "pushSentence");
         engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
         engine.registerGlobalFunction(setPrivatePref, "setPrivatePref");
         engine.registerGlobalFunction(setUserPref, "setUserPref");
@@ -671,16 +675,36 @@ private:
     {
         auto numArgs = sq_gettop(v);
         const SQChar* event = nullptr;
-        if (SQ_FAILED(sq_getstring(v, 2, &event)))
+        if (SQ_SUCCEEDED(sq_getstring(v, 2, &event)))
         {
             info(event);
         }
         if(numArgs == 3)
         {
-            if (SQ_FAILED(sq_getstring(v, 3, &event)))
+            if (SQ_SUCCEEDED(sq_getstring(v, 3, &event)))
             {
                 info(event);
             }
+        }
+        return 0;
+    }
+
+    static SQInteger logInfo(HSQUIRRELVM v)
+    {
+        const SQChar* msg = nullptr;
+        if (SQ_SUCCEEDED(sq_getstring(v, 2, &msg)))
+        {
+            info(msg);
+        }
+        return 0;
+    }
+
+    static SQInteger logWarning(HSQUIRRELVM v)
+    {
+        const SQChar* msg = nullptr;
+        if (SQ_SUCCEEDED(sq_getstring(v, 2, &msg)))
+        {
+            error(msg);
         }
         return 0;
     }
@@ -689,6 +713,74 @@ private:
     {
         sq_pushfloat(v, g_pEngine->getTime().asMilliseconds());
         return 1;
+    }
+
+    static SQInteger moveCursorTo(HSQUIRRELVM v)
+    {
+        SQInteger x;
+        if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+        {
+            return sq_throwerror(v, _SC("Failed to get x"));
+        }
+        SQInteger y;
+        if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+        {
+            return sq_throwerror(v, _SC("Failed to get y"));
+        }
+        SQFloat t;
+        if (SQ_FAILED(sq_getfloat(v, 4, &t)))
+        {
+            return sq_throwerror(v, _SC("Failed to get time"));
+        }
+
+        // WIP need to be check
+        auto p = sf::Mouse::getPosition(g_pEngine->getWindow());
+        auto pos = g_pEngine->getWindow().mapCoordsToPixel(sf::Vector2f(x,y)-g_pEngine->getCamera().getAt());
+        sf::Mouse::setPosition(pos, g_pEngine->getWindow());
+        error("moveCursorTo not implemented");
+        return 0;
+    }
+
+    static SQInteger pushSentence(HSQUIRRELVM v)
+    {
+        auto numArgs = sq_gettop(v);
+        SQInteger id;
+        if (SQ_FAILED(sq_getinteger(v, 2, &id)))
+        {
+            return sq_throwerror(v, _SC("Failed to get verb id"));
+        }
+        
+        if(id == VerbConstants::VERB_DIALOG)
+        {
+            SQInteger choice;
+            if (SQ_FAILED(sq_getinteger(v, 3, &choice)))
+            {
+                return sq_throwerror(v, _SC("Failed to get choice"));
+            }
+            g_pEngine->getDialogManager().choose(choice);
+            return 0;
+        }
+
+        Entity* pObj1{nullptr};
+        Entity* pObj2{nullptr};
+        if(numArgs > 2)
+        {
+            pObj1 = ScriptEngine::getEntity(v, 3);
+            if (!pObj1)
+            {
+                return sq_throwerror(v, _SC("Failed to get obj1"));
+            }
+        }
+        if(numArgs > 3)
+        {
+            pObj2 = ScriptEngine::getEntity(v, 4);
+            if (!pObj2)
+            {
+                return sq_throwerror(v, _SC("Failed to get obj2"));
+            }
+        }
+        g_pEngine->pushSentence(static_cast<int>(id), pObj1, pObj2);
+        return 0;
     }
 
     static SQInteger stopthread(HSQUIRRELVM v)

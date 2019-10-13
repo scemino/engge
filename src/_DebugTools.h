@@ -41,7 +41,8 @@ class _DebugTools
         getStack(stack);
         ImGui::Combo(s.str().c_str(), &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
-        ImGui::Text("In dialog: %s", _engine.getDialogManager().isActive() ? "yes" : "no");
+        auto dialogState = _engine.getDialogManager().getState();
+        ImGui::Text("In dialog: %s", ((dialogState == DialogManagerState::Active) ? "yes" : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice": "no")));
 
         auto fade = _engine.getFadeAlpha();
         if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f))

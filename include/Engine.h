@@ -99,6 +99,7 @@ class Engine : public NonCopyable
     const Verb *getVerb(int id) const;
     void setDefaultVerb();
     const Verb *getActiveVerb() const;
+    void pushSentence(int id, Entity* pObj1, Entity* pObj2);
 
     void setInputActive(bool active);
     bool getInputActive() const;

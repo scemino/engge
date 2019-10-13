@@ -205,7 +205,7 @@ private:
 
     static SQInteger indialog(HSQUIRRELVM v)
     {
-        sq_pushinteger(v, g_pEngine->getDialogManager().isActive() ? 1 : 0);
+        sq_pushinteger(v, static_cast<SQInteger>(g_pEngine->getDialogManager().getState()));
         return 1;
     }
 

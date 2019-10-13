@@ -1094,7 +1094,7 @@ void Engine::update(const sf::Time &elapsed)
     if (_pImpl->clickedAt(mousePosInRoom))
         return;
 
-    if (_pImpl->_dialogManager.isActive())
+    if (_pImpl->_dialogManager.getState() != DialogManagerState::None)
         return;
 
     if (_pImpl->_actorIcons.isMouseOver())
@@ -1209,7 +1209,7 @@ void Engine::draw(sf::RenderWindow &window) const
 
     window.draw(_pImpl->_dialogManager);
 
-    if (!_pImpl->_dialogManager.isActive() && _pImpl->_inputActive)
+    if ((_pImpl->_dialogManager.getState() == DialogManagerState::None) && _pImpl->_inputActive)
     {
         _pImpl->drawVerbs(window);
         if (_pImpl->_inputHUD)
@@ -1243,7 +1243,7 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 
 sf::IntRect Engine::Impl::getCursorRect() const
 {
-    if (_dialogManager.isActive())
+    if (_dialogManager.getState() != DialogManagerState::None)
         return _gameSheet.getRect("cursor");
 
     if (_cursorDirection & CursorDirection::Left)
@@ -1275,7 +1275,7 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     if (!_showCursor)
         return;
 
-    if (_dialogManager.isActive())
+    if (_dialogManager.getState() != DialogManagerState::None)
         return;
 
     auto pVerb = _pVerbOverride;
@@ -1545,5 +1545,12 @@ void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method
     auto set = [this](const float& a){ setFadeAlpha(a);};
     auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, m);
     _pImpl->_functions.push_back(std::move(f));
+}
+
+void Engine::pushSentence(int id, Entity* pObj1, Entity* pObj2)
+{
+    const Verb* pVerb = getVerb(id);
+    if(!pVerb) return;
+    _pImpl->_pVerbExecute->execute(pVerb, pObj1, pObj2);
 }
 } // namespace ng

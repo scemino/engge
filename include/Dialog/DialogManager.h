@@ -74,6 +74,13 @@ private:
   std::vector<const Ast::Node *> _nodesSelected;
 };
 
+enum class DialogManagerState
+{
+  None,
+  Active,
+  WaitingForChoice
+};
+
 class DialogManager : public sf::Drawable
 {
 public:
@@ -85,8 +92,9 @@ public:
   std::array<DialogSlot, 8> &getDialog() { return _dialog; }
   void update(const sf::Time &elapsed);
 
-  bool isActive() const { return _isActive; }
+  DialogManagerState getState() const { return _state; }
   void addFunction(std::unique_ptr<Function> function);
+  void choose(int choice);
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -96,7 +104,7 @@ private:
   std::unique_ptr<Ast::CompilationUnit> _pCompilationUnit;
   Ast::Label *_pLabel{nullptr};
   std::array<DialogSlot, 8> _dialog;
-  bool _isActive{false};
+  DialogManagerState _state{DialogManagerState::None};
   DialogVisitor _dialogVisitor;
   std::vector<std::unique_ptr<Function>> _functions;
   Font _font;

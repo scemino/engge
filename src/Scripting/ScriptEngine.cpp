@@ -288,6 +288,7 @@ ScriptEngine::ScriptEngine()
         {"VERB_TALKTO", VerbConstants::VERB_TALKTO},
         {"VERB_USE",    VerbConstants::VERB_USE},
         {"VERB_WALKTO", VerbConstants::VERB_WALKTO},
+        {"VERB_DIALOG", VerbConstants::VERB_DIALOG},
         {"VERBFLAG_INSTANT", 1},
         {"NO", 0},
         {"YES", 1},
@@ -330,6 +331,7 @@ ScriptEngine::ScriptEngine()
         {"UI_CURSOR_OFF", InputStateConstants::UI_CURSOR_OFF},
         {"UI_HUDOBJECTS_ON", InputStateConstants::UI_HUDOBJECTS_ON},
         {"UI_HUDOBJECTS_OFF", InputStateConstants::UI_HUDOBJECTS_OFF},
+        {"WAITING_FOR_CHOICE", 2},
     });
 }
 

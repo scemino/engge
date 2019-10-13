@@ -17,6 +17,7 @@ static const int VERB_PUSH = 7;
 static const int VERB_PULL = 8;
 static const int VERB_GIVE = 9;
 static const int VERB_USE = 10;
+static const int VERB_DIALOG = 13;
 } // namespace VerbConstants
 
 struct Verb

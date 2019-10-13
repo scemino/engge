@@ -50,7 +50,7 @@ void DialogManager::start(const std::string &name, const std::string &node)
 void DialogManager::selectLabel(const std::string &name)
 {
     trace("select label {}", name);
-    _isActive = false;
+    _state = DialogManagerState::None;
     for (auto &line : _dialog)
     {
         line.id = 0;
@@ -63,10 +63,16 @@ void DialogManager::selectLabel(const std::string &name)
     {
         _pLabel->accept(_dialogVisitor);
     }
-    _isActive = !_functions.empty();
-    _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
+    if(!_functions.empty())
+    {
+        _state = DialogManagerState::Active;
+    }
+    else if(std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; }))
+    {
+        _state = DialogManagerState::WaitingForChoice;
+    }
     
-    if (_pLabel && !_isActive)
+    if (_pLabel && _state == DialogManagerState::None)
     {
         it++;
         if (it != _pCompilationUnit->labels.end())
@@ -102,8 +108,16 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 void DialogManager::update(const sf::Time &elapsed)
 {
     auto screen = _pEngine->getWindow().getView().getSize();
-    _isActive = !_functions.empty();
-    _isActive |= std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; });
+    
+    if(!_functions.empty())
+    {
+        _state = DialogManagerState::Active;
+    }
+    else
+    {
+        _state = std::any_of(_dialog.begin(),_dialog.end(),[](auto& line){ return line.id != 0; }) ? 
+            DialogManagerState::WaitingForChoice : DialogManagerState::None;
+    }
 
     if (!_functions.empty())
     {
@@ -114,7 +128,7 @@ void DialogManager::update(const sf::Time &elapsed)
         return;
     }
 
-    if (_pLabel && !_isActive)
+    if (_pLabel && _state == DialogManagerState::None)
     {
         auto name = _pLabel->name;
         auto it = std::find_if(_pCompilationUnit->labels.begin(), _pCompilationUnit->labels.end(), [&name](const std::unique_ptr<Ast::Label> &label) {
@@ -144,6 +158,7 @@ void DialogManager::update(const sf::Time &elapsed)
         text.setText(s);
         if (text.getBoundRect().contains(_pEngine->getMousePos()))
         {
+            choose(dialog + 1);
             auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
             _functions.push_back(std::move(say));
             _dialogVisitor.select(*dlg.pChoice);
@@ -151,6 +166,20 @@ void DialogManager::update(const sf::Time &elapsed)
             break;
         }
         dialog++;
+    }
+}
+
+void DialogManager::choose(int choice)
+{
+    if((choice < 1) || (choice > _dialog.size())) return;
+
+    if(choice <= _dialog.size())
+    {
+        auto& dlg = _dialog.at(choice - 1);
+        auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
+        _functions.push_back(std::move(say));
+        _dialogVisitor.select(*dlg.pChoice);
+        selectLabel(dlg.label);
     }
 }
 
