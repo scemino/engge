@@ -491,16 +491,20 @@ private:
             HSQOBJECT obj;
             sq_resetobject(&obj);
 
-            sq_push(v, 2);
+            auto size = sq_getsize(v, 2);
+            auto index = int_rand(0, size - 1);
+
+            int i = 0;
+            sq_push(v, 2);  // array
             sq_pushnull(v); //null iterator
             while (SQ_SUCCEEDED(sq_next(v, -2)))
             {
                 sq_getstackobj(v, -1, &obj);
                 sq_pop(v, 2); //pops key and val before the nex iteration
-                break;
+                if(index == i++)
+                    break;
             }
-
-            sq_pop(v, 1); //pops the null iterator
+            sq_pop(v, 2); //pops the null iterator and array
 
             sq_pushobject(v, obj);
             return 1;
