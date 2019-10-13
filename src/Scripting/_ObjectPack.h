@@ -847,13 +847,23 @@ class _ObjectPack : public Pack
 
     static SQInteger objectCenter(HSQUIRRELVM v)
     {
+        sf::Vector2f pos;
         Object *obj = ScriptEngine::getObject(v, 2);
-        if (!obj)
+        if (obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            auto rect = obj->getRealHotspot();
+            pos = sf::Vector2f(rect.left + rect.width / 2, rect.top + rect.height / 2);
         }
-        auto rect = obj->getRealHotspot();
-        sf::Vector2f pos(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        else
+        {
+            auto *actor = ScriptEngine::getActor(v, 2);
+            if(!actor)
+            {
+                return sq_throwerror(v, _SC("failed to get object or actor"));
+            }
+            pos = actor->getPosition();
+        }
+        
         sq_newtable(v);
         sq_pushstring(v, _SC("x"), -1);
         sq_pushinteger(v, pos.x);
@@ -977,10 +987,10 @@ class _ObjectPack : public Pack
 
     static SQInteger objectValidVerb(HSQUIRRELVM v)
     {
-        Object *obj = ScriptEngine::getObject(v, 2);
+        auto *obj = ScriptEngine::getEntity(v, 2);
         if (!obj)
         {
-            return sq_throwerror(v, _SC("failed to get object"));
+            return sq_throwerror(v, _SC("failed to get object or actor"));
         }
         SQInteger verb;
         if (SQ_FAILED(sq_getinteger(v, 3, &verb)))
