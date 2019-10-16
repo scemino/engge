@@ -1,3 +1,5 @@
+#include "squirrel.h"
+#include "sqstdaux.h"
 #include "Engine.h"
 #include "ActorIconSlot.h"
 #include "ActorIcons.h"
@@ -132,6 +134,7 @@ struct Engine::Impl
     void onLanguageChange(const std::string &lang);
     std::string getVerbName(const Verb &verb) const;
     void drawFade(sf::RenderTarget &target) const;
+    void enteredRoom(Room* pRoom);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -638,7 +641,31 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
         sq_pop(_vm, 1);
     }
 
+    enteredRoom(pRoom);
+
     return 0;
+}
+
+void Engine::Impl::enteredRoom(Room* pRoom)
+{
+    sq_pushroottable(_vm);
+    sq_pushstring(_vm, _SC("enteredRoom"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        error("can't find enteredRoom function");
+        return;
+    }
+    sq_remove(_vm, -2);
+    sq_pushroottable(_vm);
+    sq_pushobject(_vm, pRoom->getTable());
+    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(_vm);
+        sq_pop(_vm, 1);
+        error("function enteredRoom call failed");
+        return;
+    }
+    sq_pop(_vm, 1);
 }
 
 void Engine::Impl::setCurrentRoom(Room *pRoom)

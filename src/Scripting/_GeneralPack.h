@@ -41,6 +41,7 @@ private:
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
+        engine.registerGlobalFunction(refreshUI, "refreshUI");
         engine.registerGlobalFunction(screenSize, "screenSize");
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
@@ -513,6 +514,12 @@ private:
         auto index = int_rand(0, size - 2);
         sq_push(v, 2 + index);
         return 1;
+    }
+
+    static SQInteger refreshUI(HSQUIRRELVM v)
+    {
+        error("TODO: refreshUI: not implemented");
+        return 0;
     }
 
     static SQInteger cameraInRoom(HSQUIRRELVM v)

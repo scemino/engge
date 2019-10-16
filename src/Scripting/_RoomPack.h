@@ -83,6 +83,7 @@ private:
     {
         g_pEngine = &engine.getEngine();
         engine.registerGlobalFunction(addTrigger, "addTrigger");
+        engine.registerGlobalFunction(clampInWalkbox, "clampInWalkbox");
         engine.registerGlobalFunction(createLight, "createLight");
         engine.registerGlobalFunction(defineRoom, "defineRoom");
         engine.registerGlobalFunction(definePseudoRoom, "definePseudoRoom");
@@ -360,6 +361,19 @@ private:
         object->addTrigger(trigger);
 
         return 0;
+    }
+
+    static SQInteger clampInWalkbox(HSQUIRRELVM v)
+    {
+        error("TODO: clampInWalkbox: not implemented");
+        sq_newtable(v);
+        sq_pushstring(v, _SC("x"), -1);
+        sq_pushinteger(v, 10);
+        sq_newslot(v, -3, SQFalse);
+        sq_pushstring(v, _SC("y"), -1);
+        sq_pushinteger(v, 10);
+        sq_newslot(v, -3, SQFalse);
+        return 1;
     }
 
     static SQInteger enableTrigger(HSQUIRRELVM v)

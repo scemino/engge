@@ -409,6 +409,7 @@ void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionNa
     sq_pushstring(v, functionName, -1);
     sq_newclosure(v, f, 0); //create a new function
     sq_setparamscheck(v, nparamscheck, typemask);
+    sq_setnativeclosurename(v, -1, functionName);
     sq_newslot(v, -3, SQFalse);
     sq_pop(v, 1); //pops the root table
 }
