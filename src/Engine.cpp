@@ -135,6 +135,7 @@ struct Engine::Impl
     std::string getVerbName(const Verb &verb) const;
     void drawFade(sf::RenderTarget &target) const;
     void enteredRoom(Room* pRoom);
+    void exitedRoom(Room* pRoom);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -434,6 +435,9 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     }
     sq_pop(_vm, 1);
     pOldRoom->exit();
+
+    exitedRoom(pOldRoom);
+
     return 0;
 }
 
@@ -663,6 +667,28 @@ void Engine::Impl::enteredRoom(Room* pRoom)
         sqstd_printcallstack(_vm);
         sq_pop(_vm, 1);
         error("function enteredRoom call failed");
+        return;
+    }
+    sq_pop(_vm, 1);
+}
+
+void Engine::Impl::exitedRoom(Room* pRoom)
+{
+    sq_pushroottable(_vm);
+    sq_pushstring(_vm, _SC("exitedRoom"), -1);
+    if (SQ_FAILED(sq_rawget(_vm, -2)))
+    {
+        error("can't find exitedRoom function");
+        return;
+    }
+    sq_remove(_vm, -2);
+    sq_pushroottable(_vm);
+    sq_pushobject(_vm, pRoom->getTable());
+    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(_vm);
+        sq_pop(_vm, 1);
+        error("function exitedRoom call failed");
         return;
     }
     sq_pop(_vm, 1);
