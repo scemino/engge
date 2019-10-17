@@ -1,3 +1,5 @@
+#include "squirrel.h"
+#include "sqstdaux.h"
 #include "Actor.h"
 #include "Engine.h"
 #include "Lip.h"
@@ -108,6 +110,29 @@ struct Actor::Impl
         rectangle.setSize(sf::Vector2f(2, 2));
         rectangle.setOrigin(sf::Vector2f(1, 1));
         target.draw(rectangle, states);
+    }
+
+    void preWalking()
+    {
+        auto v = _engine.getVm();
+        sq_pushobject(v, _pActor->getTable());
+        sq_pushstring(v, _SC("preWalking"), -1);
+        if (SQ_FAILED(sq_rawget(v, -2)))
+        {
+            sq_pop(v, 1);
+            trace("can't find actor {} preWalking function", tostring(_pActor->getName()));
+            return;
+        }
+        sq_remove(v, -2);
+        sq_pushobject(v, _pActor->getTable());
+        if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+        {
+            sqstd_printcallstack(v);
+            sq_pop(v, 1);
+            error("function actor preWalking call failed");
+            return;
+        }
+        sq_pop(v, 1);
     }
 
     Engine &_engine;
@@ -565,6 +590,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if (path.size() < 2)
         return;
 
+    pImpl->preWalking();
     pImpl->_walkingState.setDestination(path, facing);
 }
 
