@@ -1027,7 +1027,7 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
         return false;
 
     bool handled = false;
-    ScriptEngine::call(handled, _pRoom, "clickedAt", pos.x, pos.y);
+    ScriptEngine::callFunc(handled, _pRoom, "clickedAt", pos.x, pos.y);
     return handled;
 }
 

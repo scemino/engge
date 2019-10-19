@@ -397,12 +397,15 @@ void Actor::Impl::TalkingState::load(int id)
     _sayText = _pActor->pImpl->_engine.getText(id);
     std::wregex re(L"(\\{([^\\}]*)\\})");
     std::wsmatch matches;
+    const char* anim = nullptr;
     if (std::regex_search(_sayText, matches, re))
     {
-        auto anim = matches[2].str();
-        _pActor->getCostume().setState(tostring(anim));
+        anim = tostring(matches[2].str()).data();
+        _pActor->getCostume().setState(anim);
         _sayText = matches.suffix();
     }
+    const char* text = tostring(_sayText).data();
+    ScriptEngine::call(_pActor, "sayingLine", anim, text);
     _isTalking = true;
     _index = 0;
     _elapsed = sf::seconds(0);

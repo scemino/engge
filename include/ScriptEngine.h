@@ -72,7 +72,7 @@ public:
   static void call(TThis pThis, const char* name);
 
   template<typename TResult, typename TThis, typename...T>
-  static void call(TResult& result, TThis pThis, const char* name, T... args);
+  static void callFunc(TResult& result, TThis pThis, const char* name, T... args);
 
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
@@ -176,7 +176,7 @@ void ScriptEngine::call(TThis pThis, const char* name)
 }
 
 template<typename TResult, typename TThis, typename...T>
-void ScriptEngine::call(TResult& result, TThis pThis, const char* name, T... args)
+void ScriptEngine::callFunc(TResult& result, TThis pThis, const char* name, T... args)
 {
     constexpr std::size_t n = sizeof...(T);
     auto v = g_pEngine->getVm();
