@@ -7,6 +7,7 @@
 #include "PathFinder.h"
 #include "Room.h"
 #include "RoomScaling.h"
+#include "ScriptEngine.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
 #include "SoundManager.h"
@@ -110,29 +111,6 @@ struct Actor::Impl
         rectangle.setSize(sf::Vector2f(2, 2));
         rectangle.setOrigin(sf::Vector2f(1, 1));
         target.draw(rectangle, states);
-    }
-
-    void preWalking()
-    {
-        auto v = _engine.getVm();
-        sq_pushobject(v, _pActor->getTable());
-        sq_pushstring(v, _SC("preWalking"), -1);
-        if (SQ_FAILED(sq_rawget(v, -2)))
-        {
-            sq_pop(v, 1);
-            trace("can't find actor {} preWalking function", tostring(_pActor->getName()));
-            return;
-        }
-        sq_remove(v, -2);
-        sq_pushobject(v, _pActor->getTable());
-        if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
-        {
-            sqstd_printcallstack(v);
-            sq_pop(v, 1);
-            error("function actor preWalking call failed");
-            return;
-        }
-        sq_pop(v, 1);
     }
 
     Engine &_engine;
@@ -374,30 +352,8 @@ void Actor::Impl::TalkingState::stop()
 
 int Actor::Impl::TalkingState::onTalkieID(int id)
 {
-    auto v = _pActor->pImpl->_engine.getVm();
-    sq_pushroottable(v);
-    sq_pushstring(v, _SC("onTalkieID"), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
-    {
-        error("failed to get onTalkieID function");
-        sq_pop(v, 1);
-        return id;
-    }
-    
-    SQInteger talkieID = id;
-    sq_pushroottable(v);
-    sq_pushobject(v, _pActor->pImpl->_table);
-    sq_pushinteger(v, talkieID);
-    if (SQ_FAILED(sq_call(v, 3, SQTrue, SQTrue)))
-    {
-        error("failed to call onTalkieID function");
-        sq_pop(v, 1);
-        return id;
-    }
-    
-    sq_getinteger(v, -1, &talkieID);
-    sq_pop(v, 1);
-    return talkieID;
+    ScriptEngine::call(id, "onTalkieID", _pActor, id);
+    return id;
 }
 
 void Actor::Impl::TalkingState::load(int id)
@@ -590,7 +546,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if (path.size() < 2)
         return;
 
-    pImpl->preWalking();
+    ScriptEngine::call(this, "preWalking");
     pImpl->_walkingState.setDestination(path, facing);
 }
 

@@ -1,9 +1,12 @@
 #pragma once
 #include <functional>
 #include <string>
-#include "squirrel.h"
+#include "sqstdio.h"
+#include "sqstdaux.h"
 #include "Engine.h"
 #include "Interpolations.h"
+#include "Logger.h"
+#include "Room.h"
 
 namespace ng
 {
@@ -26,8 +29,6 @@ public:
   void setEngine(Engine &engine);
   Engine &getEngine();
 
-  template <typename TConstant>
-  void pushValue(TConstant value);
   template <typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar*, TConstant>> list);
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
@@ -53,6 +54,26 @@ public:
 
   static std::function<float(float)> getInterpolationMethod(InterpolationMethod index);
 
+  template <typename T>
+  static void push(HSQUIRRELVM v, T value);
+  template <typename First, typename... Rest>
+  static void push(HSQUIRRELVM v, First firstValue, Rest... rest);
+
+  template <typename T>
+  static void get(HSQUIRRELVM v, size_t index, T& result);
+
+  template<typename...T>
+  static void call(const char* name, T... args);
+  static void call(const char* name);
+
+  template<typename TThis, typename...T>
+  static void call(TThis pThis, const char* name, T... args);
+  template<typename TThis>
+  static void call(TThis pThis, const char* name);
+
+  template<typename TResult, typename TThis, typename...T>
+  static void call(TResult& result, TThis pThis, const char* name, T... args);
+
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
   static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
@@ -63,6 +84,123 @@ private:
   Engine *_pEngine{nullptr};
   HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
+
+private:
+  static Engine *g_pEngine;
 };
+
+template <typename First, typename... Rest>
+void ScriptEngine::push(HSQUIRRELVM v, First firstValue, Rest... rest)
+{
+	ScriptEngine::push(v, firstValue);
+	ScriptEngine::push(v, rest...);
+}
+
+template<typename...T>
+void ScriptEngine::call(const char* name, T...args)
+{
+    constexpr std::size_t n = sizeof...(T);
+    auto v = g_pEngine->getVm();
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return;
+    }
+    sq_remove(v, -2);
+
+    sq_pushroottable(v);
+    ScriptEngine::push(v, std::forward<T>(args)...);
+    if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return;
+    }
+    sq_pop(v, 1);
+}
+
+template<typename TThis, typename...T>
+void ScriptEngine::call(TThis pThis, const char* name, T... args)
+{
+    constexpr std::size_t n = sizeof...(T);
+    auto v = g_pEngine->getVm();
+    ScriptEngine::push(v, pThis);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return;
+    }
+    sq_remove(v, -2);
+
+    ScriptEngine::push(v, pThis);
+    ScriptEngine::push(v, std::forward<T>(args)...);
+    if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return;
+    }
+    sq_pop(v, 1);
+}
+
+template<typename TThis>
+void ScriptEngine::call(TThis pThis, const char* name)
+{
+    auto v = g_pEngine->getVm();
+    ScriptEngine::push(v, pThis);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return;
+    }
+    sq_remove(v, -2);
+
+    ScriptEngine::push(v, pThis);
+    if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return;
+    }
+    sq_pop(v, 1);
+}
+
+template<typename TResult, typename TThis, typename...T>
+void ScriptEngine::call(TResult& result, TThis pThis, const char* name, T... args)
+{
+    constexpr std::size_t n = sizeof...(T);
+    auto v = g_pEngine->getVm();
+    ScriptEngine::push(v, pThis);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return;
+    }
+    sq_remove(v, -2);
+
+    ScriptEngine::push(v, pThis);
+    ScriptEngine::push(v, std::forward<T>(args)...);
+    if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return;
+    }
+    ScriptEngine::get(v, -1, result);
+    sq_pop(v, 2);
+}
 
 } // namespace ng

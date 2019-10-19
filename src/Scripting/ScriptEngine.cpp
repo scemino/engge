@@ -29,27 +29,101 @@
 namespace ng
 {
 template <>
-void ScriptEngine::pushValue(bool value)
+void ScriptEngine::get(HSQUIRRELVM v, size_t index, bool &result)
+{
+    SQInteger integer = 0;
+    sq_getinteger(v, index, &integer);
+    result = integer != 0;
+}
+
+template <>
+void ScriptEngine::get(HSQUIRRELVM v, size_t index, int &result)
+{
+    SQInteger integer = 0;
+    sq_getinteger(v, index, &integer);
+    result = integer;
+}
+
+template <>
+void ScriptEngine::get(HSQUIRRELVM v, size_t index, const char *&result)
+{
+    const SQChar *text = nullptr;
+    sq_getstring(v, index, &text);
+    result = text;
+}
+
+template <>
+void ScriptEngine::push<bool>(HSQUIRRELVM v, bool value)
 {
     sq_pushbool(v, value ? SQTrue : SQFalse);
 }
 
 template <>
-void ScriptEngine::pushValue(int value)
+void ScriptEngine::push<int>(HSQUIRRELVM v, int value)
 {
     sq_pushinteger(v, value);
 }
 
 template <>
-void ScriptEngine::pushValue(const char *value)
+void ScriptEngine::push<const char *>(HSQUIRRELVM v, const char *value)
 {
     sq_pushstring(v, value, -1);
 }
 
 template <>
-void ScriptEngine::pushValue(SQFloat value)
+void ScriptEngine::push<SQFloat>(HSQUIRRELVM v, SQFloat value)
 {
     sq_pushfloat(v, value);
+}
+
+template <>
+void ScriptEngine::push<Entity *>(HSQUIRRELVM v, Entity *pEntity)
+{
+    if (!pEntity)
+    {
+        sq_pushnull(v);
+        return;
+    }
+    sq_pushobject(v, pEntity->getTable());
+}
+
+template <>
+void ScriptEngine::push<Actor *>(HSQUIRRELVM v, Actor *pActor)
+{
+    if (!pActor)
+    {
+        sq_pushnull(v);
+        return;
+    }
+    sq_pushobject(v, pActor->getTable());
+}
+
+template <>
+void ScriptEngine::push<Room *>(HSQUIRRELVM v, Room *pRoom)
+{
+    if (!pRoom)
+    {
+        sq_pushnull(v);
+        return;
+    }
+    sq_pushobject(v, pRoom->getTable());
+}
+
+template <>
+void ScriptEngine::push<Object *>(HSQUIRRELVM v, Object *pObject)
+{
+    if (!pObject)
+    {
+        sq_pushnull(v);
+        return;
+    }
+    sq_pushobject(v, pObject->getTable());
+}
+
+template <>
+void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t _)
+{
+    sq_pushnull(v);
 }
 
 template <typename TConstant>
@@ -59,7 +133,7 @@ void ScriptEngine::registerConstants(std::initializer_list<std::tuple<const SQCh
     {
         sq_pushconsttable(v);
         sq_pushstring(v, std::get<0>(t), -1);
-        pushValue(std::get<1>(t));
+        push(v, std::get<1>(t));
         sq_newslot(v, -3, SQTrue);
         sq_pop(v, 1);
     }
@@ -109,26 +183,17 @@ Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
     return ScriptEngine::getScriptObject<Object>(v, index);
 }
 
-Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index)
-{
-    return ScriptEngine::getScriptObject<Room>(v, index);
-}
+Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Room>(v, index); }
 
-Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index)
-{
-    return ScriptEngine::getScriptObject<Actor>(v, index);
-}
+Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Actor>(v, index); }
 
-Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index)
-{
-    return ScriptEngine::getScriptObject<Light>(v, index);
-}
+Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Light>(v, index); }
 
-bool ScriptEngine::tryGetLight(HSQUIRRELVM v, SQInteger index, Light*& light)
+bool ScriptEngine::tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light)
 {
     HSQOBJECT obj;
     light = nullptr;
-    if(SQ_SUCCEEDED(sq_getstackobj(v, index, &obj)) && sq_isinteger(obj) && sq_objtointeger(&obj) == 0)
+    if (SQ_SUCCEEDED(sq_getstackobj(v, index, &obj)) && sq_isinteger(obj) && sq_objtointeger(&obj) == 0)
     {
         return false;
     }
@@ -195,7 +260,7 @@ ScriptEngine::ScriptEngine()
     sq_setcompilererrorhandler(v, errorHandler);
     sq_newclosure(v, aux_printerror, 0);
     sq_seterrorhandler(v);
-    sq_setprintfunc(v, printfunc, errorfunc); //sets the print function
+    sq_setprintfunc(v, printfunc, errorfunc); // sets the print function
 
     sq_pushroottable(v);
     sqstd_register_mathlib(v);
@@ -265,28 +330,28 @@ ScriptEngine::ScriptEngine()
         {"DOOR_BACK", 0x440},
         {"DOOR_FRONT", 0x840},
         {"FAR_LOOK", 0x8},
-        {"USE_WITH",    ObjectFlagConstants::USE_WITH},
-        {"USE_ON",      ObjectFlagConstants::USE_ON},
-        {"USE_IN",      ObjectFlagConstants::USE_IN},
-        {"GIVEABLE",    ObjectFlagConstants::GIVEABLE},
-        {"TALKABLE",    ObjectFlagConstants::TALKABLE},
-        {"IMMEDIATE",   ObjectFlagConstants::IMMEDIATE},
-        {"FEMALE",      ObjectFlagConstants::FEMALE},
-        {"MALE",        ObjectFlagConstants::MALE},
-        {"PERSON",      ObjectFlagConstants::PERSON},
-        {"REACH_HIGH",  ObjectFlagConstants::REACH_HIGH},
-        {"REACH_MED",   ObjectFlagConstants::REACH_MED},
-        {"REACH_LOW",   ObjectFlagConstants::REACH_LOW},
-        {"REACH_NONE",  ObjectFlagConstants::REACH_NONE},
-        {"VERB_CLOSE",  VerbConstants::VERB_CLOSE},
-        {"VERB_GIVE",   VerbConstants::VERB_GIVE},
+        {"USE_WITH", ObjectFlagConstants::USE_WITH},
+        {"USE_ON", ObjectFlagConstants::USE_ON},
+        {"USE_IN", ObjectFlagConstants::USE_IN},
+        {"GIVEABLE", ObjectFlagConstants::GIVEABLE},
+        {"TALKABLE", ObjectFlagConstants::TALKABLE},
+        {"IMMEDIATE", ObjectFlagConstants::IMMEDIATE},
+        {"FEMALE", ObjectFlagConstants::FEMALE},
+        {"MALE", ObjectFlagConstants::MALE},
+        {"PERSON", ObjectFlagConstants::PERSON},
+        {"REACH_HIGH", ObjectFlagConstants::REACH_HIGH},
+        {"REACH_MED", ObjectFlagConstants::REACH_MED},
+        {"REACH_LOW", ObjectFlagConstants::REACH_LOW},
+        {"REACH_NONE", ObjectFlagConstants::REACH_NONE},
+        {"VERB_CLOSE", VerbConstants::VERB_CLOSE},
+        {"VERB_GIVE", VerbConstants::VERB_GIVE},
         {"VERB_LOOKAT", VerbConstants::VERB_LOOKAT},
-        {"VERB_OPEN",   VerbConstants::VERB_OPEN},
+        {"VERB_OPEN", VerbConstants::VERB_OPEN},
         {"VERB_PICKUP", VerbConstants::VERB_PICKUP},
-        {"VERB_PULL",   VerbConstants::VERB_PULL},
-        {"VERB_PUSH",   VerbConstants::VERB_PUSH},
+        {"VERB_PULL", VerbConstants::VERB_PULL},
+        {"VERB_PUSH", VerbConstants::VERB_PUSH},
         {"VERB_TALKTO", VerbConstants::VERB_TALKTO},
-        {"VERB_USE",    VerbConstants::VERB_USE},
+        {"VERB_USE", VerbConstants::VERB_USE},
         {"VERB_WALKTO", VerbConstants::VERB_WALKTO},
         {"VERB_DIALOG", VerbConstants::VERB_DIALOG},
         {"VERBFLAG_INSTANT", 1},
@@ -304,11 +369,11 @@ ScriptEngine::ScriptEngine()
         {"ANDROID", 6},
         {"SWITCH", 7},
         {"PS4", 8},
-        {"EFFECT_NONE",          RoomEffectConstants::EFFECT_NONE},
-        {"EFFECT_SEPIA",         RoomEffectConstants::EFFECT_SEPIA},
-        {"EFFECT_EGA",           RoomEffectConstants::EFFECT_EGA},
-        {"EFFECT_VHS",           RoomEffectConstants::EFFECT_VHS},
-        {"EFFECT_GHOST",         RoomEffectConstants::EFFECT_GHOST},
+        {"EFFECT_NONE", RoomEffectConstants::EFFECT_NONE},
+        {"EFFECT_SEPIA", RoomEffectConstants::EFFECT_SEPIA},
+        {"EFFECT_EGA", RoomEffectConstants::EFFECT_EGA},
+        {"EFFECT_VHS", RoomEffectConstants::EFFECT_VHS},
+        {"EFFECT_GHOST", RoomEffectConstants::EFFECT_GHOST},
         {"EFFECT_BLACKANDWHITE", RoomEffectConstants::EFFECT_BLACKANDWHITE},
         {"KEY_UP", 0x40000052},
         {"KEY_RIGHT", 0x4000004F},
@@ -335,14 +400,12 @@ ScriptEngine::ScriptEngine()
     });
 }
 
-ScriptEngine::~ScriptEngine()
-{
-    sq_close(v);
-}
+ScriptEngine::~ScriptEngine() { sq_close(v); }
 
 void ScriptEngine::setEngine(Engine &engine)
 {
     _pEngine = &engine;
+    g_pEngine = &engine;
     engine.setVm(v);
     auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
     engine.setVerbExecute(std::move(pVerbExecute));
@@ -357,10 +420,7 @@ void ScriptEngine::setEngine(Engine &engine)
     addPack<_SystemPack>();
 }
 
-Engine &ScriptEngine::getEngine()
-{
-    return *_pEngine;
-}
+Engine &ScriptEngine::getEngine() { return *_pEngine; }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
 {
@@ -382,7 +442,8 @@ SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
     return 0;
 }
 
-void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column)
+void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line,
+                                SQInteger column)
 {
     error("{} {}({},{})", desc, source, line, column);
 }
@@ -403,15 +464,16 @@ void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...)
     va_end(vl);
 }
 
-void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck, const SQChar *typemask)
+void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck,
+                                          const SQChar *typemask)
 {
     sq_pushroottable(v);
     sq_pushstring(v, functionName, -1);
-    sq_newclosure(v, f, 0); //create a new function
+    sq_newclosure(v, f, 0); // create a new function
     sq_setparamscheck(v, nparamscheck, typemask);
     sq_setnativeclosurename(v, -1, functionName);
     sq_newslot(v, -3, SQFalse);
-    sq_pop(v, 1); //pops the root table
+    sq_pop(v, 1); // pops the root table
 }
 
 void ScriptEngine::executeScript(const std::string &name)
@@ -500,16 +562,43 @@ std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMe
 {
     switch (index)
     {
-    case InterpolationMethod::SlowEaseIn:
-    case InterpolationMethod::EaseIn:
-        return Interpolations::easeIn;
-    case InterpolationMethod::EaseInOut:
-        return Interpolations::easeInOut;
-    case InterpolationMethod::SlowEaseOut:
-    case InterpolationMethod::EaseOut:
-        return Interpolations::easeOut;
-    default:
-        return Interpolations::linear;
+        case InterpolationMethod::SlowEaseIn:
+        case InterpolationMethod::EaseIn:
+            return Interpolations::easeIn;
+        case InterpolationMethod::EaseInOut:
+            return Interpolations::easeInOut;
+        case InterpolationMethod::SlowEaseOut:
+        case InterpolationMethod::EaseOut:
+            return Interpolations::easeOut;
+        default:
+            return Interpolations::linear;
     }
 }
+
+void ScriptEngine::call(const char *name)
+{
+    auto v = g_pEngine->getVm();
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return;
+    }
+    sq_remove(v, -2);
+
+    sq_pushroottable(v);
+    if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return;
+    }
+    sq_pop(v, 1);
+}
+
+Engine *ScriptEngine::g_pEngine = nullptr;
+
 } // namespace ng

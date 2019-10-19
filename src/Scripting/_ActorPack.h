@@ -1274,7 +1274,7 @@ class _ActorPack : public Pack
         g_pEngine->setVerbUiColors(actorSlot - 1, colors);
         return 0;
     }
-}; // namespace ng
+};
 
 Engine *_ActorPack::g_pEngine = nullptr;
 

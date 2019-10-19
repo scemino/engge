@@ -127,15 +127,11 @@ struct Engine::Impl
     int32_t getFlags(HSQOBJECT obj) const;
     int getDefaultVerb(HSQUIRRELVM vm, const Entity *pEntity) const;
     Entity *getHoveredEntity(const sf::Vector2f &mousPos);
-    void onVerbClick();
-    void onObjectClick(Entity *pObj);
     void actorEnter();
     void actorExit();
     void onLanguageChange(const std::string &lang);
     std::string getVerbName(const Verb &verb) const;
     void drawFade(sf::RenderTarget &target) const;
-    void enteredRoom(Room* pRoom);
-    void exitedRoom(Room* pRoom);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -157,24 +153,7 @@ void Engine::Impl::onLanguageChange(const std::string &lang)
     ss << "ThimbleweedText_" << lang << ".tsv";
     _textDb.load(ss.str());
 
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, _SC("onLanguageChange"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        error("failed to get onLanguageChange function");
-        sq_pop(_vm, 1);
-        return;
-    }
-
-    sq_remove(_vm, -2);
-    sq_pushroottable(_vm);
-    if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
-    {
-        error("failed to call onLanguageChange function");
-        sq_pop(_vm, 1);
-        return;
-    }
-    sq_pop(_vm, 1);
+    ScriptEngine::call("onLanguageChange");
 }
 
 void Engine::Impl::drawFade(sf::RenderTarget &target) const
@@ -417,26 +396,18 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     actorExit();
 
     sq_remove(_vm, -2);
-    sq_pushobject(_vm, pOldRoom->getTable());
     if (nparams == 2)
     {
-        if (pObject)
-        {
-            sq_pushobject(_vm, pObject->getTable());
-        }
-        else
-        {
-            sq_pushnull(_vm); // push here the door
-        }
+        ScriptEngine::call(pOldRoom, "exit", pObject);
     }
-    if (SQ_FAILED(sq_call(_vm, nparams, SQFalse, SQTrue)))
+    else
     {
-        return sq_throwerror(_vm, _SC("function exit call failed"));
+        ScriptEngine::call(pOldRoom, "exit");
     }
-    sq_pop(_vm, 1);
+
     pOldRoom->exit();
 
-    exitedRoom(pOldRoom);
+    ScriptEngine::call("exitedRoom", pOldRoom);
 
     return 0;
 }
@@ -516,46 +487,12 @@ void Engine::Impl::actorEnter()
     if (!_pCurrentActor)
         return;
 
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, _SC("actorEnter"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        sq_pop(_vm, 1);
-        return;
-    }
-
-    sq_remove(_vm, -2);
-    sq_pushroottable(_vm);
-    sq_pushobject(_vm, _pCurrentActor->getTable());
-    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
-    {
-        error("failed to call actorEnter function");
-        sq_pop(_vm, 1);
-        return;
-    }
-    sq_pop(_vm, 1);
+    ScriptEngine::call("actorEnter", _pCurrentActor);
 
     if (!_pRoom)
         return;
 
-    sq_pushobject(_vm, _pRoom->getTable());
-    sq_pushstring(_vm, _SC("actorEnter"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        sq_pop(_vm, 1);
-        return;
-    }
-
-    sq_remove(_vm, -2);
-    sq_pushobject(_vm, _pRoom->getTable());
-    sq_pushobject(_vm, _pCurrentActor->getTable());
-    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
-    {
-        error("failed to call room actorEnter function");
-        sq_pop(_vm, 1);
-        return;
-    }
-    sq_pop(_vm, 1);
+    ScriptEngine::call(_pRoom, "actorEnter", _pCurrentActor);
 }
 
 void Engine::Impl::actorExit()
@@ -563,24 +500,7 @@ void Engine::Impl::actorExit()
     if (!_pCurrentActor || !_pRoom)
         return;
 
-    sq_pushobject(_vm, _pRoom->getTable());
-    sq_pushstring(_vm, _SC("actorExit"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        sq_pop(_vm, 1);
-        return;
-    }
-
-    sq_remove(_vm, -2);
-    sq_pushobject(_vm, _pRoom->getTable());
-    sq_pushobject(_vm, _pCurrentActor->getTable());
-    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
-    {
-        error("failed to call actorExit function");
-        sq_pop(_vm, 1);
-        return;
-    }
-    sq_pop(_vm, 1);
+    ScriptEngine::call(_pRoom, "actorExit", _pCurrentActor);
 }
 
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
@@ -600,23 +520,15 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     trace("enter function found with {} parameters", nparams);
 
     sq_remove(_vm, -2);
-    sq_pushobject(_vm, pRoom->getTable());
+
     if (nparams == 2)
     {
-        if (pObject)
-        {
-            sq_pushobject(_vm, pObject->getTable());
-        }
-        else
-        {
-            sq_pushnull(_vm); // push here the door
-        }
+        ScriptEngine::call(_pRoom, "enter", pObject);
     }
-    if (SQ_FAILED(sq_call(_vm, nparams, SQFalse, SQTrue)))
+    else
     {
-        return sq_throwerror(_vm, _SC("function enter call failed"));
+        ScriptEngine::call(_pRoom, "enter");
     }
-    sq_pop(_vm, 1);
 
     actorEnter();
 
@@ -628,70 +540,12 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
         if (obj->getId().empty())
             continue;
 
-        sq_pushobject(_vm, obj->getTable());
-        sq_pushstring(_vm, _SC("enter"), -1);
-        if (SQ_FAILED(sq_rawget(_vm, -2)))
-        {
-            sq_pop(_vm, 1);
-            continue;
-        }
-
-        sq_remove(_vm, -2);
-        sq_pushobject(_vm, obj->getTable());
-        if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
-        {
-            return sq_throwerror(_vm, _SC("function object enter call failed"));
-        }
-        sq_pop(_vm, 1);
+        ScriptEngine::call(obj.get(), "enter");
     }
 
-    enteredRoom(pRoom);
+    ScriptEngine::call("enteredRoom", pRoom);
 
     return 0;
-}
-
-void Engine::Impl::enteredRoom(Room* pRoom)
-{
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, _SC("enteredRoom"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        error("can't find enteredRoom function");
-        return;
-    }
-    sq_remove(_vm, -2);
-    sq_pushroottable(_vm);
-    sq_pushobject(_vm, pRoom->getTable());
-    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
-    {
-        sqstd_printcallstack(_vm);
-        sq_pop(_vm, 1);
-        error("function enteredRoom call failed");
-        return;
-    }
-    sq_pop(_vm, 1);
-}
-
-void Engine::Impl::exitedRoom(Room* pRoom)
-{
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, _SC("exitedRoom"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        error("can't find exitedRoom function");
-        return;
-    }
-    sq_remove(_vm, -2);
-    sq_pushroottable(_vm);
-    sq_pushobject(_vm, pRoom->getTable());
-    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
-    {
-        sqstd_printcallstack(_vm);
-        sq_pop(_vm, 1);
-        error("function exitedRoom call failed");
-        return;
-    }
-    sq_pop(_vm, 1);
 }
 
 void Engine::Impl::setCurrentRoom(Room *pRoom)
@@ -886,47 +740,6 @@ void Engine::Impl::updateMouseCursor()
         _cursorDirection |= CursorDirection::Up;
     if ((_cursorDirection == CursorDirection::None) && _pObj1)
         _cursorDirection |= CursorDirection::Hotspot;
-}
-
-void Engine::Impl::onVerbClick()
-{
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, _SC("onVerbClick"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        error("failed to get onVerbClick function");
-        return;
-    }
-
-    sq_remove(_vm, -2);
-    sq_pushroottable(_vm);
-    if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue)))
-    {
-        error("failed to call onVerbClick function");
-        return;
-    }
-    sq_pop(_vm, 1);
-}
-
-void Engine::Impl::onObjectClick(Entity *pObj)
-{
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, _SC("onObjectClick"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        error("failed to get onObjectClick function");
-        return;
-    }
-
-    sq_remove(_vm, -2);
-    sq_pushroottable(_vm);
-    sq_pushobject(_vm, pObj->getTable());
-    if (SQ_FAILED(sq_call(_vm, 2, SQFalse, SQTrue)))
-    {
-        error("failed to call onObjectClick function");
-        return;
-    }
-    sq_pop(_vm, 1);
 }
 
 Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos)
@@ -1171,7 +984,7 @@ void Engine::update(const sf::Time &elapsed)
                 _pImpl->_pObj1 = nullptr;
                 _pImpl->_pObj2 = nullptr;
 
-                _pImpl->onVerbClick();
+                ScriptEngine::call("onVerbClick");
                 return;
             }
         }
@@ -1179,7 +992,7 @@ void Engine::update(const sf::Time &elapsed)
 
     if (_pImpl->_pHoveredEntity)
     {
-        _pImpl->onObjectClick(_pImpl->_pHoveredEntity);
+        ScriptEngine::call("onObjectClick", _pImpl->_pHoveredEntity);
         auto pVerb = _pImpl->_pVerbOverride;
         if (!pVerb)
         {
@@ -1204,27 +1017,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
         follow(_pImpl->_pCurrentActor);
     }
 
-    auto v = _pImpl->_vm;
-    sq_pushroottable(v);
-    sq_pushstring(v, _SC("onActorSelected"), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
-    {
-        error("failed to get onActorSelected function");
-        sq_pop(v, 1);
-        return;
-    }
-
-    sq_remove(v, -2);
-    sq_pushroottable(v);
-    sq_pushobject(v, pCurrentActor->getTable());
-    sq_pushbool(v, userSelected);
-    if (SQ_FAILED(sq_call(v, 3, SQFalse, SQTrue)))
-    {
-        error("failed to call onActorSelected function");
-        sq_pop(v, 1);
-        return;
-    }
-    sq_pop(v, 1);
+    ScriptEngine::call("onActorSelected", pCurrentActor, userSelected);
 }
 
 bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
@@ -1232,23 +1025,9 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
     if (!_pRoom)
         return false;
 
-    auto &table = _pRoom->getTable();
-    sq_pushobject(_vm, table);
-    sq_pushstring(_vm, _SC("clickedAt"), -1);
-    if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-    {
-        sq_remove(_vm, -2);
-        sq_pushobject(_vm, table);
-        sq_pushinteger(_vm, pos.x);
-        sq_pushinteger(_vm, pos.y);
-        sq_call(_vm, 3, SQTrue, SQTrue);
-        SQInteger handled = 0;
-        sq_getinteger(_vm, -1, &handled);
-        sq_pop(_vm, 2);
-        return handled == 1;
-    }
-    sq_pop(_vm, 1);
-    return false;
+    bool handled = false;
+    ScriptEngine::call(handled, _pRoom, "clickedAt", pos.x, pos.y);
+    return handled;
 }
 
 void Engine::draw(sf::RenderWindow &window) const
