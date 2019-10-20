@@ -200,7 +200,7 @@ void ScriptEngine::callFunc(TResult& result, TThis pThis, const char* name, T...
         return;
     }
     ScriptEngine::get(v, -1, result);
-    sq_pop(v, 2);
+    sq_pop(v, 1);
 }
 
 } // namespace ng
