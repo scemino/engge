@@ -3,6 +3,7 @@
 #include "../_Util.h"
 #include "Engine.h"
 #include "Logger.h"
+#include "Sentence.h"
 #include "squirrel.h"
 
 namespace ng
@@ -16,35 +17,6 @@ static void pushObject(HSQUIRRELVM vm, Entity *pObj)
     }
     sq_pushnull(vm);
 }
-
-class _CompositeFunction : public Function
-{
-    bool isElapsed() override { return _functions.empty(); }
-
-    void operator()(const sf::Time &elapsed) override
-    {
-        if (_functions.empty())
-            return;
-        if (_functions[0]->isElapsed())
-        {
-            _functions.erase(_functions.begin());
-        }
-        else
-        {
-            (*_functions[0])(elapsed);
-        }
-    }
-
-  public:
-    _CompositeFunction &push_back(std::unique_ptr<Function> func)
-    {
-        _functions.push_back(std::move(func));
-        return *this;
-    }
-
-  private:
-    std::vector<std::unique_ptr<Function>> _functions;
-};
 
 class _ActorWalk : public Function
 {
@@ -61,7 +33,6 @@ class _ActorWalk : public Function
   private:
     static Facing getFacing(const Entity *pEntity)
     {
-        Facing facing;
         const auto pActor = dynamic_cast<const Actor *>(pEntity);
         if (pActor)
         {
@@ -81,8 +52,8 @@ class _ActorWalk : public Function
 class _PostWalk : public Function
 {
   public:
-    _PostWalk(HSQUIRRELVM v, Entity *pObject, Entity *pObject2, int verb)
-        : _vm(v), _pObject(pObject), _pObject2(pObject2), _verb(verb)
+    _PostWalk(Sentence& sentence, HSQUIRRELVM v, Entity *pObject, Entity *pObject2, int verb)
+        : _sentence(sentence), _vm(v), _pObject(pObject), _pObject2(pObject2), _verb(verb)
     {
     }
 
@@ -90,38 +61,24 @@ class _PostWalk : public Function
 
     void operator()(const sf::Time &elapsed) override
     {
-        _done = true;
         Object *pObj = dynamic_cast<Object *>(_pObject);
         auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
-        sq_pushobject(_vm, _pObject->getTable());
-        sq_pushstring(_vm, functionName, -1);
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
+        bool handled = false;
+        ScriptEngine::callFunc(handled, _pObject, functionName, _verb, _pObject, _pObject2);
+        if(handled)
         {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, _pObject->getTable());
-            sq_pushinteger(_vm, _verb);
-            sq_pushobject(_vm, _pObject->getTable());
-            pushObject(_vm, _pObject2);
-            sq_call(_vm, 4, SQTrue, SQTrue);
-            SQInteger handled = 0;
-            sq_getinteger(_vm, -1, &handled);
-            if (handled == 1)
-            {
-                _handled = true;
-                return;
-            }
+            _sentence.stop();
         }
-        sq_pop(_vm, 1);
-        _handled = false;
+        _done = true;
     }
 
   private:
+    Sentence& _sentence;
     HSQUIRRELVM _vm{};
     Entity *_pObject{nullptr};
     Entity *_pObject2{nullptr};
     int _verb{0};
     bool _done{false};
-    bool _handled{false};
 };
 
 class _SetDefaultVerb : public Function
@@ -159,6 +116,7 @@ class _VerbExecute : public Function
     void operator()(const sf::Time &elapsed) override
     {
         _done = true;
+        
         sq_pushobject(_vm, _object.getTable());
         sq_pushstring(_vm, _pVerb->func.data(), -1);
 
@@ -184,32 +142,15 @@ class _VerbExecute : public Function
 
         if(_pVerb->id == VerbConstants::VERB_GIVE)
         {
-            sq_pushroottable(_vm);
-            sq_pushstring(_vm, _SC("objectGive"), -1);
+            ScriptEngine::call("objectGive", &_object, &_actor, _pObject2);
 
-            if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
-            {
-                sq_remove(_vm, -2);
-                sq_pushroottable(_vm);
-                sq_pushobject(_vm, _object.getTable());
-                sq_pushobject(_vm, _actor.getTable());
-                sq_pushobject(_vm, _pObject2->getTable());
-                if (SQ_FAILED(sq_call(_vm, 4, SQFalse, SQTrue)))
-                {
-                    trace("failed to execute objectGive");
-                    sqstd_printcallstack(_vm);
-                    return;
-                }
-                sq_pop(_vm, 1);
-
-                Object* pObject = dynamic_cast<Object*>(&_object);
-                Actor* pActor2 = dynamic_cast<Actor*>(_pObject2);
-                _actor.giveTo(pObject, pActor2);
-                return;
-            }
+            Object* pObject = dynamic_cast<Object*>(&_object);
+            Actor* pActor2 = dynamic_cast<Actor*>(_pObject2);
+            _actor.giveTo(pObject, pActor2);
+            return;
         }
 
-        if (callVerbDefault(_object.getTable()))
+        if (callVerbDefault(&_object))
             return;
 
         if (callDefaultObjectVerb())
@@ -221,25 +162,7 @@ class _VerbExecute : public Function
         if(_pVerb->id != VerbConstants::VERB_PICKUP) 
             return;
 
-        sq_pushroottable(_vm);
-        sq_pushstring(_vm, _SC("onPickup"), -1);
-        if (SQ_FAILED(sq_rawget(_vm, -2)))
-        {
-            error("failed to get onPickup function");
-            sq_pop(_vm, 1);
-            return;
-        }
-        
-        sq_pushroottable(_vm);
-        sq_pushobject(_vm, _actor.getTable());
-        sq_pushobject(_vm, _object.getTable());
-        if (SQ_FAILED(sq_call(_vm, 3, SQFalse, SQTrue)))
-        {
-            error("failed to call onPickup function");
-            sq_pop(_vm, 1);
-            return;
-        }
-        sq_pop(_vm, 2);
+        ScriptEngine::call("onPickup", &_actor, &_object);
     }
 
     bool callDefaultObjectVerb()
@@ -276,15 +199,15 @@ class _VerbExecute : public Function
         return false;
     }
 
-    bool callVerbDefault(HSQOBJECT obj)
+    bool callVerbDefault(Entity* pEntity)
     {
-        sq_pushobject(_vm, obj);
+        sq_pushobject(_vm, pEntity->getTable());
         sq_pushstring(_vm, _SC("verbDefault"), -1);
 
         if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
         {
             sq_remove(_vm, -2);
-            sq_pushobject(_vm, obj);
+            sq_pushobject(_vm, pEntity->getTable());
             sq_call(_vm, 1, SQFalse, SQTrue);
             sq_pop(_vm, 1);
             return true;
@@ -311,7 +234,7 @@ class _DefaultVerbExecute : public VerbExecute
     void execute(const Verb *pVerb, Entity *pObject1, Entity *pObject2) override
     {
         auto obj = pObject1->getTable();
-        getVerb(obj, pVerb);
+        getVerb(pObject1, pVerb);
         if (!pVerb)
             return;
 
@@ -331,20 +254,20 @@ class _DefaultVerbExecute : public VerbExecute
         if (!pActor)
             return;
         Entity* pObj = pObject2 ? pObject2 : pObject1;
-        auto sentence = std::make_unique<_CompositeFunction>();
+        auto sentence = std::make_unique<Sentence>();
         if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) && 
             !pObj->isInventoryObject())
         {
             auto walk = std::make_unique<_ActorWalk>(*pActor, pObj);
             sentence->push_back(std::move(walk));
         }
+        auto postWalk = std::make_unique<_PostWalk>(*sentence, _vm, pObject1, pObject2, pVerb->id);
+        sentence->push_back(std::move(postWalk));
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject1, pObject2, pVerb);
         sentence->push_back(std::move(verb));
-        auto postWalk = std::make_unique<_PostWalk>(_vm, pObject1, pObject2, pVerb->id);
-        sentence->push_back(std::move(postWalk));
         auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
         sentence->push_back(std::move(setDefaultVerb));
-        _engine.addFunction(std::move(sentence));
+        _engine.setSentence(std::move(sentence));
     }
 
     bool isFarLook(HSQOBJECT obj)
@@ -400,23 +323,9 @@ class _DefaultVerbExecute : public VerbExecute
     {
         Object *pObj = dynamic_cast<Object *>(pObj1);
         auto functionName = pObj ? "objectPreWalk" : "actorPreWalk";
-        sq_pushobject(_vm, pObj1->getTable());
-        sq_pushstring(_vm, functionName, -1);
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-        {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, pObj1->getTable());
-            sq_pushinteger(_vm, verb); // verb
-            pushObject(pObj1);
-            pushObject(pObj2);
-            sq_call(_vm, 4, SQTrue, SQTrue);
-            SQInteger handled = 0;
-            sq_getinteger(_vm, -1, &handled);
-            if (handled == 1)
-                return true;
-        }
-        sq_pop(_vm, 1);
-        return false;
+        bool handled = false;
+        ScriptEngine::callFunc(handled, pObj1, functionName, verb, pObj1, pObj2);
+        return handled;
     }
 
     void pushObject(Entity *pObj) { ng::pushObject(_vm, pObj); }
@@ -435,7 +344,7 @@ class _DefaultVerbExecute : public VerbExecute
         }
     }
 
-    void getVerb(HSQOBJECT obj, const Verb *&pVerb)
+    void getVerb(Entity* pObj, const Verb *&pVerb)
     {
         int verb;
         if (pVerb)
@@ -444,16 +353,16 @@ class _DefaultVerbExecute : public VerbExecute
             pVerb = _engine.getVerb(verb);
             return;
         }
-        auto defaultVerb = getDefaultVerb(obj);
+        auto defaultVerb = getDefaultVerb(pObj);
         if (!defaultVerb)
             return;
         verb = defaultVerb;
         pVerb = _engine.getVerb(verb);
     }
 
-    SQInteger getDefaultVerb(HSQOBJECT obj)
+    SQInteger getDefaultVerb(Entity* pObj)
     {
-        sq_pushobject(_vm, obj);
+        sq_pushobject(_vm, pObj->getTable());
         sq_pushstring(_vm, _SC("defaultVerb"), -1);
 
         if (SQ_SUCCEEDED(sq_get(_vm, -2)))

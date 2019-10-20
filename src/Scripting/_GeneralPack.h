@@ -690,7 +690,7 @@ private:
 
     static SQInteger stopSentence(HSQUIRRELVM v)
     {
-        error("TODO: stopSentence: not implemented");
+        g_pEngine->stopSentence();
         return 0;
     }
 

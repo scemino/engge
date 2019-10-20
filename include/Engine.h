@@ -30,6 +30,7 @@ class Object;
 class Preferences;
 class Room;
 class ScriptExecute;
+class Sentence;
 class SoundDefinition;
 class SoundManager;
 class TextureManager;
@@ -77,7 +78,11 @@ class Engine : public NonCopyable
     void addRoom(std::unique_ptr<Room> room);
     const std::vector<std::unique_ptr<Room>> &getRooms() const;
     std::vector<std::unique_ptr<Room>> &getRooms();
+    
     void addFunction(std::unique_ptr<Function> function);
+    void setSentence(std::unique_ptr<Sentence> sentence);
+    void stopSentence();
+
     void cutscene(std::unique_ptr<Cutscene> function);
     bool inCutscene() const;
     void cutsceneOverride();

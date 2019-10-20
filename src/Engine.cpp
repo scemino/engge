@@ -14,6 +14,7 @@
 #include "Screen.h"
 #include "ScriptEngine.h"
 #include "ScriptExecute.h"
+#include "Sentence.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
 #include "SoundManager.h"
@@ -102,6 +103,7 @@ struct Engine::Impl
     HSQOBJECT _pDefaultObject{};
     Camera _camera;
     sf::Color _fadeColor{sf::Color::Transparent};
+    std::unique_ptr<Sentence> _pSentence{};
 
     explicit Impl(EngineSettings &settings);
 
@@ -117,6 +119,7 @@ struct Engine::Impl
     void updateCutscene(const sf::Time &elapsed);
     void updateFunctions(const sf::Time &elapsed);
     void updateActorIcons(const sf::Time &elapsed);
+    void updateSentence(const sf::Time &elapsed);
     void updateMouseCursor();
     void updateHoveredEntity(bool isRightClick);
     SQInteger enterRoom(Room *pRoom, Object *pObject);
@@ -699,6 +702,14 @@ void Engine::Impl::updateCutscene(const sf::Time &elapsed)
     }
 }
 
+void Engine::Impl::updateSentence(const sf::Time &elapsed)
+{
+    if(!_pSentence) return;
+    (*_pSentence)(elapsed);
+    if(!_pSentence->isElapsed()) return;
+    _pEngine->stopSentence();
+}
+
 void Engine::Impl::updateFunctions(const sf::Time &elapsed)
 {
     for (auto &function : _newFunctions)
@@ -910,6 +921,7 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_soundManager.update(elapsed);
     _pImpl->updateCutscene(elapsed);
     _pImpl->updateFunctions(elapsed);
+    _pImpl->updateSentence(elapsed);
 
     if (!_pImpl->_pRoom)
         return;
@@ -1386,4 +1398,17 @@ void Engine::pushSentence(int id, Entity* pObj1, Entity* pObj2)
     if(!pVerb) return;
     _pImpl->_pVerbExecute->execute(pVerb, pObj1, pObj2);
 }
+
+void Engine::setSentence(std::unique_ptr<Sentence> sentence)
+{
+    _pImpl->_pSentence = std::move(sentence);
+}
+
+void Engine::stopSentence()
+{
+    if(!_pImpl->_pSentence) return;
+    _pImpl->_pSentence->stop();
+    _pImpl->_pSentence.reset();
+}
+
 } // namespace ng
