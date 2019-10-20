@@ -133,6 +133,9 @@ public:
 
   void stopObjectMotors() override;
 
+  void setTemporary(bool isTemporary);
+  bool isTemporary() const;
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;

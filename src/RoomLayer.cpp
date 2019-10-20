@@ -8,11 +8,9 @@ void RoomLayer::addEntity(Entity &entity) { _entities.emplace_back(entity); }
 
 void RoomLayer::removeEntity(Entity &entity)
 {
-    auto it = std::find_if(std::cbegin(_entities), std::cend(_entities),
-                           [&entity](const std::reference_wrapper<Entity> &ref) { return &ref.get() == &entity; });
-    if (it == std::cend(_entities))
-        return;
-    _entities.erase(it);
+    _entities.erase(std::remove_if(_entities.begin(), _entities.end(),
+                                   [&entity](auto &pEntity) { return &pEntity.get() == &entity; }),
+                    _entities.end());
 }
 
 void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const

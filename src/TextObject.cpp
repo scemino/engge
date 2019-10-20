@@ -22,6 +22,7 @@ bool operator&(TextAlignment lhs, TextAlignment rhs)
 TextObject::TextObject()
     : _alignment(TextAlignment::Left)
 {
+    setTemporary(true);
 }
 
 void TextObject::setText(const std::string &text)
@@ -60,4 +61,5 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     states.transform *= _transform.getTransform();
     target.draw(txt, states);
 }
+
 } // namespace ng

@@ -1,11 +1,11 @@
-#include <sstream>
+#include "Object.h"
 #include "Animation.h"
 #include "Function.h"
-#include "Object.h"
 #include "Room.h"
 #include "Screen.h"
 #include "ScriptEngine.h"
 #include "Trigger.h"
+#include <sstream>
 
 namespace ng
 {
@@ -30,46 +30,29 @@ struct Object::Impl
     bool _triggerEnabled{true};
     Object *pParentObject{nullptr};
     int dependentState{0};
-    Actor* _owner{nullptr};
+    Actor *_owner{nullptr};
     int _fps{0};
     std::vector<std::string> _icons;
     sf::Time _elapsed;
     int _index{0};
     ScreenSpace _screenSpace{ScreenSpace::Room};
-    std::vector<Object*> _children;
+    std::vector<Object *> _children;
+    bool _temporary{false};
 };
 
-Object::Object()
-    : pImpl(std::make_unique<Impl>())
-{
-}
+Object::Object() : pImpl(std::make_unique<Impl>()) {}
 
 Object::~Object() = default;
 
-void Object::setZOrder(int zorder)
-{
-    pImpl->_zorder = zorder;
-}
+void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
 
-int Object::getZOrder() const
-{
-    return pImpl->_zorder;
-}
+int Object::getZOrder() const { return pImpl->_zorder; }
 
-void Object::setProp(bool prop)
-{
-    pImpl->_prop = prop;
-}
+void Object::setProp(bool prop) { pImpl->_prop = prop; }
 
-void Object::setSpot(bool spot)
-{
-    pImpl->_spot = spot;
-}
+void Object::setSpot(bool spot) { pImpl->_spot = spot; }
 
-void Object::setTrigger(bool trigger)
-{
-    pImpl->_isTrigger = trigger;
-}
+void Object::setTrigger(bool trigger) { pImpl->_isTrigger = trigger; }
 
 void Object::setUseDirection(UseDirection direction) { pImpl->_direction = direction; }
 UseDirection Object::getUseDirection() const { return pImpl->_direction; }
@@ -81,7 +64,7 @@ void Object::setId(const std::wstring &id) { pImpl->_id = id; }
 const std::wstring &Object::getId() const { return pImpl->_id; }
 
 void Object::setIcon(const std::string &icon)
-{ 
+{
     pImpl->_icons.clear();
     pImpl->_fps = 0;
     pImpl->_index = 0;
@@ -100,8 +83,8 @@ void Object::setIcon(int fps, const std::vector<std::string> &icons)
     std::copy(icons.begin(), icons.end(), std::back_inserter(pImpl->_icons));
 }
 
-void Object::setOwner(Actor* pActor) { pImpl->_owner = pActor; }
-Actor* Object::getOwner() const { return pImpl->_owner; }
+void Object::setOwner(Actor *pActor) { pImpl->_owner = pActor; }
+Actor *Object::getOwner() const { return pImpl->_owner; }
 
 HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
 HSQOBJECT &Object::getTable() const { return pImpl->_pTable; }
@@ -113,14 +96,11 @@ Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
 void Object::setRoom(Room *pRoom) { pImpl->_pRoom = pRoom; }
 
-void Object::addTrigger(const std::shared_ptr<Trigger> &trigger)
-{ 
-    pImpl->_trigger = trigger;
-}
+void Object::addTrigger(const std::shared_ptr<Trigger> &trigger) { pImpl->_trigger = trigger; }
 
 void Object::removeTrigger()
 {
-    if(pImpl->_trigger.has_value())
+    if (pImpl->_trigger.has_value())
     {
         (*pImpl->_trigger)->disable();
     }
@@ -151,7 +131,8 @@ sf::IntRect Object::getRealHotspot() const
 
 bool Object::isVisible() const
 {
-    if(pImpl->_state == ObjectStateConstants::GONE) return false;
+    if (pImpl->_state == ObjectStateConstants::GONE)
+        return false;
     return Entity::isVisible();
 }
 
@@ -160,7 +141,7 @@ void Object::setStateAnimIndex(int animIndex)
     std::ostringstream s;
     s << "state" << animIndex;
     pImpl->_state = animIndex;
-    
+
     setVisible(animIndex != ObjectStateConstants::GONE);
     setAnimation(s.str());
 }
@@ -177,14 +158,12 @@ void Object::playAnim(int animIndex, bool loop)
     pImpl->_pAnim->play(loop);
 }
 
-int Object::getState()
-{
-    return pImpl->_state;
-}
+int Object::getState() { return pImpl->_state; }
 
 void Object::setAnimation(const std::string &name)
 {
-    auto it = std::find_if(pImpl->_anims.begin(), pImpl->_anims.end(), [name](std::unique_ptr<Animation> &animation) { return animation->getName() == name; });
+    auto it = std::find_if(pImpl->_anims.begin(), pImpl->_anims.end(),
+                           [name](std::unique_ptr<Animation> &animation) { return animation->getName() == name; });
     if (it == pImpl->_anims.end())
     {
         pImpl->_pAnim = std::nullopt;
@@ -196,14 +175,11 @@ void Object::setAnimation(const std::string &name)
     pImpl->_pAnim->setObject(this);
 }
 
-std::optional<Animation> &Object::getAnimation()
-{
-    return pImpl->_pAnim;
-}
+std::optional<Animation> &Object::getAnimation() { return pImpl->_pAnim; }
 
 void Object::update(const sf::Time &elapsed)
 {
-    if(isInventoryObject())
+    if (isInventoryObject())
     {
         if (pImpl->_fps == 0)
             return;
@@ -264,7 +240,8 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
 
 void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if(pImpl->_screenSpace != ScreenSpace::Object) return;
+    if (pImpl->_screenSpace != ScreenSpace::Object)
+        return;
 
     const auto view = target.getView();
     target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
@@ -291,8 +268,8 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!isVisible())
         return;
-    
-    if(pImpl->_screenSpace == ScreenSpace::Object)
+
+    if (pImpl->_screenSpace == ScreenSpace::Object)
         return;
 
     auto transform = getTransform();
@@ -321,28 +298,27 @@ void Object::setFps(int fps)
     }
 }
 
-bool Object::isTrigger() const
-{
-    return pImpl->_isTrigger;
-}
+bool Object::isTrigger() const { return pImpl->_isTrigger; }
 
-void Object::addChild(Object* child)
-{
-    pImpl->_children.push_back(child);
-}
+void Object::addChild(Object *child) { pImpl->_children.push_back(child); }
 
 void Object::stopObjectMotors()
 {
     Entity::stopObjectMotors();
-    for(auto&& child : pImpl->_children)
+    for (auto &&child : pImpl->_children)
     {
         child->stopObjectMotors();
     }
 }
 
+void Object::setTemporary(bool isTemporary) { pImpl->_temporary = isTemporary; }
+
+bool Object::isTemporary() const { return pImpl->_temporary; }
+
 std::wostream &operator<<(std::wostream &os, const Object &obj)
 {
-    return os << obj.getName() << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":" << obj.getZOrder() << L")";
+    return os << obj.getName() << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":"
+              << obj.getZOrder() << L")";
 }
 
 } // namespace ng

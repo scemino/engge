@@ -1,11 +1,3 @@
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <list>
-#include <math.h>
-#include <memory>
-#include "nlohmann/json.hpp"
-#include "squirrel.h"
 #include "Room.h"
 #include "Animation.h"
 #include "Light.h"
@@ -17,7 +9,14 @@
 #include "TextObject.h"
 #include "Thread.h"
 #include "_Util.h"
-
+#include "nlohmann/json.hpp"
+#include "squirrel.h"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <math.h>
+#include <memory>
 
 namespace ng
 {
@@ -82,17 +81,17 @@ struct Room::Impl
 
     void setEffect(int effect)
     {
-        if(effect == RoomEffectConstants::EFFECT_BLACKANDWHITE)
+        if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE)
         {
             _selectedEffect = effect;
             const std::string fragmentShader = "uniform sampler2D texture;\n"
-                                            "void main()\n"
-                                            "{\n"
-                                            "vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n"
-                                            "vec4 col = gl_Color * texColor;\n"
-                                            "float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));\n"
-                                            "gl_FragColor = vec4(gray, gray, gray, col.a);\n"
-                                            "}";
+                                               "void main()\n"
+                                               "{\n"
+                                               "vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n"
+                                               "vec4 col = gl_Color * texColor;\n"
+                                               "float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));\n"
+                                               "gl_FragColor = vec4(gray, gray, gray, col.a);\n"
+                                               "}";
             if (!_shader.loadFromMemory(fragmentShader, sf::Shader::Type::Fragment))
             {
                 std::cerr << "Error loading shaders" << std::endl;
@@ -206,11 +205,12 @@ struct Room::Impl
             object->setId(towstring(objectName));
             object->setName(towstring(objectName));
             // parent
-            if(jObject["parent"].isString())
+            if (jObject["parent"].isString())
             {
                 auto parent = jObject["parent"].string_value;
-                auto it = std::find_if(_objects.begin(), _objects.end(),
-                           [&parent](const std::unique_ptr<Object> &o) { return o->getId() == towstring(parent); });
+                auto it = std::find_if(_objects.begin(), _objects.end(), [&parent](const std::unique_ptr<Object> &o) {
+                    return o->getId() == towstring(parent);
+                });
                 if (it != _objects.end())
                 {
                     (*it)->addChild(object.get());
@@ -438,7 +438,10 @@ sf::Color Room::getAmbientLight() const { return pImpl->_ambientColor; }
 
 void Room::setAsParallaxLayer(Entity *pEntity, int layerNum)
 {
-    removeEntity(pEntity);
+    for (auto &layer : pImpl->_layers)
+    {
+        layer.second->removeEntity(*pEntity);
+    }
     pImpl->_layers[layerNum]->addEntity(*pEntity);
 }
 
@@ -450,6 +453,9 @@ void Room::removeEntity(Entity *pEntity)
     {
         layer.second->removeEntity(*pEntity);
     }
+    pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(), pImpl->_objects.end(),
+                                    [pEntity](std::unique_ptr<Object> &pObj) { return pObj.get() == pEntity; }),
+                     pImpl->_objects.end());
 }
 
 void Room::load(const char *name)
@@ -541,6 +547,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         }
     }
     auto &obj = *object;
+    obj.setTemporary(true);
     obj.setRoom(this);
     obj.setZOrder(1);
     pImpl->_layers[0]->addEntity(obj);
@@ -564,6 +571,7 @@ Object &Room::createObject(const std::string &image)
 
     object->setAnimation("state0");
     auto &obj = *object;
+    obj.setTemporary(true);
     obj.setZOrder(1);
     obj.setRoom(this);
     pImpl->_layers[0]->addEntity(obj);
@@ -603,11 +611,11 @@ void Room::update(const sf::Time &elapsed)
 void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
-    if(pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE)
+    if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE)
     {
         states.shader = &pImpl->_shader;
     }
-    
+
     auto screen = window.getView().getSize();
     auto w = screen.x / 2.f;
     auto h = screen.y / 2.f;
@@ -629,11 +637,11 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 {
     sf::RenderStates states;
-    if(pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE)
+    if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE)
     {
         states.shader = &pImpl->_shader;
     }
-    
+
     auto screen = window.getView().getSize();
     auto w = screen.x / 2.f;
     auto h = screen.y / 2.f;
@@ -704,7 +712,20 @@ Light *Room::createLight(sf::Color color, sf::Vector2i pos)
 
 void Room::addThread(std::unique_ptr<ThreadBase> thread) { pImpl->_threads.emplace_back(std::move(thread)); }
 
-void Room::exit() { pImpl->_threads.clear(); }
+void Room::exit()
+{
+    pImpl->_threads.clear();
+    for (auto &obj : pImpl->_objects) {
+        if(!obj->isTemporary()) continue;
+        for (auto &layer : pImpl->_layers)
+        {
+            layer.second->removeEntity(*obj);
+        }
+    }
+    pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(), pImpl->_objects.end(),
+                                    [](auto &pObj) { return pObj->isTemporary(); }),
+                     pImpl->_objects.end());
+}
 
 bool Room::isThreadAlive(HSQUIRRELVM thread) const
 {
@@ -722,10 +743,7 @@ void Room::stopThread(HSQUIRRELVM thread)
     pImpl->_threads.erase(it);
 }
 
-void Room::setEffect(int effect)
-{
-    pImpl->setEffect(effect);
-}
+void Room::setEffect(int effect) { pImpl->setEffect(effect); }
 
 int Room::getEffect() const { return pImpl->_selectedEffect; }
 
