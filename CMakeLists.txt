@@ -18,6 +18,7 @@ set(SOURCES
     src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp src/Graph.cpp src/PathFinder.cpp src/GGPack.cpp
     src/Cutscene.cpp src/Entity.cpp src/RoomScaling.cpp src/SoundTrigger.cpp src/SoundId.cpp src/JsonTokenReader.cpp
     src/Light.cpp src/Thread.cpp src/_Util.cpp src/Camera.cpp src/Logger.cpp src/EngineSettings.cpp src/Preferences.cpp
+    src/Sentence.cpp
 )
 
 add_subdirectory(extlibs/squirrel)
