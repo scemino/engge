@@ -20,7 +20,10 @@ namespace ng
 class _DebugTools
 {
   public:
-    explicit _DebugTools(Engine &engine) : _engine(engine) {}
+    explicit _DebugTools(Engine &engine) : _engine(engine)
+    {
+        _objectFilter.reserve(128);
+    }
 
     void render()
     {
@@ -29,7 +32,7 @@ class _DebugTools
             if (idx < 0 || idx >= static_cast<int>(vector.size()))
             {
                 return false;
-            }   
+            }
             *out_text = vector.at(idx).c_str();
             return true;
         };
@@ -42,14 +45,17 @@ class _DebugTools
         ImGui::Combo(s.str().c_str(), &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         auto dialogState = _engine.getDialogManager().getState();
-        ImGui::Text("In dialog: %s", ((dialogState == DialogManagerState::Active) ? "yes" : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice": "no")));
+        ImGui::Text("In dialog: %s",
+                    ((dialogState == DialogManagerState::Active)
+                         ? "yes"
+                         : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
 
         auto fade = _engine.getFadeAlpha();
         if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f))
         {
             _engine.setFadeAlpha(fade);
         }
-        
+
         showCamera();
         showInputState();
         showDebugWindows();
@@ -124,27 +130,32 @@ class _DebugTools
         {
             setSelectedLang(selectedLang);
         }
-        auto retroVerbs = _engine.getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
+        auto retroVerbs = _engine.getPreferences().getUserPreference(PreferenceNames::RetroVerbs,
+                                                                     PreferenceDefaultValues::RetroVerbs);
         if (ImGui::Checkbox("Retro Verbs", &retroVerbs))
         {
             _engine.getPreferences().setUserPreference(PreferenceNames::RetroVerbs, retroVerbs);
         }
-        auto retroFonts = _engine.getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+        auto retroFonts = _engine.getPreferences().getUserPreference(PreferenceNames::RetroFonts,
+                                                                     PreferenceDefaultValues::RetroFonts);
         if (ImGui::Checkbox("Retro Fonts", &retroFonts))
         {
             _engine.getPreferences().setUserPreference(PreferenceNames::RetroFonts, retroFonts);
         }
-        auto invertVerbHighlight = _engine.getPreferences().getUserPreference(PreferenceNames::InvertVerbHighlight, true);
+        auto invertVerbHighlight =
+            _engine.getPreferences().getUserPreference(PreferenceNames::InvertVerbHighlight, true);
         if (ImGui::Checkbox("Invert Verb Highlight", &invertVerbHighlight))
         {
             _engine.getPreferences().setUserPreference(PreferenceNames::InvertVerbHighlight, invertVerbHighlight);
         }
-        auto hudSentence = _engine.getPreferences().getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
+        auto hudSentence = _engine.getPreferences().getUserPreference(PreferenceNames::HudSentence,
+                                                                      PreferenceDefaultValues::HudSentence);
         if (ImGui::Checkbox("HUD Sentence", &hudSentence))
         {
             _engine.getPreferences().setUserPreference(PreferenceNames::HudSentence, hudSentence);
         }
-        auto uiBackingAlpha = _engine.getPreferences().getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
+        auto uiBackingAlpha = _engine.getPreferences().getUserPreference(PreferenceNames::UiBackingAlpha,
+                                                                         PreferenceDefaultValues::UiBackingAlpha);
         if (ImGui::SliderFloat("UI Backing Alpha", &uiBackingAlpha, 0.f, 1.f))
         {
             _engine.getPreferences().setUserPreference(PreferenceNames::UiBackingAlpha, uiBackingAlpha);
@@ -164,7 +175,7 @@ class _DebugTools
         }
         auto optBounds = _engine.getCamera().getBounds();
         sf::IntRect bounds;
-        if(optBounds.has_value())
+        if (optBounds.has_value())
         {
             bounds = optBounds.value();
         }
@@ -173,7 +184,7 @@ class _DebugTools
             _engine.getCamera().setBounds(bounds);
         }
         ImGui::SameLine();
-        if(ImGui::Button("Reset##Bounds"))
+        if (ImGui::Button("Reset##Bounds"))
         {
             _engine.getCamera().resetBounds();
         }
@@ -181,7 +192,8 @@ class _DebugTools
 
     int getSelectedLang()
     {
-        auto lang = _engine.getPreferences().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
+        auto lang =
+            _engine.getPreferences().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
         auto selectedLang = 0;
         for (size_t i = 0; i < 5; ++i)
         {
@@ -371,10 +383,26 @@ class _DebugTools
 
         ImGui::Begin("Objects", &_showObjects);
         auto &objects = _engine.getRoom()->getObjects();
-        ImGui::Combo("##Objects", &_selectedObject, objectGetter, static_cast<void *>(&objects), objects.size());
-        if (!objects.empty() && _selectedObject < objects.size())
+
+        static ImGuiTextFilter filter;
+        filter.Draw("Filter");
+        std::ostringstream s;
+        s << objects.size() << " Objects";
+        if (ImGui::ListBoxHeader(s.str().c_str())) {
+            for (const auto& object : objects) {
+                auto name = tostring(object->getId());
+                if (filter.PassFilter(name.c_str())) {
+                    if (ImGui::Selectable(name.c_str(), _pSelectedObject == object.get())) {
+                        _pSelectedObject = object.get();
+                    }
+                }
+            }
+            ImGui::ListBoxFooter();
+        }
+        
+        if (!objects.empty() && _pSelectedObject)
         {
-            auto &object = objects[_selectedObject];
+            auto &object = _pSelectedObject;
             ImGui::TextUnformatted(tostring(object->getName()).c_str());
             auto isVisible = object->isVisible();
             if (ImGui::Checkbox("Visible", &isVisible))
@@ -430,6 +458,11 @@ class _DebugTools
             if (ColorEdit4("Color", color))
             {
                 object->setColor(color);
+            }
+            auto trigger = object->getTrigger();
+            if (trigger)
+            {
+                ImGui::LabelText("Trigger", "%s", trigger->getName().c_str());
             }
         }
         ImGui::End();
@@ -488,7 +521,7 @@ class _DebugTools
         }
         auto effect = room->getEffect();
         auto effects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0";
-        if(ImGui::Combo("Shader", &effect, effects))
+        if (ImGui::Combo("Shader", &effect, effects))
         {
             room->setEffect(effect);
         }
@@ -588,12 +621,13 @@ class _DebugTools
     bool _showObjects{true};
     bool _showRooms{true};
     int _selectedActor{0};
-    int _selectedObject{0};
+    Object* _pSelectedObject{nullptr};
     int _selectedStack{0};
     int _selectedWalkbox{0};
     std::vector<std::string> _walkboxInfos;
     std::vector<std::string> _actorInfos;
     static const char *_langs[];
+    std::string _objectFilter;
 };
 const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng

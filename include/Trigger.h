@@ -15,6 +15,7 @@ class Trigger
     }
     bool isEnabled() const { return _isEnabled; }
     void disable() { _isEnabled = false; }
+    virtual std::string getName() = 0;
 
   protected:
     virtual void trigCore() = 0;

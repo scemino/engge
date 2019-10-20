@@ -15,6 +15,8 @@ public:
     SoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds, Entity* pEntity);
     ~SoundTrigger() override;
 
+    std::string getName() override;
+
 private:
     void trigCore() override;
 
@@ -25,5 +27,6 @@ private:
     std::vector<SoundId*> _sounds;
     std::default_random_engine _generator;
     std::uniform_int_distribution<int> _distribution;
+    std::string _name;
 };
 }

@@ -1,5 +1,6 @@
 #include <regex>
 #include <fstream>
+#include "Logger.h"
 #include "TextDatabase.h"
 #include "_Util.h"
 
@@ -36,6 +37,11 @@ void TextDatabase::load(const std::string &path)
 std::wstring TextDatabase::getText(int id) const
 {
   const auto it = _texts.find(id);
+  if(it == _texts.end())
+  {
+      error("Text ID {} doest not exist", id);
+      return L"";
+  }
   return it->second;
 }
 

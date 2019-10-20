@@ -5,7 +5,7 @@
 #include "Engine.h"
 #include "Function.h"
 #include "Light.h"
-#include "_RoomTrigger.h"
+#include "../_RoomTrigger.h"
 
 namespace ng
 {
