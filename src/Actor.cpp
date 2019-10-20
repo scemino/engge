@@ -245,7 +245,11 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
     trace("{} go to : {},{}", tostring(_pActor->getName()), _path[0].x, _path[0].y);
 }
 
-void Actor::Impl::WalkingState::stop() { _isWalking = false; }
+void Actor::Impl::WalkingState::stop()
+{ 
+    _isWalking = false;
+    ScriptEngine::call(_pActor, "postWalking");
+}
 
 Facing Actor::Impl::WalkingState::getFacing()
 {
@@ -294,7 +298,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         _path.erase(_path.begin());
         if (_path.empty())
         {
-            _isWalking = false;
+            stop();
             trace("Play anim stand");
             if (_facing.has_value())
             {
