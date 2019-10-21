@@ -82,6 +82,7 @@ struct Engine::Impl
     Entity *_pObj2{nullptr};
     Entity *_pHoveredEntity{nullptr};
     sf::Vector2f _mousePos;
+    sf::Vector2f _mousePosInRoom;
     std::unique_ptr<VerbExecute> _pVerbExecute;
     std::unique_ptr<ScriptExecute> _pScriptExecute;
     const Verb *_pVerb{nullptr};
@@ -359,6 +360,8 @@ void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute)
 void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.push_back(std::move(thread)); }
 
 sf::Vector2f Engine::getMousePos() const { return _pImpl->_mousePos; }
+
+sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
 
 Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
 
@@ -947,12 +950,12 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_cursorDirection = CursorDirection::None;
     _pImpl->updateMouseCursor();
 
-    auto mousePosInRoom = _pImpl->_mousePos + _pImpl->_camera.getAt();
+    _pImpl->_mousePosInRoom = _pImpl->_mousePos + _pImpl->_camera.getAt();
 
     _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
     _pImpl->_inventory.update(elapsed);
     _pImpl->_dialogManager.update(elapsed);
-    _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(mousePosInRoom);
+    _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(_pImpl->_mousePosInRoom);
     _pImpl->updateHoveredEntity(isRightClick);
 
     if (_pImpl->_pCurrentActor)
@@ -970,7 +973,7 @@ void Engine::update(const sf::Time &elapsed)
     if (!isMouseClick && !isRightClick)
         return;
 
-    if (_pImpl->clickedAt(mousePosInRoom))
+    if (_pImpl->clickedAt(_pImpl->_mousePosInRoom))
         return;
 
     if (_pImpl->_dialogManager.getState() != DialogManagerState::None)
@@ -1018,7 +1021,7 @@ void Engine::update(const sf::Time &elapsed)
         return;
     }
 
-    _pImpl->_pCurrentActor->walkTo(mousePosInRoom);
+    _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
     setDefaultVerb();
 }
 

@@ -134,6 +134,7 @@ class Engine : public NonCopyable
     std::string executeDollar(const std::string &code);
 
     sf::Vector2f getMousePos() const;
+    sf::Vector2f getMousePositionInRoom() const;
 
     Preferences &getPreferences();
     SoundManager &getSoundManager();

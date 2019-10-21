@@ -467,6 +467,9 @@ private:
         engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
         engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
         engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
+        engine.registerGlobalFunction(chr, "chr");
+        engine.registerGlobalFunction(cursorPosX, "cursorPosX");
+        engine.registerGlobalFunction(cursorPosY, "cursorPosY");
         engine.registerGlobalFunction(exCommand, "exCommand");
         engine.registerGlobalFunction(gameTime, "gameTime");
         engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
@@ -657,6 +660,33 @@ private:
             return result;
         }
         return breakwhilesound(v);
+    }
+
+    static SQInteger chr(HSQUIRRELVM v)
+    {
+        SQInteger number;
+        if (SQ_FAILED(sq_getinteger(v, 2, &number)))
+        {
+            return sq_throwerror(v, "Failed to get number");
+        }
+        auto character = (char)number;
+        char s[]{character,'\0'};
+        sq_pushstring(v, s, -1);
+        return 1;
+    }
+
+    static SQInteger cursorPosX(HSQUIRRELVM v)
+    {
+        auto pos = g_pEngine->getMousePositionInRoom();
+        sq_pushinteger(v, static_cast<SQInteger>(pos.x));
+        return 1;
+    }
+
+    static SQInteger cursorPosY(HSQUIRRELVM v)
+    {
+        auto pos = g_pEngine->getMousePositionInRoom();
+        sq_pushinteger(v, static_cast<SQInteger>(pos.y));
+        return 1;
     }
 
     static SQInteger exCommand(HSQUIRRELVM v)
