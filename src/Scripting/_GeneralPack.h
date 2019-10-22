@@ -46,7 +46,10 @@ private:
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
         engine.registerGlobalFunction(stopSentence, "stopSentence");
+        engine.registerGlobalFunction(strcount, "strcount");
         engine.registerGlobalFunction(strfind, "strfind");
+        engine.registerGlobalFunction(strfirst, "strfirst");
+        engine.registerGlobalFunction(strlast, "strlast");
         engine.registerGlobalFunction(strlines, "strlines");
         engine.registerGlobalFunction(strreplace, "strreplace");
         engine.registerGlobalFunction(strsplit, "strsplit");
@@ -694,6 +697,28 @@ private:
         return 0;
     }
 
+    static SQInteger strcount(HSQUIRRELVM v)
+    {
+        const SQChar *str1;
+        if (SQ_FAILED(sq_getstring(v, 2, &str1)))
+        {
+            return sq_throwerror(v, _SC("failed to get string1"));
+        }
+        const SQChar *str2;
+        if (SQ_FAILED(sq_getstring(v, 3, &str2)))
+        {
+            return sq_throwerror(v, _SC("failed to get string1"));
+        }
+        int count = 0;
+        while((str1 = strstr(str1, str2)))
+        {
+            str1 += strlen(str2);
+            ++count;
+        }
+        sq_pushinteger(v, static_cast<SQInteger>(count));
+        return 1;
+    }
+
     static SQInteger strfind(HSQUIRRELVM v)
     {
         const SQChar *str1;
@@ -715,6 +740,41 @@ private:
         {
             sq_pushinteger(v, p - str1);
         }
+        return 1;
+    }
+
+    static SQInteger strfirst(HSQUIRRELVM v)
+    {
+        const SQChar *str;
+        if (SQ_FAILED(sq_getstring(v, 2, &str)))
+        {
+            return sq_throwerror(v, _SC("failed to get string"));
+        }
+        if(strlen(str)>0)
+        {
+            const SQChar s[2]{str[0],'\0'};
+            sq_pushstring(v, s, 1);
+            return 1;
+        }
+        sq_pushnull(v);
+        return 1;
+    }
+
+    static SQInteger strlast(HSQUIRRELVM v)
+    {
+        const SQChar *str;
+        if (SQ_FAILED(sq_getstring(v, 2, &str)))
+        {
+            return sq_throwerror(v, _SC("failed to get string"));
+        }
+        auto len = strlen(str);
+        if(len > 0)
+        {
+            const SQChar s[2]{str[len-1],'\0'};
+            sq_pushstring(v, s, 1);
+            return 1;
+        }
+        sq_pushnull(v);
         return 1;
     }
 
