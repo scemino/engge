@@ -41,6 +41,7 @@ private:
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
+        engine.registerGlobalFunction(randomOdds, "randomodds");
         engine.registerGlobalFunction(refreshUI, "refreshUI");
         engine.registerGlobalFunction(screenSize, "screenSize");
         engine.registerGlobalFunction(setVerb, "setVerb");
