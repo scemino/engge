@@ -363,6 +363,14 @@ sf::Vector2f Engine::getMousePos() const { return _pImpl->_mousePos; }
 
 sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
 
+sf::Vector2f Engine::findScreenPosition(int verbId) const
+{
+    auto pVerb = getVerb(verbId);
+    auto s = _pImpl->getVerbName(*pVerb);
+    auto r = _pImpl->_verbSheet.getSpriteSourceSize(s);
+    return sf::Vector2f(r.left + r.width / 2.f, r.top + r.height / 2.f);
+}
+
 Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
 
 SoundManager &Engine::getSoundManager() { return _pImpl->_soundManager; }

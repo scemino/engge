@@ -135,6 +135,7 @@ class Engine : public NonCopyable
 
     sf::Vector2f getMousePos() const;
     sf::Vector2f getMousePositionInRoom() const;
+    sf::Vector2f findScreenPosition(int verb) const;
 
     Preferences &getPreferences();
     SoundManager &getSoundManager();

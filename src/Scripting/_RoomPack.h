@@ -323,13 +323,7 @@ private:
             return sq_throwerror(v, _SC("failed to get room"));
         }
         auto size = pRoom->getRoomSize();
-        sq_newtable(v);
-        sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, size.x);
-        sq_newslot(v, -3, SQFalse);
-        sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, size.y);
-        sq_newslot(v, -3, SQFalse);
+        ScriptEngine::push(v, size);
         return 1;
     }
 
@@ -366,13 +360,7 @@ private:
     static SQInteger clampInWalkbox(HSQUIRRELVM v)
     {
         error("TODO: clampInWalkbox: not implemented");
-        sq_newtable(v);
-        sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, 10);
-        sq_newslot(v, -3, SQFalse);
-        sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, 10);
-        sq_newslot(v, -3, SQFalse);
+        ScriptEngine::push(v, sf::Vector2i(10,10));
         return 1;
     }
 

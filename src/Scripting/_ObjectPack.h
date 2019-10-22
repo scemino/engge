@@ -877,14 +877,8 @@ class _ObjectPack : public Pack
             }
             pos = actor->getPosition();
         }
-        
-        sq_newtable(v);
-        sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, pos.x);
-        sq_newslot(v, -3, SQFalse);
-        sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, pos.y);
-        sq_newslot(v, -3, SQFalse);
+
+        ScriptEngine::push(v, pos);
         return 1;
     }
 

@@ -28,6 +28,7 @@ private:
         engine.registerGlobalFunction(cutscene, "cutscene");
         engine.registerGlobalFunction(cutsceneOverride, "cutsceneOverride");
         engine.registerGlobalFunction(distance, "distance");
+        engine.registerGlobalFunction(findScreenPosition, "findScreenPosition");
         engine.registerGlobalFunction(frameCounter, "frameCounter");
         engine.registerGlobalFunction(in_array, "in_array");
         engine.registerGlobalFunction(incutscene, "incutscene");
@@ -148,6 +149,31 @@ private:
         auto dy = pos1.y - pos2.y;
         auto d = std::sqrt(dx * dx + dy * dy);
         sq_pushfloat(v, d);
+        return 1;
+    }
+
+    static SQInteger findScreenPosition(HSQUIRRELVM v)
+    {
+        SQInteger verb;
+        sf::Vector2f pos;
+        if(sq_gettype(v, 2) == OT_INTEGER)
+        {
+            if (SQ_FAILED(sq_getinteger(v, 2, &verb)))
+            {
+                return sq_throwerror(v, _SC("failed to get verb"));
+            }
+            pos = g_pEngine->findScreenPosition(static_cast<int>(verb));
+        }
+        else
+        {
+            auto actor = ScriptEngine::getActor(v, 2);
+            if (!actor)
+            {
+                return sq_throwerror(v, _SC("failed to get actor"));
+            }
+            pos = actor->getRealPosition() - g_pEngine->getCamera().getAt();
+        }
+        ScriptEngine::push(v, pos);
         return 1;
     }
 
@@ -393,13 +419,7 @@ private:
     static SQInteger cameraPos(HSQUIRRELVM v)
     {
         auto pos = g_pEngine->getCamera().getAt();
-        sq_newtable(v);
-        sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, static_cast<int>(pos.x));
-        sq_newslot(v, -3, SQFalse);
-        sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, static_cast<int>(pos.y));
-        sq_newslot(v, -3, SQFalse);
+        ScriptEngine::push(v, pos);
         return 1;
     }
 
@@ -551,13 +571,7 @@ private:
     static SQInteger screenSize(HSQUIRRELVM v)
     {
         auto screen = g_pEngine->getWindow().getView().getSize();
-        sq_newtable(v);
-        sq_pushstring(v, _SC("x"), -1);
-        sq_pushinteger(v, screen.x);
-        sq_newslot(v, -3, SQFalse);
-        sq_pushstring(v, _SC("y"), -1);
-        sq_pushinteger(v, screen.y);
-        sq_newslot(v, -3, SQFalse);
+        ScriptEngine::push(v, screen);
         return 1;
     }
 
