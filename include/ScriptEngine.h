@@ -60,7 +60,13 @@ public:
   static void push(HSQUIRRELVM v, First firstValue, Rest... rest);
 
   template <typename T>
-  static void get(HSQUIRRELVM v, size_t index, T& result);
+  static bool get(HSQUIRRELVM v, size_t index, T& result);
+
+  template<typename TThis, typename T>
+  static bool get(TThis pThis, const char* name, T& result);
+
+  template<typename TThis, typename T>
+  static bool get(HSQUIRRELVM v, TThis pThis, const char* name, T& result);
 
   template<typename...T>
   static void call(const char* name, T... args);
@@ -201,6 +207,24 @@ void ScriptEngine::callFunc(TResult& result, TThis pThis, const char* name, T...
     }
     ScriptEngine::get(v, -1, result);
     sq_pop(v, 1);
+}
+
+template<typename TThis, typename T>
+bool ScriptEngine::get(TThis pThis, const char* name, T& result)
+{
+  return ScriptEngine::get(g_pEngine->getVm(), pThis, name, result);
+}
+
+template<typename TThis, typename T>
+bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char* name, T& result)
+{
+  push(v, pThis);
+  sq_pushstring(v, _SC(name), -1);
+  if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+  {
+    return ScriptEngine::get(v, -1, result);
+  }
+  return false;
 }
 
 } // namespace ng

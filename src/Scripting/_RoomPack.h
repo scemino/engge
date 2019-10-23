@@ -550,21 +550,6 @@ private:
         sq_newslot(v, -3, SQFalse);
     }
 
-    template <typename T>
-    static T _get(HSQUIRRELVM v);
-
-    template <typename T>
-    static void _getField(HSQUIRRELVM v, HSQOBJECT object, const SQChar *name, std::function<void(T)> func)
-    {
-        sq_pushobject(v, object);
-        sq_pushstring(v, _SC(name), -1);
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
-        {
-            T value = _get<T>(v);
-            func(value);
-        }
-    }
-
     static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom)
     {
         auto &table = pRoom->getTable();
@@ -652,12 +637,22 @@ private:
                 return sq_throwerror(v, _SC("object should be a table entry"));
             }
 
-            _getField<SQInteger>(v, obj->getTable(), _SC("initState"), [&obj](SQInteger value) { obj->setStateAnimIndex(value); });
-            _getField<SQBool>(v, obj->getTable(), _SC("initTouchable"), [&obj](SQBool value) { obj->setTouchable(value == SQTrue); });
-            _getField<const SQChar *>(v, obj->getTable(), _SC("name"), [&obj](const SQChar *value) {
-                if (strlen(value) > 0 && value[0] == '@')
+            int initState;
+            if(ScriptEngine::get(v, obj.get(), "initState", initState))
+            {
+                obj->setStateAnimIndex(initState);
+            }
+            bool initTouchable;
+            if(ScriptEngine::get(v, obj.get(), "initTouchable", initTouchable))
+            {
+                obj->setTouchable(initTouchable);
+            }
+            const char* name;
+            if(ScriptEngine::get(v, obj.get(), "name", name))
+            {
+                if (strlen(name) > 0 && name[0] == '@')
                 {
-                    std::string s(value);
+                    std::string s(name);
                     s = s.substr(1);
                     auto id = std::strtol(s.c_str(), nullptr, 10);
                     auto text = g_pEngine->getText(id);
@@ -666,10 +661,10 @@ private:
                 }
                 else
                 {
-                    obj->setId(towstring(value));
-                    obj->setName(towstring(value));
+                    obj->setId(towstring(name));
+                    obj->setName(towstring(name));
                 }
-            });
+            }
 
             sq_pushobject(v, obj->getTable());
             sq_pushstring(v, _SC("instance"), -1);
@@ -738,30 +733,6 @@ private:
         return 0;
     }
 };
-
-template <>
-SQInteger _RoomPack::_get(HSQUIRRELVM v)
-{
-    SQInteger value = 0;
-    sq_getinteger(v, -1, &value);
-    return value;
-}
-
-template <>
-SQBool _RoomPack::_get(HSQUIRRELVM v)
-{
-    SQBool value = SQFalse;
-    sq_getbool(v, -1, &value);
-    return value;
-}
-
-template <>
-const SQChar *_RoomPack::_get(HSQUIRRELVM v)
-{
-    const SQChar *value = nullptr;
-    sq_getstring(v, -1, &value);
-    return value;
-}
 
 Engine *_RoomPack::g_pEngine = nullptr;
 

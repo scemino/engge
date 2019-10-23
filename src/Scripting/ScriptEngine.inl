@@ -3,27 +3,30 @@
 namespace ng
 {
 template <>
-void ScriptEngine::get(HSQUIRRELVM v, size_t index, bool &result)
+bool ScriptEngine::get(HSQUIRRELVM v, size_t index, bool &result)
 {
     SQInteger integer = 0;
-    sq_getinteger(v, index, &integer);
+    auto status = SQ_SUCCEEDED(sq_getinteger(v, index, &integer));
     result = integer != 0;
+    return status;
 }
 
 template <>
-void ScriptEngine::get(HSQUIRRELVM v, size_t index, int &result)
+bool ScriptEngine::get(HSQUIRRELVM v, size_t index, int &result)
 {
     SQInteger integer = 0;
-    sq_getinteger(v, index, &integer);
+    auto status = SQ_SUCCEEDED(sq_getinteger(v, index, &integer));
     result = integer;
+    return status;
 }
 
 template <>
-void ScriptEngine::get(HSQUIRRELVM v, size_t index, const char *&result)
+bool ScriptEngine::get(HSQUIRRELVM v, size_t index, const char *&result)
 {
     const SQChar *text = nullptr;
-    sq_getstring(v, index, &text);
+    auto status = SQ_SUCCEEDED(sq_getstring(v, index, &text));
     result = text;
+    return status;
 }
 
 template <>
