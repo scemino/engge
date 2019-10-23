@@ -56,6 +56,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(isActor, "isActor");
         engine.registerGlobalFunction(isActorOnScreen, "isActorOnScreen");
         engine.registerGlobalFunction(isActor, "is_actor");
+        engine.registerGlobalFunction(isActorSelectable, "isActorSelectable");
         engine.registerGlobalFunction(masterActorArray, "masterActorArray");
         engine.registerGlobalFunction(mumbleLine, "mumbleLine");
         engine.registerGlobalFunction(sayLine, "sayLine");
@@ -1014,6 +1015,14 @@ class _ActorPack : public Pack
     {
         auto actor = ScriptEngine::getActor(v, 2);
         sq_pushbool(v, actor ? SQTrue : SQFalse);
+        return 1;
+    }
+
+    static SQInteger isActorSelectable(HSQUIRRELVM v)
+    {
+        auto actor = ScriptEngine::getActor(v, 2);
+        bool isSelectable = g_pEngine->isActorSelectable(actor);
+        sq_pushbool(v, isSelectable ? SQTrue : SQFalse);
         return 1;
     }
 

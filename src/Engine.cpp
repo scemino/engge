@@ -1361,6 +1361,16 @@ void Engine::actorSlotSelectable(int index, bool selectable)
     _pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
 }
 
+bool Engine::isActorSelectable(Actor* pActor) const
+{
+    for (auto &&slot : _pImpl->_actorsIconSlots)
+    {
+        if(slot.pActor == pActor)
+            return slot.selectable;
+    }
+    return false;
+}
+
 void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { _pImpl->_actorIcons.setMode(mode); }
 
 void Engine::setUseFlag(UseFlag flag, Entity *object)
