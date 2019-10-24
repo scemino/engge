@@ -926,31 +926,25 @@ private:
         return result;
     }
 
-    static SQInteger getPrivatePref(HSQUIRRELVM v)
-    {
-        error("TODO: getPrivatePref: not implemented");
-        if (sq_gettype(v, 3) == OT_INTEGER)
-        {
-            sq_pushinteger(v, 0);
-        }
-        else if (sq_gettype(v, 3) == OT_STRING)
-        {
-            sq_pushstring(v, _SC(""), -1);
-        }
-        else
-        {
-            sq_pushnull(v);
-        }
-        return 1;
-    }
-
     static SQInteger setPrivatePref(HSQUIRRELVM v)
     {
-        error("TODO: setPrivatePref: not implemented");
+        _setPref(v, 
+            [](auto key,auto value) { return g_pEngine->getPreferences().setPrivatePreference(key,value); },
+            [](auto key) { return g_pEngine->getPreferences().removePrivatePreference(key); });
         return 0;
     }
 
+    static SQInteger getPrivatePref(HSQUIRRELVM v)
+    {
+        return _getPref(v, [](auto name, auto value){ return g_pEngine->getPreferences().getPrivatePreferenceCore(name,value);});
+    }
+
     static SQInteger getUserPref(HSQUIRRELVM v)
+    {
+        return _getPref(v, [](auto name, auto value){ return g_pEngine->getPreferences().getUserPreferenceCore(name,value);});
+    }
+
+    static SQInteger _getPref(HSQUIRRELVM v, std::function<std::any(const std::string &name, std::any value)> func)
     {
         const SQChar *key;
         if (SQ_FAILED(sq_getstring(v, 2, &key)))
@@ -989,7 +983,7 @@ private:
             }
         }
 
-        auto value = g_pEngine->getPreferences().getUserPreferenceCore(key, defaultValue);
+        auto value = func(key, defaultValue);
         const auto &valueType = value.type();
         if (valueType == typeid(std::string))
         {
@@ -1029,6 +1023,14 @@ private:
 
     static SQInteger setUserPref(HSQUIRRELVM v)
     {
+        _setPref(v, 
+            [](auto key,auto value) { return g_pEngine->getPreferences().setUserPreference(key,value); },
+            [](auto key) { return g_pEngine->getPreferences().removeUserPreference(key); });
+        return 0;
+    }
+
+    static SQInteger _setPref(HSQUIRRELVM v, std::function<void(const std::string&, std::any)> setPref, std::function<void(const std::string&)> removePref)
+    {
         const SQChar *key;
         if (SQ_FAILED(sq_getstring(v, 2, &key)))
         {
@@ -1042,7 +1044,7 @@ private:
             sq_getstring(v, 3, &str);
             std::string strValue = str;
             value = strValue;
-            g_pEngine->getPreferences().setUserPreference(key, value);
+            setPref(key, value);
             return 0;
         }
         if (type == SQObjectType::OT_INTEGER)
@@ -1050,7 +1052,7 @@ private:
             SQInteger integer;
             sq_getinteger(v, 3, &integer);
             value = integer;
-            g_pEngine->getPreferences().setUserPreference(key, value);
+            setPref(key, value);
             return 0;
         }
         if (type == SQObjectType::OT_BOOL)
@@ -1058,7 +1060,7 @@ private:
             SQBool b;
             sq_getbool(v, 3, &b);
             value = b;
-            g_pEngine->getPreferences().setUserPreference(key, value);
+            setPref(key, value);
             return 0;
         }
         if (type == SQObjectType::OT_FLOAT)
@@ -1066,7 +1068,7 @@ private:
             SQFloat fl;
             sq_getfloat(v, 3, &fl);
             value = fl;
-            g_pEngine->getPreferences().setUserPreference(key, value);
+            setPref(key, value);
             return 0;
         }
 

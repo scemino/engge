@@ -73,10 +73,34 @@ void Preferences::removeUserPreference(const std::string &name)
     }
 }
 
+void Preferences::removePrivatePreference(const std::string &name)
+{
+    auto it = _privateValues.find(name);
+    if (it != _privateValues.end())
+    {
+        _privateValues.erase(it);
+    }
+}
+
+void Preferences::setPrivatePreference(const std::string &name, std::any value)
+{
+    _privateValues[name] = value;
+}
+
 std::any Preferences::getUserPreferenceCore(const std::string &name, std::any value) const
 {
     auto it = _values.find(name);
     if (it == _values.end())
+    {
+        return value;
+    }
+    return it->second;
+}
+
+std::any Preferences::getPrivatePreferenceCore(const std::string &name, std::any value) const
+{
+    auto it = _privateValues.find(name);
+    if (it == _privateValues.end())
     {
         return value;
     }
