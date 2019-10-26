@@ -1066,6 +1066,14 @@ void Engine::Impl::updateKeyboard()
     ImGuiIO &io = ImGui::GetIO();
     if(io.WantTextInput) return;
 
+    if(_pRoom)
+    {
+        for(auto key : _keyPressed)
+        {
+            ScriptEngine::call(_pRoom, "pressedKey", key);
+        }
+    }
+
     int currentActorIndex = getCurrentActorIndex();
     if (currentActorIndex == -1) return;
 
@@ -1082,13 +1090,6 @@ void Engine::Impl::updateKeyboard()
         {
             onVerbClick(&verb);
         }
-    }
-
-    if(!_pRoom) return;
-
-    for(auto key : _keyPressed)
-    {
-        ScriptEngine::call(_pRoom, "pressedKey", key);
     }
 }
 
@@ -1146,12 +1147,12 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 
     auto screen = _pWindow->getView().getSize();
     auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
+    
     sf::RectangleShape shape;
     shape.setPosition(_mousePos);
     shape.setOrigin(cursorSize / 2.f);
     shape.setSize(cursorSize);
     shape.setTexture(&_gameSheet.getTexture());
-
     shape.setTextureRect(getCursorRect());
     window.draw(shape);
 }

@@ -3,7 +3,7 @@
 #include "Engine.h"
 #include "Logger.h"
 #include "ScriptEngine.h"
-#include "PanInputEventHandler.h"
+#include "DefaultInputEventHandler.h"
 #include "Dialog/_AstDump.h"
 
 int main(int argc, char **argv)

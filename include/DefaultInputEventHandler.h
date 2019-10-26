@@ -129,19 +129,37 @@ class DefaultInputEventHandler : public InputEventHandler
         {
             return InputConstants::KEY_0 + (key - sf::Keyboard::Key::Num0);
         }
+        if(key >= sf::Keyboard::Key::Numpad1 && key <= sf::Keyboard::Key::Numpad9)
+        {
+            return InputConstants::KEY_PAD1 + (key - sf::Keyboard::Key::Numpad1);
+        }
         if(key >= sf::Keyboard::Key::F1 && key <= sf::Keyboard::Key::F12)
         {
             return InputConstants::KEY_F1 + (key - sf::Keyboard::Key::F1);
         }
-        if(key == sf::Keyboard::Key::Space)
+        switch(key)
         {
-            return InputConstants::KEY_SPACE;
+            case sf::Keyboard::Key::Space:
+                return InputConstants::KEY_SPACE;
+            case sf::Keyboard::Key::Escape:
+                return InputConstants::KEY_ESCAPE;
+            case sf::Keyboard::Key::Left:
+                return InputConstants::KEY_LEFT;
+            case sf::Keyboard::Key::Right:
+                return InputConstants::KEY_RIGHT;
+            case sf::Keyboard::Key::Up:
+                return InputConstants::KEY_UP;
+            case sf::Keyboard::Key::Down:
+                return InputConstants::KEY_DOWN;
+            case sf::Keyboard::Key::Tab:
+                return InputConstants::KEY_TAB;
+            case sf::Keyboard::Key::Return:
+                return InputConstants::KEY_RETURN;
+            case sf::Keyboard::Key::Backspace:
+                return InputConstants::KEY_BACKSPACE;
+            default:
+                return 0;
         }
-        if(key == sf::Keyboard::Key::Escape)
-        {
-            return InputConstants::KEY_ESCAPE;
-        }
-        return 0;
     }
 
   private:
