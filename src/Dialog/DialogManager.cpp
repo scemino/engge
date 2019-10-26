@@ -3,6 +3,7 @@
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
 #include "Logger.h"
+#include "ScriptEngine.h"
 #include "Text.h"
 #include "_SayFunction.h"
 
@@ -175,6 +176,7 @@ void DialogManager::choose(int choice)
 
     if(choice <= _dialog.size())
     {
+        ScriptEngine::call("onChoiceClick");
         auto& dlg = _dialog.at(choice - 1);
         auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
         _functions.push_back(std::move(say));
