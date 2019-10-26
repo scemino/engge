@@ -17,8 +17,11 @@ enum class TokenId
     Number,
     Whitespace,
     Colon,
+    Comma,
     String,
     Comment,
+    StartHash,
+    EndHash,
     End
 };
 
@@ -50,6 +53,8 @@ public:
         Iterator &operator++();
         const Iterator operator++(int);
 
+        TokenReader& getReader();
+
         bool operator==(const Iterator &rhs) const { return _pos == rhs._pos; }
         bool operator!=(const Iterator &rhs) const { return _pos != rhs._pos; }
         Token &operator*();
@@ -63,6 +68,7 @@ public:
     TokenReader();
 
     bool load(const std::string &path);
+    void parse(const std::vector<char> &content);
     iterator begin();
     iterator end();
     bool readToken(Token &token);
@@ -83,7 +89,15 @@ class Parser
 {
 public:
     Parser();
-    void parse(const std::string& path, GGPackValue &value);
+    void load(const std::string& path, GGPackValue &value);
+    void parse(const std::vector<char> &buffer, GGPackValue &value);
+
+    static GGPackValue parse(const std::vector<char> &buffer);
+
+private:
+    void parse(ng::Json::TokenReader& reader, GGPackValue &value);
+    void parse(TokenReader::iterator& it, GGPackValue &value);
+
 };
 } // namespace Json
 } // namespace ng

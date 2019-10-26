@@ -6,7 +6,7 @@ Preferences::Preferences()
 {
     ng::Json::Parser parser;
     ng::GGPackValue hash;
-    parser.parse("Prefs.json", hash);
+    parser.load("Prefs.json", hash);
 
     for (auto &&pref : hash.hash_value)
     {

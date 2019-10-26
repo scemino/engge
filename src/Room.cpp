@@ -1,5 +1,6 @@
 #include "Room.h"
 #include "Animation.h"
+#include "JsonTokenReader.h"
 #include "Light.h"
 #include "Logger.h"
 #include "PathFinder.h"
@@ -9,7 +10,6 @@
 #include "TextObject.h"
 #include "Thread.h"
 #include "_Util.h"
-#include "nlohmann/json.hpp"
 #include "squirrel.h"
 #include <algorithm>
 #include <fstream>
@@ -522,13 +522,13 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
     jsonFilename.append(sheet).append(".json");
     std::vector<char> buffer;
     pImpl->_settings.readEntry(jsonFilename, buffer);
-    auto json = nlohmann::json::parse(buffer.data());
+    auto json = ng::Json::Parser::parse(buffer);
 
     auto object = std::make_unique<Object>();
     auto animation = std::make_unique<Animation>(texture, "state0");
     for (const auto &n : anims)
     {
-        if (json["frames"][n].is_null())
+        if (json["frames"][n].isNull())
             continue;
         auto frame = json["frames"][n]["frame"];
         animation->getRects().push_back(_toRect(frame));

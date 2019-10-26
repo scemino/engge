@@ -51,6 +51,13 @@ GGPackValue &GGPackValue::operator[](std::size_t index)
     throw std::logic_error("This is not an array");
 }
 
+const GGPackValue &GGPackValue::operator[](std::size_t index) const
+{
+    if (type == 3)
+        return array_value[index];
+    throw std::logic_error("This is not an array");
+}
+
 GGPackValue &GGPackValue::operator[](const std::string &key)
 {
     if (type == 2)
@@ -58,6 +65,17 @@ GGPackValue &GGPackValue::operator[](const std::string &key)
         if (hash_value.find(key) == hash_value.end())
             return nullValue;
         return hash_value[key];
+    }
+    throw std::logic_error("This is not an hashtable");
+}
+
+const GGPackValue &GGPackValue::operator[](const std::string &key) const
+{
+    if (type == 2)
+    {
+        if (hash_value.find(key) == hash_value.end())
+            return nullValue;
+        return hash_value.at(key);
     }
     throw std::logic_error("This is not an hashtable");
 }
@@ -96,6 +114,26 @@ GGPackValue &GGPackValue::operator=(const GGPackValue &other)
     }
     // by convention, always return *this
     return *this;
+}
+
+int GGPackValue::getInt() const
+{
+    if(isInteger()) return int_value;
+    if(isDouble()) return static_cast<int>(double_value);
+    return 0;
+}
+
+double GGPackValue::getDouble() const
+{
+    if(isDouble()) return double_value;
+    if(isInteger()) return static_cast<double>(int_value);
+    return 0;
+}
+
+std::string GGPackValue::getString() const
+{
+    if(isString()) return string_value;
+    return "";
 }
 
 static std::ostream &_dumpValue(std::ostream& os, const GGPackValue& value, int indent);
@@ -438,4 +476,5 @@ void GGPack::getOffsets()
         _offsets.push_back(offset);
     } while (true);
 }
+
 } // namespace ng

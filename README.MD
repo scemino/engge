@@ -17,7 +17,6 @@ engge is an **experimental** game engine, its purpose is to be able (one day) to
   * [dear imgui](https://github.com/ocornut/imgui): Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies
   * [imgui-sfml](https://github.com/eliasdaler/imgui-sfml): ImGui binding for use with SFML
   * [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
-  * [nlohmann/json](https://github.com/nlohmann/json): JSON for Modern C++
   * [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
 
 ## Compiling

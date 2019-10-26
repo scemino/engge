@@ -1,6 +1,6 @@
 #include <string>
 #include <fstream>
-#include <nlohmann/json.hpp>
+#include "JsonTokenReader.h"
 #include "_Util.h"
 #include "SpriteSheet.h"
 
@@ -16,7 +16,9 @@ void SpriteSheet::load(const std::string &name)
     _texture = _pTextureManager->get(name);
 
     _rects.clear();
-    nlohmann::json json;
+    
+    ng::GGPackValue json;
+    
     std::string jsonFilename;
     jsonFilename.append(name).append(".json");
     {
@@ -29,14 +31,14 @@ void SpriteSheet::load(const std::string &name)
         out.write(buffer.data(), buffer.size());
         out.close();
 #endif
-
-        json = nlohmann::json::parse(buffer.data());
+        ng::Json::Parser parser;
+        parser.parse(buffer, json);
     }
 
     auto jFrames = json["frames"];
-    for (auto it = jFrames.begin(); it != jFrames.end(); ++it)
+    for (auto it = jFrames.hash_value.begin(); it != jFrames.hash_value.end(); ++it)
     {
-        auto n = it.key();
+        auto& n = it->first;
         auto rect = _toRect(json["frames"][n]["frame"]);
         _rects.insert(std::make_pair(n, rect));
         rect = _toRect(json["frames"][n]["spriteSourceSize"]);

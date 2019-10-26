@@ -32,6 +32,11 @@ bool TokenReader::load(const std::string &path)
     return true;
 }
 
+void TokenReader::parse(const std::vector<char> &content)
+{
+    _stream.setBuffer(content);
+}
+
 TokenId TokenReader::readString()
 {
     while (isalpha(_stream.peek()))
@@ -86,6 +91,12 @@ TokenId TokenReader::readTokenId()
         return TokenId::Whitespace;
     case ':':
         return TokenId::Colon;
+    case ',':
+        return TokenId::Comma;
+    case '{':
+        return TokenId::StartHash;
+    case '}':
+        return TokenId::EndHash;
     case '\"':
         return readQuotedString();
     default:
@@ -179,6 +190,11 @@ Token *TokenReader::Iterator::operator->()
     return &_token;
 }
 
+TokenReader& TokenReader::Iterator::getReader()
+{
+    return _reader;
+}
+
 TokenReader::iterator TokenReader::begin()
 {
     return Iterator(*this, 0);
@@ -211,6 +227,10 @@ std::string Token::readToken() const
         return "String";
     case TokenId::Whitespace:
         return "Whitespace";
+    case TokenId::StartHash:
+        return "{";
+    case TokenId::EndHash:
+        return "}";
     default:
         return "?";
     }
@@ -224,39 +244,86 @@ std::ostream &operator<<(std::ostream &os, const Token &obj)
 
 Parser::Parser() = default;
 
-void Parser::parse(const std::string &path, GGPackValue &value)
+void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
 {
-    value.type = 2;
+    auto& reader = it.getReader();
+    auto token = *it;
+    it++;
+    switch (token.id)
+    {
+    case TokenId::StartHash:
+    {
+        value.type = 2;
+        while(it != reader.end() && it->id != TokenId::EndHash)
+        {
+            auto token = *it++;
+            auto key = reader.readText(token);
+            // remove "" if any
+            if(key.length()>0 && key[0]=='\"' && key[key.length()-1]=='\"')
+            {
+                key = key.substr(1, key.length()-2);
+            }
+            // skip colon
+            it++;
+            GGPackValue hashValue;
+            parse(it, hashValue);
+            value.hash_value[key] = hashValue;
+            if(it->id == TokenId::Comma)
+            {
+                it++;
+            }
+        }
+        it++;
+        break;
+    }
+    case TokenId::Number:
+    {
+        value.type = 6;
+        auto text = reader.readText(token);
+        value.double_value = std::atof(text.data());
+        break;
+    }
+    case TokenId::String:
+        value.type = 4;
+        value.string_value = reader.readText(token);
+        break;
+    default:
+        break;
+    }
+}
 
+void Parser::parse(ng::Json::TokenReader& reader, GGPackValue &value)
+{
+    auto it = reader.begin();
+    while (it != reader.end())
+    {
+        parse(it, value);
+    }
+}
+
+void Parser::load(const std::string &path, GGPackValue &value)
+{
     ng::Json::TokenReader reader;
     if(!reader.load(path))
         return;
 
-    auto it = reader.begin();
-    while (it != reader.end())
-    {
-        auto token = *it;
-        auto key = reader.readText(token);
-        it++;it++;
-        token = *it;
-        auto text = reader.readText(token);
-        GGPackValue packValue;
-        switch (token.id)
-        {
-        case TokenId::Number:
-            packValue.type = 6;
-            packValue.double_value = std::atof(text.data());
-            break;
-        case TokenId::String:
-            packValue.type = 4;
-            packValue.string_value = text;
-            break;
-        default:
-            break;
-        }
-        value.hash_value[key] = packValue;
-        it++;
-    }
+    parse(reader, value);
+}
+
+void Parser::parse(const std::vector<char> &content, GGPackValue &value)
+{
+    ng::Json::TokenReader reader;
+    reader.parse(content);
+
+    parse(reader, value);
+}
+
+GGPackValue Parser::parse(const std::vector<char> &buffer)
+{
+    GGPackValue value;
+    Parser parser;
+    parser.parse(buffer, value);
+    return value;
 }
 
 } // namespace Json

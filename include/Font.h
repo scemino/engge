@@ -1,6 +1,6 @@
 #pragma once
-#include "nlohmann/json.hpp"
 #include "SFML/Graphics.hpp"
+#include "JsonTokenReader.h"
 #include "TextureManager.h"
 
 namespace ng
@@ -25,7 +25,7 @@ private:
   TextureManager *_textureManager{nullptr};
   std::string _path;
   std::string _jsonFilename;
-  nlohmann::json _json;
+  ng::GGPackValue _json;
   sf::Texture _texture;
 };
 

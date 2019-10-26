@@ -1,5 +1,4 @@
 #pragma once
-#include <nlohmann/json.hpp>
 #include <regex>
 #include "Costume.h"
 #include "Object.h"
@@ -40,8 +39,8 @@ Facing _toFacing(UseDirection direction);
 UseDirection _toDirection(const std::string &text);
 Facing getOppositeFacing(Facing facing);
 
-sf::IntRect _toRect(const nlohmann::json &json);
-sf::Vector2i _toSize(const nlohmann::json &json);
+sf::IntRect _toRect(const GGPackValue &json);
+sf::Vector2i _toSize(const ng::GGPackValue &json);
 
 sf::Vector2f _parsePos(const std::string &text);
 sf::IntRect _parseRect(const std::string &text);

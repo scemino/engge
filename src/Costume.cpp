@@ -1,8 +1,8 @@
 #include <fstream>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include "Costume.h"
 #include "Logger.h"
+#include "JsonTokenReader.h"
 #include "_Util.h"
 
 namespace ng
@@ -167,9 +167,10 @@ bool Costume::setAnimation(const std::string &animName)
 
     std::string sheetPath;
     sheetPath.append(_sheet).append(".json");
+
     std::vector<char> buffer;
     _settings.readEntry(sheetPath, buffer);
-    auto jSheet = nlohmann::json::parse(buffer.data());
+    auto jSheet = ng::Json::Parser::parse(buffer);
 
     // load texture
     _texture = _textureManager.get(_sheet);

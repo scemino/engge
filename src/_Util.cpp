@@ -306,21 +306,21 @@ Facing getOppositeFacing(Facing facing)
     return Facing::FACE_BACK;
 }
 
-sf::IntRect _toRect(const nlohmann::json &json)
+sf::IntRect _toRect(const ng::GGPackValue &json)
 {
     sf::IntRect rect;
-    rect.left = json["x"].get<int>();
-    rect.top = json["y"].get<int>();
-    rect.width = json["w"].get<int>();
-    rect.height = json["h"].get<int>();
+    rect.left = json["x"].getInt();
+    rect.top = json["y"].getInt();
+    rect.width = json["w"].getInt();
+    rect.height = json["h"].getInt();
     return rect;
 }
 
-sf::Vector2i _toSize(const nlohmann::json &json)
+sf::Vector2i _toSize(const ng::GGPackValue &json)
 {
     sf::Vector2i v;
-    v.x = json["w"].get<int>();
-    v.y = json["h"].get<int>();
+    v.x = json["w"].getInt();
+    v.y = json["h"].getInt();
     return v;
 }
 

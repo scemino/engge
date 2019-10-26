@@ -41,9 +41,15 @@ public:
   bool isDouble() const;
 
   GGPackValue &operator[](std::size_t index);
+  const GGPackValue &operator[](std::size_t index) const;
   GGPackValue &operator[](const std::string &key);
+  const GGPackValue &operator[](const std::string &key) const;
   GGPackValue &operator=(const GGPackValue &other);
   virtual ~GGPackValue();
+  
+  int getInt() const;
+  double getDouble() const;
+  std::string getString() const;
 
   friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
 };
