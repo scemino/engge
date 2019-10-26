@@ -48,12 +48,6 @@ void Game::processEvents()
             case sf::Event::Closed:
                 _window.close();
                 break;
-            case sf::Event::KeyPressed:
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
-                {
-                    _window.close();
-                }
-                break;
             default:
                 break;
         }

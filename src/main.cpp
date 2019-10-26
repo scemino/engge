@@ -29,8 +29,7 @@ int main(int argc, char **argv)
         scriptEngine->executeScript("test.nut");
         // scriptEngine->executeBootScript();
 
-        game->getInputEventHandlers().push_back(std::make_unique<ng::PanInputEventHandler>(*engine, game->getWindow()));
-        game->getInputEventHandlers().push_back(std::make_unique<ng::EngineShortcutsInputEventHandler>(*engine));
+        game->getInputEventHandlers().push_back(std::make_unique<ng::DefaultInputEventHandler>(*engine, game->getWindow()));
         game->run();
     }
     catch (std::exception &e)

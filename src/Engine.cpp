@@ -33,6 +33,7 @@
 #include <math.h>
 #include <memory>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <string>
 
@@ -105,6 +106,7 @@ struct Engine::Impl
     Camera _camera;
     sf::Color _fadeColor{sf::Color::Transparent};
     std::unique_ptr<Sentence> _pSentence{};
+    std::set<int> _keyPressed;
 
     explicit Impl(EngineSettings &settings);
 
@@ -136,6 +138,10 @@ struct Engine::Impl
     void onLanguageChange(const std::string &lang);
     std::string getVerbName(const Verb &verb) const;
     void drawFade(sf::RenderTarget &target) const;
+    void onVerbClick(const Verb* pVerb);
+    void updateKeyboard();
+    bool isKeyPressed(int key);
+    int toKey(const std::string& keyText);
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -978,6 +984,8 @@ void Engine::update(const sf::Time &elapsed)
     if (!_pImpl->_inputActive)
         return;
 
+    _pImpl->updateKeyboard();
+
     if (!isMouseClick && !isRightClick)
         return;
 
@@ -1002,13 +1010,7 @@ void Engine::update(const sf::Time &elapsed)
             if (_pImpl->_verbRects.at(i).contains((sf::Vector2i)_pImpl->_mousePos))
             {
                 auto verbId = _pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + i).id;
-                _pImpl->_pVerb = getVerb(verbId);
-                _pImpl->_useFlag = UseFlag::None;
-                _pImpl->_pUseObject = nullptr;
-                _pImpl->_pObj1 = nullptr;
-                _pImpl->_pObj2 = nullptr;
-
-                ScriptEngine::call("onVerbClick");
+                _pImpl->onVerbClick(getVerb(verbId));
                 return;
             }
         }
@@ -1042,6 +1044,63 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     }
 
     ScriptEngine::call("onActorSelected", pCurrentActor, userSelected);
+}
+
+bool Engine::Impl::isKeyPressed(int key)
+{
+    auto it = _keyPressed.find(key);
+    return it != _keyPressed.end();
+}
+
+int Engine::Impl::toKey(const std::string& keyText)
+{
+    if(keyText.length() == 1)
+    {
+        return keyText[0];
+    }
+    return 0;
+}
+
+void Engine::Impl::updateKeyboard()
+{
+    ImGuiIO &io = ImGui::GetIO();
+    if(io.WantTextInput) return;
+
+    int currentActorIndex = getCurrentActorIndex();
+    if (currentActorIndex == -1) return;
+
+    if(_keyPressed.empty()) return;
+
+    const auto& verbSlot = _verbSlots.at(currentActorIndex);
+    for(auto i = 0; i < 10; i++)
+    {
+        const auto& verb = verbSlot.getVerb(i);
+        if(verb.key.length() == 0) continue;
+        auto id = std::atoi(verb.key.substr(1,verb.key.length()-1).c_str());
+        auto key = toKey(tostring(_pEngine->getText(id)));
+        if(isKeyPressed(key))
+        {
+            onVerbClick(&verb);
+        }
+    }
+
+    if(!_pRoom) return;
+
+    for(auto key : _keyPressed)
+    {
+        ScriptEngine::call(_pRoom, "pressedKey", key);
+    }
+}
+
+void Engine::Impl::onVerbClick(const Verb* pVerb)
+{
+    _pVerb = pVerb;
+    _useFlag = UseFlag::None;
+    _pUseObject = nullptr;
+    _pObj1 = nullptr;
+    _pObj2 = nullptr;
+
+    ScriptEngine::call("onVerbClick");
 }
 
 bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
@@ -1430,6 +1489,18 @@ void Engine::stopSentence()
     if(!_pImpl->_pSentence) return;
     _pImpl->_pSentence->stop();
     _pImpl->_pSentence.reset();
+}
+
+void Engine::keyPressed(int key)
+{
+    _pImpl->_keyPressed.insert(key);
+}
+
+void Engine::keyReleased(int key)
+{
+    auto it = _pImpl->_keyPressed.find(key);
+    if(it == _pImpl->_keyPressed.end()) return;
+    _pImpl->_keyPressed.erase(it);
 }
 
 } // namespace ng
