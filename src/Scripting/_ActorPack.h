@@ -60,6 +60,7 @@ class _ActorPack : public Pack
         engine.registerGlobalFunction(masterActorArray, "masterActorArray");
         engine.registerGlobalFunction(mumbleLine, "mumbleLine");
         engine.registerGlobalFunction(sayLine, "sayLine");
+        engine.registerGlobalFunction(sayLineAt, "sayLineAt");
         engine.registerGlobalFunction(selectActor, "selectActor");
         engine.registerGlobalFunction(stopTalking, "stopTalking");
         engine.registerGlobalFunction(triggerActors, "triggerActors");
@@ -1116,6 +1117,12 @@ class _ActorPack : public Pack
         }
 
         return _sayLine(v);
+    }
+
+    static SQInteger sayLineAt(HSQUIRRELVM v)
+    {
+        error("TODO: sayLineAt: not implemented");
+        return 0;
     }
 
     static SQInteger selectActor(HSQUIRRELVM v)

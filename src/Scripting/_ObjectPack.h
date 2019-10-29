@@ -75,6 +75,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(deleteObject, "deleteObject");
         engine.registerGlobalFunction(findObjectAt, "findObjectAt");
         engine.registerGlobalFunction(isObject, "is_object");
+        engine.registerGlobalFunction(isInventoryOnScreen,"isInventoryOnScreen");
         engine.registerGlobalFunction(isObject, "isObject");
         engine.registerGlobalFunction(jiggleInventory, "jiggleInventory");
         engine.registerGlobalFunction(jiggleObject, "jiggleObject");
@@ -116,6 +117,7 @@ class _ObjectPack : public Pack
         engine.registerGlobalFunction(objectValidUsePos, "objectValidUsePos");
         engine.registerGlobalFunction(objectValidVerb, "objectValidVerb");
         engine.registerGlobalFunction(pickupObject, "pickupObject");
+        engine.registerGlobalFunction(pickupReplacementObject, "pickupReplacementObject");
         engine.registerGlobalFunction(playObjectState, "playObjectState");
         engine.registerGlobalFunction(popInventory, "popInventory");
         engine.registerGlobalFunction(removeInventory, "removeInventory");
@@ -150,6 +152,14 @@ class _ObjectPack : public Pack
         }
 
         sq_pushnull(v);
+        return 1;
+    }
+
+    static SQInteger isInventoryOnScreen(HSQUIRRELVM v)
+    {
+        auto object = ScriptEngine::getObject(v, 2);
+        error("TODO: isInventoryOnScreen: not implemented");
+        sq_pushbool(v, SQFalse);
         return 1;
     }
 
@@ -1128,6 +1138,23 @@ class _ObjectPack : public Pack
         auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(object), anim);
         g_pEngine->addFunction(std::move(pPickupAnim));
         
+        return 0;
+    }
+
+    static SQInteger pickupReplacementObject(HSQUIRRELVM v)
+    {
+        auto *obj1 = ScriptEngine::getObject(v, 2);
+        if (!obj1)
+        {
+            return sq_throwerror(v, _SC("failed to get object 1"));
+        }
+        auto *obj2 = ScriptEngine::getObject(v, 3);
+        if (!obj2)
+        {
+            return sq_throwerror(v, _SC("failed to get object 2"));
+        }
+        auto actor = obj1->getOwner();
+        error("TODO: pickupReplacementObject: not implemented");
         return 0;
     }
 

@@ -37,18 +37,21 @@ private:
         engine.registerGlobalFunction(is_array, "is_array");
         engine.registerGlobalFunction(is_function, "is_function");
         engine.registerGlobalFunction(loadArray, "loadArray");
+        engine.registerGlobalFunction(markAchievement, "markAchievement");
         engine.registerGlobalFunction(markProgress, "markProgress");
         engine.registerGlobalFunction(markStat, "markStat");
         engine.registerGlobalFunction(random, "random");
         engine.registerGlobalFunction(randomFrom, "randomfrom");
         engine.registerGlobalFunction(randomOdds, "randomOdds");
         engine.registerGlobalFunction(randomOdds, "randomodds");
+        engine.registerGlobalFunction(randomseed, "randomseed");
         engine.registerGlobalFunction(refreshUI, "refreshUI");
         engine.registerGlobalFunction(screenSize, "screenSize");
         engine.registerGlobalFunction(setVerb, "setVerb");
         engine.registerGlobalFunction(startDialog, "startDialog");
         engine.registerGlobalFunction(stopSentence, "stopSentence");
         engine.registerGlobalFunction(strcount, "strcount");
+        engine.registerGlobalFunction(strcrc, "strcrc");
         engine.registerGlobalFunction(strfind, "strfind");
         engine.registerGlobalFunction(strfirst, "strfirst");
         engine.registerGlobalFunction(strlast, "strlast");
@@ -509,6 +512,12 @@ private:
         return 1;
     }
 
+    static SQInteger randomseed(HSQUIRRELVM v)
+    {
+        error("TODO: randomseed: not implemented");
+        return 0;
+    }
+
     static SQInteger randomFrom(HSQUIRRELVM v)
     {
         if (sq_gettype(v, 2) == OT_ARRAY)
@@ -554,6 +563,12 @@ private:
             return sq_throwerror(v, _SC("failed to get room"));
         }
         return g_pEngine->setRoom(pRoom);
+    }
+
+    static SQInteger markAchievement(HSQUIRRELVM v)
+    {
+        error("TODO: markAchievement: not implemented");
+        return 0;
     }
 
     static SQInteger markProgress(HSQUIRRELVM v)
@@ -732,6 +747,12 @@ private:
         }
         sq_pushinteger(v, static_cast<SQInteger>(count));
         return 1;
+    }
+
+    static SQInteger strcrc(HSQUIRRELVM v)
+    {
+        error("TODO: strcrc: not implemented");
+        return 0;
     }
 
     static SQInteger strfind(HSQUIRRELVM v)

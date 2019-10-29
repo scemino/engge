@@ -492,6 +492,7 @@ private:
         engine.registerGlobalFunction(microTime, "microTime");
         engine.registerGlobalFunction(moveCursorTo, "moveCursorTo");
         engine.registerGlobalFunction(pushSentence, "pushSentence");
+        engine.registerGlobalFunction(removeCallback, "removeCallback");
         engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
         engine.registerGlobalFunction(setPrivatePref, "setPrivatePref");
         engine.registerGlobalFunction(setUserPref, "setUserPref");
@@ -1007,6 +1008,12 @@ private:
         }
 
         return 1;
+    }
+
+    static SQInteger removeCallback(HSQUIRRELVM v)
+    {
+        error("TODO: removeCallback: not implemented");
+        return 0;
     }
 
     static SQInteger setAmbientLight(HSQUIRRELVM v)
