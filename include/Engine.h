@@ -178,6 +178,7 @@ class Engine : public NonCopyable
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);
     VerbUiColors &getVerbUiColors(int characterSlot);
+    VerbUiColors *getVerbUiColors();
     void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
     const Verb *getVerb(int id) const;
     void setDefaultVerb();

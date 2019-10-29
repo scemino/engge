@@ -3,6 +3,7 @@
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
 #include "Logger.h"
+#include "Preferences.h"
 #include "ScriptEngine.h"
 #include "Text.h"
 #include "_SayFunction.h"
@@ -24,7 +25,8 @@ void DialogManager::setEngine(Engine *pEngine)
     _dialogVisitor.setEngine(_pEngine);
     _font.setTextureManager(&pEngine->getTextureManager());
     _font.setSettings(&pEngine->getSettings());
-    _font.load("FontModernSheet");
+    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+    _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
 }
 
 void DialogManager::addFunction(std::unique_ptr<Function> function)
@@ -88,7 +90,10 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
     int dialog = 0;
     auto screen = target.getView().getSize();
+    auto scale = (screen.y * 5.f) / (8.f * 512.f);
+
     NGText text;
+    text.scale(scale, scale);
     text.setFont(_font);
     for (auto &dlg : _dialog)
     {
@@ -100,7 +105,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         s = L"● ";
         s += dlg.text;
         text.setText(s);
-        text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(0).dialogHighlight : _pEngine->getVerbUiColors(0).dialogNormal);
+        text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors()->dialogHighlight : _pEngine->getVerbUiColors()->dialogNormal);
         target.draw(text, states);
         dialog++;
     }
@@ -109,7 +114,8 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 void DialogManager::update(const sf::Time &elapsed)
 {
     auto screen = _pEngine->getWindow().getView().getSize();
-    
+    auto scale = (screen.y * 5.f) / (8.f * 512.f);
+
     if(!_functions.empty())
     {
         _state = DialogManagerState::Active;
@@ -151,6 +157,7 @@ void DialogManager::update(const sf::Time &elapsed)
 
         // HACK: bad, bad, this code is the same as in the draw function
         NGText text;
+        text.scale(scale, scale);
         text.setFont(_font);
         text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         sf::String s;

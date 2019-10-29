@@ -19,7 +19,6 @@
 #include "SoundId.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
-#include "Text.h"
 #include "TextDatabase.h"
 #include "Thread.h"
 #include "Verb.h"
@@ -75,7 +74,7 @@ struct Engine::Impl
     bool _inputActive;
     bool _showCursor;
     bool _inputVerbsActive;
-    SpriteSheet _verbSheet, _gameSheet;
+    SpriteSheet _verbSheet, _gameSheet, _saveLoadSheet;
     Actor *_pFollowActor;
     std::array<sf::IntRect, 9> _verbRects;
     Entity *_pUseObject{nullptr};
@@ -113,7 +112,7 @@ struct Engine::Impl
     sf::IntRect getVerbRect(const Verb &verb) const;
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
-    void drawCursorText(sf::RenderWindow &window) const;
+    void drawCursorText(sf::RenderTarget &target) const;
     void clampCamera();
     int getCurrentActorIndex() const;
     sf::IntRect getCursorRect() const;
@@ -142,6 +141,7 @@ struct Engine::Impl
     void updateKeyboard();
     bool isKeyPressed(int key);
     int toKey(const std::string& keyText);
+    void drawPause(sf::RenderTarget &target) const;
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -154,6 +154,8 @@ Engine::Impl::Impl(EngineSettings &settings)
     _verbSheet.setTextureManager(&_textureManager);
     _gameSheet.setSettings(&settings);
     _gameSheet.setTextureManager(&_textureManager);
+    _saveLoadSheet.setSettings(&settings);
+    _saveLoadSheet.setTextureManager(&_textureManager);
     sq_resetobject(&_pDefaultObject);
 }
 
@@ -205,6 +207,7 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
 
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
+    _pImpl->_saveLoadSheet.load("SaveLoadSheet");
 
     _pImpl->_preferences.subscribe([this](const std::string &name, std::any value) {
         if (name == PreferenceNames::Language)
@@ -267,6 +270,14 @@ void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors)
 }
 
 VerbUiColors &Engine::getVerbUiColors(int characterSlot) { return _pImpl->_verbUiColors.at(characterSlot); }
+
+VerbUiColors *Engine::getVerbUiColors()
+{ 
+    
+    auto index = _pImpl->getCurrentActorIndex();
+    if(index == -1) return nullptr;
+    return &_pImpl->_verbUiColors.at(index);
+}
 
 bool Engine::getInputActive() const { return _pImpl->_inputActive; }
 
@@ -1135,9 +1146,47 @@ void Engine::draw(sf::RenderWindow &window) const
         window.draw(_pImpl->_actorIcons);
     }
 
+    _pImpl->drawPause(window);
+
     _pImpl->drawCursor(window);
     _pImpl->drawCursorText(window);
     _pImpl->_pDebugTools->render();
+}
+
+void Engine::Impl::drawPause(sf::RenderTarget &target) const
+{
+    return;
+    const auto view = target.getView();
+    auto viewRect = sf::FloatRect(0, 0, 320, 176);
+    target.setView(sf::View(viewRect));
+
+    auto viewCenter = sf::Vector2f(viewRect.width/2,viewRect.height/2);
+    auto rect = _saveLoadSheet.getRect("pause_dialog");
+
+    sf::Sprite sprite;
+    sprite.setPosition(viewCenter);
+    sprite.setTexture(_saveLoadSheet.getTexture());
+    sprite.setOrigin(rect.width/2,rect.height/2);
+    sprite.setTextureRect(rect);
+    target.draw(sprite);
+
+    viewRect = sf::FloatRect(0, 0, Screen::Width, Screen::Height);
+    viewCenter = sf::Vector2f(viewRect.width/2,viewRect.height/2);
+    target.setView(sf::View(viewRect));
+
+    NGText text;
+    auto screen = target.getView().getSize();
+    auto scale = screen.y / (2.f * 512.f);
+    text.setScale(scale, scale);
+    text.setPosition(viewCenter);
+    text.setFont(_fntFont);
+    text.setColor(sf::Color::White);
+    text.setText(_pEngine->getText(99951));
+    auto bounds = text.getBoundRect();
+    text.move(0, -bounds.height);
+    target.draw(text);
+    
+    target.setView(view);
 }
 
 void Engine::Impl::drawCursor(sf::RenderWindow &window) const
@@ -1186,7 +1235,7 @@ sf::IntRect Engine::Impl::getCursorRect() const
                                                          : _gameSheet.getRect("cursor");
 }
 
-void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
+void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
 {
     if (!_showCursor)
         return;
@@ -1205,7 +1254,10 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
         return;
 
     NGText text;
+    auto screen = target.getView().getSize();
+    auto scale = screen.y / (2.f * 512.f);
     text.setAlignment(NGTextAlignment::Center);
+    text.setScale(scale, scale);
     text.setFont(_fntFont);
     text.setColor(_verbUiColors.at(currentActorIndex).sentence);
 
@@ -1233,13 +1285,12 @@ void Engine::Impl::drawCursorText(sf::RenderWindow &window) const
     // s << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";
     // text.setText(s.str());
 
-    auto screen = _pWindow->getView().getSize();
     auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;
     if (y < 0)
         y = 0;
-    auto x = std::clamp((int)_mousePos.x, 20, (int)screen.x - 20 - (int)text.getBoundRect().width / 2);
+    auto x = std::clamp((int)_mousePos.x, 20, (int)(screen.x - 20 - (int)text.getBoundRect().width / 2));
     text.setPosition(x, y);
-    window.draw(text, sf::RenderStates::Default);
+    target.draw(text, sf::RenderStates::Default);
 }
 
 void Engine::Impl::appendUseFlag(std::wstring &sentence) const

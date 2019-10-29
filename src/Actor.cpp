@@ -2,16 +2,17 @@
 #include "sqstdaux.h"
 #include "Actor.h"
 #include "Engine.h"
+#include "Font.h"
 #include "Lip.h"
 #include "Logger.h"
 #include "PathFinder.h"
+#include "Preferences.h"
 #include "Room.h"
 #include "RoomScaling.h"
 #include "ScriptEngine.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
 #include "SoundManager.h"
-#include "Text.h"
 #include "_Util.h"
 #include <regex>
 
@@ -65,7 +66,7 @@ struct Actor::Impl
 
       private:
         Actor *_pActor{nullptr};
-        FntFont _font;
+        Font _font;
         bool _isTalking{false};
         std::wstring _sayText;
         Lip _lip;
@@ -322,8 +323,10 @@ void Actor::Impl::TalkingState::setActor(Actor *pActor)
     if (!_pActor)
         return;
 
+    _font.setTextureManager(&_pActor->pImpl->_engine.getTextureManager());
     _font.setSettings(&_pActor->pImpl->_engine.getSettings());
-    _font.loadFromFile("SayLineFont.fnt");
+    auto retroFonts = _pActor->pImpl->_engine.getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+    _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
 }
 
 void Actor::Impl::TalkingState::say(int id)
@@ -457,17 +460,19 @@ void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
 
 void Actor::Impl::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    Text text;
     auto screen = target.getView().getSize();
-    auto scale = screen.y / 2.f / 512.f;
-    text.setScale(scale, scale);
+    auto scale = screen.y / (2.f * 512.f);
+
+    NGText text;
+    text.scale(scale, scale);
+    text.setAlignment(NGTextAlignment::Center);
     text.setFont(_font);
-    text.setFillColor(_talkColor);
-    text.setString(_sayText);
-    auto bounds = text.getLocalBounds();
+    text.setColor(_talkColor);
+    text.setText(_sayText);
+    auto bounds = text.getBoundRect();
 
     sf::Transformable t;
-    t.move((sf::Vector2f)-_talkOffset - sf::Vector2f(bounds.width * scale / 2.f, 0));
+    t.move((sf::Vector2f)-_talkOffset);
     states.transform *= t.getTransform();
 
     target.draw(text, states);
