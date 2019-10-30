@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.5.0)
 project(engge)
 
 set (CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-find_package( SFML REQUIRED COMPONENTS system window graphics audio )
-find_package(ImGui-SFML REQUIRED)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
+find_package (SFML REQUIRED COMPONENTS system window graphics audio)
+find_package (ImGui-SFML REQUIRED)
 
 include_directories(include/ extlibs/squirrel/include/ extlibs/spdlog/include/)
 link_directories(extlibs/squirrel/squirrel/ extlibs/squirrel/sqstdlib/)
@@ -23,7 +24,7 @@ set(SOURCES
 
 add_subdirectory(extlibs/squirrel)
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} squirrel sqstdlib sfml-graphics sfml-window sfml-system sfml-audio)
+target_link_libraries(${PROJECT_NAME} squirrel_static sqstdlib_static sfml-graphics sfml-window sfml-system sfml-audio)
 if (SFML_FOUND)
     include_directories(${SFML_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES})
