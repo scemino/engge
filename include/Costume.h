@@ -36,7 +36,8 @@ public:
   Facing getFacing() const;
   void setState(const std::string &name);
   bool setAnimation(const std::string &name);
-  CostumeAnimation *getAnimation() { return _pCurrentAnimation.get(); }
+  CostumeAnimation *getAnimation() { return _pCurrentAnimation; }
+  std::vector<std::unique_ptr<CostumeAnimation>>& getAnimations() { return _animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
 
@@ -56,16 +57,17 @@ private:
   TextureManager &_textureManager;
   std::string _path;
   std::string _sheet;
-  std::unique_ptr<CostumeAnimation> _pCurrentAnimation;
-  Facing _facing;
-  std::string _animation;
+  std::vector<std::unique_ptr<CostumeAnimation>> _animations;
+  CostumeAnimation* _pCurrentAnimation{nullptr};
+  Facing _facing{Facing::FACE_FRONT};
+  std::string _animation{"stand"};
   std::set<std::string> _hiddenLayers;
-  std::string _headAnimName;
-  std::string _standAnimName;
-  std::string _walkAnimName;
-  std::string _reachAnimName;
-  int _headIndex;
-  Actor *_pActor;
+  std::string _headAnimName{"head"};
+  std::string _standAnimName{"stand"};
+  std::string _walkAnimName{"walk"};
+  std::string _reachAnimName{"reach"};
+  int _headIndex{0};
+  Actor *_pActor{nullptr};
   BlinkState _blinkState;
   std::unordered_map<Facing,Facing> _facings;
   bool _lockFacing{false};

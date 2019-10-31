@@ -11,15 +11,6 @@ namespace ng
 Costume::Costume(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _textureManager(textureManager),
-      _pCurrentAnimation(nullptr),
-      _facing(Facing::FACE_FRONT),
-      _animation("stand"),
-      _headAnimName("head"),
-      _standAnimName("stand"),
-      _walkAnimName("walk"),
-      _reachAnimName("reach"),
-      _headIndex(0),
-      _pActor(nullptr),
       _blinkState(*this)
 {
     _hiddenLayers.emplace("blink");
@@ -111,23 +102,11 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     _costumeSheet.setSettings(&_settings);
     _costumeSheet.load(_sheet);
 
-    // don't know if it's necessary, reyes has no costume in the intro
-    setAnimation("stand_front");
-}
-
-bool Costume::setAnimation(const std::string &animName)
-{
-    if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
-        return true;
-
-    // find animation matching name
+    // load animations
     for (auto j : _hash["animations"].array_value)
     {
         auto name = j["name"].string_value;
-        if (animName != name)
-            continue;
-
-        _pCurrentAnimation = std::make_unique<CostumeAnimation>(name);
+        auto pAnimation = std::make_unique<CostumeAnimation>(name);
         for (auto jLayer : j["layers"].array_value)
         {
             auto layer = new CostumeLayer();
@@ -135,7 +114,6 @@ bool Costume::setAnimation(const std::string &animName)
             auto fps = jLayer["fps"].isNull() ? 10 : jLayer["fps"].int_value;
             layer->setFps(fps);
             auto layerName = jLayer["name"].string_value;
-            layer->setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
             layer->setName(layerName);
             if (!jLayer["flags"].isNull())
             {
@@ -193,12 +171,37 @@ bool Costume::setAnimation(const std::string &animName)
                 layer->setLoop(true);
             }
             layer->setActor(_pActor);
-            _pCurrentAnimation->getLayers().push_back(layer);
+            pAnimation->getLayers().push_back(layer);
         }
-        trace("found animation: {}", name);
-        _pCurrentAnimation->play();
-        return true;
+        _animations.push_back(std::move(pAnimation));
     }
+
+    // don't know if it's necessary, reyes has no costume in the intro
+    setAnimation("stand_front");
+}
+
+bool Costume::setAnimation(const std::string &animName)
+{
+    if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
+        return true;
+
+    for(auto&& pAnim : _animations)
+    {
+        if(pAnim->getName() == animName)
+        {
+            _pCurrentAnimation = pAnim.get();
+            for(auto&& layer : _pCurrentAnimation->getLayers())
+            {
+                auto layerName = layer->getName();
+                layer->setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
+            }
+            _pCurrentAnimation->play();
+            return true;
+        }
+    }
+
+    _pCurrentAnimation = nullptr;
+
     return false;
 }
 

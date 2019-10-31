@@ -293,6 +293,16 @@ class _DebugTools
             return true;
         };
 
+        static auto animationGetter = [](void *vec, int idx, const char **out_text) {
+            auto &vector = *static_cast<std::vector<std::unique_ptr<CostumeAnimation>> *>(vec);
+            if (idx < 0 || idx >= static_cast<int>(vector.size()))
+            {
+                return false;
+            }
+            *out_text = vector.at(idx)->getName().c_str();
+            return true;
+        };
+
         ImGui::Begin("Actors", &_showActors);
         auto &actors = _engine.getActors();
         _actorInfos.clear();
@@ -302,6 +312,23 @@ class _DebugTools
         }
         ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
+
+        auto& anims = actor->getCostume().getAnimations();
+        int selectedActorAnimation = 0;
+        for(auto i=0; i<anims.size(); i++)
+        {
+            auto& pAnim = anims[i];
+            if(pAnim.get() == actor->getCostume().getAnimation())
+            {
+                selectedActorAnimation = i;
+                break;
+            }
+        }
+        if(ImGui::Combo("animations", &selectedActorAnimation, animationGetter, static_cast<void *>(&anims), anims.size()))
+        {
+            actor->getCostume().setAnimation(anims[selectedActorAnimation]->getName());
+        }
+
         auto isVisible = actor->isVisible();
         if (ImGui::Checkbox("Visible", &isVisible))
         {
