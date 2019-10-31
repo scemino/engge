@@ -1,35 +1,48 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(engge)
 
+include(appInfo.cmake)
+
+project("${appName}")
+
+# Compiler flags
+set (SQ_DISABLE_INSTALLER ON)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
+# Dependencies
 find_package (SFML REQUIRED COMPONENTS system window graphics audio)
 find_package (ImGui-SFML REQUIRED)
 
-include_directories(include/ extlibs/squirrel/include/ extlibs/spdlog/include/)
-link_directories(extlibs/squirrel/squirrel/ extlibs/squirrel/sqstdlib/)
-
-set(SOURCES
-    src/Game.cpp src/main.cpp src/Actor.cpp src/Animation.cpp src/Costume.cpp src/CostumeAnimation.cpp
-    src/TextDatabase.cpp src/Engine.cpp src/Font.cpp src/CostumeLayer.cpp src/Object.cpp src/Room.cpp
-    src/Scripting/ScriptEngine.cpp src/TextureManager.cpp src/Walkbox.cpp src/TextObject.cpp src/RoomLayer.cpp src/Lip.cpp
-    src/SoundDefinition.cpp src/SpriteSheet.cpp src/Dialog/YackTokenReader.cpp src/Dialog/YackParser.cpp 
-    src/Dialog/Ast.cpp src/Dialog/DialogManager.cpp src/Dialog/DialogVisitor.cpp src/FntFont.cpp src/Text.cpp
-    src/SoundManager.cpp src/ActorIcons.cpp src/Inventory.cpp src/Graph.cpp src/PathFinder.cpp src/GGPack.cpp
-    src/Cutscene.cpp src/Entity.cpp src/RoomScaling.cpp src/SoundTrigger.cpp src/SoundId.cpp src/JsonTokenReader.cpp
-    src/Light.cpp src/Thread.cpp src/_Util.cpp src/Camera.cpp src/Logger.cpp src/EngineSettings.cpp src/Preferences.cpp
-    src/Sentence.cpp src/_RoomTrigger.cpp
-)
-
+# Sources
+add_subdirectory(src)
 add_subdirectory(extlibs/squirrel)
-add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} squirrel_static sqstdlib_static sfml-graphics sfml-window sfml-system sfml-audio)
-if (SFML_FOUND)
-    include_directories(${SFML_INCLUDE_DIR})
-    target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES})
-else()
-    message (FATAL_ERROR "Cannot find SFML")
-endif()
-target_link_libraries(${PROJECT_NAME} ImGui-SFML::ImGui-SFML)
+
+# Install misc. files
+install(FILES test.nut DESTINATION .)
+install(FILES LICENSE DESTINATION .)
+
+# Configure CPack
+function(get_short_system_name variable)
+	if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+		set(${variable} "OSX" PARENT_SCOPE)
+	elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+		set(${variable} "Win32" PARENT_SCOPE)
+	else()
+		set(${variable} "${CMAKE_SYSTEM_NAME}" PARENT_SCOPE)
+	endif()
+endfunction()
+
+set(CPACK_PACKAGE_NAME ${appName})
+string(REPLACE " " "-" CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
+get_short_system_name(CPACK_SYSTEM_NAME)
+set(CPACK_PACKAGE_VERSION_MAJOR ${appVersionMajor})
+set(CPACK_PACKAGE_VERSION_MINOR ${appVersionMinor})
+set(CPACK_PACKAGE_VERSION_PATCH ${appVersionPatch})
+set(CPACK_PACKAGE_VERSION ${appVersion})
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+string(TOLOWER "${CPACK_PACKAGE_FILE_NAME}" CPACK_PACKAGE_FILE_NAME)
+set(CPACK_GENERATOR ZIP)
+
+# Run CPack
+include(CPack)
 

@@ -1,4 +1,3 @@
-version: 1.0.{build}
 image: Visual Studio 2017
 
 platform: x64
@@ -15,7 +14,7 @@ init:
   - cmd: cmake --version
   - cmd: msbuild /version
   
-before_build:
+build_script:
   - ps: echo $env:SFML_DIR
   - ps: echo $env:IMGUI_DIR
   - ps: echo $env:IMGUI_SFML_DIR
@@ -42,8 +41,20 @@ before_build:
   - ps: mkdir install
   - ps: cd build
   - ps: cmake .. -G "Visual Studio 15 2017 Win64" -DSFML_DIR=$env:SFML_DIR -DImGui-SFML_DIR="/lib/cmake/ImGui-SFML" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install
-  - ps: dir
+  - ps: cmake --build . --config Release --target package
+  - ps: cd "$env:APPVEYOR_BUILD_FOLDER"
     
-build:
-  parallel: true
-  project: build\engge.sln
+artifacts:
+  - path: build\engge-*.zip
+
+deploy:
+  - provider: GitHub
+    release: $(APPVEYOR_REPO_TAG_NAME)
+    auth_token:
+      secure: 4Fs9Shs13/CwcIHJDQAm+kNRZzsTSxsBi07gSfFHqK17nhlfwRGSYMA56XpRzeMM
+    repository: scemino/engge
+    artifact: /.*\.zip/
+    draft: true
+    prerelease: true
+    on:
+      appveyor_repo_tag: true

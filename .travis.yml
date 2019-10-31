@@ -37,7 +37,7 @@ matrix:
     - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS -DSFML_DIR=$TRAVIS_BUILD_DIR/SFML-2.5.1/install/lib/cmake/SFML
       -DImGui-SFML_DIR=$TRAVIS_BUILD_DIR/imgui-sfml-2.1/install/lib/cmake/ImGui-SFML
       -DCMAKE_INSTALL_PREFIX=../install
-    - cmake --build . --config Release
+    - cmake --build . --config Release --target package
   - name: macOS
     compiler: clang
     os: osx
@@ -54,17 +54,17 @@ matrix:
     - mkdir build && cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release $CMAKE_FLAGS -DImGui-SFML_DIR=$TRAVIS_BUILD_DIR/imgui-sfml/install/lib/cmake/ImGui-SFML
       -DCMAKE_INSTALL_PREFIX=../install
-    - cmake --build . --config Release
-before_deploy:
-  - mv engge "engge-$TRAVIS_OS_NAME"
+    - cmake --build . --config Release --target package
 deploy:
   provider: releases
   api_key:
     secure: YzN2W7SkV2T5cO/st5e/RwiRuMSkoyyzsBwii6K3Mvmybu6KM/FpLAMs7fCGxqjj/EAHbUFBNW6mJC9xlqRC5ee24x1B8KhRM2FEbTz9oUPnFnGJJK+8SKqVtnLhXdEdfC1adcL0TrJsaP9kiudgbwGNOXHzddNwfpciMhKanNmc9N+c0eHhlIbpVIGBaYDUf960ON7NKwMsYgUyWm72Z2mchUAY43Q44QOB+TZ1dn0alCsvaBzGRqHXNcq8jLhFYiltilUP85g90ebe2lwEgVsCjjU1DkorQr3oTlcONHXB5O+i0SJUjpHxGDNUxcmgf5rKnyHlHZfKITQwNN5rxHMHiPX1LQuTlTx0WDc+sXloAVpj/ZV7ubIlOjKjXL530CcLISCi4DothjRLeXzXEIEa14GcrmQRHIU0scukp7kmP2PhqQhYCcjzKZcFdD8f6YvrCWcnQydXwy4/1HZBvg40gMtS11va29hn0YuvK3SnYyjVG6un7RBryfIArzdZYv5rriOU5HlFekdYaMWgcVz335283a3kkv8YpBhLPB/DUhy2wni2znObDur5dxDdjulRe6tOyTmWPfYO/v3hqE2haH0GcULJHhA9RodRiGrG+fQIzoYlAkQWSGAMWWf9MXqz+WDH1hUKSKt6m+QpjgmVOiQpOrJIFeX+YZDK5qQ=
   file_glob: true
   file: 
-    - engge-*
+    - engge-*.zip
   skip_cleanup: true
-  draft: true
   on:
-    repo: scemino/engge
+    tags: true
+  tag_name: $TRAVIS_TAG
+  name: $TRAVIS_COMMIT_MESSAGE
+  draft: true
