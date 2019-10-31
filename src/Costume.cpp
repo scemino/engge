@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include "BlinkState.h"
 #include "Costume.h"
 #include "Logger.h"
 #include "JsonTokenReader.h"
@@ -7,55 +8,6 @@
 
 namespace ng
 {
-BlinkState::BlinkState(Costume &costume) : _costume(costume)
-{
-}
-
-void BlinkState::setRate(double min, double max)
-{
-    _min = min;
-    _max = max;
-    if (min == 0 && max == 0)
-    {
-        // blinking is disabled
-        _state = -1;
-    }
-    else
-    {
-        _state = 0;
-        _value = sf::seconds(float_rand(_min, _max));
-    }
-    _elapsed = sf::seconds(0);
-    _costume.setLayerVisible("blink", false);
-}
-
-void BlinkState::update(sf::Time elapsed)
-{
-    if (_state == ObjectStateConstants::CLOSED)
-    {
-        // wait to blink
-        _elapsed += elapsed;
-        if (_elapsed > _value)
-        {
-            _state = 1;
-            _costume.setLayerVisible("blink", true);
-            _elapsed = sf::seconds(0);
-        }
-    }
-    else if (_state == ObjectStateConstants::OPEN)
-    {
-        // wait time the eyes are closed
-        _elapsed += elapsed;
-        if (_elapsed > sf::seconds(0.2))
-        {
-            _costume.setLayerVisible("blink", false);
-            _value = sf::seconds(float_rand(_min, _max));
-            _elapsed = sf::seconds(0);
-            _state = 0;
-        }
-    }
-}
-
 Costume::Costume(TextureManager &textureManager)
     : _settings(textureManager.getSettings()),
       _textureManager(textureManager),
@@ -149,6 +101,16 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     _path = path;
     _sheet = sheet;
 
+    _settings.readEntry(_path, _hash);
+    if (_sheet.empty())
+    {
+        _sheet = _hash["sheet"].string_value;
+    }
+
+    _costumeSheet.setTextureManager(&_textureManager);
+    _costumeSheet.setSettings(&_settings);
+    _costumeSheet.load(_sheet);
+
     // don't know if it's necessary, reyes has no costume in the intro
     setAnimation("stand_front");
 }
@@ -158,25 +120,8 @@ bool Costume::setAnimation(const std::string &animName)
     if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
         return true;
 
-    GGPackValue hash;
-    _settings.readEntry(_path, hash);
-    if (_sheet.empty())
-    {
-        _sheet = hash["sheet"].string_value;
-    }
-
-    std::string sheetPath;
-    sheetPath.append(_sheet).append(".json");
-
-    std::vector<char> buffer;
-    _settings.readEntry(sheetPath, buffer);
-    auto jSheet = ng::Json::Parser::parse(buffer);
-
-    // load texture
-    _texture = _textureManager.get(_sheet);
-
     // find animation matching name
-    for (auto j : hash["animations"].array_value)
+    for (auto j : _hash["animations"].array_value)
     {
         auto name = j["name"].string_value;
         if (animName != name)
@@ -186,7 +131,7 @@ bool Costume::setAnimation(const std::string &animName)
         for (auto jLayer : j["layers"].array_value)
         {
             auto layer = new CostumeLayer();
-            layer->setTexture(&_texture);
+            layer->setTexture(&_costumeSheet.getTexture());
             auto fps = jLayer["fps"].isNull() ? 10 : jLayer["fps"].int_value;
             layer->setFps(fps);
             auto layerName = jLayer["name"].string_value;
@@ -207,11 +152,9 @@ bool Costume::setAnimation(const std::string &animName)
                 }
                 else
                 {
-                    auto jFrames = jSheet["frames"];
-                    auto jf = jFrames[frameName.c_str()];
-                    layer->getFrames().push_back(_toRect(jf["frame"]));
-                    layer->getSourceFrames().push_back(_toRect(jf["spriteSourceSize"]));
-                    layer->getSizes().push_back(_toSize(jf["sourceSize"]));
+                    layer->getFrames().push_back(_costumeSheet.getRect(frameName));
+                    layer->getSourceFrames().push_back(_costumeSheet.getSpriteSourceSize(frameName));
+                    layer->getSizes().push_back(_costumeSheet.getSourceSize(frameName));
                 }
             }
             if (!jLayer["triggers"].isNull())

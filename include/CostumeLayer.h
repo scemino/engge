@@ -32,7 +32,7 @@ public:
   std::vector<std::optional<std::string>> &getSoundTriggers() { return _soundTriggers; }
   void setActor(Actor *pActor) { _pActor = pActor; }
   void setLoop(bool loop) { _loop = loop; }
-  void setTexture(sf::Texture *pTexture) { _pTexture = pTexture; }
+  void setTexture(const sf::Texture *pTexture) { _pTexture = pTexture; }
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
   bool contains(const sf::Vector2f& pos) const;
 
@@ -51,7 +51,7 @@ private:
   std::vector<sf::Vector2i> _offsets;
   std::vector<std::optional<int>> _triggers;
   std::vector<std::optional<std::string>> _soundTriggers;
-  sf::Texture *_pTexture{nullptr};
+  const sf::Texture *_pTexture{nullptr};
   int _fps{10};
   int _flags{0};
   sf::Time _time;

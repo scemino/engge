@@ -3,8 +3,10 @@
 #include <sstream>
 #include <set>
 #include "SFML/Graphics.hpp"
-#include "NonCopyable.h"
+#include "BlinkState.h"
 #include "EngineSettings.h"
+#include "GGPack.h"
+#include "SpriteSheet.h"
 #include "TextureManager.h"
 #include "CostumeAnimation.h"
 
@@ -19,23 +21,6 @@ enum class Facing
 };
 
 class Actor;
-class Costume;
-class BlinkState
-{
-public:
-    explicit BlinkState(Costume& costume);
-    
-    void setRate(double min, double max);
-    void update(sf::Time elapsed);
-
-private:
-    Costume& _costume;
-    double _min{0};
-    double _max{0};
-    sf::Time _value;
-    int32_t _state{-1};
-    sf::Time _elapsed;
-};
 
 class Costume : public sf::Drawable
 {
@@ -72,7 +57,6 @@ private:
   std::string _path;
   std::string _sheet;
   std::unique_ptr<CostumeAnimation> _pCurrentAnimation;
-  sf::Texture _texture;
   Facing _facing;
   std::string _animation;
   std::set<std::string> _hiddenLayers;
@@ -85,5 +69,7 @@ private:
   BlinkState _blinkState;
   std::unordered_map<Facing,Facing> _facings;
   bool _lockFacing{false};
+  SpriteSheet _costumeSheet;
+  GGPackValue _hash;
 };
 } // namespace ng
