@@ -53,7 +53,7 @@ class DefaultInputEventHandler : public InputEventHandler
             auto key = toKey(event.key.code);
             if(key)
             {
-                _engine.keyReleased(key);
+                _engine.keyUp(key);
             }
             if (event.key.code == sf::Keyboard::Key::Space)
             {
@@ -66,7 +66,7 @@ class DefaultInputEventHandler : public InputEventHandler
             auto key = toKey(event.key.code);
             if(key)
             {
-                _engine.keyPressed(key);
+                _engine.keyDown(key);
             }
             if (event.key.code == sf::Keyboard::Key::Space)
             {
@@ -79,7 +79,7 @@ class DefaultInputEventHandler : public InputEventHandler
             int key = toButtonKey(event.joystickButton);
             if(key)
             {
-                _engine.keyPressed(key);
+                _engine.keyDown(key);
             }
         }
         break;
@@ -88,7 +88,7 @@ class DefaultInputEventHandler : public InputEventHandler
             int key = toButtonKey(event.joystickButton);
             if(key)
             {
-                _engine.keyReleased(key);
+                _engine.keyUp(key);
             }
         }
         break;

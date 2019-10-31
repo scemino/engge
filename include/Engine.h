@@ -243,8 +243,8 @@ class Engine : public NonCopyable
     float getFadeAlpha() const;
     void fadeTo(float destination, sf::Time time, InterpolationMethod method);
 
-    void keyPressed(int key);
-    void keyReleased(int key);
+    void keyDown(int key);
+    void keyUp(int key);
 
   private:
     struct Impl;

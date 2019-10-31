@@ -105,7 +105,8 @@ struct Engine::Impl
     Camera _camera;
     sf::Color _fadeColor{sf::Color::Transparent};
     std::unique_ptr<Sentence> _pSentence{};
-    std::set<int> _keyPressed;
+    std::set<int> _oldKeyDowns;
+    std::set<int> _newKeyDowns;
     bool _paused{false};
 
     explicit Impl(EngineSettings &settings);
@@ -141,6 +142,7 @@ struct Engine::Impl
     void onVerbClick(const Verb* pVerb);
     void updateKeyboard();
     bool isKeyPressed(int key);
+    void updateKeys();
     int toKey(const std::string& keyText);
     void drawPause(sf::RenderTarget &target) const;
 };
@@ -948,7 +950,12 @@ void Engine::update(const sf::Time &elapsed)
             _pImpl->_soundManager.resumeAllSounds();
         }
     }
-    if(_pImpl->_paused) return;
+    
+    if(_pImpl->_paused)
+    {  
+        _pImpl->updateKeys();
+        return;
+    }
 
     ImGuiIO &io = ImGui::GetIO();
     _pImpl->_frameCounter++;
@@ -1011,6 +1018,7 @@ void Engine::update(const sf::Time &elapsed)
         return;
 
     _pImpl->updateKeyboard();
+    _pImpl->updateKeys();
 
     if (!isMouseClick && !isRightClick)
         return;
@@ -1072,10 +1080,21 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     ScriptEngine::call("onActorSelected", pCurrentActor, userSelected);
 }
 
+void Engine::Impl::updateKeys()
+{
+    _oldKeyDowns.clear();
+    for(auto key : _newKeyDowns)
+    {
+        _oldKeyDowns.insert(key);
+    }
+    _newKeyDowns.clear();
+}
+
 bool Engine::Impl::isKeyPressed(int key)
 {
-    auto it = _keyPressed.find(key);
-    return it != _keyPressed.end();
+    auto wasDown = _oldKeyDowns.find(key) != _oldKeyDowns.end();
+    auto isDown = _newKeyDowns.find(key) != _newKeyDowns.end();
+    return wasDown && !isDown;
 }
 
 int Engine::Impl::toKey(const std::string& keyText)
@@ -1092,18 +1111,21 @@ void Engine::Impl::updateKeyboard()
     ImGuiIO &io = ImGui::GetIO();
     if(io.WantTextInput) return;
 
+    if(_oldKeyDowns.empty()) return;
+
     if(_pRoom)
     {
-        for(auto key : _keyPressed)
+        for(auto key : _oldKeyDowns)
         {
-            ScriptEngine::call(_pRoom, "pressedKey", key);
+            if(isKeyPressed(key))
+            {
+                ScriptEngine::call(_pRoom, "pressedKey", key);
+            }
         }
     }
 
     int currentActorIndex = getCurrentActorIndex();
     if (currentActorIndex == -1) return;
-
-    if(_keyPressed.empty()) return;
 
     const auto& verbSlot = _verbSlots.at(currentActorIndex);
     for(auto i = 0; i < 10; i++)
@@ -1563,16 +1585,16 @@ void Engine::stopSentence()
     _pImpl->_pSentence.reset();
 }
 
-void Engine::keyPressed(int key)
+void Engine::keyDown(int key)
 {
-    _pImpl->_keyPressed.insert(key);
+    _pImpl->_newKeyDowns.insert(key);
 }
 
-void Engine::keyReleased(int key)
+void Engine::keyUp(int key)
 {
-    auto it = _pImpl->_keyPressed.find(key);
-    if(it == _pImpl->_keyPressed.end()) return;
-    _pImpl->_keyPressed.erase(it);
+    auto it = _pImpl->_newKeyDowns.find(key);
+    if(it == _pImpl->_newKeyDowns.end()) return;
+    _pImpl->_newKeyDowns.erase(it);
 }
 
 } // namespace ng
