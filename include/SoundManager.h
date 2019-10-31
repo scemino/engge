@@ -24,6 +24,8 @@ public:
   SoundId *playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, Entity* pEntity = nullptr);
   SoundId *playMusic(SoundDefinition *pSoundDefinition, int loopTimes = 1);
 
+  void pauseAllSounds();
+  void resumeAllSounds();
   void stopAllSounds();
   void stopSound(SoundId *pSound);
   void stopSound(const SoundDefinition *pSoundDefinition);

@@ -170,4 +170,26 @@ void SoundManager::update(const sf::Time &elapsed)
         }
     }
 }
+
+void SoundManager::pauseAllSounds()
+{
+    for (auto &&soundId : _soundIds)
+    {
+        if (soundId)
+        {
+            soundId->pause();
+        }
+    }
+}
+
+void SoundManager::resumeAllSounds()
+{
+    for (auto &&soundId : _soundIds)
+    {
+        if (soundId)
+        {
+            soundId->resume();
+        }
+    }
+}
 } // namespace ng

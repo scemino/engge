@@ -59,6 +59,20 @@ void SoundId::stop()
     _sound.stop();
 }
 
+void SoundId::pause()
+{
+    auto path = _pSoundDefinition->getPath();
+    trace("pause sound({})", path);
+    _sound.pause();
+}
+
+void SoundId::resume()
+{
+    auto path = _pSoundDefinition->getPath();
+    trace("resume sound({})", path);
+    _sound.play();
+}
+
 void SoundId::updateVolume()
 {
     float entityVolume = 1.f;

@@ -106,6 +106,7 @@ struct Engine::Impl
     sf::Color _fadeColor{sf::Color::Transparent};
     std::unique_ptr<Sentence> _pSentence{};
     std::set<int> _keyPressed;
+    bool _paused{false};
 
     explicit Impl(EngineSettings &settings);
 
@@ -934,6 +935,21 @@ void Engine::Impl::updateRoomScalings()
 
 void Engine::update(const sf::Time &elapsed)
 {
+    _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
+    if(_pImpl->isKeyPressed(32))
+    { 
+        _pImpl->_paused = !_pImpl->_paused; 
+        if(_pImpl->_paused)
+        { 
+            _pImpl->_soundManager.pauseAllSounds();
+        }
+        else
+        {
+            _pImpl->_soundManager.resumeAllSounds();
+        }
+    }
+    if(_pImpl->_paused) return;
+
     ImGuiIO &io = ImGui::GetIO();
     _pImpl->_frameCounter++;
     auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
@@ -969,7 +985,6 @@ void Engine::update(const sf::Time &elapsed)
         }
     }
 
-    _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
     _pImpl->updateActorIcons(elapsed);
 
     _pImpl->_cursorDirection = CursorDirection::None;
@@ -1155,7 +1170,8 @@ void Engine::draw(sf::RenderWindow &window) const
 
 void Engine::Impl::drawPause(sf::RenderTarget &target) const
 {
-    return;
+    if(!_paused) return;
+
     const auto view = target.getView();
     auto viewRect = sf::FloatRect(0, 0, 320, 176);
     target.setView(sf::View(viewRect));
@@ -1176,8 +1192,9 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
 
     NGText text;
     auto screen = target.getView().getSize();
-    auto scale = screen.y / (2.f * 512.f);
+    auto scale = screen.y / 512.f;
     text.setScale(scale, scale);
+    text.setAlignment(NGTextAlignment::Center);
     text.setPosition(viewCenter);
     text.setFont(_fntFont);
     text.setColor(sf::Color::White);
@@ -1208,6 +1225,9 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 
 sf::IntRect Engine::Impl::getCursorRect() const
 {
+    if(_paused)
+        return _gameSheet.getRect("cursor_pause");
+    
     if (_dialogManager.getState() != DialogManagerState::None)
         return _gameSheet.getRect("cursor");
 

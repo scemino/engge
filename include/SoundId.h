@@ -13,9 +13,12 @@ public:
 
     void play(int loopTimes);
     void stop();
+    void pause();
+    void resume();
 
     void setVolume(float volume);
     float getVolume() const;
+
     SoundDefinition *getSoundDefinition();
     bool isPlaying() const;
     void fadeTo(float volume, const sf::Time &duration);
