@@ -12,7 +12,7 @@ set(SOURCES
     SoundManager.cpp ActorIcons.cpp Inventory.cpp Graph.cpp PathFinder.cpp GGPack.cpp
     Cutscene.cpp Entity.cpp RoomScaling.cpp SoundTrigger.cpp SoundId.cpp JsonTokenReader.cpp
     Light.cpp Thread.cpp _Util.cpp Camera.cpp Logger.cpp EngineSettings.cpp Preferences.cpp
-    Sentence.cpp _RoomTrigger.cpp BlinkState.cpp
+    Sentence.cpp _RoomTrigger.cpp BlinkState.cpp Locator.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

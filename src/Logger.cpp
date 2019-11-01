@@ -18,6 +18,4 @@ Logger::Logger()
     _out = std::make_shared<spdlog::logger>("log", dist_sink);
     _out->set_level(spdlog::level::trace);
 }
-
-Logger *Locator::_logger{nullptr};
 } // namespace ng

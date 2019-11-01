@@ -1,6 +1,7 @@
 #include <memory>
 #include "Game.h"
 #include "Engine.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "ScriptEngine.h"
 #include "DefaultInputEventHandler.h"

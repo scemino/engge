@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "spdlog/spdlog.h"
+#include "Locator.h"
 #undef Yield
 
 namespace ng
@@ -60,16 +61,6 @@ void Logger::critical(string_view_t message, const Args &... args)
 {
     _out->critical(message, args...);
 }
-
-class Locator
-{
-public:
-    static Logger &getLogger() { return *_logger; }
-    static void registerService(Logger *service) { _logger = service; }
-
-private:
-  static Logger* _logger;
-};
 
 template<typename... Args>
 static void trace(string_view_t message, const Args &... args)
