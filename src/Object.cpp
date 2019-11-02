@@ -7,6 +7,7 @@
 #include "Screen.h"
 #include "ScriptEngine.h"
 #include "Trigger.h"
+#include "_Util.h"
 #include <sstream>
 
 namespace ng
@@ -319,7 +320,7 @@ bool Object::isTemporary() const { return pImpl->_temporary; }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)
 {
-    return os << obj.getName() << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":"
+    return os << towstring(obj.getName()) << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":"
               << obj.getZOrder() << L")";
 }
 

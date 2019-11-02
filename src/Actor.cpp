@@ -245,7 +245,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &
     _pActor->getCostume().setState("walk");
     _pActor->getCostume().getAnimation()->play(true);
     _isWalking = true;
-    trace("{} go to : {},{}", tostring(_pActor->getName()), _path[0].x, _path[0].y);
+    trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
 
 void Actor::Impl::WalkingState::stop()
@@ -314,7 +314,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             _pActor->getCostume().setFacing(getFacing());
             _pActor->getCostume().setState("walk");
             _pActor->getCostume().getAnimation()->play(true);
-            trace("{} go to : {},{}", tostring(_pActor->getName()), _path[0].x, _path[0].y);
+            trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
         }
     }
 }

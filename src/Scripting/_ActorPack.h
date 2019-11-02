@@ -546,7 +546,7 @@ class _ActorPack : public Pack
         }
         SQInteger loop = 0;
         sq_getinteger(v, 4, &loop);
-        trace("Play anim {} {}{}", tostring(pActor->getName()), animation, (loop == 1 ? " (loop)" : ""));
+        trace("Play anim {} {}{}", pActor->getName(), animation, (loop == 1 ? " (loop)" : ""));
         pActor->getCostume().setState(animation);
         auto pAnim = pActor->getCostume().getAnimation();
         if (pAnim)
@@ -602,7 +602,7 @@ class _ActorPack : public Pack
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
-        trace("actorRoom({})=>{}", tostring(pActor->getName()), pRoom ? pRoom->getName() : "null");
+        trace("actorRoom({})=>{}", pActor->getName(), pRoom ? pRoom->getName() : "null");
         if (pRoom)
         {
             sq_pushobject(v, pRoom->getTable());
@@ -999,7 +999,7 @@ class _ActorPack : public Pack
 
         if (key)
         {
-            pActor->setName(towstring(key));
+            pActor->setName(key);
         }
         
         sq_pushobject(v, table);
@@ -1007,7 +1007,7 @@ class _ActorPack : public Pack
         sq_pushinteger(v, pActor->getId());
         sq_newslot(v, -3, SQFalse);
 
-        trace("Create actor {}", toUtf8(pActor->getName()));
+        trace("Create actor {}", pActor->getName());
 
         g_pEngine->addActor(std::move(pActor));
         return 1;

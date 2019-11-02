@@ -151,6 +151,7 @@ class Engine : public NonCopyable
     SQInteger setRoom(Room *pRoom);
     SQInteger enterRoomFromDoor(Object *pDoor);
     std::wstring getText(int id) const;
+    std::wstring getText(const std::string& text) const;
 
     void addActor(std::unique_ptr<Actor> actor);
     void addRoom(std::unique_ptr<Room> room);

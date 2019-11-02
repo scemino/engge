@@ -545,7 +545,7 @@ private:
         sq_pushstring(v, name, -1);
         ScriptEngine::pushObject(v, object);
         sq_pushstring(v, _SC("name"), -1);
-        sq_pushstring(v, tostring(object.getName()).c_str(), -1);
+        sq_pushstring(v, object.getName().c_str(), -1);
         sq_newslot(v, -3, SQFalse);
         sq_newslot(v, -3, SQFalse);
     }
@@ -614,13 +614,13 @@ private:
             sq_resetobject(&obj->getTable());
 
             sq_pushobject(v, table);
-            sq_pushstring(v, tostring(obj->getName()).c_str(), -1);
+            sq_pushstring(v, obj->getName().c_str(), -1);
             if (SQ_FAILED(sq_rawget(v, -2)))
             {
-                setObjectSlot(v, tostring(obj->getName()).c_str(), *obj);
+                setObjectSlot(v, obj->getName().c_str(), *obj);
 
                 sq_pushobject(v, table);
-                sq_pushstring(v, tostring(obj->getName()).c_str(), -1);
+                sq_pushstring(v, obj->getName().c_str(), -1);
                 sq_rawget(v, -2);
                 sq_getstackobj(v, -1, &obj->getTable());
                 if (!sq_istable(obj->getTable()))
@@ -650,7 +650,7 @@ private:
             const char* name;
             if(ScriptEngine::get(v, obj.get(), "name", name))
             {
-                obj->setName(towstring(name));
+                obj->setName(name);
             }
 
             sq_pushobject(v, obj->getTable());

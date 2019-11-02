@@ -1068,7 +1068,7 @@ class _ObjectPack : public Pack
             const SQChar* name;
             sq_getstring(v, -1, &name);
 
-            object->setName(towstring(name));
+            object->setName(name);
         }
 
         sq_pushobject(v, table);

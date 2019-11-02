@@ -308,7 +308,7 @@ class _DebugTools
         _actorInfos.clear();
         for (auto &&actor : actors)
         {
-            _actorInfos.push_back(toUtf8(actor->getName()));
+            _actorInfos.push_back(actor->getName());
         }
         ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
@@ -404,7 +404,7 @@ class _DebugTools
             {
                 return false;
             }
-            *out_text = tostring(vector.at(idx)->getName()).c_str();
+            *out_text = vector.at(idx)->getName().c_str();
             return true;
         };
 
@@ -417,7 +417,7 @@ class _DebugTools
         s << objects.size() << " Objects";
         if (ImGui::ListBoxHeader(s.str().c_str())) {
             for (const auto& object : objects) {
-                auto name = tostring(object->getName());
+                auto name = toUtf8(_engine.getText(object->getName()));
                 if (filter.PassFilter(name.c_str())) {
                     if (ImGui::Selectable(name.c_str(), _pSelectedObject == object.get())) {
                         _pSelectedObject = object.get();
@@ -430,7 +430,7 @@ class _DebugTools
         if (!objects.empty() && _pSelectedObject)
         {
             auto &object = _pSelectedObject;
-            ImGui::TextUnformatted(tostring(object->getName()).c_str());
+            ImGui::TextUnformatted(object->getName().c_str());
             auto isVisible = object->isVisible();
             if (ImGui::Checkbox("Visible", &isVisible))
             {

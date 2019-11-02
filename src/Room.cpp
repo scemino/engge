@@ -204,13 +204,13 @@ struct Room::Impl
             auto object = std::make_unique<Object>();
             // name
             auto objectName = jObject["name"].string_value;
-            object->setName(towstring(objectName));
+            object->setName(objectName);
             // parent
             if (jObject["parent"].isString())
             {
                 auto parent = jObject["parent"].string_value;
                 auto it = std::find_if(_objects.begin(), _objects.end(), [&parent](const std::unique_ptr<Object> &o) {
-                    return o->getName() == towstring(parent);
+                    return o->getName() == parent;
                 });
                 if (it != _objects.end())
                 {

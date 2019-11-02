@@ -246,6 +246,16 @@ std::wstring Engine::getText(int id) const
     return text;
 }
 
+std::wstring Engine::getText(const std::string& text) const
+{
+    if(!text.empty() && text[0]=='@')
+    {
+        auto id = std::atoi(text.c_str()+1);
+        return getText(id);
+    }
+    return towstring(text);
+}
+
 void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
 
 void Engine::addRoom(std::unique_ptr<Room> room) { _pImpl->_rooms.push_back(std::move(room)); }
@@ -920,7 +930,7 @@ void Engine::Impl::updateRoomScalings()
         if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
         {
             auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const RoomScaling &s) {
-                return s.getName() == tostring(object->getName());
+                return s.getName() == object->getName();
             });
             if (it != scalings.end())
             {
@@ -1311,12 +1321,12 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     }
     if (_pObj1)
     {
-        s.append(L" ").append(_pObj1->getName());
+        s.append(L" ").append(_pEngine->getText(_pObj1->getName()));
     }
     appendUseFlag(s);
     if (_pObj2)
     {
-        s.append(L" ").append(_pObj2->getName());
+        s.append(L" ").append(_pEngine->getText(_pObj2->getName()));
     }
     text.setText(s);
 
