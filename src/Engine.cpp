@@ -585,7 +585,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     {
         auto &obj = objects[i];
 
-        if (obj->getId() == 0)
+        if (obj->getId() == 0 || obj->isTemporary())
             continue;
 
         ScriptEngine::call(obj.get(), "enter");

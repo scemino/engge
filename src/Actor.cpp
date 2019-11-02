@@ -125,7 +125,7 @@ struct Actor::Impl
     bool _use{true};
     Room *_pRoom{nullptr};
     sf::IntRect _hotspot;
-    std::vector<std::unique_ptr<Object>> _objects;
+    std::vector<Object*> _objects;
     WalkingState _walkingState;
     TalkingState _talkingState;
     sf::Vector2i _speed{30, 15};
@@ -186,17 +186,17 @@ bool Actor::contains(const sf::Vector2f &pos) const
     return pAnim->contains(pos2);
 }
 
-void Actor::pickupObject(std::unique_ptr<Object> pObject)
+void Actor::pickupObject(Object* pObject)
 { 
     pObject->setOwner(this);
-    pImpl->_objects.push_back(std::move(pObject));
+    pImpl->_objects.push_back(pObject);
 }
 
 void Actor::giveTo(Object* pObject, Actor* pActor)
 {
     if(!pObject||!pActor) return;
     pObject->setOwner(pActor);
-    auto srcIt = std::find_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](std::unique_ptr<Object> &pObj){return pObj.get() == pObject;});
+    auto srcIt = std::find_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](auto &pObj){return pObj == pObject;});
     std::move(srcIt, srcIt+1, std::inserter(pActor->pImpl->_objects, std::end(pActor->pImpl->_objects)));
     pImpl->_objects.erase(srcIt);
 }
@@ -205,7 +205,7 @@ void Actor::removeInventory(Object* pObject)
 { 
     if(!pObject) return;
     pObject->setOwner(nullptr);
-    pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](std::unique_ptr<Object> &pObj){return pObj.get() == pObject;}), pImpl->_objects.end());
+    pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(), pImpl->_objects.end(), [&pObject](auto &pObj){return pObj == pObject;}), pImpl->_objects.end());
 }
 
 void Actor::clearInventory()
@@ -217,7 +217,7 @@ void Actor::clearInventory()
     pImpl->_objects.clear();
 }
 
-const std::vector<std::unique_ptr<Object>> &Actor::getObjects() const { return pImpl->_objects; }
+const std::vector<Object*> &Actor::getObjects() const { return pImpl->_objects; }
 
 void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }
 

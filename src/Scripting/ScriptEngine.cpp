@@ -64,7 +64,7 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index)
 
     sq_pushobject(v, object);
     sq_pushstring(v, _SC("_id"), -1);
-    if (SQ_FAILED(sq_get(v, -2)))
+    if (SQ_FAILED(sq_rawget(v, -2)))
     {
         return nullptr;
     }

@@ -7,8 +7,8 @@ namespace ng
 class _PickupAnim : public Function
 {
   public:
-    _PickupAnim(Actor &actor, std::unique_ptr<Object> obj, const std::string &anim)
-        : _actor(actor), _object(std::move(obj)), _animName(anim)
+    _PickupAnim(Actor &actor, Object* obj, const std::string &anim)
+        : _actor(actor), _pObject(obj), _animName(anim)
     {
     }
 
@@ -35,11 +35,11 @@ class _PickupAnim : public Function
                 _state = 1;
                 break;
             case 1:
-                if (!_pAnim->isPlaying())
+                if (!_pAnim || !_pAnim->isPlaying())
                     _state = 2;
                 break;
             case 2:
-                _actor.pickupObject(std::move(_object));
+                _actor.pickupObject(_pObject);
                 _state = 3;
                 break;
             case 3:
@@ -47,7 +47,7 @@ class _PickupAnim : public Function
                 _state = 4;
                 break;
             case 4:
-                if (!_pAnim->isPlaying())
+                if (!_pAnim || !_pAnim->isPlaying())
                     _state = 5;
                 break;
         }
@@ -56,7 +56,7 @@ class _PickupAnim : public Function
   private:
     int32_t _state{0};
     Actor &_actor;
-    std::unique_ptr<Object> _object;
+    Object* _pObject;
     std::string _animName;
     CostumeAnimation *_pAnim{nullptr};
 };
@@ -1052,38 +1052,16 @@ class _ObjectPack : public Pack
 
     static SQInteger pickupObject(HSQUIRRELVM v)
     {
-        auto object = std::make_unique<Object>();
-        auto& table = object->getTable();
-        sq_getstackobj(v, 2, &table);
-
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("_id"), -1);
-        sq_pushinteger(v, object->getId());
-        sq_newslot(v, -3, SQFalse);
-
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("name"), -1);
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
+        auto object = ScriptEngine::getObject(v, 2);
+        if (!object)
         {
-            const SQChar* name;
-            sq_getstring(v, -1, &name);
-
-            object->setName(name);
-        }
-
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("icon"), -1);
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
-        {
-            const SQChar* icon;
-            sq_getstring(v, -1, &icon);
-            object->setIcon(icon);
+            return sq_throwerror(v, _SC("failed to get object to pickup"));
         }
 
         auto actor = ScriptEngine::getActor(v, 3);
         if (actor)
         {
-            actor->pickupObject(std::move(object));
+            actor->pickupObject(object);
             return 0;
         }
 
@@ -1094,7 +1072,7 @@ class _ObjectPack : public Pack
             return 0;
         }
 
-        sq_pushobject(v, table);
+        sq_pushobject(v, object->getTable());
         sq_pushstring(v, _SC("flags"), -1);
         if (SQ_FAILED(sq_rawget(v, -2)))
         {

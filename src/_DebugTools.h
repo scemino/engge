@@ -79,6 +79,36 @@ class _DebugTools
     }
 
   private:
+    void showLayers(CostumeAnimation* pAnim)
+    {
+        if (!ImGui::CollapsingHeader("Layers"))
+            return;
+
+        for(auto& layer : pAnim->getLayers())
+        {
+            ImGui::Text("Layer %s", layer->getName().c_str());
+            ImGui::SameLine();
+            auto layerIndex = layer->getIndex();
+            auto layerSize = layer->getFrames().size() - 1;
+            if (ImGui::SliderInt("Index", &layerIndex, 0, layerSize))
+            {
+                layer->setIndex(layerIndex);
+            }
+            ImGui::SameLine();
+            auto layerVisible = layer->getVisible();
+            if (ImGui::Checkbox("Visible", &layerVisible))
+            {
+                layer->setVisible(layerVisible);
+            }
+            ImGui::SameLine();
+            auto layerLoop = layer->getLoop();
+            if (ImGui::Checkbox("Loop", &layerLoop))
+            {
+                layer->setLoop(layerLoop);
+            }
+        }
+    }
+
     void showDebugWindows()
     {
         if (!ImGui::CollapsingHeader("Windows"))
@@ -328,77 +358,85 @@ class _DebugTools
         {
             actor->getCostume().setAnimation(anims[selectedActorAnimation]->getName());
         }
+        if(!anims.empty())
+        {
+            showLayers(anims[selectedActorAnimation].get());
+        }
 
-        auto isVisible = actor->isVisible();
-        if (ImGui::Checkbox("Visible", &isVisible))
+        if(ImGui::CollapsingHeader("General"))
         {
-            actor->setVisible(isVisible);
-        }
-        auto isTouchable = actor->isTouchable();
-        if (ImGui::Checkbox("Touchable", &isTouchable))
-        {
-            actor->setTouchable(isTouchable);
-        }
-        auto pRoom = actor->getRoom();
-        ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
-        ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
-        ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
-        if (pRoom)
-        {
-            auto scale = actor->getScale();
-            ImGui::Text("Scale: %.3f", scale);
-        }
-        auto color = actor->getColor();
-        if (ColorEdit4("Color", color))
-        {
-            actor->setColor(color);
-        }
-        auto talkColor = actor->getTalkColor();
-        if (ColorEdit4("Talk color", talkColor))
-        {
-            actor->setTalkColor(talkColor);
-        }
-        auto pos = actor->getPosition();
-        if (InputFloat2("Position", pos))
-        {
-            actor->setPosition(pos);
-        }
-        auto usePos = actor->getUsePosition();
-        if (InputFloat2("Use Position", usePos))
-        {
-            actor->setUsePosition(usePos);
-        }
-        auto offset = actor->getOffset();
-        if (InputFloat2("Offset", offset))
-        {
-            actor->setOffset(offset);
-        }
-        auto renderOffset = actor->getRenderOffset();
-        if (InputInt2("Render Offset", renderOffset))
-        {
-            actor->setRenderOffset(renderOffset);
-        }
-        auto walkSpeed = actor->getWalkSpeed();
-        if (InputInt2("Walk speed", walkSpeed))
-        {
-            actor->setWalkSpeed(walkSpeed);
-        }
-        auto hotspotVisible = actor->isHotspotVisible();
-        if (ImGui::Checkbox("Show hotspot", &hotspotVisible))
-        {
-            actor->showHotspot(hotspotVisible);
-        }
-        auto hotspot = actor->getHotspot();
-        if (InputInt4("Hotspot", hotspot))
-        {
-            actor->setHotspot(hotspot);
+            auto isVisible = actor->isVisible();
+            if (ImGui::Checkbox("Visible", &isVisible))
+            {
+                actor->setVisible(isVisible);
+            }
+            auto isTouchable = actor->isTouchable();
+            if (ImGui::Checkbox("Touchable", &isTouchable))
+            {
+                actor->setTouchable(isTouchable);
+            }
+            auto pRoom = actor->getRoom();
+            ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
+            ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
+            ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
+            if (pRoom)
+            {
+                auto scale = actor->getScale();
+                ImGui::Text("Scale: %.3f", scale);
+            }
+            auto color = actor->getColor();
+            if (ColorEdit4("Color", color))
+            {
+                actor->setColor(color);
+            }
+            auto talkColor = actor->getTalkColor();
+            if (ColorEdit4("Talk color", talkColor))
+            {
+                actor->setTalkColor(talkColor);
+            }
+            auto pos = actor->getPosition();
+            if (InputFloat2("Position", pos))
+            {
+                actor->setPosition(pos);
+            }
+            auto usePos = actor->getUsePosition();
+            if (InputFloat2("Use Position", usePos))
+            {
+                actor->setUsePosition(usePos);
+            }
+            auto offset = actor->getOffset();
+            if (InputFloat2("Offset", offset))
+            {
+                actor->setOffset(offset);
+            }
+            auto renderOffset = actor->getRenderOffset();
+            if (InputInt2("Render Offset", renderOffset))
+            {
+                actor->setRenderOffset(renderOffset);
+            }
+            auto walkSpeed = actor->getWalkSpeed();
+            if (InputInt2("Walk speed", walkSpeed))
+            {
+                actor->setWalkSpeed(walkSpeed);
+            }
+            auto hotspotVisible = actor->isHotspotVisible();
+            if (ImGui::Checkbox("Show hotspot", &hotspotVisible))
+            {
+                actor->showHotspot(hotspotVisible);
+            }
+            auto hotspot = actor->getHotspot();
+            if (InputInt4("Hotspot", hotspot))
+            {
+                actor->setHotspot(hotspot);
+            }
         }
         ImGui::End();
     }
 
     void showObjects()
     {
-        static auto objectGetter = [](void *vec, int idx, const char **out_text) {
+        static auto objectGetter = [](void *vec, int idx, const char **out_text) 
+        {
             auto &vector = *static_cast<std::vector<std::unique_ptr<Object>> *>(vec);
             if (idx < 0 || idx >= static_cast<int>(vector.size()))
             {
@@ -415,11 +453,15 @@ class _DebugTools
         filter.Draw("Filter");
         std::ostringstream s;
         s << objects.size() << " Objects";
-        if (ImGui::ListBoxHeader(s.str().c_str())) {
-            for (const auto& object : objects) {
+        if (ImGui::ListBoxHeader(s.str().c_str())) 
+        {
+            for (const auto& object : objects) 
+            {
                 auto name = toUtf8(_engine.getText(object->getName()));
-                if (filter.PassFilter(name.c_str())) {
-                    if (ImGui::Selectable(name.c_str(), _pSelectedObject == object.get())) {
+                if (filter.PassFilter(name.c_str())) 
+                {
+                    if (ImGui::Selectable(name.c_str(), _pSelectedObject == object.get())) 
+                    {
                         _pSelectedObject = object.get();
                     }
                 }

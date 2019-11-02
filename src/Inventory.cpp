@@ -59,7 +59,7 @@ void Inventory::update(const sf::Time &elapsed)
             auto &objects = _pCurrentActor->getObjects();
             if (i < objects.size())
             {
-                _pCurrentInventoryObject = objects[i].get();
+                _pCurrentInventoryObject = objects[i];
                 return;
             }
         }

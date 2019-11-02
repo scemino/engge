@@ -598,17 +598,6 @@ private:
         }
         sq_pop(v, 1); //pops the null iterator
 
-        // don't know if this is the best way to do this
-        // but it seems that room objects and inventory objects are accessible
-        // from the roottable
-        for (auto &roomObject : roomObjects)
-        {
-            sq_pushroottable(v);
-            sq_pushstring(v, roomObject.first.data(), -1);
-            sq_pushobject(v, roomObject.second);
-            sq_newslot(v, -3, SQFalse);
-        }
-
         for (auto &obj : pRoom->getObjects())
         {
             sq_resetobject(&obj->getTable());
@@ -647,10 +636,10 @@ private:
             {
                 obj->setTouchable(initTouchable);
             }
-            const char* name;
-            if(ScriptEngine::get(v, obj.get(), "name", name))
+            const char* objName;
+            if(ScriptEngine::get(v, obj.get(), "name", objName))
             {
-                obj->setName(name);
+                obj->setName(objName);
             }
 
             sq_pushobject(v, obj->getTable());
@@ -670,6 +659,48 @@ private:
             sq_pushobject(v, obj->getTable());
             sq_pushobject(v, table);
             sq_setdelegate(v, -2);
+        }
+
+        // don't know if this is the best way to do this
+        // but it seems that room objects and inventory objects are accessible
+        // from the roottable
+        for (auto &roomObject : roomObjects)
+        {
+            sq_pushroottable(v);
+            sq_pushstring(v, roomObject.first.data(), -1);
+            sq_pushobject(v, roomObject.second);
+            sq_newslot(v, -3, SQFalse);
+
+            sq_pushobject(v, roomObject.second);
+            sq_pushstring(v, _SC("icon"), -1);
+            if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+            {
+                auto object = std::make_unique<Object>();
+                const SQChar* icon;
+                sq_getstring(v, -1, &icon);
+                object->setIcon(icon);
+
+                sq_pushobject(v, roomObject.second);
+                sq_getstackobj(v, -1, &object->getTable());
+
+                const char* objName;
+                if(ScriptEngine::get(v, object.get(), "name", objName))
+                {
+                    object->setName(objName);
+                    trace("inventory object {} {} {}", roomObject.first, objName, object->getId());
+                }
+
+                sq_pushobject(v, object->getTable());
+                sq_pushstring(v, _SC("_id"), -1);
+                sq_pushinteger(v, object->getId());
+                sq_newslot(v, -3, SQFalse);
+                
+                sq_pushobject(v, object->getTable());
+                sq_pushobject(v, table);
+                sq_setdelegate(v, -2);
+
+                pRoom->getObjects().push_back(std::move(object));
+            }
         }
         return 0;
     }

@@ -24,14 +24,16 @@ public:
   void setFps(int fps) { _fps = fps; }
   int getFlags() const { return _flags; }
   void setFlags(int flags) { _flags = flags; }
+  void setIndex(int index) { _index = index; }
   int getIndex() const { return _index; }
   void reset() { _index=0; }
   void setVisible(bool isVisible) { _isVisible = isVisible; }
-  int getVisible() const { return _isVisible; }
+  bool getVisible() const { return _isVisible; }
   std::vector<std::optional<int>> &getTriggers() { return _triggers; }
   std::vector<std::optional<std::string>> &getSoundTriggers() { return _soundTriggers; }
   void setActor(Actor *pActor) { _pActor = pActor; }
   void setLoop(bool loop) { _loop = loop; }
+  bool getLoop() const { return _loop; }
   void setTexture(const sf::Texture *pTexture) { _pTexture = pTexture; }
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
   bool contains(const sf::Vector2f& pos) const;
