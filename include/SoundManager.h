@@ -26,6 +26,7 @@ public:
 
   void pauseAllSounds();
   void resumeAllSounds();
+  
   void stopAllSounds();
   void stopSound(SoundId *pSound);
   void stopSound(const SoundDefinition *pSoundDefinition);
@@ -40,9 +41,9 @@ public:
   float getTalkVolume() const { return _talkVolume; }
   void setVolume(const SoundDefinition *pSoundDefinition, float volume);
 
-  SoundId *getSound(size_t index);
-  SoundId *getSoundFromId(Sound *id);
-  SoundDefinition *getSoundDefinitionFromId(Sound *id);
+  SoundId* getSound(size_t index);
+  std::vector<std::unique_ptr<SoundDefinition>>& getSoundDefinitions() { return _sounds; }
+  std::array<std::unique_ptr<SoundId>, 32>& getSounds() { return _soundIds; }
 
   size_t getSize() const { return _soundIds.size(); }
 
@@ -50,7 +51,7 @@ public:
 
 private:
   int getSlotIndex();
-  SoundId *play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes = 1, Entity* pEntity = nullptr);
+  SoundId* play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes = 1, Entity* pEntity = nullptr);
 
 private:
   EngineSettings &_settings;

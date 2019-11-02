@@ -1,7 +1,9 @@
 #include "Actor.h"
 #include "Engine.h"
 #include "Entity.h"
+#include "Locator.h"
 #include "Logger.h"
+#include "ResourceManager.h"
 #include "Room.h"
 #include "SoundId.h"
 #include "SoundManager.h"
@@ -11,6 +13,7 @@ namespace ng
 SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
     : _soundManager(soundManager), _pSoundDefinition(pSoundDefinition), _category(category)
 {
+    _id = Locator::getResourceManager().getSoundId();
 }
 
 SoundId::~SoundId()

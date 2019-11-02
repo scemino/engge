@@ -250,10 +250,10 @@ public:
 class _BreakWhileSoundFunction : public _BreakFunction
 {
 private:
-    SoundId &_soundId;
+    int _soundId;
 
 public:
-    _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, SoundId &soundId)
+    _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, int soundId)
         : _BreakFunction(engine, vm), _soundId(soundId)
     {
     }
@@ -265,7 +265,7 @@ public:
 
     bool isElapsed() override
     {
-        auto pSoundId = _engine.getSoundManager().getSoundFromId(&_soundId);
+        auto pSoundId = static_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
         return !pSoundId || !pSoundId->isPlaying();
     }
 };
@@ -583,30 +583,15 @@ private:
         return result;
     }
 
-    static SoundId *_getSound(HSQUIRRELVM v, SQInteger index)
-    {
-        SoundId *pSound = nullptr;
-        if (SQ_FAILED(sq_getuserpointer(v, index, (SQUserPointer *)&pSound)))
-        {
-            SQInteger i = 0;
-            if (SQ_FAILED(sq_getinteger(v, index, &i)))
-            {
-                return nullptr;
-            }
-            return g_pEngine->getSoundManager().getSound(i);
-        }
-        return pSound;
-    }
-
     static SQInteger breakwhilesound(HSQUIRRELVM v)
     {
-        SoundId *pSound = _getSound(v, 2);
+        SoundId *pSound = ScriptEngine::getSound(v, 2);
         if (!pSound)
         {
             return 0;
         }
         auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, v, *pSound));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, v, pSound->getId()));
         return result;
     }
 
@@ -819,7 +804,7 @@ private:
         SQInteger id;
         if (SQ_SUCCEEDED(sq_getinteger(v, 2, &id)) && id == 0)
         {
-            // no thread id => nothing to stop
+            // no thread id => nothing to stop_BreakWhileSoundFunction
             return 0;
         }
         HSQOBJECT thread_obj;

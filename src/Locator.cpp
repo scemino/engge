@@ -4,4 +4,5 @@
 namespace ng
 {
     Logger *Locator::_logger{nullptr};
+    ResourceManager *Locator::_resourceManager{nullptr};
 }

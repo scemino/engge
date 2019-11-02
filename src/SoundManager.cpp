@@ -1,5 +1,6 @@
 #include <fstream>
 #include <memory>
+#include "Entity.h"
 #include "Logger.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
@@ -17,26 +18,6 @@ SoundId *SoundManager::getSound(size_t index)
     if (index < 1 || index > _soundIds.size())
         return nullptr;
     return _soundIds.at(index - 1).get();
-}
-
-SoundId *SoundManager::getSoundFromId(Sound *id)
-{
-    for (auto &&soundId : _soundIds)
-    {
-        if (soundId.get() == (SoundId *)id)
-            return soundId.get();
-    }
-    return nullptr;
-}
-
-SoundDefinition *SoundManager::getSoundDefinitionFromId(Sound *id)
-{
-    for (auto &&soundDef : _sounds)
-    {
-        if (soundDef.get() == (SoundDefinition *)id)
-            return soundDef.get();
-    }
-    return nullptr;
 }
 
 int SoundManager::getSlotIndex()
@@ -61,30 +42,35 @@ SoundDefinition *SoundManager::defineSound(const std::string &name)
     return pSound;
 }
 
-SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity* pEntity)
+SoundId* SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity* pEntity)
 {
     return play(pSoundDefinition, SoundCategory::Sound, loopTimes, pEntity);
 }
 
-SoundId *SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity* pEntity)
+SoundId* SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity* pEntity)
 {
     return play(pSoundDefinition, SoundCategory::Talk, loopTimes, pEntity);
 }
 
-SoundId *SoundManager::playMusic(SoundDefinition *pSoundDefinition, int loopTimes)
+SoundId* SoundManager::playMusic(SoundDefinition *pSoundDefinition, int loopTimes)
 {
     return play(pSoundDefinition, SoundCategory::Music, loopTimes);
 }
 
-SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes, Entity* pEntity)
+SoundId* SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes, Entity* pEntity)
 {
     auto soundId = std::make_unique<SoundId>(*this, pSoundDefinition, category);
     soundId->setEntity(pEntity);
+    // TODO:
+    // if(pEntity)
+    // {
+    //     soundId->setVolume(pEntity->getVolume());
+    // }
     auto index = getSlotIndex();
     if (index == -1)
     {
         error("cannot play sound no more channel available");
-        return nullptr;
+        return 0;
     }
     std::string sCategory;
     switch (category)
@@ -140,7 +126,7 @@ void SoundManager::stopSound(const SoundDefinition *pSoundDef)
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);
-        if (sound && pSoundDef == sound->getSoundDefinition())
+        if (sound && pSoundDef->getId() == sound->getId())
         {
             stopSound(sound);
         }
@@ -153,7 +139,7 @@ void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume)
     for (size_t i = 1; i <= getSize(); i++)
     {
         auto &&sound = getSound(i);
-        if (sound && pSoundDef == sound->getSoundDefinition())
+        if (sound && pSoundDef->getId() == sound->getId())
         {
             sound->setVolume(volume);
         }

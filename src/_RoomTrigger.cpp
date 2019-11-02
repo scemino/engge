@@ -48,7 +48,7 @@ _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQ
             _outsideName = outsideName;
     }
     sq_settop(_vm, top);
-    _name.append(tostring(_object.getId()))
+    _name.append(tostring(_object.getName()))
         .append(" [")
         .append(_insideName)
         .append(",")

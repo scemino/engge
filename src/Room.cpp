@@ -2,8 +2,10 @@
 #include "Animation.h"
 #include "JsonTokenReader.h"
 #include "Light.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "PathFinder.h"
+#include "ResourceManager.h"
 #include "RoomLayer.h"
 #include "RoomScaling.h"
 #include "SpriteSheet.h"
@@ -38,7 +40,7 @@ struct Room::Impl
     int32_t _screenHeight{0};
     bool _showDrawWalkboxes{false};
     std::string _sheet;
-    std::string _id;
+    std::string _name;
     int _fullscreen{0};
     HSQOBJECT _table{};
     std::shared_ptr<Path> _path;
@@ -202,14 +204,13 @@ struct Room::Impl
             auto object = std::make_unique<Object>();
             // name
             auto objectName = jObject["name"].string_value;
-            object->setId(towstring(objectName));
             object->setName(towstring(objectName));
             // parent
             if (jObject["parent"].isString())
             {
                 auto parent = jObject["parent"].string_value;
                 auto it = std::find_if(_objects.begin(), _objects.end(), [&parent](const std::unique_ptr<Object> &o) {
-                    return o->getId() == towstring(parent);
+                    return o->getName() == towstring(parent);
                 });
                 if (it != _objects.end())
                 {
@@ -403,16 +404,18 @@ struct Room::Impl
 Room::Room(TextureManager &textureManager, EngineSettings &settings)
     : pImpl(std::make_unique<Impl>(textureManager, settings))
 {
+    _id = Locator::getResourceManager().getRoomId();
     pImpl->setRoom(this);
 }
 
 Room::~Room() = default;
 
-void Room::setId(const std::string &id) { pImpl->_id = id; }
-
-const std::string &Room::getId() const { return pImpl->_id; }
+void Room::setName(const std::string& name) { pImpl->_name = name; }
+std::string Room::getName() const { return pImpl->_name; }
 
 std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_objects; }
+
+std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 
 const std::string &Room::getSheet() const { return pImpl->_sheet; }
 
@@ -460,7 +463,7 @@ void Room::removeEntity(Entity *pEntity)
 
 void Room::load(const char *name)
 {
-    pImpl->_id = name;
+    pImpl->_name = name;
 
     // load wimpy file
     std::string wimpyFilename;

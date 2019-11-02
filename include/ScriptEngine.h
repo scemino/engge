@@ -14,6 +14,7 @@ class Entity;
 class Light;
 class Room;
 class ScriptEngine;
+class Sound;
 class Pack
 {
 public:
@@ -47,6 +48,9 @@ public:
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);
   static Light *getLight(HSQUIRRELVM v, SQInteger index);
+  static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
+  static Sound *getSoundFromId(int id);
+  static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
   static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light*& light);
 
   template <class T>

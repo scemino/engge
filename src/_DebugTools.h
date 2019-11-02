@@ -340,7 +340,7 @@ class _DebugTools
             actor->setTouchable(isTouchable);
         }
         auto pRoom = actor->getRoom();
-        ImGui::Text("Room: %s", pRoom ? pRoom->getId().c_str() : "(none)");
+        ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
         ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
         ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
         if (pRoom)
@@ -404,7 +404,7 @@ class _DebugTools
             {
                 return false;
             }
-            *out_text = tostring(vector.at(idx)->getId()).c_str();
+            *out_text = tostring(vector.at(idx)->getName()).c_str();
             return true;
         };
 
@@ -417,7 +417,7 @@ class _DebugTools
         s << objects.size() << " Objects";
         if (ImGui::ListBoxHeader(s.str().c_str())) {
             for (const auto& object : objects) {
-                auto name = tostring(object->getId());
+                auto name = tostring(object->getName());
                 if (filter.PassFilter(name.c_str())) {
                     if (ImGui::Selectable(name.c_str(), _pSelectedObject == object.get())) {
                         _pSelectedObject = object.get();
@@ -586,7 +586,7 @@ class _DebugTools
         {
             return false;
         }
-        *out_text = vector.at(idx)->getId().c_str();
+        *out_text = vector.at(idx)->getName().c_str();
         return true;
     }
 

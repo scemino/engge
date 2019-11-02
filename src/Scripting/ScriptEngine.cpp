@@ -6,7 +6,9 @@
 #include "sqstdstring.h"
 #include "sqstdmath.h"
 #include "Entity.h"
+#include "Locator.h"
 #include "Logger.h"
+#include "ResourceManager.h"
 #include "Room.h"
 #include "ScriptEngine.h"
 #include "SoundDefinition.h"
@@ -61,20 +63,89 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index)
     }
 
     sq_pushobject(v, object);
-    sq_pushstring(v, _SC("instance"), -1);
+    sq_pushstring(v, _SC("_id"), -1);
     if (SQ_FAILED(sq_get(v, -2)))
     {
         return nullptr;
     }
 
-    ScriptObject *pObj = nullptr;
-    if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&pObj)))
+    SQInteger id = 0;
+    if (SQ_FAILED(sq_getinteger(v, -1, &id)))
     {
         return nullptr;
     }
     sq_pop(v, 2);
 
-    return dynamic_cast<TScriptObject *>(pObj);
+    if(ResourceManager::isActor(id))
+    {
+        for(auto&& actor : g_pEngine->getActors())
+        {
+            if(actor->getId() == id)
+                return dynamic_cast<TScriptObject *>(actor.get());
+        }
+        return nullptr;
+    }
+
+    if(ResourceManager::isRoom(id))
+    {
+        for(auto&& room : g_pEngine->getRooms())
+        {
+            if(room->getId() == id)
+                return dynamic_cast<TScriptObject *>(room.get());
+        }
+        return nullptr;
+    }
+
+    if(ResourceManager::isLight(id))
+    {
+        for(auto&& room : g_pEngine->getRooms())
+        {
+            for(auto&& light : room->getLights())
+            {
+                if(light->getId() == id)
+                    return dynamic_cast<TScriptObject *>(light.get());
+            }
+        }
+        return nullptr;
+    }
+
+    if(ResourceManager::isObject(id))
+    {
+        for(auto&& room : g_pEngine->getRooms())
+        {
+            for(auto&& object : room->getObjects())
+            {
+                if(object->getId() == id)
+                    return dynamic_cast<TScriptObject *>(object.get());
+            }
+        }
+        return nullptr;
+    }
+
+    if(ResourceManager::isSound(id))
+    {
+        return dynamic_cast<TScriptObject *>(getSoundFromId(id));
+    }
+
+    return nullptr;
+}
+
+Sound *ScriptEngine::getSoundFromId(int id)
+{
+    if(!ResourceManager::isSound(id)) return nullptr;
+
+    for(auto&& sound : g_pEngine->getSoundManager().getSoundDefinitions())
+    {
+        if(sound->getId() == id)
+            return sound.get();
+    }
+
+    for(auto&& sound : g_pEngine->getSoundManager().getSounds())
+    {
+        if(sound && sound->getId() == id)
+            return sound.get();
+    }
+    return nullptr;
 }
 
 Entity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
@@ -93,6 +164,11 @@ Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index) { return ScriptEng
 
 Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Light>(v, index); }
 
+SoundId *ScriptEngine::getSound(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<SoundId>(v, index); }
+
+SoundDefinition *ScriptEngine::getSoundDefinition(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<SoundDefinition>(v, index); }
+  
+
 bool ScriptEngine::tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light)
 {
     HSQOBJECT obj;
@@ -109,8 +185,8 @@ template <class T>
 void ScriptEngine::pushObject(HSQUIRRELVM v, T &object)
 {
     sq_newtable(v);
-    sq_pushstring(v, _SC("instance"), -1);
-    sq_pushuserpointer(v, &object);
+    sq_pushstring(v, _SC("_id"), -1);
+    sq_pushinteger(v, object.getId());
     sq_newslot(v, -3, SQFalse);
 }
 

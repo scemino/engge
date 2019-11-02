@@ -1,6 +1,7 @@
 #include "SoundTrigger.h"
 #include "Engine.h"
 #include "SoundDefinition.h"
+#include "SoundId.h"
 #include "SoundManager.h"
 
 namespace ng
@@ -19,7 +20,7 @@ SoundTrigger::SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> 
     _sounds.resize(sounds.size());
     for (size_t i = 0; i < sounds.size(); i++)
     {
-        _sounds[i] = nullptr;
+        _sounds[i] = 0;
     }
 }
 
@@ -28,7 +29,9 @@ SoundTrigger::~SoundTrigger() = default;
 void SoundTrigger::trigCore()
 {
     int i = _distribution(_generator);
-    _sounds[i] = _engine.getSoundManager().playSound(_soundsDefinitions[i], 1, _pEntity);
+    auto pSound = _engine.getSoundManager().playSound(_soundsDefinitions[i], 1, _pEntity);
+    if(!pSound) return;
+    _sounds[i] = pSound->getId();
 }
 
 std::string SoundTrigger::getName() { return _name; }

@@ -1,5 +1,7 @@
 #include <utility>
+#include "Locator.h"
 #include "Logger.h"
+#include "ResourceManager.h"
 #include "SoundDefinition.h"
 
 namespace ng
@@ -9,6 +11,7 @@ Sound::~Sound() = default;
 SoundDefinition::SoundDefinition(std::string path)
     : _pSettings(nullptr), _path(std::move(path)), _isLoaded(false)
 {
+    _id = Locator::getResourceManager().getSoundId();
 }
 
 SoundDefinition::~SoundDefinition()

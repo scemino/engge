@@ -410,7 +410,7 @@ private:
         }
         for (auto &&pRoom : g_pEngine->getRooms())
         {
-            if (pRoom->getId() == name)
+            if (pRoom->getName() == name)
             {
                 sq_pushobject(v, pRoom->getTable());
                 return 1;
@@ -569,8 +569,8 @@ private:
 
         // define instance
         sq_pushobject(v, table);
-        sq_pushstring(v, _SC("instance"), -1);
-        sq_pushuserpointer(v, pRoom);
+        sq_pushstring(v, _SC("_id"), -1);
+        sq_pushinteger(v, pRoom->getId());
         sq_newslot(v, -3, SQFalse);
 
         std::unordered_map<std::string, HSQOBJECT> roomObjects;
@@ -650,25 +650,12 @@ private:
             const char* name;
             if(ScriptEngine::get(v, obj.get(), "name", name))
             {
-                if (strlen(name) > 0 && name[0] == '@')
-                {
-                    std::string s(name);
-                    s = s.substr(1);
-                    auto id = std::strtol(s.c_str(), nullptr, 10);
-                    auto text = g_pEngine->getText(id);
-                    obj->setId(obj->getName());
-                    obj->setName(text);
-                }
-                else
-                {
-                    obj->setId(towstring(name));
-                    obj->setName(towstring(name));
-                }
+                obj->setName(towstring(name));
             }
 
             sq_pushobject(v, obj->getTable());
-            sq_pushstring(v, _SC("instance"), -1);
-            sq_pushuserpointer(v, obj.get());
+            sq_pushstring(v, _SC("_id"), -1);
+            sq_pushinteger(v, obj->getId());
             sq_newslot(v, -3, SQFalse);
 
             sq_pushobject(v, obj->getTable());
@@ -699,7 +686,7 @@ private:
         if (SQ_FAILED(result))
             return result;
 
-        pRoom->setId(name);
+        pRoom->setName(name);
         sq_pushobject(v, pRoom->getTable());
         g_pEngine->addRoom(std::move(pRoom));
         return 1;

@@ -87,9 +87,6 @@ public:
   void showHotspot(bool show);
   bool isHotspotVisible() const;
 
-  void setId(const std::wstring &id);
-  const std::wstring &getId() const;
-
   void setIcon(const std::string &icon);
   void setIcon(int fps, const std::vector<std::string> &icons);
   std::string getIcon() const;

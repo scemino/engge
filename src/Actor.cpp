@@ -4,9 +4,11 @@
 #include "Engine.h"
 #include "Font.h"
 #include "Lip.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "PathFinder.h"
 #include "Preferences.h"
+#include "ResourceManager.h"
 #include "Room.h"
 #include "RoomScaling.h"
 #include "ScriptEngine.h"
@@ -76,7 +78,7 @@ struct Actor::Impl
         sf::Time _elapsed;
         std::vector<int> _ids;
         int _id{0};
-        SoundId *_pSound{nullptr};
+        int _soundId{0};
     };
 
     explicit Impl(Engine &engine)
@@ -343,15 +345,14 @@ void Actor::Impl::TalkingState::say(int id)
 void Actor::Impl::TalkingState::stop()
 {
     _ids.clear();
-    if (_pSound)
+    if (_soundId)
     {
-        _pSound = _pActor->pImpl->_engine.getSoundManager().getSoundFromId(_pSound);
-    }
-
-    if (_pSound)
-    {
-        _pSound->stop();
-        _pSound = nullptr;
+        auto pSound = static_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
+        if(pSound)
+        {
+            pSound->stop();
+        }
+        _soundId = 0;
     }
     _id = 0;
     _isTalking = false;
@@ -390,9 +391,11 @@ void Actor::Impl::TalkingState::load(int id)
     }
     else
     {
-        _pSound = _pActor->pImpl->_engine.getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
-        if (_pSound)
-            _pSound->setVolume(_pActor->pImpl->_volume);
+        auto pSound = _pActor->pImpl->_engine.getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
+        if(pSound)
+        {
+            _soundId = pSound->getId();
+        }
     }
 
     std::string path;
@@ -478,7 +481,11 @@ void Actor::Impl::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates 
     target.draw(text, states);
 }
 
-Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine)) { pImpl->setActor(this); }
+Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine))
+{ 
+    pImpl->setActor(this); 
+    _id = Locator::getResourceManager().getActorId();
+}
 
 Actor::~Actor() = default;
 

@@ -572,7 +572,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     {
         auto &obj = objects[i];
 
-        if (obj->getId().empty())
+        if (obj->getId() == 0)
             continue;
 
         ScriptEngine::call(obj.get(), "enter");
@@ -588,7 +588,7 @@ void Engine::Impl::setCurrentRoom(Room *pRoom)
     if (pRoom)
     {
         std::ostringstream s;
-        s << "currentRoom = " << pRoom->getId();
+        s << "currentRoom = " << pRoom->getName();
         _pScriptExecute->execute(s.str());
     }
     _camera.resetBounds();
@@ -920,7 +920,7 @@ void Engine::Impl::updateRoomScalings()
         if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
         {
             auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const RoomScaling &s) {
-                return s.getName() == tostring(object->getId());
+                return s.getName() == tostring(object->getName());
             });
             if (it != scalings.end())
             {

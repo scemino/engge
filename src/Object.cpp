@@ -1,6 +1,8 @@
 #include "Object.h"
 #include "Animation.h"
 #include "Function.h"
+#include "Locator.h"
+#include "ResourceManager.h"
 #include "Room.h"
 #include "Screen.h"
 #include "ScriptEngine.h"
@@ -13,7 +15,7 @@ struct Object::Impl
 {
     std::vector<std::unique_ptr<Animation>> _anims;
     std::optional<Animation> _pAnim{std::nullopt};
-    std::wstring _name, _id;
+    std::wstring _name;
     int _zorder{0};
     UseDirection _direction{UseDirection::Front};
     bool _prop{false};
@@ -40,7 +42,10 @@ struct Object::Impl
     bool _temporary{false};
 };
 
-Object::Object() : pImpl(std::make_unique<Impl>()) {}
+Object::Object() : pImpl(std::make_unique<Impl>()) 
+{
+    _id = Locator::getResourceManager().getObjectId();
+}
 
 Object::~Object() = default;
 
@@ -59,9 +64,6 @@ UseDirection Object::getUseDirection() const { return pImpl->_direction; }
 
 void Object::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
 const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
-
-void Object::setId(const std::wstring &id) { pImpl->_id = id; }
-const std::wstring &Object::getId() const { return pImpl->_id; }
 
 void Object::setIcon(const std::string &icon)
 {

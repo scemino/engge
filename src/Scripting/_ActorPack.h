@@ -602,7 +602,7 @@ class _ActorPack : public Pack
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
         auto pRoom = pActor->getRoom();
-        trace("actorRoom({})=>{}", tostring(pActor->getName()), pRoom ? pRoom->getId() : "null");
+        trace("actorRoom({})=>{}", tostring(pActor->getName()), pRoom ? pRoom->getName() : "null");
         if (pRoom)
         {
             sq_pushobject(v, pRoom->getTable());
@@ -1001,9 +1001,10 @@ class _ActorPack : public Pack
         {
             pActor->setName(towstring(key));
         }
+        
         sq_pushobject(v, table);
-        sq_pushstring(v, _SC("instance"), -1);
-        sq_pushuserpointer(v, pActor.get());
+        sq_pushstring(v, _SC("_id"), -1);
+        sq_pushinteger(v, pActor->getId());
         sq_newslot(v, -3, SQFalse);
 
         trace("Create actor {}", toUtf8(pActor->getName()));

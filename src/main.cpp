@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "Locator.h"
 #include "Logger.h"
+#include "ResourceManager.h"
 #include "ScriptEngine.h"
 #include "DefaultInputEventHandler.h"
 #include "Dialog/_AstDump.h"
@@ -11,6 +12,9 @@ int main(int argc, char **argv)
 {
     auto pLogger = std::make_unique<ng::Logger>();
     ng::Locator::registerService(pLogger.get());
+
+    auto pResManager = std::make_unique<ng::ResourceManager>();
+    ng::Locator::registerService(pResManager.get());
 
     ng::EngineSettings settings;
     if (argc == 2)

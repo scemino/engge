@@ -35,23 +35,29 @@ private:
         engine.registerGlobalFunction(stopSound, "stopSound");
     }
 
-    template <typename T>
-    static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<T *> &array)
+    static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<SoundId *> &array)
     {
-        T *ptr = nullptr;
         for (size_t i = 0; i < size; i++)
         {
-            if (SQ_FAILED(sq_getuserpointer(v, index + i, (SQUserPointer *)&ptr)))
-            {
-                return false;
-            }
-            array.push_back(ptr);
+            auto pSound = ScriptEngine::getSound(v, index + i);
+            if (!pSound) return false;
+            array.push_back(pSound);
         }
         return true;
     }
 
-    template <typename T>
-    static bool _getArray(HSQUIRRELVM v, SQInteger index, std::vector<T *> &array)
+    static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<SoundDefinition *> &array)
+    {
+        for (size_t i = 0; i < size; i++)
+        {
+            auto pSound = ScriptEngine::getSoundDefinition(v, index + i);
+            if (!pSound) return false;
+            array.push_back(pSound);
+        }
+        return true;
+    }
+
+    static bool _getArray(HSQUIRRELVM v, SQInteger index, std::vector<SoundDefinition *> &array)
     {
         HSQOBJECT paramObj;
         sq_resetobject(&paramObj);
@@ -59,14 +65,14 @@ private:
         if (!sq_isarray(paramObj))
             return false;
 
-        T *ptr = nullptr;
         sq_push(v, 3);
         sq_pushnull(v); //null iterator
         while (SQ_SUCCEEDED(sq_next(v, -2)))
         {
-            if (SQ_FAILED(sq_getuserpointer(v, -1, (SQUserPointer *)&ptr)))
+            auto pSound = ScriptEngine::getSoundDefinition(v, -1);
+            if(!pSound)
                 return false;
-            array.emplace_back(ptr);
+            array.emplace_back(pSound);
             sq_pop(v, 2);
         }
         sq_pop(v, 1); //pops the null iterator
@@ -108,7 +114,7 @@ private:
 
     static SQInteger loopMusic(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get music"));
@@ -136,13 +142,13 @@ private:
             return sq_throwerror(v, _SC("failed to get filename"));
         }
         auto sound = g_pEngine->getSoundManager().defineSound(filename);
-        sq_pushuserpointer(v, sound);
+        ScriptEngine::pushObject(v, *sound);
         return 1;
     }
 
     static SQInteger loopObjectSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -156,28 +162,24 @@ private:
         sq_getinteger(v, 4, &loopTimes);
         SQFloat fadeInTime = 0;
         sq_getfloat(v, 5, &fadeInTime);
-        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
+        auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes, pEntity);
         if (!pSoundId)
         {
             sq_pushnull(v);
             return 1;
-        }
-        if (pSoundId)
-        {
-            pSoundId->setEntity(pEntity);
         }
         if (fadeInTime != 0)
         {
             pSoundId->setVolume(0.f);
             pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
-        sq_pushuserpointer(v, pSoundId);
+        ScriptEngine::pushObject(v, *pSoundId);
         return 1;
     }
 
     static SQInteger loadSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -188,7 +190,7 @@ private:
 
     static SQInteger loopSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -203,7 +205,7 @@ private:
             pSoundId->setVolume(0.f);
             pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
-        sq_pushuserpointer(v, pSoundId);
+        ScriptEngine::pushObject(v, *pSoundId);
         return 1;
     }
 
@@ -214,7 +216,7 @@ private:
 
     static SQInteger fadeOutSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSound(v, 2);
+        auto pSound = ScriptEngine::getSound(v, 2);
         float t;
         if (SQ_FAILED(sq_getfloat(v, 3, &t)))
         {
@@ -223,7 +225,7 @@ private:
         auto time = sf::seconds(t);
         if (pSound == nullptr)
         {
-            auto pSoundDefinition = _getSoundDefinition(v, 2);
+            auto pSoundDefinition = ScriptEngine::getSoundDefinition(v, 2);
             if (pSoundDefinition == nullptr)
             {
                 error("no sound to fadeOutSound");
@@ -246,13 +248,13 @@ private:
 
     static SQInteger isSoundPlaying(HSQUIRRELVM v)
     {
-        auto pSound = _getSound(v, 2);
+        auto pSound = ScriptEngine::getSound(v, 2);
         if (pSound)
         {
             sq_pushinteger(v, pSound->isPlaying() ? 1 : 0);
             return 1;
         }
-        auto pSoundDef = _getSoundDefinition(v, 2);
+        auto pSoundDef = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSoundDef)
         {
             sq_pushinteger(v, 0);
@@ -274,7 +276,7 @@ private:
 
     static SQInteger playObjectSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -294,65 +296,40 @@ private:
             soundId->setEntity(pEntity);
             soundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
-        sq_pushuserpointer(v, soundId);
+        ScriptEngine::pushObject(v, *soundId);
 
         return 1;
     }
 
     static SQInteger playMusic(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get music"));
         }
         auto soundId = g_pEngine->getSoundManager().playMusic(pSound);
-        sq_pushuserpointer(v, soundId);
+        ScriptEngine::pushObject(v, *soundId);
 
         return 1;
     }
 
     static SQInteger playSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
         }
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
-        sq_pushuserpointer(v, soundId);
+        ScriptEngine::pushObject(v, *soundId);
 
         return 1;
     }
 
-    static SoundId *_getSound(HSQUIRRELVM v, SQInteger index)
-    {
-        Sound *pSound = nullptr;
-        if (SQ_FAILED(sq_getuserpointer(v, index, (SQUserPointer *)&pSound)))
-        {
-            SQInteger i = 0;
-            if (SQ_FAILED(sq_getinteger(v, index, &i)))
-            {
-                return nullptr;
-            }
-            return g_pEngine->getSoundManager().getSound(i);
-        }
-        return g_pEngine->getSoundManager().getSoundFromId(pSound);
-    }
-
-    static SoundDefinition *_getSoundDefinition(HSQUIRRELVM v, SQInteger index)
-    {
-        Sound *pSound = nullptr;
-        if (SQ_FAILED(sq_getuserpointer(v, index, (SQUserPointer *)&pSound)))
-        {
-            return nullptr;
-        }
-        return g_pEngine->getSoundManager().getSoundDefinitionFromId(pSound);
-    }
-
     static SQInteger playSoundVolume(HSQUIRRELVM v)
     {
-        auto pSound = _getSoundDefinition(v, 2);
+        auto pSound = ScriptEngine::getSoundDefinition(v, 2);
         if (!pSound)
         {
             return sq_throwerror(v, _SC("failed to get sound"));
@@ -367,7 +344,7 @@ private:
         {
             soundId->setVolume(volume);
         }
-        sq_pushuserpointer(v, soundId);
+        ScriptEngine::pushObject(v, *soundId);
         return 1;
     }
 
@@ -411,13 +388,13 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get volume"));
         }
-        auto pSound = _getSound(v, 2);
+        auto pSound = ScriptEngine::getSound(v, 2);
         if (pSound)
         {
             pSound->setVolume(volume);
             return 0;
         }
-        auto pSoundDef = _getSoundDefinition(v, 2);
+        auto pSoundDef = ScriptEngine::getSoundDefinition(v, 2);
         if (pSoundDef)
         {
             g_pEngine->getSoundManager().setVolume(pSoundDef, volume);
@@ -433,13 +410,13 @@ private:
 
     static SQInteger stopSound(HSQUIRRELVM v)
     {
-        auto pSound = _getSound(v, 2);
+        auto pSound = ScriptEngine::getSound(v, 2);
         if (pSound)
         {
             g_pEngine->getSoundManager().stopSound(pSound);
             return 0;
         }
-        auto pSoundDef = _getSoundDefinition(v, 2);
+        auto pSoundDef = ScriptEngine::getSoundDefinition(v, 2);
         if (pSoundDef)
         {
             g_pEngine->getSoundManager().stopSound(pSoundDef);

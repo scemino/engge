@@ -1057,8 +1057,8 @@ class _ObjectPack : public Pack
         sq_getstackobj(v, 2, &table);
 
         sq_pushobject(v, table);
-        sq_pushstring(v, _SC("instance"), -1);
-        sq_pushuserpointer(v, object.get());
+        sq_pushstring(v, _SC("_id"), -1);
+        sq_pushinteger(v, object->getId());
         sq_newslot(v, -3, SQFalse);
 
         sq_pushobject(v, table);
@@ -1068,20 +1068,7 @@ class _ObjectPack : public Pack
             const SQChar* name;
             sq_getstring(v, -1, &name);
 
-            if (strlen(name) > 0 && name[0] == '@')
-            {
-                std::string s(name);
-                s = s.substr(1);
-                auto id = std::strtol(s.c_str(), nullptr, 10);
-                auto text = g_pEngine->getText(id);
-                object->setId(text);
-                object->setName(text);
-            }
-            else
-            {
-                object->setId(towstring(name));
-                object->setName(towstring(name));
-            }
+            object->setName(towstring(name));
         }
 
         sq_pushobject(v, table);

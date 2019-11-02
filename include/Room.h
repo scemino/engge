@@ -32,11 +32,12 @@ public:
   Room(TextureManager &textureManager, EngineSettings &settings);
   ~Room() override;
 
-  void setId(const std::string &id);
-  const std::string &getId() const;
+  void setName(const std::string& name);
+  std::string getName() const;
 
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
+  std::vector<std::unique_ptr<Light>> &getLights();
   const std::string &getSheet() const;
 
   void update(const sf::Time &elapsed);

@@ -24,7 +24,7 @@ private:
     Engine &_engine;
     Entity* _pEntity{nullptr};
     std::vector<SoundDefinition*> _soundsDefinitions;
-    std::vector<SoundId*> _sounds;
+    std::vector<int> _sounds;
     std::default_random_engine _generator;
     std::uniform_int_distribution<int> _distribution;
     std::string _name;
