@@ -370,6 +370,7 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
 
 void Engine::setDefaultVerb()
 {
+    _pImpl->_pHoveredEntity = nullptr;
     auto index = _pImpl->getCurrentActorIndex();
     if (index == -1)
         return;
@@ -417,6 +418,8 @@ HSQUIRRELVM Engine::getVm() { return _pImpl->_vm; }
 
 SQInteger Engine::Impl::exitRoom(Object *pObject)
 {
+    _pEngine->setDefaultVerb();
+
     if (!_pRoom)
         return 0;
 
