@@ -375,19 +375,12 @@ int Actor::Impl::TalkingState::onTalkieID(int id)
 void Actor::Impl::TalkingState::load(int id)
 {
     _id = id;
-    auto v = _pActor->pImpl->_engine.getVm();
-    sq_pushobject(v, _pActor->pImpl->_table);
-    sq_pushstring(v, _SC("_talkieKey"), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
+
+    const char* key = nullptr;
+    if(!ScriptEngine::get(_pActor, "_talkieKey", key))
     {
-        sq_pop(v, 1);
-        sq_pushobject(v, _pActor->pImpl->_table);
-        sq_pushstring(v, _SC("_key"), -1);
-        sq_rawget(v, -2);
+        ScriptEngine::get(_pActor, "_key", key);
     }
-    const SQChar *key;
-    sq_getstring(v, -1, &key);
-    sq_pop(v, 2);
 
     id = onTalkieID(id);
 

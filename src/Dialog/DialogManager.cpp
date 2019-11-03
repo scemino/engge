@@ -1,4 +1,4 @@
-
+#include <regex>
 #include "Actor.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
@@ -101,9 +101,17 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
             continue;
 
         text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
+        std::wstring dialogText = dlg.text;
+        std::wregex re(L"(\\{([^\\}]*)\\})");
+        std::wsmatch matches;
+        if (std::regex_search(dialogText, matches, re))
+        {
+            dialogText = matches.suffix();
+        }
+        
         sf::String s;
         s = L"● ";
-        s += dlg.text;
+        s += dialogText;
         text.setText(s);
         text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors()->dialogHighlight : _pEngine->getVerbUiColors()->dialogNormal);
         target.draw(text, states);
