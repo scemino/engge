@@ -928,15 +928,25 @@ class _ActorPack : public Pack
         if (numArgs == 3)
         {
             auto *pObject = ScriptEngine::getObject(v, 3);
-            if (!pObject)
+            if (pObject)
             {
-                return sq_throwerror(v, _SC("failed to get object"));
+                auto pos = pObject->getRealPosition();
+                auto usePos = pObject->getUsePosition();
+
+                pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
+                return 0;
             }
 
-            auto pos = pObject->getRealPosition();
-            auto usePos = pObject->getUsePosition();
+            auto *pActor = ScriptEngine::getActor(v, 3);
+            if (!pActor)
+            {
+                return sq_throwerror(v, _SC("failed to get object or actor"));
+            }
 
-            pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
+            auto pos = pActor->getRealPosition();
+            auto usePos = pActor->getUsePosition();
+
+            pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), getOppositeFacing(pActor->getCostume().getFacing()));
             return 0;
         }
 
