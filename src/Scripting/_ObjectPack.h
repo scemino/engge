@@ -291,19 +291,7 @@ class _ObjectPack : public Pack
         if (numArgs == 2)
         {
             const auto &hotspot = obj->getHotspot();
-            sq_newtable(v);
-            sq_pushstring(v, _SC("x1"), -1);
-            sq_pushinteger(v, hotspot.left);
-            sq_newslot(v, -3, SQFalse);
-            sq_pushstring(v, _SC("y1"), -1);
-            sq_pushinteger(v, hotspot.top);
-            sq_newslot(v, -3, SQFalse);
-            sq_pushstring(v, _SC("x2"), -1);
-            sq_pushinteger(v, hotspot.left + hotspot.width);
-            sq_newslot(v, -3, SQFalse);
-            sq_pushstring(v, _SC("y2"), -1);
-            sq_pushinteger(v, hotspot.top + hotspot.height);
-            sq_newslot(v, -3, SQFalse);
+            ScriptEngine::push(v, hotspot);
             return 1;
         }
         if (SQ_FAILED(sq_getinteger(v, 3, &left)))

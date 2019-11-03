@@ -973,39 +973,24 @@ class _ActorPack : public Pack
         sq_getstackobj(v, 2, &table);
         sq_addref(v, &table);
 
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("_key"), 4);
-        const SQChar *key = nullptr;
-        if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+        const char *key = nullptr;
+        if(!ScriptEngine::get(pActor.get(), "_key", key))
         {
-            if (SQ_FAILED(sq_getstring(v, -1, &key)))
-            {
-                return sq_throwerror(v, _SC("can't find _key entry"));
-            }
-            sq_pop(v, 2);
+            return sq_throwerror(v, _SC("can't find _key entry"));
         }
-
-        // define instance
-        const SQChar *icon = nullptr;
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("icon"), 4);
-        if (SQ_SUCCEEDED(sq_rawget(v, -2)))
-        {
-            sq_getstring(v, -1, &icon);
-            pActor->setIcon(icon);
-        }
-
-        sq_pop(v, 2);
-
         if (key)
         {
             pActor->setName(key);
         }
-        
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("_id"), -1);
-        sq_pushinteger(v, pActor->getId());
-        sq_newslot(v, -3, SQFalse);
+
+        // define instance
+        const char *icon = nullptr;
+        if(ScriptEngine::get(pActor.get(), "icon", icon))
+        {
+            pActor->setIcon(icon);
+        }
+
+        ScriptEngine::set(pActor.get(), "_id", pActor->getId());
 
         trace("Create actor {}", pActor->getName());
 

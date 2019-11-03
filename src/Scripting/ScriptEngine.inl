@@ -66,6 +66,24 @@ void ScriptEngine::push<sf::Vector2i>(HSQUIRRELVM v, sf::Vector2i pos)
 }
 
 template <>
+void ScriptEngine::push<sf::IntRect>(HSQUIRRELVM v, sf::IntRect rect)
+{
+    sq_newtable(v);
+    sq_pushstring(v, _SC("x1"), -1);
+    sq_pushinteger(v, rect.left);
+    sq_newslot(v, -3, SQFalse);
+    sq_pushstring(v, _SC("y1"), -1);
+    sq_pushinteger(v, rect.top);
+    sq_newslot(v, -3, SQFalse);
+    sq_pushstring(v, _SC("x2"), -1);
+    sq_pushinteger(v, rect.left + rect.width);
+    sq_newslot(v, -3, SQFalse);
+    sq_pushstring(v, _SC("y2"), -1);
+    sq_pushinteger(v, rect.top + rect.height);
+    sq_newslot(v, -3, SQFalse);
+}
+
+template <>
 void ScriptEngine::push<sf::Vector2f>(HSQUIRRELVM v, sf::Vector2f pos)
 {
     return ScriptEngine::push(v, (sf::Vector2i)pos);

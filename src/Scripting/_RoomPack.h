@@ -556,22 +556,16 @@ private:
         sq_getstackobj(v, index, &table);
 
         // loadRoom
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("background"), -1);
-        if (SQ_FAILED(sq_rawget(v, -2)))
+        const char* background = nullptr;
+        if(!ScriptEngine::get(pRoom, "background", background))
         {
             return sq_throwerror(v, _SC("can't find background entry"));
         }
-        const SQChar *name;
-        sq_getstring(v, -1, &name);
-        sq_pop(v, 2);
-        pRoom->load(name);
+        
+        pRoom->load(background);
 
         // define instance
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("_id"), -1);
-        sq_pushinteger(v, pRoom->getId());
-        sq_newslot(v, -3, SQFalse);
+        ScriptEngine::set(pRoom, "_id", pRoom->getId());
 
         std::unordered_map<std::string, HSQOBJECT> roomObjects;
 
@@ -642,10 +636,7 @@ private:
                 obj->setName(objName);
             }
 
-            sq_pushobject(v, obj->getTable());
-            sq_pushstring(v, _SC("_id"), -1);
-            sq_pushinteger(v, obj->getId());
-            sq_newslot(v, -3, SQFalse);
+            ScriptEngine::set(obj.get(), "_id", obj->getId());
 
             sq_pushobject(v, obj->getTable());
             sq_pushstring(v, _SC("flags"), -1);
@@ -690,10 +681,7 @@ private:
                     trace("inventory object {} {} {}", roomObject.first, objName, object->getId());
                 }
 
-                sq_pushobject(v, object->getTable());
-                sq_pushstring(v, _SC("_id"), -1);
-                sq_pushinteger(v, object->getId());
-                sq_newslot(v, -3, SQFalse);
+                ScriptEngine::set(object.get(), "_id", object->getId());
                 
                 sq_pushobject(v, object->getTable());
                 sq_pushobject(v, table);

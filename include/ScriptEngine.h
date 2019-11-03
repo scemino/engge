@@ -72,6 +72,12 @@ public:
   template<typename TThis, typename T>
   static bool get(HSQUIRRELVM v, TThis pThis, const char* name, T& result);
 
+  template<typename TThis, typename T>
+  static void set(TThis pThis, const char* name, T value);
+
+  template<typename TThis, typename T>
+  static void set(HSQUIRRELVM v, TThis pThis, const char* name, T value);
+
   template<typename...T>
   static void call(const char* name, T... args);
   static void call(const char* name);
@@ -229,6 +235,22 @@ bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char* name, T& result)
     return ScriptEngine::get(v, -1, result);
   }
   return false;
+}
+
+template<typename TThis, typename T>
+void ScriptEngine::set(TThis pThis, const char* name, T value)
+{
+  ScriptEngine::set(g_pEngine->getVm(), pThis, name, value);
+}
+
+template<typename TThis, typename T>
+void ScriptEngine::set(HSQUIRRELVM v, TThis pThis, const char* name, T value)
+{
+  push(v, pThis);
+  sq_pushstring(v, _SC(name), -1);
+  ScriptEngine::push(v, value);
+  sq_newslot(v, -3, SQFalse);
+  sq_pop(v,1);
 }
 
 } // namespace ng
