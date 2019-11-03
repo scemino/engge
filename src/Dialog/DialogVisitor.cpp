@@ -41,7 +41,7 @@ void DialogVisitor::ConditionVisitor::visit(const Ast::CodeCondition &node)
     // check if the code corresponds to an actor name
     const auto name = node.code;
     auto it = std::find_if(actors.cbegin(), actors.cend(), [&name](const std::unique_ptr<Actor> &actor) {
-        return actor->getName() == name; });
+        return actor->getKey() == name; });
     if (it != actors.end())
     {
         // yes, so we check if the current actor is the given actor name
@@ -106,7 +106,7 @@ void DialogVisitor::visit(const Ast::Say &node)
         auto name = node.actor;
         for (auto &actor : actors)
         {
-            if (actor->getName() == name)
+            if (actor->getKey() == name)
             {
                 pActor = actor.get();
                 break;

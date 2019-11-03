@@ -983,14 +983,16 @@ class _ActorPack : public Pack
         sq_getstackobj(v, 2, &table);
         sq_addref(v, &table);
 
-        const char *key = nullptr;
-        if(!ScriptEngine::get(pActor.get(), "_key", key))
+        const char *name = nullptr;
+        if(ScriptEngine::get(pActor.get(), "name", name))
         {
-            return sq_throwerror(v, _SC("can't find _key entry"));
+            pActor->setName(name);
         }
-        if (key)
+
+        const char *key = nullptr;
+        if(ScriptEngine::get(pActor.get(), "_key", key))
         {
-            pActor->setName(key);
+            pActor->setKey(key);
         }
 
         // define instance
@@ -1005,6 +1007,8 @@ class _ActorPack : public Pack
         trace("Create actor {}", pActor->getName());
 
         g_pEngine->addActor(std::move(pActor));
+
+        sq_pushobject(v, table);
         return 1;
     }
 

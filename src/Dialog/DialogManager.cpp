@@ -175,10 +175,6 @@ void DialogManager::update(const sf::Time &elapsed)
         if (text.getBoundRect().contains(_pEngine->getMousePos()))
         {
             choose(dialog + 1);
-            auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
-            _functions.push_back(std::move(say));
-            _dialogVisitor.select(*dlg.pChoice);
-            selectLabel(dlg.label);
             break;
         }
         dialog++;

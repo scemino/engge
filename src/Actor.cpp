@@ -132,7 +132,12 @@ struct Actor::Impl
     HSQOBJECT _table{};
     sf::Vector2f _offset;
     bool _hotspotVisible{false};
+    std::string _key;
 };
+
+void Actor::setKey(const std::string &key) { pImpl->_key = key; }
+
+const std::string &Actor::getKey() const { return pImpl->_key; }
 
 void Actor::setIcon(const std::string &icon) { pImpl->_icon = icon; }
 

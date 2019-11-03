@@ -19,6 +19,9 @@ public:
   explicit Actor(Engine &engine);
   virtual ~Actor() override;
 
+  void setKey(const std::string &key);
+  const std::string &getKey() const;
+
   void setIcon(const std::string &icon);
   const std::string &getIcon() const;
 
