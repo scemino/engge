@@ -368,7 +368,7 @@ void Actor::Impl::TalkingState::stop()
 
 int Actor::Impl::TalkingState::onTalkieID(int id)
 {
-    ScriptEngine::call(id, "onTalkieID", _pActor, id);
+    ScriptEngine::call("onTalkieID", _pActor, id);
     return id;
 }
 
