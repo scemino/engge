@@ -189,14 +189,20 @@ void DialogManager::choose(int choice)
 {
     if((choice < 1) || (choice > _dialog.size())) return;
 
-    if(choice <= _dialog.size())
+    size_t i = 0;
+    for(auto dlg : _dialog)
     {
-        ScriptEngine::call("onChoiceClick");
-        auto& dlg = _dialog.at(choice - 1);
-        auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
-        _functions.push_back(std::move(say));
-        _dialogVisitor.select(*dlg.pChoice);
-        selectLabel(dlg.label);
+        if(dlg.id == 0) continue;
+        if((choice-1) == i)
+        {
+            ScriptEngine::call("onChoiceClick");
+            auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), dlg.id);
+            _functions.push_back(std::move(say));
+            _dialogVisitor.select(*dlg.pChoice);
+            selectLabel(dlg.label);
+            return;
+        }
+        i++;
     }
 }
 
