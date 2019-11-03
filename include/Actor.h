@@ -54,6 +54,7 @@ public:
   void update(const sf::Time &time) override;
 
   void pickupObject(Object* pObject);
+  void pickupReplacementObject(Object* pObject1,Object* pObject2);
   void giveTo(Object* pObject, Actor* pActor);
   void removeInventory(Object* pObject);
   void clearInventory();

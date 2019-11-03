@@ -1119,7 +1119,7 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get object 2"));
         }
         auto actor = obj1->getOwner();
-        error("TODO: pickupReplacementObject: not implemented");
+        actor->pickupReplacementObject(obj1, obj2);
         return 0;
     }
 
