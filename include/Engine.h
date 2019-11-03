@@ -1,5 +1,6 @@
 #pragma once
 #include "ActorIcons.h"
+#include "Callback.h"
 #include "NonCopyable.h"
 #include "SFML/Graphics.hpp"
 #include "squirrel.h"
@@ -158,6 +159,8 @@ class Engine : public NonCopyable
     const std::vector<std::unique_ptr<Room>> &getRooms() const;
     std::vector<std::unique_ptr<Room>> &getRooms();
     
+    void addCallback(std::unique_ptr<Callback> callback);
+    void removeCallback(int id);
     void addFunction(std::unique_ptr<Function> function);
     void setSentence(std::unique_ptr<Sentence> sentence);
     void stopSentence();

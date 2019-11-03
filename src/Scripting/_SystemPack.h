@@ -411,37 +411,6 @@ public:
     }
 };
 
-class _CallbackFunction : public TimeFunction
-{
-private:
-    HSQUIRRELVM _v;
-    bool _done;
-    HSQOBJECT _method;
-
-public:
-    _CallbackFunction(HSQUIRRELVM v, sf::Time duration, HSQOBJECT method)
-        : TimeFunction(duration), _v(v), _done(false), _method(method)
-    {
-        sq_addref(_v, &_method);
-    }
-
-private:
-    void onElapsed() override
-    {
-        if (_done)
-            return;
-        _done = true;
-
-        sq_pushobject(_v, _method);
-        sq_pushroottable(_v);
-        if (SQ_FAILED(sq_call(_v, 1, SQFalse, SQTrue)))
-        {
-            error("failed to call callback");
-        }
-        sq_release(_v, &_method);
-    }
-};
-
 class _SystemPack : public Pack
 {
 private:
@@ -524,9 +493,12 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get method"));
         }
-        auto callback = std::make_unique<_CallbackFunction>(v, sf::seconds(duration), method);
-        g_pEngine->addFunction(std::move(callback));
-        return 0;
+        auto callback = std::make_unique<Callback>(v, sf::seconds(duration), method);
+        auto id = callback->getId();
+        g_pEngine->addCallback(std::move(callback));
+
+        sq_pushinteger(v, id);
+        return 1;
     }
 
     static SQInteger addFolder(HSQUIRRELVM v)
@@ -997,7 +969,12 @@ private:
 
     static SQInteger removeCallback(HSQUIRRELVM v)
     {
-        error("TODO: removeCallback: not implemented");
+        SQInteger id = 0;
+        if (SQ_FAILED(sq_getinteger(v, 2, &id)))
+        {
+            return sq_throwerror(v, _SC("failed to get callback"));
+        }
+        g_pEngine->removeCallback(id);
         return 0;
     }
 

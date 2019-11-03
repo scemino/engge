@@ -8,7 +8,9 @@
 #include "Dialog/DialogManager.h"
 #include "Font.h"
 #include "Inventory.h"
+#include "Locator.h"
 #include "Preferences.h"
+#include "ResourceManager.h"
 #include "Room.h"
 #include "RoomScaling.h"
 #include "Screen.h"
@@ -63,6 +65,7 @@ struct Engine::Impl
     std::vector<std::unique_ptr<Room>> _rooms;
     std::vector<std::unique_ptr<Function>> _newFunctions;
     std::vector<std::unique_ptr<Function>> _functions;
+    std::vector<std::unique_ptr<Callback>> _callbacks;
     Cutscene *_pCutscene{nullptr};
     sf::RenderWindow *_pWindow{nullptr};
     TextDatabase _textDb;
@@ -265,6 +268,18 @@ const std::vector<std::unique_ptr<Room>> &Engine::getRooms() const { return _pIm
 std::vector<std::unique_ptr<Room>> &Engine::getRooms() { return _pImpl->_rooms; }
 
 void Engine::addFunction(std::unique_ptr<Function> function) { _pImpl->_newFunctions.push_back(std::move(function)); }
+
+void Engine::addCallback(std::unique_ptr<Callback> callback) { _pImpl->_callbacks.push_back(std::move(callback)); }
+
+void Engine::removeCallback(int id)
+{
+    auto it = std::find_if(_pImpl->_callbacks.begin(), _pImpl->_callbacks.end(),
+                           [id](auto &callback) { return callback->getId() == id; });
+    if(it != _pImpl->_callbacks.end())
+    {
+        _pImpl->_callbacks.erase(it);
+    }
+}
 
 std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actors; }
 
@@ -771,6 +786,10 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed)
     for (auto &actor : _actors)
     {
         actor->update(elapsed);
+    }
+    for (auto &callback : _callbacks)
+    {
+        (*callback)(elapsed);
     }
 }
 
@@ -1609,5 +1628,4 @@ void Engine::keyUp(int key)
     if(it == _pImpl->_newKeyDowns.end()) return;
     _pImpl->_newKeyDowns.erase(it);
 }
-
 } // namespace ng

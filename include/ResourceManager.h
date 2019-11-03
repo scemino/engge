@@ -15,6 +15,8 @@ private:
     static const int END_LIGHTID = 200000;
     static const int START_SOUNDID = 200000;
     static const int END_SOUNDID = 300000;
+    static const int START_CALLBACKID = 300000;
+    static const int END_CALLBACKID = 400000;
     
 public:
     int getActorId() {return START_ACTORID+_actorId++;}
@@ -22,12 +24,14 @@ public:
     int getObjectId() {return START_OBJECTID+_objectId++;}
     int getLightId() {return START_LIGHTID+_lightId++;}
     int getSoundId() {return START_SOUNDID+_soundId++;}
+    int getCallbackId() {return START_CALLBACKID+_callbackId++;}
 
     static bool isActor(int id) { return isBetween(id, START_ACTORID, END_ACTORID); }
     static bool isRoom(int id) { return isBetween(id, START_ROOMID, END_ROOMID); }
     static bool isObject(int id) { return isBetween(id, START_OBJECTID, END_OBJECTID); }
     static bool isLight(int id) { return isBetween(id, START_LIGHTID, END_LIGHTID); }
     static bool isSound(int id) { return isBetween(id, START_SOUNDID, END_SOUNDID); }
+    static bool isCallbackId(int id) { return isBetween(id, START_CALLBACKID, END_CALLBACKID); }
 
 private:
     static bool isBetween(int id, int min, int max) { return id>=min && id<max; }
@@ -38,5 +42,6 @@ private:
     int _objectId{0};
     int _lightId{0};
     int _soundId{0};
+    int _callbackId{0};
 };
 }
