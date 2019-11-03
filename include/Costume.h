@@ -4,6 +4,7 @@
 #include <set>
 #include "SFML/Graphics.hpp"
 #include "BlinkState.h"
+#include "DirectionConstants.h"
 #include "EngineSettings.h"
 #include "GGPack.h"
 #include "SpriteSheet.h"
@@ -12,12 +13,13 @@
 
 namespace ng
 {
+
 enum class Facing
 {
-  FACE_FRONT = 0x4,
-  FACE_BACK  = 0x8,
-  FACE_LEFT  = 0x2,
-  FACE_RIGHT = 0x1
+  FACE_FRONT = DirectionConstants::FACE_FRONT,
+  FACE_BACK  = DirectionConstants::FACE_BACK,
+  FACE_LEFT  = DirectionConstants::FACE_LEFT,
+  FACE_RIGHT = DirectionConstants::FACE_RIGHT
 };
 
 class Actor;

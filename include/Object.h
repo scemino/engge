@@ -2,16 +2,17 @@
 #include <optional>
 #include "squirrel.h"
 #include "SFML/Graphics.hpp"
+#include "DirectionConstants.h"
 #include "Entity.h"
 
 namespace ng
 {
 enum class UseDirection
 {
-  Front,
-  Back,
-  Left,
-  Right
+  Front = DirectionConstants::FACE_FRONT,
+  Back = DirectionConstants::FACE_BACK,
+  Left = DirectionConstants::FACE_LEFT,
+  Right = DirectionConstants::FACE_RIGHT,
 };
 
 enum class ScreenSpace
