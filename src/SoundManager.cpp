@@ -1,4 +1,3 @@
-#include <fstream>
 #include <memory>
 #include "Entity.h"
 #include "Logger.h"
@@ -70,7 +69,7 @@ SoundId* SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
     if (index == -1)
     {
         error("cannot play sound no more channel available");
-        return 0;
+        return nullptr;
     }
     std::string sCategory;
     switch (category)

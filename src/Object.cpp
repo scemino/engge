@@ -23,7 +23,6 @@ struct Object::Impl
     bool _spot{false};
     bool _isTrigger{false};
     sf::Vector2f _usePos;
-    sf::Vector2f _defaultPosition;
     sf::IntRect _hotspot;
     Room *_pRoom{nullptr};
     int _state{0};
@@ -254,7 +253,7 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) c
     sf::RenderStates s;
     auto transform = _transform;
     transform.move(getOffset());
-    transform.move(0, 720 - size.y);
+    transform.move(0, 720.f - size.y);
     s.transform = transform.getTransform();
 
     if (pImpl->_pAnim)

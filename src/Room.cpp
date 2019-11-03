@@ -14,9 +14,7 @@
 #include "_Util.h"
 #include "squirrel.h"
 #include <algorithm>
-#include <fstream>
 #include <iostream>
-#include <list>
 #include <math.h>
 #include <memory>
 

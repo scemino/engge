@@ -77,7 +77,7 @@ void NGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
 
     auto x = _alignment == NGTextAlignment::Center ? -width / 2.f : 0.f;
-    for (auto i = 0; i < rects.size(); i++)
+    for (size_t i = 0; i < rects.size(); i++)
     {
         auto rect = rects[i];
         const auto &sourceRect = sourceRects[i];

@@ -86,8 +86,6 @@ void SoundId::updateVolume()
         {
             if (pActor->getRoom() != _pEntity->getRoom())
                 entityVolume = 0;
-            if (pActor->getRoom() != _pEntity->getRoom())
-                entityVolume = 0;
             else
             {
                 auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;

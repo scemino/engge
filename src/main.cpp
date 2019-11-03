@@ -48,11 +48,11 @@ int main(int argc, char **argv)
     }
     catch (std::exception &e)
     {
-        ng::error("Sorry, an error occured: {}", e.what());
+        ng::error("Sorry, an error occurred: {}", e.what());
     }
     catch (...)
     {
-        ng::error("Sorry, an error occured");
+        ng::error("Sorry, an error occurred");
     }
 
     return 0;

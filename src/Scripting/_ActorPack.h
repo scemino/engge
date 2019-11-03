@@ -851,8 +851,8 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        SQInteger distance;
-        if (SQ_FAILED(sq_getinteger(v, 3, &distance)))
+        SQInteger dist;
+        if (SQ_FAILED(sq_getinteger(v, 3, &dist)))
         {
             return sq_throwerror(v, _SC("failed to get distance"));
         }
@@ -860,16 +860,16 @@ class _ActorPack : public Pack
         switch (actor->getCostume().getFacing())
         {
             case Facing::FACE_FRONT:
-                direction = sf::Vector2f(0, distance);
+                direction = sf::Vector2f(0, dist);
                 break;
             case Facing::FACE_BACK:
-                direction = sf::Vector2f(0, -distance);
+                direction = sf::Vector2f(0, -dist);
                 break;
             case Facing::FACE_LEFT:
-                direction = sf::Vector2f(-distance, 0);
+                direction = sf::Vector2f(-dist, 0);
                 break;
             case Facing::FACE_RIGHT:
-                direction = sf::Vector2f(distance, 0);
+                direction = sf::Vector2f(dist, 0);
                 break;
         }
         actor->walkTo(actor->getRealPosition() + direction);

@@ -91,7 +91,7 @@ void Path::draw(sf::RenderTarget &window, sf::RenderStates states) const
 {
     auto color = sf::Color::Yellow;
     sf::VertexArray lines(sf::LinesStrip, _path.size());
-    for (auto i = 0; i < _path.size(); ++i)
+    for (size_t i = 0; i < _path.size(); ++i)
     {
         auto &node = _path[i];
         lines[i].position = (sf::Vector2f)node;

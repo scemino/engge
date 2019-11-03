@@ -1,5 +1,4 @@
 #include "squirrel.h"
-#include "sqstdaux.h"
 #include "Engine.h"
 #include "ActorIconSlot.h"
 #include "ActorIcons.h"
@@ -8,7 +7,6 @@
 #include "Dialog/DialogManager.h"
 #include "Font.h"
 #include "Inventory.h"
-#include "Locator.h"
 #include "Preferences.h"
 #include "ResourceManager.h"
 #include "Room.h"
@@ -28,14 +26,10 @@
 #include "_DebugTools.h"
 #include "_Util.h"
 #include "Logger.h"
-#include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <math.h>
 #include <memory>
-#include <regex>
 #include <set>
-#include <sstream>
 #include <string>
 
 namespace ng

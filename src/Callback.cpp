@@ -1,4 +1,3 @@
-#include "SFML/Graphics.hpp"
 #include "Callback.h"
 #include "Locator.h"
 #include "Logger.h"

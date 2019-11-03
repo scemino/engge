@@ -68,7 +68,7 @@ void Inventory::update(const sf::Time &elapsed)
 
 int Inventory::getCurrentActorIndex() const
 {
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    for (size_t i = 0; i < _actorsIconSlots.size(); i++)
     {
         const auto &selectableActor = _actorsIconSlots.at(i);
         if (selectableActor.pActor == _pCurrentActor)

@@ -1,5 +1,4 @@
 #include "squirrel.h"
-#include "sqstdaux.h"
 #include "Actor.h"
 #include "Engine.h"
 #include "Font.h"
@@ -12,7 +11,6 @@
 #include "Room.h"
 #include "RoomScaling.h"
 #include "ScriptEngine.h"
-#include "SoundDefinition.h"
 #include "SoundId.h"
 #include "SoundManager.h"
 #include "_Util.h"

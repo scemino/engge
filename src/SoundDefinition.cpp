@@ -14,9 +14,7 @@ SoundDefinition::SoundDefinition(std::string path)
     _id = Locator::getResourceManager().getSoundId();
 }
 
-SoundDefinition::~SoundDefinition()
-{
-}
+SoundDefinition::~SoundDefinition() = default;
 
 void SoundDefinition::setSettings(EngineSettings &settings)
 {

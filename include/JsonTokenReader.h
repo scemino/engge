@@ -51,7 +51,7 @@ public:
         Iterator(TokenReader &reader, std::streampos pos);
         Iterator(const Iterator &it);
         Iterator &operator++();
-        const Iterator operator++(int);
+        Iterator operator++(int);
 
         TokenReader& getReader();
 
@@ -89,14 +89,14 @@ class Parser
 {
 public:
     Parser();
-    void load(const std::string& path, GGPackValue &value);
-    void parse(const std::vector<char> &buffer, GGPackValue &value);
+    static void load(const std::string& path, GGPackValue &value);
+    static void parse(const std::vector<char> &buffer, GGPackValue &value);
 
     static GGPackValue parse(const std::vector<char> &buffer);
 
 private:
-    void parse(ng::Json::TokenReader& reader, GGPackValue &value);
-    void parse(TokenReader::iterator& it, GGPackValue &value);
+    static void parse(ng::Json::TokenReader& reader, GGPackValue &value);
+    static void parse(TokenReader::iterator& it, GGPackValue &value);
 
 };
 } // namespace Json

@@ -138,15 +138,15 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates states) const
     if (!_isInside)
         return;
 
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    for (size_t i = 0; i < _actorsIconSlots.size(); i++)
     {
         const auto &selectableActor = _actorsIconSlots.at(i);
         if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
             continue;
 
         offset.y = getOffsetY(numIcons);
-        const auto &icon = selectableActor.pActor->getIcon();
-        drawActorIcon(target, icon, i, offset, isEnabled ? 0xFF : 0x60);
+        const auto &icon2 = selectableActor.pActor->getIcon();
+        drawActorIcon(target, icon2, i, offset, isEnabled ? 0xFF : 0x60);
         numIcons++;
     }
 
@@ -210,7 +210,7 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
 
 int ActorIcons::getCurrentActorIndex() const
 {
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    for (size_t i = 0; i < _actorsIconSlots.size(); i++)
     {
         const auto &selectableActor = _actorsIconSlots.at(i);
         if (selectableActor.pActor == _pCurrentActor)

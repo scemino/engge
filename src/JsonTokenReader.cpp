@@ -1,9 +1,7 @@
 #include "JsonTokenReader.h"
 #include "Logger.h"
 
-namespace ng
-{
-namespace Json
+namespace ng::Json
 {
 TokenReader::TokenReader() = default;
 
@@ -119,7 +117,7 @@ std::string TokenReader::readText(std::streampos pos, std::streamsize size)
     out.reserve(size);
     _stream.seek(pos);
     char c;
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         _stream.read(&c, 1);
         out.append(&c, 1);
@@ -168,7 +166,7 @@ TokenReader::Iterator &TokenReader::Iterator::operator++()
     return *this;
 }
 
-const TokenReader::Iterator TokenReader::Iterator::operator++(int)
+TokenReader::Iterator TokenReader::Iterator::operator++(int)
 {
     Iterator tmp(*this);
     operator++();
@@ -326,5 +324,4 @@ GGPackValue Parser::parse(const std::vector<char> &buffer)
     return value;
 }
 
-} // namespace Json
 } // namespace ng
