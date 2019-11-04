@@ -338,7 +338,7 @@ class _DebugTools
         _actorInfos.clear();
         for (auto &&actor : actors)
         {
-            _actorInfos.push_back(actor->getName());
+            _actorInfos.push_back(toUtf8(actor->getTranslatedName()));
         }
         ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];

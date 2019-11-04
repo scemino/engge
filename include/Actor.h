@@ -22,6 +22,8 @@ public:
   void setKey(const std::string &key);
   const std::string &getKey() const;
 
+  std::wstring getTranslatedName() const;
+
   void setIcon(const std::string &icon);
   const std::string &getIcon() const;
 

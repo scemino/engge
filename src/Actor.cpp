@@ -135,6 +135,11 @@ struct Actor::Impl
     std::string _key;
 };
 
+std::wstring Actor::getTranslatedName() const
+{
+    return pImpl->_engine.getText(getName());
+}
+
 void Actor::setKey(const std::string &key) { pImpl->_key = key; }
 
 const std::string &Actor::getKey() const { return pImpl->_key; }
