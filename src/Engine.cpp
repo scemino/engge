@@ -34,6 +34,42 @@
 
 namespace ng
 {
+static const char* _verbShaderCode = "\n"
+"#ifdef GL_ES\n"
+"precision highp float;\n"
+"#endif\n"
+"\n"
+"\n"
+"uniform vec4 color;\n"
+"uniform vec4 shadowColor;\n"
+"uniform vec4 normalColor;\n"
+"uniform vec4 highlightColor;\n"
+"uniform vec2 ranges;\n"
+"uniform sampler2D colorMap;\n"
+"\n"
+"void main(void)\n"
+"{\n"
+"    float shadows = ranges.x;\n"
+"    float highlights = ranges.y;\n"
+"    \n"
+"    vec4 texColor = texture2D( colorMap, gl_TexCoord[0].xy);\n"
+"    \n"
+"    if ( texColor.g <= shadows)\n"
+"    {\n"
+"        texColor*=shadowColor;\n"
+"    }\n"
+"    else if (texColor.g >= highlights)\n"
+"    {\n"
+"        texColor*=highlightColor;\n"
+"    }\n"
+"    else\n"
+"    {\n"
+"        texColor*=normalColor;\n"
+"    }\n"
+"    texColor *= color;\n"
+"    gl_FragColor = texColor;\n"
+"}\n";
+
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs)
 {
     lhs = static_cast<CursorDirection>(static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
@@ -105,10 +141,11 @@ struct Engine::Impl
     std::set<int> _oldKeyDowns;
     std::set<int> _newKeyDowns;
     bool _paused{false};
-
+    mutable sf::Shader _verbShader{};
+    sf::Vector2f _ranges{0.8f, 0.8f};
+    sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
     explicit Impl(EngineSettings &settings);
 
-    sf::IntRect getVerbRect(const Verb &verb) const;
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
     void drawCursorText(sf::RenderTarget &target) const;
@@ -157,6 +194,14 @@ Engine::Impl::Impl(EngineSettings &settings)
     _saveLoadSheet.setSettings(&settings);
     _saveLoadSheet.setTextureManager(&_textureManager);
     sq_resetobject(&_pDefaultObject);
+
+    // load vertex shader
+    if (!_verbShader.loadFromMemory(_verbShaderCode, sf::Shader::Type::Fragment))
+    {
+        std::cerr << "Error loading shaders" << std::endl;
+        return;
+    }
+    _verbShader.setUniform("colorMap", sf::Shader::CurrentTexture);
 }
 
 void Engine::Impl::onLanguageChange(const std::string &lang)
@@ -720,12 +765,6 @@ std::string Engine::Impl::getVerbName(const Verb &verb) const
     return s;
 }
 
-sf::IntRect Engine::Impl::getVerbRect(const Verb &verb) const
-{
-    auto s = getVerbName(verb);
-    return _verbSheet.getRect(s);
-}
-
 const Verb *Engine::getVerb(int id) const
 {
     auto index = _pImpl->getCurrentActorIndex();
@@ -1103,6 +1142,12 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
         follow(_pImpl->_pCurrentActor);
     }
 
+    int currentActorIndex = _pImpl->getCurrentActorIndex();
+    setVerbColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlight);
+    setVerbShadowColor(_pImpl->_verbUiColors.at(currentActorIndex).verbNormalTint);
+    setVerbNormalColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlight);
+    setVerbHighlightColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlightTint);
+
     ScriptEngine::call("onActorSelected", pCurrentActor, userSelected);
 }
 
@@ -1395,6 +1440,22 @@ int Engine::Impl::getCurrentActorIndex() const
     return -1;
 }
 
+void Engine::setRanges(sf::Vector2f ranges) { _pImpl->_ranges = ranges; }
+
+sf::Vector2f Engine::getRanges() const{ return _pImpl->_ranges; }
+
+void Engine::setVerbColor(sf::Color color) { _pImpl->_verbColor = color; }
+sf::Color Engine::getVerbColor() const { return _pImpl->_verbColor; }
+
+void Engine::setVerbShadowColor(sf::Color color) { _pImpl->_verbShadowColor = color; }
+sf::Color Engine::getVerbShadowColor() const { return _pImpl->_verbShadowColor; }
+
+void Engine::setVerbNormalColor(sf::Color color){ _pImpl->_verbNormalColor = color; }
+sf::Color Engine::getVerbNormalColor() const { return _pImpl->_verbNormalColor; }
+
+void Engine::setVerbHighlightColor(sf::Color color){ _pImpl->_verbHighlightColor = color; }
+sf::Color Engine::getVerbHighlightColor() const { return _pImpl->_verbHighlightColor; }
+
 void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
 {
     if (!_inputVerbsActive)
@@ -1433,45 +1494,36 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     auto hudSentence = _preferences.getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
     auto uiBackingAlpha = _preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
     auto invertVerbHighlight = _preferences.getUserPreference(PreferenceNames::InvertVerbHighlight, PreferenceDefaultValues::InvertVerbHighlight);
-    sf::Color verbNormal; 
-    sf::Color verbHighlight;
-    if(invertVerbHighlight)
-    {
-        verbNormal = _verbUiColors.at(currentActorIndex).verbHighlightTint;
-        verbHighlight = _verbUiColors.at(currentActorIndex).verbNormalTint;
-    }
-    else
-    {
-        verbNormal = _verbUiColors.at(currentActorIndex).verbNormalTint;
-        verbHighlight = _verbUiColors.at(currentActorIndex).verbHighlightTint;
-    }
     
     auto uiBackingRect = hudSentence ? _gameSheet.getRect("ui_backing_tall") : _gameSheet.getRect("ui_backing");
     sf::Sprite uiBacking;
     uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * 255));
-    uiBacking.setPosition(0, 720 - uiBackingRect.height);
+    uiBacking.setPosition(0, 720.f - uiBackingRect.height);
     uiBacking.setTexture(_gameSheet.getTexture());
     uiBacking.setTextureRect(uiBackingRect);
     window.draw(uiBacking);
 
     // draw verbs
-    sf::Vector2f size(uiBackingRect.width / 6, uiBackingRect.height / 3);
-    for (int x = 0; x < 3; x++)
+    _verbShader.setUniform("ranges", _ranges);
+    _verbShader.setUniform("shadowColor", sf::Glsl::Vec4(_verbShadowColor));
+    _verbShader.setUniform("normalColor", sf::Glsl::Vec4(_verbNormalColor));
+    _verbShader.setUniform("highlightColor", sf::Glsl::Vec4(_verbHighlightColor));
+    
+    sf::RenderStates verbStates;
+    verbStates.shader = &_verbShader;
+    for (int i = 1; i <= 9; i++)
     {
-        for (int y = 0; y < 3; y++)
-        {
-            auto verb = _verbSlots.at(currentActorIndex).getVerb(x * 3 + y + 1);
-            auto rect = getVerbRect(verb);
-            auto color = verb.id == verbId ? verbNormal : verbHighlight;
-            auto s = getVerbName(verb);
-            auto r = _verbSheet.getSpriteSourceSize(s);
-            sf::Sprite verbSprite;
-            verbSprite.setColor(color);
-            verbSprite.setPosition(r.left, r.top);
-            verbSprite.setTexture(_verbSheet.getTexture());
-            verbSprite.setTextureRect(rect);
-            window.draw(verbSprite);
-        }
+        auto verb = _verbSlots.at(currentActorIndex).getVerb(i);
+        _verbShader.setUniform("color", sf::Glsl::Vec4(verb.id == verbId ? sf::Color::White : _verbColor));
+
+        auto verbName = getVerbName(verb);
+        auto rect = _verbSheet.getRect(verbName);
+        auto s = _verbSheet.getSpriteSourceSize(verbName);
+        sf::Sprite verbSprite;
+        verbSprite.setPosition(s.left, s.top);
+        verbSprite.setTexture(_verbSheet.getTexture());
+        verbSprite.setTextureRect(rect);
+        window.draw(verbSprite, verbStates);
     }
 
     window.setView(view);

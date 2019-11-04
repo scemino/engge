@@ -250,6 +250,17 @@ class Engine : public NonCopyable
     void keyDown(int key);
     void keyUp(int key);
 
+    void setRanges(sf::Vector2f ranges);
+    sf::Vector2f getRanges() const;
+    void setVerbColor(sf::Color color);
+    sf::Color getVerbColor() const;
+    void setVerbShadowColor(sf::Color color);
+    sf::Color getVerbShadowColor() const;
+    void setVerbNormalColor(sf::Color color);
+    sf::Color getVerbNormalColor() const;
+    void setVerbHighlightColor(sf::Color color);
+    sf::Color getVerbHighlightColor() const;
+
   private:
     struct Impl;
     std::unique_ptr<Impl> _pImpl;

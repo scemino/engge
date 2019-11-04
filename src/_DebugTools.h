@@ -188,10 +188,35 @@ class _DebugTools
             _engine.getPreferences().setUserPreference(PreferenceNames::HudSentence, hudSentence);
         }
         auto uiBackingAlpha = _engine.getPreferences().getUserPreference(PreferenceNames::UiBackingAlpha,
-                                                                         PreferenceDefaultValues::UiBackingAlpha);
-        if (ImGui::SliderFloat("UI Backing Alpha", &uiBackingAlpha, 0.f, 1.f))
+                                                                         PreferenceDefaultValues::UiBackingAlpha)*100.f;
+        if (ImGui::SliderFloat("UI Backing Alpha", &uiBackingAlpha, 0.f, 100.f))
         {
-            _engine.getPreferences().setUserPreference(PreferenceNames::UiBackingAlpha, uiBackingAlpha);
+            _engine.getPreferences().setUserPreference(PreferenceNames::UiBackingAlpha, uiBackingAlpha*0.01f);
+        }
+        sf::Vector2f ranges = _engine.getRanges() * 100.f;
+        if(ImGui::SliderFloat2("Ranges", (float*)&ranges, 0.0f, 100.0f, "%.0f"))
+        {
+            _engine.setRanges(ranges*0.01f);
+        }
+        auto verbColor = _engine.getVerbColor();
+        if (ColorEdit4("Color", verbColor))
+        {
+            _engine.setVerbColor(verbColor);
+        }
+        auto shadowColor = _engine.getVerbShadowColor();
+        if (ColorEdit4("Shadow Color", shadowColor))
+        {
+            _engine.setVerbShadowColor(shadowColor);
+        }
+        auto normalColor = _engine.getVerbNormalColor();
+        if (ColorEdit4("Normal Color", normalColor))
+        {
+            _engine.setVerbNormalColor(normalColor);
+        }
+        auto highlightColor = _engine.getVerbHighlightColor();
+        if (ColorEdit4("Highlight Color", highlightColor))
+        {
+            _engine.setVerbHighlightColor(highlightColor);
         }
     }
 
