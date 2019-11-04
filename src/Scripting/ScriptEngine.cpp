@@ -182,11 +182,11 @@ bool ScriptEngine::tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light)
 }
 
 template <class T>
-void ScriptEngine::pushObject(HSQUIRRELVM v, T &object)
+void ScriptEngine::pushObject(HSQUIRRELVM v, T *pObject)
 {
     sq_newtable(v);
     sq_pushstring(v, _SC("_id"), -1);
-    sq_pushinteger(v, object.getId());
+    sq_pushinteger(v, pObject ? pObject->getId() : 0);
     sq_newslot(v, -3, SQFalse);
 }
 

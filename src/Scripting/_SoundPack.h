@@ -142,7 +142,7 @@ private:
             return sq_throwerror(v, _SC("failed to get filename"));
         }
         auto sound = g_pEngine->getSoundManager().defineSound(filename);
-        ScriptEngine::pushObject(v, *sound);
+        ScriptEngine::pushObject(v, sound);
         return 1;
     }
 
@@ -173,7 +173,7 @@ private:
             pSoundId->setVolume(0.f);
             pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
-        ScriptEngine::pushObject(v, *pSoundId);
+        ScriptEngine::pushObject(v, pSoundId);
         return 1;
     }
 
@@ -205,7 +205,7 @@ private:
             pSoundId->setVolume(0.f);
             pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
-        ScriptEngine::pushObject(v, *pSoundId);
+        ScriptEngine::pushObject(v, pSoundId);
         return 1;
     }
 
@@ -296,7 +296,7 @@ private:
             soundId->setEntity(pEntity);
             soundId->fadeTo(1.f, sf::seconds(fadeInTime));
         }
-        ScriptEngine::pushObject(v, *soundId);
+        ScriptEngine::pushObject(v, soundId);
 
         return 1;
     }
@@ -309,7 +309,7 @@ private:
             return sq_throwerror(v, _SC("failed to get music"));
         }
         auto soundId = g_pEngine->getSoundManager().playMusic(pSound);
-        ScriptEngine::pushObject(v, *soundId);
+        ScriptEngine::pushObject(v, soundId);
 
         return 1;
     }
@@ -322,7 +322,7 @@ private:
             return sq_throwerror(v, _SC("failed to get sound"));
         }
         auto soundId = g_pEngine->getSoundManager().playSound(pSound);
-        ScriptEngine::pushObject(v, *soundId);
+        ScriptEngine::pushObject(v, soundId);
 
         return 1;
     }
@@ -344,7 +344,7 @@ private:
         {
             soundId->setVolume(volume);
         }
-        ScriptEngine::pushObject(v, *soundId);
+        ScriptEngine::pushObject(v, soundId);
         return 1;
     }
 

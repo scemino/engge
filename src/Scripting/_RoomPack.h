@@ -135,7 +135,7 @@ private:
         auto pRoom = g_pEngine->getRoom();
         auto pLight = pRoom->createLight(_toColor(color), sf::Vector2i(x, y));
 
-        ScriptEngine::pushObject(v, *pLight);
+        ScriptEngine::pushObject(v, pLight);
         sq_getstackobj(v, -1, &pLight->getTable());
         sq_addref(v, &pLight->getTable());
         return 1;
@@ -543,7 +543,7 @@ private:
     static void setObjectSlot(HSQUIRRELVM v, const SQChar *name, Object &object)
     {
         sq_pushstring(v, name, -1);
-        ScriptEngine::pushObject(v, object);
+        ScriptEngine::pushObject(v, &object);
         sq_pushstring(v, _SC("name"), -1);
         sq_pushstring(v, object.getName().c_str(), -1);
         sq_newslot(v, -3, SQFalse);

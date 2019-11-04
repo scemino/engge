@@ -54,7 +54,7 @@ public:
   static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light*& light);
 
   template <class T>
-  static void pushObject(HSQUIRRELVM v, T &object);
+  static void pushObject(HSQUIRRELVM v, T *pObject);
 
   static std::function<float(float)> getInterpolationMethod(InterpolationMethod index);
 

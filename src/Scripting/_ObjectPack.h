@@ -1246,7 +1246,7 @@ class _ObjectPack : public Pack
 
     static void _createObject(HSQUIRRELVM v, Object &object)
     {
-        ScriptEngine::pushObject(v, object);
+        ScriptEngine::pushObject(v, &object);
         auto &table = object.getTable();
         sq_getstackobj(v, -1, &table);
     }
