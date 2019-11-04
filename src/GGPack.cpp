@@ -477,4 +477,12 @@ void GGPack::getOffsets()
     } while (true);
 }
 
+void GGPack::getEntries(std::vector<std::string>& entries)
+{
+    for(auto& entry : _entries)
+    {
+        entries.push_back(entry.first);
+    }
+}
+
 } // namespace ng

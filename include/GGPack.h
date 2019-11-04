@@ -123,6 +123,7 @@ public:
   GGPack();
 
   void open(const std::string &path);
+  void getEntries(std::vector<std::string>& entries);
   bool hasEntry(const std::string &name);
   void readEntry(const std::string &name, std::vector<char> &data);
   void readHashEntry(const std::string &name, GGPackValue &value);

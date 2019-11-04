@@ -7,6 +7,18 @@
 
 namespace ng
 {
+struct CaseInsensitiveCompare
+{
+bool operator()(const std::string &a, const std::string &b) const noexcept
+{
+#ifdef WIN32
+    return _stricmp(a.c_str(), b.c_str()) == 0;
+#else
+    return ::strcasecmp(a.c_str(), b.c_str()) == 0;
+#endif
+}
+};
+
 SQInteger int_rand(SQInteger min, SQInteger max);
 float float_rand(float min, float max);
 

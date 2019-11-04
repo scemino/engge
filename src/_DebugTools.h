@@ -350,6 +350,33 @@ class _DebugTools
         ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
 
+        ImGui::PushID("costume");
+        _filterCostume.Draw("Filter");
+        if (ImGui::ListBoxHeader("Costume")) 
+        {
+            auto actorKey = actor->getKey();
+            std::vector<std::string> entries;
+            _engine.getSettings().getEntries(entries);
+            for (const auto& entry : entries) 
+            {
+                if(entry.length() < 15) continue;
+                auto extension = entry.substr(entry.length()-14,14);
+                CaseInsensitiveCompare cmp;
+                if(!cmp(extension, "Animation.json")) continue;
+                auto prefix = entry.substr(0, actorKey.length());
+                if(!cmp(prefix, actorKey)) continue;
+                if (_filterCostume.PassFilter(entry.c_str())) 
+                {
+                    if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) 
+                    {
+                        actor->getCostume().loadCostume(entry);
+                    }
+                }
+            }
+            ImGui::ListBoxFooter();
+        }
+        ImGui::PopID();
+
         if(ImGui::CollapsingHeader("Animations"))
         {
             // actor animations
@@ -716,6 +743,7 @@ class _DebugTools
     static const char *_langs[];
     std::string _objectFilter;
     CostumeAnimation* _pSelectedAnim{nullptr};
+    ImGuiTextFilter _filterCostume;
 };
 const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng

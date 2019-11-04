@@ -62,4 +62,10 @@ void EngineSettings::readEntry(const std::string &name, GGPackValue &hash)
         _pack2.readHashEntry(name, hash);
     }
 }
+
+void EngineSettings::getEntries(std::vector<std::string>& entries)
+{
+    _pack1.getEntries(entries);
+    _pack2.getEntries(entries);
+}
 } // namespace ng
