@@ -78,17 +78,8 @@ class _DefaultScriptExecute : public ScriptExecute
         sq_pushroottable(_vm);
         sq_pushstring(_vm, name.data(), -1);
         sq_get(_vm, -2);
-        HSQOBJECT obj;
-        sq_getstackobj(_vm, -1, &obj);
-        sq_pop(_vm, 2);
-
-        if (!sq_isuserpointer(obj))
-        {
-            error("getSoundDefinition: sound should be a userpointer");
-            return nullptr;
-        }
-
-        SoundDefinition *pSound = static_cast<SoundDefinition *>(obj._unVal.pUserPointer);
+        
+        SoundDefinition *pSound = ScriptEngine::getSoundDefinition(_vm, -1);
         return pSound;
     }
 
