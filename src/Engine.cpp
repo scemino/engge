@@ -1350,7 +1350,7 @@ sf::IntRect Engine::Impl::getCursorRect() const
 
 void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
 {
-    if (!_showCursor)
+    if (!_showCursor || _paused)
         return;
 
     if (_dialogManager.getState() != DialogManagerState::None)
