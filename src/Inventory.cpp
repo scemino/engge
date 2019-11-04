@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "Inventory.h"
 #include "Object.h"
+#include "Screen.h"
 
 namespace ng
 {
@@ -81,14 +82,11 @@ int Inventory::getCurrentActorIndex() const
 
 void Inventory::drawUpArrow(sf::RenderTarget &target) const
 {
-    auto screen = _pEngine->getWindow().getView().getSize();
-    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
-
     int currentActorIndex = getCurrentActorIndex();
     auto rect = _gameSheet.getRect("scroll_up");
 
-    sf::Vector2f scrollUpSize(rect.width * ratio.x, rect.height * ratio.y);
-    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
+    sf::Vector2f scrollUpSize(rect.width, rect.height);
+    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
     sf::RectangleShape scrollUpShape;
     scrollUpShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
     scrollUpShape.setPosition(scrollUpPosition);
@@ -100,18 +98,15 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const
 
 void Inventory::drawDownArrow(sf::RenderTarget &target) const
 {
-    auto screen = _pEngine->getWindow().getView().getSize();
-    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 768.f);
-
     int currentActorIndex = getCurrentActorIndex();
     auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
-    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
+    sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
+    sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
 
     auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
     sf::RectangleShape scrollDownShape;
     scrollDownShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
-    scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height * ratio.y);
+    scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height);
     scrollDownShape.setSize(scrollUpSize);
     scrollDownShape.setTexture(&_gameSheet.getTexture());
     scrollDownShape.setTextureRect(scrollDownFrameRect);
@@ -120,34 +115,34 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const
 
 void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    auto screen = _pEngine->getWindow().getView().getSize();
     int currentActorIndex = getCurrentActorIndex();
     if (currentActorIndex == -1)
         return;
 
-    auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
+    const auto view = target.getView();
+    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
     // inventory arrows
     auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-    sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
-    sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
+    sf::Vector2f scrollUpPosition(Screen::Width / 2.f,  Screen::Height - 3 *  Screen::Height / 14.f);
+    sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
 
-    auto inventoryFrameRect = _gameSheet.getRect("inventory_background");
-    sf::RectangleShape inventoryShape;
     sf::Color c(_verbUiColors.at(currentActorIndex).inventoryBackground);
     c.a = 128;
-    inventoryShape.setFillColor(c);
-    inventoryShape.setTexture(&_gameSheet.getTexture());
-    inventoryShape.setTextureRect(inventoryFrameRect);
-    auto sizeBack = sf::Vector2f(206.f * screen.x / 1920.f, 112.f * screen.y / 1080.f);
-    inventoryShape.setSize(sizeBack);
-    auto gapX = 10.f * screen.x / 1920.f;
-    auto gapY = 10.f * screen.y / 1080.f;
+
+    auto inventoryRect = _gameSheet.getRect("inventory_background");
+    sf::Vector2i sizeBack(inventoryRect.width, inventoryRect.height);
+    sf::Sprite inventoryShape;
+    inventoryShape.setColor(c);
+    inventoryShape.setTexture(_gameSheet.getTexture());
+    inventoryShape.setTextureRect(inventoryRect);
+    auto gapX = 10.f;
+    auto gapY = 10.f;
     for (auto i = 0; i < 8; i++)
     {
         auto x = (i % 4) * (sizeBack.x + gapX);
         auto y = (i / 4) * (sizeBack.y + gapY);
-        inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x, y + screen.y - 3 * screen.y / 14.f));
+        inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x, y + Screen::Height - 3 *  Screen::Height / 14.f));
         target.draw(inventoryShape);
     }
 
@@ -156,7 +151,7 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
         return;
 
     auto startX = sizeBack.x / 2.f + scrollUpPosition.x + scrollUpSize.x;
-    auto startY = sizeBack.y / 2.f + screen.y - 3 * screen.y / 14.f;
+    auto startY = sizeBack.y / 2.f + Screen::Height - 3 *  Screen::Height / 14.f;
 
     auto x = 0, y = 0;
     int i = 0;
@@ -167,15 +162,15 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
         auto rect = _inventoryItems.getRect(icon);
         auto spriteSourceSize = _inventoryItems.getSpriteSourceSize(icon);
         auto sourceSize = _inventoryItems.getSourceSize(icon);
-        sf::Vector2f origin(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
+        sf::Vector2f origin(sourceSize.x / 2.f - spriteSourceSize.left, sourceSize.y / 2.f - spriteSourceSize.top);
 
-        sf::RectangleShape objShape;
-        objShape.setOrigin(-origin);
-        objShape.setPosition(sf::Vector2f(x + startX, y + startY));
-        objShape.setSize(sf::Vector2f(rect.width, rect.height));
-        objShape.setTexture(&_inventoryItems.getTexture());
-        objShape.setTextureRect(rect);
-        target.draw(objShape);
+        sf::Sprite sprite;
+        sprite.setOrigin(origin);
+        sprite.setPosition(sf::Vector2f(x + startX, y + startY));
+        sprite.setTexture(_inventoryItems.getTexture());
+        sprite.setTextureRect(rect);
+        sprite.scale(4, 4);
+        target.draw(sprite);
         i++;
         if (i == 8)
             break;
@@ -186,8 +181,10 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
         }
         else
         {
-            x += sourceSize.x;
+            x += sizeBack.x + 5;
         }
     }
+    target.setView(view);
 }
+
 } // namespace ng
