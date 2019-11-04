@@ -60,6 +60,7 @@ class _DebugTools
         showInputState();
         showDebugWindows();
         showPrefs();
+        showScript();
         ImGui::End();
 
         if (_showActors)
@@ -79,34 +80,36 @@ class _DebugTools
     }
 
   private:
-    void showLayers(CostumeAnimation* pAnim)
+    void showLayers()
     {
-        if (!ImGui::CollapsingHeader("Layers"))
-            return;
-
-        for(auto& layer : pAnim->getLayers())
+        ImGui::Columns(4, "LayersColumns", false);
+        ImGui::Separator();
+        for(auto& layer : _pSelectedAnim->getLayers())
         {
             ImGui::Text("Layer %s", layer->getName().c_str());
-            ImGui::SameLine();
+            ImGui::NextColumn();
             auto layerIndex = layer->getIndex();
             auto layerSize = layer->getFrames().size() - 1;
             if (ImGui::SliderInt("Index", &layerIndex, 0, layerSize))
             {
                 layer->setIndex(layerIndex);
             }
-            ImGui::SameLine();
+            ImGui::NextColumn();
             auto layerVisible = layer->getVisible();
             if (ImGui::Checkbox("Visible", &layerVisible))
             {
                 layer->setVisible(layerVisible);
             }
-            ImGui::SameLine();
+            ImGui::NextColumn();
             auto layerLoop = layer->getLoop();
             if (ImGui::Checkbox("Loop", &layerLoop))
             {
                 layer->setLoop(layerLoop);
             }
+            ImGui::NextColumn();
         }
+        ImGui::Columns(1);
+        ImGui::Separator();
     }
 
     void showDebugWindows()
@@ -189,6 +192,20 @@ class _DebugTools
         if (ImGui::SliderFloat("UI Backing Alpha", &uiBackingAlpha, 0.f, 1.f))
         {
             _engine.getPreferences().setUserPreference(PreferenceNames::UiBackingAlpha, uiBackingAlpha);
+        }
+    }
+
+    void showScript()
+    {
+        if (!ImGui::CollapsingHeader("Script"))
+            return;
+
+        static char str0[1024] = "";
+        ImGui::InputText("Input text", str0, IM_ARRAYSIZE(str0));
+        ImGui::SameLine();
+        if(ImGui::Button("Send"))
+        {
+            _engine.execute(str0);
         }
     }
 
@@ -323,16 +340,6 @@ class _DebugTools
             return true;
         };
 
-        static auto animationGetter = [](void *vec, int idx, const char **out_text) {
-            auto &vector = *static_cast<std::vector<std::unique_ptr<CostumeAnimation>> *>(vec);
-            if (idx < 0 || idx >= static_cast<int>(vector.size()))
-            {
-                return false;
-            }
-            *out_text = vector.at(idx)->getName().c_str();
-            return true;
-        };
-
         ImGui::Begin("Actors", &_showActors);
         auto &actors = _engine.getActors();
         _actorInfos.clear();
@@ -343,24 +350,35 @@ class _DebugTools
         ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
 
-        auto& anims = actor->getCostume().getAnimations();
-        int selectedActorAnimation = 0;
-        for(auto i=0; i<anims.size(); i++)
+        if(ImGui::CollapsingHeader("Animations"))
         {
-            auto& pAnim = anims[i];
-            if(pAnim.get() == actor->getCostume().getAnimation())
+            // actor animations
+            auto& anims = actor->getCostume().getAnimations();
+            static ImGuiTextFilter filter;
+            filter.Draw("Filter");
+            if (ImGui::ListBoxHeader("Animations")) 
             {
-                selectedActorAnimation = i;
-                break;
+                for (const auto& anim : anims) 
+                {
+                    auto name = anim->getName();
+                    if (filter.PassFilter(name.c_str())) 
+                    {
+                        if (ImGui::Selectable(name.c_str(), _pSelectedAnim == anim.get())) 
+                        {
+                            _pSelectedAnim = anim.get();
+                        }
+                    }
+                }
+                ImGui::ListBoxFooter();
             }
-        }
-        if(ImGui::Combo("animations", &selectedActorAnimation, animationGetter, static_cast<void *>(&anims), anims.size()))
-        {
-            actor->getCostume().setAnimation(anims[selectedActorAnimation]->getName());
-        }
-        if(!anims.empty())
-        {
-            showLayers(anims[selectedActorAnimation].get());
+            if(_pSelectedAnim && ImGui::Button("Set"))
+            {
+                actor->getCostume().setAnimation(_pSelectedAnim->getName());
+            }
+            if(_pSelectedAnim)
+            {
+                showLayers();
+            }
         }
 
         if(ImGui::CollapsingHeader("General"))
@@ -697,6 +715,7 @@ class _DebugTools
     std::vector<std::string> _actorInfos;
     static const char *_langs[];
     std::string _objectFilter;
+    CostumeAnimation* _pSelectedAnim{nullptr};
 };
 const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng
