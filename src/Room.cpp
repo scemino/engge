@@ -217,9 +217,6 @@ struct Room::Impl
             }
             // zsort
             object->setZOrder(jObject["zsort"].int_value);
-            // prop
-            bool isProp = jObject["prop"].isInteger() && jObject["prop"].int_value == 1;
-            object->setProp(isProp);
             // position
             auto pos = _parsePos(jObject["pos"].string_value);
             auto usePos = _parsePos(jObject["usepos"].string_value);
@@ -228,12 +225,15 @@ struct Room::Impl
             // hotspot
             auto hotspot = _parseRect(jObject["hotspot"].string_value);
             object->setHotspot(sf::IntRect(hotspot.left, -hotspot.top-hotspot.height, hotspot.width, hotspot.height));
+            // prop
+            bool isProp = jObject["prop"].isInteger() && jObject["prop"].int_value == 1;
+            if(isProp) object->setType(ObjectType::Prop);
             // spot
             bool isSpot = jObject["spot"].isInteger() && jObject["spot"].int_value == 1;
-            object->setSpot(isSpot);
-            // spot
+            if(isSpot) object->setType(ObjectType::Spot);
+            // trigger
             bool isTrigger = jObject["trigger"].isInteger() && jObject["trigger"].int_value == 1;
-            object->setTrigger(isTrigger);
+            if(isTrigger) object->setType(ObjectType::Trigger);
 
             object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
             object->setUsePosition(sf::Vector2f(usePos.x, _roomSize.y - usePos.y));

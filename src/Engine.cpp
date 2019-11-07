@@ -985,11 +985,11 @@ void Engine::Impl::updateRoomScalings()
     auto &objects = _pRoom->getObjects();
     for (auto &&object : objects)
     {
-        if (!object->isTrigger())
+        if (object->getType() != ObjectType::Trigger)
             continue;
         if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
         {
-            auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const RoomScaling &s) {
+            auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const auto &s) {
                 return s.getName() == object->getName();
             });
             if (it != scalings.end())

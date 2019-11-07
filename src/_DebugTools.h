@@ -538,6 +538,8 @@ class _DebugTools
             }
             ImGui::ListBoxFooter();
         }
+
+        ImGui::Separator();
         
         if (!objects.empty() && _pSelectedObject)
         {
@@ -548,6 +550,23 @@ class _DebugTools
             {
                 object->setName(name);
             }
+            std::string type;
+             switch(object->getType())
+            {
+                case ObjectType::Object:
+                    type = "object";
+                break;
+                case ObjectType::Spot:
+                    type = "spot";
+                break;
+                case ObjectType::Trigger:
+                    type = "trigger";
+                break;
+                case ObjectType::Prop:
+                    type = "prop";
+                break;
+            }
+            ImGui::LabelText("Type", "%s", type.c_str());
             auto isVisible = object->isVisible();
             if (ImGui::Checkbox("Visible", &isVisible))
             {

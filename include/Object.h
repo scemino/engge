@@ -21,6 +21,14 @@ enum class ScreenSpace
   Object
 };
 
+enum class ObjectType
+{
+  Object,
+  Spot,
+  Prop,
+  Trigger
+};
+
 class Actor;
 class Animation;
 class Room;
@@ -69,12 +77,8 @@ public:
   void setZOrder(int zorder);
   int getZOrder() const override;
 
-  void setProp(bool prop);
-
-  void setSpot(bool spot);
-
-  void setTrigger(bool trigger);
-  bool isTrigger() const;
+  void setType(ObjectType type);
+  ObjectType getType() const;
 
   bool isTouchable() const override;
   bool isInventoryObject() const override;

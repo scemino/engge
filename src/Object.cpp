@@ -19,9 +19,7 @@ struct Object::Impl
     std::wstring _name;
     int _zorder{0};
     UseDirection _direction{UseDirection::Front};
-    bool _prop{false};
-    bool _spot{false};
-    bool _isTrigger{false};
+    ObjectType _type{ObjectType::Object};
     sf::Vector2f _usePos;
     sf::IntRect _hotspot;
     Room *_pRoom{nullptr};
@@ -53,11 +51,8 @@ void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
 
 int Object::getZOrder() const { return pImpl->_zorder; }
 
-void Object::setProp(bool prop) { pImpl->_prop = prop; }
-
-void Object::setSpot(bool spot) { pImpl->_spot = spot; }
-
-void Object::setTrigger(bool trigger) { pImpl->_isTrigger = trigger; }
+void Object::setType(ObjectType type) { pImpl->_type = type; }
+ObjectType Object::getType() const { return pImpl->_type; }
 
 void Object::setUseDirection(UseDirection direction) { pImpl->_direction = direction; }
 UseDirection Object::getUseDirection() const { return pImpl->_direction; }
@@ -115,11 +110,7 @@ bool Object::isTouchable() const
 {
     if (!isVisible())
         return false;
-    if (pImpl->_isTrigger)
-        return false;
-    if (pImpl->_spot)
-        return false;
-    if (pImpl->_prop)
+    if (getType() != ObjectType::Object)
         return false;
     return Entity::isTouchable();
 }
@@ -222,22 +213,75 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
 
     auto rect = getHotspot();
 
+    sf::Color color;
+    switch(getType())
+    {
+        case ObjectType::Object:
+            color = sf::Color::Red;
+        break;
+        case ObjectType::Spot:
+            color = sf::Color::Green;
+        break;
+        case ObjectType::Trigger:
+            color = sf::Color::Magenta;
+        break;
+        case ObjectType::Prop:
+            color = sf::Color::Blue;
+        break;
+    }
+    
     sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
     s.setPosition(rect.left, rect.top);
     s.setOutlineThickness(1);
-    s.setOutlineColor(sf::Color::Red);
+    s.setOutlineColor(color);
     s.setFillColor(sf::Color::Transparent);
     target.draw(s, states);
 
-    sf::RectangleShape vl(sf::Vector2f(1, 5));
-    vl.setPosition(pImpl->_usePos.x, -pImpl->_usePos.y - 2);
-    vl.setFillColor(sf::Color::Red);
+    sf::RectangleShape vl(sf::Vector2f(1, 7));
+    vl.setPosition(pImpl->_usePos.x, -pImpl->_usePos.y - 3);
+    vl.setFillColor(color);
     target.draw(vl, states);
 
-    sf::RectangleShape hl(sf::Vector2f(5, 1));
-    hl.setPosition(pImpl->_usePos.x - 2, -pImpl->_usePos.y);
-    hl.setFillColor(sf::Color::Red);
+    sf::RectangleShape hl(sf::Vector2f(7, 1));
+    hl.setPosition(pImpl->_usePos.x - 3, -pImpl->_usePos.y);
+    hl.setFillColor(color);
     target.draw(hl, states);
+
+    switch(getUseDirection())
+    {
+        case UseDirection::Front:
+        {
+            sf::RectangleShape dirShape(sf::Vector2f(3, 1));
+            dirShape.setPosition(pImpl->_usePos.x - 1, -pImpl->_usePos.y + 2);
+            dirShape.setFillColor(color);
+            target.draw(dirShape, states);
+        }
+        break;
+        case UseDirection::Back:
+        {
+            sf::RectangleShape dirShape(sf::Vector2f(3, 1));
+            dirShape.setPosition(pImpl->_usePos.x - 1, -pImpl->_usePos.y - 2);
+            dirShape.setFillColor(color);
+            target.draw(dirShape, states);
+        }
+        break;
+        case UseDirection::Left:
+        {
+            sf::RectangleShape dirShape(sf::Vector2f(1, 3));
+            dirShape.setPosition(pImpl->_usePos.x - 2, pImpl->_usePos.y - 1);
+            dirShape.setFillColor(color);
+            target.draw(dirShape, states);
+        }
+        break;
+        case UseDirection::Right:
+        {
+            sf::RectangleShape dirShape(sf::Vector2f(1, 3));
+            dirShape.setPosition(pImpl->_usePos.x + 2, pImpl->_usePos.y - 1);
+            dirShape.setFillColor(color);
+            target.draw(dirShape, states);
+        }
+        break;
+    }
 }
 
 void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
@@ -299,8 +343,6 @@ void Object::setFps(int fps)
         pImpl->_pAnim->setFps(fps);
     }
 }
-
-bool Object::isTrigger() const { return pImpl->_isTrigger; }
 
 void Object::addChild(Object *child) { pImpl->_children.push_back(child); }
 
