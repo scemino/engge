@@ -24,10 +24,12 @@ class _ActorWalk : public Function
     _ActorWalk(Actor &actor, const Entity *pEntity) : _actor(actor)
     {
         auto pos = pEntity->getRealPosition();
+        auto roomHeight = pEntity->getRoom()->getRoomSize().y;
         auto usePos = pEntity->getUsePosition();
-        auto dest = sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y);
+        pos.x += usePos.x;
+        pos.y += usePos.y - roomHeight;
         auto facing = getFacing(pEntity);
-        _actor.walkTo(dest, facing);
+        _actor.walkTo(pos, facing);
     }
 
   private:

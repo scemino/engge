@@ -362,7 +362,7 @@ sf::IntRect _parseRect(const std::string &text)
     auto top = std::atoi(matches[2].str().c_str());
     auto right = std::atoi(matches[3].str().c_str());
     auto bottom = std::atoi(matches[4].str().c_str());
-    return sf::IntRect(left, -top, right - left, -bottom + top);
+    return sf::IntRect(left, top, right - left, bottom - top);
 }
 
 void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices, int roomHeight)

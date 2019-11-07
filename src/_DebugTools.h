@@ -542,7 +542,12 @@ class _DebugTools
         if (!objects.empty() && _pSelectedObject)
         {
             auto &object = _pSelectedObject;
-            ImGui::TextUnformatted(object->getName().c_str());
+            static char name[1024] = "";
+            strcpy(name, object->getName().c_str());
+            if(ImGui::InputText("Name", name, IM_ARRAYSIZE(name)))
+            {
+                object->setName(name);
+            }
             auto isVisible = object->isVisible();
             if (ImGui::Checkbox("Visible", &isVisible))
             {

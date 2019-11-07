@@ -208,10 +208,12 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get object or room"));
             }
-            auto usePos = pObj->getUsePosition();
             auto pos = pObj->getRealPosition();
-            pos.x += usePos.x;
-            pos.y -= usePos.y;
+            auto usePos = pObj->getUsePosition();
+            auto hotspot = pObj->getHotspot();
+            auto roomHeight = pObj->getRoom()->getRoomSize().y;
+            pos.x += usePos.x + hotspot.left + hotspot.width / 2;
+            pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
             pRoom = pObj->getRoom();
             pActor->setRoom(pRoom);
             pActor->setPosition(pos);
@@ -234,7 +236,8 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            pActor->setPosition((sf::Vector2f)sf::Vector2i(x, y));
+            auto roomHeight = pActor->getRoom()->getRoomSize().y;
+            pActor->setPosition(sf::Vector2f(x, roomHeight - y));
             return 0;
         }
         else if (numArgs >= 5)
@@ -263,7 +266,8 @@ class _ActorPack : public Pack
                 return sq_throwerror(v, _SC("failed to get direction"));
             }
             auto facing = _getFacing(dir, pActor->getCostume().getFacing());
-            pActor->setPosition((sf::Vector2f)sf::Vector2i(x, y));
+            auto roomHeight = pRoom->getRoomSize().y;
+            pActor->setPosition(sf::Vector2f(x, roomHeight - y));
             pActor->getCostume().setFacing(facing);
             pActor->setRoom(pRoom);
             return 0;
@@ -809,8 +813,7 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         auto usePos = obj->getUsePosition();
-        auto pos = obj->getRealPosition();
-        actor->setUsePosition(pos + usePos);
+        actor->setUsePosition(usePos);
         return 0;
     }
 
@@ -931,9 +934,7 @@ class _ActorPack : public Pack
             if (pObject)
             {
                 auto pos = pObject->getRealPosition();
-                auto usePos = pObject->getUsePosition();
-
-                pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), _toFacing(pObject->getUseDirection()));
+                pActor->walkTo(sf::Vector2f(pos.x, pos.y), _toFacing(pObject->getUseDirection()));
                 return 0;
             }
 
@@ -944,9 +945,7 @@ class _ActorPack : public Pack
             }
 
             auto pos = pActor->getRealPosition();
-            auto usePos = pActor->getUsePosition();
-
-            pActor->walkTo(sf::Vector2f(pos.x + usePos.x, pos.y - usePos.y), getOppositeFacing(pActor->getCostume().getFacing()));
+            pActor->walkTo(sf::Vector2f(pos), getOppositeFacing(pActor->getCostume().getFacing()));
             return 0;
         }
 

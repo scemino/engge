@@ -227,7 +227,7 @@ struct Room::Impl
             object->setUseDirection(useDir);
             // hotspot
             auto hotspot = _parseRect(jObject["hotspot"].string_value);
-            object->setHotspot(hotspot);
+            object->setHotspot(sf::IntRect(hotspot.left, -hotspot.top-hotspot.height, hotspot.width, hotspot.height));
             // spot
             bool isSpot = jObject["spot"].isInteger() && jObject["spot"].int_value == 1;
             object->setSpot(isSpot);
@@ -236,7 +236,7 @@ struct Room::Impl
             object->setTrigger(isTrigger);
 
             object->setPosition(sf::Vector2f(pos.x, _roomSize.y - pos.y));
-            object->setUsePosition(usePos);
+            object->setUsePosition(sf::Vector2f(usePos.x, _roomSize.y - usePos.y));
 
             // animations
             if (jObject["animations"].isArray())
@@ -505,6 +505,9 @@ TextObject &Room::createTextObject(const std::string &fontName)
     auto &obj = *object;
     obj.setVisible(true);
     obj.setRoom(this);
+    std::ostringstream s;
+    s << "TextObject #" << pImpl->_objects.size();
+    obj.setName(s.str());
     pImpl->_objects.push_back(std::move(object));
     pImpl->_layers[0]->addEntity(obj);
     return obj;

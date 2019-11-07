@@ -410,11 +410,11 @@ void Engine::follow(Actor *pActor)
     setRoom(pActor->getRoom());
     if (panCamera)
     {
-        _pImpl->_camera.panTo(pos + pActor->getUsePosition() - sf::Vector2f(screen.x / 2, screen.y / 2), sf::seconds(4),
+        _pImpl->_camera.panTo(pos - sf::Vector2f(screen.x / 2, screen.y / 2), sf::seconds(4),
                               InterpolationMethod::EaseOut);
         return;
     }
-    _pImpl->_camera.at(pos + pActor->getUsePosition() - sf::Vector2f(screen.x / 2, screen.y / 2));
+    _pImpl->_camera.at(pos - sf::Vector2f(screen.x / 2, screen.y / 2));
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
@@ -733,8 +733,13 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
     {
         actor->setRoom(pRoom);
         auto pos = pDoor->getRealPosition();
-        actor->setPosition(pos + sf::Vector2f(pDoor->getUsePosition().x, -pDoor->getUsePosition().y));
-        _pImpl->_camera.at(pos + pDoor->getUsePosition());
+        auto usePos = pDoor->getUsePosition();
+        auto hotspot = pDoor->getHotspot();
+        auto roomHeight = pDoor->getRoom()->getRoomSize().y;
+        pos.x += usePos.x;
+        pos.y += usePos.y - roomHeight;
+        actor->setPosition(pos);
+        _pImpl->_camera.at(pos);
     }
 
     return _pImpl->enterRoom(pRoom, pDoor);

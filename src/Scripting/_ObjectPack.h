@@ -538,8 +538,14 @@ class _ObjectPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get spot"));
             }
-            x = spot->getRealPosition().x;
-            y = spot->getRealPosition().y;
+            auto pos = spot->getRealPosition();
+            auto usePos = spot->getUsePosition();
+            auto hotspot = spot->getHotspot();
+            auto roomHeight = spot->getRoom()->getRoomSize().y;
+            pos.x += usePos.x + hotspot.left + hotspot.width / 2;
+            pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
+            x = pos.x;
+            y = pos.y;
         }
         else
         {
@@ -608,7 +614,9 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         auto pos = obj->getRealPosition();
-        sq_pushinteger(v, static_cast<SQInteger>(pos.x));
+        auto hotspot = obj->getHotspot();
+        auto usePos = obj->getUsePosition();
+        sq_pushinteger(v, static_cast<SQInteger>(pos.x + usePos.x + hotspot.left + hotspot.width / 2));
         return 1;
     }
 
@@ -620,6 +628,10 @@ class _ObjectPack : public Pack
             return sq_throwerror(v, _SC("failed to get object"));
         }
         auto pos = obj->getRealPosition();
+        auto hotspot = obj->getHotspot();
+        auto usePos = obj->getUsePosition();
+        auto roomHeight = obj->getRoom()->getRoomSize().y;
+        pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
         sq_pushinteger(v, static_cast<SQInteger>(pos.y));
         return 1;
     }
@@ -853,7 +865,8 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object"));
         }
-        sq_pushinteger(v, (SQInteger)obj->getUsePosition().y);
+        auto height = obj->getRoom()->getRoomSize().y;
+        sq_pushinteger(v, (SQInteger)height - obj->getUsePosition().y);
         return 1;
     }
 
