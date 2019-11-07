@@ -139,10 +139,7 @@ public:
     _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
         : _BreakFunction(engine, vm), _actor(actor), _pAnimation(actor.getCostume().getAnimation())
     {
-        if (_pAnimation)
-        {
-            _name = _pAnimation->getName();
-        }
+        _name = _pAnimation->getName();
     }
 
     const std::string getName() override
@@ -519,6 +516,8 @@ private:
         auto *pActor = ScriptEngine::getActor(v, 2);
         if (pActor)
         {
+            auto pAnim = pActor->getCostume().getAnimation();
+            if(!pAnim) return 0;
             auto result = sq_suspendvm(v);
             g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
             return result;
