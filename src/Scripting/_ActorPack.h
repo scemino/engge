@@ -934,7 +934,12 @@ class _ActorPack : public Pack
             if (pObject)
             {
                 auto pos = pObject->getRealPosition();
-                pActor->walkTo(sf::Vector2f(pos.x, pos.y), _toFacing(pObject->getUseDirection()));
+                auto usePos = pObject->getUsePosition();
+                auto hotspot = pObject->getHotspot();
+                auto roomHeight = pObject->getRoom()->getRoomSize().y;
+                pos.x += usePos.x + hotspot.left + hotspot.width / 2;
+                pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
+                pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));
                 return 0;
             }
 
