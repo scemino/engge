@@ -11,9 +11,6 @@ Costume::Costume(TextureManager &textureManager)
       _textureManager(textureManager),
       _blinkState(*this)
 {
-    _hiddenLayers.emplace("blink");
-    _hiddenLayers.emplace("eyes_left");
-    _hiddenLayers.emplace("eyes_right");
     resetLockFacing();
 }
 
@@ -101,6 +98,11 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     _costumeSheet.load(_sheet);
 
     // load animations
+    _animations.clear();
+    _hiddenLayers.clear();
+    _hiddenLayers.emplace("blink");
+    _hiddenLayers.emplace("eyes_left");
+    _hiddenLayers.emplace("eyes_right");
     for (auto j : _hash["animations"].array_value)
     {
         auto name = j["name"].string_value;

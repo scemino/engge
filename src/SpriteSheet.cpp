@@ -15,6 +15,8 @@ void SpriteSheet::load(const std::string &name)
     _texture = _pTextureManager->get(name);
 
     _rects.clear();
+    _spriteSourceSize.clear();
+    _sourceSize.clear();
     
     ng::GGPackValue json;
     
