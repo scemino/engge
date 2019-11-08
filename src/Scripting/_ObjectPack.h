@@ -876,8 +876,12 @@ class _ObjectPack : public Pack
         Object *obj = ScriptEngine::getObject(v, 2);
         if (obj)
         {
-            auto rect = obj->getRealHotspot();
-            pos = sf::Vector2f(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            pos = obj->getRealPosition();
+            auto usePos = obj->getUsePosition();
+            auto roomHeight = obj->getRoom()->getRoomSize().y;
+            pos.x += usePos.x;
+            pos.y += usePos.y - roomHeight;
+            pos.y = roomHeight - pos.y;
         }
         else
         {
@@ -887,6 +891,8 @@ class _ObjectPack : public Pack
                 return sq_throwerror(v, _SC("failed to get object or actor"));
             }
             pos = actor->getPosition();
+            auto roomHeight = actor->getRoom()->getRoomSize().y;
+            pos.y = roomHeight - pos.y;
         }
 
         ScriptEngine::push(v, pos);
