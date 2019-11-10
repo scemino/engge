@@ -614,6 +614,7 @@ private:
                 continue;
             }
 
+            obj->setTouchable(true);
             sq_getstackobj(v, -1, &obj->getTable());
             if (!sq_istable(obj->getTable()))
             {
@@ -667,6 +668,7 @@ private:
             if (SQ_SUCCEEDED(sq_rawget(v, -2)))
             {
                 auto object = std::make_unique<Object>();
+                object->setTouchable(true);
                 const SQChar* icon;
                 sq_getstring(v, -1, &icon);
                 object->setIcon(icon);

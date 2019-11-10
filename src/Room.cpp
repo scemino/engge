@@ -200,6 +200,7 @@ struct Room::Impl
         for (auto jObject : jWimpy["objects"].array_value)
         {
             auto object = std::make_unique<Object>();
+            object->setTouchable(false);
             // name
             auto objectName = jObject["name"].string_value;
             object->setName(objectName);
