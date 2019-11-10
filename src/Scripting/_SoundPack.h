@@ -264,7 +264,7 @@ private:
         for (size_t i = 1; i <= g_pEngine->getSoundManager().getSize(); i++)
         {
             auto sound = g_pEngine->getSoundManager().getSound(i);
-            if (sound && pSoundDef == sound->getSoundDefinition() && pSound->isPlaying())
+            if (sound && pSoundDef == sound->getSoundDefinition() && sound->isPlaying())
             {
                 sq_pushinteger(v, 1);
                 return 1;
