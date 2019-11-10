@@ -1124,6 +1124,8 @@ void Engine::update(const sf::Time &elapsed)
     if (currentActorIndex == -1)
         return;
 
+    stopSentence();
+
     // input click on a verb ?
     if (_pImpl->_inputVerbsActive)
     {
