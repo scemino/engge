@@ -288,6 +288,10 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     auto pos = _pActor->getRealPosition();
     auto delta = (_path[0] - (sf::Vector2i)pos);
     auto speed = _pActor->getWalkSpeed();
+    if(_pActor->pImpl->_engine.actorShouldRun())
+    {
+        speed *= 4;
+    }
     auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
     if (delta.x > 0)
     {

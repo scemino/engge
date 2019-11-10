@@ -132,6 +132,7 @@ struct Engine::Impl
     HSQUIRRELVM _vm{};
     sf::Time _time;
     bool _isMouseDown{false};
+    sf::Time _mouseDownTime;
     bool _isMouseRightDown{false};
     int _frameCounter{0};
     HSQOBJECT _pDefaultObject{};
@@ -144,6 +145,7 @@ struct Engine::Impl
     mutable sf::Shader _verbShader{};
     sf::Vector2f _ranges{0.8f, 0.8f};
     sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
+
     explicit Impl(EngineSettings &settings);
 
     void drawVerbs(sf::RenderWindow &window) const;
@@ -325,6 +327,8 @@ std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actor
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
 
 Actor *Engine::getFollowActor() { return _pImpl->_pFollowActor; }
+
+bool Engine::actorShouldRun() const { return _pImpl->_mouseDownTime > sf::seconds(0.5f); }
 
 void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb)
 {
@@ -1032,6 +1036,14 @@ void Engine::update(const sf::Time &elapsed)
     auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
     auto wasMouseRightDown = !io.WantCaptureMouse && _pImpl->_isMouseRightDown;
     _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && _pImpl->_pWindow->hasFocus();
+    if(!wasMouseDown || !_pImpl->_isMouseDown)
+    {
+        _pImpl->_mouseDownTime = sf::seconds(0);
+    }
+    else 
+    {
+        _pImpl->_mouseDownTime += elapsed;
+    }
     _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && _pImpl->_pWindow->hasFocus();
     bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
     auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
@@ -1090,8 +1102,14 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->updateKeyboard();
     _pImpl->updateKeys();
 
-    if (!isMouseClick && !isRightClick)
+    if (!isMouseClick && !isRightClick) 
+    {
+        if(_pImpl->_isMouseDown)
+        {
+            _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
+        }
         return;
+    }
 
     if (_pImpl->clickedAt(_pImpl->_mousePosInRoom))
         return;
