@@ -18,7 +18,7 @@ public:
             Actor *&pCurrentActor);
 
   void setEngine(Engine *pEngine);
-  void update(const sf::Time &elapsed);
+  bool update(const sf::Time &elapsed);
 
   void setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
   const Object *getCurrentInventoryObject() const { return _pCurrentInventoryObject; }
@@ -28,6 +28,8 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void drawUpArrow(sf::RenderTarget &target) const;
   void drawDownArrow(sf::RenderTarget &target) const;
+  bool hasUpArrow() const;
+  bool hasDownArrow() const;
 
 private:
   int getCurrentActorIndex() const;

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Engine.h"
 #include "Inventory.h"
 #include "Object.h"
@@ -26,10 +27,10 @@ void Inventory::setEngine(Engine *pEngine)
     _inventoryItems.load("InventoryItems");
 }
 
-void Inventory::update(const sf::Time &elapsed)
+bool Inventory::update(const sf::Time &elapsed)
 {
     if (_pCurrentActor == nullptr)
-        return;
+        return false;
     _pCurrentInventoryObject = nullptr;
 
     auto screen = _pEngine->getWindow().getView().getSize();
@@ -52,19 +53,53 @@ void Inventory::update(const sf::Time &elapsed)
         }
     }
 
+    auto inventoryOffset = _pCurrentActor->getInventoryOffset();
     for (size_t i = 0; i < _inventoryRects.size(); i++)
     {
         const auto &r = _inventoryRects.at(i);
         if (r.contains((sf::Vector2i)_mousePos))
         {
             auto &objects = _pCurrentActor->getObjects();
-            if (i < objects.size())
+            if ((inventoryOffset * 4 + i) < objects.size())
             {
-                _pCurrentInventoryObject = objects[i];
-                return;
+                _pCurrentInventoryObject = objects[inventoryOffset * 4 + i];
+                return true;
             }
         }
     }
+
+    if(!sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
+        return false;
+    
+    const auto& win = _pEngine->getWindow();
+    auto pos = sf::Mouse::getPosition(win);
+    auto posInInventory = win.mapPixelToCoords(pos, sf::View(sf::FloatRect(0,0,Screen::Width, Screen::Height)));
+
+    auto rect = _gameSheet.getRect("scroll_up");
+    scrollUpSize = sf::Vector2f(rect.width, rect.height);
+    scrollUpPosition = sf::Vector2f(Screen::Width / 2.f, 580.f);
+
+    if(hasUpArrow() )
+    {
+        sf::FloatRect r(Screen::Width / 2.f, 580.f, scrollUpSize.x, scrollUpSize.y);
+        if (r.contains(posInInventory))
+        {
+            _pCurrentActor->setInventoryOffset(inventoryOffset - 1);
+            return true;
+        }
+    }
+
+    if(hasDownArrow())
+    {
+        sf::FloatRect r(scrollUpPosition.x, scrollUpPosition.y + scrollUpSize.y, 
+            scrollUpSize.x, scrollUpSize.y);
+        if (r.contains(posInInventory))
+        {
+            _pCurrentActor->setInventoryOffset(inventoryOffset + 1);
+            return true;
+        }
+    }
+    return false;
 }
 
 int Inventory::getCurrentActorIndex() const
@@ -113,6 +148,19 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const
     target.draw(scrollDownShape);
 }
 
+bool Inventory::hasUpArrow() const
+{
+    auto inventoryOffset = _pCurrentActor->getInventoryOffset();
+    return inventoryOffset != 0;
+}
+
+bool Inventory::hasDownArrow() const
+{
+    const auto &objects = _pCurrentActor->getObjects();
+    auto inventoryOffset = _pCurrentActor->getInventoryOffset();
+    return objects.size() > (inventoryOffset * 4 + 8);
+}
+
 void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     int currentActorIndex = getCurrentActorIndex();
@@ -153,11 +201,22 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
     auto startX = sizeBack.x / 2.f + scrollUpPosition.x + scrollUpSize.x;
     auto startY = sizeBack.y / 2.f + Screen::Height - 3 *  Screen::Height / 14.f;
 
-    auto x = 0, y = 0;
-    int i = 0;
     auto &objects = _pCurrentActor->getObjects();
-    for (const auto &object : objects)
+    if(hasUpArrow())
     {
+        drawUpArrow(target);
+    }
+    if(hasDownArrow())
+    {
+        drawDownArrow(target);
+    }
+
+    auto x = 0, y = 0;
+    auto inventoryOffset = _pCurrentActor->getInventoryOffset();
+    auto count = std::min((size_t)8, objects.size() - inventoryOffset * 4);
+    for (size_t i = inventoryOffset * 4; i < inventoryOffset * 4 + count; i++)
+    {
+        auto &object = objects.at(i);
         auto icon = object->getIcon();
         auto rect = _inventoryItems.getRect(icon);
         auto spriteSourceSize = _inventoryItems.getSpriteSourceSize(icon);
@@ -171,13 +230,10 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
         sprite.setTextureRect(rect);
         sprite.scale(4, 4);
         target.draw(sprite);
-        i++;
-        if (i == 8)
-            break;
-        if ((i % 4) == 0)
+        if ((i % 4) == 3)
         {
             x = 0;
-            y += sourceSize.y;
+            y += sizeBack.y;
         }
         else
         {

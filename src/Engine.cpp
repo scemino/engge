@@ -1082,7 +1082,6 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_mousePosInRoom = _pImpl->_mousePos + _pImpl->_camera.getAt();
 
     _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
-    _pImpl->_inventory.update(elapsed);
     _pImpl->_dialogManager.update(elapsed);
     _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(_pImpl->_mousePosInRoom);
     _pImpl->updateHoveredEntity(isRightClick);
@@ -1097,6 +1096,9 @@ void Engine::update(const sf::Time &elapsed)
     }
 
     if (!_pImpl->_inputActive)
+        return;
+
+    if(_pImpl->_inventory.update(elapsed))
         return;
 
     _pImpl->updateKeyboard();

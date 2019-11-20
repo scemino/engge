@@ -64,6 +64,8 @@ public:
   void removeInventory(Object* pObject);
   void clearInventory();
   const std::vector<Object*> &getObjects() const;
+  void setInventoryOffset(int offset);
+  int getInventoryOffset() const;
 
   void setWalkSpeed(const sf::Vector2i &speed);
   const sf::Vector2i &getWalkSpeed() const;

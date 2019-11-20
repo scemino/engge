@@ -133,6 +133,7 @@ struct Actor::Impl
     sf::Vector2f _offset;
     bool _hotspotVisible{false};
     std::string _key;
+    int _inventoryOffset{0};
 };
 
 std::wstring Actor::getTranslatedName() const
@@ -598,5 +599,9 @@ void Actor::setFps(int fps)
         pAnim->setFps(fps);
     }
 }
+
+void Actor::setInventoryOffset(int offset) { pImpl->_inventoryOffset = offset; }
+
+int Actor::getInventoryOffset() const{ return pImpl->_inventoryOffset; }
 
 } // namespace ng
