@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "Inventory.h"
 #include "Object.h"
+#include "Preferences.h"
 #include "Screen.h"
 
 namespace ng
@@ -117,8 +118,9 @@ int Inventory::getCurrentActorIndex() const
 
 void Inventory::drawUpArrow(sf::RenderTarget &target) const
 {
+    auto isRetro = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
     int currentActorIndex = getCurrentActorIndex();
-    auto rect = _gameSheet.getRect("scroll_up");
+    auto rect = _gameSheet.getRect(isRetro ? "scroll_up_retro" : "scroll_up");
 
     sf::Vector2f scrollUpSize(rect.width, rect.height);
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
@@ -133,12 +135,13 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const
 
 void Inventory::drawDownArrow(sf::RenderTarget &target) const
 {
+    auto isRetro = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
     int currentActorIndex = getCurrentActorIndex();
-    auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
+    auto scrollUpFrameRect = _gameSheet.getRect(isRetro?"scroll_up_retro":"scroll_up");
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
 
-    auto scrollDownFrameRect = _gameSheet.getRect("scroll_down");
+    auto scrollDownFrameRect = _gameSheet.getRect(isRetro?"scroll_down_retro":"scroll_down");
     sf::RectangleShape scrollDownShape;
     scrollDownShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
     scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height);
