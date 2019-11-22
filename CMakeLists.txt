@@ -1,13 +1,11 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.5)
 
 include(appInfo.cmake)
 
-project("${appName}")
+project("${appName}" LANGUAGES CXX)
 
 # Compiler flags
 set (SQ_DISABLE_INSTALLER ON)
-set (CMAKE_CXX_STANDARD 17)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # Dependencies
 find_package (SFML REQUIRED COMPONENTS system window graphics audio)
@@ -20,6 +18,8 @@ add_subdirectory(extlibs/squirrel)
 # Install misc. files
 install(FILES test.nut DESTINATION .)
 install(FILES LICENSE DESTINATION .)
+
+target_compile_features(engge PRIVATE cxx_std_17)
 
 # Configure CPack
 function(get_short_system_name variable)
