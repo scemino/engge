@@ -120,7 +120,7 @@ struct Actor::Impl
     Costume _costume;
     std::string _icon;
     int _zorder{0};
-    bool _use{true};
+    bool _useWalkboxes{true};
     Room *_pRoom{nullptr};
     sf::IntRect _hotspot;
     std::vector<Object*> _objects;
@@ -149,7 +149,7 @@ void Actor::setIcon(const std::string &icon) { pImpl->_icon = icon; }
 
 const std::string &Actor::getIcon() const { return pImpl->_icon; }
 
-void Actor::useWalkboxes(bool use) { pImpl->_use = use; }
+void Actor::useWalkboxes(bool useWalkboxes) { pImpl->_useWalkboxes = useWalkboxes; }
 
 Costume &Actor::getCostume() { return pImpl->_costume; }
 
@@ -573,11 +573,20 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if (pImpl->_pRoom == nullptr)
         return;
 
-    auto path = pImpl->_pRoom->calculatePath((sf::Vector2i)getRealPosition(), (sf::Vector2i)destination);
-    pImpl->_path = std::make_unique<Path>(path);
-
-    if (path.size() < 2)
-        return;
+    std::vector<sf::Vector2i> path;
+    if(pImpl->_useWalkboxes)
+    {
+        path = pImpl->_pRoom->calculatePath((sf::Vector2i)getRealPosition(), (sf::Vector2i)destination);
+        pImpl->_path = std::make_unique<Path>(path);
+        if (path.size() < 2)
+            return;
+    }
+    else
+    {
+        path.push_back((sf::Vector2i)getRealPosition());
+        path.push_back((sf::Vector2i)destination);
+        pImpl->_path = std::make_unique<Path>(path);
+    }
 
     ScriptEngine::call(this, "preWalking");
     pImpl->_walkingState.setDestination(path, facing);
