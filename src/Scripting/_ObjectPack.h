@@ -158,7 +158,28 @@ class _ObjectPack : public Pack
     static SQInteger isInventoryOnScreen(HSQUIRRELVM v)
     {
         auto object = ScriptEngine::getObject(v, 2);
-        error("TODO: isInventoryOnScreen: not implemented");
+        auto owner = object->getOwner();
+        if(!owner)
+        {
+            sq_pushbool(v, SQFalse);
+            return 1;
+        }
+        if(g_pEngine->getCurrentActor() != owner)
+        {
+            sq_pushbool(v, SQFalse);
+            return 1;
+        }
+        auto offset = owner->getInventoryOffset();
+        auto& objects =  owner->getObjects();
+        auto it = std::find_if(objects.begin(), objects.end(), [&object](auto& pObj) {
+            return pObj == object;
+        });
+        auto index = std::distance(objects.begin(), it);
+        if(index >= offset * 4 && index < (offset * 4 + 8))
+        {
+            sq_pushbool(v, SQTrue);
+            return 1;
+        }
         sq_pushbool(v, SQFalse);
         return 1;
     }
