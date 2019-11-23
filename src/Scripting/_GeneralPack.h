@@ -11,11 +11,13 @@ class _GeneralPack : public Pack
 {
 private:
     static Engine *g_pEngine;
+    static uint g_CRCTab[256];
 
 private:
     void addTo(ScriptEngine &engine) const override
     {
         g_pEngine = &engine.getEngine();
+        init_crc32();
         engine.registerGlobalFunction(activeVerb, "activeVerb");
         engine.registerGlobalFunction(arrayShuffle, "arrayShuffle");
         engine.registerGlobalFunction(assetExists, "assetExists");
@@ -749,10 +751,32 @@ private:
         return 1;
     }
 
+    static void init_crc32() 
+    {
+        uint i, j, c;
+        for(i=0; i<256; i++)
+        {
+            for( c=i,j=0; j<8; j++ ) c=(c&1) ? (c>>1)^0xEDB88320L : (c>>1);
+            g_CRCTab[i^0xFF] = c ^ 0xFF000000;
+        }
+    }
+
+    static uint crc32_update(uint x, char c)
+    { 
+        return g_CRCTab[(x^c)&0xFF] ^ (x>>8);
+    }
+
     static SQInteger strcrc(HSQUIRRELVM v)
     {
-        error("TODO: strcrc: not implemented");
-        return 0;
+        const SQChar *str;
+        if (SQ_FAILED(sq_getstring(v, 2, &str)))
+        {
+            return sq_throwerror(v, _SC("failed to get string"));
+        }
+        uint x;
+        for(x=0; *str++; x = crc32_update(x, str[-1]));
+        sq_pushinteger(v, x);
+        return 1;
     }
 
     static SQInteger strfind(HSQUIRRELVM v)
@@ -874,5 +898,6 @@ private:
 };
 
 Engine *_GeneralPack::g_pEngine = nullptr;
+uint _GeneralPack::g_CRCTab[256];
 
 } // namespace ng
