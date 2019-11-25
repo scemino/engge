@@ -24,6 +24,7 @@
 #include "Verb.h"
 #include "VerbExecute.h"
 #include "_DebugTools.h"
+#include "_TalkingState.h"
 #include "_Util.h"
 #include "Logger.h"
 #include <iostream>
@@ -145,6 +146,7 @@ struct Engine::Impl
     mutable sf::Shader _verbShader{};
     sf::Vector2f _ranges{0.8f, 0.8f};
     sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
+    _TalkingState _talkingState;
 
     explicit Impl(EngineSettings &settings);
 
@@ -238,6 +240,7 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
     _pImpl->_actorIcons.setEngine(this);
     _pImpl->_inventory.setEngine(this);
     _pImpl->_camera.setEngine(this);
+    _pImpl->_talkingState.setEngine(this);
     _pImpl->_fntFont.setTextureManager(&_pImpl->_textureManager);
     _pImpl->_fntFont.setSettings(&settings);
 
@@ -477,6 +480,7 @@ HSQUIRRELVM Engine::getVm() { return _pImpl->_vm; }
 SQInteger Engine::Impl::exitRoom(Object *pObject)
 {
     _pEngine->setDefaultVerb();
+    _talkingState.stop();
 
     if (!_pRoom)
         return 0;
@@ -1031,6 +1035,8 @@ void Engine::update(const sf::Time &elapsed)
         return;
     }
 
+    _pImpl->_talkingState.update(elapsed);
+
     ImGuiIO &io = ImGui::GetIO();
     _pImpl->_frameCounter++;
     auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
@@ -1268,6 +1274,7 @@ void Engine::draw(sf::RenderWindow &window) const
     _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
     _pImpl->drawFade(window);
     _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
+    window.draw(_pImpl->_talkingState);
 
     window.draw(_pImpl->_dialogManager);
 
@@ -1701,4 +1708,21 @@ void Engine::keyUp(int key)
     if(it == _pImpl->_newKeyDowns.end()) return;
     _pImpl->_newKeyDowns.erase(it);
 }
+
+void Engine::sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string& text)
+{
+    _pImpl->_talkingState.setTalkColor(color);
+    auto y = getRoom()->getRoomSize().y;
+    sf::Vector2f p(pos.x, y - pos.y);
+    _pImpl->_talkingState.setPosition(p);
+    _pImpl->_talkingState.setText(getText(text));
+    _pImpl->_talkingState.setDuration(duration);
+}
+
+void Engine::sayLineAt(sf::Vector2i pos, Actor& actor, const std::string& text)
+{
+    _pImpl->_talkingState.setPosition((sf::Vector2f)pos);
+    _pImpl->_talkingState.loadLip(text, &actor);
+}
+
 } // namespace ng

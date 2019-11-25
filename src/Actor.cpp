@@ -1,5 +1,6 @@
 #include "squirrel.h"
 #include "Actor.h"
+#include "Camera.h"
 #include "Engine.h"
 #include "Font.h"
 #include "Lip.h"
@@ -13,6 +14,7 @@
 #include "ScriptEngine.h"
 #include "SoundId.h"
 #include "SoundManager.h"
+#include "_TalkingState.h"
 #include "_Util.h"
 #include <regex>
 
@@ -41,53 +43,15 @@ struct Actor::Impl
         bool _isWalking{false};
     };
 
-    class TalkingState : public sf::Drawable
-    {
-      public:
-        TalkingState() = default;
-
-        void setActor(Actor *pActor);
-        void setTalkOffset(const sf::Vector2i &offset) { _talkOffset = offset; }
-        void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-        void update(const sf::Time &elapsed);
-        void say(int id);
-        void stop();
-        bool isTalking() const { return _isTalking; }
-        bool isTalkingIdDone(int id) const
-        {
-            return _id != id && std::find(_ids.begin(), _ids.end(), id) == _ids.end();
-        }
-        void setTalkColor(sf::Color color) { _talkColor = color; }
-        sf::Color getTalkColor() const { return _talkColor; }
-        int onTalkieID(int id);
-
-      private:
-        void load(int id);
-
-      private:
-        Actor *_pActor{nullptr};
-        Font _font;
-        bool _isTalking{false};
-        std::wstring _sayText;
-        Lip _lip;
-        int _index{0};
-        sf::Vector2i _talkOffset{0, 90};
-        sf::Color _talkColor{sf::Color::White};
-        sf::Time _elapsed;
-        std::vector<int> _ids;
-        int _id{0};
-        int _soundId{0};
-    };
-
     explicit Impl(Engine &engine)
         : _engine(engine), _settings(engine.getSettings()), _costume(engine.getTextureManager())
     {
+        _talkingState.setEngine(&engine);
     }
 
     void setActor(Actor *pActor)
     {
         _pActor = pActor;
-        _talkingState.setActor(pActor);
         _walkingState.setActor(pActor);
         _costume.setActor(pActor);
     }
@@ -125,7 +89,7 @@ struct Actor::Impl
     sf::IntRect _hotspot;
     std::vector<Object*> _objects;
     WalkingState _walkingState;
-    TalkingState _talkingState;
+    _TalkingState _talkingState;
     sf::Vector2i _speed{30, 15};
     float _volume{1.f};
     std::shared_ptr<Path> _path;
@@ -134,6 +98,7 @@ struct Actor::Impl
     bool _hotspotVisible{false};
     std::string _key;
     int _inventoryOffset{0};
+    sf::Vector2i _talkOffset{0, 90};
 };
 
 std::wstring Actor::getTranslatedName() const
@@ -159,15 +124,21 @@ void Actor::setTalkColor(sf::Color color) { pImpl->_talkingState.setTalkColor(co
 
 sf::Color Actor::getTalkColor() const { return pImpl->_talkingState.getTalkColor(); }
 
-void Actor::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkingState.setTalkOffset(offset); }
+void Actor::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkOffset = offset; }
 
-void Actor::say(int id) { pImpl->_talkingState.say(id); }
+void Actor::say(const std::string& text)
+{ 
+    pImpl->_talkingState.loadLip(text, this);
+    auto pos = getRealPosition();
+    auto at = pImpl->_engine.getCamera().getAt();
+    pos.x = pos.x - at.x + pImpl->_talkOffset.x;
+    pos.y = pos.y - at.y - pImpl->_talkOffset.y;
+    pImpl->_talkingState.setPosition(pos);
+}
 
 void Actor::stopTalking() { pImpl->_talkingState.stop(); }
 
 bool Actor::isTalking() const { return pImpl->_talkingState.isTalking(); }
-
-bool Actor::isTalkingIdDone(int id) const { return pImpl->_talkingState.isTalkingIdDone(id); }
 
 Room *Actor::getRoom() { return pImpl->_pRoom; }
 
@@ -340,161 +311,6 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     }
 }
 
-void Actor::Impl::TalkingState::setActor(Actor *pActor)
-{
-    _pActor = pActor;
-    if (!_pActor)
-        return;
-
-    _font.setTextureManager(&_pActor->pImpl->_engine.getTextureManager());
-    _font.setSettings(&_pActor->pImpl->_engine.getSettings());
-    auto retroFonts = _pActor->pImpl->_engine.getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-    _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
-}
-
-void Actor::Impl::TalkingState::say(int id)
-{
-    if (_isTalking)
-    {
-        _ids.push_back(id);
-        return;
-    }
-
-    load(id);
-}
-
-void Actor::Impl::TalkingState::stop()
-{
-    _ids.clear();
-    if (_soundId)
-    {
-        auto pSound = static_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
-        if(pSound)
-        {
-            pSound->stop();
-        }
-        _soundId = 0;
-    }
-    _id = 0;
-    _isTalking = false;
-}
-
-int Actor::Impl::TalkingState::onTalkieID(int id)
-{
-    ScriptEngine::call("onTalkieID", _pActor, id);
-    return id;
-}
-
-void Actor::Impl::TalkingState::load(int id)
-{
-    _id = id;
-
-    const char* key = nullptr;
-    if(!ScriptEngine::get(_pActor, "_talkieKey", key))
-    {
-        ScriptEngine::get(_pActor, "_key", key);
-    }
-
-    id = onTalkieID(id);
-
-    std::string name = str_toupper(key).append("_").append(std::to_string(id));
-    auto soundDefinition = _pActor->pImpl->_engine.getSoundManager().defineSound(name + ".ogg");
-    if (!soundDefinition)
-    {
-        error("File {}.ogg not found", name);
-    }
-    else
-    {
-        auto pSound = _pActor->pImpl->_engine.getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
-        if(pSound)
-        {
-            _soundId = pSound->getId();
-        }
-    }
-
-    std::string path;
-    path.append(name).append(".lip");
-    trace("load lip {}", path);
-    _lip.setSettings(_pActor->pImpl->_engine.getSettings());
-    _lip.load(path);
-
-    _sayText = _pActor->pImpl->_engine.getText(id);
-    std::wregex re(L"(\\{([^\\}]*)\\})");
-    std::wsmatch matches;
-    const char* anim = nullptr;
-    if (std::regex_search(_sayText, matches, re))
-    {
-        anim = tostring(matches[2].str()).data();
-        _pActor->getCostume().setState(anim);
-        _sayText = matches.suffix();
-    }
-    const char* text = tostring(_sayText).data();
-    ScriptEngine::call(_pActor, "sayingLine", anim, text);
-    _isTalking = true;
-    _index = 0;
-    _elapsed = sf::seconds(0);
-}
-
-void Actor::Impl::TalkingState::update(const sf::Time &elapsed)
-{
-    if (!_isTalking)
-        return;
-
-    if (_lip.getData().empty())
-    {
-        _isTalking = false;
-        _id = 0;
-        return;
-    }
-    auto time = _lip.getData()[_index].time;
-    _elapsed += elapsed;
-    if (_elapsed > time)
-    {
-        _index++;
-    }
-    if (_index == _lip.getData().size())
-    {
-        if (_ids.empty())
-        {
-            _isTalking = false;
-            _id = 0;
-            _pActor->getCostume().setHeadIndex(0);
-            return;
-        }
-        load(_ids.front());
-        _ids.erase(_ids.begin());
-        return;
-    }
-    auto letter = _lip.getData()[_index].letter;
-    if (letter == 'X' || letter == 'G')
-        letter = 'A';
-    if (letter == 'H')
-        letter = 'D';
-    auto index = letter - 'A';
-    // TODO: what is the correspondance between letter and head index ?
-    _pActor->getCostume().setHeadIndex(index);
-}
-
-void Actor::Impl::TalkingState::draw(sf::RenderTarget &target, sf::RenderStates states) const
-{
-    auto screen = target.getView().getSize();
-    auto scale = screen.y / (2.f * 512.f);
-
-    NGText text;
-    text.scale(scale, scale);
-    text.setAlignment(NGTextAlignment::Center);
-    text.setFont(_font);
-    text.setColor(_talkColor);
-    text.setText(_sayText);
-    auto bounds = text.getBoundRect();
-
-    sf::Transformable t;
-    t.move((sf::Vector2f)-_talkOffset);
-    states.transform *= t.getTransform();
-
-    target.draw(text, states);
-}
-
 Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine))
 { 
     pImpl->setActor(this); 
@@ -555,9 +371,8 @@ void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) co
     if (!pImpl->_talkingState.isTalking())
         return;
 
-    auto actorTransform = states.transform;
-    states.transform = actorTransform * getTransform();
-    pImpl->_talkingState.draw(target, states);
+    sf::RenderStates s;
+    target.draw(pImpl->_talkingState, s);
 }
 
 void Actor::update(const sf::Time &elapsed)

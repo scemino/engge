@@ -1100,10 +1100,7 @@ class _ActorPack : public Pack
                 return sq_throwerror(v, _SC("failed to get text"));
             }
 
-            std::string s(idText);
-            s = s.substr(1);
-            auto id = std::strtol(s.c_str(), nullptr, 10);
-            actor->say(id);
+            actor->say(idText);
         }
         return 0;
     }
@@ -1125,7 +1122,48 @@ class _ActorPack : public Pack
 
     static SQInteger sayLineAt(HSQUIRRELVM v)
     {
-        error("TODO: sayLineAt: not implemented");
+        SQInteger x;
+        if (SQ_FAILED(sq_getinteger(v, 2, &x)))
+        {
+            return sq_throwerror(v, _SC("failed to get x"));
+        }
+        SQInteger y;
+        if (SQ_FAILED(sq_getinteger(v, 3, &y)))
+        {
+            return sq_throwerror(v, _SC("failed to get y"));
+        }
+        if(sq_gettype(v, 4) == OT_INTEGER)
+        {
+            SQInteger c;
+            if (SQ_FAILED(sq_getinteger(v, 4, &c)))
+            {
+                return sq_throwerror(v, _SC("failed to get color"));
+            }
+            auto color = _fromRgb(c);
+            SQFloat t;
+            if (SQ_FAILED(sq_getfloat(v, 5, &t)))
+            {
+                return sq_throwerror(v, _SC("failed to get time"));
+            }
+            const SQChar* text;
+            if (SQ_FAILED(sq_getstring(v, 6, &text)))
+            {
+                return sq_throwerror(v, _SC("failed to get text"));
+            }
+            g_pEngine->sayLineAt(sf::Vector2i(x,y), color, sf::seconds(t), text);
+            return 0;
+        }
+        auto *actor = ScriptEngine::getActor(v, 4);
+        if (!actor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
+        const SQChar* text;
+        if (SQ_FAILED(sq_getstring(v, 6, &text)))
+        {
+            return sq_throwerror(v, _SC("failed to get text"));
+        }
+        g_pEngine->sayLineAt(sf::Vector2i(x,y), *actor, text);
         return 0;
     }
 

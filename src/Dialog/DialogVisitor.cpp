@@ -116,7 +116,7 @@ void DialogVisitor::visit(const Ast::Say &node)
     auto id = getId(node.text);
     if (id > 0)
     {
-        auto say = std::make_unique<_SayFunction>(*pActor, id);
+        auto say = std::make_unique<_SayFunction>(*pActor, node.text);
         _dialogManager.addFunction(std::move(say));
     }
     else

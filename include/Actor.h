@@ -39,10 +39,9 @@ public:
   sf::Color getTalkColor() const;
   
   void setTalkOffset(const sf::Vector2i &offset);
-  void say(int id);
+  void say(const std::string& text);
   void stopTalking();
   bool isTalking() const;
-  bool isTalkingIdDone(int id) const;
 
   Room *getRoom() override;
   const Room *getRoom() const override;

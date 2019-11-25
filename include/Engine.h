@@ -262,6 +262,9 @@ class Engine : public NonCopyable
     void setVerbHighlightColor(sf::Color color);
     sf::Color getVerbHighlightColor() const;
 
+    void sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string& text);
+    void sayLineAt(sf::Vector2i pos, Actor& actor, const std::string& text);
+
   private:
     struct Impl;
     std::unique_ptr<Impl> _pImpl;
