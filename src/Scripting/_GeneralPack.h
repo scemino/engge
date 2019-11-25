@@ -11,7 +11,7 @@ class _GeneralPack : public Pack
 {
 private:
     static Engine *g_pEngine;
-    static uint g_CRCTab[256];
+    static unsigned int g_CRCTab[256];
 
 private:
     void addTo(ScriptEngine &engine) const override
@@ -753,7 +753,7 @@ private:
 
     static void init_crc32() 
     {
-        uint i, j, c;
+        unsigned int i, j, c;
         for(i=0; i<256; i++)
         {
             for( c=i,j=0; j<8; j++ ) c=(c&1) ? (c>>1)^0xEDB88320L : (c>>1);
@@ -761,7 +761,7 @@ private:
         }
     }
 
-    static uint crc32_update(uint x, char c)
+    static unsigned int crc32_update(unsigned int x, char c)
     { 
         return g_CRCTab[(x^c)&0xFF] ^ (x>>8);
     }
@@ -773,7 +773,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get string"));
         }
-        uint x;
+        unsigned int x;
         for(x=0; *str++; x = crc32_update(x, str[-1]));
         sq_pushinteger(v, x);
         return 1;
@@ -898,6 +898,6 @@ private:
 };
 
 Engine *_GeneralPack::g_pEngine = nullptr;
-uint _GeneralPack::g_CRCTab[256];
+unsigned int _GeneralPack::g_CRCTab[256] = {};
 
 } // namespace ng
