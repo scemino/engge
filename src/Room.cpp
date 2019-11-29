@@ -732,21 +732,16 @@ void Room::exit()
                      pImpl->_objects.end());
 }
 
-bool Room::isThreadAlive(HSQUIRRELVM thread) const
-{
-    return std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(),
-                        [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; }) !=
-           pImpl->_threads.end();
-}
-
-void Room::stopThread(HSQUIRRELVM thread)
+void Room::stopThread(int threadId)
 {
     auto it = std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(),
-                           [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; });
+                           [threadId](const auto &t) { return t->getId() == threadId; });
     if (it == pImpl->_threads.end())
         return;
     pImpl->_threads.erase(it);
 }
+
+std::vector<std::unique_ptr<ThreadBase>>& Room::getThreads() { return pImpl->_threads; }
 
 void Room::setEffect(int effect) { pImpl->setEffect(effect); }
 

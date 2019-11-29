@@ -1,7 +1,10 @@
 #include "Camera.h"
 #include "Cutscene.h"
 #include "Engine.h"
+#include "Locator.h"
 #include "Logger.h"
+#include "ResourceManager.h"
+#include "ScriptEngine.h"
 
 namespace ng
 {
@@ -13,6 +16,8 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
     _inputState = _engine.getInputState();
     trace("Cutscene with inputState {}", _inputState);
     _engine.setInputActive(false);
+
+    _id = Locator::getResourceManager().getThreadId();
 
     sq_addref(_engineVm, &_thread);
     sq_addref(_engineVm, &_closureObj);
@@ -28,7 +33,7 @@ Cutscene::~Cutscene()
     sq_release(_engineVm, &_envObj);
 }
 
-HSQUIRRELVM Cutscene::getThread()
+HSQUIRRELVM Cutscene::getThread() const
 {
     return _thread._unVal.pThread;
 }
@@ -83,8 +88,7 @@ void Cutscene::startCutscene()
 
 void Cutscene::checkEndCutscene()
 {
-    auto s = sq_getvmstate(_thread._unVal.pThread);
-    if (s == SQ_VMSTATE_IDLE)
+    if (isStopped())
     {
         _state = 4;
         trace("end cutscene: {}", (long)_thread._unVal.pThread);
@@ -110,8 +114,7 @@ void Cutscene::doCutsceneOverride()
 
 void Cutscene::checkEndCutsceneOverride()
 {
-    auto s = sq_getvmstate(_thread._unVal.pThread);
-    if (s == SQ_VMSTATE_IDLE)
+    if (isStopped())
     {
         _state = 4;
         trace("end checkEndCutsceneOverride: {}", (long)_thread._unVal.pThread);
@@ -125,6 +128,6 @@ void Cutscene::endCutscene()
     _engine.setInputState(_inputState);
     _engine.follow(_engine.getCurrentActor());
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
-    _engine.stopThread(_thread._unVal.pThread);
+    _engine.stopThread(_id);
 }
 } // namespace ng

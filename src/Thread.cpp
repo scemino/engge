@@ -1,3 +1,7 @@
+#include "squirrel.h"
+#include "Locator.h"
+#include "ResourceManager.h"
+#include "ScriptEngine.h"
 #include "Thread.h"
 
 namespace ng
@@ -6,6 +10,7 @@ Thread::Thread(HSQUIRRELVM v, HSQOBJECT thread_obj, HSQOBJECT env_obj, HSQOBJECT
     : _v(v), _thread_obj(thread_obj), _env_obj(env_obj), _closureObj(closureObj), _args(args)
 {
     sq_addref(_v, &_thread_obj);
+    _id = Locator::getResourceManager().getThreadId();
 }
 
 Thread::~Thread()
@@ -13,7 +18,7 @@ Thread::~Thread()
     sq_release(_v, &_thread_obj);
 }
 
-HSQUIRRELVM Thread::getThread() { return _thread_obj._unVal.pThread; }
+HSQUIRRELVM Thread::getThread() const { return _thread_obj._unVal.pThread; }
 
 bool Thread::call()
 {
@@ -33,5 +38,6 @@ bool Thread::call()
     }
     return true;
 }
+
 } // namespace ng
 

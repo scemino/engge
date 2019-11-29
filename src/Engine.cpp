@@ -451,6 +451,8 @@ void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute)
 
 void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.push_back(std::move(thread)); }
 
+std::vector<std::unique_ptr<ThreadBase>>& Engine::getThreads() { return _pImpl->_threads; }
+
 sf::Vector2f Engine::getMousePos() const { return _pImpl->_mousePos; }
 
 sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
@@ -616,7 +618,7 @@ void Engine::Impl::actorExit()
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 {
     // call enter room function
-    trace("call enter room function of {}", pRoom->getId());
+    trace("call enter room function of {}", pRoom->getName());
     sq_pushobject(_vm, pRoom->getTable());
     sq_pushstring(_vm, _SC("enter"), -1);
     if (SQ_FAILED(sq_rawget(_vm, -2)))
@@ -1110,7 +1112,7 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->updateKeyboard();
     _pImpl->updateKeys();
 
-    if (!isMouseClick && !isRightClick) 
+    if (!isMouseClick && !isRightClick && _pImpl->_pCurrentActor) 
     {
         if(_pImpl->_isMouseDown)
         {
@@ -1563,17 +1565,6 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     window.setView(view);
 }
 
-bool Engine::isThreadAlive(HSQUIRRELVM thread) const
-{
-    auto pRoom = _pImpl->_pRoom;
-    if (pRoom && pRoom->isThreadAlive(thread))
-        return true;
-
-    return std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(),
-                        [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; }) !=
-           _pImpl->_threads.end();
-}
-
 void Engine::startDialog(const std::string &dialog, const std::string &node)
 {
     _pImpl->_dialogManager.start(dialog, node);
@@ -1590,16 +1581,16 @@ bool Engine::executeCondition(const std::string &code) { return _pImpl->_pScript
 
 std::string Engine::executeDollar(const std::string &code) { return _pImpl->_pScriptExecute->executeDollar(code); }
 
-void Engine::stopThread(HSQUIRRELVM thread)
+void Engine::stopThread(int threadId)
 {
     auto pRoom = getRoom();
-    if (pRoom && pRoom->isThreadAlive(thread))
+    if(pRoom)
     {
-        pRoom->stopThread(thread);
-        return;
+        pRoom->stopThread(threadId);
     }
+    
     auto it = std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(),
-                           [&thread](const std::unique_ptr<ThreadBase> &t) { return t->getThread() == thread; });
+                           [threadId](const auto &t) { return t->getId() == threadId; });
     if (it == _pImpl->_threads.end())
         return;
     _pImpl->_threads.erase(it);
@@ -1656,6 +1647,8 @@ void Engine::cutscene(std::unique_ptr<Cutscene> function)
     _pImpl->_pCutscene = function.get();
     addThread(std::move(function));
 }
+
+Cutscene* Engine::getCutscene() const { return _pImpl->_pCutscene; }
 
 bool Engine::inCutscene() const { return _pImpl->_pCutscene && !_pImpl->_pCutscene->isElapsed(); }
 

@@ -469,7 +469,9 @@ private:
         auto scene = std::make_unique<Cutscene>(*g_pEngine, v, threadObj, closureObj, closureCutsceneOverrideObj, env_obj);
         g_pEngine->cutscene(std::move(scene));
 
-        return sq_suspendvm(v);
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        return isSuspended ? SQ_SUSPEND_FLAG : SQ_OK;
     }
 
     static SQInteger cutsceneOverride(HSQUIRRELVM v)

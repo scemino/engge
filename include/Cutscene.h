@@ -26,7 +26,7 @@ public:
   Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj);
   ~Cutscene() override;
 
-  HSQUIRRELVM getThread() override;
+  HSQUIRRELVM getThread() const override;
 
 public:
   bool isElapsed() override;

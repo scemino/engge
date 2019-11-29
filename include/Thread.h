@@ -11,9 +11,10 @@ public:
     Thread(HSQUIRRELVM v, HSQOBJECT thread_obj, HSQOBJECT env_obj, HSQOBJECT closureObj, const std::vector<HSQOBJECT> &args);
     ~Thread() override;
 
-    HSQUIRRELVM getThread() override;
+    HSQUIRRELVM getThread() const override;
 
     bool call();
+    
 
 private:
     HSQUIRRELVM _v;

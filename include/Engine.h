@@ -168,6 +168,7 @@ class Engine : public NonCopyable
     void cutscene(std::unique_ptr<Cutscene> function);
     bool inCutscene() const;
     void cutsceneOverride();
+    Cutscene* getCutscene() const ;
 
     std::vector<std::unique_ptr<Actor>> &getActors();
 
@@ -208,8 +209,8 @@ class Engine : public NonCopyable
     void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);
     
     void addThread(std::unique_ptr<ThreadBase> thread);
-    void stopThread(HSQUIRRELVM thread);
-    bool isThreadAlive(HSQUIRRELVM thread) const;
+    void stopThread(int threadId);
+    std::vector<std::unique_ptr<ThreadBase>>& getThreads();
 
     void startDialog(const std::string &dialog, const std::string &node);
     void execute(const std::string &code);

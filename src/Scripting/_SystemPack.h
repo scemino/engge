@@ -15,83 +15,20 @@
 #include "Thread.h"
 #include "../_Util.h"
 
+#define SQ_SUSPEND_FLAG -666
+
 namespace ng
 {
-class _StopThread : public Function
-{
-private:
-    Engine &_engine;
-    HSQOBJECT _threadObj;
-    bool _done;
-
-public:
-    _StopThread(Engine &engine, HSQOBJECT threadObj)
-        : _engine(engine), _threadObj(threadObj), _done(false)
-    {
-    }
-
-    bool isElapsed() override
-    {
-        return _done;
-    }
-
-    void operator()(const sf::Time &elapsed) override
-    {
-        if (_done)
-            return;
-        _engine.stopThread(_threadObj._unVal.pThread);
-        _done = true;
-    }
-};
-
-class _WakeupThread : public Function
-{
-private:
-    Engine& _engine;
-    HSQUIRRELVM _vm;
-    bool _done;
-
-public:
-    explicit _WakeupThread(Engine& engine, HSQUIRRELVM vm)
-        : _engine(engine), _vm(vm), _done(false)
-    {
-    }
-
-    bool isElapsed() override
-    {
-        return _done;
-    }
-
-    void operator()(const sf::Time &elapsed) override
-    {
-        if (_done)
-            return;
-
-        _done = true;
-        if (!_engine.isThreadAlive(_vm) || sq_getvmstate(_vm) == SQ_VMSTATE_IDLE)
-        {
-            return;
-        }
-
-        if (SQ_FAILED(sq_wakeupvm(_vm, SQFalse, SQFalse, SQTrue, SQFalse)))
-        {
-            error("_WakeupThread: failed to wakeup: {}", (long)_vm);
-            sqstd_printcallstack(_vm);
-            return;
-        }
-    }
-};
-
 class _BreakFunction : public Function
 {
 protected:
     Engine &_engine;
-    HSQUIRRELVM _vm;
+    int _threadId;
     bool _done;
 
 public:
-    explicit _BreakFunction(Engine &engine, HSQUIRRELVM vm)
-        : _engine(engine), _vm(vm), _done(false)
+    explicit _BreakFunction(Engine &engine, int id)
+        : _engine(engine), _threadId(id), _done(false)
     {
     }
 
@@ -109,16 +46,18 @@ public:
             return;
 
         _done = true;
-        auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
-        _engine.addFunction(std::move(wakeupThread));
+        auto pThread = ScriptEngine::getThreadFromId(_threadId);
+        if (!pThread)
+            return;
+        pThread->resume();
     }
 };
 
 class _BreakHereFunction : public _BreakFunction
 {
 public:
-    explicit _BreakHereFunction(Engine &engine, HSQUIRRELVM vm)
-        : _BreakFunction(engine, vm)
+    explicit _BreakHereFunction(Engine &engine, int id)
+        : _BreakFunction(engine, id)
     {
     }
 
@@ -136,8 +75,8 @@ private:
     CostumeAnimation *_pAnimation;
 
 public:
-    _BreakWhileAnimatingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
-        : _BreakFunction(engine, vm), _actor(actor), _pAnimation(actor.getCostume().getAnimation())
+    _BreakWhileAnimatingFunction(Engine &engine, int id, Actor &actor)
+        : _BreakFunction(engine, id), _actor(actor), _pAnimation(actor.getCostume().getAnimation())
     {
         _name = _pAnimation->getName();
     }
@@ -160,8 +99,8 @@ private:
     std::optional<Animation> &_animation;
 
 public:
-    _BreakWhileAnimatingObjectFunction(Engine &engine, HSQUIRRELVM vm, Object &object)
-        : _BreakFunction(engine, vm), _animation(object.getAnimation())
+    _BreakWhileAnimatingObjectFunction(Engine &engine, int id, Object &object)
+        : _BreakFunction(engine, id), _animation(object.getAnimation())
     {
     }
 
@@ -182,8 +121,8 @@ private:
     Actor &_actor;
 
 public:
-    explicit _BreakWhileWalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
-        : _BreakFunction(engine, vm), _actor(actor)
+    explicit _BreakWhileWalkingFunction(Engine &engine, int id, Actor &actor)
+        : _BreakFunction(engine, id), _actor(actor)
     {
     }
 
@@ -204,8 +143,8 @@ private:
     Actor &_actor;
 
 public:
-    explicit _BreakWhileTalkingFunction(Engine &engine, HSQUIRRELVM vm, Actor &actor)
-        : _BreakFunction(engine, vm), _actor(actor)
+    explicit _BreakWhileTalkingFunction(Engine &engine, int id, Actor &actor)
+        : _BreakFunction(engine, id), _actor(actor)
     {
     }
 
@@ -223,8 +162,8 @@ public:
 class _BreakWhileAnyActorTalkingFunction : public _BreakFunction
 {
 public:
-    explicit _BreakWhileAnyActorTalkingFunction(Engine &engine, HSQUIRRELVM vm)
-        : _BreakFunction(engine, vm)
+    explicit _BreakWhileAnyActorTalkingFunction(Engine &engine, int id)
+        : _BreakFunction(engine, id)
     {
     }
 
@@ -250,8 +189,8 @@ private:
     int _soundId;
 
 public:
-    _BreakWhileSoundFunction(Engine &engine, HSQUIRRELVM vm, int soundId)
-        : _BreakFunction(engine, vm), _soundId(soundId)
+    _BreakWhileSoundFunction(Engine &engine, int id, int soundId)
+        : _BreakFunction(engine, id), _soundId(soundId)
     {
     }
 
@@ -271,13 +210,13 @@ class _BreakWhileRunningFunction : public Function
 {
 private:
     Engine &_engine;
-    HSQUIRRELVM _vm;
+    int _currentThreadId, _threadId;
     HSQUIRRELVM _thread;
     bool _done;
 
 public:
-    _BreakWhileRunningFunction(Engine &engine, HSQUIRRELVM vm, HSQUIRRELVM thread)
-        : _engine(engine), _vm(vm), _thread(thread), _done(false)
+    _BreakWhileRunningFunction(Engine &engine, int currentThreadId, int threadId)
+        : _engine(engine), _currentThreadId(currentThreadId), _threadId(threadId), _done(false)
     {
     }
 
@@ -286,11 +225,14 @@ public:
         if (_done)
             return;
 
-        if (!_engine.isThreadAlive(_thread) || sq_getvmstate(_thread) == SQ_VMSTATE_IDLE)
+        auto pThread = ScriptEngine::getThreadFromId(_threadId);
+        if (!pThread || pThread->isStopped())
         {
-            _engine.stopThread(_thread);
-            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
-            _engine.addFunction(std::move(wakeupThread));
+            auto pCurrentThread = ScriptEngine::getThreadFromId(_currentThreadId);
+            if(pCurrentThread)
+            {
+                pCurrentThread->resume();
+            }
             _done = true;
         }
     }
@@ -304,8 +246,8 @@ public:
 class _BreakWhileDialogFunction : public _BreakFunction
 {
 public:
-    _BreakWhileDialogFunction(Engine &engine, HSQUIRRELVM vm)
-        : _BreakFunction(engine, vm)
+    _BreakWhileDialogFunction(Engine &engine, int id)
+        : _BreakFunction(engine, id)
     {
     }
 
@@ -323,8 +265,8 @@ public:
 class _BreakWhileCutsceneFunction : public _BreakFunction
 {
 public:
-    _BreakWhileCutsceneFunction(Engine &engine, HSQUIRRELVM vm)
-        : _BreakFunction(engine, vm)
+    _BreakWhileCutsceneFunction(Engine &engine, int id)
+        : _BreakFunction(engine, id)
     {
     }
 
@@ -342,8 +284,8 @@ public:
 class _BreakWhileCameraFunction : public _BreakFunction
 {
 public:
-    _BreakWhileCameraFunction(Engine &engine, HSQUIRRELVM vm)
-        : _BreakFunction(engine, vm)
+    _BreakWhileCameraFunction(Engine &engine, int id)
+        : _BreakFunction(engine, id)
     {
     }
 
@@ -361,8 +303,8 @@ public:
 class _BreakWhileInputOffFunction : public _BreakFunction
 {
 public:
-    _BreakWhileInputOffFunction(Engine &engine, HSQUIRRELVM vm)
-        : _BreakFunction(engine, vm)
+    _BreakWhileInputOffFunction(Engine &engine, int id)
+        : _BreakFunction(engine, id)
     {
     }
 
@@ -380,12 +322,12 @@ public:
 class _BreakTimeFunction : public TimeFunction
 {
 private:
-    HSQUIRRELVM _vm;
+    int _threadId;
     Engine &_engine;
 
 public:
-    _BreakTimeFunction(Engine &engine, HSQUIRRELVM vm, const sf::Time &time)
-        : TimeFunction(time), _vm(vm), _engine(engine)
+    _BreakTimeFunction(Engine &engine, int id, const sf::Time &time)
+        : TimeFunction(time), _threadId(id), _engine(engine)
     {
     }
 
@@ -397,13 +339,10 @@ public:
         if (isElapsed())
         {
             _done = true;
-            if (!_engine.isThreadAlive(_vm))
+            auto pThread = ScriptEngine::getThreadFromId(_threadId);
+            if (!pThread)
                 return;
-            if (sq_getvmstate(_vm) != SQ_VMSTATE_SUSPENDED)
-                return;
-
-            auto wakeupThread = std::make_unique<_WakeupThread>(_engine, _vm);
-            _engine.addFunction(std::move(wakeupThread));
+            pThread->resume();
         }
     }
 };
@@ -506,9 +445,12 @@ private:
 
     static SQInteger breakhere(HSQUIRRELVM v)
     {
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, v));
-        return result;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, pThread->getId()));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhileanimating(HSQUIRRELVM v)
@@ -518,59 +460,76 @@ private:
         {
             auto pAnim = pActor->getCostume().getAnimation();
             if(!pAnim) return 0;
-            auto result = sq_suspendvm(v);
-            g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, v, *pActor));
-            return result;
+            
+            auto pThread = ScriptEngine::getThreadFromVm(v);
+            auto isSuspended = pThread->suspend();
+            if(!isSuspended) return SQ_OK;
+
+            g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, pThread->getId(), *pActor));
+            return SQ_SUSPEND_FLAG;
         }
 
         auto *pObj = ScriptEngine::getObject(v, 2);
         if (pObj)
         {
-            auto result = sq_suspendvm(v);
-            g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, v, *pObj));
-            return result;
+            auto pThread = ScriptEngine::getThreadFromVm(v);
+            auto isSuspended = pThread->suspend();
+            if(!isSuspended) return SQ_OK;
+
+            g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, pThread->getId(), *pObj));
+            return SQ_SUSPEND_FLAG;
         }
         return sq_throwerror(v, _SC("failed to get actor or object"));
     }
 
     static SQInteger breakwhilecamera(HSQUIRRELVM v)
     {
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileCameraFunction>(*g_pEngine, v));
-        return result;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakWhileCameraFunction>(*g_pEngine, pThread->getId()));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhilecutscene(HSQUIRRELVM v)
     {
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileCutsceneFunction>(*g_pEngine, v));
-        return result;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakWhileCutsceneFunction>(*g_pEngine, pThread->getId()));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhileinputoff(HSQUIRRELVM v)
     {
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileInputOffFunction>(*g_pEngine, v));
-        return result;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakWhileInputOffFunction>(*g_pEngine, pThread->getId()));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhilesound(HSQUIRRELVM v)
     {
         SoundId *pSound = ScriptEngine::getSound(v, 2);
-        if (!pSound)
-        {
-            return 0;
-        }
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, v, pSound->getId()));
-        return result;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+
+        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, pThread->getId(), pSound&&isSuspended?pSound->getId():0));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhiledialog(HSQUIRRELVM v)
     {
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileDialogFunction>(*g_pEngine, v));
-        return result;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakWhileDialogFunction>(*g_pEngine, pThread->getId()));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhilewalking(HSQUIRRELVM v)
@@ -580,9 +539,13 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(*g_pEngine, v, *pActor));
-        return result;
+        
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(*g_pEngine, pThread->getId(), *pActor));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhiletalking(HSQUIRRELVM v)
@@ -594,27 +557,46 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
-            auto result = sq_suspendvm(v);
-            g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, v, *pActor));
-            return result;
+            auto pThread = ScriptEngine::getThreadFromVm(v);
+            auto isSuspended = pThread->suspend();
+            if(!isSuspended) return SQ_OK;
+
+            g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, pThread->getId(), *pActor));
+            return SQ_SUSPEND_FLAG;
         }
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakWhileAnyActorTalkingFunction>(*g_pEngine, v));
-        return result;
+       
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+        
+        g_pEngine->addFunction(std::make_unique<_BreakWhileAnyActorTalkingFunction>(*g_pEngine, pThread->getId()));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhilerunning(HSQUIRRELVM v)
     {
-        if (sq_gettype(v, 2) == OT_THREAD)
+        SQInteger id = 0;
+        if (sq_gettype(v, 2) == OT_INTEGER)
         {
-            HSQUIRRELVM thread;
-            if (SQ_FAILED(sq_getthread(v, 2, &thread)))
+            sq_getinteger(v, 2, &id);
+        }
+
+        if(ResourceManager::isThread(id))
+        {
+            auto pCurrentThread = ScriptEngine::getThreadFromVm(v);
+            if(!pCurrentThread)
             {
-                return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
+                return sq_throwerror(v, "Current thread should be created with startthread");
             }
-            auto result = sq_suspendvm(v);
-            g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, v, thread));
-            return result;
+            
+            auto pThread = ScriptEngine::getThreadFromId(id);
+            if(!pThread) return 0;
+            
+            auto isSuspended = pCurrentThread->suspend();
+            if(!isSuspended) return SQ_OK;
+
+            g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, pCurrentThread->getId(), id));
+            return SQ_SUSPEND_FLAG;
         }
         return breakwhilesound(v);
     }
@@ -772,23 +754,23 @@ private:
 
     static SQInteger stopthread(HSQUIRRELVM v)
     {
+        auto type = sq_gettype(v, 2);
+        if(type == OT_NULL) return 0;
+        
         SQInteger id;
-        if (SQ_SUCCEEDED(sq_getinteger(v, 2, &id)) && id == 0)
+        if (SQ_FAILED(sq_getinteger(v, 2, &id)))
         {
-            // no thread id => nothing to stop_BreakWhileSoundFunction
-            return 0;
+            return sq_throwerror(v, _SC("Failed to get thread id"));
         }
-        HSQOBJECT thread_obj;
-        if (SQ_FAILED(sq_getstackobj(v, 2, &thread_obj)))
-        {
-            return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
-        }
-        trace("stopthread {}", (long)thread_obj._unVal.pThread);
 
-        auto stopThread = std::make_unique<_StopThread>(*g_pEngine, thread_obj);
-        g_pEngine->addFunction(std::move(stopThread));
+        auto pThread = ScriptEngine::getThreadFromId(id);
+        if(!pThread) return 0;
 
-        return 0;
+        trace("stopthread {}", id);
+        g_pEngine->stopThread(id);
+
+        sq_pushinteger(v, 0);
+        return 1;
     }
 
     static SQInteger startglobalthread(HSQUIRRELVM v)
@@ -847,10 +829,10 @@ private:
             sq_getstring(v, -1, &name);
         }
 
-        trace("start thread ({}): {}", (name ? name : "anonymous"), (long)thread);
         auto vm = g_pEngine->getVm();
         auto pUniquethread = std::make_unique<Thread>(vm, thread_obj, env_obj, closureObj, args);
         auto pThread = pUniquethread.get();
+        trace("start thread ({}): {}", (name ? name : "anonymous"), pThread->getId());
 
         if (global)
         {
@@ -867,7 +849,7 @@ private:
             return sq_throwerror(v, _SC("call failed"));
         }
 
-        sq_pushobject(v, thread_obj);
+        sq_pushinteger(v, pThread->getId());
         return 1;
     }
 
@@ -878,9 +860,18 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get time"));
         }
-        auto result = sq_suspendvm(v);
-        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(*g_pEngine, v, sf::seconds(time)));
-        return result;
+
+        auto pThread = ScriptEngine::ScriptEngine::getThreadFromVm(v);
+        if(!pThread)
+        {
+            return sq_throwerror(v, _SC("failed to get thread"));
+        }
+
+        auto isSuspended = pThread->suspend();
+        if(!isSuspended) return SQ_OK;
+
+        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(*g_pEngine, pThread->getId(), sf::seconds(time)));
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger setPrivatePref(HSQUIRRELVM v)
@@ -1158,24 +1149,29 @@ private:
 
     static SQInteger threadid(HSQUIRRELVM v)
     {
-        error("TODO: threadid: not implemented");
-        return 0;
+        auto pThread = ScriptEngine::getThreadFromVm(v);
+        sq_pushinteger(v, pThread ? pThread->getId() : 0);
+        return 1;
     }
 
     static SQInteger threadpauseable(HSQUIRRELVM v)
     {
-        HSQOBJECT thread;
-        sq_resetobject(&thread);
-        if (SQ_FAILED(sq_getstackobj(v, 2, &thread)))
+        SQInteger threadId = 0;
+        if (SQ_FAILED(sq_getinteger(v, 2, &threadId)))
         {
-            return sq_throwerror(v, _SC("failed to get thread"));
+            return sq_throwerror(v, _SC("failed to get threadId"));
+        }
+        auto pThread = ScriptEngine::getThreadFromId(threadId);
+        if (!pThread)
+        {
+            return 0;
         }
         SQInteger pauseable = 0;
         if (SQ_FAILED(sq_getinteger(v, 3, &pauseable)))
         {
             return sq_throwerror(v, _SC("failed to get pauseable"));
         }
-        error("TODO: threadpauseable: not implemented");
+        pThread->setPauseable(pauseable != 0);
         return 0;
     }
 };

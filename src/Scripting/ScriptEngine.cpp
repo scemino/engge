@@ -148,6 +148,53 @@ Sound *ScriptEngine::getSoundFromId(int id)
     return nullptr;
 }
 
+ThreadBase *ScriptEngine::getThreadFromId(int id)
+{
+    if(!ResourceManager::isThread(id)) return nullptr;
+
+    auto& threads = g_pEngine->getThreads();
+    auto it = std::find_if(threads.begin(),threads.end(),[id](auto& t){
+        return t->getId() == id;
+    });
+    if(it != threads.end()) return (*it).get();
+
+    auto pRoom = g_pEngine->getRoom();
+    if(!pRoom) return nullptr;
+
+    auto& localThreads = pRoom->getThreads();
+    it = std::find_if(localThreads.begin(),localThreads.end(),[id](auto& t){
+            return t->getId() == id;
+        });
+    if(it != localThreads.end()) return (*it).get();
+    return nullptr;
+}
+
+ThreadBase* ScriptEngine::getThreadFromVm(HSQUIRRELVM v)
+{
+    auto pCutscene = g_pEngine->getCutscene();
+    if(pCutscene && pCutscene->getThread() == v)
+    {
+        return pCutscene;
+    }
+
+    auto& threads = g_pEngine->getThreads();
+    auto it = std::find_if(threads.begin(),threads.end(),[v](auto& t){
+        return t->getThread() == v;
+    });
+    if(it != threads.end()) return (*it).get();
+
+    auto pRoom = g_pEngine->getRoom();
+    if(!pRoom) return nullptr;
+
+    auto& localThreads = pRoom->getThreads();
+    it = std::find_if(localThreads.begin(),localThreads.end(),[v](auto& t){
+        return t->getThread() == v;
+    });
+    if(it != localThreads.end()) return (*it).get();
+    
+    return nullptr;
+}
+
 Entity *ScriptEngine::getEntity(HSQUIRRELVM v, SQInteger index)
 {
     return ScriptEngine::getScriptObject<Entity>(v, index);
@@ -167,7 +214,6 @@ Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index) { return ScriptEng
 SoundId *ScriptEngine::getSound(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<SoundId>(v, index); }
 
 SoundDefinition *ScriptEngine::getSoundDefinition(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<SoundDefinition>(v, index); }
-  
 
 bool ScriptEngine::tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light)
 {

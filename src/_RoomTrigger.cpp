@@ -1,6 +1,9 @@
 #include "_RoomTrigger.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "Object.h"
+#include "ResourceManager.h"
+#include "ScriptEngine.h"
 #include "ThreadBase.h"
 #include "_Util.h"
 #include "squirrel.h"
@@ -15,6 +18,8 @@ _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQ
     sq_addref(_vm, &outside);
     sq_resetobject(&thread_obj);
 
+    auto id = Locator::getResourceManager().getThreadId();
+
     SQInteger top = sq_gettop(_vm);
     sq_newthread(_vm, 1024);
     if (SQ_FAILED(sq_getstackobj(_vm, -1, &thread_obj)))
@@ -23,6 +28,13 @@ _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQ
         return;
     }
     sq_addref(_vm, &thread_obj);
+
+    sq_pushconsttable(thread_obj._unVal.pThread);
+    sq_pushstring(thread_obj._unVal.pThread, _SC("_id"), -1);
+    ScriptEngine::push(thread_obj._unVal.pThread, id);
+    sq_newslot(thread_obj._unVal.pThread, -3, SQTrue);
+    sq_pop(thread_obj._unVal.pThread, 1);
+
     trace("start thread: {}", (long)thread_obj._unVal.pThread);
     auto pUniquethread = std::make_unique<_RoomTriggerThread>(thread_obj);
     _engine.addThread(std::move(pUniquethread));
