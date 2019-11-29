@@ -446,8 +446,7 @@ private:
     static SQInteger breakhere(HSQUIRRELVM v)
     {
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
 
         g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, pThread->getId()));
         return SQ_SUSPEND_FLAG;
@@ -462,8 +461,7 @@ private:
             if(!pAnim) return 0;
             
             auto pThread = ScriptEngine::getThreadFromVm(v);
-            auto isSuspended = pThread->suspend();
-            if(!isSuspended) return SQ_OK;
+            pThread->suspend();
 
             g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, pThread->getId(), *pActor));
             return SQ_SUSPEND_FLAG;
@@ -473,8 +471,7 @@ private:
         if (pObj)
         {
             auto pThread = ScriptEngine::getThreadFromVm(v);
-            auto isSuspended = pThread->suspend();
-            if(!isSuspended) return SQ_OK;
+            pThread->suspend();
 
             g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, pThread->getId(), *pObj));
             return SQ_SUSPEND_FLAG;
@@ -485,8 +482,7 @@ private:
     static SQInteger breakwhilecamera(HSQUIRRELVM v)
     {
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
 
         g_pEngine->addFunction(std::make_unique<_BreakWhileCameraFunction>(*g_pEngine, pThread->getId()));
         return SQ_SUSPEND_FLAG;
@@ -495,8 +491,7 @@ private:
     static SQInteger breakwhilecutscene(HSQUIRRELVM v)
     {
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
 
         g_pEngine->addFunction(std::make_unique<_BreakWhileCutsceneFunction>(*g_pEngine, pThread->getId()));
         return SQ_SUSPEND_FLAG;
@@ -505,8 +500,7 @@ private:
     static SQInteger breakwhileinputoff(HSQUIRRELVM v)
     {
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
 
         g_pEngine->addFunction(std::make_unique<_BreakWhileInputOffFunction>(*g_pEngine, pThread->getId()));
         return SQ_SUSPEND_FLAG;
@@ -516,18 +510,17 @@ private:
     {
         SoundId *pSound = ScriptEngine::getSound(v, 2);
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
+        pThread->suspend();
 
-        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, pThread->getId(), pSound&&isSuspended?pSound->getId():0));
+        g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine, pThread->getId(), pSound ? pSound->getId():0));
         return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger breakwhiledialog(HSQUIRRELVM v)
     {
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
-
+        pThread->suspend();
+        
         g_pEngine->addFunction(std::make_unique<_BreakWhileDialogFunction>(*g_pEngine, pThread->getId()));
         return SQ_SUSPEND_FLAG;
     }
@@ -541,8 +534,7 @@ private:
         }
         
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
 
         g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(*g_pEngine, pThread->getId(), *pActor));
         return SQ_SUSPEND_FLAG;
@@ -558,16 +550,14 @@ private:
                 return sq_throwerror(v, _SC("failed to get actor"));
             }
             auto pThread = ScriptEngine::getThreadFromVm(v);
-            auto isSuspended = pThread->suspend();
-            if(!isSuspended) return SQ_OK;
+            pThread->suspend();
 
             g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, pThread->getId(), *pActor));
             return SQ_SUSPEND_FLAG;
         }
        
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
         
         g_pEngine->addFunction(std::make_unique<_BreakWhileAnyActorTalkingFunction>(*g_pEngine, pThread->getId()));
         return SQ_SUSPEND_FLAG;
@@ -592,9 +582,7 @@ private:
             auto pThread = ScriptEngine::getThreadFromId(id);
             if(!pThread) return 0;
             
-            auto isSuspended = pCurrentThread->suspend();
-            if(!isSuspended) return SQ_OK;
-
+            pCurrentThread->suspend();
             g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, pCurrentThread->getId(), id));
             return SQ_SUSPEND_FLAG;
         }
@@ -830,18 +818,11 @@ private:
         }
 
         auto vm = g_pEngine->getVm();
-        auto pUniquethread = std::make_unique<Thread>(vm, thread_obj, env_obj, closureObj, args);
+        auto pUniquethread = std::make_unique<Thread>(global, vm, thread_obj, env_obj, closureObj, args);
         auto pThread = pUniquethread.get();
         trace("start thread ({}): {}", (name ? name : "anonymous"), pThread->getId());
 
-        if (global)
-        {
-            g_pEngine->addThread(std::move(pUniquethread));
-        }
-        else
-        {
-            g_pEngine->getRoom()->addThread(std::move(pUniquethread));
-        }
+        g_pEngine->addThread(std::move(pUniquethread));
 
         // call the closure in the thread
         if (!pThread->call())
@@ -867,8 +848,7 @@ private:
             return sq_throwerror(v, _SC("failed to get thread"));
         }
 
-        auto isSuspended = pThread->suspend();
-        if(!isSuspended) return SQ_OK;
+        pThread->suspend();
 
         g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(*g_pEngine, pThread->getId(), sf::seconds(time)));
         return SQ_SUSPEND_FLAG;

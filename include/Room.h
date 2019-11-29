@@ -76,9 +76,6 @@ public:
   void setRotation(float angle);
 
   Light* createLight(sf::Color color, sf::Vector2i pos);
-  void addThread(std::unique_ptr<ThreadBase> thread);
-  void stopThread(int threadId);
-  std::vector<std::unique_ptr<ThreadBase>>& getThreads();
   void exit();
 
   void setEffect(int shader);

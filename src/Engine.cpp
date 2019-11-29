@@ -520,6 +520,11 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
 
     ScriptEngine::call("exitedRoom", pOldRoom);
 
+    // remove all local threads
+    _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](auto& pThread){
+        return !pThread->isGlobal();
+    }), _threads.end());
+
     return 0;
 }
 
@@ -1583,12 +1588,6 @@ std::string Engine::executeDollar(const std::string &code) { return _pImpl->_pSc
 
 void Engine::stopThread(int threadId)
 {
-    auto pRoom = getRoom();
-    if(pRoom)
-    {
-        pRoom->stopThread(threadId);
-    }
-    
     auto it = std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(),
                            [threadId](const auto &t) { return t->getId() == threadId; });
     if (it == _pImpl->_threads.end())

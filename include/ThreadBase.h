@@ -11,14 +11,20 @@ public:
 
     inline void setPauseable(bool value) { _isPauseable = value; }
     inline bool isPauseable() const { return _isPauseable; }
+    virtual bool isGlobal() const { return false; }
 
-    bool suspend()
+    bool pause()
     {
         if(!_isPauseable) return false;
-        if(isSuspended()) return true;
+        suspend();
+        return true;
+    }
+
+    void suspend()
+    {
+        if(isSuspended()) return;
         sq_suspendvm(getThread());
         _isSuspended = true;
-        return true;
     }
 
     void resume()

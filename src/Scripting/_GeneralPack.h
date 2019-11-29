@@ -470,8 +470,8 @@ private:
         g_pEngine->cutscene(std::move(scene));
 
         auto pThread = ScriptEngine::getThreadFromVm(v);
-        auto isSuspended = pThread->suspend();
-        return isSuspended ? SQ_SUSPEND_FLAG : SQ_OK;
+        pThread->suspend();
+        return SQ_SUSPEND_FLAG;
     }
 
     static SQInteger cutsceneOverride(HSQUIRRELVM v)

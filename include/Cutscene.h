@@ -27,6 +27,7 @@ public:
   ~Cutscene() override;
 
   HSQUIRRELVM getThread() const override;
+  virtual bool isGlobal() const override { return true; }
 
 public:
   bool isElapsed() override;

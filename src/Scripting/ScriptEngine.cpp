@@ -158,14 +158,6 @@ ThreadBase *ScriptEngine::getThreadFromId(int id)
     });
     if(it != threads.end()) return (*it).get();
 
-    auto pRoom = g_pEngine->getRoom();
-    if(!pRoom) return nullptr;
-
-    auto& localThreads = pRoom->getThreads();
-    it = std::find_if(localThreads.begin(),localThreads.end(),[id](auto& t){
-            return t->getId() == id;
-        });
-    if(it != localThreads.end()) return (*it).get();
     return nullptr;
 }
 
@@ -183,15 +175,6 @@ ThreadBase* ScriptEngine::getThreadFromVm(HSQUIRRELVM v)
     });
     if(it != threads.end()) return (*it).get();
 
-    auto pRoom = g_pEngine->getRoom();
-    if(!pRoom) return nullptr;
-
-    auto& localThreads = pRoom->getThreads();
-    it = std::find_if(localThreads.begin(),localThreads.end(),[v](auto& t){
-        return t->getThread() == v;
-    });
-    if(it != localThreads.end()) return (*it).get();
-    
     return nullptr;
 }
 

@@ -49,7 +49,6 @@ struct Room::Impl
     Room *_pRoom{nullptr};
     std::vector<std::unique_ptr<Light>> _lights;
     float _rotation{0};
-    std::vector<std::unique_ptr<ThreadBase>> _threads;
     sf::Shader _shader{};
     int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
     sf::Color _overlayColor{sf::Color::Transparent};
@@ -715,11 +714,8 @@ Light *Room::createLight(sf::Color color, sf::Vector2i pos)
     return pLight;
 }
 
-void Room::addThread(std::unique_ptr<ThreadBase> thread) { pImpl->_threads.emplace_back(std::move(thread)); }
-
 void Room::exit()
 {
-    pImpl->_threads.clear();
     for (auto &obj : pImpl->_objects) {
         if(!obj->isTemporary()) continue;
         for (auto &layer : pImpl->_layers)
@@ -731,17 +727,6 @@ void Room::exit()
                                     [](auto &pObj) { return pObj->isTemporary(); }),
                      pImpl->_objects.end());
 }
-
-void Room::stopThread(int threadId)
-{
-    auto it = std::find_if(pImpl->_threads.begin(), pImpl->_threads.end(),
-                           [threadId](const auto &t) { return t->getId() == threadId; });
-    if (it == pImpl->_threads.end())
-        return;
-    pImpl->_threads.erase(it);
-}
-
-std::vector<std::unique_ptr<ThreadBase>>& Room::getThreads() { return pImpl->_threads; }
 
 void Room::setEffect(int effect) { pImpl->setEffect(effect); }
 
