@@ -334,15 +334,18 @@ private:
         }
         else
         {
-            auto spot = ScriptEngine::getObject(v, 2);
-
-            auto result = g_pEngine->setRoom(spot->getRoom());
+            auto entity = ScriptEngine::getEntity(v, 2);
+            if (!entity)
+            {
+                return sq_throwerror(v, _SC("failed to get spot or actor"));
+            }
+            auto result = g_pEngine->setRoom(entity->getRoom());
             if (SQ_FAILED(result))
             {
                 return result;
             }
 
-            auto pos = spot->getRealPosition();
+            auto pos = entity->getRealPosition();
             g_pEngine->getCamera().at(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
         }
         return 0;
