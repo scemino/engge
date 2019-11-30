@@ -1,6 +1,4 @@
-#include <utility>
-
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include "Walkbox.h"
 #include "_Util.h"

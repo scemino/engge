@@ -51,7 +51,7 @@ public:
   float getRotation() const;
 
   void setScale(float s);
-  float getScale() const;
+  virtual float getScale() const;
 
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;

@@ -42,7 +42,6 @@ void merge(const std::vector<ng::Walkbox> &walkboxes, std::vector<Walkbox> &resu
 float distanceSquared(const sf::Vector2i &vector1, const sf::Vector2i &vector2);
 float distance(const sf::Vector2i &v1, const sf::Vector2i &v2);
 
-bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d);
 bool lineSegmentsCross(const sf::Vector2i &a, const sf::Vector2i &b, const sf::Vector2i &c, const sf::Vector2i &d);
 
 float length(const sf::Vector2i &v);
@@ -58,7 +57,7 @@ sf::Vector2f _parsePos(const std::string &text);
 sf::IntRect _parseRect(const std::string &text);
 void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices, int roomHeight);
 
-sf::Color _toColor(std::string color);
+sf::Color _toColor(const std::string& color);
 sf::Color _toColor(SQInteger color);
 sf::Color _fromRgb(SQInteger color);
 } // namespace ng

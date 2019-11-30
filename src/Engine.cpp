@@ -28,7 +28,7 @@
 #include "_Util.h"
 #include "Logger.h"
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <memory>
 #include <set>
 #include <string>
@@ -153,7 +153,6 @@ struct Engine::Impl
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
     void drawCursorText(sf::RenderTarget &target) const;
-    void clampCamera();
     int getCurrentActorIndex() const;
     sf::IntRect getCursorRect() const;
     void appendUseFlag(std::wstring &sentence) const;
@@ -170,7 +169,7 @@ struct Engine::Impl
     void updateRoomScalings();
     void setCurrentRoom(Room *pRoom);
     int32_t getFlags(HSQOBJECT obj) const;
-    int getDefaultVerb(HSQUIRRELVM vm, const Entity *pEntity) const;
+    static int getDefaultVerb(HSQUIRRELVM vm, const Entity *pEntity) ;
     Entity *getHoveredEntity(const sf::Vector2f &mousPos);
     void actorEnter();
     void actorExit();
@@ -181,8 +180,9 @@ struct Engine::Impl
     void updateKeyboard();
     bool isKeyPressed(int key);
     void updateKeys();
-    int toKey(const std::string& keyText);
+    static int toKey(const std::string& keyText);
     void drawPause(sf::RenderTarget &target) const;
+    void stopThreads();
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -297,7 +297,7 @@ std::wstring Engine::getText(const std::string& text) const
 {
     if(!text.empty() && text[0]=='@')
     {
-        auto id = std::atoi(text.c_str()+1);
+        auto id = std::strtol(text.c_str()+1, nullptr, 10);
         return getText(id);
     }
     return towstring(text);
@@ -528,7 +528,7 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     return 0;
 }
 
-int Engine::Impl::getDefaultVerb(HSQUIRRELVM v, const Entity *pEntity) const
+int Engine::Impl::getDefaultVerb(HSQUIRRELVM v, const Entity *pEntity)
 {
     sq_pushobject(v, pEntity->getTable());
     sq_pushstring(v, _SC("defaultVerb"), -1);
@@ -650,10 +650,8 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     actorEnter();
 
     auto &objects = pRoom->getObjects();
-    for (size_t i = 0; i < objects.size(); i++)
+    for (auto & obj : objects)
     {
-        auto &obj = objects[i];
-
         if (obj->getId() == 0 || obj->isTemporary())
             continue;
 
@@ -749,7 +747,6 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
         actor->setRoom(pRoom);
         auto pos = pDoor->getRealPosition();
         auto usePos = pDoor->getUsePosition();
-        auto hotspot = pDoor->getHotspot();
         auto roomHeight = pDoor->getRoom()->getRoomSize().y;
         pos.x += usePos.x;
         pos.y += usePos.y - roomHeight;
@@ -1022,6 +1019,7 @@ void Engine::Impl::updateRoomScalings()
 
 void Engine::update(const sf::Time &elapsed)
 {
+    _pImpl->stopThreads();
     _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
     if(_pImpl->isKeyPressed(32))
     { 
@@ -1243,7 +1241,7 @@ void Engine::Impl::updateKeyboard()
     {
         const auto& verb = verbSlot.getVerb(i);
         if(verb.key.length() == 0) continue;
-        auto id = std::atoi(verb.key.substr(1,verb.key.length()-1).c_str());
+        auto id = std::strtol(verb.key.substr(1,verb.key.length()-1).c_str(), nullptr, 10);
         auto key = toKey(tostring(_pEngine->getText(id)));
         if(isKeyPressed(key))
         {
@@ -1338,6 +1336,12 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
     target.draw(text);
     
     target.setView(view);
+}
+
+void Engine::Impl::stopThreads()
+{
+    _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](const auto &t) {
+        return !t || t->isStopped(); }), _threads.end());
 }
 
 void Engine::Impl::drawCursor(sf::RenderWindow &window) const
@@ -1585,15 +1589,6 @@ SoundDefinition *Engine::getSoundDefinition(const std::string &name)
 bool Engine::executeCondition(const std::string &code) { return _pImpl->_pScriptExecute->executeCondition(code); }
 
 std::string Engine::executeDollar(const std::string &code) { return _pImpl->_pScriptExecute->executeDollar(code); }
-
-void Engine::stopThread(int threadId)
-{
-    auto it = std::find_if(_pImpl->_threads.begin(), _pImpl->_threads.end(),
-                           [threadId](const auto &t) { return t->getId() == threadId; });
-    if (it == _pImpl->_threads.end())
-        return;
-    _pImpl->_threads.erase(it);
-}
 
 void Engine::addSelectableActor(int index, Actor *pActor)
 {

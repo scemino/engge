@@ -48,8 +48,7 @@ public:
   static Object *getObject(HSQUIRRELVM v, SQInteger index);
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);
-  static Light *getLight(HSQUIRRELVM v, SQInteger index);
-  static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
+    static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
   static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
 
   static Sound *getSoundFromId(int id);

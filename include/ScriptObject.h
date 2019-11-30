@@ -7,7 +7,7 @@ class ScriptObject
 public:
   virtual ~ScriptObject() = default;
 
-  int getId() const { return _id; }
+  [[nodiscard]] int getId() const { return _id; }
 
 protected:
   int _id{0};

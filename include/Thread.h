@@ -8,11 +8,11 @@ namespace ng
 class Thread : public ThreadBase
 {
 public:
-    Thread(bool isGlobal, HSQUIRRELVM v, HSQOBJECT thread_obj, HSQOBJECT env_obj, HSQOBJECT closureObj, const std::vector<HSQOBJECT> &args);
+    Thread(bool isGlobal, HSQUIRRELVM v, HSQOBJECT thread_obj, HSQOBJECT env_obj, HSQOBJECT closureObj, std::vector<HSQOBJECT> args);
     ~Thread() override;
 
-    HSQUIRRELVM getThread() const override;
-    bool isGlobal() const override { return _isGlobal; }
+    [[nodiscard]] HSQUIRRELVM getThread() const override;
+    [[nodiscard]] bool isGlobal() const override { return _isGlobal; }
 
     bool call();
     

@@ -1,7 +1,6 @@
 #include <cmath>
 #include "Text.h"
 #include "SFML/Graphics/Text.hpp"
-#include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
 #include "_Util.h"
 
@@ -49,7 +48,7 @@ namespace ng
 {
 ////////////////////////////////////////////////////////////
 Text::Text() : m_string(),
-               m_font(NULL),
+               m_font(nullptr),
                m_characterSize(30),
                m_letterSpacingFactor(1.f),
                m_lineSpacingFactor(1.f),

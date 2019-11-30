@@ -1,5 +1,4 @@
 #include <regex>
-#include "Actor.h"
 #include "Dialog/DialogManager.h"
 #include "Engine.h"
 #include "Logger.h"
@@ -158,7 +157,7 @@ void DialogManager::update(const sf::Time &elapsed)
         return;
 
     int dialog = 0;
-    for (auto dlg : _dialog)
+    for (const auto& dlg : _dialog)
     {
         if (dlg.id == 0)
             continue;
@@ -186,7 +185,7 @@ void DialogManager::choose(int choice)
     if((choice < 1) || (choice > _dialog.size())) return;
 
     size_t i = 0;
-    for(auto dlg : _dialog)
+    for(const auto& dlg : _dialog)
     {
         if(dlg.id == 0) continue;
         if((choice-1) == i)

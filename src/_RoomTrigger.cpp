@@ -4,7 +4,6 @@
 #include "Object.h"
 #include "ResourceManager.h"
 #include "ScriptEngine.h"
-#include "ThreadBase.h"
 #include "_Util.h"
 #include "squirrel.h"
 

@@ -482,10 +482,10 @@ class _ActorPack : public Pack
         sq_getstackobj(v, 3, &obj);
         if (sq_istable(obj))
         {
-            SQInteger back = static_cast<SQInteger>(Facing::FACE_BACK);
-            SQInteger front = static_cast<SQInteger>(Facing::FACE_FRONT);
-            SQInteger left = static_cast<SQInteger>(Facing::FACE_LEFT);
-            SQInteger right = static_cast<SQInteger>(Facing::FACE_RIGHT);
+            auto back = static_cast<SQInteger>(Facing::FACE_BACK);
+            auto front = static_cast<SQInteger>(Facing::FACE_FRONT);
+            auto left = static_cast<SQInteger>(Facing::FACE_LEFT);
+            auto right = static_cast<SQInteger>(Facing::FACE_RIGHT);
             SQInteger reset = 0;
             readFieldInt(v, _SC("back"), back);
             readFieldInt(v, _SC("front"), front);
@@ -943,7 +943,7 @@ class _ActorPack : public Pack
                 return 0;
             }
 
-            auto *pActor = ScriptEngine::getActor(v, 3);
+            pActor = ScriptEngine::getActor(v, 3);
             if (!pActor)
             {
                 return sq_throwerror(v, _SC("failed to get object or actor"));

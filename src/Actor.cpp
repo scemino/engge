@@ -2,7 +2,6 @@
 #include "Actor.h"
 #include "Camera.h"
 #include "Engine.h"
-#include "Font.h"
 #include "Lip.h"
 #include "Locator.h"
 #include "Logger.h"
@@ -16,7 +15,6 @@
 #include "SoundManager.h"
 #include "_TalkingState.h"
 #include "_Util.h"
-#include <regex>
 
 namespace ng
 {
@@ -31,7 +29,7 @@ struct Actor::Impl
         void setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing);
         void update(const sf::Time &elapsed);
         void stop();
-        bool isWalking() const { return _isWalking; }
+        [[nodiscard]] bool isWalking() const { return _isWalking; }
 
       private:
         Facing getFacing();
@@ -83,7 +81,6 @@ struct Actor::Impl
     const EngineSettings &_settings;
     Costume _costume;
     std::string _icon;
-    int _zorder{0};
     bool _useWalkboxes{true};
     Room *_pRoom{nullptr};
     sf::IntRect _hotspot;
@@ -94,7 +91,6 @@ struct Actor::Impl
     float _volume{1.f};
     std::shared_ptr<Path> _path;
     HSQOBJECT _table{};
-    sf::Vector2f _offset;
     bool _hotspotVisible{false};
     std::string _key;
     int _inventoryOffset{0};

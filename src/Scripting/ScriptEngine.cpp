@@ -1,12 +1,10 @@
-#include "SFML/Graphics.hpp"
-#include <stdarg.h>
+#include <cstdarg>
 #include "squirrel.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
 #include "sqstdstring.h"
 #include "sqstdmath.h"
 #include "Entity.h"
-#include "Locator.h"
 #include "Logger.h"
 #include "ResourceManager.h"
 #include "Room.h"
@@ -113,10 +111,10 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index)
     {
         for(auto&& room : g_pEngine->getRooms())
         {
-            for(auto&& object : room->getObjects())
+            for(auto&& obj : room->getObjects())
             {
-                if(object->getId() == id)
-                    return dynamic_cast<TScriptObject *>(object.get());
+                if(obj->getId() == id)
+                    return dynamic_cast<TScriptObject *>(obj.get());
             }
         }
         return nullptr;
@@ -191,8 +189,6 @@ Object *ScriptEngine::getObject(HSQUIRRELVM v, SQInteger index)
 Room *ScriptEngine::getRoom(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Room>(v, index); }
 
 Actor *ScriptEngine::getActor(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Actor>(v, index); }
-
-Light *ScriptEngine::getLight(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<Light>(v, index); }
 
 SoundId *ScriptEngine::getSound(HSQUIRRELVM v, SQInteger index) { return ScriptEngine::getScriptObject<SoundId>(v, index); }
 

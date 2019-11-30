@@ -47,9 +47,9 @@ void removeFirstParenthesis(std::wstring &text)
 {
     if (text.size() < 2)
         return;
-    if (text.find(L"(") != 0)
+    if (text.find(L'(') != 0)
         return;
-    auto pos = text.find(L")");
+    auto pos = text.find(L')');
     if (pos == std::wstring::npos)
         return;
     text = text.substr(pos + 1);
@@ -176,11 +176,11 @@ void merge(const std::vector<ng::Walkbox> &walkboxes, std::vector<Walkbox> &resu
 {
     ng::Walkbox w;
     std::list<int> walkboxesProcessed;
-    for (int i = 0; i < walkboxes.size(); i++)
+    for (const auto & walkbox : walkboxes)
     {
-        if (walkboxes[i].isEnabled())
+        if (walkbox.isEnabled())
         {
-            w = walkboxes[i];
+            w = walkbox;
             break;
         }
     }
@@ -226,26 +226,6 @@ float distanceSquared(const sf::Vector2i &vector1, const sf::Vector2i &vector2)
 float distance(const sf::Vector2i &v1, const sf::Vector2i &v2)
 {
     return std::sqrt(distanceSquared(v1, v2));
-}
-
-bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d)
-{
-    auto denominator = ((b.x - a.x) * (d.y - c.y)) - ((b.y - a.y) * (d.x - c.x));
-    if (denominator == 0)
-    {
-        return false;
-    }
-
-    auto numerator1 = ((a.y - c.y) * (d.x - c.x)) - ((a.x - c.x) * (d.y - c.y));
-    auto numerator2 = ((a.y - c.y) * (b.x - a.x)) - ((a.x - c.x) * (b.y - a.y));
-    if (numerator1 == 0 || numerator2 == 0)
-    {
-        return false;
-    }
-
-    auto r = numerator1 / denominator;
-    auto s = numerator2 / denominator;
-    return (r > 0 && r < 1) && (s > 0 && s < 1);
 }
 
 float length(const sf::Vector2i &v)
@@ -348,20 +328,20 @@ UseDirection _toDirection(const std::string &text)
 sf::Vector2f _parsePos(const std::string &text)
 {
     auto commaPos = text.find_first_of(',');
-    auto x = atof(text.substr(1, commaPos - 1).c_str());
-    auto y = atof(text.substr(commaPos + 1, text.length() - 1).c_str());
+    auto x = std::strtof(text.substr(1, commaPos - 1).c_str(),nullptr);
+    auto y = std::strtof(text.substr(commaPos + 1, text.length() - 1).c_str(),nullptr);
     return sf::Vector2f(x, y);
 }
 
 sf::IntRect _parseRect(const std::string &text)
 {
-    auto re = std::regex("\\{\\{(\\-?\\d+),(\\-?\\d+)\\},\\{(\\-?\\d+),(\\-?\\d+)\\}\\}");
+    auto re = std::regex(R"(\{\{(\-?\d+),(\-?\d+)\},\{(\-?\d+),(\-?\d+)\}\})");
     std::smatch matches;
     std::regex_search(text, matches, re);
-    auto left = std::atoi(matches[1].str().c_str());
-    auto top = std::atoi(matches[2].str().c_str());
-    auto right = std::atoi(matches[3].str().c_str());
-    auto bottom = std::atoi(matches[4].str().c_str());
+    auto left = std::strtol(matches[1].str().c_str(),nullptr,10);
+    auto top = std::strtol(matches[2].str().c_str(),nullptr,10);
+    auto right = std::strtol(matches[3].str().c_str(),nullptr,10);
+    auto bottom = std::strtol(matches[4].str().c_str(),nullptr,10);
     return sf::IntRect(left, top, right - left, bottom - top);
 }
 
@@ -372,15 +352,15 @@ void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices,
     do
     {
         auto commaPos = text.find_first_of(',', i);
-        auto x = atoi(text.substr(i, commaPos - i).c_str());
+        auto x = std::strtol(text.substr(i, commaPos - i).c_str(), nullptr,10);
         endPos = text.find_first_of('}', commaPos + 1);
-        auto y = atoi(text.substr(commaPos + 1, endPos - commaPos - 1).c_str());
+        auto y = std::strtol(text.substr(commaPos + 1, endPos - commaPos - 1).c_str(), nullptr,10);
         i = endPos + 3;
-        vertices.push_back(sf::Vector2i(x, roomHeight - y));
+        vertices.emplace_back(x, roomHeight - y);
     } while (text.length() - 1 != endPos);
 }
 
-sf::Color _toColor(std::string color)
+sf::Color _toColor(const std::string& color)
 {
     auto c = std::strtol(color.c_str(),nullptr,16);
     return _fromRgb(c);

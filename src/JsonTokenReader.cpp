@@ -254,7 +254,7 @@ void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
         value.type = 2;
         while(it != reader.end() && it->id != TokenId::EndHash)
         {
-            auto token = *it++;
+            token = *it++;
             auto key = reader.readText(token);
             // remove "" if any
             if(key.length()>0 && key[0]=='\"' && key[key.length()-1]=='\"')

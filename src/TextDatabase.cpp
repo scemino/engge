@@ -1,5 +1,4 @@
 #include <regex>
-#include <fstream>
 #include "Logger.h"
 #include "TextDatabase.h"
 #include "_Util.h"

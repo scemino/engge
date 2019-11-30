@@ -83,7 +83,7 @@ public:
 
   HSQOBJECT &getTable() override;
   HSQOBJECT &getTable() const override;
-  float getScale() const;
+  float getScale() const override;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

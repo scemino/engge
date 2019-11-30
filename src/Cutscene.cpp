@@ -77,7 +77,7 @@ void Cutscene::operator()(const sf::Time &elapsed)
 void Cutscene::startCutscene()
 {
     _state = 1;
-    trace("start cutscene: {}", (long)_thread._unVal.pThread);
+    trace("start cutscene: {}", _id);
     sq_pushobject(_thread._unVal.pThread, _closureObj);
     sq_pushobject(_thread._unVal.pThread, _envObj);
     if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
@@ -88,10 +88,10 @@ void Cutscene::startCutscene()
 
 void Cutscene::checkEndCutscene()
 {
-    if (isStopped())
+    if (ThreadBase::isStopped())
     {
         _state = 4;
-        trace("end cutscene: {}", (long)_thread._unVal.pThread);
+        trace("end cutscene: {}", _id);
     }
 }
 
@@ -100,7 +100,7 @@ void Cutscene::doCutsceneOverride()
     if (_hasCutsceneOverride)
     {
         _state = 3;
-        trace("start cutsceneOverride: {}", (long)_thread._unVal.pThread);
+        trace("start cutsceneOverride: {}", _id);
         sq_pushobject(_thread._unVal.pThread, _closureCutsceneOverrideObj);
         sq_pushobject(_thread._unVal.pThread, _envObj);
         if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue)))
@@ -117,17 +117,24 @@ void Cutscene::checkEndCutsceneOverride()
     if (isStopped())
     {
         _state = 4;
-        trace("end checkEndCutsceneOverride: {}", (long)_thread._unVal.pThread);
+        trace("end checkEndCutsceneOverride: {}", _id);
     }
 }
 
 void Cutscene::endCutscene()
 {
     _state = 5;
-    trace("End cutscene with inputState {}", _inputState);
+    trace("End cutscene {} with inputState {}", _id, _inputState);
     _engine.setInputState(_inputState);
     _engine.follow(_engine.getCurrentActor());
     sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
-    _engine.stopThread(_id);
+    auto pThread = ScriptEngine::getThreadFromId(_id);
+    if(pThread) pThread->stop();
 }
+
+bool Cutscene::isStopped() const
+{
+    return _state == 5;
+}
+
 } // namespace ng

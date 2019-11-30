@@ -143,7 +143,7 @@ class Engine : public NonCopyable
     ~Engine();
 
     void setWindow(sf::RenderWindow &window);
-    const sf::RenderWindow &getWindow() const;
+    [[nodiscard]] const sf::RenderWindow &getWindow() const;
 
     TextureManager &getTextureManager();
     EngineSettings &getSettings();
@@ -151,12 +151,12 @@ class Engine : public NonCopyable
     Room *getRoom();
     SQInteger setRoom(Room *pRoom);
     SQInteger enterRoomFromDoor(Object *pDoor);
-    std::wstring getText(int id) const;
-    std::wstring getText(const std::string& text) const;
+    [[nodiscard]] std::wstring getText(int id) const;
+    [[nodiscard]] std::wstring getText(const std::string& text) const;
 
     void addActor(std::unique_ptr<Actor> actor);
     void addRoom(std::unique_ptr<Room> room);
-    const std::vector<std::unique_ptr<Room>> &getRooms() const;
+    [[nodiscard]] const std::vector<std::unique_ptr<Room>> &getRooms() const;
     std::vector<std::unique_ptr<Room>> &getRooms();
     
     void addCallback(std::unique_ptr<Callback> callback);
@@ -166,44 +166,44 @@ class Engine : public NonCopyable
     void stopSentence();
 
     void cutscene(std::unique_ptr<Cutscene> function);
-    bool inCutscene() const;
+    [[nodiscard]] bool inCutscene() const;
     void cutsceneOverride();
-    Cutscene* getCutscene() const ;
+    [[nodiscard]] Cutscene* getCutscene() const ;
 
     std::vector<std::unique_ptr<Actor>> &getActors();
 
     void update(const sf::Time &elapsed);
     void draw(sf::RenderWindow &window) const;
-    int getFrameCounter() const;
+    [[nodiscard]] int getFrameCounter() const;
 
     void setCurrentActor(Actor *pCurrentActor, bool userSelected);
     Actor *getCurrentActor();
     Actor *getFollowActor();
-    bool actorShouldRun() const;
+    [[nodiscard]] bool actorShouldRun() const;
 
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);
     VerbUiColors &getVerbUiColors(int characterSlot);
     VerbUiColors *getVerbUiColors();
     void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
-    const Verb *getVerb(int id) const;
+    [[nodiscard]] const Verb *getVerb(int id) const;
     void setDefaultVerb();
-    const Verb *getActiveVerb() const;
+    [[nodiscard]] const Verb *getActiveVerb() const;
     void pushSentence(int id, Entity* pObj1, Entity* pObj2);
 
     void setInputActive(bool active);
-    bool getInputActive() const;
+    [[nodiscard]] bool getInputActive() const;
     void inputSilentOff();
-    bool isCursorVisible() const;
+    [[nodiscard]] bool isCursorVisible() const;
 
     void setInputHUD(bool on);
-    bool getInputHUD() const;
+    [[nodiscard]] bool getInputHUD() const;
     
     void setInputVerbs(bool on);
-    bool getInputVerbs() const;
+    [[nodiscard]] bool getInputVerbs() const;
     
     void setInputState(int state);
-    int getInputState() const;
+    [[nodiscard]] int getInputState() const;
 
     void follow(Actor *pActor);
     void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);
@@ -218,9 +218,9 @@ class Engine : public NonCopyable
     bool executeCondition(const std::string &code);
     std::string executeDollar(const std::string &code);
 
-    sf::Vector2f getMousePos() const;
-    sf::Vector2f getMousePositionInRoom() const;
-    sf::Vector2f findScreenPosition(int verb) const;
+    [[nodiscard]] sf::Vector2f getMousePos() const;
+    [[nodiscard]] sf::Vector2f getMousePositionInRoom() const;
+    [[nodiscard]] sf::Vector2f findScreenPosition(int verb) const;
 
     Preferences &getPreferences();
     SoundManager &getSoundManager();
@@ -235,33 +235,30 @@ class Engine : public NonCopyable
     void setUseFlag(UseFlag flag, Entity *object);
     void flashSelectableActor(bool on);
 
-    sf::Time getTime() const;
+    [[nodiscard]] sf::Time getTime() const;
 
     void setVm(HSQUIRRELVM vm);
     HSQUIRRELVM getVm();
 
     HSQOBJECT &getDefaultObject();
 
-    void setShader(const std::string& code);
-    std::string getShader() const;
-
     void setFadeAlpha(float fade);
-    float getFadeAlpha() const;
+    [[nodiscard]] float getFadeAlpha() const;
     void fadeTo(float destination, sf::Time time, InterpolationMethod method);
 
     void keyDown(int key);
     void keyUp(int key);
 
     void setRanges(sf::Vector2f ranges);
-    sf::Vector2f getRanges() const;
+    [[nodiscard]] sf::Vector2f getRanges() const;
     void setVerbColor(sf::Color color);
-    sf::Color getVerbColor() const;
+    [[nodiscard]] sf::Color getVerbColor() const;
     void setVerbShadowColor(sf::Color color);
-    sf::Color getVerbShadowColor() const;
+    [[nodiscard]] sf::Color getVerbShadowColor() const;
     void setVerbNormalColor(sf::Color color);
-    sf::Color getVerbNormalColor() const;
+    [[nodiscard]] sf::Color getVerbNormalColor() const;
     void setVerbHighlightColor(sf::Color color);
-    sf::Color getVerbHighlightColor() const;
+    [[nodiscard]] sf::Color getVerbHighlightColor() const;
 
     void sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string& text);
     void sayLineAt(sf::Vector2i pos, Actor& actor, const std::string& text);

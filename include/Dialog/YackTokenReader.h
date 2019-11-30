@@ -53,7 +53,7 @@ public:
     Iterator(YackTokenReader &reader, std::streampos pos);
     Iterator(const Iterator &it);
     Iterator &operator++();
-    const Iterator operator++(int);
+    Iterator operator++(int);
 
     bool operator==(const Iterator &rhs) const { return _pos == rhs._pos; }
     bool operator!=(const Iterator &rhs) const { return _pos != rhs._pos; }

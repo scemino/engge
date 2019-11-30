@@ -7,11 +7,13 @@ namespace ng
 class ThreadBase: public ScriptObject
 {
 public:
-    virtual HSQUIRRELVM getThread() const = 0;
+    [[nodiscard]] virtual HSQUIRRELVM getThread() const = 0;
 
     inline void setPauseable(bool value) { _isPauseable = value; }
     inline bool isPauseable() const { return _isPauseable; }
     virtual bool isGlobal() const { return false; }
+
+    inline void stop() { _isStopped = true; }
 
     bool pause()
     {
@@ -34,15 +36,16 @@ public:
         _isSuspended = false;
     }
 
-    bool isSuspended() const
+    [[nodiscard]] bool isSuspended() const
     { 
         if(_isSuspended) return true;
         auto state = sq_getvmstate(getThread());
         return state != SQ_VMSTATE_RUNNING;
     }
 
-    bool isStopped() const
-    { 
+    [[nodiscard]] virtual bool isStopped() const
+    {
+        if(_isStopped) return true;
         auto state = sq_getvmstate(getThread());
         return state == SQ_VMSTATE_IDLE;
     }
@@ -50,5 +53,6 @@ public:
 private:
     bool _isSuspended{false};
     bool _isPauseable{true};
+    bool _isStopped{false};
 };
 }

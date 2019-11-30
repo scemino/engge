@@ -59,7 +59,7 @@ YackTokenReader::Iterator &YackTokenReader::Iterator::operator++()
     return *this;
 }
 
-const YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int)
+YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int)
 {
     Iterator tmp(*this);
     operator++();

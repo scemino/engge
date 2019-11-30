@@ -1,5 +1,4 @@
 #pragma once
-#include <time.h>
 #include "squirrel.h"
 #include "Actor.h"
 #include "Camera.h"
@@ -32,7 +31,7 @@ public:
     {
     }
 
-    virtual const std::string getName()
+    [[nodiscard]] virtual std::string getName() const
     {
         return "_BreakFunction";
     }
@@ -61,7 +60,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakHereFunction";
     }
@@ -81,7 +80,7 @@ public:
         _name = _pAnimation->getName();
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileAnimatingFunction " + _name;
     }
@@ -104,7 +103,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileAnimatingObjectFunction";
     }
@@ -126,7 +125,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileWalkingFunction";
     }
@@ -148,7 +147,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileTalkingFunction";
     }
@@ -167,7 +166,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileAnyActorTalkingFunction";
     }
@@ -194,14 +193,14 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileSoundFunction";
     }
 
     bool isElapsed() override
     {
-        auto pSoundId = static_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
+        auto pSoundId = dynamic_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
         return !pSoundId || !pSoundId->isPlaying();
     }
 };
@@ -211,7 +210,6 @@ class _BreakWhileRunningFunction : public Function
 private:
     Engine &_engine;
     int _currentThreadId, _threadId;
-    HSQUIRRELVM _thread;
     bool _done;
 
 public:
@@ -251,7 +249,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileDialogFunction";
     }
@@ -270,7 +268,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileCutsceneFunction";
     }
@@ -289,7 +287,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileCameraFunction";
     }
@@ -308,7 +306,7 @@ public:
     {
     }
 
-    const std::string getName() override
+    [[nodiscard]] std::string getName() const override
     {
         return "_BreakWhileInputOffFunction";
     }
@@ -755,7 +753,7 @@ private:
         if(!pThread) return 0;
 
         trace("stopthread {}", id);
-        g_pEngine->stopThread(id);
+        pThread->stop();
 
         sq_pushinteger(v, 0);
         return 1;
@@ -782,11 +780,12 @@ private:
             return sq_throwerror(v, _SC("Couldn't get environment from stack"));
         }
 
+        auto vm = g_pEngine->getVm();
         // create thread and store it on the stack
-        auto thread = sq_newthread(v, 1024);
+        auto thread = sq_newthread(vm, 1024);
         HSQOBJECT thread_obj;
         sq_resetobject(&thread_obj);
-        if (SQ_FAILED(sq_getstackobj(v, -1, &thread_obj)))
+        if (SQ_FAILED(sq_getstackobj(vm, -1, &thread_obj)))
         {
             return sq_throwerror(v, _SC("Couldn't get coroutine thread from stack"));
         }
@@ -817,7 +816,6 @@ private:
             sq_getstring(v, -1, &name);
         }
 
-        auto vm = g_pEngine->getVm();
         auto pUniquethread = std::make_unique<Thread>(global, vm, thread_obj, env_obj, closureObj, args);
         auto pThread = pUniquethread.get();
         trace("start thread ({}): {}", (name ? name : "anonymous"), pThread->getId());
@@ -872,7 +870,7 @@ private:
         return _getPref(v, [](auto name, auto value){ return g_pEngine->getPreferences().getUserPreferenceCore(name,value);});
     }
 
-    static SQInteger _getPref(HSQUIRRELVM v, std::function<std::any(const std::string &name, std::any value)> func)
+    static SQInteger _getPref(HSQUIRRELVM v, const std::function<std::any(const std::string &name, std::any value)>& func)
     {
         const SQChar *key;
         if (SQ_FAILED(sq_getstring(v, 2, &key)))
@@ -968,7 +966,7 @@ private:
         return 0;
     }
 
-    static SQInteger _setPref(HSQUIRRELVM v, std::function<void(const std::string&, std::any)> setPref, std::function<void(const std::string&)> removePref)
+    static SQInteger _setPref(HSQUIRRELVM v, const std::function<void(const std::string&, std::any)>& setPref, const std::function<void(const std::string&)>& removePref)
     {
         const SQChar *key;
         if (SQ_FAILED(sq_getstring(v, 2, &key)))

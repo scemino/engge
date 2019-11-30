@@ -26,8 +26,9 @@ public:
   Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj);
   ~Cutscene() override;
 
-  HSQUIRRELVM getThread() const override;
-  virtual bool isGlobal() const override { return true; }
+  [[nodiscard]] HSQUIRRELVM getThread() const override;
+  [[nodiscard]] bool isGlobal() const override { return true; }
+  [[nodiscard]] virtual bool isStopped() const override;
 
 public:
   bool isElapsed() override;

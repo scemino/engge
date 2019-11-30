@@ -415,8 +415,6 @@ std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_object
 
 std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 
-const std::string &Room::getSheet() const { return pImpl->_sheet; }
-
 void Room::showDrawWalkboxes(bool show) { pImpl->_showDrawWalkboxes = show; }
 
 bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }

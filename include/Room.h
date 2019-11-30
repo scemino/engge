@@ -38,9 +38,8 @@ public:
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
   std::vector<std::unique_ptr<Light>> &getLights();
-  const std::string &getSheet() const;
 
-  void update(const sf::Time &elapsed);
+    void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
 

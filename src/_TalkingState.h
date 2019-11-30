@@ -50,7 +50,7 @@ public:
         _isTalking = false;
         if (_soundId)
         {
-            auto pSound = static_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
+            auto pSound = dynamic_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
             if(pSound)
             {
                 pSound->stop();
@@ -80,7 +80,7 @@ public:
         setText(_pEngine->getText(text));
 
         // load lip data
-        auto id = std::atoi(text.c_str()+1);
+        auto id = std::strtol(text.c_str()+1,nullptr,10);
 
         if (_isTalking)
         {

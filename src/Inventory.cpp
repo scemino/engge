@@ -137,11 +137,11 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const
 {
     auto isRetro = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
     int currentActorIndex = getCurrentActorIndex();
-    auto scrollUpFrameRect = _gameSheet.getRect(isRetro?"scroll_up_retro":"scroll_up");
+    auto scrollUpFrameRect = _gameSheet.getRect(isRetro ? "scroll_up_retro" : "scroll_up");
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
 
-    auto scrollDownFrameRect = _gameSheet.getRect(isRetro?"scroll_down_retro":"scroll_down");
+    auto scrollDownFrameRect = _gameSheet.getRect(isRetro ? "scroll_down_retro" : "scroll_down");
     sf::RectangleShape scrollDownShape;
     scrollDownShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
     scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height);
