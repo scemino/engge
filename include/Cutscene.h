@@ -28,7 +28,7 @@ public:
 
   [[nodiscard]] HSQUIRRELVM getThread() const override;
   [[nodiscard]] bool isGlobal() const override { return true; }
-  [[nodiscard]] virtual bool isStopped() const override;
+  [[nodiscard]] bool isStopped() const override;
 
 public:
   bool isElapsed() override;

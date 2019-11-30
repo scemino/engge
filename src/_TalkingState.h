@@ -77,7 +77,6 @@ public:
     { 
         _pActor = pActor;
         setTalkColor(pActor->getTalkColor());
-        setText(_pEngine->getText(text));
 
         // load lip data
         auto id = std::strtol(text.c_str()+1,nullptr,10);
@@ -94,6 +93,8 @@ public:
 private:
     void loadId(int id)
     {
+        setText(_pEngine->getText(id));
+
         std::string path;
         const char* key = nullptr;
         if(!ScriptEngine::get(_pActor, "_talkieKey", key))
