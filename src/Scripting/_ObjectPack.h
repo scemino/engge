@@ -1,4 +1,6 @@
 #pragma once
+#include <utility>
+
 #include "TextObject.h"
 #include "squirrel.h"
 
@@ -7,8 +9,8 @@ namespace ng
 class _PickupAnim : public Function
 {
   public:
-    _PickupAnim(Actor &actor, Object* obj, const std::string &anim)
-        : _actor(actor), _pObject(obj), _animName(anim)
+    _PickupAnim(Actor &actor, Object* obj, std::string anim)
+        : _actor(actor), _pObject(obj), _animName(std::move(anim))
     {
     }
 
@@ -428,7 +430,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->offsetTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->offsetTo(sf::Vector2f(x, -y), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -1128,7 +1130,7 @@ class _ObjectPack : public Pack
             anim = "reach_low";
         }
 
-        auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, std::move(object), anim);
+        auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, object, anim);
         g_pEngine->addFunction(std::move(pPickupAnim));
         
         return 0;
