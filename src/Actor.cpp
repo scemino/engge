@@ -15,6 +15,7 @@
 #include "SoundManager.h"
 #include "_TalkingState.h"
 #include "_Util.h"
+#include "PathFinding/_Path.h"
 
 namespace ng
 {
@@ -89,7 +90,7 @@ struct Actor::Impl
     _TalkingState _talkingState;
     sf::Vector2i _speed{30, 15};
     float _volume{1.f};
-    std::shared_ptr<Path> _path;
+    std::shared_ptr<_Path> _path;
     HSQOBJECT _table{};
     bool _hotspotVisible{false};
     std::string _key;
@@ -388,7 +389,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if(pImpl->_useWalkboxes)
     {
         path = pImpl->_pRoom->calculatePath((sf::Vector2i)getRealPosition(), (sf::Vector2i)destination);
-        pImpl->_path = std::make_unique<Path>(path);
+        pImpl->_path = std::make_unique<_Path>(path);
         if (path.size() < 2)
             return;
     }
@@ -396,7 +397,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     {
         path.push_back((sf::Vector2i)getRealPosition());
         path.push_back((sf::Vector2i)destination);
-        pImpl->_path = std::make_unique<Path>(path);
+        pImpl->_path = std::make_unique<_Path>(path);
     }
 
     ScriptEngine::call(this, "preWalking");

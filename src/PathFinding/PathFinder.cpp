@@ -1,144 +1,15 @@
 #include <utility>
 #include <math.h>
 #include <sstream>
+#include "_AstarAlgorithm.h"
+#include "_IndexedPriorityQueue.h"
+#include "Graph.h"
+#include "GraphEdge.h"
 #include "PathFinder.h"
-#include "_Util.h"
+#include "../_Util.h"
 
 namespace ng
 {
-class _IndexedPriorityQueue
-{
-    std::vector<float> &_keys;
-    std::vector<int> _data;
-
-  public:
-    explicit _IndexedPriorityQueue(std::vector<float> &keys)
-        : _keys(keys)
-    {
-    }
-
-    void insert(int index)
-    {
-        _data.push_back(index);
-        reorderUp();
-    }
-
-    int pop()
-    {
-        int r = _data[0];
-        _data[0] = _data[_data.size() - 1];
-        _data.pop_back();
-        reorderDown();
-        return r;
-    }
-
-    void reorderUp()
-    {
-        if (_data.empty())
-            return;
-        size_t a = _data.size() - 1;
-        while (a > 0)
-        {
-            if (_keys[_data[a]] >= _keys[_data[a - 1]])
-                return;
-            int tmp = _data[a];
-            _data[a] = _data[a - 1];
-            _data[a - 1] = tmp;
-            a--;
-        }
-    }
-
-    void reorderDown()
-    {
-        if (_data.empty())
-            return;
-        for (int a = 0; a < _data.size() - 1; a++)
-        {
-            if (_keys[_data[a]] <= _keys[_data[a + 1]])
-                return;
-            int tmp = _data[a];
-            _data[a] = _data[a + 1];
-            _data[a + 1] = tmp;
-        }
-    }
-
-    bool isEmpty()
-    {
-        return _data.empty();
-    }
-};
-class _AstarAlgorithm
-{
-  private:
-    Graph &_graph;
-    std::vector<std::shared_ptr<GraphEdge>> SPT;
-    std::vector<float> G_Cost; //This array will store the G cost of each node
-    std::vector<float> F_Cost; //This array will store the F cost of each node
-    std::vector<std::shared_ptr<GraphEdge>> SF;
-    int _source;
-    int _target;
-
-  public:
-    _AstarAlgorithm(Graph &graph, int source, int target)
-        : _graph(graph), _source(source), _target(target)
-    {
-        G_Cost.resize(_graph.nodes.size(), 0);
-        F_Cost.resize(_graph.nodes.size(), 0);
-        SPT.resize(_graph.nodes.size(), nullptr);
-        SF.resize(_graph.nodes.size(), nullptr);
-        search();
-    }
-
-    std::vector<int> getPath() const
-    {
-        std::vector<int> path;
-        if (_target < 0)
-            return path;
-        int nd = _target;
-        path.push_back(nd);
-        while ((nd != _source) && (SPT[nd] != nullptr))
-        {
-            nd = SPT[nd]->from;
-            path.push_back(nd);
-        }
-        std::reverse(path.begin(), path.end());
-        return path;
-    }
-
-  private:
-    void search()
-    {
-        _IndexedPriorityQueue pq(F_Cost);
-        pq.insert(_source);
-        while (!pq.isEmpty())
-        {
-            int NCN = pq.pop();
-            SPT[NCN] = SF[NCN];
-            if (NCN == _target)
-                return;
-            auto &edges = _graph.edges[NCN];
-            for (auto &edge : edges)
-            {
-                float Hcost = length(_graph.nodes[edge->to] - _graph.nodes[_target]);
-                float Gcost = G_Cost[NCN] + edge->cost;
-                if (SF[edge->to] == nullptr)
-                {
-                    F_Cost[edge->to] = Gcost + Hcost;
-                    G_Cost[edge->to] = Gcost;
-                    pq.insert(edge->to);
-                    SF[edge->to] = edge;
-                }
-                else if ((Gcost < G_Cost[edge->to]) && (SPT[edge->to] == nullptr))
-                {
-                    F_Cost[edge->to] = Gcost + Hcost;
-                    G_Cost[edge->to] = Gcost;
-                    pq.reorderUp();
-                    SF[edge->to] = edge;
-                }
-            }
-        }
-    }
-};
 
 PathFinder::PathFinder(const std::vector<Walkbox> &walkboxes)
     : _walkboxes(walkboxes)

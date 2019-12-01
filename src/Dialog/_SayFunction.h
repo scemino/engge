@@ -1,5 +1,7 @@
 #pragma once
 #include "Function.h"
+
+#include <utility>
 #include "Actor.h"
 
 namespace ng
@@ -7,8 +9,8 @@ namespace ng
 class _SayFunction : public Function
 {
 public:
-  _SayFunction(Actor &actor, const std::string& text)
-      : _actor(actor), _text(text)
+  _SayFunction(Actor &actor, std::string  text)
+      : _actor(actor), _text(std::move(text))
   {
   }
 

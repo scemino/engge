@@ -1,23 +1,11 @@
 #include <utility>
 
 #include "Graph.h"
+#include "GraphEdge.h"
+#include "_Path.h"
 
 namespace ng
 {
-GraphEdge::GraphEdge() = default;
-
-GraphEdge::GraphEdge(int from, int to, float cost)
-{
-    this->from = from;
-    this->to = to;
-    this->cost = cost;
-}
-
-std::ostream &operator<<(std::ostream &os, const GraphEdge &edge)
-{
-    return os << '(' << edge.from << ',' << edge.to << ',' << edge.cost << ")";
-}
-
 Graph::Graph() = default;
 
 Graph::Graph(const Graph &graph)
@@ -80,27 +68,5 @@ void Graph::draw(sf::RenderTarget &window, sf::RenderStates states) const
         shape.setFillColor(color);
         window.draw(shape, states);
     }
-}
-
-Path::Path(std::vector<sf::Vector2i> path)
-    : _path(std::move(path))
-{
-}
-
-void Path::draw(sf::RenderTarget &window, sf::RenderStates states) const
-{
-    auto color = sf::Color::Yellow;
-    sf::VertexArray lines(sf::LinesStrip, _path.size());
-    for (size_t i = 0; i < _path.size(); ++i)
-    {
-        auto &node = _path[i];
-        lines[i].position = (sf::Vector2f)node;
-        lines[i].color = color;
-        sf::CircleShape shape(1);
-        shape.setPosition((sf::Vector2f)node - sf::Vector2f(0.5f, 0.5f));
-        shape.setFillColor(color);
-        window.draw(shape, states);
-    }
-    window.draw(lines, states);
 }
 } // namespace ng

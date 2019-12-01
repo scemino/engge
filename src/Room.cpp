@@ -1,5 +1,6 @@
 #include "Room.h"
 #include "Animation.h"
+#include "Graph.h"
 #include "JsonTokenReader.h"
 #include "Light.h"
 #include "Locator.h"
@@ -13,6 +14,7 @@
 #include "Thread.h"
 #include "_Util.h"
 #include "squirrel.h"
+#include "PathFinding/_Path.h"
 #include <algorithm>
 #include <iostream>
 #include <math.h>
@@ -41,7 +43,7 @@ struct Room::Impl
     std::string _name;
     int _fullscreen{0};
     HSQOBJECT _table{};
-    std::shared_ptr<Path> _path;
+    std::shared_ptr<_Path> _path;
     std::shared_ptr<PathFinder> _pf;
     std::vector<Walkbox> _graphWalkboxes;
     sf::Color _ambientColor{255, 255, 255, 255};
