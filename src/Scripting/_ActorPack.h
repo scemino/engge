@@ -80,7 +80,9 @@ class _ActorPack : public Pack
             return sq_throwerror(v, _SC("failed to get transparency"));
         }
         auto alpha = static_cast<sf::Uint8>(transparency * 255);
-        actor->setColor(sf::Color(static_cast<sf::Uint32>(actor->getColor().toInteger() << 8 | alpha)));
+        auto color = actor->getColor();
+        color.a = alpha;
+        actor->setColor(color);
         return 0;
     }
 
@@ -167,6 +169,8 @@ class _ActorPack : public Pack
                     return Facing::FACE_RIGHT;
                 case Facing::FACE_RIGHT:
                     return Facing::FACE_LEFT;
+                default:
+                    throw std::invalid_argument("currentFacing is invalid");
             }
         }
         else
@@ -181,6 +185,8 @@ class _ActorPack : public Pack
                     return Facing::FACE_LEFT;
                 case Facing::FACE_RIGHT:
                     return Facing::FACE_RIGHT;
+                default:
+                    throw std::invalid_argument("currentFacing is invalid");
             }
         }
     }
@@ -212,8 +218,8 @@ class _ActorPack : public Pack
             auto usePos = pObj->getUsePosition();
             auto hotspot = pObj->getHotspot();
             auto roomHeight = pObj->getRoom()->getRoomSize().y;
-            pos.x += usePos.x + hotspot.left + hotspot.width / 2;
-            pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
+            pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
+            pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2.f;
             pRoom = pObj->getRoom();
             pActor->setRoom(pRoom);
             pActor->setPosition(pos);
@@ -294,13 +300,15 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        SQInteger color;
-        if (SQ_FAILED(sq_getinteger(v, 3, &color)))
+        SQInteger c;
+        if (SQ_FAILED(sq_getinteger(v, 3, &c)))
         {
-            return sq_throwerror(v, _SC("failed to get fps"));
+            return sq_throwerror(v, _SC("failed to get color"));
         }
-        auto alpha = actor->getColor().toInteger() & 0x000000FF;
-        actor->setColor(sf::Color(static_cast<sf::Uint32>(color << 8 | alpha)));
+        auto alpha = actor->getColor().a;
+        auto color = _fromRgb(c);
+        color.a = alpha;
+        actor->setColor(color);
         return 0;
     }
 
@@ -714,7 +722,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get fps"));
         }
-        actor->setTalkColor(sf::Color(static_cast<sf::Uint32>(color << 8 | 0xff)));
+        actor->setTalkColor(_fromRgb(color));
         return 0;
     }
 
@@ -937,8 +945,8 @@ class _ActorPack : public Pack
                 auto usePos = pObject->getUsePosition();
                 auto hotspot = pObject->getHotspot();
                 auto roomHeight = pObject->getRoom()->getRoomSize().y;
-                pos.x += usePos.x + hotspot.left + hotspot.width / 2;
-                pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
+                pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
+                pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2.f;
                 pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));
                 return 0;
             }
@@ -1329,7 +1337,7 @@ class _ActorPack : public Pack
         colors.inventoryBackground = _fromRgb(inventoryBackground);
         colors.retroNormal = _fromRgb(retroNormal);
         colors.retroHighlight = _fromRgb(retroHighlight);
-        g_pEngine->setVerbUiColors(actorSlot - 1, colors);
+        g_pEngine->setVerbUiColors(static_cast<int>(actorSlot) - 1, colors);
         return 0;
     }
 };

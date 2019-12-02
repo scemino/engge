@@ -368,13 +368,15 @@ sf::Color _toColor(const std::string& color)
 
 sf::Color _toColor(SQInteger color)
 {
-    sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF);
+    auto col = static_cast<SQUnsignedInteger>(color);
+    sf::Color c((col >> 16u) & 255u, (col >> 8u) & 255u, col & 255u, (col >> 24u) & 255u);
     return c;
 }
 
 sf::Color _fromRgb(SQInteger color)
 {
-    sf::Color c((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+    auto col = static_cast<SQUnsignedInteger>(color);
+    sf::Color c((col >> 16u) & 255u, (col >> 8u) & 255u, col & 255u);
     return c;
 }
 } // namespace ng
