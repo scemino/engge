@@ -1,6 +1,5 @@
 #include "Graph.h"
 #include "GraphEdge.h"
-#include "PathFinder.h"
 #include "../_Util.h"
 #include "_AstarAlgorithm.h"
 #include "_IndexedPriorityQueue.h"
