@@ -659,10 +659,10 @@ class _DebugTools
             _engine.setRoom(rooms[currentRoom].get());
         }
         auto &room = rooms[currentRoom];
-        auto showWalkboxes = room->areDrawWalkboxesVisible();
+        auto showWalkboxes = _engine.areDrawWalkboxesVisible();
         if (ImGui::Checkbox("Walkboxes", &showWalkboxes))
         {
-            room->showDrawWalkboxes(showWalkboxes);
+            _engine.showDrawWalkboxes(showWalkboxes);
         }
         updateWalkboxInfos(room.get());
         ImGui::Combo("##walkboxes", &_selectedWalkbox, walkboxGetter, static_cast<void *>(&_walkboxInfos),

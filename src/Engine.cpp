@@ -6,6 +6,7 @@
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
 #include "Font.h"
+#include "Graph.h"
 #include "Inventory.h"
 #include "Preferences.h"
 #include "ResourceManager.h"
@@ -27,6 +28,7 @@
 #include "_TalkingState.h"
 #include "_Util.h"
 #include "Logger.h"
+#include "PathFinding/_WalkboxDrawable.h"
 #include <iostream>
 #include <cmath>
 #include <memory>
@@ -147,6 +149,7 @@ struct Engine::Impl
     sf::Vector2f _ranges{0.8f, 0.8f};
     sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
     _TalkingState _talkingState;
+    bool _showDrawWalkboxes{false};
 
     explicit Impl(EngineSettings &settings);
 
@@ -183,6 +186,7 @@ struct Engine::Impl
     static int toKey(const std::string& keyText);
     void drawPause(sf::RenderTarget &target) const;
     void stopThreads();
+    void drawWalkboxes(sf::RenderTarget &target) const;
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -307,8 +311,6 @@ void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(
 
 void Engine::addRoom(std::unique_ptr<Room> room) { _pImpl->_rooms.push_back(std::move(room)); }
 
-const std::vector<std::unique_ptr<Room>> &Engine::getRooms() const { return _pImpl->_rooms; }
-
 std::vector<std::unique_ptr<Room>> &Engine::getRooms() { return _pImpl->_rooms; }
 
 void Engine::addFunction(std::unique_ptr<Function> function) { _pImpl->_newFunctions.push_back(std::move(function)); }
@@ -343,8 +345,6 @@ void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors)
     _pImpl->_verbUiColors.at(characterSlot) = colors;
 }
 
-VerbUiColors &Engine::getVerbUiColors(int characterSlot) { return _pImpl->_verbUiColors.at(characterSlot); }
-
 VerbUiColors *Engine::getVerbUiColors()
 { 
     
@@ -354,8 +354,6 @@ VerbUiColors *Engine::getVerbUiColors()
 }
 
 bool Engine::getInputActive() const { return _pImpl->_inputActive; }
-
-bool Engine::getInputVerbs() const { return _pImpl->_inputVerbsActive; }
 
 void Engine::setInputState(int state)
 {
@@ -758,10 +756,6 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
 }
 
 void Engine::setInputHUD(bool on) { _pImpl->_inputHUD = on; }
-
-bool Engine::getInputHUD() const { return _pImpl->_inputHUD; }
-
-bool Engine::isCursorVisible() const { return _pImpl->_showCursor; }
 
 void Engine::setInputActive(bool active)
 {
@@ -1279,6 +1273,9 @@ void Engine::draw(sf::RenderWindow &window) const
     _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
     _pImpl->drawFade(window);
     _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
+
+    _pImpl->drawWalkboxes(window);
+
     window.draw(_pImpl->_talkingState);
 
     window.draw(_pImpl->_dialogManager);
@@ -1298,6 +1295,34 @@ void Engine::draw(sf::RenderWindow &window) const
     _pImpl->drawCursor(window);
     _pImpl->drawCursorText(window);
     _pImpl->_pDebugTools->render();
+}
+
+void Engine::showDrawWalkboxes(bool show) { _pImpl->_showDrawWalkboxes = show; }
+
+bool Engine::areDrawWalkboxesVisible() const { return _pImpl->_showDrawWalkboxes; }
+
+void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
+{
+    if (!_pRoom || !_showDrawWalkboxes)
+        return;
+
+    auto screen = target.getView().getSize();
+    auto w = screen.x/2.f;
+    auto h = screen.y/2.f;
+    sf::Transform t;
+    t.rotate(_pRoom->getRotation(), w, h);
+    t.translate(-_camera.getAt());
+    sf::RenderStates states;
+    states.transform = t;
+    for (const auto &walkbox : _pRoom->getWalkboxes()) {
+        _WalkboxDrawable wd(walkbox);
+        target.draw(wd, states);
+    }
+
+    const auto* pGraph = _pRoom->getGraph();
+    if(!pGraph) return;
+
+    target.draw(*pGraph, states);
 }
 
 void Engine::Impl::drawPause(sf::RenderTarget &target) const

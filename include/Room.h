@@ -8,6 +8,7 @@ namespace ng
 {
 class EngineSettings;
 class Entity;
+class Graph;
 class Light;
 class Object;
 class RoomScaling;
@@ -33,58 +34,53 @@ public:
   ~Room() override;
 
   void setName(const std::string& name);
-  std::string getName() const;
+  [[nodiscard]] std::string getName() const;
 
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
   std::vector<std::unique_ptr<Light>> &getLights();
 
-    void update(const sf::Time &elapsed);
+  void update(const sf::Time &elapsed);
   void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
   void drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
 
-  void showDrawWalkboxes(bool show);
-  bool areDrawWalkboxesVisible() const;
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
-  bool inWalkbox(const sf::Vector2f &pos) const;
-  std::vector<sf::Vector2i> calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const;
+  [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
+  [[nodiscard]] std::vector<sf::Vector2i> calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const;
   std::vector<Walkbox>& getWalkboxes();
+  [[nodiscard]] const Graph* getGraph() const;
 
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   Object &createObject(const std::vector<std::string> &anims);
   Object &createObject(const std::string &image);
   TextObject &createTextObject(const std::string &fontName);
   void deleteObject(Object &textObject);
-  sf::Vector2i getRoomSize() const;
-  int32_t getFullscreen() const;
-  int32_t getScreenHeight() const;
+  [[nodiscard]] sf::Vector2i getRoomSize() const;
+  [[nodiscard]] int32_t getFullscreen() const;
+  [[nodiscard]] int32_t getScreenHeight() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);
   void roomLayer(int layer, bool enabled);
   void setRoomScaling(const RoomScaling & scaling);
-  const RoomScaling &getRoomScaling() const;
+  [[nodiscard]] const RoomScaling &getRoomScaling() const;
   HSQOBJECT &getTable();
 
-  bool walkboxesVisible() const;
   void setAmbientLight(sf::Color color);
-  sf::Color getAmbientLight() const;
+  [[nodiscard]] sf::Color getAmbientLight() const;
 
   void removeEntity(Entity *pEntity);
   std::vector<RoomScaling>& getScalings();
 
-  float getRotation() const;
+  [[nodiscard]] float getRotation() const;
   void setRotation(float angle);
 
   Light* createLight(sf::Color color, sf::Vector2i pos);
   void exit();
 
   void setEffect(int shader);
-  int getEffect() const;
+  [[nodiscard]] int getEffect() const;
 
   void setOverlayColor(sf::Color color);
-  sf::Color getOverlayColor() const;
-
-private:
-  void drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const;
+  [[nodiscard]] sf::Color getOverlayColor() const;
 
 private:
   struct Impl;

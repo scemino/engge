@@ -14,10 +14,9 @@
 #include "Thread.h"
 #include "_Util.h"
 #include "squirrel.h"
-#include "PathFinding/_Path.h"
 #include <algorithm>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <memory>
 
 namespace ng
@@ -38,12 +37,10 @@ struct Room::Impl
     RoomScaling _scaling;
     sf::Vector2i _roomSize;
     int32_t _screenHeight{0};
-    bool _showDrawWalkboxes{false};
     std::string _sheet;
     std::string _name;
     int _fullscreen{0};
     HSQOBJECT _table{};
-    std::shared_ptr<_Path> _path;
     std::shared_ptr<PathFinder> _pf;
     std::vector<Walkbox> _graphWalkboxes;
     sf::Color _ambientColor{255, 255, 255, 255};
@@ -301,7 +298,7 @@ struct Room::Impl
             if (jWimpy["scaling"][0].isString())
             {
                 RoomScaling scaling;
-                for (const auto jScaling : jWimpy["scaling"].array_value)
+                for (const auto& jScaling : jWimpy["scaling"].array_value)
                 {
                     auto value = jScaling.string_value;
                     auto index = value.find('@');
@@ -323,7 +320,7 @@ struct Room::Impl
                     {
                         scaling.setTrigger(jScaling["trigger"].string_value);
                     }
-                    for (auto jSubScaling : jScaling["scaling"].array_value)
+                    for (const auto& jSubScaling : jScaling["scaling"].array_value)
                     {
                         if (jSubScaling.isString())
                         {
@@ -338,7 +335,7 @@ struct Room::Impl
                         }
                         else if (jSubScaling.isArray())
                         {
-                            for (auto jSubScalingScaling : jSubScaling.array_value)
+                            for (const auto& jSubScalingScaling : jSubScaling.array_value)
                             {
                                 auto value = jSubScalingScaling.string_value;
                                 auto index = value.find('@');
@@ -356,7 +353,7 @@ struct Room::Impl
             }
         }
 
-        if (_scalings.size() == 0)
+        if (_scalings.empty())
         {
             RoomScaling scaling;
             _scalings.push_back(scaling);
@@ -417,10 +414,6 @@ std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_object
 
 std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 
-void Room::showDrawWalkboxes(bool show) { pImpl->_showDrawWalkboxes = show; }
-
-bool Room::areDrawWalkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
-
 std::vector<Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
@@ -430,8 +423,6 @@ int32_t Room::getScreenHeight() const { return pImpl->_screenHeight; }
 int32_t Room::getFullscreen() const { return pImpl->_fullscreen; }
 
 HSQOBJECT &Room::getTable() { return pImpl->_table; }
-
-bool Room::walkboxesVisible() const { return pImpl->_showDrawWalkboxes; }
 
 void Room::setAmbientLight(sf::Color color) { pImpl->_ambientColor = color; }
 
@@ -583,25 +574,13 @@ Object &Room::createObject(const std::string &image)
     return obj;
 }
 
-void Room::drawWalkboxes(sf::RenderWindow &window, sf::RenderStates states) const
+const Graph* Room::getGraph() const
 {
-    if (!pImpl->_showDrawWalkboxes)
-        return;
-
-    for (auto &walkbox : pImpl->_graphWalkboxes)
+    if (pImpl->_pf)
     {
-        window.draw(walkbox, states);
+        return pImpl->_pf->getGraph().get();
     }
-
-    if (pImpl->_path)
-    {
-        window.draw(*pImpl->_path);
-    }
-
-    if (pImpl->_pf && pImpl->_pf->getGraph())
-    {
-        window.draw(*pImpl->_pf->getGraph(), states);
-    }
+    return nullptr;
 }
 
 void Room::update(const sf::Time &elapsed)
@@ -650,11 +629,6 @@ void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPo
     auto w = screen.x / 2.f;
     auto h = screen.y / 2.f;
 
-    sf::Transform t;
-    t.rotate(pImpl->_rotation, w, h);
-    t.translate(-cameraPos);
-    states.transform = t;
-    drawWalkboxes(window, states);
     pImpl->drawFade(window);
 
     for (const auto &layer : pImpl->_layers)
@@ -663,10 +637,10 @@ void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPo
         auto posX = (w - cameraPos.x) * parallax.x - w;
         auto posY = (h - cameraPos.y) * parallax.y - h;
 
-        sf::Transform t2;
-        t2.rotate(pImpl->_rotation, w, h);
-        t2.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
-        states.transform = t2;
+        sf::Transform t;
+        t.rotate(pImpl->_rotation, w, h);
+        t.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
+        states.transform = t;
         layer.second->drawForeground(window, states);
     }
 }

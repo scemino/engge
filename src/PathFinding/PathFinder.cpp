@@ -1,8 +1,6 @@
 #include <utility>
-#include <math.h>
-#include <sstream>
+#include <cmath>
 #include "_AstarAlgorithm.h"
-#include "_IndexedPriorityQueue.h"
 #include "Graph.h"
 #include "GraphEdge.h"
 #include "PathFinder.h"

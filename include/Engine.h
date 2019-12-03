@@ -156,7 +156,6 @@ class Engine : public NonCopyable
 
     void addActor(std::unique_ptr<Actor> actor);
     void addRoom(std::unique_ptr<Room> room);
-    [[nodiscard]] const std::vector<std::unique_ptr<Room>> &getRooms() const;
     std::vector<std::unique_ptr<Room>> &getRooms();
     
     void addCallback(std::unique_ptr<Callback> callback);
@@ -181,9 +180,11 @@ class Engine : public NonCopyable
     Actor *getFollowActor();
     [[nodiscard]] bool actorShouldRun() const;
 
+    void showDrawWalkboxes(bool show);
+    [[nodiscard]] bool areDrawWalkboxesVisible() const;
+
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);
-    VerbUiColors &getVerbUiColors(int characterSlot);
     VerbUiColors *getVerbUiColors();
     void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
     [[nodiscard]] const Verb *getVerb(int id) const;
@@ -194,14 +195,9 @@ class Engine : public NonCopyable
     void setInputActive(bool active);
     [[nodiscard]] bool getInputActive() const;
     void inputSilentOff();
-    [[nodiscard]] bool isCursorVisible() const;
-
     void setInputHUD(bool on);
-    [[nodiscard]] bool getInputHUD() const;
-    
     void setInputVerbs(bool on);
-    [[nodiscard]] bool getInputVerbs() const;
-    
+
     void setInputState(int state);
     [[nodiscard]] int getInputState() const;
 

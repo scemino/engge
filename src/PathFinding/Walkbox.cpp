@@ -1,16 +1,14 @@
 #include <cmath>
 #include <algorithm>
 #include "Walkbox.h"
-#include "_Util.h"
+#include "../_Util.h"
+#include "_WalkboxDrawable.h"
 
 namespace ng
 {
 Walkbox::Walkbox() = default;
 
-Walkbox::Walkbox(const Walkbox &w)
-    : _polygon(w._polygon), _name(w._name), _isEnabled(w._isEnabled)
-{
-}
+Walkbox::Walkbox(const Walkbox &w) = default;
 
 Walkbox::Walkbox(std::vector<sf::Vector2i> polygon)
     : _polygon(std::move(polygon)), _isEnabled(true)
@@ -79,24 +77,6 @@ sf::Vector2i Walkbox::getClosestPointOnEdge(const sf::Vector2i &p3, float &mindi
         linevector = sf::Vector2i(xu, yu);
 
     return linevector;
-}
-
-void Walkbox::draw(sf::RenderTarget &target, sf::RenderStates states) const
-{
-    auto color = _isEnabled ? sf::Color::Green : sf::Color::Red;
-    sf::VertexArray triangle(sf::LinesStrip, _polygon.size() + 1);
-    for (int i = 0; i < _polygon.size(); ++i)
-    {
-        auto &vertex = _polygon[i];
-        triangle[i].position = sf::Vector2f(vertex.x, vertex.y);
-        triangle[i].color = color;
-    }
-    {
-        auto &vertex = _polygon[0];
-        triangle[_polygon.size()].position = sf::Vector2f(vertex.x, vertex.y);
-        triangle[_polygon.size()].color = color;
-    }
-    target.draw(triangle, states);
 }
 
 bool Walkbox::isVertexConcave(int vertex) const
