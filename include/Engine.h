@@ -177,11 +177,10 @@ class Engine : public NonCopyable
 
     void setCurrentActor(Actor *pCurrentActor, bool userSelected);
     Actor *getCurrentActor();
-    Actor *getFollowActor();
     [[nodiscard]] bool actorShouldRun() const;
 
-    void showDrawWalkboxes(bool show);
-    [[nodiscard]] bool areDrawWalkboxesVisible() const;
+    void setWalkboxesFlags(int flags);
+    [[nodiscard]] int getWalkboxesFlags() const;
 
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);

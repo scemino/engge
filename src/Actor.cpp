@@ -360,7 +360,7 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
 void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if (pImpl->_path && pImpl->_pRoom && pImpl->_engine.areDrawWalkboxesVisible())
+    if (pImpl->_path && pImpl->_pRoom && pImpl->_engine.getWalkboxesFlags())
     {
         target.draw(*pImpl->_path, states);
     }

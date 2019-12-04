@@ -149,7 +149,7 @@ struct Engine::Impl
     sf::Vector2f _ranges{0.8f, 0.8f};
     sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
     _TalkingState _talkingState;
-    bool _showDrawWalkboxes{false};
+    int _showDrawWalkboxes{0};
 
     explicit Impl(EngineSettings &settings);
 
@@ -330,8 +330,6 @@ void Engine::removeCallback(int id)
 std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actors; }
 
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
-
-Actor *Engine::getFollowActor() { return _pImpl->_pFollowActor; }
 
 bool Engine::actorShouldRun() const { return _pImpl->_mouseDownTime > sf::seconds(0.5f); }
 
@@ -1297,13 +1295,13 @@ void Engine::draw(sf::RenderWindow &window) const
     _pImpl->_pDebugTools->render();
 }
 
-void Engine::showDrawWalkboxes(bool show) { _pImpl->_showDrawWalkboxes = show; }
+void Engine::setWalkboxesFlags(int show) { _pImpl->_showDrawWalkboxes = show; }
 
-bool Engine::areDrawWalkboxesVisible() const { return _pImpl->_showDrawWalkboxes; }
+int Engine::getWalkboxesFlags() const { return _pImpl->_showDrawWalkboxes; }
 
 void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
 {
-    if (!_pRoom || !_showDrawWalkboxes)
+    if (!_pRoom || _showDrawWalkboxes == 0)
         return;
 
     auto screen = target.getView().getSize();
@@ -1314,15 +1312,20 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
     t.translate(-_camera.getAt());
     sf::RenderStates states;
     states.transform = t;
-    for (const auto &walkbox : _pRoom->getWalkboxes()) {
-        _WalkboxDrawable wd(walkbox);
-        target.draw(wd, states);
+
+    if(_showDrawWalkboxes&1) {
+        for (const auto &walkbox : _pRoom->getWalkboxes()) {
+            _WalkboxDrawable wd(walkbox);
+            target.draw(wd, states);
+        }
     }
 
-    const auto* pGraph = _pRoom->getGraph();
-    if(!pGraph) return;
-
-    target.draw(*pGraph, states);
+    if(_showDrawWalkboxes&2) {
+        const auto *pGraph = _pRoom->getGraph();
+        if (pGraph) {
+            target.draw(*pGraph, states);
+        }
+    }
 }
 
 void Engine::Impl::drawPause(sf::RenderTarget &target) const
