@@ -215,7 +215,7 @@ void merge(const std::vector<ng::Walkbox> &walkboxes, std::vector<Walkbox> &resu
     }
 }
 
-float distanceSquared(const sf::Vector2i &vector1, const sf::Vector2i &vector2)
+float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2)
 {
     float dx = vector1.x - vector2.x;
     float dy = vector1.y - vector2.y;
@@ -223,17 +223,17 @@ float distanceSquared(const sf::Vector2i &vector1, const sf::Vector2i &vector2)
     return dx * dx + dy * dy;
 }
 
-float distance(const sf::Vector2i &v1, const sf::Vector2i &v2)
+float distance(const sf::Vector2f &v1, const sf::Vector2f &v2)
 {
     return std::sqrt(distanceSquared(v1, v2));
 }
 
-float length(const sf::Vector2i &v)
+float length(const sf::Vector2f &v)
 {
     return sqrtf(v.x * v.x + v.y * v.y);
 }
 
-bool lineSegmentsCross(const sf::Vector2i &a, const sf::Vector2i &b, const sf::Vector2i &c, const sf::Vector2i &d)
+bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d)
 {
     float denominator = ((b.x - a.x) * (d.y - c.y)) - ((b.y - a.y) * (d.x - c.x));
     if (denominator == 0)

@@ -17,12 +17,12 @@ Walkbox::Walkbox(std::vector<sf::Vector2i> polygon)
 
 Walkbox::~Walkbox() = default;
 
-float Walkbox::distanceToSegment(const sf::Vector2i &p, const sf::Vector2i &v, const sf::Vector2i &w)
+float Walkbox::distanceToSegment(sf::Vector2f p, sf::Vector2f v, sf::Vector2f w)
 {
     return sqrt(distanceToSegmentSquared(p, v, w));
 }
 
-float Walkbox::distanceToSegmentSquared(const sf::Vector2i &p, const sf::Vector2i &v, const sf::Vector2i &w)
+float Walkbox::distanceToSegmentSquared(const sf::Vector2f &p, const sf::Vector2f &v, const sf::Vector2f &w)
 {
     float l2 = distanceSquared(v, w);
     if (l2 == 0)
@@ -32,20 +32,18 @@ float Walkbox::distanceToSegmentSquared(const sf::Vector2i &p, const sf::Vector2
         return distanceSquared(p, v);
     if (t > 1)
         return distanceSquared(p, w);
-    return distanceSquared(p, sf::Vector2i(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)));
+    return distanceSquared(p, sf::Vector2f(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)));
 }
 
-sf::Vector2i Walkbox::getClosestPointOnEdge(const sf::Vector2i &p3, float &mindist) const
+sf::Vector2f Walkbox::getClosestPointOnEdge(sf::Vector2f p3, float &mindist) const
 {
-    float tx = p3.x;
-    float ty = p3.y;
     int vi1 = -1;
     int vi2 = -1;
     mindist = 100000;
 
-    for (auto i = 0; i < _polygon.size(); i++)
+    for (size_t i = 0; i < _polygon.size(); i++)
     {
-        auto dist = distanceToSegment(sf::Vector2i(tx, ty), _polygon[i], _polygon[(i + 1) % _polygon.size()]);
+        auto dist = distanceToSegment(p3, (sf::Vector2f)_polygon[i], (sf::Vector2f)_polygon[(i + 1) % _polygon.size()]);
         if (dist < mindist)
         {
             mindist = dist;
@@ -68,15 +66,11 @@ sf::Vector2i Walkbox::getClosestPointOnEdge(const sf::Vector2i &p3, float &mindi
     float xu = x1 + u * (x2 - x1);
     float yu = y1 + u * (y2 - y1);
 
-    sf::Vector2i linevector;
     if (u < 0)
-        linevector = sf::Vector2i(x1, y1);
-    else if (u > 1)
-        linevector = sf::Vector2i(x2, y2);
-    else
-        linevector = sf::Vector2i(xu, yu);
-
-    return linevector;
+        return sf::Vector2f(x1, y1);
+    if (u > 1)
+        return sf::Vector2f(x2, y2);
+    return sf::Vector2f(xu, yu);
 }
 
 bool Walkbox::isVertexConcave(int vertex) const
@@ -93,9 +87,9 @@ bool Walkbox::isVertexConcave(int vertex) const
     return cross < 0;
 }
 
-bool Walkbox::inside(const sf::Vector2i &position, bool toleranceOnOutside) const
+bool Walkbox::inside(const sf::Vector2f &position, bool toleranceOnOutside) const
 {
-    sf::Vector2i point = position;
+    sf::Vector2f point = position;
     const float epsilon = 0.5f;
     bool inside = false;
 
@@ -103,18 +97,19 @@ bool Walkbox::inside(const sf::Vector2i &position, bool toleranceOnOutside) cons
     if (_polygon.size() < 3)
         return false;
 
-    sf::Vector2i oldPoint = _polygon[_polygon.size() - 1];
+    auto oldPoint = (sf::Vector2f)_polygon[_polygon.size() - 1];
     float oldSqDist = distanceSquared(oldPoint, point);
 
-    for (auto newPoint : _polygon)
+    for (auto nPoint : _polygon)
     {
+        auto newPoint = (sf::Vector2f)nPoint;
         float newSqDist = distanceSquared(newPoint, point);
 
         if (oldSqDist + newSqDist + 2.0f * sqrt(oldSqDist * newSqDist) - distanceSquared(newPoint, oldPoint) < epsilon)
             return toleranceOnOutside;
 
-        sf::Vector2i left;
-        sf::Vector2i right;
+        sf::Vector2f left;
+        sf::Vector2f right;
         if (newPoint.x > oldPoint.x)
         {
             left = oldPoint;

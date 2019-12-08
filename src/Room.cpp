@@ -665,14 +665,17 @@ void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
 bool Room::inWalkbox(const sf::Vector2f &pos) const
 {
     auto inWalkbox = std::any_of(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(),
-                                 [pos](const Walkbox &w) { return w.inside((sf::Vector2i)pos); });
+                                 [pos](const auto &w) { return w.inside(pos); });
     return inWalkbox;
 }
 
 std::vector<RoomScaling> &Room::getScalings() { return pImpl->_scalings; }
 
-std::vector<sf::Vector2i> Room::calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const
+std::vector<sf::Vector2f> Room::calculatePath(sf::Vector2f start, sf::Vector2f end) const
 {
+    if(!pImpl->_pf) {
+        pImpl->updateGraph();
+    }
     return pImpl->_pf->calculatePath(start, end);
 }
 

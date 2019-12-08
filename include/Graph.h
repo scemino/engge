@@ -18,7 +18,7 @@ namespace ng
 class Graph : public sf::Drawable
 {
 public:
-  std::vector<sf::Vector2i> nodes;
+  std::vector<sf::Vector2f> nodes;
   std::vector<std::vector<std::shared_ptr<GraphEdge>>> edges;
   std::vector<sf::Vector2i> concaveVertices;
 
@@ -27,7 +27,7 @@ public:
   Graph(const Graph &graph);
 
   std::shared_ptr<GraphEdge> getEdge(int from, int to);
-  int addNode(sf::Vector2i node);
+  int addNode(sf::Vector2f node);
   void addEdge(const std::shared_ptr<GraphEdge>& edge);
 
 private:

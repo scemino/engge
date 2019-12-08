@@ -1,8 +1,5 @@
-#include <utility>
-
 #include "Graph.h"
 #include "GraphEdge.h"
-#include "_Path.h"
 
 namespace ng
 {
@@ -25,7 +22,7 @@ std::shared_ptr<GraphEdge> Graph::getEdge(int from, int to)
     return nullptr;
 }
 
-int Graph::addNode(sf::Vector2i node)
+int Graph::addNode(sf::Vector2f node)
 {
     nodes.push_back(node);
     edges.emplace_back();
@@ -40,7 +37,8 @@ void Graph::addEdge(const std::shared_ptr<GraphEdge>& edge)
     }
     if (getEdge(edge->to, edge->from) == nullptr)
     {
-        edges[edge->to].push_back(edge);
+        auto e = std::make_shared<GraphEdge>(edge->to, edge->from, edge->cost);
+        edges[edge->to].push_back(e);
     }
 }
 

@@ -12,13 +12,13 @@ class PathFinder
 public:
   explicit PathFinder(const std::vector<Walkbox> &walkboxes);
 
-  std::vector<sf::Vector2i> calculatePath(sf::Vector2i from, sf::Vector2i to);
+  std::vector<sf::Vector2f> calculatePath(sf::Vector2f from, sf::Vector2f to);
   [[nodiscard]] std::shared_ptr<Graph> getGraph() const { return _graph; }
 
 private:
   std::shared_ptr<Graph> createGraph();
-  bool inLineOfSight(const sf::Vector2i &start, const sf::Vector2i &end);
-  [[nodiscard]] sf::Vector2i getClosestPointOnEdge(const sf::Vector2i &from) const;
+  bool inLineOfSight(sf::Vector2f start, sf::Vector2f end);
+  [[nodiscard]] sf::Vector2f getClosestPointOnEdge(sf::Vector2f from) const;
 
 private:
   std::shared_ptr<Graph> _graph;

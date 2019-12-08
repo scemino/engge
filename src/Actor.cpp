@@ -27,7 +27,7 @@ struct Actor::Impl
         WalkingState() = default;
 
         void setActor(Actor *pActor);
-        void setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing);
+        void setDestination(const std::vector<sf::Vector2f> &path, std::optional<Facing> facing);
         void update(const sf::Time &elapsed);
         void stop();
         [[nodiscard]] bool isWalking() const { return _isWalking; }
@@ -37,7 +37,7 @@ struct Actor::Impl
 
       private:
         Actor *_pActor{nullptr};
-        std::vector<sf::Vector2i> _path;
+        std::vector<sf::Vector2f> _path;
         std::optional<Facing> _facing{Facing::FACE_FRONT};
         bool _isWalking{false};
     };
@@ -221,7 +221,7 @@ bool Actor::isInventoryObject() const { return false; }
 
 void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
 
-void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2i> &path, std::optional<Facing> facing)
+void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &path, std::optional<Facing> facing)
 {
     _path = path;
     _facing = facing;
@@ -255,7 +255,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         return;
 
     auto pos = _pActor->getRealPosition();
-    auto delta = (_path[0] - (sf::Vector2i)pos);
+    auto delta = (_path[0] - pos);
     auto speed = _pActor->getWalkSpeed();
     if(_pActor->pImpl->_engine.actorShouldRun())
     {
@@ -375,6 +375,13 @@ void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) co
 void Actor::update(const sf::Time &elapsed)
 {
     Entity::update(elapsed);
+
+    if(pImpl->_pRoom && pImpl->_engine.getCurrentActor() == this) {
+        auto mousePosInRoom = pImpl->_engine.getMousePositionInRoom();
+        auto path = pImpl->_pRoom->calculatePath(getRealPosition(), mousePosInRoom);
+        pImpl->_path = std::make_unique<_Path>(path);
+    }
+
     pImpl->_costume.update(elapsed);
     pImpl->_walkingState.update(elapsed);
     pImpl->_talkingState.update(elapsed);
@@ -385,18 +392,18 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if (pImpl->_pRoom == nullptr)
         return;
 
-    std::vector<sf::Vector2i> path;
+    std::vector<sf::Vector2f> path;
     if(pImpl->_useWalkboxes)
     {
-        path = pImpl->_pRoom->calculatePath((sf::Vector2i)getRealPosition(), (sf::Vector2i)destination);
+        path = pImpl->_pRoom->calculatePath(getRealPosition(), destination);
         pImpl->_path = std::make_unique<_Path>(path);
         if (path.size() < 2)
             return;
     }
     else
     {
-        path.push_back((sf::Vector2i)getRealPosition());
-        path.push_back((sf::Vector2i)destination);
+        path.push_back(getRealPosition());
+        path.push_back(destination);
         pImpl->_path = std::make_unique<_Path>(path);
     }
 

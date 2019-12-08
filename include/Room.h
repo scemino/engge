@@ -46,7 +46,7 @@ public:
 
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
   [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
-  [[nodiscard]] std::vector<sf::Vector2i> calculatePath(const sf::Vector2i &start, const sf::Vector2i &end) const;
+  [[nodiscard]] std::vector<sf::Vector2f> calculatePath(sf::Vector2f start, sf::Vector2f end) const;
   std::vector<Walkbox>& getWalkboxes();
   [[nodiscard]] const Graph* getGraph() const;
 

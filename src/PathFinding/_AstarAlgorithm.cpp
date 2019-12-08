@@ -15,10 +15,10 @@ _AstarAlgorithm::_AstarAlgorithm(ng::Graph &graph, int source, int target)
     search();
 }
 
-std::vector<int> _AstarAlgorithm::getPath() const {
-    std::vector<int> path;
+void _AstarAlgorithm::getPath(std::vector<int>& path) const {
+    path.clear();
     if (_target < 0)
-        return path;
+        return;
     int nd = _target;
     path.push_back(nd);
     while ((nd!=_source) && (SPT[nd]!=nullptr)) {
@@ -26,7 +26,6 @@ std::vector<int> _AstarAlgorithm::getPath() const {
         path.push_back(nd);
     }
     std::reverse(path.begin(), path.end());
-    return path;
 }
 
 void _AstarAlgorithm::search() {

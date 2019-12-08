@@ -39,12 +39,12 @@ bool getLine(GGPackBufferStream &input, std::wstring &wline);
 bool merge(const ng::Walkbox &w1, const ng::Walkbox &w2, std::vector<sf::Vector2i> &result);
 void merge(const std::vector<ng::Walkbox> &walkboxes, std::vector<Walkbox> &result);
 
-float distanceSquared(const sf::Vector2i &vector1, const sf::Vector2i &vector2);
-float distance(const sf::Vector2i &v1, const sf::Vector2i &v2);
+float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2);
+float distance(const sf::Vector2f &v1, const sf::Vector2f &v2);
 
-bool lineSegmentsCross(const sf::Vector2i &a, const sf::Vector2i &b, const sf::Vector2i &c, const sf::Vector2i &d);
+bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d);
 
-float length(const sf::Vector2i &v);
+float length(const sf::Vector2f &v);
 
 Facing _toFacing(UseDirection direction);
 UseDirection _toDirection(const std::string &text);
