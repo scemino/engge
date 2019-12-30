@@ -414,7 +414,7 @@ struct Room::Impl
         }
 
         for (auto &sol:solutions) {
-            std::__1::vector<sf::Vector2i> sPoints;
+            std::vector<sf::Vector2i> sPoints;
             std::transform(sol.begin(), sol.end(), std::back_inserter(sPoints), [](auto &p) -> sf::Vector2i {
                 return sf::Vector2i(p.X, p.Y);
             });
