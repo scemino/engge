@@ -1,4 +1,5 @@
 #include "_Util.h"
+#include "Segment.h"
 
 namespace ng
 {
@@ -109,112 +110,6 @@ bool getLine(GGPackBufferStream &input, std::wstring &wline)
     return false;
 }
 
-bool merge(const ng::Walkbox &w1, const ng::Walkbox &w2, std::vector<sf::Vector2i> &result)
-{
-    // I know this implementation is ugly :S
-    sf::Vector2i v11, v12, v21, v22;
-    bool hasMerged = false;
-    for (int i1 = 0; i1 < w1.getVertices().size(); i1++)
-    {
-        v11 = w1.getVertex(i1);
-        v12 = w1.getVertex((i1 + 1) % w1.getVertices().size());
-        int iShared = -1;
-        for (int i2 = w2.getVertices().size() - 1; i2 >= 0; i2--)
-        {
-            v21 = w2.getVertex(i2);
-            auto i22 = i2;
-            if (i22 == 0)
-                i22 = w2.getVertices().size();
-            v22 = w2.getVertex(i22 - 1);
-            if (v11 == v21 && v12 == v22)
-            {
-                hasMerged = true;
-                iShared = i2;
-                break;
-            }
-        }
-        if (iShared == -1)
-        {
-            result.push_back(v11);
-        }
-        else
-        {
-            for (int i2 = iShared; i2 < w2.getVertices().size() + iShared; i2++)
-            {
-                auto i2p = i2 % w2.getVertices().size();
-                auto i2p2 = (i2p + 1) % w2.getVertices().size();
-                v21 = w2.getVertex(i2p);
-                v22 = w2.getVertex(i2p2);
-
-                int iShared2 = -1;
-                for (auto i1p = i1 + 2; i1p < w1.getVertices().size(); i1p++)
-                {
-                    v11 = w1.getVertex(i1p % w1.getVertices().size());
-                    v12 = w1.getVertex((i1p + 1) % w1.getVertices().size());
-                    if (v21 == v12 && v22 == v11)
-                    {
-                        iShared2 = i1p;
-                        break;
-                    }
-                }
-                if (iShared2 != -1)
-                {
-                    i1 = iShared2;
-                    break;
-                }
-                else
-                {
-                    result.push_back(v21);
-                }
-            }
-        }
-    }
-    return hasMerged;
-}
-
-void merge(const std::vector<ng::Walkbox> &walkboxes, std::vector<Walkbox> &result)
-{
-    ng::Walkbox w;
-    std::list<int> walkboxesProcessed;
-    for (const auto & walkbox : walkboxes)
-    {
-        if (walkbox.isEnabled())
-        {
-            w = walkbox;
-            break;
-        }
-    }
-
-    if (w.getVertices().empty())
-        return;
-
-    for (int i = 0; i < walkboxes.size(); i++)
-    {
-        if (std::find(walkboxesProcessed.begin(), walkboxesProcessed.end(), i) != walkboxesProcessed.end())
-            continue;
-
-        if (!walkboxes[i].isEnabled())
-            continue;
-
-        std::vector<sf::Vector2i> vertices;
-        if (merge(w, walkboxes[i], vertices))
-        {
-            w = ng::Walkbox(vertices);
-            walkboxesProcessed.push_back(i);
-            i = -1;
-        }
-    }
-    result.push_back(w);
-
-    for (int i = 0; i < walkboxes.size(); i++)
-    {
-        if (std::find(walkboxesProcessed.begin(), walkboxesProcessed.end(), i) != walkboxesProcessed.end())
-            continue;
-
-        result.push_back(walkboxes[i]);
-    }
-}
-
 float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2)
 {
     float dx = vector1.x - vector2.x;
@@ -233,25 +128,66 @@ float length(const sf::Vector2f &v)
     return sqrtf(v.x * v.x + v.y * v.y);
 }
 
+const double EPS = 1E-9;
+
+double det(float a, float b, float c, float d)
+{
+    return a * d - b * c;
+}
+
+inline bool betw(float l, float r, float x)
+{
+    return fmin(l, r) <= x + EPS && x <= fmax(l, r) + EPS;
+}
+
+template <typename T>
+void swap(T& a, T& b)
+{
+    T c = a;
+    a=b;
+    b=c;
+}
+
+inline bool intersect_1d(float a, float b, float c, float d)
+{
+    if (a > b)
+        swap(a, b);
+    if (c > d)
+        swap(c, d);
+    return fmax(a, c) <= fmin(b, d) + EPS;
+}
+
+bool less(const sf::Vector2f& p1, const sf::Vector2f& p2)
+{
+    return p1.x < p2.x - EPS || (fabs(p1.x - p2.x) < EPS && p1.y < p2.y - EPS);
+}
+
+bool intersect(sf::Vector2f a, sf::Vector2f b, sf::Vector2f c, sf::Vector2f d)
+{
+    if (!intersect_1d(a.x, b.x, c.x, d.x) || !intersect_1d(a.y, b.y, c.y, d.y))
+        return false;
+    Segment m(a, b);
+    Segment n(c, d);
+    double zn = det(m.a, m.b, n.a, n.b);
+    if (abs(zn) < EPS) {
+        if (abs(m.dist(c)) > EPS || abs(n.dist(a)) > EPS)
+            return false;
+        if (less(b, a))
+            swap(a, b);
+        if (less(d, c))
+            swap(c, d);
+        return true;
+    } else {
+        auto lx = -det(m.c, m.b, n.c, n.b) / zn;
+        auto ly = -det(m.a, m.c, n.a, n.c) / zn;
+        return betw(a.x, b.x, lx) && betw(a.y, b.y, ly) &&
+            betw(c.x, d.x, lx) && betw(c.y, d.y, ly);
+    }
+}
+
 bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d)
 {
-    float denominator = ((b.x - a.x) * (d.y - c.y)) - ((b.y - a.y) * (d.x - c.x));
-    if (denominator == 0)
-    {
-        return false;
-    }
-
-    float numerator1 = ((a.y - c.y) * (d.x - c.x)) - ((a.x - c.x) * (d.y - c.y));
-    float numerator2 = ((a.y - c.y) * (b.x - a.x)) - ((a.x - c.x) * (b.y - a.y));
-    if (numerator1 == 0 || numerator2 == 0)
-    {
-        return false;
-    }
-
-    float r = numerator1 / denominator;
-    float s = numerator2 / denominator;
-
-    return (r > 0 && r < 1) && (s > 0 && s < 1);
+    return intersect(a,b,c,d);
 }
 
 Facing _toFacing(UseDirection direction)

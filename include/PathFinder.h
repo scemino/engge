@@ -18,9 +18,8 @@ public:
 private:
   std::shared_ptr<Graph> createGraph();
   bool inLineOfSight(sf::Vector2f start, sf::Vector2f end);
-  [[nodiscard]] sf::Vector2f getClosestPointOnEdge(sf::Vector2f from) const;
 
-private:
+ private:
   std::shared_ptr<Graph> _graph;
   const  std::vector<Walkbox>& _walkboxes;
 };

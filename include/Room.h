@@ -48,6 +48,7 @@ public:
   [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
   [[nodiscard]] std::vector<sf::Vector2f> calculatePath(sf::Vector2f start, sf::Vector2f end) const;
   std::vector<Walkbox>& getWalkboxes();
+  std::vector<Walkbox>& getGraphWalkboxes();
   [[nodiscard]] const Graph* getGraph() const;
 
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);

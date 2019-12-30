@@ -18,6 +18,7 @@ engge is an **experimental** game engine, its purpose is to be able (one day) to
   * [imgui-sfml](https://github.com/eliasdaler/imgui-sfml): ImGui binding for use with SFML
   * [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
   * [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
+  * [clipper](https://sourceforge.net/projects/polyclipping/): Polygon and line clipping and offsetting library.
 
 ## Compiling
 

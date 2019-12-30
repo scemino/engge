@@ -35,11 +35,11 @@ float Walkbox::distanceToSegmentSquared(const sf::Vector2f &p, const sf::Vector2
     return distanceSquared(p, sf::Vector2f(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)));
 }
 
-sf::Vector2f Walkbox::getClosestPointOnEdge(sf::Vector2f p3, float &mindist) const
+sf::Vector2f Walkbox::getClosestPointOnEdge(sf::Vector2f p3) const
 {
     int vi1 = -1;
     int vi2 = -1;
-    mindist = 100000;
+    float mindist = 100000;
 
     for (size_t i = 0; i < _polygon.size(); i++)
     {

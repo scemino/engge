@@ -14,6 +14,7 @@
 #include "Thread.h"
 #include "_Util.h"
 #include "squirrel.h"
+#include "clipper.hpp"
 #include <algorithm>
 #include <iostream>
 #include <cmath>
@@ -32,6 +33,7 @@ struct Room::Impl
     EngineSettings &_settings;
     std::vector<std::unique_ptr<Object>> _objects;
     std::vector<Walkbox> _walkboxes;
+    std::vector<Walkbox> _graphWalkboxes;
     std::map<int, std::unique_ptr<RoomLayer>, CmpLayer> _layers;
     std::vector<RoomScaling> _scalings;
     RoomScaling _scaling;
@@ -42,7 +44,6 @@ struct Room::Impl
     int _fullscreen{0};
     HSQOBJECT _table{};
     std::shared_ptr<PathFinder> _pf;
-    std::vector<Walkbox> _graphWalkboxes;
     sf::Color _ambientColor{255, 255, 255, 255};
     SpriteSheet _spriteSheet;
     Room *_pRoom{nullptr};
@@ -375,17 +376,67 @@ struct Room::Impl
             }
             _walkboxes.push_back(walkbox);
         }
-        updateGraph();
+        _pf.reset();
     }
 
-    void updateGraph()
-    {
+    static void toPath(const Walkbox& walkbox, ClipperLib::Path& path){
+        for(auto& p : walkbox.getVertices()) {
+            path.emplace_back(p.x, p.y);
+        }
+    }
+
+    void updateGraph(const sf::Vector2f& start) {
         _graphWalkboxes.clear();
-        if (!_walkboxes.empty())
-        {
-            merge(_walkboxes, _graphWalkboxes);
+        if (!_walkboxes.empty()) {
+            mergeWalkboxes();
+            sortWalkboxes(start);
         }
         _pf = std::make_shared<PathFinder>(_graphWalkboxes);
+    }
+
+    void mergeWalkboxes() {
+        ClipperLib::Paths solutions;
+        ClipperLib::Path path;
+        toPath(_walkboxes[0], path);
+        solutions.push_back(path);
+
+        for (int i = 1; i < _walkboxes.size(); i++) {
+            if (!_walkboxes[i].isEnabled()) continue;
+            path.clear();
+            for (auto &p : _walkboxes[i].getVertices()) {
+                path.emplace_back(p.x, p.y);
+            }
+            ClipperLib::Clipper clipper;
+            clipper.AddPaths(solutions, ClipperLib::ptSubject, true);
+            clipper.AddPath(path, ClipperLib::ptClip, true);
+            solutions.clear();
+            clipper.Execute(ClipperLib::ctUnion, solutions, ClipperLib::pftEvenOdd);
+        }
+
+        for (auto &sol:solutions) {
+            std::__1::vector<sf::Vector2i> sPoints;
+            std::transform(sol.begin(), sol.end(), std::back_inserter(sPoints), [](auto &p) -> sf::Vector2i {
+                return sf::Vector2i(p.X, p.Y);
+            });
+            bool isEnabled = ClipperLib::Orientation(sol);
+            if (!isEnabled) {
+                std::reverse(sPoints.begin(), sPoints.end());
+            }
+            Walkbox walkbox(sPoints);
+            walkbox.setEnabled(isEnabled);
+            _graphWalkboxes.push_back(walkbox);
+        }
+    }
+
+    void sortWalkboxes(const sf::Vector2f &start) {
+        std::sort(_graphWalkboxes.begin(), _graphWalkboxes.end(), [start](auto& w1, auto& w2){
+            if(w1.inside(start)) return true;
+            if(w2.inside(start)) return false;
+            if(w1.isEnabled()) return true;
+            if(w1.isEnabled()) return true;
+            if(w2.isEnabled()) return false;
+            return false;
+        });
     }
 
     void drawFade(sf::RenderWindow &window) const
@@ -415,6 +466,8 @@ std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_object
 std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 
 std::vector<Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
+
+std::vector<Walkbox> &Room::getGraphWalkboxes() { return pImpl->_graphWalkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
 
@@ -659,7 +712,7 @@ void Room::setWalkboxEnabled(const std::string &name, bool isEnabled)
         return;
     }
     it->setEnabled(isEnabled);
-    pImpl->updateGraph();
+    pImpl->_pf.reset();
 }
 
 bool Room::inWalkbox(const sf::Vector2f &pos) const
@@ -674,7 +727,12 @@ std::vector<RoomScaling> &Room::getScalings() { return pImpl->_scalings; }
 std::vector<sf::Vector2f> Room::calculatePath(sf::Vector2f start, sf::Vector2f end) const
 {
     if(!pImpl->_pf) {
-        pImpl->updateGraph();
+        pImpl->updateGraph(start);
+    }
+    else if(!pImpl->_graphWalkboxes.empty() && !pImpl->_graphWalkboxes[0].inside(start))
+    {
+        pImpl->sortWalkboxes(start);
+        pImpl->_pf = std::make_shared<PathFinder>(pImpl->_graphWalkboxes);
     }
     return pImpl->_pf->calculatePath(start, end);
 }

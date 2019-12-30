@@ -1314,7 +1314,7 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
     states.transform = t;
 
     if(_showDrawWalkboxes&1) {
-        for (const auto &walkbox : _pRoom->getWalkboxes()) {
+        for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
             _WalkboxDrawable wd(walkbox);
             target.draw(wd, states);
         }

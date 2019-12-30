@@ -45,8 +45,10 @@ void SoundId::play(int loopTimes)
 
 void SoundId::setVolume(float volume)
 {
-    auto path = _pSoundDefinition->getPath();
-    trace("setVolume({},{})", path, volume);
+    if(_pSoundDefinition) {
+        auto path = _pSoundDefinition->getPath();
+        trace("setVolume({},{})", path, volume);
+    }
     _volume = volume;
 }
 

@@ -4,9 +4,11 @@
 #include "Object.h"
 #include "Walkbox.h"
 #include "GGPack.h"
+#include "Vector.h"
 
 namespace ng
 {
+
 struct CaseInsensitiveCompare
 {
 bool operator()(const std::string &a, const std::string &b) const noexcept
@@ -35,9 +37,6 @@ std::string toUtf8(const std::wstring &text);
 std::string str_toupper(std::string s);
 
 bool getLine(GGPackBufferStream &input, std::wstring &wline);
-
-bool merge(const ng::Walkbox &w1, const ng::Walkbox &w2, std::vector<sf::Vector2i> &result);
-void merge(const std::vector<ng::Walkbox> &walkboxes, std::vector<Walkbox> &result);
 
 float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2);
 float distance(const sf::Vector2f &v1, const sf::Vector2f &v2);

@@ -24,7 +24,7 @@ class Walkbox {
     [[nodiscard]] bool inside(const sf::Vector2f &position, bool toleranceOnOutside = true) const;
     [[nodiscard]] bool isVertexConcave(int vertex) const;
     static float distanceToSegment(sf::Vector2f p, sf::Vector2f v, sf::Vector2f w);
-    sf::Vector2f getClosestPointOnEdge(sf::Vector2f p3, float &dist) const;
+    sf::Vector2f getClosestPointOnEdge(sf::Vector2f p3) const;
 
     friend std::ostream &operator<<(std::ostream &os, const Walkbox &walkbox);
 
