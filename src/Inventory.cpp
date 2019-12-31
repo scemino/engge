@@ -30,9 +30,10 @@ void Inventory::setEngine(Engine *pEngine)
 
 bool Inventory::update(const sf::Time &elapsed)
 {
+    _pCurrentInventoryObject = nullptr;
+
     if (_pCurrentActor == nullptr)
         return false;
-    _pCurrentInventoryObject = nullptr;
 
     auto screen = _pEngine->getWindow().getView().getSize();
     // inventory rects
@@ -64,7 +65,7 @@ bool Inventory::update(const sf::Time &elapsed)
             if ((inventoryOffset * 4 + i) < objects.size())
             {
                 _pCurrentInventoryObject = objects[inventoryOffset * 4 + i];
-                return true;
+                return false;
             }
         }
     }

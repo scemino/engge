@@ -8,19 +8,10 @@
 
 namespace ng
 {
-static void pushObject(HSQUIRRELVM vm, Entity *pObj)
-{
-    if (pObj)
-    {
-        sq_pushobject(vm, pObj->getTable());
-        return;
-    }
-    sq_pushnull(vm);
-}
 
 class _ActorWalk : public Function
 {
-  public:
+ public:
     _ActorWalk(Actor &actor, const Entity *pEntity) : _actor(actor)
     {
         auto pos = pEntity->getRealPosition();
@@ -32,7 +23,7 @@ class _ActorWalk : public Function
         _actor.walkTo(pos, facing);
     }
 
-  private:
+ private:
     static Facing getFacing(const Entity *pEntity)
     {
         const auto pActor = dynamic_cast<const Actor *>(pEntity);
@@ -40,20 +31,20 @@ class _ActorWalk : public Function
         {
             return getOppositeFacing(pActor->getCostume().getFacing());
         }
-        const auto pObj = static_cast<const Object *>(pEntity);
+        const auto pObj = dynamic_cast<const Object *>(pEntity);
         return _toFacing(pObj->getUseDirection());
     }
 
-  private:
+ private:
     bool isElapsed() override { return !_actor.isWalking(); }
 
-  private:
+ private:
     Actor &_actor;
 };
 
 class _PostWalk : public Function
 {
-  public:
+ public:
     _PostWalk(Sentence& sentence, HSQUIRRELVM v, Entity *pObject, Entity *pObject2, int verb)
         : _sentence(sentence), _vm(v), _pObject(pObject), _pObject2(pObject2), _verb(verb)
     {
@@ -63,7 +54,7 @@ class _PostWalk : public Function
 
     void operator()(const sf::Time &elapsed) override
     {
-        Object *pObj = dynamic_cast<Object *>(_pObject);
+        auto *pObj = dynamic_cast<Object *>(_pObject);
         auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
         bool handled = false;
         ScriptEngine::callFunc(handled, _pObject, functionName, _verb, _pObject, _pObject2);
@@ -74,7 +65,7 @@ class _PostWalk : public Function
         _done = true;
     }
 
-  private:
+ private:
     Sentence& _sentence;
     HSQUIRRELVM _vm{};
     Entity *_pObject{nullptr};
@@ -85,7 +76,7 @@ class _PostWalk : public Function
 
 class _SetDefaultVerb : public Function
 {
-  public:
+ public:
     explicit _SetDefaultVerb(Engine &engine) : _engine(engine) {}
 
     bool isElapsed() override { return _done; }
@@ -99,26 +90,26 @@ class _SetDefaultVerb : public Function
         _engine.setDefaultVerb();
     }
 
-  private:
+ private:
     Engine &_engine;
     bool _done{false};
 };
 
 class _VerbExecute : public Function
 {
-  public:
+ public:
     _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, Entity* pObject2, const Verb *pVerb)
         : _engine(engine), _vm(v), _actor(actor), _object(object), _pObject2(pObject2), _pVerb(pVerb)
     {
     }
 
-  private:
+ private:
     bool isElapsed() override { return _done; }
 
     void operator()(const sf::Time &elapsed) override
     {
         _done = true;
-        
+
         sq_pushobject(_vm, _object.getTable());
         sq_pushstring(_vm, _pVerb->func.data(), -1);
 
@@ -146,8 +137,8 @@ class _VerbExecute : public Function
         {
             ScriptEngine::call("objectGive", &_object, &_actor, _pObject2);
 
-            Object* pObject = dynamic_cast<Object*>(&_object);
-            Actor* pActor2 = dynamic_cast<Actor*>(_pObject2);
+            auto* pObject = dynamic_cast<Object*>(&_object);
+            auto* pActor2 = dynamic_cast<Actor*>(_pObject2);
             _actor.giveTo(pObject, pActor2);
             return;
         }
@@ -161,7 +152,7 @@ class _VerbExecute : public Function
 
     void onPickup()
     {
-        if(_pVerb->id != VerbConstants::VERB_PICKUP) 
+        if(_pVerb->id != VerbConstants::VERB_PICKUP)
             return;
 
         ScriptEngine::call("onPickup", &_actor, &_object);
@@ -217,7 +208,7 @@ class _VerbExecute : public Function
         return false;
     }
 
-  private:
+ private:
     Engine &_engine;
     const Verb *_pVerb{nullptr};
     HSQUIRRELVM _vm{};
@@ -229,10 +220,10 @@ class _VerbExecute : public Function
 
 class _DefaultVerbExecute : public VerbExecute
 {
-  public:
+ public:
     _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine) : _vm(vm), _engine(engine) {}
 
-  private:
+ private:
     void execute(const Verb *pVerb, Entity *pObject1, Entity *pObject2) override
     {
         auto obj = pObject1->getTable();
@@ -257,7 +248,7 @@ class _DefaultVerbExecute : public VerbExecute
             return;
         Entity* pObj = pObject2 ? pObject2 : pObject1;
         auto sentence = std::make_unique<Sentence>();
-        if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) && 
+        if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) &&
             !pObj->isInventoryObject())
         {
             auto walk = std::make_unique<_ActorWalk>(*pActor, pObj);
@@ -321,29 +312,13 @@ class _DefaultVerbExecute : public VerbExecute
         return flags;
     }
 
-    bool callObjectOrActorPreWalk(int verb, Entity *pObj1, Entity *pObj2)
+    static bool callObjectOrActorPreWalk(int verb, Entity *pObj1, Entity *pObj2)
     {
-        Object *pObj = dynamic_cast<Object *>(pObj1);
+        auto *pObj = dynamic_cast<Object *>(pObj1);
         auto functionName = pObj ? "objectPreWalk" : "actorPreWalk";
         bool handled = false;
         ScriptEngine::callFunc(handled, pObj1, functionName, verb, pObj1, pObj2);
         return handled;
-    }
-
-    void pushObject(Entity *pObj) { ng::pushObject(_vm, pObj); }
-
-    void callVerbDefault(HSQOBJECT obj)
-    {
-        sq_pushobject(_vm, obj);
-        sq_pushstring(_vm, _SC("verbDefault"), -1);
-
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-        {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, obj);
-            sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 2); // pops the roottable and the function
-        }
     }
 
     void getVerb(Entity* pObj, const Verb *&pVerb)
@@ -380,7 +355,7 @@ class _DefaultVerbExecute : public VerbExecute
         return 2;
     }
 
-  private:
+ private:
     HSQUIRRELVM _vm;
     Engine &_engine;
 };

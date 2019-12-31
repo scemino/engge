@@ -21,7 +21,6 @@ public:
   bool update(const sf::Time &elapsed);
 
   void setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
-  const Object *getCurrentInventoryObject() const { return _pCurrentInventoryObject; }
   Object *getCurrentInventoryObject() { return _pCurrentInventoryObject; }
 
 private:

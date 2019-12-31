@@ -187,6 +187,7 @@ struct Engine::Impl
     void drawPause(sf::RenderTarget &target) const;
     void stopThreads();
     void drawWalkboxes(sf::RenderTarget &target) const;
+    const Verb* getHoveredVerb() const;
 };
 
 Engine::Impl::Impl(EngineSettings &settings)
@@ -1009,6 +1010,21 @@ void Engine::Impl::updateRoomScalings()
     }
 }
 
+const Verb* Engine::Impl::getHoveredVerb() const {
+    if (!_inputVerbsActive) return nullptr;
+
+    auto currentActorIndex = getCurrentActorIndex();
+    if(currentActorIndex == -1) return nullptr;
+
+    for (size_t i = 0; i < _verbRects.size(); i++) {
+        if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
+            auto verbId = _verbSlots.at(currentActorIndex).getVerb(1 + i).id;
+            return _pEngine->getVerb(verbId);
+        }
+    }
+    return nullptr;
+}
+
 void Engine::update(const sf::Time &elapsed)
 {
     _pImpl->stopThreads();
@@ -1107,55 +1123,48 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->updateKeyboard();
     _pImpl->updateKeys();
 
-    if (!isMouseClick && !isRightClick && _pImpl->_pCurrentActor) 
-    {
-        if(_pImpl->_isMouseDown)
-        {
-            _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
-        }
-        return;
-    }
-
-    if (_pImpl->clickedAt(_pImpl->_mousePosInRoom))
-        return;
-
     if (_pImpl->_dialogManager.getState() != DialogManagerState::None)
         return;
 
     if (_pImpl->_actorIcons.isMouseOver())
         return;
 
-    int currentActorIndex = _pImpl->getCurrentActorIndex();
-    if (currentActorIndex == -1)
+    if(!_pImpl->_pCurrentActor)
+        return;
+
+    if (!isMouseClick && !isRightClick && !_pImpl->_isMouseDown)
         return;
 
     stopSentence();
 
+    const auto* pVerb = _pImpl->getHoveredVerb();
     // input click on a verb ?
-    if (_pImpl->_inputVerbsActive)
-    {
-        for (size_t i = 0; i < _pImpl->_verbRects.size(); i++)
-        {
-            if (_pImpl->_verbRects.at(i).contains((sf::Vector2i)_pImpl->_mousePos))
-            {
-                auto verbId = _pImpl->_verbSlots.at(currentActorIndex).getVerb(1 + i).id;
-                _pImpl->onVerbClick(getVerb(verbId));
-                return;
-            }
-        }
+    if (pVerb) {
+        _pImpl->onVerbClick(pVerb);
+        return;
     }
+
+    if (!isMouseClick && !isRightClick)
+    {
+        if(!pVerb && !_pImpl->_pHoveredEntity)
+            _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
+        return;
+    }
+
+    if (_pImpl->clickedAt(_pImpl->_mousePosInRoom))
+        return;
 
     if (_pImpl->_pHoveredEntity)
     {
         ScriptEngine::call("onObjectClick", _pImpl->_pHoveredEntity);
-        auto pVerb = _pImpl->_pVerbOverride;
-        if (!pVerb)
+        auto pVerbOverride = _pImpl->_pVerbOverride;
+        if (!pVerbOverride)
         {
-            pVerb = _pImpl->_pVerb;
+            pVerbOverride = _pImpl->_pVerb;
         }
         if (_pImpl->_pObj1)
         {
-            _pImpl->_pVerbExecute->execute(pVerb, _pImpl->_pObj1, _pImpl->_pObj2);
+            _pImpl->_pVerbExecute->execute(pVerbOverride, _pImpl->_pObj1, _pImpl->_pObj2);
         }
         return;
     }
