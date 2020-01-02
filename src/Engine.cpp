@@ -321,7 +321,7 @@ void Engine::addCallback(std::unique_ptr<Callback> callback) { _pImpl->_callback
 void Engine::removeCallback(int id)
 {
     auto it = std::find_if(_pImpl->_callbacks.begin(), _pImpl->_callbacks.end(),
-                           [id](auto &callback) { return callback->getId() == id; });
+                           [id](auto &callback) -> bool { return callback->getId() == id; });
     if(it != _pImpl->_callbacks.end())
     {
         _pImpl->_callbacks.erase(it);
@@ -518,7 +518,7 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     ScriptEngine::call("exitedRoom", pOldRoom);
 
     // remove all local threads
-    _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](auto& pThread){
+    _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](auto& pThread) -> bool {
         return !pThread->isGlobal();
     }), _threads.end());
 
@@ -994,7 +994,7 @@ void Engine::Impl::updateRoomScalings()
             continue;
         if (object->getRealHotspot().contains((sf::Vector2i)actor->getPosition()))
         {
-            auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const auto &s) {
+            auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const auto &s) -> bool {
                 return s.getName() == object->getName();
             });
             if (it != scalings.end())
@@ -1129,6 +1129,9 @@ void Engine::update(const sf::Time &elapsed)
     if (_pImpl->_actorIcons.isMouseOver())
         return;
 
+    if (isMouseClick && _pImpl->clickedAt(_pImpl->_mousePosInRoom))
+        return;
+
     if(!_pImpl->_pCurrentActor)
         return;
 
@@ -1150,9 +1153,6 @@ void Engine::update(const sf::Time &elapsed)
             _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
         return;
     }
-
-    if (_pImpl->clickedAt(_pImpl->_mousePosInRoom))
-        return;
 
     if (_pImpl->_pHoveredEntity)
     {
@@ -1322,6 +1322,13 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
     sf::RenderStates states;
     states.transform = t;
 
+    if(_showDrawWalkboxes&4) {
+        for (const auto &walkbox : _pRoom->getWalkboxes()) {
+            _WalkboxDrawable wd(walkbox);
+            target.draw(wd, states);
+        }
+    }
+
     if(_showDrawWalkboxes&1) {
         for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
             _WalkboxDrawable wd(walkbox);
@@ -1377,7 +1384,7 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
 
 void Engine::Impl::stopThreads()
 {
-    _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](const auto &t) {
+    _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](const auto &t) -> bool {
         return !t || t->isStopped(); }), _threads.end());
 }
 
@@ -1475,10 +1482,10 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
 
     // do display cursor position:
     // auto mousePosInRoom = _mousePos + _camera.getAt();
-    // std::wstringstream s;
+    // std::wstringstream ss;
     // std::wstring txt = text.getText();
-    // s << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";
-    // text.setText(s.str());
+    // ss << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";
+    // text.setText(ss.str());
 
     auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;
     if (y < 0)
@@ -1636,7 +1643,7 @@ void Engine::addSelectableActor(int index, Actor *pActor)
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable)
 {
     auto it = std::find_if(_pImpl->_actorsIconSlots.begin(), _pImpl->_actorsIconSlots.end(),
-                           [&pActor](auto &selectableActor) { return selectableActor.pActor == pActor; });
+                           [&pActor](auto &selectableActor) -> bool { return selectableActor.pActor == pActor; });
     if (it != _pImpl->_actorsIconSlots.end())
     {
         it->selectable = selectable;
@@ -1696,10 +1703,10 @@ float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a / 255.f; }
 void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method)
 {
     auto m = ScriptEngine::getInterpolationMethod(method);
-    auto get = [this](){return getFadeAlpha();};
+    auto get = [this]() -> float {return getFadeAlpha();};
     auto set = [this](const float& a){ setFadeAlpha(a);};
     auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, m);
-    _pImpl->_functions.push_back(std::move(f));
+    addFunction(std::move(f));
 }
 
 void Engine::pushSentence(int id, Entity* pObj1, Entity* pObj2)

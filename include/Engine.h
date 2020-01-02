@@ -117,7 +117,7 @@ class ThreadBase;
 struct Verb;
 class VerbExecute;
 
-enum class CursorDirection
+enum class CursorDirection : unsigned int
 {
     None = 0,
     Left = 1,

@@ -25,12 +25,10 @@ class _DebugTools
         _objectFilter.reserve(128);
     }
 
-    void render()
-    {
+    void render() {
         static auto stackGetter = [](void *vec, int idx, const char **out_text) {
             auto &vector = *static_cast<std::vector<std::string> *>(vec);
-            if (idx < 0 || idx >= static_cast<int>(vector.size()))
-            {
+            if (idx < 0 || idx >= static_cast<int>(vector.size())) {
                 return false;
             }
             *out_text = vector.at(idx).c_str();
@@ -46,37 +44,25 @@ class _DebugTools
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         auto dialogState = _engine.getDialogManager().getState();
         ImGui::Text("In dialog: %s",
-                    ((dialogState == DialogManagerState::Active)
-                         ? "yes"
-                         : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
+                    ((dialogState==DialogManagerState::Active)
+                     ? "yes"
+                     : (dialogState==DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
 
         auto fade = _engine.getFadeAlpha();
-        if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f))
-        {
+        if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f)) {
             _engine.setFadeAlpha(fade);
         }
 
         showCamera();
         showInputState();
-        showDebugWindows();
         showPrefs();
         showScript();
+
+        showActors();
+        showObjects();
+        showRooms();
+
         ImGui::End();
-
-        if (_showActors)
-        {
-            showActors();
-        }
-
-        if (_showObjects)
-        {
-            showObjects();
-        }
-
-        if (_showRooms)
-        {
-            showRooms();
-        }
     }
 
   private:
@@ -110,16 +96,6 @@ class _DebugTools
         }
         ImGui::Columns(1);
         ImGui::Separator();
-    }
-
-    void showDebugWindows()
-    {
-        if (!ImGui::CollapsingHeader("Windows"))
-            return;
-
-        ImGui::Checkbox("Actors", &_showActors);
-        ImGui::Checkbox("Objects", &_showObjects);
-        ImGui::Checkbox("Rooms", &_showRooms);
     }
 
     void showInputState()
@@ -355,6 +331,9 @@ class _DebugTools
 
     void showActors()
     {
+        if (!ImGui::CollapsingHeader("Actors"))
+            return;
+
         static auto actorGetter = [](void *vec, int idx, const char **out_text) {
             auto &vector = *static_cast<std::vector<std::string> *>(vec);
             if (idx < 0 || idx >= static_cast<int>(vector.size()))
@@ -365,7 +344,6 @@ class _DebugTools
             return true;
         };
 
-        ImGui::Begin("Actors", &_showActors);
         auto &actors = _engine.getActors();
         _actorInfos.clear();
         for (auto &&actor : actors)
@@ -500,11 +478,13 @@ class _DebugTools
                 actor->setHotspot(hotspot);
             }
         }
-        ImGui::End();
     }
 
     void showObjects()
     {
+        if (!ImGui::CollapsingHeader("Objects"))
+            return;
+
         static auto objectGetter = [](void *vec, int idx, const char **out_text) 
         {
             auto &vector = *static_cast<std::vector<std::unique_ptr<Object>> *>(vec);
@@ -516,7 +496,6 @@ class _DebugTools
             return true;
         };
 
-        ImGui::Begin("Objects", &_showObjects);
         auto &objects = _engine.getRoom()->getObjects();
 
         static ImGuiTextFilter filter;
@@ -628,11 +607,13 @@ class _DebugTools
                 ImGui::LabelText("Trigger", "%s", trigger->getName().c_str());
             }
         }
-        ImGui::End();
     }
 
     void showRooms()
     {
+        if (!ImGui::CollapsingHeader("Rooms"))
+            return;
+
         static auto walkboxGetter = [](void *vec, int idx, const char **out_text) {
             auto &vector = *static_cast<std::vector<std::string> *>(vec);
             if (idx < 0 || idx >= static_cast<int>(vector.size()))
@@ -643,7 +624,6 @@ class _DebugTools
             return true;
         };
 
-        ImGui::Begin("Rooms", &_showRooms);
         auto &rooms = _engine.getRooms();
         int currentRoom = 0;
         for (int i = 0; i < rooms.size(); i++)
@@ -661,10 +641,15 @@ class _DebugTools
         auto &room = rooms[currentRoom];
 
         auto options = _engine.getWalkboxesFlags();
-        auto showWalkboxes = (options&1)?true:false;
+        auto showWalkboxes = (options&4)?true:false;
         if (ImGui::Checkbox("Walkboxes", &showWalkboxes))
         {
-            _engine.setWalkboxesFlags(showWalkboxes?(1|options):(options&~1));
+            _engine.setWalkboxesFlags(showWalkboxes?(4|options):(options&~4));
+        }
+        auto showMergedWalkboxes = (options&1)?true:false;
+        if (ImGui::Checkbox("Merged Walkboxes", &showMergedWalkboxes))
+        {
+            _engine.setWalkboxesFlags(showMergedWalkboxes?(1|options):(options&~1));
         }
         auto showGraph = (options&2)?true:false;
         if (ImGui::Checkbox("Graph", &showGraph))
@@ -695,7 +680,6 @@ class _DebugTools
         {
             room->setEffect(effect);
         }
-        ImGui::End();
     }
 
     void updateWalkboxInfos(Room *pRoom)
@@ -787,9 +771,6 @@ class _DebugTools
 
   private:
     Engine &_engine;
-    bool _showActors{true};
-    bool _showObjects{true};
-    bool _showRooms{true};
     int _selectedActor{0};
     Object* _pSelectedObject{nullptr};
     int _selectedStack{0};
