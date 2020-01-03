@@ -544,47 +544,10 @@ void Engine::Impl::updateScreenSize()
 {
     if (_pRoom)
     {
-        if (_pRoom->getFullscreen() == 1)
-        {
-            auto roomSize = _pRoom->getRoomSize();
-            sf::View view(sf::FloatRect(0, 0, roomSize.x, roomSize.y));
-            _pWindow->setView(view);
-        }
-        else
-        {
-            auto height = _pRoom->getScreenHeight();
-            switch (height)
-            {
-                case 128:
-                {
-                    sf::View view(sf::FloatRect(0, 0, 320, 180));
-                    _pWindow->setView(view);
-                    break;
-                }
-                case 172:
-                {
-                    sf::View view(sf::FloatRect(0, 0, 428, 240));
-                    _pWindow->setView(view);
-                    break;
-                }
-                case 256:
-                {
-                    sf::View view(sf::FloatRect(0, 0, 640, 360));
-                    _pWindow->setView(view);
-                    break;
-                }
-                default:
-                {
-                    height = 180.f * height / 128.f;
-                    auto ratio = 320.f / 180.f;
-                    sf::View view(sf::FloatRect(0, 0, ratio * height, height));
-                    _pWindow->setView(view);
-                    break;
-                }
-            }
-        }
+        auto screen = _pRoom->getFullscreen() == 1 ? _pRoom->getRoomSize() : _pRoom->getScreenSize();
+        sf::View view(sf::FloatRect(0, 0, screen.x, screen.y));
+        _pWindow->setView(view);
 
-        auto screen = _pWindow->getView().getSize();
         sf::Vector2f size(screen.x / 6.f, screen.y / 14.f);
         for (auto i = 0; i < 9; i++)
         {
@@ -1082,7 +1045,7 @@ void Engine::update(const sf::Time &elapsed)
 
     auto screen = _pImpl->_pWindow->getView().getSize();
     _pImpl->_pRoom->update(elapsed);
-    if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible())
+    if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible() && _pImpl->_pFollowActor->getRoom() == getRoom())
     {
         auto pos = _pImpl->_pFollowActor->getPosition() - sf::Vector2f(screen.x / 2, screen.y / 2);
         auto margin = screen.x / 4;

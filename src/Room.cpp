@@ -771,4 +771,30 @@ void Room::setOverlayColor(sf::Color color) { pImpl->_overlayColor = color; }
 
 sf::Color Room::getOverlayColor() const { return pImpl->_overlayColor; }
 
+sf::Vector2i Room::getScreenSize() const
+{
+    auto height = getScreenHeight();
+    switch (height)
+    {
+        case 128:
+        {
+            return sf::Vector2i(320, 180);
+        }
+        case 172:
+        {
+            return sf::Vector2i(428, 240);
+        }
+        case 256:
+        {
+            return sf::Vector2i(640, 360);
+        }
+        default:
+        {
+            height = 180.f * height / 128.f;
+            auto ratio = 320.f / 180.f;
+            return sf::Vector2i(ratio * height, height);
+        }
+    }
+}
+
 } // namespace ng

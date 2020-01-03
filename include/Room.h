@@ -57,6 +57,7 @@ public:
   TextObject &createTextObject(const std::string &fontName);
   void deleteObject(Object &textObject);
   [[nodiscard]] sf::Vector2i getRoomSize() const;
+  [[nodiscard]] sf::Vector2i getScreenSize() const;
   [[nodiscard]] int32_t getFullscreen() const;
   [[nodiscard]] int32_t getScreenHeight() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);

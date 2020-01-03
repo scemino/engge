@@ -317,11 +317,11 @@ private:
 
     static SQInteger cameraAt(HSQUIRRELVM v)
     {
-        auto screen = g_pEngine->getWindow().getView().getSize();
-        SQInteger x, y;
+        sf::Vector2f pos;
         auto numArgs = sq_gettop(v) - 1;
         if (numArgs == 2)
         {
+            SQInteger x, y;
             if (SQ_FAILED(sq_getinteger(v, 2, &x)))
             {
                 return sq_throwerror(v, _SC("failed to get x"));
@@ -330,7 +330,7 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            g_pEngine->getCamera().at(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f));
+            pos = sf::Vector2f(x, y);
         }
         else
         {
@@ -344,10 +344,11 @@ private:
             {
                 return result;
             }
-
-            auto pos = entity->getRealPosition();
-            g_pEngine->getCamera().at(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
+            pos = entity->getRealPosition();
         }
+
+        auto screen = g_pEngine->getRoom()->getScreenSize();
+        g_pEngine->getCamera().at(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
         return 0;
     }
 
