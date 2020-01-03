@@ -93,7 +93,6 @@ void SoundManager::stopAllSounds()
     {
         if (_soundId)
         {
-            _soundId->stop();
             _soundId.reset();
         }
     }
@@ -107,7 +106,6 @@ void SoundManager::stopSound(SoundId *pSound)
     {
         if (_soundId && _soundId.get() == pSound)
         {
-            _soundId->stop();
             _soundId.reset();
             return;
         }

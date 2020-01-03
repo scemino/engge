@@ -30,9 +30,18 @@ public:
         if (!_isTalking)
             return;
 
+        bool end = false;
         _elapsed += elapsed;
-        if (_elapsed > _duration)
+        auto pSound = dynamic_cast<SoundId*>(ScriptEngine::getSoundFromId(_soundId));
+        if(pSound)
         {
+            end = !pSound->isPlaying();
+        }
+        else {
+            end = _elapsed > _duration;
+        }
+
+        if(end) {
             if (_ids.empty())
             {
                 _isTalking = false;
@@ -68,6 +77,7 @@ public:
     { 
         _isTalking = true; 
         _duration = duration;
+        trace("Talk duration: {}", _duration.asSeconds());
         _elapsed = sf::seconds(0);
     }
     
@@ -135,9 +145,7 @@ private:
             }
         }
 
-        _duration = _lipAnim.getDuration();
-        _isTalking = true;
-        _elapsed = sf::seconds(0);
+        setDuration(_lipAnim.getDuration());
     }
 
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override

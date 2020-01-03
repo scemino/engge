@@ -1117,10 +1117,16 @@ class _ActorPack : public Pack
 
     static SQInteger sayLine(HSQUIRRELVM v)
     {
+        auto pCurrentActor = ScriptEngine::getActor(v, 2);
+        if(!pCurrentActor){
+            pCurrentActor = g_pEngine->getCurrentActor();
+        }
+        
+        // actors should stop talking except current actor
         auto &actors = g_pEngine->getActors();
         for (auto &a : actors)
         {
-            if (a.get() == g_pEngine->getCurrentActor())
+            if (a.get() == pCurrentActor)
                 continue;
             a->stopTalking();
         }

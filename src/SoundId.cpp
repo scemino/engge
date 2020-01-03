@@ -84,13 +84,11 @@ void SoundId::updateVolume()
     float entityVolume = 1.f;
     if (_pEntity)
     {
-        entityVolume = _pEntity->getVolume();
         auto pRoom = _soundManager.getEngine()->getRoom();
         auto at = _soundManager.getEngine()->getCamera().getAt();
-        
-        if (pRoom != _pEntity->getRoom())
-            entityVolume = 0;
-        else
+        entityVolume = pRoom != _pEntity->getRoom() ? 0 : _pEntity->getVolume();
+
+        if(pRoom == _pEntity->getRoom())
         {
             auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
             at.x += width / 2.f;
@@ -136,6 +134,8 @@ void SoundId::update(const sf::Time &elapsed)
         }
         else
         {
+            auto path = _pSoundDefinition->getPath();
+            trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
             _soundManager.stopSound(this);
             return;
         }

@@ -27,7 +27,7 @@ void Lip::load(const std::string &path)
     std::regex re(R"(^(\d*\.?\d*)\s+(\w)$)");
 
     std::string line;
-    while (getLine(input, line))
+    while (getLine(input, line) || !line.empty())
     {
         std::smatch matches;
         if (!std::regex_search(line, matches, re))
