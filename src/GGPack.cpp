@@ -304,12 +304,12 @@ bool GGPack::hasEntry(const std::string &name)
 void GGPack::readEntry(const std::string &name, std::vector<char> &data)
 {
     auto entry = _entries[name];
-    data.resize(entry.size);
+    data.resize(entry.size + 1);
     _input.seekg(entry.offset, std::ios::beg);
 
     _input.read(data.data(), entry.size);
     decodeUnbreakableXor(data.data(), entry.size);
-    data[entry.size - 1] = 0;
+    data[entry.size] = 0;
 }
 
 void GGPack::readString(int offset, std::string &key)
@@ -318,7 +318,6 @@ void GGPack::readString(int offset, std::string &key)
     offset = _offsets[offset];
     auto off = offset;
     _bufferStream.seek(off);
-    std::string s;
     char c;
     do
     {

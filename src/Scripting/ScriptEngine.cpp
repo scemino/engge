@@ -151,7 +151,7 @@ ThreadBase *ScriptEngine::getThreadFromId(int id)
     if(!ResourceManager::isThread(id)) return nullptr;
 
     auto& threads = g_pEngine->getThreads();
-    auto it = std::find_if(threads.begin(),threads.end(),[id](auto& t){
+    auto it = std::find_if(threads.begin(),threads.end(),[id](auto& t) -> bool {
         return t->getId() == id;
     });
     if(it != threads.end()) return (*it).get();
@@ -168,7 +168,7 @@ ThreadBase* ScriptEngine::getThreadFromVm(HSQUIRRELVM v)
     }
 
     auto& threads = g_pEngine->getThreads();
-    auto it = std::find_if(threads.begin(),threads.end(),[v](auto& t){
+    auto it = std::find_if(threads.begin(),threads.end(),[v](auto& t) -> bool {
         return t->getThread() == v;
     });
     if(it != threads.end()) return (*it).get();
@@ -518,7 +518,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
         _pEngine->getSettings().readEntry(entryName, code);
 
         // decode bnut
-        int cursor = code.size() & 0xff;
+        int cursor = (code.size()-1) & 0xff;
         for (char &i : code)
         {
             i ^= _bnutPass[cursor];
