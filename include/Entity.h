@@ -59,6 +59,7 @@ public:
   void setTrigger(int triggerNumber, Trigger* pTrigger);
   void trig(int triggerNumber);
 
+  virtual float getVolume() const { return 1.f; }
   virtual void trigSound(const std::string &name);
   virtual void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const;
 

@@ -76,6 +76,7 @@ public:
   bool isInventoryObject() const override;
 
   void setVolume(float volume);
+  float getVolume() const override;
 
   void trigSound(const std::string &name) override;
 

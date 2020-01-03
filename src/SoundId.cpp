@@ -1,4 +1,5 @@
 #include "Actor.h"
+#include "Camera.h"
 #include "Engine.h"
 #include "Entity.h"
 #include "Locator.h"
@@ -83,25 +84,26 @@ void SoundId::updateVolume()
     float entityVolume = 1.f;
     if (_pEntity)
     {
-        auto pActor = _soundManager.getEngine()->getCurrentActor();
-        if (pActor)
+        entityVolume = _pEntity->getVolume();
+        auto pRoom = _soundManager.getEngine()->getRoom();
+        auto at = _soundManager.getEngine()->getCamera().getAt();
+        
+        if (pRoom != _pEntity->getRoom())
+            entityVolume = 0;
+        else
         {
-            if (pActor->getRoom() != _pEntity->getRoom())
+            auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
+            at.x += width / 2.f;
+            auto diff = fabs(at.x - _pEntity->getRealPosition().x);
+            entityVolume = (1.5f - (diff / width)) / 1.5f;
+            if (entityVolume < 0)
                 entityVolume = 0;
-            else
-            {
-                auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
-                auto diff = fabs(pActor->getRealPosition().x - _pEntity->getRealPosition().x);
-                entityVolume = (1.5f - (diff / width)) / 1.5f;
-                if (entityVolume < 0)
-                    entityVolume = 0;
-                float pan = (_pEntity->getRealPosition().x - pActor->getRealPosition().x) / (width / 2);
-                if (pan > 1.f)
-                    pan = 1.f;
-                if (pan < -1.f)
-                    pan = -1.f;
-                _sound.setPosition({pan, 0.f, pan < 0.f ? -pan - 1.f : pan - 1.f});
-            }
+            float pan = (_pEntity->getRealPosition().x - at.x) / (width / 2);
+            if (pan > 1.f)
+                pan = 1.f;
+            if (pan < -1.f)
+                pan = -1.f;
+            _sound.setPosition({pan, 0.f, pan < 0.f ? -pan - 1.f : pan - 1.f});
         }
     }
     float categoryVolume = 0;

@@ -213,6 +213,7 @@ void Actor::stopWalking() { pImpl->_walkingState.stop(); }
 bool Actor::isWalking() const { return pImpl->_walkingState.isWalking(); }
 
 void Actor::setVolume(float volume) { pImpl->_volume = volume; }
+float Actor::getVolume() const { return pImpl->_volume; }
 
 HSQOBJECT &Actor::getTable() { return pImpl->_table; }
 HSQOBJECT &Actor::getTable() const { return pImpl->_table; }

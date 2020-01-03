@@ -60,11 +60,6 @@ SoundId* SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
 {
     auto soundId = std::make_unique<SoundId>(*this, pSoundDefinition, category);
     soundId->setEntity(pEntity);
-    // TODO:
-    // if(pEntity)
-    // {
-    //     soundId->setVolume(pEntity->getVolume());
-    // }
     auto index = getSlotIndex();
     if (index == -1)
     {
@@ -84,7 +79,7 @@ SoundId* SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
         sCategory = "talk";
         break;
     }
-    trace(" [{}]loop {} {} {}", index, loopTimes, sCategory, pSoundDefinition->getPath());
+    trace("[{}] loop {} {} {}", index, loopTimes, sCategory, pSoundDefinition->getPath());
     SoundId *pSoundId = soundId.get();
     _soundIds.at(index) = std::move(soundId);
     pSoundId->play(loopTimes);
