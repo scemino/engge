@@ -1054,7 +1054,7 @@ void Engine::update(const sf::Time &elapsed)
     _pImpl->_frameCounter++;
     auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
     auto wasMouseRightDown = !io.WantCaptureMouse && _pImpl->_isMouseRightDown;
-    _pImpl->_isMouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && _pImpl->_pWindow->hasFocus();
+    _pImpl->_isMouseDown = !io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && _pImpl->_pWindow->hasFocus();
     if(!wasMouseDown || !_pImpl->_isMouseDown)
     {
         _pImpl->_mouseDownTime = sf::seconds(0);

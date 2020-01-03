@@ -22,25 +22,15 @@ class _DebugTools
   public:
     explicit _DebugTools(Engine &engine) : _engine(engine)
     {
-        _objectFilter.reserve(128);
     }
 
     void render() {
-        static auto stackGetter = [](void *vec, int idx, const char **out_text) {
-            auto &vector = *static_cast<std::vector<std::string> *>(vec);
-            if (idx < 0 || idx >= static_cast<int>(vector.size())) {
-                return false;
-            }
-            *out_text = vector.at(idx).c_str();
-            return true;
-        };
-
         ImGui::Begin("Debug");
         std::stringstream s;
         s << "Stack: " << sq_gettop(_engine.getVm());
         std::vector<std::string> stack;
         getStack(stack);
-        ImGui::Combo(s.str().c_str(), &_selectedStack, stackGetter, static_cast<void *>(&stack), stack.size());
+        ImGui::Combo(s.str().c_str(), &_selectedStack, stringGetter, static_cast<void *>(&stack), stack.size());
         ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
         auto dialogState = _engine.getDialogManager().getState();
         ImGui::Text("In dialog: %s",
@@ -334,23 +324,13 @@ class _DebugTools
         if (!ImGui::CollapsingHeader("Actors"))
             return;
 
-        static auto actorGetter = [](void *vec, int idx, const char **out_text) {
-            auto &vector = *static_cast<std::vector<std::string> *>(vec);
-            if (idx < 0 || idx >= static_cast<int>(vector.size()))
-            {
-                return false;
-            }
-            *out_text = vector.at(idx).c_str();
-            return true;
-        };
-
         auto &actors = _engine.getActors();
         _actorInfos.clear();
         for (auto &&actor : actors)
         {
             _actorInfos.push_back(toUtf8(actor->getTranslatedName()));
         }
-        ImGui::Combo("##Actor", &_selectedActor, actorGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
+        ImGui::Combo("##Actor", &_selectedActor, stringGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
 
         ImGui::PushID("costume");
@@ -614,27 +594,21 @@ class _DebugTools
         if (!ImGui::CollapsingHeader("Rooms"))
             return;
 
-        static auto walkboxGetter = [](void *vec, int idx, const char **out_text) {
-            auto &vector = *static_cast<std::vector<std::string> *>(vec);
-            if (idx < 0 || idx >= static_cast<int>(vector.size()))
-            {
-                return false;
-            }
-            *out_text = vector.at(idx).c_str();
-            return true;
-        };
-
         auto &rooms = _engine.getRooms();
+        _roomInfos.clear();
+        int i = 0;
         int currentRoom = 0;
-        for (int i = 0; i < rooms.size(); i++)
+        for (auto &&room : rooms)
         {
-            if (rooms[i].get() == _engine.getRoom())
+            if (room.get() == _engine.getRoom())
             {
                 currentRoom = i;
-                break;
             }
+            _roomInfos.push_back(room->getName());
+            i++;
         }
-        if (ImGui::Combo("Room", &currentRoom, roomGetter, static_cast<void *>(&rooms), rooms.size()))
+
+        if (ImGui::Combo("Room", &currentRoom, stringGetter, static_cast<void *>(&_roomInfos), rooms.size()))
         {
             _engine.setRoom(rooms[currentRoom].get());
         }
@@ -657,7 +631,7 @@ class _DebugTools
             _engine.setWalkboxesFlags(showGraph?(2|options):(options&~2));
         }
         updateWalkboxInfos(room.get());
-        ImGui::Combo("##walkboxes", &_selectedWalkbox, walkboxGetter, static_cast<void *>(&_walkboxInfos),
+        ImGui::Combo("##walkboxes", &_selectedWalkbox, stringGetter, static_cast<void *>(&_walkboxInfos),
                      _walkboxInfos.size());
         auto rotation = room->getRotation();
         if (ImGui::SliderFloat("rotation", &rotation, -180.f, 180.f, "%.0f deg"))
@@ -706,14 +680,14 @@ class _DebugTools
         }
     }
 
-    static bool roomGetter(void *vec, int idx, const char **out_text)
+    static bool stringGetter(void *vec, int idx, const char **out_text)
     {
-        auto &vector = *static_cast<std::vector<std::unique_ptr<Room>> *>(vec);
+        auto &vector = *static_cast<std::vector<std::string> *>(vec);
         if (idx < 0 || idx >= static_cast<int>(vector.size()))
         {
             return false;
         }
-        *out_text = vector.at(idx)->getName().c_str();
+        *out_text = vector.at(idx).c_str();
         return true;
     }
 
@@ -777,8 +751,8 @@ class _DebugTools
     int _selectedWalkbox{0};
     std::vector<std::string> _walkboxInfos;
     std::vector<std::string> _actorInfos;
+    std::vector<std::string> _roomInfos;
     static const char *_langs[];
-    std::string _objectFilter;
     CostumeAnimation* _pSelectedAnim{nullptr};
     ImGuiTextFilter _filterCostume;
 };
