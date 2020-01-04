@@ -121,11 +121,12 @@ void ScriptEngine::call(const char* name, T...args)
 {
     constexpr std::size_t n = sizeof...(T);
     auto v = g_pEngine->getVm();
+    auto top = sq_gettop(v);
     sq_pushroottable(v);
     sq_pushstring(v, _SC(name), -1);
     if (SQ_FAILED(sq_rawget(v, -2)))
     {
-        sq_pop(v, 1);
+        sq_settop(v, top);
         trace("can't find {} function", name);
         return;
     }
@@ -136,11 +137,11 @@ void ScriptEngine::call(const char* name, T...args)
     if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
     {
         sqstd_printcallstack(v);
-        sq_pop(v, 1);
+        sq_settop(v, top);
         error("function {} call failed", name);
         return;
     }
-    sq_pop(v, 1);
+    sq_settop(v, top);
 }
 
 template<typename TThis, typename...T>
@@ -148,11 +149,12 @@ void ScriptEngine::call(TThis pThis, const char* name, T... args)
 {
     constexpr std::size_t n = sizeof...(T);
     auto v = g_pEngine->getVm();
+    auto top = sq_gettop(v);
     ScriptEngine::push(v, pThis);
     sq_pushstring(v, _SC(name), -1);
     if (SQ_FAILED(sq_rawget(v, -2)))
     {
-        sq_pop(v, 1);
+        sq_settop(v, top);
         trace("can't find {} function", name);
         return;
     }
@@ -163,22 +165,23 @@ void ScriptEngine::call(TThis pThis, const char* name, T... args)
     if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
     {
         sqstd_printcallstack(v);
-        sq_pop(v, 1);
+        sq_settop(v, top);
         error("function {} call failed", name);
         return;
     }
-    sq_pop(v, 1);
+    sq_settop(v, top);
 }
 
 template<typename TThis>
 void ScriptEngine::call(TThis pThis, const char* name)
 {
     auto v = g_pEngine->getVm();
+    auto top = sq_gettop(v);
     ScriptEngine::push(v, pThis);
     sq_pushstring(v, _SC(name), -1);
     if (SQ_FAILED(sq_rawget(v, -2)))
     {
-        sq_pop(v, 1);
+        sq_settop(v, top);
         trace("can't find {} function", name);
         return;
     }
@@ -188,11 +191,11 @@ void ScriptEngine::call(TThis pThis, const char* name)
     if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
     {
         sqstd_printcallstack(v);
-        sq_pop(v, 1);
+        sq_settop(v, top);
         error("function {} call failed", name);
         return;
     }
-    sq_pop(v, 1);
+    sq_settop(v, top);
 }
 
 template<typename TResult, typename TThis, typename...T>
@@ -232,12 +235,16 @@ bool ScriptEngine::get(TThis pThis, const char* name, T& result)
 template<typename TThis, typename T>
 bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char* name, T& result)
 {
+  auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_SUCCEEDED(sq_rawget(v, -2)))
   {
-    return ScriptEngine::get(v, -1, result);
+    auto status = ScriptEngine::get(v, -1, result);
+    sq_settop(v, top);
+    return status;
   }
+  sq_settop(v, top);
   return false;
 }
 
