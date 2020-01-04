@@ -122,8 +122,8 @@ void _RoomTrigger::trigCore()
             }
             else
             {
-                sq_pushobject(_vm, _outside);
-                sq_pushobject(_vm, _object.getTable());
+                params.push_back(_outside);
+                params.push_back(_object.getTable());
             }
 
             std::string name;
