@@ -35,6 +35,7 @@ void DialogManager::addFunction(std::unique_ptr<Function> function)
 
 void DialogManager::start(const std::string &name, const std::string &node)
 {
+    _actorName.clear();
     std::string path;
     path.append(name).append(".byack");
 
@@ -112,7 +113,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         s = L"● ";
         s += dialogText;
         text.setText(s);
-        text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors()->dialogHighlight : _pEngine->getVerbUiColors()->dialogNormal);
+        text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(_actorName)->dialogHighlight : _pEngine->getVerbUiColors(_actorName)->dialogNormal);
         target.draw(text, states);
         dialog++;
     }
@@ -178,6 +179,11 @@ void DialogManager::update(const sf::Time &elapsed)
         }
         dialog++;
     }
+}
+
+void DialogManager::setActorName(const std::string& actor)
+{
+    _actorName = actor;
 }
 
 void DialogManager::choose(int choice)

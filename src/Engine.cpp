@@ -344,12 +344,23 @@ void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors)
     _pImpl->_verbUiColors.at(characterSlot) = colors;
 }
 
-VerbUiColors *Engine::getVerbUiColors()
-{ 
-    
-    auto index = _pImpl->getCurrentActorIndex();
-    if(index == -1) return nullptr;
-    return &_pImpl->_verbUiColors.at(index);
+const VerbUiColors *Engine::getVerbUiColors(const std::string& name) const
+{
+    if(name.empty())
+    {
+        auto index = _pImpl->getCurrentActorIndex();
+        if(index == -1) return nullptr;
+        return &_pImpl->_verbUiColors.at(index);
+    }
+    for (auto i = 0; i < _pImpl->_actorsIconSlots.size(); i++)
+    {
+        const auto &selectableActor = _pImpl->_actorsIconSlots.at(i);
+        if (selectableActor.pActor->getKey() == name)
+        {
+            return &_pImpl->_verbUiColors.at(i);
+        }
+    }
+    return nullptr;
 }
 
 bool Engine::getInputActive() const { return _pImpl->_inputActive; }

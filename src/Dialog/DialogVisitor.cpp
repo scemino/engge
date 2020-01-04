@@ -193,8 +193,7 @@ void DialogVisitor::visit(const Ast::Parrot &node)
 
 void DialogVisitor::visit(const Ast::Dialog &node)
 {
-    // TODO: dialog
-    trace("TODO: dialog");
+    _dialogManager.setActorName(node.actor);
 }
 
 void DialogVisitor::visit(const Ast::AllowObjects &node)

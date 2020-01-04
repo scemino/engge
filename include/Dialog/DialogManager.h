@@ -95,6 +95,7 @@ public:
   DialogManagerState getState() const { return _state; }
   void addFunction(std::unique_ptr<Function> function);
   void choose(int choice);
+  void setActorName(const std::string& actor);
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -108,5 +109,6 @@ private:
   DialogVisitor _dialogVisitor;
   std::vector<std::unique_ptr<Function>> _functions;
   Font _font;
+  std::string _actorName;
 };
 } // namespace ng
