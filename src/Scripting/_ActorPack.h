@@ -360,14 +360,14 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get object or actor"));
         }
-        SQInteger distance;
-        if (SQ_FAILED(sq_getinteger(v, 4, &distance)))
+        SQInteger d;
+        if (SQ_FAILED(sq_getinteger(v, 4, &d)))
         {
             return sq_throwerror(v, _SC("failed to get distance"));
         }
         auto pos = actor->getRealPosition() - object->getRealPosition();
         auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
-        sq_pushbool(v, dist < distance);
+        sq_pushbool(v, dist < d);
         return 1;
     }
 
@@ -780,14 +780,14 @@ class _ActorPack : public Pack
     static Facing _getFacingToFaceTo(Actor* pActor, Entity* pEntity)
     {
         Facing facing;
-        auto distance = pEntity->getRealPosition() - pActor->getRealPosition();
-        if (distance.x == 0)
+        auto d = pEntity->getRealPosition() - pActor->getRealPosition();
+        if (d.x == 0)
         {
-            facing = distance.y > 0 ? Facing::FACE_FRONT : Facing::FACE_BACK;
+            facing = d.y > 0 ? Facing::FACE_FRONT : Facing::FACE_BACK;
         }
         else
         {
-            facing = distance.x > 0 ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
+            facing = d.x > 0 ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
         }
         return facing;
     }
@@ -943,10 +943,9 @@ class _ActorPack : public Pack
             {
                 auto pos = pObject->getRealPosition();
                 auto usePos = pObject->getUsePosition();
-                auto hotspot = pObject->getHotspot();
                 auto roomHeight = pObject->getRoom()->getRoomSize().y;
-                pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
-                pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2.f;
+                pos.x += usePos.x;
+                pos.y += usePos.y - roomHeight;
                 pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));
                 return 0;
             }
