@@ -9,7 +9,7 @@ void RoomLayer::addEntity(Entity &entity) { _entities.emplace_back(entity); }
 void RoomLayer::removeEntity(Entity &entity)
 {
     _entities.erase(std::remove_if(_entities.begin(), _entities.end(),
-                                   [&entity](auto &pEntity) { return &pEntity.get() == &entity; }),
+                                   [&entity](auto &pEntity) -> bool { return &pEntity.get() == &entity; }),
                     _entities.end());
 }
 
@@ -18,8 +18,17 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     if (!_enabled)
         return;
 
+    std::vector<std::reference_wrapper<Entity>> entities;
+    std::copy(_entities.begin(), _entities.end(), std::back_inserter(entities));
+    std::sort(entities.begin(), entities.end(),
+              [](const Entity &a, const Entity &b) { 
+                  if(a.getZOrder() == b.getZOrder())
+                    return a.getId() < b.getId();
+                  return a.getZOrder() > b.getZOrder();
+                });
+
     // draw layer objects
-    for (const Entity &entity : _entities)
+    for (const Entity &entity : entities)
     {
         if (entity.getZOrder() >= 0)
             continue;
@@ -34,7 +43,7 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
 
     // draw layer objects
-    for (const Entity &entity : _entities)
+    for (const Entity &entity : entities)
     {
         if (entity.getZOrder() < 0)
             continue;
@@ -51,8 +60,6 @@ void RoomLayer::drawForeground(sf::RenderTarget &target, sf::RenderStates states
 
 void RoomLayer::update(const sf::Time &elapsed)
 {
-    std::sort(std::begin(_entities), std::end(_entities),
-              [](const Entity &a, const Entity &b) { return a.getZOrder() > b.getZOrder(); });
     std::for_each(std::begin(_entities), std::end(_entities), [elapsed](Entity &obj) { obj.update(elapsed); });
 }
 
