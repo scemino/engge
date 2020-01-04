@@ -41,6 +41,8 @@ std::shared_ptr<Graph> PathFinder::createGraph() {
 }
 
 std::vector<sf::Vector2f> PathFinder::calculatePath(sf::Vector2f from, sf::Vector2f to) {
+    if(_walkboxes.empty()) return std::vector<sf::Vector2f>();
+    
     if (!_graph) {
         _graph = createGraph();
     }
