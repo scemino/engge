@@ -114,7 +114,7 @@ void Cutscene::doCutsceneOverride()
 
 void Cutscene::checkEndCutsceneOverride()
 {
-    if (isStopped())
+    if (ThreadBase::isStopped())
     {
         _state = 4;
         trace("end checkEndCutsceneOverride: {}", _id);
