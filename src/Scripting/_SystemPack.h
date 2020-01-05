@@ -55,15 +55,24 @@ public:
 class _BreakHereFunction : public _BreakFunction
 {
 public:
-    explicit _BreakHereFunction(Engine &engine, int id)
-        : _BreakFunction(engine, id)
+    explicit _BreakHereFunction(Engine &engine, int id, int numFrames)
+        : _BreakFunction(engine, id), _fc(engine.getFrameCounter()), _numFrames(numFrames)
     {
+    }
+
+    bool isElapsed() override
+    {
+        return _engine.getFrameCounter() >= (_fc+_numFrames);
     }
 
     [[nodiscard]] std::string getName() const override
     {
         return "_BreakHereFunction";
     }
+
+private:
+    int _fc;
+    int _numFrames;
 };
 
 class _BreakWhileAnimatingFunction : public _BreakFunction
@@ -443,10 +452,15 @@ private:
 
     static SQInteger breakhere(HSQUIRRELVM v)
     {
+        SQFloat numFrames;
+        if (SQ_FAILED(sq_getfloat(v, 2, &numFrames)))
+        {
+            return sq_throwerror(v, _SC("failed to get numFrames"));
+        }
         auto pThread = ScriptEngine::getThreadFromVm(v);
         pThread->suspend();
 
-        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, pThread->getId()));
+        g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, pThread->getId(), numFrames));
         return SQ_SUSPEND_FLAG;
     }
 
