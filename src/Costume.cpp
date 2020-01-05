@@ -28,6 +28,8 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
     }
     if (_pCurrentAnimation == nullptr)
         return;
+    if(_pCurrentAnimation->getLayers().empty())
+        return;
     auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](CostumeLayer *pLayer) {
         return pLayer->getName() == name;
     });
@@ -199,8 +201,6 @@ bool Costume::setAnimation(const std::string &animName)
             return true;
         }
     }
-
-    _pCurrentAnimation = nullptr;
 
     return false;
 }
