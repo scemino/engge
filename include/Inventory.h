@@ -42,5 +42,6 @@ private:
   std::array<sf::IntRect,8> _inventoryRects;
   Object *_pCurrentInventoryObject{nullptr};
   sf::Vector2f _mousePos;
+  float _jiggleTime{0};
 };
 } // namespace ng

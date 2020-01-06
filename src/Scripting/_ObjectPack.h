@@ -195,7 +195,17 @@ class _ObjectPack : public Pack
 
     static SQInteger jiggleInventory(HSQUIRRELVM v)
     {
-        error("TODO: jiggleInventory: not implemented");
+        Object *obj = ScriptEngine::getObject(v, 2);
+        if (!obj)
+        {
+            return sq_throwerror(v, _SC("failed to get object"));
+        }
+        SQInteger enabled = 0;
+        if (SQ_FAILED(sq_getinteger(v, 3, &enabled)))
+        {
+            return sq_throwerror(v, _SC("failed to get enabled"));
+        }
+        obj->setJiggle(enabled != 0);
         return 0;
     }
 

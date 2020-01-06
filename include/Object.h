@@ -138,6 +138,9 @@ public:
   void setTemporary(bool isTemporary);
   bool isTemporary() const;
 
+  void setJiggle(bool enabled);
+  bool getJiggle() const;
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;

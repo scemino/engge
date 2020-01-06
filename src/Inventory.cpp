@@ -30,6 +30,7 @@ void Inventory::setEngine(Engine *pEngine)
 
 bool Inventory::update(const sf::Time &elapsed)
 {
+    _jiggleTime += 20.f * elapsed.asSeconds();
     _pCurrentInventoryObject = nullptr;
 
     if (_pCurrentActor == nullptr)
@@ -229,6 +230,9 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
         sf::Sprite sprite;
         sprite.setOrigin(origin);
+        if(object->getJiggle()) {
+            sprite.setRotation(3.f * sinf(_jiggleTime));
+        }
         sprite.setPosition(sf::Vector2f(x + startX, y + startY));
         sprite.setTexture(_inventoryItems.getTexture());
         sprite.setTextureRect(rect);

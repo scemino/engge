@@ -38,6 +38,7 @@ struct Object::Impl
     ScreenSpace _screenSpace{ScreenSpace::Room};
     std::vector<Object *> _children;
     bool _temporary{false};
+    bool _jiggle{false};
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) 
@@ -358,6 +359,10 @@ void Object::stopObjectMotors()
 void Object::setTemporary(bool isTemporary) { pImpl->_temporary = isTemporary; }
 
 bool Object::isTemporary() const { return pImpl->_temporary; }
+
+void Object::setJiggle(bool enabled){ pImpl->_jiggle = enabled; }
+
+bool Object::getJiggle() const { return pImpl->_jiggle; }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj)
 {
