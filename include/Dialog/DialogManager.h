@@ -97,6 +97,7 @@ public:
   void choose(int choice);
   void setActorName(const std::string& actor);
   inline void enableParrotMode(bool enable) { _parrotModeEnabled = enable; }
+  inline void setLimit(int limit) { _limit = limit; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -112,5 +113,6 @@ private:
   Font _font;
   std::string _actorName;
   bool _parrotModeEnabled{true};
+  int _limit{6};
 };
 } // namespace ng

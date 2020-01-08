@@ -209,8 +209,7 @@ void DialogVisitor::visit(const Ast::WaitWhile &node)
 
 void DialogVisitor::visit(const Ast::Limit &node)
 {
-    // TODO: limit
-    trace("TODO: limit");
+    _dialogManager.setLimit(node.max);
 }
 
 int DialogVisitor::getId(const std::string &text)

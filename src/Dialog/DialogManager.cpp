@@ -37,7 +37,8 @@ void DialogManager::start(const std::string &name, const std::string &node)
 {
     _actorName.clear();
     _parrotModeEnabled = true;
-    
+    _limit = 6;
+
     std::string path;
     path.append(name).append(".byack");
 
@@ -102,6 +103,8 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         if (dlg.id == 0)
             continue;
 
+        if((dialog+1) >= _limit) break;
+
         text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         std::wstring dialogText = dlg.text;
         std::wregex re(L"(\\{([^\\}]*)\\})");
@@ -164,6 +167,8 @@ void DialogManager::update(const sf::Time &elapsed)
     {
         if (dlg.id == 0)
             continue;
+
+        if((dialog+1) >= _limit) break;
 
         // HACK: bad, bad, this code is the same as in the draw function
         NGText text;
