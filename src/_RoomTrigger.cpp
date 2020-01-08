@@ -17,7 +17,7 @@ _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQ
     sq_addref(_vm, &outside);
     sq_resetobject(&thread_obj);
 
-    auto id = Locator::getResourceManager().getThreadId();
+    auto id = Locator<ResourceManager>::get().getThreadId();
 
     SQInteger top = sq_gettop(_vm);
     sq_newthread(_vm, 1024);

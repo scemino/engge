@@ -14,7 +14,7 @@ namespace ng
 SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
     : _soundManager(soundManager), _pSoundDefinition(pSoundDefinition), _category(category)
 {
-    _id = Locator::getResourceManager().getSoundId();
+    _id = Locator<ResourceManager>::get().getSoundId();
 }
 
 SoundId::~SoundId()

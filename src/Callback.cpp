@@ -8,7 +8,7 @@ namespace ng
 Callback::Callback(HSQUIRRELVM v, sf::Time duration, HSQOBJECT method)
 : TimeFunction(duration), _v(v), _done(false), _method(method)
 {
-    _id = Locator::getResourceManager().getCallbackId();
+    _id = Locator<ResourceManager>::get().getCallbackId();
     sq_addref(_v, &_method);
 }
 

@@ -12,7 +12,7 @@ Thread::Thread(bool isGlobal, HSQUIRRELVM v, HSQOBJECT thread_obj, HSQOBJECT env
     : _isGlobal(isGlobal), _v(v), _thread_obj(thread_obj), _env_obj(env_obj), _closureObj(closureObj), _args(std::move(args))
 {
     sq_addref(_v, &_thread_obj);
-    _id = Locator::getResourceManager().getThreadId();
+    _id = Locator<ResourceManager>::get().getThreadId();
 }
 
 Thread::~Thread()

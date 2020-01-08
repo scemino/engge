@@ -65,30 +65,30 @@ void Logger::critical(string_view_t message, const Args &... args)
 template<typename... Args>
 static void trace(string_view_t message, const Args &... args)
 {
-    Locator::getLogger().trace(message, args...);
+    Locator<Logger>::get().trace(message, args...);
 }
 
 template<typename... Args>
 static void info(string_view_t message, const Args &... args)
 {
-    Locator::getLogger().info(message, args...);
+    Locator<Logger>::get().info(message, args...);
 }
 
 template<typename... Args>
 static void warn(string_view_t message, const Args &... args)
 {
-    Locator::getLogger().warn(message, args...);
+    Locator<Logger>::get().warn(message, args...);
 }
 
 template<typename... Args>
 static void error(string_view_t message, const Args &... args)
 {
-    Locator::getLogger().error(message, args...);
+    Locator<Logger>::get().error(message, args...);
 }
 
 template<typename... Args>
 static void critical(string_view_t message, const Args &... args)
 {
-    Locator::getLogger().critical(message, args...);
+    Locator<Logger>::get().critical(message, args...);
 }
 } // namespace ng

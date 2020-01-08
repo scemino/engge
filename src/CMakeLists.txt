@@ -12,7 +12,7 @@ set(SOURCES
     SoundManager.cpp ActorIcons.cpp Inventory.cpp PathFinding/Graph.cpp PathFinding/PathFinder.cpp GGPack.cpp
     Cutscene.cpp Entity.cpp RoomScaling.cpp SoundTrigger.cpp SoundId.cpp JsonTokenReader.cpp
     Light.cpp Thread.cpp _Util.cpp Camera.cpp Logger.cpp EngineSettings.cpp Preferences.cpp
-    Sentence.cpp _RoomTrigger.cpp BlinkState.cpp Locator.cpp Callback.cpp PathFinding/_IndexedPriorityQueue.cpp
+    Sentence.cpp _RoomTrigger.cpp BlinkState.cpp Callback.cpp PathFinding/_IndexedPriorityQueue.cpp
     PathFinding/GraphEdge.cpp PathFinding/_Path.cpp PathFinding/_AstarAlgorithm.cpp PathFinding/_WalkboxDrawable.cpp
         clipper.cpp Segment.cpp)
 

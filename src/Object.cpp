@@ -43,7 +43,7 @@ struct Object::Impl
 
 Object::Object() : pImpl(std::make_unique<Impl>()) 
 {
-    _id = Locator::getResourceManager().getObjectId();
+    _id = Locator<ResourceManager>::get().getObjectId();
 }
 
 Object::~Object() = default;

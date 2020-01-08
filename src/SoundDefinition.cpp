@@ -11,7 +11,7 @@ Sound::~Sound() = default;
 SoundDefinition::SoundDefinition(std::string path)
     : _pSettings(nullptr), _path(std::move(path)), _isLoaded(false)
 {
-    _id = Locator::getResourceManager().getSoundId();
+    _id = Locator<ResourceManager>::get().getSoundId();
 }
 
 SoundDefinition::~SoundDefinition() = default;

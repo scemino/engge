@@ -10,11 +10,11 @@
 
 int main(int argc, char **argv)
 {
-    auto pLogger = std::make_unique<ng::Logger>();
-    ng::Locator::registerService(pLogger.get());
+    auto pLogger = std::make_shared<ng::Logger>();
+    ng::Locator<ng::Logger>::set(pLogger);
 
-    auto pResManager = std::make_unique<ng::ResourceManager>();
-    ng::Locator::registerService(pResManager.get());
+    auto pResManager = std::make_shared<ng::ResourceManager>();
+    ng::Locator<ng::ResourceManager>::set(pResManager);
 
     ng::EngineSettings settings;
     if (argc == 2)

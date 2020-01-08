@@ -452,7 +452,7 @@ struct Room::Impl
 Room::Room(TextureManager &textureManager, EngineSettings &settings)
     : pImpl(std::make_unique<Impl>(textureManager, settings))
 {
-    _id = Locator::getResourceManager().getRoomId();
+    _id = Locator<ResourceManager>::get().getRoomId();
     pImpl->setRoom(this);
 }
 

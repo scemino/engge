@@ -312,7 +312,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
 Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine))
 { 
     pImpl->setActor(this); 
-    _id = Locator::getResourceManager().getActorId();
+    _id = Locator<ResourceManager>::get().getActorId();
 }
 
 Actor::~Actor() = default;
