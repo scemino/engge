@@ -36,6 +36,8 @@ void DialogManager::addFunction(std::unique_ptr<Function> function)
 void DialogManager::start(const std::string &name, const std::string &node)
 {
     _actorName.clear();
+    _parrotModeEnabled = true;
+    
     std::string path;
     path.append(name).append(".byack");
 
