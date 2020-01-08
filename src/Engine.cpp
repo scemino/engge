@@ -1557,7 +1557,8 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     auto hudSentence = _preferences.getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
     auto uiBackingAlpha = _preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
     auto invertVerbHighlight = _preferences.getUserPreference(PreferenceNames::InvertVerbHighlight, PreferenceDefaultValues::InvertVerbHighlight);
-    
+    auto verbHighlight = invertVerbHighlight ? sf::Color::White : _verbColor;
+    auto verbColor = invertVerbHighlight ? _verbColor : sf::Color::White;
     auto uiBackingRect = hudSentence ? _gameSheet.getRect("ui_backing_tall") : _gameSheet.getRect("ui_backing");
     sf::Sprite uiBacking;
     uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * 255));
@@ -1577,7 +1578,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     for (int i = 1; i <= 9; i++)
     {
         auto verb = _verbSlots.at(currentActorIndex).getVerb(i);
-        _verbShader.setUniform("color", sf::Glsl::Vec4(verb.id == verbId ? sf::Color::White : _verbColor));
+        _verbShader.setUniform("color", sf::Glsl::Vec4(verb.id == verbId ? verbHighlight : verbColor));
 
         auto verbName = getVerbName(verb);
         auto rect = _verbSheet.getRect(verbName);
