@@ -199,8 +199,10 @@ void DialogManager::choose(int choice)
             ScriptEngine::call("onChoiceClick");
             std::ostringstream os;
             os << '@' << dlg.id;
-            auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), os.str());
-            _functions.push_back(std::move(say));
+            if(_parrotModeEnabled) {
+                auto say = std::make_unique<_SayFunction>(*_pEngine->getCurrentActor(), os.str());
+                _functions.push_back(std::move(say));
+            }
             _dialogVisitor.select(*dlg.pChoice);
             selectLabel(dlg.label);
             return;

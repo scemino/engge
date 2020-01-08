@@ -96,6 +96,7 @@ public:
   void addFunction(std::unique_ptr<Function> function);
   void choose(int choice);
   void setActorName(const std::string& actor);
+  inline void enableParrotMode(bool enable) { _parrotModeEnabled = enable; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -110,5 +111,6 @@ private:
   std::vector<std::unique_ptr<Function>> _functions;
   Font _font;
   std::string _actorName;
+  bool _parrotModeEnabled{true};
 };
 } // namespace ng

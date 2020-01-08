@@ -187,8 +187,7 @@ void DialogVisitor::visit(const Ast::Override &node)
 
 void DialogVisitor::visit(const Ast::Parrot &node)
 {
-    // TODO: parrot
-    trace("TODO: parrot");
+    _dialogManager.enableParrotMode(node.active);
 }
 
 void DialogVisitor::visit(const Ast::Dialog &node)
