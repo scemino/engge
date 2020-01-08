@@ -6,6 +6,7 @@
 #include "_ExecuteCodeFunction.h"
 #include "_ShutupFunction.h"
 #include "_PauseFunction.h"
+#include "_WaitWhileFunction.h"
 #include "../_Util.h"
 
 namespace ng
@@ -203,8 +204,8 @@ void DialogVisitor::visit(const Ast::AllowObjects &node)
 
 void DialogVisitor::visit(const Ast::WaitWhile &node)
 {
-    // TODO: waitWhile
-    trace("TODO: waitWhile");
+    auto waitWhile = std::make_unique<_WaitWhileFunction>(*_pEngine, node.condition);
+    _dialogManager.addFunction(std::move(waitWhile));
 }
 
 void DialogVisitor::visit(const Ast::Limit &node)
