@@ -1,4 +1,5 @@
 #include <algorithm>
+#include "EngineSettings.h"
 #include "Dialog/YackTokenReader.h"
 #include "Logger.h"
 
@@ -84,7 +85,7 @@ Token *YackTokenReader::Iterator::operator->()
 void YackTokenReader::load(const std::string &path)
 {
     std::vector<char> buffer;
-    _pSettings->readEntry(path, buffer);
+    Locator<EngineSettings>::get().readEntry(path, buffer);
 
 #if 0
     std::ofstream o;
@@ -110,13 +111,8 @@ YackTokenReader::iterator YackTokenReader::end()
 }
 
 YackTokenReader::YackTokenReader()
-    : _pSettings(nullptr), _offset(-1)
+    : _offset(-1)
 {
-}
-
-void YackTokenReader::setSettings(EngineSettings &settings)
-{
-    _pSettings = &settings;
 }
 
 bool YackTokenReader::readToken(Token &token)

@@ -1,5 +1,7 @@
 #include <fstream>
+#include "EngineSettings.h"
 #include "Font.h"
+#include "Locator.h"
 #include "_Util.h"
 
 namespace ng
@@ -7,11 +9,6 @@ namespace ng
 Font::Font() = default;
 
 Font::~Font() = default;
-
-void Font::setSettings(EngineSettings *settings)
-{
-    _settings = settings;
-}
 
 void Font::setTextureManager(TextureManager *textureManager)
 {
@@ -25,7 +22,7 @@ void Font::load(const std::string &path)
     _jsonFilename.append(".json");
 
     std::vector<char> buffer;
-    _settings->readEntry(_jsonFilename, buffer);
+    Locator<EngineSettings>::get().readEntry(_jsonFilename, buffer);
     _json = ng::Json::Parser::parse(buffer);
 
     _texture = _textureManager->get(_path);

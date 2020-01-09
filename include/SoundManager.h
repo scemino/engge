@@ -7,14 +7,13 @@ namespace ng
 {
 class Entity;
 class Engine;
-class EngineSettings;
 class SoundDefinition;
 class SoundId;
 
 class SoundManager
 {
 public:
-  explicit SoundManager(EngineSettings &settings);
+  SoundManager();
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   Engine * getEngine() const { return _pEngine; }
@@ -54,7 +53,6 @@ private:
   SoundId* play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes = 1, Entity* pEntity = nullptr);
 
 private:
-  EngineSettings &_settings;
   std::vector<std::unique_ptr<SoundDefinition>> _sounds;
   std::array<std::unique_ptr<SoundId>, 32> _soundIds;
   Engine *_pEngine{nullptr};

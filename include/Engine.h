@@ -102,7 +102,6 @@ class Actor;
 class Camera;
 class Cutscene;
 class DialogManager;
-class EngineSettings;
 class Entity;
 class Function;
 class Object;
@@ -139,14 +138,13 @@ enum class UseFlag
 class Engine : public NonCopyable
 {
   public:
-    explicit Engine(EngineSettings &settings);
+    explicit Engine();
     ~Engine();
 
     void setWindow(sf::RenderWindow &window);
     [[nodiscard]] const sf::RenderWindow &getWindow() const;
 
     TextureManager &getTextureManager();
-    EngineSettings &getSettings();
 
     Room *getRoom();
     SQInteger setRoom(Room *pRoom);

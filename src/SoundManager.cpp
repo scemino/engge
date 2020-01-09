@@ -1,5 +1,7 @@
 #include <memory>
+#include "EngineSettings.h"
 #include "Entity.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "SoundDefinition.h"
 #include "SoundId.h"
@@ -7,10 +9,7 @@
 
 namespace ng
 {
-SoundManager::SoundManager(EngineSettings &settings)
-    : _settings(settings)
-{
-}
+SoundManager::SoundManager() = default;
 
 SoundId *SoundManager::getSound(size_t index)
 {
@@ -31,11 +30,10 @@ int SoundManager::getSlotIndex()
 
 SoundDefinition *SoundManager::defineSound(const std::string &name)
 {
-    if (!_settings.hasEntry(name))
+    if (!Locator<EngineSettings>::get().hasEntry(name))
         return nullptr;
 
     auto sound = std::make_unique<SoundDefinition>(name);
-    sound->setSettings(_settings);
     auto pSound = sound.get();
     _sounds.push_back(std::move(sound));
     return pSound;

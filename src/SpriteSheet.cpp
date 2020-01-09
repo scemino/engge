@@ -1,12 +1,14 @@
 #include <string>
+#include "EngineSettings.h"
 #include "JsonTokenReader.h"
+#include "Locator.h"
 #include "_Util.h"
 #include "SpriteSheet.h"
 
 namespace ng
 {
 SpriteSheet::SpriteSheet()
-    : _pTextureManager(nullptr), _pSettings(nullptr)
+    : _pTextureManager(nullptr)
 {
 }
 
@@ -24,7 +26,7 @@ void SpriteSheet::load(const std::string &name)
     jsonFilename.append(name).append(".json");
     {
         std::vector<char> buffer;
-        _pSettings->readEntry(jsonFilename, buffer);
+        Locator<EngineSettings>::get().readEntry(jsonFilename, buffer);
 
 #if 0
         std::ofstream out;

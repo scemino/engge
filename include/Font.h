@@ -11,7 +11,6 @@ public:
   Font();
   ~Font();
 
-  void setSettings(EngineSettings *settings);
   void setTextureManager(TextureManager *textureManager);
 
   void load(const std::string &path);
@@ -21,7 +20,6 @@ public:
   sf::IntRect getSize(uint32_t letter) const;
 
 private:
-  EngineSettings *_settings{nullptr};
   TextureManager *_textureManager{nullptr};
   std::string _path;
   std::string _jsonFilename;

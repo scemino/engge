@@ -1,26 +1,17 @@
 #include <regex>
+#include "EngineSettings.h"
 #include "Lip.h"
+#include "Locator.h"
 #include "_Util.h"
 
 namespace ng
 {
-Lip::Lip()
-    : _pSettings(nullptr)
-{
-}
-
-void Lip::setSettings(EngineSettings &settings)
-{
-    _pSettings = &settings;
-}
+Lip::Lip() = default;
 
 void Lip::load(const std::string &path)
 {
-    if (!_pSettings)
-        return;
-
     std::vector<char> buffer;
-    _pSettings->readEntry(path, buffer);
+    Locator<EngineSettings>::get().readEntry(path, buffer);
     GGPackBufferStream input(buffer);
     _data.clear();
     _path = path;

@@ -1,14 +1,12 @@
 #include <iostream>
+#include "EngineSettings.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "TextureManager.h"
 
 namespace ng
 {
-TextureManager::TextureManager(EngineSettings &settings)
-    : _settings(settings)
-{
-}
-
+TextureManager::TextureManager() = default;
 TextureManager::~TextureManager() = default;
 
 void TextureManager::load(const std::string &id)
@@ -18,7 +16,7 @@ void TextureManager::load(const std::string &id)
     path.append(id).append(".png");
     auto texture = std::make_shared<sf::Texture>();
     std::vector<char> data;
-    _settings.readEntry(path, data);
+    Locator<EngineSettings>::get().readEntry(path, data);
 
 #if 0
     std::ofstream os(path, std::ios::out|std::ios::binary);

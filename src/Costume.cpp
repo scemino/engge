@@ -1,14 +1,15 @@
 #include <iostream>
 #include "BlinkState.h"
 #include "Costume.h"
+#include "EngineSettings.h"
 #include "JsonTokenReader.h"
+#include "Locator.h"
 #include "_Util.h"
 
 namespace ng
 {
 Costume::Costume(TextureManager &textureManager)
-    : _settings(textureManager.getSettings()),
-      _textureManager(textureManager),
+    : _textureManager(textureManager),
       _blinkState(*this)
 {
     resetLockFacing();
@@ -89,14 +90,13 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     _path = path;
     _sheet = sheet;
 
-    _settings.readEntry(_path, _hash);
+    Locator<EngineSettings>::get().readEntry(_path, _hash);
     if (_sheet.empty())
     {
         _sheet = _hash["sheet"].string_value;
     }
 
     _costumeSheet.setTextureManager(&_textureManager);
-    _costumeSheet.setSettings(&_settings);
     _costumeSheet.load(_sheet);
 
     // load animations

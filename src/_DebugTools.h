@@ -10,6 +10,7 @@
 #include "../extlibs/squirrel/squirrel/sqcompiler.h"
 #include "../extlibs/squirrel/squirrel/sqfuncstate.h"
 #include "../extlibs/squirrel/squirrel/sqclass.h"
+#include "EngineSettings.h"
 #include "Object.h"
 #include "_Util.h"
 #include "imgui-SFML.h"
@@ -339,7 +340,7 @@ class _DebugTools
         {
             auto actorKey = actor->getKey();
             std::vector<std::string> entries;
-            _engine.getSettings().getEntries(entries);
+            Locator<EngineSettings>::get().getEntries(entries);
             for (const auto& entry : entries) 
             {
                 if(entry.length() < 15) continue;

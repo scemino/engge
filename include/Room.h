@@ -6,7 +6,6 @@
 
 namespace ng
 {
-class EngineSettings;
 class Entity;
 class Graph;
 class Light;
@@ -30,7 +29,7 @@ static const int EFFECT_BLACKANDWHITE = 5;
 class Room : public ScriptObject
 {
 public:
-  Room(TextureManager &textureManager, EngineSettings &settings);
+  Room(TextureManager &textureManager);
   ~Room() override;
 
   void setName(const std::string& name);

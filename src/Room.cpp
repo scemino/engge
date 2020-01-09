@@ -1,5 +1,6 @@
 #include "Room.h"
 #include "Animation.h"
+#include "EngineSettings.h"
 #include "Graph.h"
 #include "JsonTokenReader.h"
 #include "Light.h"
@@ -30,7 +31,6 @@ struct CmpLayer
 struct Room::Impl
 {
     TextureManager &_textureManager;
-    EngineSettings &_settings;
     std::vector<std::unique_ptr<Object>> _objects;
     std::vector<Walkbox> _walkboxes;
     std::vector<Walkbox> _graphWalkboxes;
@@ -53,11 +53,10 @@ struct Room::Impl
     int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
     sf::Color _overlayColor{sf::Color::Transparent};
 
-    Impl(TextureManager &textureManager, EngineSettings &settings)
-        : _textureManager(textureManager), _settings(settings)
+    explicit Impl(TextureManager &textureManager)
+        : _textureManager(textureManager)
     {
         _spriteSheet.setTextureManager(&textureManager);
-        _spriteSheet.setSettings(&settings);
         for (int i = -3; i < 6; ++i)
         {
             _layers[i] = std::make_unique<RoomLayer>();
@@ -449,8 +448,8 @@ struct Room::Impl
     }
 };
 
-Room::Room(TextureManager &textureManager, EngineSettings &settings)
-    : pImpl(std::make_unique<Impl>(textureManager, settings))
+Room::Room(TextureManager &textureManager)
+    : pImpl(std::make_unique<Impl>(textureManager))
 {
     _id = Locator<ResourceManager>::get().getRoomId();
     pImpl->setRoom(this);
@@ -512,11 +511,11 @@ void Room::load(const char *name)
     wimpyFilename.append(name).append(".wimpy");
     trace("Load room {}", wimpyFilename);
 
-    if (!pImpl->_settings.hasEntry(wimpyFilename))
+    if (!Locator<EngineSettings>::get().hasEntry(wimpyFilename))
         return;
 
     GGPackValue hash;
-    pImpl->_settings.readEntry(wimpyFilename, hash);
+    Locator<EngineSettings>::get().readEntry(wimpyFilename, hash);
 
 #if 0
     std::ofstream out;
@@ -544,7 +543,6 @@ TextObject &Room::createTextObject(const std::string &fontName)
     auto object = std::make_unique<TextObject>();
     std::string path;
     path.append(fontName).append(".fnt");
-    object->getFont().setSettings(&pImpl->_settings);
     object->getFont().loadFromFile(path);
     auto &obj = *object;
     obj.setVisible(true);
@@ -569,7 +567,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
     std::string jsonFilename;
     jsonFilename.append(sheet).append(".json");
     std::vector<char> buffer;
-    pImpl->_settings.readEntry(jsonFilename, buffer);
+    Locator<EngineSettings>::get().readEntry(jsonFilename, buffer);
     auto json = ng::Json::Parser::parse(buffer);
 
     auto object = std::make_unique<Object>();

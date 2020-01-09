@@ -4,7 +4,6 @@
 #include <fstream>
 #include <vector>
 #include "GGPack.h"
-#include "EngineSettings.h"
 
 namespace ng
 {

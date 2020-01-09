@@ -8,6 +8,7 @@
 #include "Font.h"
 #include "Graph.h"
 #include "Inventory.h"
+#include "Locator.h"
 #include "Preferences.h"
 #include "ResourceManager.h"
 #include "Room.h"
@@ -91,7 +92,6 @@ struct Engine::Impl
 {
     Engine *_pEngine;
     std::unique_ptr<_DebugTools> _pDebugTools;
-    EngineSettings &_settings;
     TextureManager _textureManager;
     Room *_pRoom;
     std::vector<std::unique_ptr<Actor>> _actors;
@@ -151,7 +151,7 @@ struct Engine::Impl
     _TalkingState _talkingState;
     int _showDrawWalkboxes{0};
 
-    explicit Impl(EngineSettings &settings);
+    explicit Impl();
 
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
@@ -190,17 +190,14 @@ struct Engine::Impl
     const Verb* getHoveredVerb() const;
 };
 
-Engine::Impl::Impl(EngineSettings &settings)
-    : _pEngine(nullptr), _settings(settings), _textureManager(settings), _pRoom(nullptr), _inputActive(false),
-      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr), _soundManager(settings),
+Engine::Impl::Impl()
+    : _pEngine(nullptr), _pRoom(nullptr), _inputActive(false),
+      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
       _cursorDirection(CursorDirection::None), _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
       _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
-    _verbSheet.setSettings(&settings);
     _verbSheet.setTextureManager(&_textureManager);
-    _gameSheet.setSettings(&settings);
     _gameSheet.setTextureManager(&_textureManager);
-    _saveLoadSheet.setSettings(&settings);
     _saveLoadSheet.setTextureManager(&_textureManager);
     sq_resetobject(&_pDefaultObject);
 
@@ -231,7 +228,7 @@ void Engine::Impl::drawFade(sf::RenderTarget &target) const
     target.draw(fadeShape);
 }
 
-Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(settings))
+Engine::Engine() : _pImpl(std::make_unique<Impl>())
 {
     time_t t;
     auto seed = (unsigned)time(&t);
@@ -247,14 +244,11 @@ Engine::Engine(EngineSettings &settings) : _pImpl(std::make_unique<Impl>(setting
     _pImpl->_camera.setEngine(this);
     _pImpl->_talkingState.setEngine(this);
     _pImpl->_fntFont.setTextureManager(&_pImpl->_textureManager);
-    _pImpl->_fntFont.setSettings(&settings);
 
     auto retroFonts = _pImpl->_preferences.getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
     _pImpl->_fntFont.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
     // load all messages
-    _pImpl->_textDb.setSettings(settings);
-
     std::stringstream s;
     auto lang = std::any_cast<std::string>(_pImpl->_preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language));
     s << "ThimbleweedText_" << lang << ".tsv";
@@ -285,8 +279,6 @@ void Engine::setWindow(sf::RenderWindow &window) { _pImpl->_pWindow = &window; }
 const sf::RenderWindow &Engine::getWindow() const { return *_pImpl->_pWindow; }
 
 TextureManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
-
-EngineSettings &Engine::getSettings() { return _pImpl->_settings; }
 
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 

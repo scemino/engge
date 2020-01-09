@@ -17,10 +17,8 @@ public:
     void setEngine(Engine* pEngine)
     { 
         _pEngine = pEngine;
-        _lipAnim.setSettings(pEngine->getSettings());
 
         _font.setTextureManager(&_pEngine->getTextureManager());
-        _font.setSettings(&_pEngine->getSettings());
         auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
         _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
     }

@@ -1,7 +1,6 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "Actor.h"
-#include "EngineSettings.h"
 #include "Lip.h"
 
 namespace ng
@@ -15,11 +14,6 @@ public:
         _index = 0;
         _elapsed = sf::seconds(0);
         updateHead();
-    }
-
-    void setSettings(EngineSettings &settings)
-    {
-        _lip.setSettings(settings);
     }
 
     inline void setActor(Actor* pActor)

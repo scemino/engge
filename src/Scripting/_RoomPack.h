@@ -3,8 +3,10 @@
 #include "squirrel.h"
 #include "Animation.h"
 #include "Engine.h"
+#include "EngineSettings.h"
 #include "Function.h"
 #include "Light.h"
+#include "Locator.h"
 #include "../_RoomTrigger.h"
 
 namespace ng
@@ -702,7 +704,7 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get name"));
         }
-        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
         auto result = _defineRoom(v, 3, pRoom.get());
         if (SQ_FAILED(result))
             return result;
@@ -715,7 +717,7 @@ private:
 
     static SQInteger defineRoom(HSQUIRRELVM v)
     {
-        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager(), g_pEngine->getSettings());
+        auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
         auto result = _defineRoom(v, 2, pRoom.get());
         if (SQ_SUCCEEDED(result))
         {

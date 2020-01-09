@@ -20,11 +20,9 @@ void Inventory::setEngine(Engine *pEngine)
 {
     _pEngine = pEngine;
     _gameSheet.setTextureManager(&_pEngine->getTextureManager());
-    _gameSheet.setSettings(&_pEngine->getSettings());
     _gameSheet.load("GameSheet");
 
     _inventoryItems.setTextureManager(&_pEngine->getTextureManager());
-    _inventoryItems.setSettings(&_pEngine->getSettings());
     _inventoryItems.load("InventoryItems");
 }
 

@@ -5,6 +5,7 @@
 #include "sqstdstring.h"
 #include "sqstdmath.h"
 #include "Entity.h"
+#include "Locator.h"
 #include "Logger.h"
 #include "ResourceManager.h"
 #include "Room.h"
@@ -515,7 +516,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
     else
     {
         auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
-        _pEngine->getSettings().readEntry(entryName, code);
+        Locator<EngineSettings>::get().readEntry(entryName, code);
 
         // decode bnut
         int cursor = (code.size()-1) & 0xff;

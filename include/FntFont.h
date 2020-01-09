@@ -3,7 +3,6 @@
 #include <vector>
 #include <list>
 #include <unordered_map>
-#include "EngineSettings.h"
 
 namespace ng
 {
@@ -128,13 +127,11 @@ class FntFont
 	CharSet m_chars;
 	FontInfo m_info;
 	std::vector<sf::Texture> m_textures;
-	EngineSettings *_pSettings;
 
   public:
 	FntFont();
 	~FntFont();
 
-	void setSettings(EngineSettings *settings);
 	bool loadFromFile(const std::string& path);
 
 	int getLineHeight();

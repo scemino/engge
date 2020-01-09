@@ -23,7 +23,6 @@ void DialogManager::setEngine(Engine *pEngine)
     _pEngine = pEngine;
     _dialogVisitor.setEngine(_pEngine);
     _font.setTextureManager(&pEngine->getTextureManager());
-    _font.setSettings(&pEngine->getSettings());
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
     _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
 }
@@ -45,7 +44,6 @@ void DialogManager::start(const std::string &name, const std::string &node)
     trace("start dialog {} from node {}", name, node);
 
     YackTokenReader reader;
-    reader.setSettings(_pEngine->getSettings());
     reader.load(path);
     YackParser parser(reader);
     _pCompilationUnit = parser.parse();

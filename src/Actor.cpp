@@ -43,7 +43,7 @@ struct Actor::Impl
     };
 
     explicit Impl(Engine &engine)
-        : _engine(engine), _settings(engine.getSettings()), _costume(engine.getTextureManager())
+        : _engine(engine), _costume(engine.getTextureManager())
     {
         _talkingState.setEngine(&engine);
     }
@@ -79,7 +79,6 @@ struct Actor::Impl
 
     Engine &_engine;
     Actor *_pActor{nullptr};
-    const EngineSettings &_settings;
     Costume _costume;
     std::string _icon;
     bool _useWalkboxes{true};

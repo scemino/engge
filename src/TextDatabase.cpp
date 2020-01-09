@@ -1,5 +1,6 @@
 #include <regex>
 #include "Logger.h"
+#include "EngineSettings.h"
 #include "TextDatabase.h"
 #include "_Util.h"
 
@@ -7,17 +8,12 @@ namespace ng
 {
 TextDatabase::TextDatabase() = default;
 
-void TextDatabase::setSettings(EngineSettings &settings)
-{
-    _pSettings = &settings;
-}
-
 void TextDatabase::load(const std::string &path)
 {
     _texts.clear();
     std::wregex re(L"^(\\d+)\\s+(.*)$");
     std::vector<char> buffer;
-    _pSettings->readEntry(path, buffer);
+    Locator<EngineSettings>::get().readEntry(path, buffer);
     GGPackBufferStream input(buffer);
     std::wstring line;
     while (getLine(input, line))

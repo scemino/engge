@@ -1,6 +1,7 @@
 #include <memory>
 #include "Game.h"
 #include "Engine.h"
+#include "EngineSettings.h"
 #include "Locator.h"
 #include "Logger.h"
 #include "ResourceManager.h"
@@ -16,17 +17,19 @@ int main(int argc, char **argv)
     auto pResManager = std::make_shared<ng::ResourceManager>();
     ng::Locator<ng::ResourceManager>::set(pResManager);
 
-    ng::EngineSettings settings;
+    auto pSettings = std::make_shared<ng::EngineSettings>();
+    ng::Locator<ng::EngineSettings>::set(pSettings);
+
     if (argc == 2)
     {
         auto filename = argv[1];
-        ng::_AstDump::dump(settings, filename);
+        ng::_AstDump::dump(filename);
         return 0;
     }
 
 	auto game = std::make_unique<ng::Game>();
 	auto scriptEngine = std::make_unique<ng::ScriptEngine>();
-    auto engine = std::make_unique<ng::Engine>(settings);
+    auto engine = std::make_unique<ng::Engine>();
     game->setEngine(engine.get());
     scriptEngine->setEngine(*engine);
     try

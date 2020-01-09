@@ -5,7 +5,6 @@
 #include "SFML/Graphics.hpp"
 #include "BlinkState.h"
 #include "DirectionConstants.h"
-#include "EngineSettings.h"
 #include "GGPack.h"
 #include "SpriteSheet.h"
 #include "TextureManager.h"
@@ -56,7 +55,6 @@ private:
   void updateAnimation();
 
 private:
-  EngineSettings &_settings;
   TextureManager &_textureManager;
   std::string _path;
   std::string _sheet;

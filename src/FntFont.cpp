@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include "EngineSettings.h"
 #include "FntFont.h"
 #include "Logger.h"
 #include "_Util.h"
@@ -39,19 +40,9 @@ const sf::Glyph &CharSet::getChar(int id) const
     return it->second;
 }
 
-FntFont::FntFont()
-    : _pSettings(nullptr)
-{
-}
+FntFont::FntFont() = default;
 
-FntFont::~FntFont()
-{
-}
-
-void FntFont::setSettings(EngineSettings *settings)
-{
-    _pSettings = settings;
-}
+FntFont::~FntFont() = default;
 
 bool FntFont::loadFromFile(const std::string &path)
 {
@@ -68,7 +59,7 @@ bool FntFont::loadFromFile(const std::string &path)
     {
         const std::string texPath = m_chars.pages[i];
         std::vector<char> buffer;
-        _pSettings->readEntry(texPath, buffer);
+        Locator<EngineSettings>::get().readEntry(texPath, buffer);
         if (!m_textures[i].loadFromMemory(buffer.data(), buffer.size()))
         {
             trace("ERROR: FntFont::loadFromFile(): Couldn't load texture file \"{}\"", texPath);
@@ -92,7 +83,7 @@ const sf::Texture &FntFont::getTexture(unsigned int characterSize) const
 bool FntFont::parse(const std::string &path)
 {
     std::vector<char> buffer;
-    _pSettings->readEntry(path, buffer);
+    Locator<EngineSettings>::get().readEntry(path, buffer);
     GGPackBufferStream input(buffer);
 
     // Note : the '>>' operator is formatting, so we use short typed values

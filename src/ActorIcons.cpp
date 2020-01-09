@@ -15,7 +15,6 @@ void ActorIcons::setEngine(Engine *pEngine)
 {
     _pEngine = pEngine;
     _gameSheet.setTextureManager(&_pEngine->getTextureManager());
-    _gameSheet.setSettings(&_pEngine->getSettings());
     _gameSheet.load("GameSheet");
 }
 

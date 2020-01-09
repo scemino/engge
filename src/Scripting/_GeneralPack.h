@@ -4,6 +4,8 @@
 #include "Camera.h"
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
+#include "EngineSettings.h"
+#include "Locator.h"
 
 namespace ng
 {
@@ -116,7 +118,7 @@ private:
         {
             return sq_throwerror(v, "failed to get filename");
         }
-        sq_pushbool(v, g_pEngine->getSettings().hasEntry(filename) ? SQTrue : SQFalse);
+        sq_pushbool(v, Locator<EngineSettings>::get().hasEntry(filename) ? SQTrue : SQFalse);
         return 1;
     }
 
@@ -277,7 +279,7 @@ private:
             return sq_throwerror(v, "Failed to get filename");
         }
         std::vector<char> buffer;
-        g_pEngine->getSettings().readEntry(filename, buffer);
+        Locator<EngineSettings>::get().readEntry(filename, buffer);
         GGPackBufferStream input(buffer);
         std::string line;
 
