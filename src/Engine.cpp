@@ -102,7 +102,6 @@ struct Engine::Impl
     Cutscene *_pCutscene{nullptr};
     sf::RenderWindow *_pWindow{nullptr};
     TextDatabase _textDb;
-    Font _fntFont;
     Actor *_pCurrentActor{nullptr};
     std::array<VerbSlot, 6> _verbSlots;
     std::array<VerbUiColors, 6> _verbUiColors;
@@ -243,11 +242,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
     _pImpl->_inventory.setEngine(this);
     _pImpl->_camera.setEngine(this);
     _pImpl->_talkingState.setEngine(this);
-    _pImpl->_fntFont.setTextureManager(&_pImpl->_textureManager);
-
-    auto retroFonts = _pImpl->_preferences.getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-    _pImpl->_fntFont.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
-
+    
     // load all messages
     std::stringstream s;
     auto lang = std::any_cast<std::string>(_pImpl->_preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language));
@@ -262,10 +257,6 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
         if (name == PreferenceNames::Language)
         {
             _pImpl->onLanguageChange(std::any_cast<std::string>(value));
-        }
-        else if (name == PreferenceNames::RetroFonts)
-        {
-            _pImpl->_fntFont.load(std::any_cast<bool>(value) ? "FontRetroSheet": "FontModernSheet");
         }
     });
 }
@@ -1332,13 +1323,16 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
     viewCenter = sf::Vector2f(viewRect.width/2,viewRect.height/2);
     target.setView(sf::View(viewRect));
 
+    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+    const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+
     NGText text;
     auto screen = target.getView().getSize();
     auto scale = screen.y / 512.f;
     text.setScale(scale, scale);
     text.setAlignment(NGTextAlignment::Center);
     text.setPosition(viewCenter);
-    text.setFont(_fntFont);
+    text.setFont(font);
     text.setColor(sf::Color::White);
     text.setText(_pEngine->getText(99951));
     auto bounds = text.getBoundRect();
@@ -1421,12 +1415,15 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     if(currentActorIndex == -1)
         return;
 
+    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+    const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+
     NGText text;
     auto screen = target.getView().getSize();
     auto scale = screen.y / (2.f * 512.f);
     text.setAlignment(NGTextAlignment::Center);
     text.setScale(scale, scale);
-    text.setFont(_fntFont);
+    text.setFont(font);
     text.setColor(_verbUiColors.at(currentActorIndex).sentence);
 
     std::wstring s;

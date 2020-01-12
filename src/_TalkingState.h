@@ -17,10 +17,6 @@ public:
     void setEngine(Engine* pEngine)
     { 
         _pEngine = pEngine;
-
-        _font.setTextureManager(&_pEngine->getTextureManager());
-        auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-        _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
     }
     
     void update(const sf::Time &elapsed)
@@ -153,10 +149,14 @@ private:
 
         auto screen = target.getView().getSize();
         auto scale = screen.y / (2.f * 512.f);
+
+        auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+        const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+
         NGText text;
         text.scale(scale, scale);
         text.setAlignment(NGTextAlignment::Center);
-        text.setFont(_font);
+        text.setFont(font);
         text.setColor(_talkColor);
         text.setText(_sayText);
 
@@ -166,7 +166,6 @@ private:
     }
 
 private:
-    Font _font;
     Engine* _pEngine{nullptr};
     Actor* _pActor{nullptr};
     bool _isTalking{false};

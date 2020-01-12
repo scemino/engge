@@ -110,7 +110,6 @@ private:
   DialogManagerState _state{DialogManagerState::None};
   DialogVisitor _dialogVisitor;
   std::vector<std::unique_ptr<Function>> _functions;
-  Font _font;
   std::string _actorName;
   bool _parrotModeEnabled{true};
   int _limit{6};

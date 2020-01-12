@@ -22,9 +22,6 @@ void DialogManager::setEngine(Engine *pEngine)
 {
     _pEngine = pEngine;
     _dialogVisitor.setEngine(_pEngine);
-    _font.setTextureManager(&pEngine->getTextureManager());
-    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-    _font.load(retroFonts ? "FontRetroSheet": "FontModernSheet");
 }
 
 void DialogManager::addFunction(std::unique_ptr<Function> function)
@@ -93,9 +90,12 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
     auto screen = target.getView().getSize();
     auto scale = (screen.y * 5.f) / (8.f * 512.f);
 
+    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+    const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+
     NGText text;
     text.scale(scale, scale);
-    text.setFont(_font);
+    text.setFont(font);
     for (auto &dlg : _dialog)
     {
         if (dlg.id == 0)
@@ -168,10 +168,13 @@ void DialogManager::update(const sf::Time &elapsed)
 
         if((dialog+1) >= _limit) break;
 
+        auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+        const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+
         // HACK: bad, bad, this code is the same as in the draw function
         NGText text;
         text.scale(scale, scale);
-        text.setFont(_font);
+        text.setFont(font);
         text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         sf::String s;
         s = L"● ";
