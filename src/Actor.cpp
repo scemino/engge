@@ -13,6 +13,7 @@
 #include "ScriptEngine.h"
 #include "SoundId.h"
 #include "SoundManager.h"
+#include "SoundTrigger.h"
 #include "_TalkingState.h"
 #include "_Util.h"
 #include "PathFinding/_Path.h"

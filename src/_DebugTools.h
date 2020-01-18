@@ -12,6 +12,7 @@
 #include "../extlibs/squirrel/squirrel/sqclass.h"
 #include "EngineSettings.h"
 #include "Object.h"
+#include "Trigger.h"
 #include "_Util.h"
 #include "imgui-SFML.h"
 #include "imgui.h"

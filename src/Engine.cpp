@@ -127,7 +127,7 @@ struct Engine::Impl
     std::vector<std::unique_ptr<ThreadBase>> _threads;
     DialogManager _dialogManager;
     Preferences _preferences;
-    SoundManager _soundManager;
+    SoundManager& _soundManager;
     CursorDirection _cursorDirection;
     std::array<ActorIconSlot, 6> _actorsIconSlots;
     UseFlag _useFlag{UseFlag::None};
@@ -195,7 +195,7 @@ Engine::Impl::Impl()
     : _pEngine(nullptr), _pRoom(nullptr), _inputActive(false),
       _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
       _cursorDirection(CursorDirection::None), _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
-      _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
+      _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor), _soundManager(Locator<SoundManager>::get())
 {
     _verbSheet.setTextureManager(&_textureManager);
     _gameSheet.setTextureManager(&_textureManager);

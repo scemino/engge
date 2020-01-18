@@ -5,7 +5,6 @@
 #include "Function.h"
 #include "Interpolations.h"
 #include "SFML/Graphics.hpp"
-#include "SoundTrigger.h"
 #include "ScriptObject.h"
 
 namespace ng
@@ -13,6 +12,7 @@ namespace ng
 class Engine;
 class Room;
 class SoundDefinition;
+class SoundTrigger;
 class Trigger;
 class Entity : public ScriptObject, public sf::Drawable
 {

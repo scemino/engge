@@ -2,6 +2,7 @@
 #include <random>
 #include "squirrel.h"
 #include "Engine.h"
+#include "SoundTrigger.h"
 
 namespace ng
 {

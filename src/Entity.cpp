@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "Room.h"
 #include "ScriptEngine.h"
+#include "SoundTrigger.h"
 #include "Trigger.h"
 
 namespace ng

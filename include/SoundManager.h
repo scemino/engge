@@ -2,6 +2,7 @@
 #include <array>
 #include <memory>
 #include <vector>
+#include "SoundCategory.h"
 
 namespace ng
 {

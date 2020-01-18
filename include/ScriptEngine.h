@@ -15,6 +15,7 @@ class Light;
 class Room;
 class ScriptEngine;
 class Sound;
+class SoundId;
 class Thread;
 class Pack
 {
@@ -48,7 +49,7 @@ public:
   static Object *getObject(HSQUIRRELVM v, SQInteger index);
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);
-    static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
+  static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
   static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
 
   static Sound *getSoundFromId(int id);

@@ -2,6 +2,7 @@
 #include "FntFont.h"
 #include "OptionsDialog.h"
 #include "Screen.h"
+#include "SoundManager.h"
 #include "SpriteSheet.h"
 #include "Text.h"
 #include "Logger.h"
@@ -270,19 +271,14 @@ class Slider: public sf::Drawable
 public:
     typedef std::function<void(float)> Callback;
 
-    Slider(int id, float y, bool enabled = true)
-    : _id(id), _y(y), _isEnabled(enabled)
+    Slider(int id, float y, bool enabled = true, float value = 0.f, Callback callback = [](auto value){})
+    : _id(id), _y(y), _isEnabled(enabled), _value(value), onValueChanged(callback)
     {
     }
 
     void setEngine(Engine* pEngine)
     {
         _pEngine=pEngine;
-    }
-
-    void setCallback(Callback callback)
-    {
-        onValueChanged=callback;
     }
 
     inline float getValue() const { return _value;}
@@ -306,14 +302,14 @@ public:
         _sprite.setTexture(pSpriteSheet->getTexture());
         _sprite.setTextureRect(sliderRect);
 
-        _spriteHandle.setPosition(Screen::Width/2.f-(sliderRect.width*scale.x/2.f), _y+textRect.height);
+        _min = Screen::Width/2.f-(sliderRect.width*scale.x/2.f);
+        _max = Screen::Width/2.f+(sliderRect.width*scale.x/2.f);
+        auto x = _min + _value * (_max-_min);
+        _spriteHandle.setPosition(x, _y+textRect.height);
         _spriteHandle.setScale(scale);
         _spriteHandle.setOrigin(handleRect.width/2.f, 0);
         _spriteHandle.setTexture(pSpriteSheet->getTexture());
         _spriteHandle.setTextureRect(handleRect);
-
-        _min = Screen::Width/2.f-(sliderRect.width*scale.x/2.f);
-        _max = Screen::Width/2.f+(sliderRect.width*scale.x/2.f);
     }
 
     void update(sf::Vector2f pos)
@@ -470,9 +466,9 @@ struct OptionsDialog::Impl
             break;
         case State::Sound:
             setHeading(Ids::Sound);
-            _sliders.emplace_back(Ids::SoundVolume, getSlotPos(2));
-            _sliders.emplace_back(Ids::MusicVolume, getSlotPos(3));
-            _sliders.emplace_back(Ids::VoiceVolume, getSlotPos(4));
+            _sliders.emplace_back(Ids::SoundVolume, getSlotPos(2), true, Locator<SoundManager>::get().getSoundVolume(), [](auto value){ Locator<SoundManager>::get().setSoundVolume(value); });
+            _sliders.emplace_back(Ids::MusicVolume, getSlotPos(3), true, Locator<SoundManager>::get().getMusicVolume(), [](auto value){ Locator<SoundManager>::get().setMusicVolume(value); });
+            _sliders.emplace_back(Ids::VoiceVolume, getSlotPos(4), true, Locator<SoundManager>::get().getTalkVolume(), [](auto value){ Locator<SoundManager>::get().setTalkVolume(value); });
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::Video:

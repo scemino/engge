@@ -6,6 +6,7 @@
 #include "Room.h"
 #include "Screen.h"
 #include "ScriptEngine.h"
+#include "SoundTrigger.h"
 #include "Trigger.h"
 #include "_Util.h"
 #include <sstream>

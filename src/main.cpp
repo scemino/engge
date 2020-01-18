@@ -6,6 +6,9 @@
 #include "Logger.h"
 #include "ResourceManager.h"
 #include "ScriptEngine.h"
+#include "SoundDefinition.h"
+#include "SoundId.h"
+#include "SoundManager.h"
 #include "DefaultInputEventHandler.h"
 #include "Dialog/_AstDump.h"
 
@@ -19,6 +22,9 @@ int main(int argc, char **argv)
 
     auto pSettings = std::make_shared<ng::EngineSettings>();
     ng::Locator<ng::EngineSettings>::set(pSettings);
+
+    auto pSoundManager = std::make_shared<ng::SoundManager>();
+    ng::Locator<ng::SoundManager>::set(pSoundManager);
 
     if (argc == 2)
     {

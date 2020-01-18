@@ -10,13 +10,6 @@ namespace ng
 {
 class SoundId;
 
-enum class SoundCategory
-{
-    Music,
-    Sound,
-    Talk
-};
-
 class Sound : public ScriptObject
 {
 public:
