@@ -14,12 +14,17 @@ namespace ng
 class Button: public sf::Drawable
 {
 public:
-    typedef std::function<void()>		Callback;
+    typedef std::function<void()> Callback;
 
 public:
     Button(int id, float y, Callback callback, bool enabled = true)
     : _id(id), _y(y), _callback(std::move(callback)), _isEnabled(enabled)
     {
+    }
+
+    void setCallback(Callback callback)
+    {
+        _callback=std::move(callback);
     }
 
     int getId() const { return _id; }
@@ -163,8 +168,8 @@ public:
     typedef std::function<void(bool)> Callback;
 
 public:
-    Checkbox(int id, float y, bool enabled = true)
-    : _id(id), _y(y), _isEnabled(enabled)
+    Checkbox(int id, float y, bool enabled = true, bool checked = false)
+    : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked)
     {
     }
 
@@ -374,44 +379,133 @@ private:
 
 struct OptionsDialog::Impl
 {
+    enum class State {Main, Sound, Video, Controls, TextAndSpeech, Help};
+
+    struct Ids {
+        inline static const int EnglishText=98001;
+        inline static const int FrenchText=98003;
+        inline static const int ItalianText=98005;
+        inline static const int GermanText=98007;
+        inline static const int SpanishText=98009;
+        inline static const int Back=99904;
+        inline static const int LoadGame = 99910;
+        inline static const int SaveGame=99911;
+        inline static const int NewGame=99912;
+        inline static const int Options=99913;
+        inline static const int Credits=99914;
+        inline static const int Quit=99915;
+        inline static const int Sound=99916;
+        inline static const int Video=99917;
+        inline static const int Controls=99918;
+        inline static const int TextAndSpeech=99919;
+        inline static const int Fullscreen=99927;
+        inline static const int SafeArea=99929;
+        inline static const int RetroFonts=99933;
+        inline static const int RetroVerbs=99934;
+        inline static const int ClassicSentence=99935;
+        inline static const int Controller=99940;
+        inline static const int DisplayText=99942;
+        inline static const int HearVoice=99943;
+        inline static const int ScrollSyncCursor=99960;
+        inline static const int Help=99961;
+        inline static const int InvertVerbColors=99964;
+        inline static const int ToiletPaperOver=99965;
+        inline static const int Introduction=99966;
+        inline static const int MouseTips=99967;
+        inline static const int ControllerTips=99968;
+        inline static const int ControllerMap=99969;
+    };    
+
     Engine* _pEngine{nullptr};
     SpriteSheet _saveLoadSheet;
+
+    Text _headingText;
     std::vector<Button> _buttons;
     std::vector<SwitchButton> _switchButtons;
     std::vector<Checkbox> _checkboxes;
     std::vector<Slider> _sliders;
+    static constexpr float yPosLarge = 58.f;
+    static constexpr float yPosSmall = 54.f;
 
-    Impl()
+    inline static float getSlotPos(int slot)
     {
-        const float yPosLarge = 58.f;
-        const float yPosSmall = 54.f;
-        // _buttons.emplace_back(99911,44.f+yPosLarge, [](){}, false);
-        _sliders.emplace_back(44.f+yPosLarge+20.f);
-        _sliders[0].setCallback([](float value){
-            trace("value: {}", value);
-        });
-        _buttons.emplace_back(99910,44.f+yPosLarge+yPosSmall,   [](){}, false);
-        _switchButtons.push_back(SwitchButton({98001,98003,98005,98007,98009},44.f+yPosLarge+yPosSmall*2));
-        // _buttons.emplace_back(99916,44.f+yPosLarge+yPosSmall*2, [](){});
-        _buttons.emplace_back(99917,44.f+yPosLarge+yPosSmall*3, [](){});
-        _buttons.emplace_back(99918,44.f+yPosLarge+yPosSmall*4, [](){});
-        _buttons.emplace_back(99919,44.f+yPosLarge+yPosSmall*5, [](){});
-        // _buttons.emplace_back(99961,44.f+yPosLarge+yPosSmall*6, [](){});
-        // _buttons.emplace_back(99915,44.f+yPosLarge+yPosSmall*7, [](){});
-        _checkboxes.emplace_back(99965, 44.f+yPosLarge+yPosSmall*8);
-        _checkboxes.emplace_back(99961, 44.f+yPosLarge+yPosSmall*9);
-        _checkboxes[0].setCallback([this](bool value){
-            if(!value) return;
-            _checkboxes[1].setChecked(value);
-        });
+        return 44.f+yPosLarge+yPosSmall*slot;
     }
 
-    void setEngine(Engine* pEngine)
+    void setHeading(int id)
     {
-        _pEngine=pEngine;
-        TextureManager& tm = pEngine->getTextureManager();
-        _saveLoadSheet.setTextureManager(&tm);
-        _saveLoadSheet.load("SaveLoadSheet");
+        _headingText.setString(_pEngine->getText(id));
+        auto textRect = _headingText.getGlobalBounds();
+        _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, 44.f-textRect.height/2));
+    }
+
+    void updateState(State state)
+    {
+        _sliders.clear();
+        _buttons.clear();
+        _switchButtons.clear();
+        _checkboxes.clear();
+        switch(state)
+        {
+        case State::Main:
+            setHeading(Ids::Options);
+            _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [this](){}, false);
+            _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this](){});
+            _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this](){ updateState(State::Sound); });
+            _buttons.emplace_back(Ids::Video, getSlotPos(3), [this](){ updateState(State::Video); });
+            _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this](){ updateState(State::Controls); });
+            _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this](){ updateState(State::TextAndSpeech); });
+            _buttons.emplace_back(Ids::Help, getSlotPos(6), [this](){ updateState(State::Help); });
+            _buttons.emplace_back(Ids::Quit, getSlotPos(7), [](){});
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [](){});
+            break;
+        case State::Sound:
+            setHeading(Ids::Sound);
+            _sliders.emplace_back(getSlotPos(1));
+            _sliders.emplace_back(getSlotPos(2));
+            _sliders.emplace_back(getSlotPos(3));
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            break;
+        case State::Video:
+            setHeading(Ids::Video);
+            _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1));
+            // Ids::SafeArea
+            _sliders.emplace_back(getSlotPos(2));
+            _checkboxes.emplace_back(Ids::ToiletPaperOver, getSlotPos(4));
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            break;
+        case State::Controls:
+            setHeading(Ids::Controls);
+            _checkboxes.emplace_back(Ids::Controller, getSlotPos(1), false);
+            _checkboxes.emplace_back(Ids::ScrollSyncCursor, getSlotPos(2), false, true);
+            _checkboxes.emplace_back(Ids::InvertVerbColors, getSlotPos(4));
+            _checkboxes.emplace_back(Ids::RetroFonts, getSlotPos(5));
+            _checkboxes.emplace_back(Ids::RetroVerbs, getSlotPos(6));
+            _checkboxes.emplace_back(Ids::ClassicSentence, getSlotPos(7));
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            break;
+        case State::TextAndSpeech:
+            setHeading(Ids::TextAndSpeech);
+            // Ids::TextSpeed
+            _sliders.emplace_back(getSlotPos(1));
+            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(2));
+            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(3));
+            _switchButtons.push_back(SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5)));
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            break;
+        case State::Help:
+            setHeading(Ids::Help);
+            _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this](){});
+            _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), [this](){});
+            _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [this](){});
+            _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [this](){});
+            // _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this](){});
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            break;
+        default:
+            updateState(State::Main);
+            break;
+        }
 
         for(auto& button : _buttons) {
             button.setEngine(_pEngine);
@@ -429,18 +523,31 @@ struct OptionsDialog::Impl
         }
     }
 
+    void setEngine(Engine* pEngine)
+    {
+        _pEngine=pEngine;
+        if(!pEngine) return;
+
+        TextureManager& tm = pEngine->getTextureManager();
+        _saveLoadSheet.setTextureManager(&tm);
+        _saveLoadSheet.load("SaveLoadSheet");
+
+        const FntFont& headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
+        _headingText.setFont(headingFont);
+        _headingText.setFillColor(sf::Color::White);
+
+        updateState(State::Main);
+    }
+
     void draw(sf::RenderTarget& target, sf::RenderStates states)
     {
-        auto rect = _saveLoadSheet.getRect("options_background");
-
         const auto view = target.getView();
         auto viewRect = sf::FloatRect(0, 0, 320, 180);
-        
         target.setView(sf::View(viewRect));
-
-        auto viewCenter = sf::Vector2f(viewRect.width/2,viewRect.height/2);
         
         // draw background
+        auto viewCenter = sf::Vector2f(viewRect.width/2,viewRect.height/2);
+        auto rect = _saveLoadSheet.getRect("options_background");
         sf::Sprite sprite;
         sprite.setPosition(viewCenter);
         sprite.setTexture(_saveLoadSheet.getTexture());
@@ -451,24 +558,10 @@ struct OptionsDialog::Impl
         viewRect = sf::FloatRect(0, 0, Screen::Width, Screen::Height);
         target.setView(sf::View(viewRect));
 
-        const FntFont& headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
-        const FntFont& uiFontLarge = _pEngine->getTextureManager().getFntFont("UIFontLarge.fnt");
-        const FntFont& uiFontMedium = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
+        // heading
+        target.draw(_headingText);
 
-        const float yPosLarge = 88.f;
-        auto yPos = 44.f;
-        auto yPosBack = 594.f;
-        
-        Text text;
-        text.setFont(headingFont);
-        text.setFillColor(sf::Color::White);
-        text.setString(_pEngine->getText(99913));
-        auto textRect = text.getGlobalBounds();
-        text.setPosition(sf::Vector2f((viewRect.width-textRect.width)/2.f, yPos-textRect.height/2));
-        target.draw(text);
-
-        yPos+=yPosLarge;
-
+        // controls
         for(auto& button : _buttons) {
             target.draw(button);
         }
@@ -481,14 +574,6 @@ struct OptionsDialog::Impl
         for(auto& slider : _sliders) {
             target.draw(slider);
         }
-        
-        // back
-        text.setFont(uiFontMedium);
-        text.setFillColor(sf::Color::White);
-        text.setString(_pEngine->getText(99904));
-        textRect = text.getGlobalBounds();
-        text.setPosition(sf::Vector2f((viewRect.width-textRect.width)/2.f, yPosBack));
-        target.draw(text);
         
         target.setView(view);
     }
