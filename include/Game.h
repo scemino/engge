@@ -2,6 +2,7 @@
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
 #include "Object.h"
+#include "OptionsDialog.h"
 #include "Function.h"
 #include "NonCopyable.h"
 #include "Engine.h"
@@ -35,5 +36,6 @@ private:
   Engine *_pEngine{};
   sf::RenderWindow _window;
   std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
+  OptionsDialog _optionsDialog;
 };
 } // namespace ng

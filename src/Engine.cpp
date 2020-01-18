@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Cutscene.h"
 #include "Dialog/DialogManager.h"
+#include "FntFont.h"
 #include "Font.h"
 #include "Graph.h"
 #include "Inventory.h"
@@ -21,6 +22,7 @@
 #include "SoundId.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
+#include "Text.h"
 #include "TextDatabase.h"
 #include "Thread.h"
 #include "Verb.h"
@@ -150,7 +152,7 @@ struct Engine::Impl
     _TalkingState _talkingState;
     int _showDrawWalkboxes{0};
 
-    explicit Impl();
+    Impl();
 
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;

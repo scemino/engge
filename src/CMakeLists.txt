@@ -14,7 +14,7 @@ set(SOURCES
     Light.cpp Thread.cpp _Util.cpp Camera.cpp Logger.cpp EngineSettings.cpp Preferences.cpp
     Sentence.cpp _RoomTrigger.cpp BlinkState.cpp Callback.cpp PathFinding/_IndexedPriorityQueue.cpp
     PathFinding/GraphEdge.cpp PathFinding/_Path.cpp PathFinding/_AstarAlgorithm.cpp PathFinding/_WalkboxDrawable.cpp
-        clipper.cpp Segment.cpp)
+        clipper.cpp Segment.cpp UI/OptionsDialog.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

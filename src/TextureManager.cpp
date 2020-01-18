@@ -1,5 +1,6 @@
 #include <iostream>
 #include "EngineSettings.h"
+#include "FntFont.h"
 #include "Font.h"
 #include "Locator.h"
 #include "Logger.h"
@@ -42,6 +43,14 @@ void TextureManager::loadFont(const std::string &id)
     _fontMap.insert(std::make_pair(id, font));
 }
 
+void TextureManager::loadFntFont(const std::string &id)
+{
+    info("Load Fnt font {}", id);
+    auto font = std::make_shared<FntFont>();
+    font->loadFromFile(id);
+    _fntFontMap.insert(std::make_pair(id, font));
+}
+
 const sf::Texture &TextureManager::get(const std::string &id)
 {
     auto found = _textureMap.find(id);
@@ -60,6 +69,17 @@ const Font &TextureManager::getFont(const std::string &id)
     {
         loadFont(id);
         found = _fontMap.find(id);
+    }
+    return *found->second;
+}
+
+const FntFont &TextureManager::getFntFont(const std::string &id)
+{
+    auto found = _fntFontMap.find(id);
+    if (found == _fntFontMap.end())
+    {
+        loadFntFont(id);
+        found = _fntFontMap.find(id);
     }
     return *found->second;
 }
