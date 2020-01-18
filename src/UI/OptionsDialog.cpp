@@ -10,21 +10,23 @@
 
 namespace ng
 {
+struct Controls
+{
+    inline static const sf::Color NormalColor{sf::Color::White};
+    inline static const sf::Color DisabledColor{255,255,255,128};
+    inline static const sf::Color HoveColor{sf::Color::Yellow};
+};
 
 class Button: public sf::Drawable
 {
 public:
     typedef std::function<void()> Callback;
+    enum class Size {Large, Medium};
 
 public:
-    Button(int id, float y, Callback callback, bool enabled = true)
-    : _id(id), _y(y), _callback(std::move(callback)), _isEnabled(enabled)
+    Button(int id, float y, Callback callback, bool enabled = true, Size size = Size::Large)
+    : _id(id), _y(y), _callback(std::move(callback)), _isEnabled(enabled), _size(size)
     {
-    }
-
-    void setCallback(Callback callback)
-    {
-        _callback=std::move(callback);
     }
 
     int getId() const { return _id; }
@@ -33,8 +35,8 @@ public:
     {
         _pEngine=pEngine;
 
-        const FntFont& uiFontLarge = _pEngine->getTextureManager().getFntFont("UIFontLarge.fnt");
-        text.setFont(uiFontLarge);
+        const FntFont& uiFontLargeOrMedium = _pEngine->getTextureManager().getFntFont(_size == Size::Large ? "UIFontLarge.fnt":"UIFontMedium.fnt");
+        text.setFont(uiFontLargeOrMedium);
         text.setString(_pEngine->getText(_id));
         auto textRect = text.getLocalBounds();
         text.setOrigin(sf::Vector2f(textRect.width/2.f, 0));
@@ -49,11 +51,11 @@ public:
         sf::Color color;
         if(!_isEnabled)
         {
-            color=_disabledColor;
+            color=Controls::DisabledColor;
         }
         else if(textRect.contains((sf::Vector2f)pos))
         {
-            color=_hoveColor;
+            color=Controls::HoveColor;
             bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
             ImGuiIO &io = ImGui::GetIO();
             if(!io.WantCaptureMouse && _wasMouseDown && !isDown)
@@ -64,7 +66,7 @@ public:
         }
         else
         {
-            color=sf::Color::White;
+            color=Controls::NormalColor;
         }
         text.setFillColor(color);
     }
@@ -84,14 +86,13 @@ private:
     bool _wasMouseDown{false};
     Callback _callback;
     Text text;
-    inline static const sf::Color _disabledColor{255,255,255,128};
-    inline static const sf::Color _hoveColor{sf::Color::Yellow};
+    Size _size{Size::Large};
 };
 
 class SwitchButton: public sf::Drawable
 {
 public:
-    typedef std::function<void()>		Callback;
+    typedef std::function<void()> Callback;
 
 public:
     SwitchButton(std::initializer_list<int> ids, float y, bool enabled = true)
@@ -103,8 +104,8 @@ public:
     {
         _pEngine=pEngine;
 
-        const FntFont& uiFontLarge = _pEngine->getTextureManager().getFntFont("UIFontLarge.fnt");
-        text.setFont(uiFontLarge);
+        const FntFont& uiFontMedium = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
+        text.setFont(uiFontMedium);
         text.setString(_pEngine->getText(_ids[_index]));
         auto textRect = text.getLocalBounds();
         text.setOrigin(sf::Vector2f(textRect.width/2.f, 0));
@@ -119,25 +120,25 @@ public:
         sf::Color color;
         if(!_isEnabled)
         {
-            color=_disabledColor;
+            color=Controls::DisabledColor;
         }
         else if(textRect.contains((sf::Vector2f)pos))
         {
-            color=_hoveColor;
+            color=Controls::HoveColor;
             bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
             ImGuiIO &io = ImGui::GetIO();
             if(!io.WantCaptureMouse && _wasMouseDown && !isDown)
             {
                 _index=(_index+1)%_ids.size();
                 text.setString(_pEngine->getText(_ids[_index]));
-                auto textRect = text.getLocalBounds();
+                textRect = text.getLocalBounds();
                 text.setOrigin(sf::Vector2f(textRect.width/2.f, 0));
             }
             _wasMouseDown = isDown;
         }
         else
         {
-            color=sf::Color::White;
+            color=Controls::NormalColor;
         }
         text.setFillColor(color);
     }
@@ -158,8 +159,6 @@ private:
     bool _wasMouseDown{false};
     Callback _callback;
     Text text;
-    inline static const sf::Color _disabledColor{255,255,255,128};
-    inline static const sf::Color _hoveColor{sf::Color::Yellow};
 };
 
 class Checkbox: public sf::Drawable
@@ -220,11 +219,11 @@ public:
         sf::Color color;
         if(!_isEnabled)
         {
-            color=_disabledColor;
+            color=Controls::DisabledColor;
         }
         else if(textRect.contains(pos))
         {
-            color = _hoveColor;
+            color = Controls::HoveColor;
             bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
             ImGuiIO &io = ImGui::GetIO();
             if(!io.WantCaptureMouse && _wasMouseDown && !isDown)
@@ -235,7 +234,7 @@ public:
         }
         else
         {
-            color=sf::Color::White;
+            color=Controls::NormalColor;
         }
         _sprite.setColor(color);
         _text.setFillColor(color);
@@ -264,8 +263,6 @@ private:
     sf::Sprite _sprite;
     SpriteSheet* _pSpriteSheet{nullptr};
     std::optional<Callback> onValueChanged;
-    inline static const sf::Color _disabledColor{255,255,255,128};
-    inline static const sf::Color _hoveColor{sf::Color::Yellow};
 };
 
 class Slider: public sf::Drawable
@@ -273,8 +270,8 @@ class Slider: public sf::Drawable
 public:
     typedef std::function<void(float)> Callback;
 
-    Slider(float y, bool enabled = true)
-    : _y(y), _isEnabled(enabled)
+    Slider(int id, float y, bool enabled = true)
+    : _id(id), _y(y), _isEnabled(enabled)
     {
     }
 
@@ -292,19 +289,26 @@ public:
 
     void setSpriteSheet(SpriteSheet* pSpriteSheet)
     {
+        const FntFont& uiFontMedium = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
+        _text.setFont(uiFontMedium);
+        _text.setString(_pEngine->getText(_id));
+        auto textRect = _text.getLocalBounds();
+        _text.setOrigin(sf::Vector2f(0, textRect.height));
+        _text.setPosition(Screen::Width/2.f-textRect.width/2.f, _y);
+
         _pSpriteSheet=pSpriteSheet;
         auto sliderRect = pSpriteSheet->getRect("slider");
         auto handleRect = pSpriteSheet->getRect("slider_handle");
         sf::Vector2f scale(Screen::Width/320.f,Screen::Height/180.f);
-        _sprite.setPosition(Screen::Width/2.f, _y);
+        _sprite.setPosition(Screen::Width/2.f, _y+textRect.height);
         _sprite.setScale(scale);
-        _sprite.setOrigin(sliderRect.width/2.f, sliderRect.height/2.f);
+        _sprite.setOrigin(sliderRect.width/2.f, 0);
         _sprite.setTexture(pSpriteSheet->getTexture());
         _sprite.setTextureRect(sliderRect);
 
-        _spriteHandle.setPosition(Screen::Width/2.f-(sliderRect.width*scale.x/2.f), _y);
+        _spriteHandle.setPosition(Screen::Width/2.f-(sliderRect.width*scale.x/2.f), _y+textRect.height);
         _spriteHandle.setScale(scale);
-        _spriteHandle.setOrigin(handleRect.width/2.f, handleRect.height/2.f);
+        _spriteHandle.setOrigin(handleRect.width/2.f, 0);
         _spriteHandle.setTexture(pSpriteSheet->getTexture());
         _spriteHandle.setTextureRect(handleRect);
 
@@ -316,17 +320,17 @@ public:
     {
         auto textRect = _sprite.getGlobalBounds();
         bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-        if(!isDown){
+        if(!isDown) {
             _isDragging=false;
         }
         sf::Color color;
         if(!_isEnabled)
         {
-            color=_disabledColor;
+            color = Controls::DisabledColor;
         }
         else if(textRect.contains(pos))
         {
-            color=_hoveColor;
+            color = Controls::HoveColor;
             ImGuiIO &io = ImGui::GetIO();
             if(!io.WantCaptureMouse && isDown)
             {
@@ -336,26 +340,28 @@ public:
         }
         else
         {
-            color=sf::Color::White;
+            color = Controls::NormalColor;
         }
         _sprite.setColor(color);
+        _text.setFillColor(color);
 
-        if(_isDragging){
+        if(_isDragging) {
             auto x = std::clamp(pos.x, _min, _max);
             auto value = (x-_min)/(_max-_min);
-            if(_value!=value){
-                _value=value;
+            if(_value != value) {
+                _value = value;
                 if(onValueChanged) {
                     onValueChanged.value()(value);
                 }
             }
-            _spriteHandle.setPosition(x, _y);
+            _spriteHandle.setPosition(x, _spriteHandle.getPosition().y);
         }
     }
 
 private:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
     {
+        target.draw(_text, states);
         target.draw(_sprite, states);
         target.draw(_spriteHandle, states);
     }
@@ -371,10 +377,9 @@ private:
     bool _wasMouseDown{false};
     sf::Sprite _sprite;
     sf::Sprite _spriteHandle;
+    Text _text;
     SpriteSheet* _pSpriteSheet{nullptr};
     std::optional<Callback> onValueChanged;
-    inline static const sf::Color _disabledColor{255,255,255,128};
-    inline static const sf::Color _hoveColor{sf::Color::Yellow};
 };
 
 struct OptionsDialog::Impl
@@ -403,7 +408,11 @@ struct OptionsDialog::Impl
         inline static const int RetroFonts=99933;
         inline static const int RetroVerbs=99934;
         inline static const int ClassicSentence=99935;
+        inline static const int SoundVolume=99937;
+        inline static const int MusicVolume=99938;
+        inline static const int VoiceVolume=99939;
         inline static const int Controller=99940;
+        inline static const int TextSpeed=99941;
         inline static const int DisplayText=99942;
         inline static const int HearVoice=99943;
         inline static const int ScrollSyncCursor=99960;
@@ -457,22 +466,21 @@ struct OptionsDialog::Impl
             _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this](){ updateState(State::TextAndSpeech); });
             _buttons.emplace_back(Ids::Help, getSlotPos(6), [this](){ updateState(State::Help); });
             _buttons.emplace_back(Ids::Quit, getSlotPos(7), [](){});
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [](){});
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [](){}, true, Button::Size::Medium);
             break;
         case State::Sound:
             setHeading(Ids::Sound);
-            _sliders.emplace_back(getSlotPos(1));
-            _sliders.emplace_back(getSlotPos(2));
-            _sliders.emplace_back(getSlotPos(3));
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            _sliders.emplace_back(Ids::SoundVolume, getSlotPos(2));
+            _sliders.emplace_back(Ids::MusicVolume, getSlotPos(3));
+            _sliders.emplace_back(Ids::VoiceVolume, getSlotPos(4));
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::Video:
             setHeading(Ids::Video);
             _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1));
-            // Ids::SafeArea
-            _sliders.emplace_back(getSlotPos(2));
+            _sliders.emplace_back(Ids::SafeArea, getSlotPos(2));
             _checkboxes.emplace_back(Ids::ToiletPaperOver, getSlotPos(4));
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::Controls:
             setHeading(Ids::Controls);
@@ -482,16 +490,15 @@ struct OptionsDialog::Impl
             _checkboxes.emplace_back(Ids::RetroFonts, getSlotPos(5));
             _checkboxes.emplace_back(Ids::RetroVerbs, getSlotPos(6));
             _checkboxes.emplace_back(Ids::ClassicSentence, getSlotPos(7));
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::TextAndSpeech:
             setHeading(Ids::TextAndSpeech);
-            // Ids::TextSpeed
-            _sliders.emplace_back(getSlotPos(1));
-            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(2));
-            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(3));
+            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1));
+            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3));
+            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4));
             _switchButtons.push_back(SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5)));
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::Help:
             setHeading(Ids::Help);
@@ -500,7 +507,7 @@ struct OptionsDialog::Impl
             _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [this](){});
             _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [this](){});
             // _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this](){});
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); });
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         default:
             updateState(State::Main);
