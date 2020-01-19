@@ -126,7 +126,7 @@ struct Engine::Impl
     const Verb *_pVerbOverride{nullptr};
     std::vector<std::unique_ptr<ThreadBase>> _threads;
     DialogManager _dialogManager;
-    Preferences _preferences;
+    Preferences& _preferences;
     SoundManager& _soundManager;
     CursorDirection _cursorDirection;
     std::array<ActorIconSlot, 6> _actorsIconSlots;
@@ -195,7 +195,9 @@ Engine::Impl::Impl()
     : _pEngine(nullptr), _pRoom(nullptr), _inputActive(false),
       _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
       _cursorDirection(CursorDirection::None), _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
-      _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor), _soundManager(Locator<SoundManager>::get())
+      _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor), 
+      _soundManager(Locator<SoundManager>::get()),
+      _preferences(Locator<Preferences>::get())
 {
     _verbSheet.setTextureManager(&_textureManager);
     _gameSheet.setTextureManager(&_textureManager);

@@ -1,6 +1,7 @@
 #include "Engine.h"
 #include "FntFont.h"
 #include "OptionsDialog.h"
+#include "Preferences.h"
 #include "Screen.h"
 #include "SoundManager.h"
 #include "SpriteSheet.h"
@@ -29,8 +30,6 @@ public:
     : _id(id), _y(y), _callback(std::move(callback)), _isEnabled(enabled), _size(size)
     {
     }
-
-    int getId() const { return _id; }
 
     void setEngine(Engine* pEngine)
     {
@@ -93,11 +92,11 @@ private:
 class SwitchButton: public sf::Drawable
 {
 public:
-    typedef std::function<void()> Callback;
+    typedef std::function<void(int)> Callback;
 
 public:
-    SwitchButton(std::initializer_list<int> ids, float y, bool enabled = true)
-    : _ids(ids), _y(y), _isEnabled(enabled)
+    SwitchButton(std::initializer_list<int> ids, float y, bool enabled = true, int index = 0, Callback callback = [](auto value){})
+    : _ids(ids), _y(y), _isEnabled(enabled), _index(index), _callback(std::move(callback))
     {
     }
 
@@ -132,6 +131,7 @@ public:
             {
                 _index=(_index+1)%_ids.size();
                 text.setString(_pEngine->getText(_ids[_index]));
+                _callback(_index);
                 textRect = text.getLocalBounds();
                 text.setOrigin(sf::Vector2f(textRect.width/2.f, 0));
             }
@@ -168,15 +168,14 @@ public:
     typedef std::function<void(bool)> Callback;
 
 public:
-    Checkbox(int id, float y, bool enabled = true, bool checked = false)
-    : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked)
+    Checkbox(int id, float y, bool enabled = true, bool checked = false, Callback callback = [](auto value){})
+    : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked), _callback(callback)
     {
     }
 
     void setEngine(Engine* pEngine)
     {
         _pEngine=pEngine;
-
         const FntFont& uiFontMedium = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
         _text.setFont(uiFontMedium);
         _text.setString(_pEngine->getText(_id));
@@ -197,22 +196,15 @@ public:
         _sprite.setTextureRect(checkedRect);
     }
 
-    void setChecked(bool checked) {
-        if(_isChecked!=checked) {
+    void setChecked(bool checked)
+    {
+        if(_isChecked != checked)
+        {
             _isChecked = checked;
-            if(onValueChanged) {
-                onValueChanged.value()(_isChecked);
-            }
+            _callback(_isChecked);
         }
     }
     
-    inline bool isChecked() const { return _isChecked; }
-
-    void setCallback(Callback callback)
-    {
-        onValueChanged=callback;
-    }
-
     void update(sf::Vector2f pos)
     {
         auto textRect = _sprite.getGlobalBounds();
@@ -254,8 +246,8 @@ private:
 private:
     Engine* _pEngine{nullptr};
     int _id{0};
-    bool _isEnabled{true};
     float _y{0};
+    bool _isEnabled{true};
     bool _isOver{false};
     bool _isChecked{false};
     bool _wasMouseDown{false};
@@ -263,7 +255,6 @@ private:
     Text _text;
     sf::Sprite _sprite;
     SpriteSheet* _pSpriteSheet{nullptr};
-    std::optional<Callback> onValueChanged;
 };
 
 class Slider: public sf::Drawable
@@ -280,8 +271,6 @@ public:
     {
         _pEngine=pEngine;
     }
-
-    inline float getValue() const { return _value;}
 
     void setSpriteSheet(SpriteSheet* pSpriteSheet)
     {
@@ -421,6 +410,8 @@ struct OptionsDialog::Impl
         inline static const int ControllerMap=99969;
     };    
 
+    inline static const std::array<std::string,5> LanguageValues = {"en","fr","it","de","es"};
+
     Engine* _pEngine{nullptr};
     SpriteSheet _saveLoadSheet;
 
@@ -442,6 +433,24 @@ struct OptionsDialog::Impl
         _headingText.setString(_pEngine->getText(id));
         auto textRect = _headingText.getGlobalBounds();
         _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, 44.f-textRect.height/2));
+    }
+
+    void setUserPreference(const std::string &name, std::any value)
+    {
+        Locator<Preferences>::get().setUserPreference(name, value);
+    }
+
+    template <typename T>
+    T getUserPreference(const std::string &name, T value) const
+    {
+        return Locator<Preferences>::get().getUserPreference(name, value);
+    }
+
+    int getLanguageUserPreference() const
+    {
+        auto lang = Locator<Preferences>::get().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
+        auto it = std::find(LanguageValues.begin(),LanguageValues.end(),lang);
+        return static_cast<int>(std::distance(LanguageValues.begin(),it));
     }
 
     void updateState(State state)
@@ -473,27 +482,54 @@ struct OptionsDialog::Impl
             break;
         case State::Video:
             setHeading(Ids::Video);
-            _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1));
-            _sliders.emplace_back(Ids::SafeArea, getSlotPos(2));
-            _checkboxes.emplace_back(Ids::ToiletPaperOver, getSlotPos(4));
+            _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), true, 
+                getUserPreference(PreferenceNames::Fullscreen, PreferenceDefaultValues::Fullscreen),
+                [this](auto value){ setUserPreference(PreferenceNames::Fullscreen, value); });
+            _sliders.emplace_back(Ids::SafeArea, getSlotPos(2), true, 
+                getUserPreference(PreferenceNames::SafeArea, PreferenceDefaultValues::SafeArea),
+                [this](auto value){ setUserPreference(PreferenceNames::SafeArea, value); });
+            _checkboxes.emplace_back(Ids::ToiletPaperOver, getSlotPos(4), true, 
+                getUserPreference(PreferenceNames::ToiletPaperOver, PreferenceDefaultValues::ToiletPaperOver),
+                [this](auto value){ setUserPreference(PreferenceNames::ToiletPaperOver, value); });
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::Controls:
             setHeading(Ids::Controls);
-            _checkboxes.emplace_back(Ids::Controller, getSlotPos(1), false);
-            _checkboxes.emplace_back(Ids::ScrollSyncCursor, getSlotPos(2), false, true);
-            _checkboxes.emplace_back(Ids::InvertVerbColors, getSlotPos(4));
-            _checkboxes.emplace_back(Ids::RetroFonts, getSlotPos(5));
-            _checkboxes.emplace_back(Ids::RetroVerbs, getSlotPos(6));
-            _checkboxes.emplace_back(Ids::ClassicSentence, getSlotPos(7));
+            _checkboxes.emplace_back(Ids::Controller, getSlotPos(1), false, 
+                getUserPreference(PreferenceNames::Controller, PreferenceDefaultValues::Controller),
+                [this](auto value){ setUserPreference(PreferenceNames::Controller, value); });
+            _checkboxes.emplace_back(Ids::ScrollSyncCursor, getSlotPos(2), false, 
+                getUserPreference(PreferenceNames::ScrollSyncCursor, PreferenceDefaultValues::ScrollSyncCursor),
+                [this](auto value){ setUserPreference(PreferenceNames::ScrollSyncCursor, value); });
+            _checkboxes.emplace_back(Ids::InvertVerbColors, getSlotPos(4), true, 
+                getUserPreference(PreferenceNames::InvertVerbHighlight, PreferenceDefaultValues::InvertVerbHighlight),
+                [this](auto value){ setUserPreference(PreferenceNames::InvertVerbHighlight, value); });
+            _checkboxes.emplace_back(Ids::RetroFonts, getSlotPos(5), true, 
+                getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts),
+                [this](auto value){ setUserPreference(PreferenceNames::RetroFonts, value); });
+            _checkboxes.emplace_back(Ids::RetroVerbs, getSlotPos(6), true, 
+                getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs),
+                [this](auto value){ setUserPreference(PreferenceNames::RetroVerbs, value); });
+            _checkboxes.emplace_back(Ids::ClassicSentence, getSlotPos(7), true, 
+                getUserPreference(PreferenceNames::ClassicSentence, PreferenceDefaultValues::ClassicSentence),
+                [this](auto value){ setUserPreference(PreferenceNames::ClassicSentence, value); });
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::TextAndSpeech:
             setHeading(Ids::TextAndSpeech);
-            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1));
-            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3));
-            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4));
-            _switchButtons.push_back(SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5)));
+            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), true, 
+                getUserPreference(PreferenceNames::TextSpeed, PreferenceDefaultValues::TextSpeed),
+                [this](auto value){ setUserPreference(PreferenceNames::TextSpeed, value); });
+            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3), true, 
+                getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText),
+                [this](auto value){ setUserPreference(PreferenceNames::DisplayText, value); });
+            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4), true, 
+                getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice),
+                [this](auto value){ setUserPreference(PreferenceNames::HearVoice, value); });
+            _switchButtons.push_back(SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5), true, 
+                getLanguageUserPreference(), [this](auto index){
+                setUserPreference(PreferenceNames::Language, LanguageValues[index]);
+            }));
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, Button::Size::Medium);
             break;
         case State::Help:

@@ -4,6 +4,7 @@
 #include "EngineSettings.h"
 #include "Locator.h"
 #include "Logger.h"
+#include "Preferences.h"
 #include "ResourceManager.h"
 #include "ScriptEngine.h"
 #include "SoundDefinition.h"
@@ -25,6 +26,9 @@ int main(int argc, char **argv)
 
     auto pSoundManager = std::make_shared<ng::SoundManager>();
     ng::Locator<ng::SoundManager>::set(pSoundManager);
+
+    auto pPreferences = std::make_shared<ng::Preferences>();
+    ng::Locator<ng::Preferences>::set(pPreferences);
 
     if (argc == 2)
     {
