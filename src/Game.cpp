@@ -19,7 +19,6 @@ void Game::setEngine(Engine *pEngine)
 {
     _pEngine = pEngine;
     _pEngine->setWindow(_window);
-    _optionsDialog.setEngine(pEngine);
 }
 
 void Game::run()
@@ -59,14 +58,12 @@ void Game::update(const sf::Time &elapsed)
 {
     ImGui::SFML::Update(_window, elapsed);
     _pEngine->update(elapsed);
-    _optionsDialog.update(elapsed);
 }
 
 void Game::render()
 {
     _window.clear();
     _pEngine->draw(_window);
-    _window.draw(_optionsDialog);
     ImGui::SFML::Render(_window);
     _window.display();
 }

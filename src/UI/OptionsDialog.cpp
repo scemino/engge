@@ -113,14 +113,14 @@ struct OptionsDialog::Impl
         case State::Main:
             setHeading(Ids::Options);
             _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [this](){}, false);
-            _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this](){});
+            _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this](){}, false);
             _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this](){ updateState(State::Sound); });
             _buttons.emplace_back(Ids::Video, getSlotPos(3), [this](){ updateState(State::Video); });
             _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this](){ updateState(State::Controls); });
             _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this](){ updateState(State::TextAndSpeech); });
             _buttons.emplace_back(Ids::Help, getSlotPos(6), [this](){ updateState(State::Help); });
-            _buttons.emplace_back(Ids::Quit, getSlotPos(7), [](){});
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [](){}, true, _Button::Size::Medium);
+            _buttons.emplace_back(Ids::Quit, getSlotPos(7), [](){}, false);
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ _pEngine->showOptions(false); }, true, _Button::Size::Medium);
             break;
         case State::Sound:
             setHeading(Ids::Sound);
@@ -131,10 +131,10 @@ struct OptionsDialog::Impl
             break;
         case State::Video:
             setHeading(Ids::Video);
-            _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), true, 
+            _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), false, 
                 getUserPreference(PreferenceNames::Fullscreen, PreferenceDefaultValues::Fullscreen),
                 [this](auto value){ setUserPreference(PreferenceNames::Fullscreen, value); });
-            _sliders.emplace_back(Ids::SafeArea, getSlotPos(2), true, 
+            _sliders.emplace_back(Ids::SafeArea, getSlotPos(2), false, 
                 getUserPreference(PreferenceNames::SafeArea, PreferenceDefaultValues::SafeArea),
                 [this](auto value){ setUserPreference(PreferenceNames::SafeArea, value); });
             _checkboxes.emplace_back(Ids::ToiletPaperOver, getSlotPos(4), true, 
@@ -166,13 +166,13 @@ struct OptionsDialog::Impl
             break;
         case State::TextAndSpeech:
             setHeading(Ids::TextAndSpeech);
-            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), true, 
+            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), false, 
                 getUserPreference(PreferenceNames::TextSpeed, PreferenceDefaultValues::TextSpeed),
                 [this](auto value){ setUserPreference(PreferenceNames::TextSpeed, value); });
-            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3), true, 
+            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3), false, 
                 getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText),
                 [this](auto value){ setUserPreference(PreferenceNames::DisplayText, value); });
-            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4), true, 
+            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4), false, 
                 getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice),
                 [this](auto value){ setUserPreference(PreferenceNames::HearVoice, value); });
             _switchButtons.push_back(_SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5), true, 
@@ -183,11 +183,11 @@ struct OptionsDialog::Impl
             break;
         case State::Help:
             setHeading(Ids::Help);
-            _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this](){});
-            _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), [this](){});
-            _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [this](){});
-            _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [this](){});
-            // _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this](){});
+            _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this](){}, false);
+            _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), [this](){}, false);
+            _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [this](){}, false);
+            _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [this](){}, false);
+            // _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this](){}, false);
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, _Button::Size::Medium);
             break;
         default:
@@ -232,6 +232,13 @@ struct OptionsDialog::Impl
         const auto view = target.getView();
         auto viewRect = sf::FloatRect(0, 0, 320, 180);
         target.setView(sf::View(viewRect));
+
+        sf::Color backColor{0,0,0,128};
+        sf::RectangleShape fadeShape;
+        auto screen = target.getView().getSize();
+        fadeShape.setSize(sf::Vector2f(viewRect.width, viewRect.height));
+        fadeShape.setFillColor(backColor);
+        target.draw(fadeShape);
         
         // draw background
         auto viewCenter = sf::Vector2f(viewRect.width/2,viewRect.height/2);
@@ -268,7 +275,8 @@ struct OptionsDialog::Impl
 
     void update(const sf::Time& elapsed)
     {
-        auto pos = _pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()));
+        auto pos = (sf::Vector2f)_pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()), sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+        trace("Mouse pso: ({},{})", pos.x, pos.y);
         for(auto& button : _buttons) {
             button.update(pos);
         }

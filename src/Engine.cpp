@@ -10,6 +10,7 @@
 #include "Graph.h"
 #include "Inventory.h"
 #include "Locator.h"
+#include "OptionsDialog.h"
 #include "Preferences.h"
 #include "ResourceManager.h"
 #include "Room.h"
@@ -90,6 +91,10 @@ bool operator&(CursorDirection lhs, CursorDirection rhs)
            CursorDirection::None;
 }
 
+enum class EngineState {
+    Game, Paused, Options
+};
+
 struct Engine::Impl
 {
     Engine *_pEngine;
@@ -145,12 +150,13 @@ struct Engine::Impl
     std::unique_ptr<Sentence> _pSentence{};
     std::set<int> _oldKeyDowns;
     std::set<int> _newKeyDowns;
-    bool _paused{false};
+    EngineState _state{EngineState::Game};
     mutable sf::Shader _verbShader{};
     sf::Vector2f _ranges{0.8f, 0.8f};
     sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
     _TalkingState _talkingState;
     int _showDrawWalkboxes{0};
+    OptionsDialog _optionsDialog;
 
     Impl();
 
@@ -253,6 +259,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
     s << "ThimbleweedText_" << lang << ".tsv";
     _pImpl->_textDb.load(s.str());
 
+    _pImpl->_optionsDialog.setEngine(this);
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
     _pImpl->_saveLoadSheet.load("SaveLoadSheet");
@@ -990,10 +997,14 @@ void Engine::update(const sf::Time &elapsed)
 {
     _pImpl->stopThreads();
     _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
-    if(_pImpl->isKeyPressed(32))
+    if(_pImpl->_state == EngineState::Options)
+    {
+        _pImpl->_optionsDialog.update(elapsed);
+    }
+    else if(_pImpl->isKeyPressed(32))
     { 
-        _pImpl->_paused = !_pImpl->_paused; 
-        if(_pImpl->_paused)
+        _pImpl->_state = _pImpl->_state == EngineState::Game ? EngineState::Paused : EngineState::Game; 
+        if(_pImpl->_state == EngineState::Paused)
         { 
             _pImpl->_soundManager.pauseAllSounds();
         }
@@ -1003,7 +1014,7 @@ void Engine::update(const sf::Time &elapsed)
         }
     }
     
-    if(_pImpl->_paused)
+    if(_pImpl->_state == EngineState::Paused)
     {  
         _pImpl->updateKeys();
         return;
@@ -1055,6 +1066,9 @@ void Engine::update(const sf::Time &elapsed)
     }
 
     _pImpl->updateActorIcons(elapsed);
+
+    if(_pImpl->_state == EngineState::Options)
+        return;
 
     _pImpl->_cursorDirection = CursorDirection::None;
     _pImpl->updateMouseCursor();
@@ -1235,34 +1249,38 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
 
 void Engine::draw(sf::RenderWindow &window) const
 {
-    if (!_pImpl->_pRoom)
-        return;
-
-    _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
-    _pImpl->drawFade(window);
-    _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
-
-    _pImpl->drawWalkboxes(window);
-
-    window.draw(_pImpl->_talkingState);
-
-    window.draw(_pImpl->_dialogManager);
-
-    if ((_pImpl->_dialogManager.getState() == DialogManagerState::None) && _pImpl->_inputActive)
+    if (_pImpl->_pRoom)
     {
-        _pImpl->drawVerbs(window);
-        if (_pImpl->_inputHUD)
+        _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
+        _pImpl->drawFade(window);
+        _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
+
+        _pImpl->drawWalkboxes(window);
+
+        window.draw(_pImpl->_talkingState);
+
+        window.draw(_pImpl->_dialogManager);
+
+        if ((_pImpl->_dialogManager.getState() == DialogManagerState::None) && _pImpl->_inputActive)
         {
-            window.draw(_pImpl->_inventory);
+            _pImpl->drawVerbs(window);
+            if (_pImpl->_inputHUD)
+            {
+                window.draw(_pImpl->_inventory);
+            }
+            window.draw(_pImpl->_actorIcons);
         }
-        window.draw(_pImpl->_actorIcons);
+
+        if(_pImpl->_state == EngineState::Options)
+        {
+            window.draw(_pImpl->_optionsDialog);
+        }
+        _pImpl->drawPause(window);
+
+        _pImpl->drawCursor(window);
+        _pImpl->drawCursorText(window);
+        _pImpl->_pDebugTools->render();
     }
-
-    _pImpl->drawPause(window);
-
-    _pImpl->drawCursor(window);
-    _pImpl->drawCursorText(window);
-    _pImpl->_pDebugTools->render();
 }
 
 void Engine::setWalkboxesFlags(int show) { _pImpl->_showDrawWalkboxes = show; }
@@ -1307,7 +1325,7 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
 
 void Engine::Impl::drawPause(sf::RenderTarget &target) const
 {
-    if(!_paused) return;
+    if(_state != EngineState::Paused) return;
 
     const auto view = target.getView();
     auto viewRect = sf::FloatRect(0, 0, 320, 176);
@@ -1371,8 +1389,11 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 
 sf::IntRect Engine::Impl::getCursorRect() const
 {
-    if(_paused)
+    if(_state == EngineState::Paused)
         return _gameSheet.getRect("cursor_pause");
+
+    if(_state == EngineState::Options)
+        return _gameSheet.getRect("cursor");
     
     if (_dialogManager.getState() != DialogManagerState::None)
         return _gameSheet.getRect("cursor");
@@ -1403,7 +1424,7 @@ sf::IntRect Engine::Impl::getCursorRect() const
 
 void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
 {
-    if (!_showCursor || _paused)
+    if (!_showCursor ||  _state != EngineState::Game)
         return;
 
     if (_dialogManager.getState() != DialogManagerState::None)
@@ -1531,7 +1552,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     {
         verbId = getDefaultVerb(_vm, _pHoveredEntity);
     }
-    else
+    else if(_state == EngineState::Game)
     {
         for (size_t i = 0; i < _verbRects.size(); i++)
         {
@@ -1722,6 +1743,11 @@ void Engine::sayLineAt(sf::Vector2i pos, Actor& actor, const std::string& text)
 {
     _pImpl->_talkingState.setPosition((sf::Vector2f)pos);
     _pImpl->_talkingState.loadLip(text, &actor);
+}
+
+void Engine::showOptions(bool visible)
+{
+    _pImpl->_state = visible ? EngineState::Options : EngineState::Game;
 }
 
 } // namespace ng

@@ -73,6 +73,11 @@ void ActorIcons::update(const sf::Time &elapsed)
             }
             iconRect.top += 15;
         }
+        if (iconRect.contains(_mousePos))
+        {
+            _pEngine->showOptions(true);
+            return;
+        }
     }
 }
 

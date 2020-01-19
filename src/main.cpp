@@ -15,35 +15,36 @@
 
 int main(int argc, char **argv)
 {
-    auto pLogger = std::make_shared<ng::Logger>();
-    ng::Locator<ng::Logger>::set(pLogger);
-
-    auto pResManager = std::make_shared<ng::ResourceManager>();
-    ng::Locator<ng::ResourceManager>::set(pResManager);
-
-    auto pSettings = std::make_shared<ng::EngineSettings>();
-    ng::Locator<ng::EngineSettings>::set(pSettings);
-
-    auto pSoundManager = std::make_shared<ng::SoundManager>();
-    ng::Locator<ng::SoundManager>::set(pSoundManager);
-
-    auto pPreferences = std::make_shared<ng::Preferences>();
-    ng::Locator<ng::Preferences>::set(pPreferences);
-
-    if (argc == 2)
-    {
-        auto filename = argv[1];
-        ng::_AstDump::dump(filename);
-        return 0;
-    }
-
-	auto game = std::make_unique<ng::Game>();
-	auto scriptEngine = std::make_unique<ng::ScriptEngine>();
-    auto engine = std::make_unique<ng::Engine>();
-    game->setEngine(engine.get());
-    scriptEngine->setEngine(*engine);
     try
     {
+        auto pLogger = std::make_shared<ng::Logger>();
+        ng::Locator<ng::Logger>::set(pLogger);
+
+        auto pResManager = std::make_shared<ng::ResourceManager>();
+        ng::Locator<ng::ResourceManager>::set(pResManager);
+
+        auto pSettings = std::make_shared<ng::EngineSettings>();
+        ng::Locator<ng::EngineSettings>::set(pSettings);
+
+        auto pSoundManager = std::make_shared<ng::SoundManager>();
+        ng::Locator<ng::SoundManager>::set(pSoundManager);
+
+        auto pPreferences = std::make_shared<ng::Preferences>();
+        ng::Locator<ng::Preferences>::set(pPreferences);
+
+        if (argc == 2)
+        {
+            auto filename = argv[1];
+            ng::_AstDump::dump(filename);
+            return 0;
+        }
+
+        auto game = std::make_unique<ng::Game>();
+        auto scriptEngine = std::make_unique<ng::ScriptEngine>();
+        auto engine = std::make_unique<ng::Engine>();
+        game->setEngine(engine.get());
+        scriptEngine->setEngine(*engine);
+
         std::ifstream is("test.nut");
         if (is.is_open())
         {
