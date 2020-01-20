@@ -1,8 +1,8 @@
 #pragma once
-#include <any>
 #include <functional>
 #include <map>
 #include <string>
+#include "GGPack.h"
 #include "JsonTokenReader.h"
 
 namespace ng
@@ -51,35 +51,64 @@ public:
 
     void save();
 
-    void setUserPreference(const std::string &name, std::any value);
-    std::any getUserPreferenceCore(const std::string &name, std::any value) const;
-    std::any getPrivatePreferenceCore(const std::string &name, std::any value) const;
+    template <typename T>
+    void setUserPreference(const std::string &name, T value);
     template <typename T>
     T getUserPreference(const std::string &name, T value) const;
+
     void removeUserPreference(const std::string &name);
     void removePrivatePreference(const std::string &name);
 
-    void setPrivatePreference(const std::string &name, std::any value);
+    template <typename T>
+    void setPrivatePreference(const std::string &name, T value);
     template <typename T>
     T getPrivatePreference(const std::string &name, T value) const;
 
-    void subscribe(std::function<void(const std::string&,std::any)> function);
+    void subscribe(std::function<void(const std::string&)> function);
+
+    template <typename T>
+    static GGPackValue toGGPackValue(T value);
+
+    template <typename T>
+    static T fromGGPackValue(GGPackValue value);
 
 private:
-    std::map<std::string, std::any> _values;
-    std::map<std::string, std::any> _privateValues;
-    std::vector<std::function<void(const std::string&,std::any)>> _functions;
+    GGPackValue getUserPreferenceCore(const std::string &name, GGPackValue defaultValue) const;
+    GGPackValue getPrivatePreferenceCore(const std::string &name, GGPackValue defaultValue) const;
+
+private:
+    GGPackValue _values;
+    GGPackValue _privateValues;
+    std::vector<std::function<void(const std::string&)>> _functions;
 };
+
+template <typename T>
+void Preferences::setUserPreference(const std::string &name, T value)
+{
+    _values.hash_value[name] = toGGPackValue(value);
+    for (auto &&func : _functions)
+    {
+        func(name);
+    }
+}
+
+template <typename T>
+void Preferences::setPrivatePreference(const std::string &name, T value)
+{
+    _privateValues.hash_value[name] = toGGPackValue(value);
+}
 
 template <typename T>
 T Preferences::getUserPreference(const std::string &name, T value) const
 {
-    return std::any_cast<T>(getUserPreferenceCore(name, value));
+    return Preferences::fromGGPackValue<T>(getUserPreferenceCore(name, Preferences::toGGPackValue<T>(value)));
 }
 
 template <typename T>
 T Preferences::getPrivatePreference(const std::string &name, T value) const
 {
-    return std::any_cast<T>(getPrivatePreferenceCore(name, value));
+    return Preferences::fromGGPackValue<T>(getPrivatePreferenceCore(name, Preferences::toGGPackValue<T>(value)));
 }
+
+
 } // namespace ng

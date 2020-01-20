@@ -255,7 +255,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
     
     // load all messages
     std::stringstream s;
-    auto lang = std::any_cast<std::string>(_pImpl->_preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language));
+    auto lang = _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
     s << "ThimbleweedText_" << lang << ".tsv";
     _pImpl->_textDb.load(s.str());
 
@@ -264,10 +264,11 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
     _pImpl->_gameSheet.load("GameSheet");
     _pImpl->_saveLoadSheet.load("SaveLoadSheet");
 
-    _pImpl->_preferences.subscribe([this](const std::string &name, std::any value) {
+    _pImpl->_preferences.subscribe([this](const std::string &name) {
         if (name == PreferenceNames::Language)
         {
-            _pImpl->onLanguageChange(std::any_cast<std::string>(value));
+            auto newLang = _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language,PreferenceDefaultValues::Language);
+            _pImpl->onLanguageChange(newLang);
         }
     });
 }

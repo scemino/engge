@@ -84,7 +84,8 @@ struct OptionsDialog::Impl
         _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, 44.f-textRect.height/2));
     }
 
-    void setUserPreference(const std::string &name, std::any value)
+    template <typename T>
+    void setUserPreference(const std::string &name, T value)
     {
         Locator<Preferences>::get().setUserPreference(name, value);
     }

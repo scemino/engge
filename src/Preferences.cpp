@@ -4,110 +4,145 @@ namespace ng
 {
 Preferences::Preferences()
 {
-    ng::GGPackValue hash;
-    ng::Json::Parser::load("Prefs.json", hash);
-
-    for (auto &&pref : hash.hash_value)
-    {
-        std::any prefValue;
-        if (pref.second.isDouble())
-        {
-            prefValue = pref.second.double_value;
-        }
-        else if (pref.second.isString())
-        {
-            auto value = pref.second.string_value;
-            if (!value.empty() && value[0] == '\"' && value[value.size() - 1] == '\"')
-            {
-                value = value.substr(1, value.size() - 2);
-            }
-            prefValue = value;
-        }
-        setUserPreference(pref.first, prefValue);
-    }
+    ng::Json::Parser::load("Prefs.json", _values);
 }
 
 void Preferences::save()
 {
     std::ofstream os;
     os.open("Prefs.json");
-    for (auto &&pref : _values)
+    for (auto &&pref : _values.hash_value)
     {
         os << pref.first << ": ";
-        if (pref.second.type() == typeid(std::string))
+        if (pref.second.isString())
         {
-            os << "\"" << std::any_cast<std::string>(pref.second) << "\"";
+            os << "\"" << pref.second.string_value << "\"";
         }
-        else if (pref.second.type() == typeid(double))
+        else if (pref.second.isDouble())
         {
-            os << std::any_cast<double>(pref.second);
+            os << pref.second.double_value;
         }
-        else if (pref.second.type() == typeid(int))
+        else if (pref.second.isInteger())
         {
-            os << std::any_cast<int>(pref.second);
-        }
-        else if (pref.second.type() == typeid(bool))
-        {
-            os << (std::any_cast<bool>(pref.second) ? 1 : 0);
+            os << pref.second.int_value;
         }
         os << std::endl;
     }
 }
 
-void Preferences::setUserPreference(const std::string &name, std::any value)
-{
-    _values[name] = value;
-    for (auto &&func : _functions)
-    {
-        func(name, value);
-    }
-}
-
 void Preferences::removeUserPreference(const std::string &name)
 {
-    auto it = _values.find(name);
-    if (it != _values.end())
+    auto it = _values.hash_value.find(name);
+    if (it != _values.hash_value.end())
     {
-        _values.erase(it);
+        _values.hash_value.erase(it);
     }
 }
 
 void Preferences::removePrivatePreference(const std::string &name)
 {
-    auto it = _privateValues.find(name);
-    if (it != _privateValues.end())
+    auto it = _privateValues.hash_value.find(name);
+    if (it != _privateValues.hash_value.end())
     {
-        _privateValues.erase(it);
+        _privateValues.hash_value.erase(it);
     }
 }
 
-void Preferences::setPrivatePreference(const std::string &name, std::any value)
-{
-    _privateValues[name] = value;
-}
-
-std::any Preferences::getUserPreferenceCore(const std::string &name, std::any value) const
-{
-    auto it = _values.find(name);
-    if (it == _values.end())
-    {
-        return value;
-    }
-    return it->second;
-}
-
-std::any Preferences::getPrivatePreferenceCore(const std::string &name, std::any value) const
-{
-    auto it = _privateValues.find(name);
-    if (it == _privateValues.end())
-    {
-        return value;
-    }
-    return it->second;
-}
-
-void Preferences::subscribe(std::function<void(const std::string &, std::any)> function)
+void Preferences::subscribe(std::function<void(const std::string &)> function)
 {
     _functions.emplace_back(function);
 }
+
+GGPackValue Preferences::getUserPreferenceCore(const std::string &name, GGPackValue defaultValue) const
+{
+    auto it = _values.hash_value.find(name);
+    if (it != _values.hash_value.end())
+    {
+        return it->second;
+    }
+    return defaultValue;
+}
+
+GGPackValue Preferences::getPrivatePreferenceCore(const std::string &name, GGPackValue defaultValue) const
+{
+    auto it = _privateValues.hash_value.find(name);
+    if (it != _privateValues.hash_value.end())
+    {
+        return it->second;
+    }
+    return defaultValue;
+}
+
+template <>
+int Preferences::fromGGPackValue<int>(GGPackValue value)
+{
+    return value.int_value;
+}
+
+template <>
+bool Preferences::fromGGPackValue<bool>(GGPackValue value)
+{
+    return value.int_value?true:false;
+}
+
+template <>
+std::string Preferences::fromGGPackValue<std::string>(GGPackValue value)
+{
+    return value.string_value;
+}
+
+template <>
+float Preferences::fromGGPackValue<float>(GGPackValue value)
+{
+    return value.double_value;
+}
+
+template <>
+GGPackValue Preferences::fromGGPackValue<GGPackValue>(GGPackValue value)
+{
+    return value;
+}
+
+template <>
+GGPackValue Preferences::toGGPackValue<GGPackValue>(GGPackValue value)
+{
+    return value;
+}
+
+template <>
+GGPackValue Preferences::toGGPackValue<int>(int value)
+{
+    GGPackValue packValue;
+    packValue.type = 5;
+    packValue.int_value = value;
+    return packValue;
+}
+
+template <>
+GGPackValue Preferences::toGGPackValue<bool>(bool value)
+{
+    GGPackValue packValue;
+    packValue.type = 5;
+    packValue.int_value = value?1:0;
+    return packValue;
+}
+
+template <>
+GGPackValue Preferences::toGGPackValue<float>(float value)
+{
+    GGPackValue packValue;
+    packValue.type = 6;
+    packValue.double_value = value;
+    return packValue;
+}
+
+template <>
+GGPackValue Preferences::toGGPackValue<std::string>(std::string value)
+{
+    GGPackValue packValue;
+    packValue.type = 4;
+    packValue.string_value = std::move(value);
+    return packValue;
+}
+
 } // namespace ng
