@@ -671,9 +671,38 @@ private:
             {
                 auto object = std::make_unique<Object>();
                 object->setTouchable(true);
-                const SQChar* icon;
-                sq_getstring(v, -1, &icon);
-                object->setIcon(icon);
+
+                if (sq_gettype(v, -1) == OT_STRING)
+                {
+                    const SQChar* icon = nullptr;
+                    sq_getstring(v, -1, &icon);
+                    object->setIcon(icon);
+                }
+                else if (sq_gettype(v, -1) == OT_ARRAY)
+                {                
+                    SQInteger fps = 0;
+                    const SQChar* icon = nullptr;
+                    std::vector<std::string> icons;
+                    sq_pushnull(v); // null iterator
+                    if (SQ_SUCCEEDED(sq_next(v, -2)))
+                    {
+                        sq_getinteger(v, -1, &fps);
+                        sq_pop(v, 2);
+                    }
+                    while (SQ_SUCCEEDED(sq_next(v, -2)))
+                    {
+                        sq_getstring(v, -1, &icon);
+                        icons.emplace_back(icon);
+                        sq_pop(v, 2);
+                    }
+                    sq_pop(v, 1); // pops the null iterator
+
+                    object->setIcon(fps, icons);
+                }
+                else
+                {
+                    error("TODO: objectIcon with type {} not implemented", sq_gettype(v, -1));
+                }
 
                 sq_pushobject(v, roomObject.second);
                 sq_getstackobj(v, -1, &object->getTable());
