@@ -1,8 +1,8 @@
 #pragma once
-#include "Function.h"
+#include "Engine/Function.h"
 
 #include <utility>
-#include "Actor.h"
+#include "Entities/Actor/Actor.h"
 
 namespace ng
 {

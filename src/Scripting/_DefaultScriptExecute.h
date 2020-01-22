@@ -1,6 +1,6 @@
 #pragma once
 #include "squirrel.h"
-#include "ScriptExecute.h"
+#include "Scripting/ScriptExecute.h"
 
 namespace ng
 {

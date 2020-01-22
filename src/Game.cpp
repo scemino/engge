@@ -1,5 +1,5 @@
 #include "Game.h"
-#include "Screen.h"
+#include "Graphics/Screen.h"
 #include "imgui-SFML.h"
 #include "imgui.h"
 

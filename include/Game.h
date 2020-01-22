@@ -1,10 +1,10 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
-#include "Object.h"
-#include "Function.h"
-#include "NonCopyable.h"
-#include "Engine.h"
+#include "Entities/Objects/Object.h"
+#include "Engine/Function.h"
+#include "System/NonCopyable.h"
+#include "Engine/Engine.h"
 
 namespace ng
 {

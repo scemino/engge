@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-#include "TextObject.h"
+#include "Entities/Objects/TextObject.h"
 #include "squirrel.h"
 
 namespace ng

@@ -1,4 +1,4 @@
-#include "Dialog/YackParser.h"
+#include "Parsers/YackParser.h"
 
 namespace ng::Ast
 {

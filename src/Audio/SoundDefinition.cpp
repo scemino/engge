@@ -1,9 +1,9 @@
 #include <utility>
-#include "EngineSettings.h"
-#include "Locator.h"
-#include "Logger.h"
-#include "ResourceManager.h"
-#include "SoundDefinition.h"
+#include "Engine/EngineSettings.h"
+#include "System/Locator.h"
+#include "System/Logger.h"
+#include "Engine/ResourceManager.h"
+#include "Audio/SoundDefinition.h"
 
 namespace ng
 {

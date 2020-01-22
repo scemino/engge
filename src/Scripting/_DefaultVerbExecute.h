@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../_Util.h"
-#include "Engine.h"
-#include "Logger.h"
-#include "Sentence.h"
+#include "../System/_Util.h"
+#include "Engine/Engine.h"
+#include "System/Logger.h"
+#include "Engine/Sentence.h"
 #include "squirrel.h"
 
 namespace ng

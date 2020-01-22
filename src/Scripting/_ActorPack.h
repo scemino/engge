@@ -1,7 +1,7 @@
 #pragma once
-#include "../_Util.h"
-#include "Engine.h"
-#include "Lip.h"
+#include "../System/_Util.h"
+#include "Engine/Engine.h"
+#include "Parsers/Lip.h"
 #include "squirrel.h"
 
 namespace ng

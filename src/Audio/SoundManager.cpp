@@ -1,11 +1,11 @@
 #include <memory>
-#include "EngineSettings.h"
-#include "Entity.h"
-#include "Locator.h"
-#include "Logger.h"
-#include "SoundDefinition.h"
-#include "SoundId.h"
-#include "SoundManager.h"
+#include "Engine/EngineSettings.h"
+#include "Entities/Entity.h"
+#include "System/Locator.h"
+#include "System/Logger.h"
+#include "Audio/SoundDefinition.h"
+#include "Audio/SoundId.h"
+#include "Audio/SoundManager.h"
 
 namespace ng
 {

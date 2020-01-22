@@ -2,9 +2,9 @@
 
 #include <array>
 #include "SFML/Graphics.hpp"
-#include "YackParser.h"
-#include "Function.h"
-#include "Font.h"
+#include "Parsers/YackParser.h"
+#include "Engine/Function.h"
+#include "Font/Font.h"
 
 namespace ng
 {

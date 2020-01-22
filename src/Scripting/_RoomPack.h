@@ -1,13 +1,13 @@
 #pragma once
 #include <optional>
 #include "squirrel.h"
-#include "Animation.h"
-#include "Engine.h"
-#include "EngineSettings.h"
-#include "Function.h"
-#include "Light.h"
-#include "Locator.h"
-#include "../_RoomTrigger.h"
+#include "Entities/Objects/Animation.h"
+#include "Engine/Engine.h"
+#include "Engine/EngineSettings.h"
+#include "Engine/Function.h"
+#include "Engine/Light.h"
+#include "System/Locator.h"
+#include "../Room/_RoomTrigger.h"
 
 namespace ng
 {

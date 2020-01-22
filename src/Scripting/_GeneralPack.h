@@ -1,11 +1,11 @@
 #pragma once
 #include <string>
 #include "squirrel.h"
-#include "Camera.h"
-#include "Cutscene.h"
+#include "Engine/Camera.h"
+#include "Engine/Cutscene.h"
 #include "Dialog/DialogManager.h"
-#include "EngineSettings.h"
-#include "Locator.h"
+#include "Engine/EngineSettings.h"
+#include "System/Locator.h"
 
 namespace ng
 {

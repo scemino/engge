@@ -1,8 +1,8 @@
 #pragma once
 #include <random>
 #include "squirrel.h"
-#include "Engine.h"
-#include "SoundTrigger.h"
+#include "Engine/Engine.h"
+#include "Audio/SoundTrigger.h"
 
 namespace ng
 {

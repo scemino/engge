@@ -1,13 +1,13 @@
-#include "Actor.h"
-#include "Camera.h"
-#include "Engine.h"
-#include "Entity.h"
-#include "Locator.h"
-#include "Logger.h"
-#include "ResourceManager.h"
-#include "Room.h"
-#include "SoundId.h"
-#include "SoundManager.h"
+#include "Entities/Actor/Actor.h"
+#include "Engine/Camera.h"
+#include "Engine/Engine.h"
+#include "Entities/Entity.h"
+#include "System/Locator.h"
+#include "System/Logger.h"
+#include "Engine/ResourceManager.h"
+#include "Room/Room.h"
+#include "Audio/SoundId.h"
+#include "Audio/SoundManager.h"
 
 namespace ng
 {

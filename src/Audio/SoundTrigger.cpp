@@ -1,8 +1,8 @@
-#include "SoundTrigger.h"
-#include "Engine.h"
-#include "SoundDefinition.h"
-#include "SoundId.h"
-#include "SoundManager.h"
+#include "Audio/SoundTrigger.h"
+#include "Engine/Engine.h"
+#include "Audio/SoundDefinition.h"
+#include "Audio/SoundId.h"
+#include "Audio/SoundManager.h"
 
 namespace ng
 {
