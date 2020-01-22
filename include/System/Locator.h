@@ -20,6 +20,10 @@ struct Locator
       return *_pService;
   }
 
+  static void reset() {
+      _pService.reset();
+  }
+
   private:
     static std::shared_ptr<TService> _pService;
 };

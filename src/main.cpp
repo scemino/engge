@@ -59,6 +59,8 @@ int main(int argc, char **argv)
 
         game->getInputEventHandlers().push_back(std::make_unique<ng::DefaultInputEventHandler>(*engine, game->getWindow()));
         game->run();
+
+        ng::Locator<ng::SoundManager>::reset();
     }
     catch (std::exception &e)
     {
