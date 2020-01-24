@@ -11,6 +11,7 @@
 #include "Room/RoomLayer.h"
 #include "Room/RoomScaling.h"
 #include "Graphics/SpriteSheet.h"
+#include "Entities/Objects/AnimationFrame.h"
 #include "Entities/Objects/TextObject.h"
 #include "Engine/Thread.h"
 #include "../System/_Util.h"
@@ -248,15 +249,7 @@ struct Room::Impl
                     {
                         anim->setFps(jAnimation["fps"].int_value);
                     }
-                    for (const auto &jFrame : jAnimation["frames"].array_value)
-                    {
-                        auto n = jFrame.string_value;
-                        if (!_spriteSheet.hasRect(n))
-                            continue;
-                        anim->getRects().push_back(_spriteSheet.getRect(n));
-                        anim->getSizes().push_back(_spriteSheet.getSourceSize(n));
-                        anim->getSourceRects().push_back(_spriteSheet.getSpriteSourceSize(n));
-                    }
+                    std::vector<std::optional<int>> triggers;
                     if (!jAnimation["triggers"].isNull())
                     {
                         for (const auto &jtrigger : jAnimation["triggers"].array_value)
@@ -265,13 +258,33 @@ struct Room::Impl
                             {
                                 auto name = jtrigger.string_value;
                                 auto trigger = std::strtol(name.data() + 1, nullptr, 10);
-                                anim->getTriggers().emplace_back(trigger);
+                                triggers.emplace_back(trigger);
                             }
                             else
                             {
-                                anim->getTriggers().emplace_back(std::nullopt);
+                                triggers.emplace_back(std::nullopt);
                             }
                         }
+                    }
+                    for (size_t i=0;i<jAnimation["frames"].array_value.size();i++)
+                    {
+                        const auto &jFrame = jAnimation["frames"].array_value.at(i);
+                        auto name = jFrame.string_value;
+                        if (!_spriteSheet.hasRect(name))
+                            continue;
+                        auto rect = _spriteSheet.getRect(name);
+                        auto size = _spriteSheet.getSourceSize(name);
+                        auto sourceRect = _spriteSheet.getSpriteSourceSize(name);
+                        sf::Vector2f origin(size.x / 2.f - sourceRect.left, (size.y + 1) / 2.f - sourceRect.top);
+                        std::optional<int> trigger = !triggers.empty()? triggers.at(i) : std::nullopt;
+                        std::function<void()> callback = nullptr;
+                        if(trigger.has_value())
+                        {
+                            auto pObj = object.get();
+                            callback = [trigger,pObj](){  pObj->trig(trigger.value()); };
+                        }
+                        anim->addFrame({rect, origin, callback});
+
                     }
                     anim->reset();
                     object->getAnims().push_back(std::move(anim));
@@ -577,16 +590,18 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         if (json["frames"][n].isNull())
             continue;
         auto frame = json["frames"][n]["frame"];
-        animation->getRects().push_back(_toRect(frame));
-        animation->getSizes().push_back(_toSize(json["frames"][n]["sourceSize"]));
-        animation->getSourceRects().push_back(_toRect(json["frames"][n]["spriteSourceSize"]));
+        auto rect = _toRect(frame);
+        auto size = _toSize(json["frames"][n]["sourceSize"]);
+        auto sourceRect = _toRect(json["frames"][n]["spriteSourceSize"]);
+        sf::Vector2f origin(size.x / 2.f - sourceRect.left, (size.y + 1) / 2.f - sourceRect.top);
+        animation->addFrame({rect, origin});
     }
     animation->reset();
     object->getAnims().push_back(std::move(animation));
 
     for (auto &anim : object->getAnims())
     {
-        if (!anim->getRects().empty())
+        if (!anim->empty())
         {
             object->setAnimation(anim->getName());
             break;
@@ -609,9 +624,7 @@ Object &Room::createObject(const std::string &image)
     auto animation = std::make_unique<Animation>(texture, "state0");
     auto size = texture.getSize();
     sf::IntRect rect(0, 0, size.x, size.y);
-    animation->getRects().push_back(rect);
-    animation->getSizes().emplace_back(size);
-    animation->getSourceRects().push_back(rect);
+    sf::Vector2f origin(size.x/2.f, (size.y + 1)/2.f);
     animation->reset();
     object->getAnims().push_back(std::move(animation));
 

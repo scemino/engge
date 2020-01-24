@@ -1,5 +1,6 @@
 #include "Entities/Objects/Object.h"
 #include "Entities/Objects/Animation.h"
+#include "Entities/Objects/AnimationFrame.h"
 #include "Engine/Function.h"
 #include "System/Locator.h"
 #include "Engine/ResourceManager.h"
@@ -167,7 +168,6 @@ void Object::setAnimation(const std::string &name)
 
     auto &anim = *(it->get());
     pImpl->_pAnim = anim;
-    pImpl->_pAnim->setObject(this);
 }
 
 std::optional<Animation> &Object::getAnimation() { return pImpl->_pAnim; }
@@ -304,7 +304,7 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) c
 
     if (pImpl->_pAnim)
     {
-        pImpl->_pAnim->getSprite().setColor(getColor());
+        pImpl->_pAnim->setColor(getColor());
         target.draw(*pImpl->_pAnim, s);
     }
 
@@ -325,7 +325,7 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     if (pImpl->_pAnim)
     {
-        pImpl->_pAnim->getSprite().setColor(getColor());
+        pImpl->_pAnim->setColor(getColor());
         target.draw(*pImpl->_pAnim, states);
     }
 

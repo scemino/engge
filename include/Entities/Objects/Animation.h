@@ -1,11 +1,12 @@
 #pragma once
-#include <optional>
+#include <vector>
 #include "SFML/Graphics.hpp"
 #include "System/NonCopyable.h"
 
 namespace ng
 {
 class Object;
+class AnimationFrame;
 
 enum class AnimState
 {
@@ -16,16 +17,21 @@ enum class AnimState
 class Animation : public sf::Drawable
 {
 public:
+  Animation();
   explicit Animation(const sf::Texture &texture, std::string name);
   ~Animation() override;
+
+  void setTexture(const sf::Texture* pTexture) { _pTexture = pTexture; }
 
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
 
-  std::vector<sf::IntRect> &getRects() { return _rects; }
-  std::vector<sf::Vector2i> &getSizes() { return _sizes; }
-  std::vector<sf::IntRect> &getSourceRects() { return _sourceRects; }
-  std::vector<std::optional<int>> &getTriggers() { return _triggers; }
+  void setColor(const sf::Color& color) { _color = color; }
+  sf::Color getColor() const { return _color; }
+
+  void addFrame(AnimationFrame&& frame);
+  size_t getSize() const noexcept;
+  bool empty() const noexcept;
 
   void setFps(int fps) { _fps = fps; }
 
@@ -36,27 +42,18 @@ public:
   void pause() { _state = AnimState::Pause; }
   bool isPlaying() const { return _state == AnimState::Play; }
 
-  sf::Sprite &getSprite() { return _sprite; }
-  const sf::Sprite &getSprite() const { return _sprite; }
-
-  void setObject(Object *pObject) { _pObject = pObject; }
-
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-  void updateTrigger();
 
 private:
-  sf::Sprite _sprite;
+  const sf::Texture* _pTexture{nullptr};
   std::string _name;
-  std::vector<sf::IntRect> _rects;
-  std::vector<sf::Vector2i> _sizes;
-  std::vector<sf::IntRect> _sourceRects;
-  std::vector<std::optional<int>> _triggers;
-  int _fps;
+  std::vector<AnimationFrame> _frames;
+  int _fps{10};
   sf::Time _time;
-  size_t _index;
-  AnimState _state;
+  size_t _index{0};
+  AnimState _state{AnimState::Pause};
   bool _loop{false};
-  Object *_pObject{nullptr};
+  sf::Color _color{sf::Color::White};
 };
 } // namespace ng
