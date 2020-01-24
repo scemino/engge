@@ -11,7 +11,7 @@ public:
     typedef std::function<void(bool)> Callback;
 
 public:
-    _Checkbox(int id, float y, bool enabled = true, bool checked = false, Callback callback = [](auto value){})
+    _Checkbox(int id, float y, bool enabled = true, bool checked = false, Callback callback = nullptr)
     : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked), _callback(callback)
     {
     }
@@ -44,7 +44,10 @@ public:
         if(_isChecked != checked)
         {
             _isChecked = checked;
-            _callback(_isChecked);
+            if(_callback)
+            {
+                _callback(_isChecked);
+            }
         }
     }
     
@@ -91,7 +94,6 @@ private:
     int _id{0};
     float _y{0};
     bool _isEnabled{true};
-    bool _isOver{false};
     bool _isChecked{false};
     bool _wasMouseDown{false};
     Callback _callback;

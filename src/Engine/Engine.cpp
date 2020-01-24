@@ -9,10 +9,8 @@
 #include "Font/Font.h"
 #include "Math/PathFinding/Graph.h"
 #include "Engine/Inventory.h"
-#include "System/Locator.h"
 #include "UI/OptionsDialog.h"
 #include "Engine/Preferences.h"
-#include "Engine/ResourceManager.h"
 #include "Room/Room.h"
 #include "Room/RoomScaling.h"
 #include "Graphics/Screen.h"
@@ -23,14 +21,12 @@
 #include "Audio/SoundId.h"
 #include "Audio/SoundManager.h"
 #include "Graphics/SpriteSheet.h"
-#include "Graphics/Text.h"
 #include "Engine/TextDatabase.h"
 #include "Engine/Thread.h"
 #include "Engine/Verb.h"
 #include "Scripting/VerbExecute.h"
 #include "../System/_DebugTools.h"
 #include "../Entities/Actor/_TalkingState.h"
-#include "../System/_Util.h"
 #include "System/Logger.h"
 #include "../Math/PathFinding/_WalkboxDrawable.h"
 #include <iostream>
@@ -97,10 +93,10 @@ enum class EngineState {
 
 struct Engine::Impl
 {
-    Engine *_pEngine;
+    Engine *_pEngine{nullptr};
     std::unique_ptr<_DebugTools> _pDebugTools;
     TextureManager _textureManager;
-    Room *_pRoom;
+    Room *_pRoom{nullptr};
     std::vector<std::unique_ptr<Actor>> _actors;
     std::vector<std::unique_ptr<Room>> _rooms;
     std::vector<std::unique_ptr<Function>> _newFunctions;
@@ -113,11 +109,11 @@ struct Engine::Impl
     std::array<VerbSlot, 6> _verbSlots;
     std::array<VerbUiColors, 6> _verbUiColors;
     bool _inputHUD{true};
-    bool _inputActive;
-    bool _showCursor;
-    bool _inputVerbsActive;
+    bool _inputActive{false};
+    bool _showCursor{false};
+    bool _inputVerbsActive{false};
     SpriteSheet _verbSheet, _gameSheet, _saveLoadSheet;
-    Actor *_pFollowActor;
+    Actor *_pFollowActor{nullptr};
     std::array<sf::IntRect, 9> _verbRects;
     Entity *_pUseObject{nullptr};
     Entity *_pObj1{nullptr};
@@ -133,7 +129,7 @@ struct Engine::Impl
     DialogManager _dialogManager;
     Preferences& _preferences;
     SoundManager& _soundManager;
-    CursorDirection _cursorDirection;
+    CursorDirection _cursorDirection{CursorDirection::None};
     std::array<ActorIconSlot, 6> _actorsIconSlots;
     UseFlag _useFlag{UseFlag::None};
     ActorIcons _actorIcons;
@@ -198,12 +194,10 @@ struct Engine::Impl
 };
 
 Engine::Impl::Impl()
-    : _pEngine(nullptr), _pRoom(nullptr), _inputActive(false),
-      _showCursor(false), _inputVerbsActive(false), _pFollowActor(nullptr),
-      _cursorDirection(CursorDirection::None), _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
-      _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor), 
-      _soundManager(Locator<SoundManager>::get()),
-      _preferences(Locator<Preferences>::get())
+    : _preferences(Locator<Preferences>::get()),
+    _soundManager(Locator<SoundManager>::get()),
+    _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
+    _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor)
 {
     _verbSheet.setTextureManager(&_textureManager);
     _gameSheet.setTextureManager(&_textureManager);
@@ -693,6 +687,8 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
         case UseDirection::Right:
             facing = Facing::FACE_LEFT;
             break;
+        default:
+            throw std::invalid_argument("direction is invalid");
     }
     auto pRoom = pDoor->getRoom();
     auto pOldRoom = _pImpl->_pRoom;

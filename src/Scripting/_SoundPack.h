@@ -403,7 +403,7 @@ private:
         return 0;
     }
 
-    static SQInteger stopAllSounds(HSQUIRRELVM v)
+    static SQInteger stopAllSounds(HSQUIRRELVM)
     {
         g_pEngine->getSoundManager().stopAllSounds();
         return 0;

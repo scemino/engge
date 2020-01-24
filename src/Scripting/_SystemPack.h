@@ -36,7 +36,7 @@ public:
         return "_BreakFunction";
     }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         if (_done)
             return;
@@ -217,17 +217,16 @@ public:
 class _BreakWhileRunningFunction : public Function
 {
 private:
-    Engine &_engine;
     int _currentThreadId, _threadId;
     bool _done;
 
 public:
-    _BreakWhileRunningFunction(Engine &engine, int currentThreadId, int threadId)
-        : _engine(engine), _currentThreadId(currentThreadId), _threadId(threadId), _done(false)
+    _BreakWhileRunningFunction(int currentThreadId, int threadId)
+        : _currentThreadId(currentThreadId), _threadId(threadId), _done(false)
     {
     }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         if (_done)
             return;
@@ -330,11 +329,10 @@ class _BreakTimeFunction : public TimeFunction
 {
 private:
     int _threadId;
-    Engine &_engine;
 
 public:
-    _BreakTimeFunction(Engine &engine, int id, const sf::Time &time)
-        : TimeFunction(time), _threadId(id), _engine(engine)
+    _BreakTimeFunction(int id, const sf::Time &time)
+        : TimeFunction(time), _threadId(id)
     {
     }
 
@@ -444,7 +442,7 @@ private:
         return 1;
     }
 
-    static SQInteger addFolder(HSQUIRRELVM v)
+    static SQInteger addFolder(HSQUIRRELVM)
     {
         // do nothing
         return 0;
@@ -595,7 +593,7 @@ private:
             if(!pThread) return 0;
             
             pCurrentThread->suspend();
-            g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(*g_pEngine, pCurrentThread->getId(), id));
+            g_pEngine->addFunction(std::make_unique<_BreakWhileRunningFunction>(pCurrentThread->getId(), id));
             return SQ_SUSPEND_FLAG;
         }
         return breakwhilesound(v);
@@ -628,7 +626,7 @@ private:
         return 1;
     }
 
-    static SQInteger exCommand(HSQUIRRELVM v)
+    static SQInteger exCommand(HSQUIRRELVM)
     {
         error("TODO: exCommand: not implemented");
         return 0;
@@ -703,7 +701,6 @@ private:
         }
 
         // WIP need to be check
-        auto p = sf::Mouse::getPosition(g_pEngine->getWindow());
         auto pos = g_pEngine->getWindow().mapCoordsToPixel(sf::Vector2f(x,y)-g_pEngine->getCamera().getAt());
         sf::Mouse::setPosition(pos, g_pEngine->getWindow());
         error("moveCursorTo not implemented");
@@ -796,7 +793,7 @@ private:
 
         auto vm = g_pEngine->getVm();
         // create thread and store it on the stack
-        auto thread = sq_newthread(vm, 1024);
+        sq_newthread(vm, 1024);
         HSQOBJECT thread_obj;
         sq_resetobject(&thread_obj);
         if (SQ_FAILED(sq_getstackobj(vm, -1, &thread_obj)))
@@ -862,7 +859,7 @@ private:
 
         pThread->suspend();
 
-        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(*g_pEngine, pThread->getId(), sf::seconds(time)));
+        g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(pThread->getId(), sf::seconds(time)));
         return SQ_SUSPEND_FLAG;
     }
 
@@ -1017,7 +1014,7 @@ private:
             return 0;
         }
 
-        g_pEngine->getPreferences().removeUserPreference(key);
+        removePref(key);
 
         return 0;
     }
@@ -1045,19 +1042,19 @@ private:
         return 0;
     }
 
-    static SQInteger inputOff(HSQUIRRELVM v)
+    static SQInteger inputOff(HSQUIRRELVM)
     {
         g_pEngine->setInputActive(false);
         return 0;
     }
 
-    static SQInteger inputOn(HSQUIRRELVM v)
+    static SQInteger inputOn(HSQUIRRELVM)
     {
         g_pEngine->setInputActive(true);
         return 0;
     }
 
-    static SQInteger inputSilentOff(HSQUIRRELVM v)
+    static SQInteger inputSilentOff(HSQUIRRELVM)
     {
         g_pEngine->inputSilentOff();
         return 0;
@@ -1093,7 +1090,7 @@ private:
         return 0;
     }
 
-    static SQInteger inputController(HSQUIRRELVM v)
+    static SQInteger inputController(HSQUIRRELVM)
     {
         error("TODO: inputController: not implemented");
         return 0;

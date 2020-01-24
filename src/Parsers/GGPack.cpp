@@ -237,7 +237,7 @@ void GGPack::readHashEntry(const std::string &name, GGPackValue &value)
 
 void GGPack::readHash(std::vector<char> &buffer, GGPackValue &value)
 {
-    int sig;
+    int sig = 0;
     _bufferStream.setBuffer(buffer);
     _bufferStream.read((char *)&sig, 4);
 
@@ -256,8 +256,8 @@ void GGPack::readPack()
 {
     if (!_input.is_open())
         return;
-
-	int dataOffset, dataSize;
+    
+    int dataOffset, dataSize;
     _input.read((char *)&dataOffset, 4);
     _input.read((char *)&dataSize, 4);
 
@@ -331,13 +331,13 @@ void GGPack::readString(int offset, std::string &key)
 
 void GGPack::readHash(GGPackValue &value)
 {
-    char c;
+    char c = 0;
     _bufferStream.read(&c, 1);
     if (c != 2)
     {
         throw std::logic_error("trying to parse a non-hash");
     }
-    int n_pairs;
+    int n_pairs = 0;
     _bufferStream.read((char *)&n_pairs, 4);
     if (n_pairs == 0)
     {
@@ -345,7 +345,7 @@ void GGPack::readHash(GGPackValue &value)
     }
     for (auto i = 0; i < n_pairs; i++)
     {
-        int key_plo_idx;
+        int key_plo_idx = 0;
         _bufferStream.read((char *)&key_plo_idx, 4);
 
         std::string hash_key;
@@ -376,7 +376,7 @@ void GGPack::readValue(GGPackValue &value)
     case 3:
         // array
         {
-            int length;
+            int length = 0;
             _bufferStream.read((char *)&length, 4);
             for (int i = 0; i < length; i++)
             {
@@ -384,7 +384,7 @@ void GGPack::readValue(GGPackValue &value)
                 readValue(item);
                 value.array_value.push_back(item);
             }
-            char c;
+            char c = 0;
             _bufferStream.read(&c, 1);
             if (c != 3)
                 throw std::logic_error("unterminated array");
@@ -393,7 +393,7 @@ void GGPack::readValue(GGPackValue &value)
     case 4:
         // string
         {
-            int plo_idx_int;
+            int plo_idx_int = 0;
             _bufferStream.read((char *)&plo_idx_int, 4);
             readString(plo_idx_int, value.string_value);
             return;
@@ -403,7 +403,7 @@ void GGPack::readValue(GGPackValue &value)
     {
         // int
         // double
-        int plo_idx_int;
+        int plo_idx_int = 0;
         _bufferStream.read((char *)&plo_idx_int, 4);
         std::string num_str;
         readString(plo_idx_int, num_str);
@@ -452,12 +452,12 @@ void GGPack::getOffsets()
 {
     _bufferStream.seek(8);
     // read ptr list offset & point to first file name offset
-    int plo;
+    int plo = 0;
     _bufferStream.read((char *)&plo, 4);
     if (plo < 12 || plo >= _bufferStream.getLength() - 4)
         throw std::logic_error("GGPack plo out of range");
 
-    char c;
+    char c = 0;
     _bufferStream.seek(plo);
     _bufferStream.read(&c, 1);
     if (c != 7)

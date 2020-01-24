@@ -123,11 +123,11 @@ void Entity::trig(int triggerNumber)
     }
 }
 
-void Entity::trigSound(const std::string &name)
+void Entity::trigSound(const std::string &)
 {
 }
 
-void Entity::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
+void Entity::drawForeground(sf::RenderTarget &, sf::RenderStates) const
 {
 }
 

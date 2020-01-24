@@ -480,7 +480,7 @@ private:
         return SQ_SUSPEND_FLAG;
     }
 
-    static SQInteger cutsceneOverride(HSQUIRRELVM v)
+    static SQInteger cutsceneOverride(HSQUIRRELVM)
     {
         g_pEngine->cutsceneOverride();
         return 0;
@@ -522,7 +522,7 @@ private:
         return 1;
     }
 
-    static SQInteger randomseed(HSQUIRRELVM v)
+    static SQInteger randomseed(HSQUIRRELVM)
     {
         error("TODO: randomseed: not implemented");
         return 0;
@@ -559,7 +559,7 @@ private:
         return 1;
     }
 
-    static SQInteger refreshUI(HSQUIRRELVM v)
+    static SQInteger refreshUI(HSQUIRRELVM)
     {
         error("TODO: refreshUI: not implemented");
         return 0;
@@ -575,19 +575,19 @@ private:
         return g_pEngine->setRoom(pRoom);
     }
 
-    static SQInteger markAchievement(HSQUIRRELVM v)
+    static SQInteger markAchievement(HSQUIRRELVM)
     {
         error("TODO: markAchievement: not implemented");
         return 0;
     }
 
-    static SQInteger markProgress(HSQUIRRELVM v)
+    static SQInteger markProgress(HSQUIRRELVM)
     {
         error("TODO: markProgress: not implemented");
         return 0;
     }
 
-    static SQInteger markStat(HSQUIRRELVM v)
+    static SQInteger markStat(HSQUIRRELVM)
     {
         error("TODO: markStat: not implemented");
         return 0;
@@ -731,7 +731,7 @@ private:
         return 0;
     }
 
-    static SQInteger stopSentence(HSQUIRRELVM v)
+    static SQInteger stopSentence(HSQUIRRELVM)
     {
         g_pEngine->stopSentence();
         return 0;

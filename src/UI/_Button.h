@@ -13,7 +13,7 @@ public:
 
 public:
     _Button(int id, float y, Callback callback, bool enabled = true, Size size = Size::Large)
-    : _id(id), _y(y), _callback(std::move(callback)), _isEnabled(enabled), _size(size)
+    : _id(id), _isEnabled(enabled), _y(y), _callback(std::move(callback)), _size(size)
     {
     }
 
@@ -66,7 +66,6 @@ private:
     int _id{0};
     bool _isEnabled{true};
     float _y{0};
-    bool _isOver{false};
     bool _wasMouseDown{false};
     Callback _callback;
     Text text;

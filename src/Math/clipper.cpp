@@ -375,7 +375,7 @@ Int128 Int128Mul (long64 lhs, long64 rhs)
   if (tmp.lo < b) tmp.hi++;
   if (negate) tmp = -tmp;
   return tmp;
-};
+}
 #endif
 
 //------------------------------------------------------------------------------
@@ -2701,7 +2701,7 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
                   maxRit++;
                 }
             }
-        };
+        }
 
         if ((dir == dLeftToRight && e->Curr.X > horzRight) ||
 			(dir == dRightToLeft && e->Curr.X < horzLeft)) break;
@@ -3421,7 +3421,7 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
       op2 = op2b;
       op2->Pt = Pt;
       op2b = DupOutPt(op2, !DiscardLeft);
-    };
+    }
   } else
   {
     while (op2->Next->Pt.X >= Pt.X && 
@@ -3434,8 +3434,8 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
       op2 = op2b;
       op2->Pt = Pt;
       op2b = DupOutPt(op2, DiscardLeft);
-    };
-  };
+    }
+  }
 
   if ((Dir1 == dLeftToRight) == DiscardLeft)
   {
@@ -3571,7 +3571,7 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       while ((op1b->Pt == op1->Pt) && (op1b != op1)) op1b = op1b->Prev;
       if ((op1b->Pt.Y > op1->Pt.Y) ||
         !SlopesEqual(op1->Pt, op1b->Pt, j->OffPt, m_UseFullRange)) return false;
-    };
+    }
     op2b = op2->Next;
     while ((op2b->Pt == op2->Pt) && (op2b != op2))op2b = op2b->Next;
     bool Reverse2 = ((op2b->Pt.Y > op2->Pt.Y) ||
@@ -4329,10 +4329,10 @@ double DistanceFromLineSqrd(
   const IntPoint& pt, const IntPoint& ln1, const IntPoint& ln2)
 {
   //The equation of a line in general form (Ax + By + C = 0)
-  //given 2 points (x¹,y¹) & (x²,y²) is ...
-  //(y¹ - y²)x + (x² - x¹)y + (y² - y¹)x¹ - (x² - x¹)y¹ = 0
-  //A = (y¹ - y²); B = (x² - x¹); C = (y² - y¹)x¹ - (x² - x¹)y¹
-  //perpendicular distance of point (x³,y³) = (Ax³ + By³ + C)/Sqrt(A² + B²)
+  //given 2 points (xï¿½,yï¿½) & (xï¿½,yï¿½) is ...
+  //(yï¿½ - yï¿½)x + (xï¿½ - xï¿½)y + (yï¿½ - yï¿½)xï¿½ - (xï¿½ - xï¿½)yï¿½ = 0
+  //A = (yï¿½ - yï¿½); B = (xï¿½ - xï¿½); C = (yï¿½ - yï¿½)xï¿½ - (xï¿½ - xï¿½)yï¿½
+  //perpendicular distance of point (xï¿½,yï¿½) = (Axï¿½ + Byï¿½ + C)/Sqrt(Aï¿½ + Bï¿½)
   //see http://en.wikipedia.org/wiki/Perpendicular_distance
   double A = double(ln1.Y - ln2.Y);
   double B = double(ln2.X - ln1.X);

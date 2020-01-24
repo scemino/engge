@@ -454,13 +454,13 @@ SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v)
     return 0;
 }
 
-void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line,
+void ScriptEngine::errorHandler(HSQUIRRELVM, const SQChar *desc, const SQChar *source, SQInteger line,
                                 SQInteger column)
 {
     error("{} {}({},{})", desc, source, line, column);
 }
 
-void ScriptEngine::errorfunc(HSQUIRRELVM v, const SQChar *s, ...)
+void ScriptEngine::errorfunc(HSQUIRRELVM, const SQChar *s, ...)
 {
     va_list vl;
     va_start(vl, s);
@@ -468,7 +468,7 @@ void ScriptEngine::errorfunc(HSQUIRRELVM v, const SQChar *s, ...)
     va_end(vl);
 }
 
-void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...)
+void ScriptEngine::printfunc(HSQUIRRELVM, const SQChar *s, ...)
 {
     va_list vl;
     va_start(vl, s);

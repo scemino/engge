@@ -11,7 +11,7 @@ class Function : public NonCopyable
 {
 public:
   virtual bool isElapsed() { return true; }
-  virtual void operator()(const sf::Time &elapsed) {}
+  virtual void operator()(const sf::Time &){ }
   virtual ~Function() = default;
 };
 

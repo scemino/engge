@@ -44,7 +44,7 @@ void AstVisitor::visit(const Override &node) { defaultVisit(node); }
 void AstVisitor::visit(const AllowObjects &node) { defaultVisit(node); }
 void AstVisitor::visit(const WaitWhile &node) { defaultVisit(node); }
 void AstVisitor::visit(const Limit &node) { defaultVisit(node); }
-void AstVisitor::defaultVisit(const Node &node) {}
+void AstVisitor::defaultVisit(const Node &) {}
 
 } // namespace Ast
 

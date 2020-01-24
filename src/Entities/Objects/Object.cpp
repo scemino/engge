@@ -286,7 +286,7 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
     }
 }
 
-void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
+void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const
 {
     if (pImpl->_screenSpace != ScreenSpace::Object)
         return;

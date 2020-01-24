@@ -28,7 +28,7 @@ class _PickupAnim : public Function
         }
     }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         switch (_state)
         {
@@ -296,7 +296,7 @@ class _ObjectPack : public Pack
         return 0;
     }
 
-    static SQInteger objectBumperCycle(HSQUIRRELVM v)
+    static SQInteger objectBumperCycle(HSQUIRRELVM)
     {
         error("TODO: objectBumperCycle: not implemented");
         return 0;
@@ -1068,7 +1068,7 @@ class _ObjectPack : public Pack
         return 1;
     }
 
-    static SQInteger objectShader(HSQUIRRELVM v)
+    static SQInteger objectShader(HSQUIRRELVM)
     {
         error("TODO: objectShader: not implemented");
         return 0;
@@ -1204,7 +1204,7 @@ class _ObjectPack : public Pack
         return 0;
     }
 
-    static SQInteger shakeObject(HSQUIRRELVM v)
+    static SQInteger shakeObject(HSQUIRRELVM)
     {
         error("TODO: shakeObject: not implemented");
         return 0;

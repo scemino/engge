@@ -52,7 +52,7 @@ public:
     {
         std::cout << "dialog " << node.actor << std::endl;
     }
-    void visit(const Ast::Shutup &node) override
+    void visit(const Ast::Shutup &) override
     {
         std::cout << "shutup " << std::endl;
     }
@@ -84,11 +84,11 @@ public:
     {
         std::cout << "goto " << node.name << std::endl;
     }
-    void visit(const Ast::OnceCondition &node) override
+    void visit(const Ast::OnceCondition &) override
     {
         std::cout << "condition: once" << std::endl;
     }
-    void visit(const Ast::ShowOnceCondition &node) override
+    void visit(const Ast::ShowOnceCondition &) override
     {
         std::cout << "condition: showonce" << std::endl;
     }

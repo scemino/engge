@@ -14,9 +14,8 @@ namespace ng
 class _ChangeColor : public TimeFunction
 {
 public:
-    _ChangeColor(Engine &engine, Room* pRoom, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
+    _ChangeColor(Room* pRoom, sf::Color startColor, sf::Color endColor, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
         : TimeFunction(time),
-          _engine(engine),
           _pRoom(pRoom),
           _isLooping(isLooping),
           _anim(std::move(anim)),
@@ -65,7 +64,6 @@ private:
     }
 
 private:
-    Engine &_engine;
     Room* _pRoom{nullptr};
     bool _isLooping;
     std::function<float(float)> _anim;
@@ -536,7 +534,7 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get duration"));
             }
-            auto fadeTo = std::make_unique<_ChangeColor>(*g_pEngine, pRoom, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
+            auto fadeTo = std::make_unique<_ChangeColor>(pRoom, _toColor(startColor), _toColor(endColor), sf::seconds(duration), Interpolations::linear, false);
             g_pEngine->addFunction(std::move(fadeTo));
         }
         return 0;

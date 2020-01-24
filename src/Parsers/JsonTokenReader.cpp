@@ -69,7 +69,7 @@ TokenId TokenReader::readNumber()
 
 TokenId TokenReader::readTokenId()
 {
-    char c;
+    char c = 0;
     _stream.read(&c, 1);
     if (_stream.eof())
     {

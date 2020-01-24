@@ -113,8 +113,8 @@ struct OptionsDialog::Impl
         {
         case State::Main:
             setHeading(Ids::Options);
-            _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [this](){}, false);
-            _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this](){}, false);
+            _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [](){}, false);
+            _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [](){}, false);
             _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this](){ updateState(State::Sound); });
             _buttons.emplace_back(Ids::Video, getSlotPos(3), [this](){ updateState(State::Video); });
             _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this](){ updateState(State::Controls); });
@@ -184,10 +184,10 @@ struct OptionsDialog::Impl
             break;
         case State::Help:
             setHeading(Ids::Help);
-            _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this](){}, false);
-            _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), [this](){}, false);
-            _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [this](){}, false);
-            _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [this](){}, false);
+            _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [](){}, false);
+            _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), [](){}, false);
+            _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [](){}, false);
+            _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [](){}, false);
             // _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this](){}, false);
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, _Button::Size::Medium);
             break;
@@ -228,7 +228,7 @@ struct OptionsDialog::Impl
         updateState(State::Main);
     }
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states)
+    void draw(sf::RenderTarget& target, sf::RenderStates)
     {
         const auto view = target.getView();
         auto viewRect = sf::FloatRect(0, 0, 320, 180);
@@ -236,7 +236,6 @@ struct OptionsDialog::Impl
 
         sf::Color backColor{0,0,0,128};
         sf::RectangleShape fadeShape;
-        auto screen = target.getView().getSize();
         fadeShape.setSize(sf::Vector2f(viewRect.width, viewRect.height));
         fadeShape.setFillColor(backColor);
         target.draw(fadeShape);
@@ -274,7 +273,7 @@ struct OptionsDialog::Impl
         target.setView(view);
     }
 
-    void update(const sf::Time& elapsed)
+    void update(const sf::Time&)
     {
         auto pos = (sf::Vector2f)_pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()), sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
         trace("Mouse pso: ({},{})", pos.x, pos.y);

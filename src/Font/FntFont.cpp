@@ -70,12 +70,12 @@ bool FntFont::loadFromFile(const std::string &path)
     return true;
 }
 
-float FntFont::getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const
+float FntFont::getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int) const
 {
     return m_chars.getKerning(first, second);
 }
 
-const sf::Texture &FntFont::getTexture(unsigned int characterSize) const
+const sf::Texture &FntFont::getTexture(unsigned int) const
 {
     return m_textures[0];
 }
@@ -240,7 +240,7 @@ int FntFont::getLineHeight()
 }
 
 const sf::Glyph &
-FntFont::getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness) const
+FntFont::getGlyph(sf::Uint32 codePoint, unsigned int, bool, float) const
 {
     return m_chars.getChar((int)codePoint);
 }

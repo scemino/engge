@@ -11,8 +11,8 @@ public:
     typedef std::function<void(int)> Callback;
 
 public:
-    _SwitchButton(std::initializer_list<int> ids, float y, bool enabled = true, int index = 0, Callback callback = [](auto value){})
-    : _ids(ids), _y(y), _isEnabled(enabled), _index(index), _callback(std::move(callback))
+    _SwitchButton(std::initializer_list<int> ids, float y, bool enabled = true, int index = 0, Callback callback = nullptr)
+    : _ids(ids), _index(index), _isEnabled(enabled), _y(y), _callback(std::move(callback))
     {
     }
 
@@ -46,7 +46,9 @@ public:
             {
                 _index=(_index+1)%_ids.size();
                 text.setString(_pEngine->getText(_ids[_index]));
-                _callback(_index);
+                if(_callback) {
+                    _callback(_index);
+                }
                 textRect = text.getLocalBounds();
                 text.setOrigin(sf::Vector2f(textRect.width/2.f, 0));
             }
@@ -71,7 +73,6 @@ private:
     int _index{0};
     bool _isEnabled{true};
     float _y{0};
-    bool _isOver{false};
     bool _wasMouseDown{false};
     Callback _callback;
     Text text;

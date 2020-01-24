@@ -13,7 +13,7 @@ class _PauseFunction : public Function
 
     bool isElapsed() override { return _done && _clock.getElapsedTime() > _time; }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         if (_done)
             return;

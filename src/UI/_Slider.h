@@ -10,8 +10,8 @@ class _Slider: public sf::Drawable
 public:
     typedef std::function<void(float)> Callback;
 
-    _Slider(int id, float y, bool enabled = true, float value = 0.f, Callback callback = [](auto value){})
-    : _id(id), _y(y), _isEnabled(enabled), _value(value), onValueChanged(callback)
+    _Slider(int id, float y, bool enabled = true, float value = 0.f, Callback callback = nullptr)
+    : _id(id),_isEnabled(enabled),  _y(y), _value(value), onValueChanged(callback)
     {
     }
 
@@ -105,7 +105,6 @@ private:
     bool _isEnabled{true};
     float _y{0};
     float _min{0}, _max{0}, _value{0};
-    bool _isOver{false};
     bool _isDragging{false};
     bool _wasMouseDown{false};
     sf::Sprite _sprite;

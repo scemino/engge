@@ -234,7 +234,6 @@ class _DebugTools
     {
         auto lang =
             _engine.getPreferences().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
-        auto selectedLang = 0;
         for (size_t i = 0; i < 5; ++i)
         {
             if (!strcmp(lang.c_str(), _langs[i]))
@@ -275,8 +274,6 @@ class _DebugTools
                 case OT_USERPOINTER:
                 {
                     s << "userpointer";
-                    auto ptr = _userpointer(obj);
-                    auto p = (ScriptObject *)ptr;
                     break;
                 }
                 case OT_STRING:
@@ -466,17 +463,6 @@ class _DebugTools
     {
         if (!ImGui::CollapsingHeader("Objects"))
             return;
-
-        static auto objectGetter = [](void *vec, int idx, const char **out_text) 
-        {
-            auto &vector = *static_cast<std::vector<std::unique_ptr<Object>> *>(vec);
-            if (idx < 0 || idx >= static_cast<int>(vector.size()))
-            {
-                return false;
-            }
-            *out_text = vector.at(idx)->getName().c_str();
-            return true;
-        };
 
         auto &objects = _engine.getRoom()->getObjects();
 

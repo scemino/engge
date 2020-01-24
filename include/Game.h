@@ -11,7 +11,7 @@ namespace ng
 class InputEventHandler
 {
 public:
-  virtual void run(sf::Event event) {}
+  virtual void run(sf::Event event) = 0;
   virtual ~InputEventHandler() = default;
 };
 

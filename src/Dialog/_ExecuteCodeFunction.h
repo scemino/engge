@@ -15,7 +15,7 @@ public:
 
   bool isElapsed() override { return _done; }
 
-  void operator()(const sf::Time &elapsed) override
+  void operator()(const sf::Time &) override
   {
     if (_done)
       return;

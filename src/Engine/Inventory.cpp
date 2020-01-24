@@ -164,7 +164,7 @@ bool Inventory::hasDownArrow() const
     return objects.size() > (inventoryOffset * 4 + 8);
 }
 
-void Inventory::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const
 {
     int currentActorIndex = getCurrentActorIndex();
     if (currentActorIndex == -1)

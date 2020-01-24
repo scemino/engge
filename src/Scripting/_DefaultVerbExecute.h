@@ -45,14 +45,14 @@ class _ActorWalk : public Function
 class _PostWalk : public Function
 {
  public:
-    _PostWalk(Sentence& sentence, HSQUIRRELVM v, Entity *pObject, Entity *pObject2, int verb)
-        : _sentence(sentence), _vm(v), _pObject(pObject), _pObject2(pObject2), _verb(verb)
+    _PostWalk(Sentence& sentence, Entity *pObject, Entity *pObject2, int verb)
+        : _sentence(sentence), _pObject(pObject), _pObject2(pObject2), _verb(verb)
     {
     }
 
     bool isElapsed() override { return _done; }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         auto *pObj = dynamic_cast<Object *>(_pObject);
         auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
@@ -67,7 +67,6 @@ class _PostWalk : public Function
 
  private:
     Sentence& _sentence;
-    HSQUIRRELVM _vm{};
     Entity *_pObject{nullptr};
     Entity *_pObject2{nullptr};
     int _verb{0};
@@ -81,7 +80,7 @@ class _SetDefaultVerb : public Function
 
     bool isElapsed() override { return _done; }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         if (_done)
             return;
@@ -99,14 +98,14 @@ class _VerbExecute : public Function
 {
  public:
     _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, Entity* pObject2, const Verb *pVerb)
-        : _engine(engine), _vm(v), _actor(actor), _object(object), _pObject2(pObject2), _pVerb(pVerb)
+        : _engine(engine), _pVerb(pVerb), _vm(v), _object(object), _pObject2(pObject2), _actor(actor)
     {
     }
 
  private:
     bool isElapsed() override { return _done; }
 
-    void operator()(const sf::Time &elapsed) override
+    void operator()(const sf::Time &) override
     {
         _done = true;
 
@@ -254,7 +253,7 @@ class _DefaultVerbExecute : public VerbExecute
             auto walk = std::make_unique<_ActorWalk>(*pActor, pObj);
             sentence->push_back(std::move(walk));
         }
-        auto postWalk = std::make_unique<_PostWalk>(*sentence, _vm, pObject1, pObject2, pVerb->id);
+        auto postWalk = std::make_unique<_PostWalk>(*sentence, pObject1, pObject2, pVerb->id);
         sentence->push_back(std::move(postWalk));
         auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject1, pObject2, pVerb);
         sentence->push_back(std::move(verb));

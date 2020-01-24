@@ -7,7 +7,7 @@
 namespace ng
 {
 SoundTrigger::SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, Entity *pEntity)
-    : _engine(engine), _distribution(0, sounds.size() - 1), _pEntity(pEntity)
+    : _engine(engine), _pEntity(pEntity), _distribution(0, sounds.size() - 1)
 {
     _name = "SoundTrigger ";
     _soundsDefinitions.resize(sounds.size());

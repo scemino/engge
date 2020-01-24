@@ -134,7 +134,7 @@ void ScriptEngine::push<Object *>(HSQUIRRELVM v, Object *pObject)
 }
 
 template <>
-void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t _)
+void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t)
 {
     sq_pushnull(v);
 }
