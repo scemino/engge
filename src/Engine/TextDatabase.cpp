@@ -1,8 +1,8 @@
 #include <regex>
-#include "System/Logger.h"
-#include "Engine/EngineSettings.h"
-#include "Engine/TextDatabase.h"
-#include "../System/_Util.h"
+#include "System/Logger.hpp"
+#include "Engine/EngineSettings.hpp"
+#include "Engine/TextDatabase.hpp"
+#include "../System/_Util.hpp"
 
 namespace ng
 {

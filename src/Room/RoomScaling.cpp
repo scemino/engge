@@ -1,4 +1,4 @@
-#include "Room/RoomScaling.h"
+#include "Room/RoomScaling.hpp"
 
 namespace ng
 {

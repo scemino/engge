@@ -1,5 +1,5 @@
-#include "Entities/Actor/BlinkState.h"
-#include "../../System/_Util.h"
+#include "Entities/Actor/BlinkState.hpp"
+#include "../../System/_Util.hpp"
 
 namespace ng
 {

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <utility>
-#include "Entities/Objects/AnimationFrame.h"
-#include "Entities/Objects/Animation.h"
-#include "Entities/Objects/Object.h"
+#include "Entities/Objects/AnimationFrame.hpp"
+#include "Entities/Objects/Animation.hpp"
+#include "Entities/Objects/Object.hpp"
 
 namespace ng
 {

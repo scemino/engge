@@ -1,13 +1,13 @@
-#include "Dialog/DialogManager.h"
-#include "Engine/Engine.h"
-#include "Entities/Actor/Actor.h"
-#include "System/Logger.h"
-#include "_SayFunction.h"
-#include "_ExecuteCodeFunction.h"
-#include "_ShutupFunction.h"
-#include "_PauseFunction.h"
-#include "_WaitWhileFunction.h"
-#include "../System/_Util.h"
+#include "Dialog/DialogManager.hpp"
+#include "Engine/Engine.hpp"
+#include "Entities/Actor/Actor.hpp"
+#include "System/Logger.hpp"
+#include "_SayFunction.hpp"
+#include "_ExecuteCodeFunction.hpp"
+#include "_ShutupFunction.hpp"
+#include "_PauseFunction.hpp"
+#include "_WaitWhileFunction.hpp"
+#include "../System/_Util.hpp"
 
 namespace ng
 {

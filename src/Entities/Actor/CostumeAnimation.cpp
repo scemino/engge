@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "Entities/Actor/CostumeAnimation.h"
+#include "Entities/Actor/CostumeAnimation.hpp"
 
 namespace ng
 {

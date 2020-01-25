@@ -1,10 +1,10 @@
 #include <utility>
 #include <cmath>
-#include "_AstarAlgorithm.h"
-#include "Math/PathFinding/Graph.h"
-#include "Math/PathFinding/GraphEdge.h"
-#include "Math/PathFinding/PathFinder.h"
-#include "../../System/_Util.h"
+#include "_AstarAlgorithm.hpp"
+#include "Math/PathFinding/Graph.hpp"
+#include "Math/PathFinding/GraphEdge.hpp"
+#include "Math/PathFinding/PathFinder.hpp"
+#include "../../System/_Util.hpp"
 
 namespace ng {
 

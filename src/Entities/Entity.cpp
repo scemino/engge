@@ -1,9 +1,9 @@
 #include <utility>
-#include "Entities/Entity.h"
-#include "Room/Room.h"
-#include "Scripting/ScriptEngine.h"
-#include "Audio/SoundTrigger.h"
-#include "Engine/Trigger.h"
+#include "Entities/Entity.hpp"
+#include "Room/Room.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "Audio/SoundTrigger.hpp"
+#include "Engine/Trigger.hpp"
 
 namespace ng
 {

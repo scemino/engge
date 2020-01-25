@@ -1,4 +1,4 @@
-#include "Parsers/GGPack.h"
+#include "Parsers/GGPack.hpp"
 
 namespace ng
 {

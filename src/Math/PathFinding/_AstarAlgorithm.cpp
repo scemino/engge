@@ -1,8 +1,8 @@
-#include "Math/PathFinding/Graph.h"
-#include "Math/PathFinding/GraphEdge.h"
-#include "../../System/_Util.h"
-#include "_AstarAlgorithm.h"
-#include "_IndexedPriorityQueue.h"
+#include "Math/PathFinding/Graph.hpp"
+#include "Math/PathFinding/GraphEdge.hpp"
+#include "../../System/_Util.hpp"
+#include "_AstarAlgorithm.hpp"
+#include "_IndexedPriorityQueue.hpp"
 
 namespace ng {
 

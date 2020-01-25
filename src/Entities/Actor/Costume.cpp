@@ -1,10 +1,10 @@
 #include <iostream>
-#include "Entities/Actor/BlinkState.h"
-#include "Entities/Actor/Costume.h"
-#include "Engine/EngineSettings.h"
-#include "Parsers/JsonTokenReader.h"
-#include "System/Locator.h"
-#include "../../System/_Util.h"
+#include "Entities/Actor/BlinkState.hpp"
+#include "Entities/Actor/Costume.hpp"
+#include "Engine/EngineSettings.hpp"
+#include "Parsers/JsonTokenReader.hpp"
+#include "System/Locator.hpp"
+#include "../../System/_Util.hpp"
 
 namespace ng
 {

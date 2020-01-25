@@ -1,8 +1,8 @@
 #include <cmath>
 #include <algorithm>
-#include "Math/PathFinding/Walkbox.h"
-#include "../../System/_Util.h"
-#include "_WalkboxDrawable.h"
+#include "Math/PathFinding/Walkbox.hpp"
+#include "../../System/_Util.hpp"
+#include "_WalkboxDrawable.hpp"
 
 namespace ng
 {

@@ -1,8 +1,8 @@
 #include <fstream>
-#include "Engine/EngineSettings.h"
-#include "Font/Font.h"
-#include "System/Locator.h"
-#include "../System/_Util.h"
+#include "Engine/EngineSettings.hpp"
+#include "Font/Font.hpp"
+#include "System/Locator.hpp"
+#include "../System/_Util.hpp"
 
 namespace ng
 {

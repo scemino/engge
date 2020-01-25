@@ -1,10 +1,10 @@
-#include "_RoomTrigger.h"
-#include "System/Locator.h"
-#include "System/Logger.h"
-#include "Entities/Objects/Object.h"
-#include "Engine/ResourceManager.h"
-#include "Scripting/ScriptEngine.h"
-#include "../System/_Util.h"
+#include "_RoomTrigger.hpp"
+#include "System/Locator.hpp"
+#include "System/Logger.hpp"
+#include "Entities/Objects/Object.hpp"
+#include "Engine/ResourceManager.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "../System/_Util.hpp"
 #include "squirrel.h"
 
 namespace ng

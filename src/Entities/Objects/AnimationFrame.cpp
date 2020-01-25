@@ -1,4 +1,4 @@
-#include "Entities/Objects/AnimationFrame.h"
+#include "Entities/Objects/AnimationFrame.hpp"
 
 namespace ng
 {

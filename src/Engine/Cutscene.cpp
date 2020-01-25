@@ -1,10 +1,10 @@
-#include "Engine/Camera.h"
-#include "Engine/Cutscene.h"
-#include "Engine/Engine.h"
-#include "System/Locator.h"
-#include "System/Logger.h"
-#include "Engine/ResourceManager.h"
-#include "Scripting/ScriptEngine.h"
+#include "Engine/Camera.hpp"
+#include "Engine/Cutscene.hpp"
+#include "Engine/Engine.hpp"
+#include "System/Locator.hpp"
+#include "System/Logger.hpp"
+#include "Engine/ResourceManager.hpp"
+#include "Scripting/ScriptEngine.hpp"
 
 namespace ng
 {

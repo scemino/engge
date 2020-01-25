@@ -1,8 +1,8 @@
 #include "squirrel.h"
-#include "System/Locator.h"
-#include "Engine/ResourceManager.h"
-#include "Scripting/ScriptEngine.h"
-#include "Engine/Thread.h"
+#include "System/Locator.hpp"
+#include "Engine/ResourceManager.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "Engine/Thread.hpp"
 
 #include <utility>
 

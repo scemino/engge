@@ -1,8 +1,8 @@
 #include <regex>
-#include "Engine/EngineSettings.h"
-#include "Parsers/Lip.h"
-#include "System/Locator.h"
-#include "../System/_Util.h"
+#include "Engine/EngineSettings.hpp"
+#include "Parsers/Lip.hpp"
+#include "System/Locator.hpp"
+#include "../System/_Util.hpp"
 
 namespace ng
 {

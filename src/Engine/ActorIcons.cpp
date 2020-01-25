@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "Engine/ActorIcons.h"
-#include "Engine/Engine.h"
+#include "Engine/ActorIcons.hpp"
+#include "Engine/Engine.hpp"
 
 namespace ng
 {

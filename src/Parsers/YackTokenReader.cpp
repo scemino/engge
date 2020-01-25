@@ -1,7 +1,7 @@
 #include <algorithm>
-#include "Engine/EngineSettings.h"
-#include "Parsers/YackTokenReader.h"
-#include "System/Logger.h"
+#include "Engine/EngineSettings.hpp"
+#include "Parsers/YackTokenReader.hpp"
+#include "System/Logger.hpp"
 
 namespace ng
 {

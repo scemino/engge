@@ -1,5 +1,5 @@
-#include "Math/PathFinding/Walkbox.h"
-#include "_WalkboxDrawable.h"
+#include "Math/PathFinding/Walkbox.hpp"
+#include "_WalkboxDrawable.hpp"
 
 namespace ng {
 _WalkboxDrawable::_WalkboxDrawable(const Walkbox &walkbox) : _walkbox(walkbox) {

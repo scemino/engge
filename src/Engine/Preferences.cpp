@@ -1,4 +1,4 @@
-#include "Engine/Preferences.h"
+#include "Engine/Preferences.hpp"
 
 namespace ng
 {

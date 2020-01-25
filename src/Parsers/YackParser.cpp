@@ -1,4 +1,4 @@
-#include "Parsers/YackParser.h"
+#include "Parsers/YackParser.hpp"
 
 namespace ng
 {

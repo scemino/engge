@@ -1,6 +1,6 @@
-#include "Engine/Light.h"
-#include "System/Locator.h"
-#include "Engine/ResourceManager.h"
+#include "Engine/Light.hpp"
+#include "System/Locator.hpp"
+#include "Engine/ResourceManager.hpp"
 
 namespace ng
 {

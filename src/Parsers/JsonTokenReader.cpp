@@ -1,5 +1,5 @@
-#include "Parsers/JsonTokenReader.h"
-#include "System/Logger.h"
+#include "Parsers/JsonTokenReader.hpp"
+#include "System/Logger.hpp"
 
 namespace ng::Json
 {

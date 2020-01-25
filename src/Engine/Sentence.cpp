@@ -1,5 +1,5 @@
 
-#include "Engine/Sentence.h"
+#include "Engine/Sentence.hpp"
 
 namespace ng
 {

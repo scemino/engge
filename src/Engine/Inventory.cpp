@@ -1,9 +1,9 @@
 #include <algorithm>
-#include "Engine/Engine.h"
-#include "Engine/Inventory.h"
-#include "Entities/Objects/Object.h"
-#include "Engine/Preferences.h"
-#include "Graphics/Screen.h"
+#include "Engine/Engine.hpp"
+#include "Engine/Inventory.hpp"
+#include "Entities/Objects/Object.hpp"
+#include "Engine/Preferences.hpp"
+#include "Graphics/Screen.hpp"
 
 namespace ng
 {

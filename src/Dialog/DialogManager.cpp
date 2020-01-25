@@ -1,11 +1,11 @@
 #include <regex>
-#include "Dialog/DialogManager.h"
-#include "Engine/Engine.h"
-#include "System/Logger.h"
-#include "Engine/Preferences.h"
-#include "Scripting/ScriptEngine.h"
-#include "Graphics/Text.h"
-#include "_SayFunction.h"
+#include "Dialog/DialogManager.hpp"
+#include "Engine/Engine.hpp"
+#include "System/Logger.hpp"
+#include "Engine/Preferences.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "Graphics/Text.hpp"
+#include "_SayFunction.hpp"
 
 namespace ng
 {

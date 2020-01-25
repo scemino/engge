@@ -1,6 +1,6 @@
-#include "Entities/Objects/TextObject.h"
-#include "Graphics/Text.h"
-#include "../../System/_Util.h"
+#include "Entities/Objects/TextObject.hpp"
+#include "Graphics/Text.hpp"
+#include "../../System/_Util.hpp"
 
 namespace ng
 {

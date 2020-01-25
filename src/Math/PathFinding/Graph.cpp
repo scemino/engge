@@ -1,5 +1,5 @@
-#include "Math/PathFinding/Graph.h"
-#include "Math/PathFinding/GraphEdge.h"
+#include "Math/PathFinding/Graph.hpp"
+#include "Math/PathFinding/GraphEdge.hpp"
 
 namespace ng
 {

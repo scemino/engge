@@ -1,10 +1,10 @@
 #include <iostream>
-#include "Engine/EngineSettings.h"
-#include "Font/FntFont.h"
-#include "Font/Font.h"
-#include "System/Locator.h"
-#include "System/Logger.h"
-#include "Graphics/TextureManager.h"
+#include "Engine/EngineSettings.hpp"
+#include "Font/FntFont.hpp"
+#include "Font/Font.hpp"
+#include "System/Locator.hpp"
+#include "System/Logger.hpp"
+#include "Graphics/TextureManager.hpp"
 
 namespace ng
 {

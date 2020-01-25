@@ -1,8 +1,8 @@
 #include <cmath>
-#include "Graphics/Text.h"
+#include "Graphics/Text.hpp"
 #include "SFML/Graphics/Text.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
-#include "../System/_Util.h"
+#include "../System/_Util.hpp"
 
 namespace
 {

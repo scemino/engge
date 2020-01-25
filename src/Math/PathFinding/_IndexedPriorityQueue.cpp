@@ -1,9 +1,9 @@
-#include "../../System/_Util.h"
-#include "Math/PathFinding/PathFinder.h"
+#include "../../System/_Util.hpp"
+#include "Math/PathFinding/PathFinder.hpp"
 #include <sstream>
 #include <math.h>
 #include <utility>
-#include "_IndexedPriorityQueue.h"
+#include "_IndexedPriorityQueue.hpp"
 
 namespace ng {
 _IndexedPriorityQueue::_IndexedPriorityQueue(std::vector<float> &keys)

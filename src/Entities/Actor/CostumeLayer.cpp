@@ -1,6 +1,6 @@
-#include "Entities/Actor/CostumeLayer.h"
-#include "Entities/Actor/Actor.h"
-#include "Room/Room.h"
+#include "Entities/Actor/CostumeLayer.hpp"
+#include "Entities/Actor/Actor.hpp"
+#include "Room/Room.hpp"
 #include "SFML/Graphics.hpp"
 
 namespace ng

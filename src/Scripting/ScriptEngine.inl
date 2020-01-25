@@ -1,4 +1,4 @@
-#include "Entities/Objects/Object.h"
+#include "Entities/Objects/Object.hpp"
 
 namespace ng
 {

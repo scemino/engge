@@ -1,7 +1,7 @@
-#include "Engine/Callback.h"
-#include "System/Locator.h"
-#include "System/Logger.h"
-#include "Engine/ResourceManager.h"
+#include "Engine/Callback.hpp"
+#include "System/Locator.hpp"
+#include "System/Logger.hpp"
+#include "Engine/ResourceManager.hpp"
 
 namespace ng
 {

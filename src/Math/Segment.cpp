@@ -1,5 +1,5 @@
 #include <cmath>
-#include "Segment.h"
+#include "Segment.hpp"
 
 namespace ng{
 

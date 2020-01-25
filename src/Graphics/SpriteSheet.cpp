@@ -1,9 +1,9 @@
 #include <string>
-#include "Engine/EngineSettings.h"
-#include "Parsers/JsonTokenReader.h"
-#include "System/Locator.h"
-#include "../System/_Util.h"
-#include "Graphics/SpriteSheet.h"
+#include "Engine/EngineSettings.hpp"
+#include "Parsers/JsonTokenReader.hpp"
+#include "System/Locator.hpp"
+#include "../System/_Util.hpp"
+#include "Graphics/SpriteSheet.hpp"
 
 namespace ng
 {

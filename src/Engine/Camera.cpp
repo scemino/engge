@@ -1,8 +1,8 @@
 #include <algorithm>
-#include "Engine/Camera.h"
-#include "Engine/Engine.h"
-#include "Room/Room.h"
-#include "Scripting/ScriptEngine.h"
+#include "Engine/Camera.hpp"
+#include "Engine/Engine.hpp"
+#include "Room/Room.hpp"
+#include "Scripting/ScriptEngine.hpp"
 
 namespace ng
 {

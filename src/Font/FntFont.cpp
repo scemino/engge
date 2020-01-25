@@ -1,9 +1,9 @@
 #include <string>
 #include <iostream>
-#include "Engine/EngineSettings.h"
-#include "Font/FntFont.h"
-#include "System/Logger.h"
-#include "../System/_Util.h"
+#include "Engine/EngineSettings.hpp"
+#include "Font/FntFont.hpp"
+#include "System/Logger.hpp"
+#include "../System/_Util.hpp"
 
 #define PLACEHOLDER_CHAR '?'
 

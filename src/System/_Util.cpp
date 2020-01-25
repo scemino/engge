@@ -1,5 +1,5 @@
-#include "_Util.h"
-#include "../Math/Segment.h"
+#include "_Util.hpp"
+#include "../Math/Segment.hpp"
 
 namespace ng
 {

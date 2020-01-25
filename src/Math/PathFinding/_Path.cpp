@@ -1,4 +1,4 @@
-#include "_Path.h"
+#include "_Path.hpp"
 
 namespace ng {
 _Path::_Path(std::vector<sf::Vector2f> path)
