@@ -1,12 +1,23 @@
 #pragma once
 #include "squirrel.h"
 #include "Scripting/ScriptObject.h"
+#include "System/Locator.h"
+#include "System/Logger.h"
+#include "Engine/ResourceManager.h"
 
 namespace ng
 {
 class ThreadBase: public ScriptObject
 {
+protected:
+    ThreadBase() { _id = Locator<ResourceManager>::get().getThreadId(); }
+    
 public:
+    ~ThreadBase() override
+    { 
+        trace("stop thread {}", _id);
+    }
+    
     [[nodiscard]] virtual HSQUIRRELVM getThread() const = 0;
 
     inline void setPauseable(bool value) { _isPauseable = value; }

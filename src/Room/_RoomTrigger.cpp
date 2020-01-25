@@ -15,28 +15,8 @@ _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQ
     _vm = engine.getVm();
     sq_addref(_vm, &inside);
     sq_addref(_vm, &outside);
-    sq_resetobject(&thread_obj);
-
-    auto id = Locator<ResourceManager>::get().getThreadId();
 
     SQInteger top = sq_gettop(_vm);
-    sq_newthread(_vm, 1024);
-    if (SQ_FAILED(sq_getstackobj(_vm, -1, &thread_obj)))
-    {
-        error("Couldn't get coroutine thread from stack");
-        return;
-    }
-    sq_addref(_vm, &thread_obj);
-
-    sq_pushconsttable(thread_obj._unVal.pThread);
-    sq_pushstring(thread_obj._unVal.pThread, _SC("_id"), -1);
-    ScriptEngine::push(thread_obj._unVal.pThread, id);
-    sq_newslot(thread_obj._unVal.pThread, -3, SQTrue);
-    sq_pop(thread_obj._unVal.pThread, 1);
-
-    trace("start thread: {}", (long)thread_obj._unVal.pThread);
-    auto pUniquethread = std::make_unique<_RoomTriggerThread>(thread_obj);
-    _engine.addThread(std::move(pUniquethread));
 
     const SQChar *insideName{nullptr};
     SQInteger nfreevars;
@@ -71,9 +51,28 @@ _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQ
 
 _RoomTrigger::~_RoomTrigger()
 {
-    sq_release(_vm, &thread_obj);
+    trace("end room trigger thread: {}", _id);
     sq_release(_vm, &_inside);
     sq_release(_vm, &_outside);
+}
+
+HSQUIRRELVM _RoomTrigger::createThread()
+{
+    HSQOBJECT thread_obj{};
+    sq_resetobject(&thread_obj);
+
+    HSQUIRRELVM thread = sq_newthread(_vm, 1024);
+    if (SQ_FAILED(sq_getstackobj(_vm, -1, &thread_obj)))
+    {
+        error("Couldn't get coroutine thread from stack");
+        return {};
+    }
+
+    auto pUniquethread = std::make_unique<_RoomTriggerThread>(thread_obj);
+    _id = pUniquethread->getId();
+    trace("start room trigger thread: {}", _id);
+    _engine.addThread(std::move(pUniquethread));
+    return thread;
 }
 
 void _RoomTrigger::trigCore()
@@ -139,13 +138,14 @@ void _RoomTrigger::trigCore()
 
 void _RoomTrigger::callTrigger(std::vector<HSQOBJECT> &params, const std::string &name)
 {
+    auto thread = createThread();
     for (auto param : params)
     {
-        sq_pushobject(thread_obj._unVal.pThread, param);
+        sq_pushobject(thread, param);
     }
 
-    trace("call room {} trigger ({})", name, (long)this);
-    if (SQ_FAILED(sq_call(thread_obj._unVal.pThread, params.size() - 1, SQFalse, SQTrue)))
+    trace("call room {} trigger ({})", name, _id);
+    if (SQ_FAILED(sq_call(thread, params.size() - 1, SQFalse, SQTrue)))
     {
         error("failed to call room {} trigger", name);
         return;

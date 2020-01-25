@@ -851,7 +851,7 @@ private:
             return sq_throwerror(v, _SC("failed to get time"));
         }
 
-        auto pThread = ScriptEngine::ScriptEngine::getThreadFromVm(v);
+        auto pThread = ScriptEngine::getThreadFromVm(v);
         if(!pThread)
         {
             return sq_throwerror(v, _SC("failed to get thread"));

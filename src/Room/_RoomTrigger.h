@@ -10,7 +10,10 @@ class _RoomTriggerThread : public ThreadBase
 {
   public:
     explicit _RoomTriggerThread(HSQOBJECT thread_obj) : _thread_obj(thread_obj) {}
-    virtual ~_RoomTriggerThread() = default;
+    virtual ~_RoomTriggerThread()
+    {
+
+    }
 
     HSQUIRRELVM getThread() const override { return _thread_obj._unVal.pThread; }
 
@@ -30,6 +33,7 @@ class _RoomTrigger : public Trigger
     std::string getName() override;
 
   private:
+    HSQUIRRELVM createThread();
     void trigCore() override;
     void callTrigger(std::vector<HSQOBJECT> &params, const std::string &name);
 
@@ -39,12 +43,12 @@ class _RoomTrigger : public Trigger
     Object &_object;
     HSQOBJECT _inside{};
     HSQOBJECT _outside{};
-    HSQOBJECT thread_obj{};
     bool _isInside{false};
     SQInteger _insideParamsCount{0};
     SQInteger _outsideParamsCount{0};
     std::string _insideName;
     std::string _outsideName;
     std::string _name;
+    int _id{0};
 };
 } // namespace ng
