@@ -125,8 +125,9 @@ void Cutscene::endCutscene()
     trace("End cutscene {} with inputState {}", _id, _inputState);
     _engine.setInputState(_inputState);
     _engine.follow(_engine.getCurrentActor());
-    sq_wakeupvm(_v, SQFalse, SQFalse, SQTrue, SQFalse);
-    auto pThread = ScriptEngine::getThreadFromId(_id);
+    auto pThread = ScriptEngine::getThreadFromVm(_v);
+    if(pThread) pThread->resume();
+    pThread = ScriptEngine::getThreadFromId(_id);
     if(pThread) pThread->stop();
 }
 
