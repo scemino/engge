@@ -85,6 +85,73 @@ void Costume::setState(const std::string &name)
     updateAnimation();
 }
 
+CostumeLayer* Costume::loadLayer(const GGPackValue& jLayer) const
+{
+    auto layer = new CostumeLayer();
+    layer->setTexture(&_costumeSheet.getTexture());
+    auto fps = jLayer["fps"].isNull() ? 10 : jLayer["fps"].int_value;
+    layer->setFps(fps);
+    auto layerName = jLayer["name"].string_value;
+    layer->setName(layerName);
+    if (!jLayer["flags"].isNull())
+    {
+        layer->setFlags(jLayer["flags"].int_value);
+    }
+    for (const auto &jFrame : jLayer["frames"].array_value)
+    {
+        auto frameName = jFrame.string_value;
+        if (frameName == "null")
+        {
+            layer->getFrames().emplace_back();
+            layer->getSourceFrames().emplace_back();
+            layer->getSizes().emplace_back();
+        }
+        else
+        {
+            layer->getFrames().push_back(_costumeSheet.getRect(frameName));
+            layer->getSourceFrames().push_back(_costumeSheet.getSpriteSourceSize(frameName));
+            layer->getSizes().push_back(_costumeSheet.getSourceSize(frameName));
+        }
+    }
+    if (!jLayer["triggers"].isNull())
+    {
+        for (const auto &jTrigger : jLayer["triggers"].array_value)
+        {
+            if (!jTrigger.isNull())
+            {
+                auto triggerName = jTrigger.string_value;
+                char *end;
+                auto trigger = std::strtol(triggerName.data() + 1, &end, 10);
+                if (end == triggerName.data() + 1)
+                {
+                    layer->getSoundTriggers().emplace_back(triggerName.data() + 1);
+                    layer->getTriggers().emplace_back(std::nullopt);
+                }
+                else
+                {
+                    layer->getTriggers().emplace_back(trigger);
+                    layer->getSoundTriggers().emplace_back(std::nullopt);
+                }
+            }
+            else
+            {
+                layer->getSoundTriggers().emplace_back(std::nullopt);
+                layer->getTriggers().emplace_back(std::nullopt);
+            }
+        }
+    }
+    for (const auto &jOffset : jLayer["offsets"].array_value)
+    {
+        layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.string_value));
+    }
+    if(!jLayer["loop"].isNull() && jLayer["loop"].int_value == 1)
+    {
+        layer->setLoop(true);
+    }
+    layer->setActor(_pActor);
+    return layer;
+}
+
 void Costume::loadCostume(const std::string &path, const std::string &sheet)
 {
     _path = path;
@@ -109,71 +176,18 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     {
         auto name = j["name"].string_value;
         auto pAnimation = std::make_unique<CostumeAnimation>(name);
-        for (auto jLayer : j["layers"].array_value)
+        if(j["layers"].isNull())
         {
-            auto layer = new CostumeLayer();
-            layer->setTexture(&_costumeSheet.getTexture());
-            auto fps = jLayer["fps"].isNull() ? 10 : jLayer["fps"].int_value;
-            layer->setFps(fps);
-            auto layerName = jLayer["name"].string_value;
-            layer->setName(layerName);
-            if (!jLayer["flags"].isNull())
-            {
-                layer->setFlags(jLayer["flags"].int_value);
-            }
-            for (const auto &jFrame : jLayer["frames"].array_value)
-            {
-                auto frameName = jFrame.string_value;
-                if (frameName == "null")
-                {
-                    layer->getFrames().emplace_back();
-                    layer->getSourceFrames().emplace_back();
-                    layer->getSizes().emplace_back();
-                }
-                else
-                {
-                    layer->getFrames().push_back(_costumeSheet.getRect(frameName));
-                    layer->getSourceFrames().push_back(_costumeSheet.getSpriteSourceSize(frameName));
-                    layer->getSizes().push_back(_costumeSheet.getSourceSize(frameName));
-                }
-            }
-            if (!jLayer["triggers"].isNull())
-            {
-                for (const auto &jTrigger : jLayer["triggers"].array_value)
-                {
-                    if (!jTrigger.isNull())
-                    {
-                        auto triggerName = jTrigger.string_value;
-                        char *end;
-                        auto trigger = std::strtol(triggerName.data() + 1, &end, 10);
-                        if (end == triggerName.data() + 1)
-                        {
-                            layer->getSoundTriggers().emplace_back(triggerName.data() + 1);
-                            layer->getTriggers().emplace_back(std::nullopt);
-                        }
-                        else
-                        {
-                            layer->getTriggers().emplace_back(trigger);
-                            layer->getSoundTriggers().emplace_back(std::nullopt);
-                        }
-                    }
-                    else
-                    {
-                        layer->getSoundTriggers().emplace_back(std::nullopt);
-                        layer->getTriggers().emplace_back(std::nullopt);
-                    }
-                }
-            }
-            for (const auto &jOffset : jLayer["offsets"].array_value)
-            {
-                layer->getOffsets().emplace_back((sf::Vector2i)_parsePos(jOffset.string_value));
-            }
-            if(!jLayer["loop"].isNull() && jLayer["loop"].int_value == 1)
-            {
-                layer->setLoop(true);
-            }
-            layer->setActor(_pActor);
+            auto layer = loadLayer(j);
             pAnimation->getLayers().push_back(layer);
+        } 
+        else 
+        {
+            for (auto jLayer : j["layers"].array_value)
+            {
+                auto layer = loadLayer(jLayer);
+                pAnimation->getLayers().push_back(layer);
+            }
         }
         _animations.push_back(std::move(pAnimation));
     }
@@ -202,6 +216,7 @@ bool Costume::setAnimation(const std::string &animName)
         }
     }
 
+    _pCurrentAnimation = nullptr;
     return false;
 }
 

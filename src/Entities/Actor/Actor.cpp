@@ -229,7 +229,10 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
     _path.erase(_path.begin());
     _pActor->getCostume().setFacing(getFacing());
     _pActor->getCostume().setState("walk");
-    _pActor->getCostume().getAnimation()->play(true);
+    auto pAnim = _pActor->getCostume().getAnimation();
+    if(pAnim) {
+        pAnim->play(true);
+    }
     _isWalking = true;
     trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
