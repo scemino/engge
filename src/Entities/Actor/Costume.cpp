@@ -31,7 +31,7 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
         return;
     if(_pCurrentAnimation->getLayers().empty())
         return;
-    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](CostumeLayer *pLayer) {
+    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](auto&& pLayer) {
         return pLayer->getName() == name;
     });
     if (it != _pCurrentAnimation->getLayers().end())
@@ -85,9 +85,9 @@ void Costume::setState(const std::string &name)
     updateAnimation();
 }
 
-CostumeLayer* Costume::loadLayer(const GGPackValue& jLayer) const
+std::unique_ptr<CostumeLayer> Costume::loadLayer(const GGPackValue& jLayer) const
 {
-    auto layer = new CostumeLayer();
+    auto layer = std::make_unique<CostumeLayer>();
     layer->setTexture(&_costumeSheet.getTexture());
     auto fps = jLayer["fps"].isNull() ? 10 : jLayer["fps"].int_value;
     layer->setFps(fps);
@@ -179,14 +179,14 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
         if(j["layers"].isNull())
         {
             auto layer = loadLayer(j);
-            pAnimation->getLayers().push_back(layer);
+            pAnimation->getLayers().push_back(std::move(layer));
         } 
         else 
         {
             for (auto jLayer : j["layers"].array_value)
             {
                 auto layer = loadLayer(jLayer);
-                pAnimation->getLayers().push_back(layer);
+                pAnimation->getLayers().push_back(std::move(layer));
             }
         }
         _animations.push_back(std::move(pAnimation));
@@ -231,7 +231,7 @@ void Costume::updateAnimation()
     if (_pCurrentAnimation && _startsWith(_animation, "eyes_"))
     {
         auto &layers = _pCurrentAnimation->getLayers();
-        for (auto layer : layers)
+        for (auto&& layer : layers)
         {
             if (!_startsWith(layer->getName(), "eyes_"))
                 continue;
@@ -266,7 +266,7 @@ void Costume::updateAnimation()
     if (_pCurrentAnimation)
     {
         auto &layers = _pCurrentAnimation->getLayers();
-        for (auto layer : layers)
+        for (auto&& layer : layers)
         {
             layer->setLeftDirection(getFacing() == Facing::FACE_LEFT);
         }
@@ -297,7 +297,7 @@ void Costume::setHeadIndex(int index)
         std::ostringstream s;
         s << _headAnimName << (i + 1);
         auto layerName = s.str();
-        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](CostumeLayer *pLayer) {
+        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](auto&& pLayer) {
             return pLayer->getName() == layerName;
         });
         if (it != _pCurrentAnimation->getLayers().end())

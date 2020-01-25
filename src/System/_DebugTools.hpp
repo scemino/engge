@@ -62,7 +62,7 @@ class _DebugTools
     {
         ImGui::Columns(4, "LayersColumns", false);
         ImGui::Separator();
-        for(auto& layer : _pSelectedAnim->getLayers())
+        for(auto&& layer : _pSelectedAnim->getLayers())
         {
             ImGui::Text("Layer %s", layer->getName().c_str());
             ImGui::NextColumn();

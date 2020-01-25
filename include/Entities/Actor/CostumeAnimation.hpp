@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <sstream>
 #include "SFML/Graphics.hpp"
 #include "CostumeLayer.hpp"
@@ -18,7 +19,7 @@ public:
   ~CostumeAnimation();
 
   const std::string &getName() const { return _name; }
-  std::vector<CostumeLayer *> &getLayers() { return _layers; }
+  std::vector<std::unique_ptr<CostumeLayer>> &getLayers() { return _layers; }
 
   void play(bool loop = false);
   void pause() { _state = AnimationState::Pause; }
@@ -34,7 +35,7 @@ private:
 
 private:
   std::string _name;
-  std::vector<CostumeLayer *> _layers;
+  std::vector<std::unique_ptr<CostumeLayer>> _layers;
   AnimationState _state;
   bool _loop{false};
 };

@@ -53,7 +53,7 @@ public:
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void updateAnimation();
-  CostumeLayer* loadLayer(const GGPackValue& jLayer) const;
+  std::unique_ptr<CostumeLayer> loadLayer(const GGPackValue& jLayer) const;
 
 private:
   TextureManager &_textureManager;
