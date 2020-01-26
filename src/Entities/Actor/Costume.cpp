@@ -220,20 +220,15 @@ bool Costume::setAnimation(const std::string &animName)
     return false;
 }
 
-static bool _startsWith(const std::string &str, const std::string &prefix)
-{
-    return str.length() >= prefix.length() && 0 == str.compare(0, prefix.length(), prefix);
-}
-
 void Costume::updateAnimation()
 {
     // special case for eyes... bof
-    if (_pCurrentAnimation && _startsWith(_animation, "eyes_"))
+    if (_pCurrentAnimation && startsWith(_animation, "eyes_"))
     {
         auto &layers = _pCurrentAnimation->getLayers();
         for (auto&& layer : layers)
         {
-            if (!_startsWith(layer->getName(), "eyes_"))
+            if (!startsWith(layer->getName(), "eyes_"))
                 continue;
             setLayerVisible(layer->getName(), false);
         }

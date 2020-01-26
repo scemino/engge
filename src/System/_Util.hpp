@@ -28,6 +28,7 @@ void replaceAll(std::string &text, const std::string &search, const std::string 
 void replaceAll(std::wstring &text, const std::wstring &search, const std::wstring &replace);
 
 void removeFirstParenthesis(std::wstring &text);
+bool startsWith(const std::string &str, const std::string &prefix);
 
 bool getLine(GGPackBufferStream &input, std::string &line);
 

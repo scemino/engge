@@ -56,6 +56,11 @@ void removeFirstParenthesis(std::wstring &text)
     text = text.substr(pos + 1);
 }
 
+bool startsWith(const std::string &str, const std::string &prefix)
+{
+    return str.length() >= prefix.length() && 0 == str.compare(0, prefix.length(), prefix);
+}
+
 bool getLine(GGPackBufferStream &input, std::string &line)
 {
     char c;
