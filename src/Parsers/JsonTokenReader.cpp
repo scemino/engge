@@ -288,9 +288,17 @@ void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
         break;
     }
     case TokenId::String:
+    {
         value.type = 4;
-        value.string_value = reader.readText(token);
+        auto text = reader.readText(token);
+        // remove "" if any
+        if(text.length()>0 && text[0]=='\"' && text[text.length()-1]=='\"')
+        {
+            text = text.substr(1, text.length()-2);
+        }
+        value.string_value = text;
         break;
+    }
     default:
         break;
     }
