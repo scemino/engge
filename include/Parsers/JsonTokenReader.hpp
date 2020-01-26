@@ -96,7 +96,7 @@ public:
 private:
     static void parse(ng::Json::TokenReader& reader, GGPackValue &value);
     static void parse(TokenReader::iterator& it, GGPackValue &value);
-
+    static void readHash(TokenReader::iterator& it, GGPackValue &value);
 };
 } // namespace Json
 } // namespace ng

@@ -242,6 +242,32 @@ std::ostream &operator<<(std::ostream &os, const Token &obj)
 
 Parser::Parser() = default;
 
+void Parser::readHash(TokenReader::iterator& it, GGPackValue &value)
+{
+    auto& reader = it.getReader();
+    value.type = 2;
+    while(it != reader.end() && it->id != TokenId::EndHash)
+    {
+        auto token = *it++;
+        auto key = reader.readText(token);
+        // remove "" if any
+        if(key.length()>0 && key[0]=='\"' && key[key.length()-1]=='\"')
+        {
+            key = key.substr(1, key.length()-2);
+        }
+        // skip colon
+        it++;
+        GGPackValue hashValue;
+        parse(it, hashValue);
+        value.hash_value[key] = hashValue;
+        if(it->id == TokenId::Comma)
+        {
+            it++;
+        }
+    }
+    it++;
+}
+
 void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
 {
     auto& reader = it.getReader();
@@ -251,27 +277,7 @@ void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
     {
     case TokenId::StartHash:
     {
-        value.type = 2;
-        while(it != reader.end() && it->id != TokenId::EndHash)
-        {
-            token = *it++;
-            auto key = reader.readText(token);
-            // remove "" if any
-            if(key.length()>0 && key[0]=='\"' && key[key.length()-1]=='\"')
-            {
-                key = key.substr(1, key.length()-2);
-            }
-            // skip colon
-            it++;
-            GGPackValue hashValue;
-            parse(it, hashValue);
-            value.hash_value[key] = hashValue;
-            if(it->id == TokenId::Comma)
-            {
-                it++;
-            }
-        }
-        it++;
+        readHash(it, value);
         break;
     }
     case TokenId::Number:
@@ -293,10 +299,16 @@ void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
 void Parser::parse(ng::Json::TokenReader& reader, GGPackValue &value)
 {
     auto it = reader.begin();
-    while (it != reader.end())
+    auto token = *it;
+    if(token.id == TokenId::StartHash) 
     {
-        parse(it, value);
+        while (it != reader.end())
+        {
+            parse(it, value);
+        }
+        return;
     }
+    readHash(it, value);
 }
 
 void Parser::load(const std::string &path, GGPackValue &value)
