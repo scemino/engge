@@ -66,11 +66,12 @@ class _DebugTools
         {
             ImGui::Text("Layer %s", layer->getName().c_str());
             ImGui::NextColumn();
-            auto layerIndex = layer->getIndex();
-            auto layerSize = layer->getFrames().size() - 1;
-            if (ImGui::SliderInt("Index", &layerIndex, 0, layerSize))
+            auto& anim = layer->getAnimation();
+            auto animIndex = static_cast<int>(anim.getIndex());
+            auto animSize = static_cast<int>(anim.size() - 1);
+            if (ImGui::SliderInt("Index", &animIndex, 0, animSize))
             {
-                layer->setIndex(layerIndex);
+                anim.setIndex(animIndex);
             }
             ImGui::NextColumn();
             auto layerVisible = layer->getVisible();

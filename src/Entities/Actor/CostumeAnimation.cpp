@@ -13,23 +13,23 @@ CostumeAnimation::~CostumeAnimation() = default;
 
 void CostumeAnimation::play(bool loop)
 {
+    if(_loop == loop && _state == AnimationState::Play) return;
     _loop = loop;
     _state = AnimationState::Play;
+    for (auto &&layer : _layers)
+    {
+        layer->play(loop);
+    }
 }
 
 void CostumeAnimation::update(const sf::Time &elapsed)
 {
     if (!isPlaying())
         return;
-    bool loop = _loop;
+    auto loop = _loop;
     for (auto &&layer : _layers)
     {
-        bool end = layer->update(elapsed);
-        if(_loop && end)
-        {
-            layer->reset();
-        }
-        loop |= !end;
+        loop |= !layer->update(elapsed);
     }
     if (!loop)
     {
@@ -45,20 +45,13 @@ void CostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) c
     }
 }
 
-void CostumeAnimation::setFps(int fps)
-{
-    for (auto &&layer : _layers)
-    {
-        layer->setFps(fps);
-    }
-}
-
 bool CostumeAnimation::contains(const sf::Vector2f& pos) const
 {
     for (auto &&layer : _layers)
     {
-        if(layer->contains(pos))
+        if(layer->getAnimation().contains(pos)){
             return true;
+        }
     }
     return false;
 }

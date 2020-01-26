@@ -2,6 +2,7 @@
 #include <vector>
 #include "SFML/Graphics.hpp"
 #include "System/NonCopyable.hpp"
+#include "Entities/Objects/AnimationFrame.hpp"
 
 namespace ng
 {
@@ -30,8 +31,12 @@ public:
   sf::Color getColor() const { return _color; }
 
   void addFrame(AnimationFrame&& frame);
-  size_t getSize() const noexcept;
+  AnimationFrame& at(size_t index);
+
+  size_t size() const noexcept;
   bool empty() const noexcept;
+  size_t getIndex() const { return _index; }
+  void setIndex(size_t index) { _index = index; }
 
   void setFps(int fps) { _fps = fps; }
 
@@ -41,6 +46,8 @@ public:
   void play(bool loop = false);
   void pause() { _state = AnimState::Pause; }
   bool isPlaying() const { return _state == AnimState::Play; }
+
+  bool contains(const sf::Vector2f &pos) const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

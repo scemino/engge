@@ -96,6 +96,7 @@ struct Actor::Impl
     std::string _key;
     int _inventoryOffset{0};
     sf::Vector2i _talkOffset{0, 90};
+    int _fps{10};
 };
 
 std::wstring Actor::getTranslatedName() const
@@ -425,11 +426,12 @@ void Actor::trigSound(const std::string &name)
 
 void Actor::setFps(int fps)
 {
-    auto pAnim = pImpl->_costume.getAnimation();
-    if (pAnim)
-    {
-        pAnim->setFps(fps);
-    }
+    pImpl->_fps = fps;
+}
+
+int Actor::getFps() const
+{
+    return pImpl->_fps;
 }
 
 void Actor::setInventoryOffset(int offset) { pImpl->_inventoryOffset = offset; }

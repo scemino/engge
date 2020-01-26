@@ -2,6 +2,7 @@
 #include <sstream>
 #include <optional>
 #include "SFML/Graphics.hpp"
+#include "../Objects/Animation.hpp"
 
 namespace ng
 {
@@ -10,33 +11,26 @@ class Actor;
 class CostumeLayer : public sf::Drawable
 {
 public:
-  CostumeLayer();
-  ~CostumeLayer();
-
-  std::vector<sf::IntRect> &getFrames() { return _frames; }
-  std::vector<sf::IntRect> &getSourceFrames() { return _sourceFrames; }
-  std::vector<sf::Vector2i> &getSizes() { return _sizes; }
-  std::vector<sf::Vector2i> &getOffsets() { return _offsets; }
-
+  explicit CostumeLayer(Animation&& animation);
+  
   void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
-  int getFps() const { return _fps; }
-  void setFps(int fps) { _fps = fps; }
+
   int getFlags() const { return _flags; }
   void setFlags(int flags) { _flags = flags; }
-  void setIndex(int index) { _index = index; }
-  int getIndex() const { return _index; }
-  void reset() { _index=0; }
+
   void setVisible(bool isVisible) { _isVisible = isVisible; }
   bool getVisible() const { return _isVisible; }
-  std::vector<std::optional<int>> &getTriggers() { return _triggers; }
-  std::vector<std::optional<std::string>> &getSoundTriggers() { return _soundTriggers; }
+
+  void reset();
   void setActor(Actor *pActor) { _pActor = pActor; }
+  
+  Animation& getAnimation() { return _animation; }
   void setLoop(bool loop) { _loop = loop; }
   bool getLoop() const { return _loop; }
-  void setTexture(const sf::Texture *pTexture) { _pTexture = pTexture; }
+  void play(bool loop = false) { _animation.play(_loop || loop); }
+  
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
-  bool contains(const sf::Vector2f& pos) const;
 
   bool update(const sf::Time &elapsed);
 
@@ -46,18 +40,9 @@ private:
   void updateSoundTrigger();
 
 private:
+  Animation _animation;
   std::string _name;
-  std::vector<sf::IntRect> _frames;
-  std::vector<sf::IntRect> _sourceFrames;
-  std::vector<sf::Vector2i> _sizes;
-  std::vector<sf::Vector2i> _offsets;
-  std::vector<std::optional<int>> _triggers;
-  std::vector<std::optional<std::string>> _soundTriggers;
-  const sf::Texture *_pTexture{nullptr};
-  int _fps{10};
   int _flags{0};
-  sf::Time _time;
-  int _index{0};
   bool _isVisible{true};
   Actor *_pActor{nullptr};
   bool _loop{false};
