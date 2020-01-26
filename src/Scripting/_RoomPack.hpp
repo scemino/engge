@@ -480,7 +480,7 @@ private:
         sq_newarray(v, 0);
         for (auto &&pActor : g_pEngine->getActors())
         {
-            if (pActor->getRoom() == pRoom)
+            if (pActor->getRoom() != pRoom)
                 continue;
             sq_pushobject(v, pActor->getTable());
             sq_arrayappend(v, -2);
