@@ -625,6 +625,7 @@ Object &Room::createObject(const std::string &image)
     auto size = texture.getSize();
     sf::IntRect rect(0, 0, size.x, size.y);
     sf::Vector2f origin(size.x/2.f, (size.y + 1)/2.f);
+    animation->addFrame({rect, origin});
     animation->reset();
     object->getAnims().push_back(std::move(animation));
 
