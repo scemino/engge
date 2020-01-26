@@ -307,7 +307,11 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
         {
             _pActor->getCostume().setFacing(getFacing());
             _pActor->getCostume().setState("walk");
-            _pActor->getCostume().getAnimation()->play(true);
+            auto pAnim = _pActor->getCostume().getAnimation();
+            if(pAnim)
+            { 
+                pAnim->play(true); 
+            }
             trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
         }
     }

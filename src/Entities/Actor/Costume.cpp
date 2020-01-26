@@ -33,12 +33,12 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible)
         return;
     if(_pCurrentAnimation->getLayers().empty())
         return;
-    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](auto&& pLayer) {
-        return pLayer && pLayer->getName() == name;
+    auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](auto& layer) {
+        return layer.getName() == name;
     });
     if (it != _pCurrentAnimation->getLayers().end())
     {
-        (*it)->setVisible(isVisible);
+        it->setVisible(isVisible);
     }
 }
 
@@ -87,7 +87,7 @@ void Costume::setState(const std::string &name)
     updateAnimation();
 }
 
-std::unique_ptr<CostumeLayer> Costume::loadLayer(const GGPackValue& jLayer) const
+CostumeLayer Costume::loadLayer(const GGPackValue& jLayer) const
 {
     auto name = jLayer["name"].string_value;
     Animation animation(_costumeSheet.getTexture(),name);
@@ -145,17 +145,17 @@ std::unique_ptr<CostumeLayer> Costume::loadLayer(const GGPackValue& jLayer) cons
         ++i;
     }
 
-    auto layer = std::make_unique<CostumeLayer>(std::move(animation));
-    layer->setName(name);
+    CostumeLayer layer(std::move(animation));
+    layer.setName(name);
     if (!jLayer["flags"].isNull())
     {
-        layer->setFlags(jLayer["flags"].int_value);
+        layer.setFlags(jLayer["flags"].int_value);
     }
     if(!jLayer["loop"].isNull() && jLayer["loop"].int_value == 1)
     {
-        layer->setLoop(true);
+        layer.setLoop(true);
     }
-    layer->setActor(_pActor);
+    layer.setActor(_pActor);
     return layer;
 }
 
@@ -182,21 +182,22 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     for (auto j : _hash["animations"].array_value)
     {
         auto name = j["name"].string_value;
-        auto pAnimation = std::make_unique<CostumeAnimation>(name);
+        CostumeAnimation animation;
+        animation.setName(name);
         if(j["layers"].isNull())
         {
             auto layer = loadLayer(j);
-            pAnimation->getLayers().push_back(std::move(layer));
+            animation.getLayers().push_back(std::move(layer));
         } 
         else 
         {
             for (auto jLayer : j["layers"].array_value)
             {
                 auto layer = loadLayer(jLayer);
-                pAnimation->getLayers().push_back(std::move(layer));
+                animation.getLayers().push_back(std::move(layer));
             }
         }
-        _animations.push_back(std::move(pAnimation));
+        _animations.push_back(std::move(animation));
     }
 
     // don't know if it's necessary, reyes has no costume in the intro
@@ -208,21 +209,22 @@ bool Costume::setAnimation(const std::string &animName)
     if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
         return true;
 
-    for(auto&& pAnim : _animations)
+    for(auto& anim : _animations)
     {
-        if(pAnim->getName() == animName)
+        if(anim.getName() == animName)
         {
-            _pCurrentAnimation = pAnim.get();
-            for(auto&& layer : _pCurrentAnimation->getLayers())
+            _pCurrentAnimation = &anim;
+            for(auto& layer : _pCurrentAnimation->getLayers())
             {
-                auto layerName = layer->getName();
-                layer->setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
+                auto layerName = layer.getName();
+                layer.setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
             }
+
+            _pCurrentAnimation->play();
             return true;
         }
     }
 
-    _pCurrentAnimation = nullptr;
     return false;
 }
 
@@ -234,9 +236,9 @@ void Costume::updateAnimation()
         auto &layers = _pCurrentAnimation->getLayers();
         for (auto&& layer : layers)
         {
-            if (!startsWith(layer->getName(), "eyes_"))
+            if (!startsWith(layer.getName(), "eyes_"))
                 continue;
-            setLayerVisible(layer->getName(), false);
+            setLayerVisible(layer.getName(), false);
         }
         setLayerVisible(_animation, true);
         return;
@@ -261,7 +263,10 @@ void Costume::updateAnimation()
             name.append("right");
             break;
         }
-        setAnimation(name);
+        if(!setAnimation(name))
+        {
+            _pCurrentAnimation = nullptr;
+        }
     }
 
     if (_pCurrentAnimation)
@@ -269,7 +274,7 @@ void Costume::updateAnimation()
         auto &layers = _pCurrentAnimation->getLayers();
         for (auto&& layer : layers)
         {
-            layer->setLeftDirection(getFacing() == Facing::FACE_LEFT);
+            layer.setLeftDirection(getFacing() == Facing::FACE_LEFT);
         }
     }
 }
@@ -298,12 +303,12 @@ void Costume::setHeadIndex(int index)
         std::ostringstream s;
         s << _headAnimName << (i + 1);
         auto layerName = s.str();
-        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](auto&& pLayer) {
-            return pLayer->getName() == layerName;
+        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](auto& layer) {
+            return layer.getName() == layerName;
         });
         if (it != _pCurrentAnimation->getLayers().end())
         {
-            (*it)->setVisible(_headIndex == i);
+            it->setVisible(_headIndex == i);
         }
     }
 }

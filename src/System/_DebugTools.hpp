@@ -62,11 +62,11 @@ class _DebugTools
     {
         ImGui::Columns(4, "LayersColumns", false);
         ImGui::Separator();
-        for(auto&& layer : _pSelectedAnim->getLayers())
+        for(auto& layer : _pSelectedAnim->getLayers())
         {
-            ImGui::Text("Layer %s", layer->getName().c_str());
+            ImGui::Text("Layer %s", layer.getName().c_str());
             ImGui::NextColumn();
-            auto& anim = layer->getAnimation();
+            auto& anim = layer.getAnimation();
             auto animIndex = static_cast<int>(anim.getIndex());
             auto animSize = static_cast<int>(anim.size() - 1);
             if (ImGui::SliderInt("Index", &animIndex, 0, animSize))
@@ -74,16 +74,16 @@ class _DebugTools
                 anim.setIndex(animIndex);
             }
             ImGui::NextColumn();
-            auto layerVisible = layer->getVisible();
+            auto layerVisible = layer.getVisible();
             if (ImGui::Checkbox("Visible", &layerVisible))
             {
-                layer->setVisible(layerVisible);
+                layer.setVisible(layerVisible);
             }
             ImGui::NextColumn();
-            auto layerLoop = layer->getLoop();
+            auto layerLoop = layer.getLoop();
             if (ImGui::Checkbox("Loop", &layerLoop))
             {
-                layer->setLoop(layerLoop);
+                layer.setLoop(layerLoop);
             }
             ImGui::NextColumn();
         }
@@ -368,14 +368,14 @@ class _DebugTools
             filter.Draw("Filter");
             if (ImGui::ListBoxHeader("Animations")) 
             {
-                for (const auto& anim : anims) 
+                for (auto& anim : anims) 
                 {
-                    auto name = anim->getName();
+                    auto name = anim.getName();
                     if (filter.PassFilter(name.c_str())) 
                     {
-                        if (ImGui::Selectable(name.c_str(), _pSelectedAnim == anim.get())) 
+                        if (ImGui::Selectable(name.c_str(), _pSelectedAnim == &anim)) 
                         {
-                            _pSelectedAnim = anim.get();
+                            _pSelectedAnim = &anim;
                         }
                     }
                 }

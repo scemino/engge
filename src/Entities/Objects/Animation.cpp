@@ -55,6 +55,10 @@ void Animation::update(const sf::Time &elapsed)
             _index = (_index + 1) % _frames.size();
             _frames.at(_index).call();
         }
+        else
+        {
+            pause();
+        }
     }
 }
 

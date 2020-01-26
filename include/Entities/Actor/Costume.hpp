@@ -39,7 +39,7 @@ public:
   void setState(const std::string &name);
   bool setAnimation(const std::string &name);
   CostumeAnimation *getAnimation() { return _pCurrentAnimation; }
-  std::vector<std::unique_ptr<CostumeAnimation>>& getAnimations() { return _animations; }
+  std::vector<CostumeAnimation>& getAnimations() { return _animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
 
@@ -53,13 +53,13 @@ public:
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void updateAnimation();
-  std::unique_ptr<CostumeLayer> loadLayer(const GGPackValue& jLayer) const;
+  CostumeLayer loadLayer(const GGPackValue& jLayer) const;
 
 private:
   TextureManager &_textureManager;
   std::string _path;
   std::string _sheet;
-  std::vector<std::unique_ptr<CostumeAnimation>> _animations;
+  std::vector<CostumeAnimation> _animations;
   CostumeAnimation* _pCurrentAnimation{nullptr};
   Facing _facing{Facing::FACE_FRONT};
   std::string _animation{"stand"};

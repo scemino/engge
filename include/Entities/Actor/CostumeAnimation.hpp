@@ -15,11 +15,10 @@ enum class AnimationState
 class CostumeAnimation : public sf::Drawable
 {
 public:
-  explicit CostumeAnimation(std::string name);
-  ~CostumeAnimation();
-
+  void setName(const std::string &name) { _name = name; }
   const std::string &getName() const { return _name; }
-  std::vector<std::unique_ptr<CostumeLayer>> &getLayers() { return _layers; }
+
+  std::vector<CostumeLayer> &getLayers() { return _layers; }
 
   void play(bool loop = false);
   void pause() { _state = AnimationState::Pause; }
@@ -35,8 +34,8 @@ private:
 
 private:
   std::string _name;
-  std::vector<std::unique_ptr<CostumeLayer>> _layers;
-  AnimationState _state;
+  std::vector<CostumeLayer> _layers;
+  AnimationState _state{AnimationState::Pause};
   bool _loop{false};
 };
 } // namespace ng

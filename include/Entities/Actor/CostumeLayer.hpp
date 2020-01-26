@@ -26,6 +26,8 @@ public:
   void setActor(Actor *pActor) { _pActor = pActor; }
   
   Animation& getAnimation() { return _animation; }
+  const Animation& getAnimation() const { return _animation; }
+  
   void setLoop(bool loop) { _loop = loop; }
   bool getLoop() const { return _loop; }
   void play(bool loop = false) { _animation.play(_loop || loop); }
