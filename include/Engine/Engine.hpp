@@ -257,6 +257,7 @@ class Engine : public NonCopyable
     void sayLineAt(sf::Vector2i pos, Actor& actor, const std::string& text);
 
     void showOptions(bool visible);
+    void quit();
 
   private:
     struct Impl;

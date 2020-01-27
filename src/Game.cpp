@@ -7,7 +7,7 @@ namespace ng
 {
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
-Game::Game() : _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge")
+Game::Game() : _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge", sf::Style::Titlebar | sf::Style::Resize)
 {
     _window.setSize(sf::Vector2u(Screen::Width, Screen::Height));
     _window.setMouseCursorVisible(false);

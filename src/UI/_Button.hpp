@@ -2,6 +2,10 @@
 #include "SFML/Graphics.hpp"
 #include "imgui.h"
 #include "_ControlConstants.hpp"
+#include "Engine/Engine.hpp"
+#include "Font/FntFont.hpp"
+#include "Graphics/Screen.hpp"
+#include "Graphics/Text.hpp"
 
 namespace ng
 {

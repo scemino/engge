@@ -1747,4 +1747,9 @@ void Engine::showOptions(bool visible)
     _pImpl->_state = visible ? EngineState::Options : EngineState::Game;
 }
 
+void Engine::quit()
+{
+    _pImpl->_pWindow->close();
+}
+
 } // namespace ng

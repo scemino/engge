@@ -1,16 +1,17 @@
-#include "Engine/Engine.hpp"
-#include "Font/FntFont.hpp"
-#include "UI/OptionsDialog.hpp"
-#include "Engine/Preferences.hpp"
-#include "Graphics/Screen.hpp"
-#include "Audio/SoundManager.hpp"
-#include "Graphics/SpriteSheet.hpp"
-#include "Graphics/Text.hpp"
-#include "System/Logger.hpp"
 #include "_Button.hpp"
 #include "_Checkbox.hpp"
 #include "_Slider.hpp"
 #include "_SwitchButton.hpp"
+#include "Audio/SoundManager.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/Preferences.hpp"
+#include "Font/FntFont.hpp"
+#include "Graphics/Screen.hpp"
+#include "Graphics/SpriteSheet.hpp"
+#include "Graphics/Text.hpp"
+#include "System/Logger.hpp"
+#include "UI/OptionsDialog.hpp"
+#include "UI/QuitDialog.hpp"
 #include "imgui.h"
 
 
@@ -60,6 +61,8 @@ struct OptionsDialog::Impl
     };    
 
     inline static const std::array<std::string,5> LanguageValues = {"en","fr","it","de","es"};
+    static constexpr float yPosLarge = 58.f;
+    static constexpr float yPosSmall = 54.f;
 
     Engine* _pEngine{nullptr};
     SpriteSheet _saveLoadSheet;
@@ -69,8 +72,8 @@ struct OptionsDialog::Impl
     std::vector<_SwitchButton> _switchButtons;
     std::vector<_Checkbox> _checkboxes;
     std::vector<_Slider> _sliders;
-    static constexpr float yPosLarge = 58.f;
-    static constexpr float yPosSmall = 54.f;
+    bool _showQuit{false};
+    QuitDialog _quit;
 
     inline static float getSlotPos(int slot)
     {
@@ -120,7 +123,7 @@ struct OptionsDialog::Impl
             _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this](){ updateState(State::Controls); });
             _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this](){ updateState(State::TextAndSpeech); });
             _buttons.emplace_back(Ids::Help, getSlotPos(6), [this](){ updateState(State::Help); });
-            _buttons.emplace_back(Ids::Quit, getSlotPos(7), [](){}, false);
+            _buttons.emplace_back(Ids::Quit, getSlotPos(7), [this](){ _showQuit = true;}, true);
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ _pEngine->showOptions(false); }, true, _Button::Size::Medium);
             break;
         case State::Sound:
@@ -237,10 +240,16 @@ struct OptionsDialog::Impl
         _headingText.setFont(headingFont);
         _headingText.setFillColor(sf::Color::White);
 
+        _quit.setEngine(pEngine);
+        _quit.setCallback([this](bool result){
+            if(result) _pEngine->quit();
+            _showQuit = result;
+        });
+
         updateState(State::Main);
     }
 
-    void draw(sf::RenderTarget& target, sf::RenderStates)
+    void draw(sf::RenderTarget& target, sf::RenderStates states)
     {
         const auto view = target.getView();
         auto viewRect = sf::FloatRect(0, 0, 320, 180);
@@ -283,10 +292,19 @@ struct OptionsDialog::Impl
         }
         
         target.setView(view);
+
+        if(_showQuit) {
+            target.draw(_quit, states);
+        }
     }
 
-    void update(const sf::Time&)
+    void update(const sf::Time& elapsed)
     {
+        if(_showQuit) {
+            _quit.update(elapsed);
+            return;
+        }
+
         auto pos = (sf::Vector2f)_pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()), sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
         for(auto& button : _buttons) {
             button.update(pos);
