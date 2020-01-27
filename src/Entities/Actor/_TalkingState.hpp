@@ -95,17 +95,35 @@ public:
     }
 
 private:
+    void loadActorSpeech(const std::string& name) {
+        if(!_pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice))
+            return;
+
+        auto soundDefinition = _pEngine->getSoundManager().defineSound(name + ".ogg");
+        if (!soundDefinition)
+        {
+            error("File {}.ogg not found", name);
+            return;
+        }
+
+        auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
+        if(pSound)
+        {
+            _soundId = pSound->getId();
+        }
+    }
+
     void loadId(int id)
     {
         setText(_pEngine->getText(id));
 
-        std::string path;
         const char* key = nullptr;
         if(!ScriptEngine::get(_pActor, "_talkieKey", key))
         {
             ScriptEngine::get(_pActor, "_key", key);
         }
-        std::string name = str_toupper(key).append("_").append(std::to_string(id));
+        auto name = str_toupper(key).append("_").append(std::to_string(id));
+        std::string path;
         path.append(name).append(".lip");
 
         _lipAnim.setActor(_pActor);
@@ -121,30 +139,32 @@ private:
             _pActor->getCostume().setState(anim);
             _sayText = matches.suffix();
         }
+
+        auto hearVoice = _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice);
+        if(hearVoice) {
+            setDuration(_lipAnim.getDuration());
+        } else {
+            auto sayLineBaseTime = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineBaseTime, PreferenceDefaultValues::SayLineBaseTime);
+            auto sayLineCharTime = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineCharTime, PreferenceDefaultValues::SayLineCharTime);
+            auto sayLineMinTime = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineMinTime, PreferenceDefaultValues::SayLineMinTime);
+            auto sayLineSpeed = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineSpeed, PreferenceDefaultValues::SayLineSpeed);
+            auto speed = (sayLineBaseTime + sayLineCharTime * _sayText.length()) / (0.2f + sayLineSpeed);
+            if(speed < sayLineMinTime) speed = sayLineMinTime;
+            setDuration(sf::seconds(speed));
+        }
+        
         const char* sayLine = tostring(_sayText).data();
         ScriptEngine::call(_pActor, "sayingLine", anim, sayLine);
 
-        // load actor voice
-        auto soundDefinition = _pEngine->getSoundManager().defineSound(name + ".ogg");
-        if (!soundDefinition)
-        {
-            error("File {}.ogg not found", name);
-        }
-        else
-        {
-            auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
-            if(pSound)
-            {
-                _soundId = pSound->getId();
-            }
-        }
-
-        setDuration(_lipAnim.getDuration());
+        loadActorSpeech(name);
     }
 
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override
     {
         if (!_isTalking)
+            return;
+
+        if(!_pEngine->getPreferences().getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText))
             return;
 
         auto screen = target.getView().getSize();

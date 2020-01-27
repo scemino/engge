@@ -20,7 +20,10 @@ namespace PreferenceNames
     static const std::string ScrollSyncCursor = "controllerScollLockCursor";
     static const std::string DisplayText = "talkiesShowText";
     static const std::string HearVoice = "talkiesHearVoice";
-    static const std::string TextSpeed = "sayLineSpeed";
+    static const std::string SayLineSpeed = "sayLineSpeed";
+    static const std::string SayLineBaseTime = "sayLineBaseTime";
+    static const std::string SayLineCharTime = "sayLineCharTime";
+    static const std::string SayLineMinTime = "sayLineMinTime";
     static const std::string ToiletPaperOver = "toiletPaperOver";
     static const std::string SafeArea = "safeScale";
     static const std::string Fullscreen = "windowFullscreen";
@@ -39,7 +42,10 @@ namespace PreferenceDefaultValues
     static const bool ScrollSyncCursor = true;
     static const bool DisplayText = true;
     static const bool HearVoice = true;
-    static const float TextSpeed = 1.f;
+    static const float SayLineSpeed = 0.5f;
+    static const float SayLineBaseTime = 1.5f;
+    static const float SayLineCharTime = 0.025f;
+    static const float SayLineMinTime = 0.2f;
     static const bool ToiletPaperOver = true;
     static const float SafeArea = 1.f;
     static const bool Fullscreen = true;

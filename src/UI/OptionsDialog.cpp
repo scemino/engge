@@ -167,15 +167,27 @@ struct OptionsDialog::Impl
             break;
         case State::TextAndSpeech:
             setHeading(Ids::TextAndSpeech);
-            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), false, 
-                getUserPreference(PreferenceNames::TextSpeed, PreferenceDefaultValues::TextSpeed),
-                [this](auto value){ setUserPreference(PreferenceNames::TextSpeed, value); });
-            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3), false, 
+            _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), true, 
+                getUserPreference(PreferenceNames::SayLineSpeed, PreferenceDefaultValues::SayLineSpeed),
+                [this](auto value){ setUserPreference(PreferenceNames::SayLineSpeed, value); });
+            _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3), true, 
                 getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText),
-                [this](auto value){ setUserPreference(PreferenceNames::DisplayText, value); });
-            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4), false, 
+                [this](auto value) { 
+                    if(!value && !getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice)) {
+                        _checkboxes[1].setChecked(true);
+                        setUserPreference(PreferenceNames::HearVoice, true);    
+                    }
+                    setUserPreference(PreferenceNames::DisplayText, value);
+                });
+            _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4), true, 
                 getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice),
-                [this](auto value){ setUserPreference(PreferenceNames::HearVoice, value); });
+                [this](auto value) {
+                    if(!value && !getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText)) {
+                        _checkboxes[0].setChecked(true);
+                        setUserPreference(PreferenceNames::DisplayText, true);    
+                    }
+                    setUserPreference(PreferenceNames::HearVoice, value);
+                });
             _switchButtons.push_back(_SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5), true, 
                 getLanguageUserPreference(), [this](auto index){
                 setUserPreference(PreferenceNames::Language, LanguageValues[index]);
@@ -276,7 +288,6 @@ struct OptionsDialog::Impl
     void update(const sf::Time&)
     {
         auto pos = (sf::Vector2f)_pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()), sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-        trace("Mouse pso: ({},{})", pos.x, pos.y);
         for(auto& button : _buttons) {
             button.update(pos);
         }
