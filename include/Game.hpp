@@ -35,5 +35,6 @@ private:
   Engine *_pEngine{};
   sf::RenderWindow _window;
   std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
+  static const sf::Time TimePerFrame;
 };
 } // namespace ng

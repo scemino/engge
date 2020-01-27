@@ -5,10 +5,11 @@
 
 namespace ng
 {
+const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
+
 Game::Game() : _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge")
 {
     _window.setSize(sf::Vector2u(Screen::Width, Screen::Height));
-    _window.setFramerateLimit(60);
     _window.setMouseCursorVisible(false);
     ImGui::SFML::Init(_window);
 }
@@ -24,11 +25,18 @@ void Game::setEngine(Engine *pEngine)
 void Game::run()
 {
     sf::Clock clock;
+    sf::Time timeSinceLastUpdate = sf::Time::Zero;
     while (_window.isOpen())
     {
         sf::Time elapsed = clock.restart();
-        update(elapsed);
-        processEvents();
+        timeSinceLastUpdate += elapsed;
+        while (timeSinceLastUpdate > TimePerFrame)
+        {
+            timeSinceLastUpdate -= TimePerFrame;
+            processEvents();
+            update(TimePerFrame);
+        }
+        ImGui::SFML::Update(_window, elapsed);
         render();
     }
 }
@@ -56,8 +64,7 @@ void Game::processEvents()
 
 void Game::update(const sf::Time &elapsed)
 {
-    ImGui::SFML::Update(_window, elapsed);
-    _pEngine->update(elapsed);
+    _pEngine->update(sf::seconds(elapsed.asSeconds()));
 }
 
 void Game::render()
