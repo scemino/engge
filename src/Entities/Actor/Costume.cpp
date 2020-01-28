@@ -123,7 +123,7 @@ CostumeLayer Costume::loadLayer(const GGPackValue& jLayer) const
                 if (end == triggerName.data() + 1)
                 {
                     animation.at(i).setCallback([triggerName,this](){
-                        _pActor->trigSound(triggerName);
+                        _pActor->trigSound(triggerName.data() + 1);
                     });
                 }
                 else
