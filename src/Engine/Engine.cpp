@@ -632,6 +632,7 @@ void Engine::Impl::setCurrentRoom(Room *pRoom)
         _pScriptExecute->execute(s.str());
     }
     _camera.resetBounds();
+    _camera.at(sf::Vector2f(0, 0));
     _pRoom = pRoom;
     updateScreenSize();
 }
