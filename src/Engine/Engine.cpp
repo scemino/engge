@@ -191,6 +191,7 @@ struct Engine::Impl
     void stopThreads();
     void drawWalkboxes(sf::RenderTarget &target) const;
     const Verb* getHoveredVerb() const;
+    std::wstring getDisplayName(const std::wstring& name) const;
 };
 
 Engine::Impl::Impl()
@@ -1420,6 +1421,15 @@ sf::IntRect Engine::Impl::getCursorRect() const
                                                          : _gameSheet.getRect("cursor");
 }
 
+std::wstring Engine::Impl::getDisplayName(const std::wstring& name) const
+{ 
+    auto len = name.length();
+    if(len>2 && name[len-2]=='#') {
+        return name.substr(0, len - 2);
+    }
+    return name;
+}
+
 void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
 {
     if (!_showCursor ||  _state != EngineState::Game)
@@ -1457,12 +1467,12 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     }
     if (_pObj1)
     {
-        s.append(L" ").append(_pEngine->getText(_pObj1->getName()));
+        s.append(L" ").append(getDisplayName(_pEngine->getText(_pObj1->getName())));
     }
     appendUseFlag(s);
     if (_pObj2)
     {
-        s.append(L" ").append(_pEngine->getText(_pObj2->getName()));
+        s.append(L" ").append(getDisplayName(_pEngine->getText(_pObj2->getName())));
     }
     text.setText(s);
 
