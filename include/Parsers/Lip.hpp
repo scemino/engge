@@ -17,6 +17,8 @@ class Lip
 {
 public:
   Lip();
+
+  void clear();
   void load(const std::string &path);
   const std::vector<NGLipData> getData() const { return _data; }
   std::string getPath() const { return _path; }

@@ -127,17 +127,33 @@ private:
         path.append(name).append(".lip");
 
         _lipAnim.setActor(_pActor);
-        _lipAnim.load(path);
 
         // actor animation
         std::wregex re(L"(\\{([^\\}]*)\\})");
         std::wsmatch matches;
         const char* anim = nullptr;
+        bool loadLipAnim = true;
         if (std::regex_search(_sayText, matches, re))
         {
             anim = tostring(matches[2].str()).data();
-            _pActor->getCostume().setState(anim);
             _sayText = matches.suffix();
+            if(anim && strcmp(anim,"notalk")==0)
+            {
+                loadLipAnim = false;
+            }
+            else
+            {
+                _pActor->getCostume().setState(anim);
+            }
+        }
+
+        if(loadLipAnim)
+        {
+            _lipAnim.load(path);
+        }
+        else 
+        {
+            _lipAnim.clear();
         }
 
         auto hearVoice = _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice);

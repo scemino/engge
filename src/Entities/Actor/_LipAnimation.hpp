@@ -16,6 +16,11 @@ public:
         updateHead();
     }
 
+    void clear()
+    {
+        _lip.clear();
+    }
+
     inline void setActor(Actor* pActor)
     {
         _pActor = pActor;

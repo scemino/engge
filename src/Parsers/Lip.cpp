@@ -8,6 +8,11 @@ namespace ng
 {
 Lip::Lip() = default;
 
+void Lip::clear()
+{
+    _data.clear();
+}
+
 void Lip::load(const std::string &path)
 {
     std::vector<char> buffer;
