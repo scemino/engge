@@ -90,7 +90,7 @@ bool Walkbox::isVertexConcave(int vertex) const
 bool Walkbox::inside(const sf::Vector2f &position, bool toleranceOnOutside) const
 {
     sf::Vector2f point = position;
-    const float epsilon = 0.5f;
+    const float epsilon = 1.0f;
     bool inside = false;
 
     // Must have 3 or more edges

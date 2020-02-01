@@ -41,6 +41,8 @@ struct Actor::Impl
         std::vector<sf::Vector2f> _path;
         std::optional<Facing> _facing{Facing::FACE_FRONT};
         bool _isWalking{false};
+        sf::Vector2f _init;
+        sf::Time _elapsed;
     };
 
     explicit Impl(Engine &engine)
@@ -235,6 +237,8 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
         pAnim->play(true);
     }
     _isWalking = true;
+    _init = _pActor->getRealPosition();
+    _elapsed = sf::seconds(0);
     trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
 
@@ -259,38 +263,19 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     if (!_isWalking)
         return;
 
-    auto pos = _pActor->getRealPosition();
-    auto delta = (_path[0] - pos);
-    auto speed = _pActor->getWalkSpeed();
-    if(_pActor->pImpl->_engine.actorShouldRun())
-    {
-        speed *= 4;
-    }
-    auto offset = sf::Vector2f(speed) * elapsed.asSeconds();
-    if (delta.x > 0)
-    {
-        if (offset.x > delta.x)
-            offset.x = delta.x;
-    }
-    else
-    {
-        offset.x = -offset.x;
-        if (offset.x < delta.x)
-            offset.x = delta.x;
-    }
-    if (delta.y < 0)
-    {
-        offset.y = -offset.y;
-        if (offset.y < delta.y)
-            offset.y = delta.y;
-    }
-    else
-    {
-        if (offset.y > delta.y)
-            offset.y = delta.y;
-    }
-    _pActor->setPosition(pos + offset);
-    if (fabs(_path[0].x - pos.x) <= 1 && fabs(_path[0].y - pos.y) <= 1)
+    _elapsed += elapsed;
+    auto delta = (_path[0] - _init);
+    auto vSpeed = _pActor->getWalkSpeed();
+    sf::Vector2f vDuration;
+    vDuration.x = std::abs(delta.x)/vSpeed.x;
+    vDuration.y = std::abs(delta.y)/vSpeed.y;
+    auto maxDuration = std::max(vDuration.x, vDuration.y);
+    auto speedFactor = (_pActor->pImpl->_engine.actorShouldRun() ? 4:1);
+    auto factor = (speedFactor * _elapsed.asSeconds()) / maxDuration;
+    auto end = factor >= 1.f;
+    auto newPos = end ? _path[0] : (_init + factor*delta); 
+    _pActor->setPosition(newPos);
+    if (end)
     {
         _path.erase(_path.begin());
         if (_path.empty())
@@ -312,6 +297,8 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             { 
                 pAnim->play(true); 
             }
+            _init = newPos;
+            _elapsed = sf::seconds(0);
             trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
         }
     }
@@ -354,17 +341,22 @@ float Actor::getScale() const
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
-    if (!isVisible())
-        return;
+    auto statesHotSpot = states;
 
+    if (isVisible()) {
+        auto scale = getScale();
+        auto transform = getTransform();
+        transform.scale(scale, scale);
+        transform.translate(getRenderOffset().x, -getRenderOffset().y);
+        states.transform *= transform;
+        target.draw(pImpl->_costume, states);
+    }
+        
     auto scale = getScale();
     auto transform = getTransform();
     transform.scale(scale, scale);
-    transform.translate(getRenderOffset().x, -getRenderOffset().y);
-    states.transform *= transform;
-    target.draw(pImpl->_costume, states);
-
-    pImpl->drawHotspot(target, states);
+    statesHotSpot.transform *= transform;
+    pImpl->drawHotspot(target, statesHotSpot);
 }
 
 void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const
@@ -385,12 +377,6 @@ void Actor::update(const sf::Time &elapsed)
 {
     Entity::update(elapsed);
 
-    if(pImpl->_pRoom && pImpl->_engine.getCurrentActor() == this) {
-        auto mousePosInRoom = pImpl->_engine.getMousePositionInRoom();
-        auto path = pImpl->_pRoom->calculatePath(getRealPosition(), mousePosInRoom);
-        pImpl->_path = std::make_unique<_Path>(path);
-    }
-
     pImpl->_costume.update(elapsed);
     pImpl->_walkingState.update(elapsed);
     pImpl->_talkingState.update(elapsed);
@@ -405,17 +391,18 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     if(pImpl->_useWalkboxes)
     {
         path = pImpl->_pRoom->calculatePath(getRealPosition(), destination);
-        pImpl->_path = std::make_unique<_Path>(path);
-        if (path.size() < 2)
+        if (path.size() < 2) {
+            pImpl->_path = nullptr;
             return;
+        }
     }
     else
     {
         path.push_back(getRealPosition());
         path.push_back(destination);
-        pImpl->_path = std::make_unique<_Path>(path);
     }
 
+    pImpl->_path = std::make_unique<_Path>(path);
     ScriptEngine::call(this, "preWalking");
     pImpl->_walkingState.setDestination(path, facing);
 }
