@@ -988,8 +988,10 @@ const Verb* Engine::Impl::getHoveredVerb() const {
     return nullptr;
 }
 
-void Engine::update(const sf::Time &elapsed)
+void Engine::update(const sf::Time &el)
 {
+    auto gameSpeedFactor = getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor, PreferenceDefaultValues::GameSpeedFactor);
+    const sf::Time elapsed(sf::seconds(el.asSeconds()*gameSpeedFactor));
     _pImpl->stopThreads();
     _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
     if(_pImpl->_state == EngineState::Options)

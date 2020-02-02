@@ -44,6 +44,10 @@ class _DebugTools
         if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f)) {
             _engine.setFadeAlpha(fade);
         }
+        auto gameSpeedFactor = _engine.getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor, PreferenceDefaultValues::GameSpeedFactor);
+        if (ImGui::SliderFloat("Game speed factor", &gameSpeedFactor, 0.f, 5.f)) {
+            _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
+        }
 
         showCamera();
         showInputState();
@@ -324,6 +328,7 @@ class _DebugTools
         if (!ImGui::CollapsingHeader("Actors"))
             return;
 
+        ImGui::Indent();
         auto &actors = _engine.getActors();
         _actorInfos.clear();
         for (auto &&actor : actors)
@@ -362,6 +367,8 @@ class _DebugTools
 
         if(ImGui::CollapsingHeader("Animations"))
         {
+            ImGui::Indent();
+
             // actor animations
             auto& anims = actor->getCostume().getAnimations();
             static ImGuiTextFilter filter;
@@ -389,10 +396,12 @@ class _DebugTools
             {
                 showLayers();
             }
+            ImGui::Unindent();
         }
 
         if(ImGui::CollapsingHeader("General"))
         {
+            ImGui::Indent();
             auto isVisible = actor->isVisible();
             if (ImGui::Checkbox("Visible", &isVisible))
             {
@@ -457,7 +466,9 @@ class _DebugTools
             {
                 actor->setHotspot(hotspot);
             }
+            ImGui::Unindent();
         }
+        ImGui::Unindent();
     }
 
     void showObjects()
