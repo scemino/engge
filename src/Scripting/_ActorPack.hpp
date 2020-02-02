@@ -910,7 +910,6 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        sq_pushroottable(v);
         sq_pushbool(v, pActor->isWalking() ? SQTrue : SQFalse);
         return 1;
     }
