@@ -613,6 +613,10 @@ class _ActorPack : public Pack
     static SQInteger actorRoom(HSQUIRRELVM v)
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
         auto pRoom = pActor->getRoom();
         if (pRoom)
         {
@@ -626,6 +630,10 @@ class _ActorPack : public Pack
     static SQInteger actorStand(HSQUIRRELVM v)
     {
         auto *pActor = ScriptEngine::getActor(v, 2);
+        if (!pActor)
+        {
+            return sq_throwerror(v, _SC("failed to get actor"));
+        }
         pActor->getCostume().setAnimation("stand");
         return 0;
     }
