@@ -179,6 +179,13 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     _hiddenLayers.emplace("blink");
     _hiddenLayers.emplace("eyes_left");
     _hiddenLayers.emplace("eyes_right");
+    for (int i = 0; i < 6; i++)
+    {
+        std::ostringstream s;
+        s << _headAnimName << (i + 1);
+        auto layerName = s.str();
+        setLayerVisible(layerName, i==_headIndex);
+    }
     for (auto j : _hash["animations"].array_value)
     {
         auto name = j["name"].string_value;
@@ -303,13 +310,7 @@ void Costume::setHeadIndex(int index)
         std::ostringstream s;
         s << _headAnimName << (i + 1);
         auto layerName = s.str();
-        auto it = std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [layerName](auto& layer) {
-            return layer.getName() == layerName;
-        });
-        if (it != _pCurrentAnimation->getLayers().end())
-        {
-            it->setVisible(_headIndex == i);
-        }
+        setLayerVisible(layerName, i==_headIndex);
     }
 }
 
