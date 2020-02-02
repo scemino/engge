@@ -793,10 +793,6 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed)
     _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
                                     [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
                      _functions.end());
-    for (auto &actor : _actors)
-    {
-        actor->update(elapsed);
-    }
     for (auto &callback : _callbacks)
     {
         (*callback)(elapsed);

@@ -24,6 +24,7 @@ public:
   void pause() { _state = AnimationState::Pause; }
   bool isPlaying() const { return _state == AnimationState::Play; }
   void setFps(int fps);
+  void setSpeedFactor(float speedFactor);
 
   bool contains(const sf::Vector2f& pos) const;
 

@@ -39,6 +39,7 @@ public:
   void setIndex(size_t index) { _index = index; }
 
   void setFps(int fps) { _fps = fps; }
+  void setSpeedFactor(float speedFactor) { _speedFactor = speedFactor; }
 
   void update(const sf::Time &elapsed);
 
@@ -62,5 +63,6 @@ private:
   AnimState _state{AnimState::Pause};
   bool _loop{false};
   sf::Color _color{sf::Color::White};
+  float _speedFactor{1.f};
 };
 } // namespace ng

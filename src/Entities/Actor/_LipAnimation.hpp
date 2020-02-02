@@ -28,14 +28,15 @@ public:
 
     void update(const sf::Time& elapsed)
     {
-        if (_lip.getData().size() < 2) return;
-        auto time = _lip.getData()[_index + 1].time;
-        _elapsed += elapsed;
-        if (_elapsed > time)
+        if (_lip.getData().empty()) return;
+        
+        auto time = _lip.getData()[_index].time;
+        _elapsed+=elapsed;
+        if (_elapsed > time && _index < _lip.getData().size())
         {
             _index++;
         }
-        if (_index >= _lip.getData().size())
+        if (_index == _lip.getData().size())
         {
             _pActor->getCostume().setHeadIndex(0);
             return;
@@ -45,13 +46,14 @@ public:
 
     void updateHead()
     {
-        if (_lip.getData().empty()) return;
+        if (_lip.getData().empty() && _index >= _lip.getData().size()) return;
         auto letter = _lip.getData()[_index].letter;
         if (letter == 'X' || letter == 'G')
             letter = 'A';
         if (letter == 'H')
             letter = 'D';
         auto index = letter - 'A';
+        trace("lip: {} {}", _lip.getData()[_index].time.asSeconds(), _lip.getData()[_index].letter);
         // TODO: what is the correspondance between letter and head index ?
         _pActor->getCostume().setHeadIndex(index);
     }
