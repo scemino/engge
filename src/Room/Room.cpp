@@ -275,7 +275,7 @@ struct Room::Impl
                         auto rect = _spriteSheet.getRect(name);
                         auto size = _spriteSheet.getSourceSize(name);
                         auto sourceRect = _spriteSheet.getSpriteSourceSize(name);
-                        sf::Vector2f origin(size.x / 2.f - sourceRect.left, (size.y + 1) / 2.f - sourceRect.top);
+                        sf::Vector2f origin(size.x / 2.f - sourceRect.left, size.y / 2.f - sourceRect.top);
                         std::optional<int> trigger = !triggers.empty()? triggers.at(i) : std::nullopt;
                         std::function<void()> callback = nullptr;
                         if(trigger.has_value())
@@ -558,6 +558,11 @@ TextObject &Room::createTextObject(const std::string &fontName)
     auto object = std::make_unique<TextObject>();
     std::string path;
     path.append(fontName).append(".fnt");
+    if(!Locator<EngineSettings>::get().hasEntry(path)) {
+        path.clear();
+        path.append(fontName).append("Font.fnt");
+    }
+
     object->getFont().loadFromFile(path);
     auto &obj = *object;
     obj.setVisible(true);
