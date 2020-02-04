@@ -224,7 +224,7 @@ GGPack::GGPack() = default;
 
 void GGPack::open(const std::string &path)
 {
-	_input.open(path, std::ios::binary);
+    _input.open(path, std::ios::binary);
     readPack();
 }
 
@@ -267,7 +267,7 @@ void GGPack::readPack()
     int sig = 0;
     for (_method = 3; _method >= 0; _method--)
     {
-		_input.seekg(dataOffset, std::ios::beg);
+        _input.seekg(dataOffset, std::ios::beg);
         _input.read(&buf[0], dataSize);
         decodeUnbreakableXor(&buf[0], dataSize);
         sig = *(int *)buf.data();
@@ -426,26 +426,28 @@ void GGPack::readValue(GGPackValue &value)
 
 char *GGPack::decodeUnbreakableXor(char *buffer, int length)
 {
-	int code = _method != 2 ? 0x6d : 0xad;
-	char previous = length & 0xff;
-	for (auto i = 0; i < length; i++)
-	{
-		auto x = (char)(buffer[i] ^ _magicBytes[i & 0xf] ^ (i * code));
-		buffer[i] = (char)(x ^ previous);
-		previous = x;
-	}
-	if (_method != 0)
-	{
-		//Loop through in blocks of 16 and xor the 6th and 7th bytes
-		int i = 5;
-		while (i + 1 < length)
-		{
-			buffer[i] = (char)(buffer[i] ^ 0x0d);
-			buffer[i + 1] = (char)(buffer[i + 1] ^ 0x0d);
-			i += 16;
-		}
-	}
-	return buffer;
+    int code = _method != 2 ? 0x6d : 0xad;
+    char previous = length & 0xff;
+    for (auto i = 0; i < length; i++)
+    {
+        auto x = (char)(buffer[i] ^ _magicBytes[i & 0xf] ^ (i * code));
+        buffer[i] = (char)(x ^ previous);
+        previous = x;
+    }
+    if (_method != 0)
+    {
+        //Loop through in blocks of 16 and xor the 6th and 7th bytes
+        int i = 5;
+        while (i < length)
+        {
+            buffer[i] = (char)(buffer[i] ^ 0x0d);
+            if(i + 1 < length) {
+                buffer[i + 1] = (char)(buffer[i + 1] ^ 0x0d);
+            }
+            i += 16;
+        }
+    }
+    return buffer;
 }
 
 void GGPack::getOffsets()
