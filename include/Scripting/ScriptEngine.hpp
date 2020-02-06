@@ -69,7 +69,7 @@ public:
   static void push(HSQUIRRELVM v, First firstValue, Rest... rest);
 
   template <typename T>
-  static bool get(HSQUIRRELVM v, size_t index, T& result);
+  static bool get(HSQUIRRELVM v, SQInteger index, T& result);
 
   template<typename TThis, typename T>
   static bool get(TThis pThis, const char* name, T& result);
@@ -216,7 +216,7 @@ void ScriptEngine::callFunc(TResult& result, TThis pThis, const char* name, T...
 
     ScriptEngine::push(v, pThis);
     ScriptEngine::push(v, std::forward<T>(args)...);
-    if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
+    if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue)))
     {
         sqstd_printcallstack(v);
         sq_pop(v, 1);

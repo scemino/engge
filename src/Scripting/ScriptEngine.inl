@@ -3,7 +3,7 @@
 namespace ng
 {
 template <>
-bool ScriptEngine::get(HSQUIRRELVM v, size_t index, bool &result)
+bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, bool &result)
 {
     SQInteger integer = 0;
     auto status = SQ_SUCCEEDED(sq_getinteger(v, index, &integer));
@@ -12,7 +12,7 @@ bool ScriptEngine::get(HSQUIRRELVM v, size_t index, bool &result)
 }
 
 template <>
-bool ScriptEngine::get(HSQUIRRELVM v, size_t index, int &result)
+bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, int &result)
 {
     SQInteger integer = 0;
     auto status = SQ_SUCCEEDED(sq_getinteger(v, index, &integer));
@@ -21,7 +21,7 @@ bool ScriptEngine::get(HSQUIRRELVM v, size_t index, int &result)
 }
 
 template <>
-bool ScriptEngine::get(HSQUIRRELVM v, size_t index, const char *&result)
+bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, const char *&result)
 {
     const SQChar *text = nullptr;
     auto status = SQ_SUCCEEDED(sq_getstring(v, index, &text));
