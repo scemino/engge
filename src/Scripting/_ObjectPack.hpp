@@ -1099,16 +1099,21 @@ class _ObjectPack : public Pack
         }
 
         auto actor = ScriptEngine::getActor(v, 3);
-        if (actor)
+        if(!actor)
         {
-            actor->pickupObject(object);
-            return 0;
+            actor = g_pEngine->getCurrentActor();
         }
-
-        actor = g_pEngine->getCurrentActor();
+        
         if (!actor)
         {
             error("There is no actor to pickup object");
+            return 0;
+        }
+
+        if (!object->getRoom())
+        {
+            // if the object is not in a room, than no need to animate the actor
+            actor->pickupObject(object);
             return 0;
         }
 
