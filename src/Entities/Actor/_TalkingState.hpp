@@ -129,15 +129,16 @@ private:
         _lipAnim.setActor(_pActor);
 
         // actor animation
-        std::wregex re(L"(\\{([^\\}]*)\\})");
+        std::wregex re(LR"(\{([^\}]*)\})");
         std::wsmatch matches;
-        const char* anim = nullptr;
+        std::string anim;
+
         bool loadLipAnim = true;
         if (std::regex_search(_sayText, matches, re))
         {
-            anim = tostring(matches[2].str()).data();
+            anim = tostring(matches[1].str());
             _sayText = matches.suffix();
-            if(anim && strcmp(anim,"notalk")==0)
+            if(anim == "notalk")
             {
                 loadLipAnim = false;
             }
@@ -170,7 +171,8 @@ private:
         }
         
         const char* sayLine = tostring(_sayText).data();
-        ScriptEngine::call(_pActor, "sayingLine", anim, sayLine);
+        const char* pAnim = anim.empty()? nullptr : anim.data();
+        ScriptEngine::call(_pActor, "sayingLine", pAnim, sayLine);
 
         loadActorSpeech(name);
     }
