@@ -445,10 +445,9 @@ struct Room::Impl
         auto it = std::find_if(_graphWalkboxes.begin(), _graphWalkboxes.end(), [start](auto& w){
             return w.inside(start);
         });
-        if(it==_graphWalkboxes.end()) {
-            return false;
+        if(it!=_graphWalkboxes.end()) {
+            std::iter_swap(_graphWalkboxes.begin(), it);
         }
-        std::iter_swap(_graphWalkboxes.begin(), it);
         _pf = std::make_shared<PathFinder>(_graphWalkboxes);
         return true;
     }
