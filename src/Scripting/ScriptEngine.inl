@@ -48,6 +48,16 @@ void ScriptEngine::push<const char *>(HSQUIRRELVM v, const char *value)
 }
 
 template <>
+void ScriptEngine::push<std::string>(HSQUIRRELVM v, std::string value)
+{
+    if(!value.empty()) {
+        sq_pushstring(v, value.data(), -1);
+    } else {
+        sq_pushnull(v);
+    }
+}
+
+template <>
 void ScriptEngine::push<SQFloat>(HSQUIRRELVM v, SQFloat value)
 {
     sq_pushfloat(v, value);

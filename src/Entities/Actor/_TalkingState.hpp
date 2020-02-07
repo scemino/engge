@@ -170,7 +170,7 @@ private:
             setDuration(sf::seconds(speed));
         }
         
-        const char* sayLine = tostring(_sayText).data();
+        auto sayLine = tostring(_sayText);
         const char* pAnim = anim.empty()? nullptr : anim.data();
         ScriptEngine::call(_pActor, "sayingLine", pAnim, sayLine);
 
