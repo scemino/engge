@@ -4,6 +4,7 @@
 #include "Engine/Engine.hpp"
 #include "System/Logger.hpp"
 #include "Engine/Sentence.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include "squirrel.h"
 
 namespace ng
@@ -94,11 +95,83 @@ class _SetDefaultVerb : public Function
     bool _done{false};
 };
 
+class _ReachAnim : public Function
+{
+  public:
+    _ReachAnim(Actor &actor, Entity* obj)
+        : _actor(actor), _pObject(obj)
+    {
+        int flags = 0;
+        ScriptEngine::get(_pObject, "flags", flags);
+
+        if ((flags & ObjectFlagConstants::REACH_HIGH) == ObjectFlagConstants::REACH_HIGH)
+        {
+            _animName = "reach_high";
+        }
+        else if ((flags & ObjectFlagConstants::REACH_MED) == ObjectFlagConstants::REACH_MED)
+        {
+            _animName = "reach_med";
+        }
+        else if ((flags & ObjectFlagConstants::REACH_LOW) == ObjectFlagConstants::REACH_LOW)
+        {
+            _animName = "reach_low";
+        }
+
+        if(_animName.empty()) {
+            _state = 2;
+        }
+    }
+
+  private:
+    bool isElapsed() override { return _state == 4; }
+
+    void playAnim(const std::string &name)
+    {
+        trace("Play anim {}", name);
+        _actor.getCostume().setState(name);
+        _pAnim = _actor.getCostume().getAnimation();
+        if (_pAnim)
+        {
+            _pAnim->play(false);
+        }
+    }
+
+    void operator()(const sf::Time &) override
+    {
+        switch (_state)
+        {
+            case 0:
+                playAnim(_animName);
+                _state = 1;
+                break;
+            case 1:
+                if (!_pAnim || !_pAnim->isPlaying())
+                    _state = 2;
+                break;
+            case 2:
+                playAnim("stand");
+                _state = 3;
+                break;
+            case 3:
+                if (!_pAnim || !_pAnim->isPlaying())
+                    _state = 4;
+                break;
+        }
+    }
+
+  private:
+    int32_t _state{0};
+    Actor &_actor;
+    Entity* _pObject;
+    std::string _animName;
+    CostumeAnimation *_pAnim{nullptr};
+};
+
 class _VerbExecute : public Function
 {
  public:
-    _VerbExecute(Engine &engine, HSQUIRRELVM v, Actor &actor, Entity &object, Entity* pObject2, const Verb *pVerb)
-        : _engine(engine), _pVerb(pVerb), _vm(v), _object(object), _pObject2(pObject2), _actor(actor)
+    _VerbExecute(Engine &engine, Actor &actor, Entity &object, Entity* pObject2, const Verb *pVerb)
+        : _engine(engine), _pVerb(pVerb), _object(object), _pObject2(pObject2), _actor(actor)
     {
     }
 
@@ -109,28 +182,21 @@ class _VerbExecute : public Function
     {
         _done = true;
 
-        sq_pushobject(_vm, _object.getTable());
-        sq_pushstring(_vm, _pVerb->func.data(), -1);
-
-        if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
+        bool success;
+        if(_pObject2)
         {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, _object.getTable());
-            if(_pObject2)
-            {
-                sq_pushobject(_vm, _pObject2->getTable());
-            }
-            if (SQ_FAILED(sq_call(_vm, _pObject2 ? 2: 1, SQFalse, SQTrue)))
-            {
-                trace("failed to execute verb {}", _pVerb->func.data());
-                sqstd_printcallstack(_vm);
-                return;
-            }
-            sq_pop(_vm, 1);
+            success = ScriptEngine::call(&_object, _pVerb->func.data(), _pObject2);
+        }
+        else
+        {
+            success = ScriptEngine::call(&_object, _pVerb->func.data());
+        }
+
+        if(success)
+        {
             onPickup();
             return;
         }
-        sq_pop(_vm, 1);
 
         if(_pVerb->id == VerbConstants::VERB_GIVE)
         {
@@ -162,55 +228,17 @@ class _VerbExecute : public Function
         auto &obj = _engine.getDefaultObject();
         auto pActor = _engine.getCurrentActor();
 
-        sq_pushobject(_vm, obj);
-        sq_pushstring(_vm, _pVerb->func.data(), -1);
-
-        if (SQ_SUCCEEDED(sq_get(_vm, -2)))
-        {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, obj);
-            if (pActor)
-            {
-                sq_pushobject(_vm, pActor->getTable());
-            }
-            else
-            {
-                sq_pushnull(_vm);
-            }
-            sq_pushobject(_vm, _object.getTable());
-            if (SQ_FAILED(sq_call(_vm, 3, SQFalse, SQTrue)))
-            {
-                trace("failed to execute verb {}", _pVerb->func.data());
-                sqstd_printcallstack(_vm);
-                return false;
-            }
-            sq_pop(_vm, 2); // pops the roottable and the function
-            return true;
-        }
-
-        return false;
+        return ScriptEngine::call(obj, _pVerb->func.data(), pActor, &_object);
     }
 
     bool callVerbDefault(Entity* pEntity)
     {
-        sq_pushobject(_vm, pEntity->getTable());
-        sq_pushstring(_vm, _SC("verbDefault"), -1);
-
-        if (SQ_SUCCEEDED(sq_rawget(_vm, -2)))
-        {
-            sq_remove(_vm, -2);
-            sq_pushobject(_vm, pEntity->getTable());
-            sq_call(_vm, 1, SQFalse, SQTrue);
-            sq_pop(_vm, 1);
-            return true;
-        }
-        return false;
+        return ScriptEngine::call(pEntity, "verbDefault");
     }
 
  private:
     Engine &_engine;
     const Verb *_pVerb{nullptr};
-    HSQUIRRELVM _vm{};
     Entity &_object;
     Entity* _pObject2{nullptr};
     Actor& _actor;
@@ -255,7 +283,15 @@ class _DefaultVerbExecute : public VerbExecute
         }
         auto postWalk = std::make_unique<_PostWalk>(*sentence, pObject1, pObject2, pVerb->id);
         sentence->push_back(std::move(postWalk));
-        auto verb = std::make_unique<_VerbExecute>(_engine, _vm, *pActor, *pObject1, pObject2, pVerb);
+        if(pVerb->id == VerbConstants::VERB_PICKUP || pVerb->id == VerbConstants::VERB_OPEN || pVerb->id == VerbConstants::VERB_CLOSE ||
+           pVerb->id == VerbConstants::VERB_PUSH || pVerb->id == VerbConstants::VERB_PULL || pVerb->id == VerbConstants::VERB_USE)
+        {
+            if(ScriptEngine::exists(pObject1, pVerb->func.data())) {
+                auto reach = std::make_unique<_ReachAnim>(*pActor, pObject1);
+                sentence->push_back(std::move(reach));
+            }
+        }
+        auto verb = std::make_unique<_VerbExecute>(_engine, *pActor, *pObject1, pObject2, pVerb);
         sentence->push_back(std::move(verb));
         auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
         sentence->push_back(std::move(setDefaultVerb));

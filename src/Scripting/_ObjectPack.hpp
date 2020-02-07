@@ -6,63 +6,6 @@
 
 namespace ng
 {
-class _PickupAnim : public Function
-{
-  public:
-    _PickupAnim(Actor &actor, Object* obj, std::string anim)
-        : _actor(actor), _pObject(obj), _animName(std::move(anim))
-    {
-    }
-
-  private:
-    bool isElapsed() override { return _state == 5; }
-
-    void playAnim(const std::string &name)
-    {
-        trace("Play anim {}", name);
-        _actor.getCostume().setState(name);
-        _pAnim = _actor.getCostume().getAnimation();
-        if (_pAnim)
-        {
-            _pAnim->play(false);
-        }
-    }
-
-    void operator()(const sf::Time &) override
-    {
-        switch (_state)
-        {
-            case 0:
-                playAnim(_animName);
-                _state = 1;
-                break;
-            case 1:
-                if (!_pAnim || !_pAnim->isPlaying())
-                    _state = 2;
-                break;
-            case 2:
-                _actor.pickupObject(_pObject);
-                _state = 3;
-                break;
-            case 3:
-                playAnim("stand");
-                _state = 4;
-                break;
-            case 4:
-                if (!_pAnim || !_pAnim->isPlaying())
-                    _state = 5;
-                break;
-        }
-    }
-
-  private:
-    int32_t _state{0};
-    Actor &_actor;
-    Object* _pObject;
-    std::string _animName;
-    CostumeAnimation *_pAnim{nullptr};
-};
-
 class _ObjectPack : public Pack
 {
   private:
@@ -1125,28 +1068,8 @@ class _ObjectPack : public Pack
             sq_pushinteger(v, 0);
             sq_newslot(v, -3, SQFalse);
         }
-        SQInteger flags = 0;
-        if (SQ_SUCCEEDED(sq_rawget(v, -2)))
-        {
-            sq_getinteger(v, -1, &flags);
-        }
-
-        std::string anim;
-        if ((flags & ObjectFlagConstants::REACH_HIGH) == ObjectFlagConstants::REACH_HIGH)
-        {
-            anim = "reach_high";
-        }
-        else if ((flags & ObjectFlagConstants::REACH_MED) == ObjectFlagConstants::REACH_MED)
-        {
-            anim = "reach_med";
-        }
-        else if ((flags & ObjectFlagConstants::REACH_LOW) == ObjectFlagConstants::REACH_LOW)
-        {
-            anim = "reach_low";
-        }
-
-        auto pPickupAnim = std::make_unique<_PickupAnim>(*actor, object, anim);
-        g_pEngine->addFunction(std::move(pPickupAnim));
+        
+        actor->pickupObject(object);
         
         return 0;
     }

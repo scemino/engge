@@ -148,4 +148,11 @@ void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t)
 {
     sq_pushnull(v);
 }
+
+template <>
+void ScriptEngine::push<HSQOBJECT>(HSQUIRRELVM v, HSQOBJECT obj)
+{
+    sq_pushobject(v, obj);
+}
+
 }
