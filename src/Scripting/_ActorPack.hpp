@@ -586,7 +586,13 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        sq_pushinteger(v, pActor->getRealPosition().y);
+        auto pRoom = pActor->getRoom();
+        if (!pRoom)
+        {
+            return sq_throwerror(v, _SC("failed to get actor room"));
+        }
+        auto roomHeight = pRoom->getRoomSize().y;
+        sq_pushinteger(v, roomHeight - pActor->getRealPosition().y);
         return 1;
     }
 
