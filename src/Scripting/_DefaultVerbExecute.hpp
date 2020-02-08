@@ -167,6 +167,58 @@ class _ReachAnim : public Function
     CostumeAnimation *_pAnim{nullptr};
 };
 
+class _GiveFunction : public Function
+{
+ public:
+    _GiveFunction(Actor* pActor, Entity* pObject, Sentence* pSentence)
+        : _pActor(pActor), _pObject(pObject), _pSentence(pSentence)
+    {
+    }
+
+ private:
+    bool isElapsed() override { return _done; }
+
+    void operator()(const sf::Time &) override
+    {
+        bool result = false;
+        if(ScriptEngine::callFunc(result, _pActor, "verbGive", _pObject) && result) {
+            _pSentence->stop();
+        }
+        _done = true;
+    }
+
+ private:
+    Actor* _pActor{nullptr}; 
+    Entity* _pObject{nullptr};
+    Sentence* _pSentence{nullptr};
+    bool _done{false};
+};
+
+class _TalkToFunction : public Function
+{
+ public:
+    _TalkToFunction(Actor* pActor, Sentence* pSentence)
+        : _pActor(pActor), _pSentence(pSentence)
+    {
+    }
+
+ private:
+    bool isElapsed() override { return _done; }
+
+    void operator()(const sf::Time &) override
+    {
+        if(ScriptEngine::call(_pActor, "verbTalkTo")) {
+            _pSentence->stop();
+        }
+        _done = true;
+    }
+
+ private:
+    Actor* _pActor{nullptr}; 
+    Sentence* _pSentence{nullptr};
+    bool _done{false};
+};
+
 class _VerbExecute : public Function
 {
  public:
@@ -283,6 +335,18 @@ class _DefaultVerbExecute : public VerbExecute
         }
         auto postWalk = std::make_unique<_PostWalk>(*sentence, pObject1, pObject2, pVerb->id);
         sentence->push_back(std::move(postWalk));
+
+        if(pVerb->id == VerbConstants::VERB_GIVE) 
+        {
+            auto func = std::make_unique<_GiveFunction>(pActor,pObject1,sentence.get());
+            sentence->push_back(std::move(func));
+        }
+        else if(pVerb->id == VerbConstants::VERB_TALKTO) 
+        {
+            auto func = std::make_unique<_TalkToFunction>(pActor,sentence.get());
+            sentence->push_back(std::move(func));
+        }
+
         if(pVerb->id == VerbConstants::VERB_PICKUP || pVerb->id == VerbConstants::VERB_OPEN || pVerb->id == VerbConstants::VERB_CLOSE ||
            pVerb->id == VerbConstants::VERB_PUSH || pVerb->id == VerbConstants::VERB_PULL || pVerb->id == VerbConstants::VERB_USE)
         {

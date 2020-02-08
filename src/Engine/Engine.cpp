@@ -1258,14 +1258,14 @@ void Engine::draw(sf::RenderWindow &window) const
 
         window.draw(_pImpl->_dialogManager);
 
-        if ((_pImpl->_dialogManager.getState() == DialogManagerState::None) && _pImpl->_inputActive)
+        if ((_pImpl->_dialogManager.getState() == DialogManagerState::None))
         {
-            _pImpl->drawVerbs(window);
             if (_pImpl->_inputHUD)
             {
+                _pImpl->drawVerbs(window);
                 window.draw(_pImpl->_inventory);
+                if(_pImpl->_inputActive) window.draw(_pImpl->_actorIcons);
             }
-            window.draw(_pImpl->_actorIcons);
         }
 
         if(_pImpl->_state == EngineState::Options)
