@@ -40,6 +40,8 @@ public:
 
   void setFps(int fps) { _fps = fps; }
   void setSpeedFactor(float speedFactor) { _speedFactor = speedFactor; }
+  
+  void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
   void update(const sf::Time &elapsed);
 
@@ -64,5 +66,6 @@ private:
   bool _loop{false};
   sf::Color _color{sf::Color::White};
   float _speedFactor{1.f};
+  bool _leftDirection{false};
 };
 } // namespace ng

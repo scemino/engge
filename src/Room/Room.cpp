@@ -275,7 +275,6 @@ struct Room::Impl
                         auto rect = _spriteSheet.getRect(name);
                         auto size = _spriteSheet.getSourceSize(name);
                         auto sourceRect = _spriteSheet.getSpriteSourceSize(name);
-                        sf::Vector2f origin(size.x / 2.f - sourceRect.left, size.y / 2.f - sourceRect.top);
                         std::optional<int> trigger = !triggers.empty()? triggers.at(i) : std::nullopt;
                         std::function<void()> callback = nullptr;
                         if(trigger.has_value())
@@ -283,7 +282,10 @@ struct Room::Impl
                             auto pObj = object.get();
                             callback = [trigger,pObj](){  pObj->trig(trigger.value()); };
                         }
-                        anim->addFrame({rect, origin, callback});
+                        AnimationFrame frame(rect, callback);
+                        frame.setSourceRect(sourceRect);
+                        frame.setSize(size);
+                        anim->addFrame(std::move(frame));
 
                     }
                     anim->reset();
@@ -599,8 +601,10 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
         auto rect = _toRect(frame);
         auto size = _toSize(json["frames"][n]["sourceSize"]);
         auto sourceRect = _toRect(json["frames"][n]["spriteSourceSize"]);
-        sf::Vector2f origin(size.x / 2.f - sourceRect.left, (size.y + 1) / 2.f - sourceRect.top);
-        animation->addFrame({rect, origin});
+        AnimationFrame animFrame(rect);
+        animFrame.setSourceRect(sourceRect);
+        animFrame.setSize(size);
+        animation->addFrame(std::move(animFrame));
     }
     animation->reset();
     object->getAnims().push_back(std::move(animation));
@@ -630,8 +634,10 @@ Object &Room::createObject(const std::string &image)
     auto animation = std::make_unique<Animation>(texture, "state0");
     auto size = texture.getSize();
     sf::IntRect rect(0, 0, size.x, size.y);
-    sf::Vector2f origin(size.x/2.f, (size.y + 1)/2.f);
-    animation->addFrame({rect, origin});
+    AnimationFrame animFrame(rect);
+    animFrame.setSourceRect(rect);
+    animFrame.setSize(sf::Vector2i(size.x, size.y));
+    animation->addFrame(std::move(animFrame));
     animation->reset();
     object->getAnims().push_back(std::move(animation));
 

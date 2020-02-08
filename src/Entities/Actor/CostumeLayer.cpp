@@ -26,14 +26,8 @@ void CostumeLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const
     if (!getVisible())
         return;
 
-    if(_leftDirection)
-    {
-        sf::Transform t;
-        t.scale(-1,1);
-        states.transform *= t;
-    }
-    
     Animation anim(_animation);
+    anim.setLeftDirection(_leftDirection);
     anim.setColor(_pActor->getRoom()->getAmbientLight());
     target.draw(anim, states);
 }

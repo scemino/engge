@@ -99,15 +99,17 @@ CostumeLayer Costume::loadLayer(const GGPackValue& jLayer) const
         auto frameName = jFrame.string_value;
         if (frameName == "null")
         {
-            animation.addFrame({sf::IntRect(),sf::Vector2f()});
+            animation.addFrame({sf::IntRect()});
         }
         else
         {
             auto rect = _costumeSheet.getRect(frameName);
             auto size = _costumeSheet.getSourceSize(frameName);
             auto sourceRect = _costumeSheet.getSpriteSourceSize(frameName);
-            sf::Vector2f origin(size.x / 2.f - sourceRect.left, (size.y + 1) / 2.f - sourceRect.top);
-            animation.addFrame({rect, origin});
+            AnimationFrame frame(rect);
+            frame.setSourceRect(sourceRect);
+            frame.setSize(size);
+            animation.addFrame(std::move(frame));
         }
     }
     if (!jLayer["triggers"].isNull())

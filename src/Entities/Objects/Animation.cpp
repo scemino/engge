@@ -73,12 +73,16 @@ void Animation::draw(sf::RenderTarget &target, sf::RenderStates states) const
         return;
 
     const auto &frame = _frames.at(_index);
+    auto rect = frame.getRect(_leftDirection);
+    auto origin = frame.getOrigin(_leftDirection);
+    auto offset = frame.getOffset(_leftDirection);
+
     sf::Sprite sprite;
     sprite.setColor(_color);
     sprite.setTexture(*_pTexture);
-    sprite.setTextureRect(frame.getRect());
-    sprite.setOrigin(frame.getOrigin());
-    sprite.move(-frame.getOffset());
+    sprite.setTextureRect(rect);
+    sprite.setOrigin(origin);
+    sprite.move(offset);
     target.draw(sprite, states);
 }
 
@@ -90,10 +94,10 @@ bool Animation::contains(const sf::Vector2f &pos) const
     const auto &frame = _frames.at(_index);
 
     sf::Transformable t;
-    t.setOrigin(frame.getOrigin());
-    t.move(-frame.getOffset());
+    t.setOrigin(frame.getOrigin(_leftDirection));
+    t.move(frame.getOffset(_leftDirection));
 
-    auto rect = frame.getRect();
+    auto rect = frame.getRect(_leftDirection);
     sf::FloatRect r1(0, 0, rect.width, rect.height);
     auto r = t.getTransform().transformRect(r1);
     return r.contains(pos);
