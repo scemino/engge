@@ -16,6 +16,7 @@ Cutscene::Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT cl
     _inputState = _engine.getInputState();
     trace("Cutscene with inputState {}", _inputState);
     _engine.setInputActive(false);
+    _engine.setInputHUD(false);
 
     sq_addref(_engineVm, &_thread);
     sq_addref(_engineVm, &_closureObj);

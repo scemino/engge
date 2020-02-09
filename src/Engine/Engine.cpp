@@ -653,15 +653,6 @@ SQInteger Engine::setRoom(Room *pRoom)
     if (SQ_FAILED(result))
         return result;
 
-    if (pRoom->getFullscreen() == 1)
-    {
-        setInputVerbs(false);
-    }
-    else if (_pImpl->_pRoom && _pImpl->_pRoom->getFullscreen() == 1)
-    {
-        setInputVerbs(true);
-    }
-
     _pImpl->setCurrentRoom(pRoom);
 
     result = _pImpl->enterRoom(pRoom, nullptr);
@@ -975,6 +966,8 @@ void Engine::Impl::updateRoomScalings()
 
 const Verb* Engine::Impl::getHoveredVerb() const {
     if (!_inputVerbsActive) return nullptr;
+    if(_pRoom && _pRoom->getFullscreen() == 1)
+        return nullptr;
 
     auto currentActorIndex = getCurrentActorIndex();
     if(currentActorIndex == -1) return nullptr;
@@ -1260,7 +1253,7 @@ void Engine::draw(sf::RenderWindow &window) const
 
         if ((_pImpl->_dialogManager.getState() == DialogManagerState::None))
         {
-            if (_pImpl->_inputHUD)
+            if (_pImpl->_inputHUD && _pImpl->_pRoom->getFullscreen() != 1)
             {
                 _pImpl->drawVerbs(window);
                 window.draw(_pImpl->_inventory);
@@ -1542,6 +1535,9 @@ sf::Color Engine::getVerbHighlightColor() const { return _pImpl->_verbHighlightC
 void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
 {
     if (!_inputVerbsActive)
+        return;
+
+    if(_pRoom && _pRoom->getFullscreen() == 1)
         return;
 
     int currentActorIndex = getCurrentActorIndex();
