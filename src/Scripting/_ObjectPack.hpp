@@ -317,7 +317,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get y"));
         }
-        obj->setOffset(sf::Vector2f(x, y));
+        obj->setOffset(sf::Vector2f(x, -y));
         return 0;
     }
 
