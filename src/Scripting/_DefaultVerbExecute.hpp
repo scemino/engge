@@ -123,7 +123,7 @@ class _ReachAnim : public Function
     }
 
   private:
-    bool isElapsed() override { return _state == 4; }
+    bool isElapsed() override { return _state == 3; }
 
     void playAnim(const std::string &name)
     {
@@ -136,7 +136,7 @@ class _ReachAnim : public Function
         }
     }
 
-    void operator()(const sf::Time &) override
+    void operator()(const sf::Time & elapsed) override
     {
         switch (_state)
         {
@@ -145,16 +145,13 @@ class _ReachAnim : public Function
                 _state = 1;
                 break;
             case 1:
-                if (!_pAnim || !_pAnim->isPlaying())
+                _elapsed+=elapsed;
+                if (_elapsed.asSeconds()>0.330)
                     _state = 2;
                 break;
             case 2:
                 playAnim("stand");
                 _state = 3;
-                break;
-            case 3:
-                if (!_pAnim || !_pAnim->isPlaying())
-                    _state = 4;
                 break;
         }
     }
@@ -165,6 +162,7 @@ class _ReachAnim : public Function
     Entity* _pObject;
     std::string _animName;
     CostumeAnimation *_pAnim{nullptr};
+    sf::Time _elapsed;
 };
 
 class _GiveFunction : public Function
