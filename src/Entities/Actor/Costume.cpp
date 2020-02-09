@@ -191,8 +191,10 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     for (auto j : _hash["animations"].array_value)
     {
         auto name = j["name"].string_value;
+        auto flags = j["flags"].isInteger()?j["flags"].int_value:0;
         CostumeAnimation animation;
         animation.setName(name);
+        animation.setFlags(flags);
         if(j["layers"].isNull())
         {
             auto layer = loadLayer(j);

@@ -142,15 +142,12 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        const auto table = pActor->getTable();
-        SQInteger flags = 0;
-        sq_pushobject(v, table);
-        sq_pushstring(v, _SC("flags"), -1);
-        if (SQ_SUCCEEDED(sq_get(v, -2)))
-        {
-            sq_getinteger(v, -1, &flags);
+        auto pAnim = pActor->getCostume().getAnimation();
+        if(!pAnim) {
+            sq_pushinteger(v, 0);
+            return 1;
         }
-        sq_pop(v, 2);
+        auto flags = pAnim->getFlags();
         sq_pushinteger(v, flags);
         return 1;
     }

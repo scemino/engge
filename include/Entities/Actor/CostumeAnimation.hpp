@@ -26,6 +26,9 @@ public:
   void setFps(int fps);
   void setSpeedFactor(float speedFactor);
 
+  void setFlags(int flags) { _flags = flags; }
+  int getFlags() const { return _flags; }
+
   bool contains(const sf::Vector2f& pos) const;
 
   void update(const sf::Time &elapsed);
@@ -38,5 +41,6 @@ private:
   std::vector<CostumeLayer> _layers;
   AnimationState _state{AnimationState::Pause};
   bool _loop{false};
+  int _flags{0};
 };
 } // namespace ng
