@@ -19,20 +19,24 @@ add_subdirectory(extlibs/squirrel)
 install(FILES test.nut DESTINATION .)
 install(FILES LICENSE DESTINATION .)
 
-# Install libraries
-install(FILES "${ImGui-SFML_DIR}/../../libImGui-SFML.so" DESTINATION .)
-install(DIRECTORY "${SFML_DIR}/../../" DESTINATION . FILES_MATCHING PATTERN "libsfml*")
+# Install libraries on Linux
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 
-install(CODE "execute_process(COMMAND patchelf --remove-needed libImGui-SFML.so ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --add-needed ./libImGui-SFML.so ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-audio.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-audio.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-system.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-system.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-window.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-window.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-graphics.so.2.5 ./src/engge)")
-install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-graphics.so.2.5 ./src/engge)")
+    install(FILES "${ImGui-SFML_DIR}/../../libImGui-SFML.so" DESTINATION .)
+    install(DIRECTORY "${SFML_DIR}/../../" DESTINATION . FILES_MATCHING PATTERN "libsfml*")
+
+    install(CODE "execute_process(COMMAND patchelf --remove-needed libImGui-SFML.so ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --add-needed ./libImGui-SFML.so ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-audio.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-audio.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-system.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-system.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-window.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-window.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-graphics.so.2.5 ./src/engge)")
+    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-graphics.so.2.5 ./src/engge)")
+
+endif()
 
 target_compile_features("${appName}" PRIVATE cxx_std_17)
 set_target_properties("${appName}" PROPERTIES CXX_EXTENSIONS OFF)
