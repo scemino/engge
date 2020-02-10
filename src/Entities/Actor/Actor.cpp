@@ -289,6 +289,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
                 _pActor->getCostume().setFacing(_facing.value());
             }
             _pActor->getCostume().setState("stand");
+            ScriptEngine::call(_pActor, "actorArrived");
         }
         else
         {

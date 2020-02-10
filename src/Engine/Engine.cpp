@@ -570,7 +570,6 @@ void Engine::Impl::actorEnter()
         return;
 
     ScriptEngine::call(_pRoom, "actorEnter", _pCurrentActor);
-    ScriptEngine::call(_pCurrentActor, "actorArrived");
 }
 
 void Engine::Impl::actorExit()
