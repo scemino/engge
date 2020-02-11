@@ -241,10 +241,12 @@ struct Room::Impl
             // animations
             if (jObject["animations"].isArray())
             {
+                int animNum = 0;
                 for (auto jAnimation : jObject["animations"].array_value)
                 {
-                    auto animName = jAnimation["name"].string_value;
-                    auto anim = std::make_unique<Animation>(texture, animName);
+                    std::ostringstream animName;
+                    animName << "state" << (animNum++);
+                    auto anim = std::make_unique<Animation>(texture, animName.str());
                     if (!jAnimation["fps"].isNull())
                     {
                         anim->setFps(jAnimation["fps"].int_value);
