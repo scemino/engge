@@ -677,18 +677,16 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
     }
 
     auto screen = window.getView().getSize();
-    auto w = screen.x / 2.f;
-    auto h = screen.y / 2.f;
+    auto h = pImpl->_roomSize.y - screen.y;
 
     for (const auto &layer : pImpl->_layers)
     {
         auto parallax = layer.second->getParallax();
-        auto posX = (w - cameraPos.x) * parallax.x - w;
-        auto posY = (h - cameraPos.y) * parallax.y - h;
+        auto posY = (cameraPos.y - h) * parallax.y;
 
         sf::Transform t;
-        t.rotate(pImpl->_rotation, w, h);
-        t.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
+        t.rotate(pImpl->_rotation, screen.x / 2.f, screen.y / 2.f);
+        t.translate(-cameraPos.x*parallax.x, posY-cameraPos.y);
         states.transform = t;
         layer.second->draw(window, states);
     }
