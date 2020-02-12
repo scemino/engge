@@ -128,7 +128,7 @@ bool ScriptEngine::call(const char* name, T...args)
     auto top = sq_gettop(v);
     sq_pushroottable(v);
     sq_pushstring(v, _SC(name), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
+    if (SQ_FAILED(sq_get(v, -2)))
     {
         sq_settop(v, top);
         trace("can't find {} function", name);
@@ -157,7 +157,7 @@ bool ScriptEngine::call(TThis pThis, const char* name, T... args)
     auto top = sq_gettop(v);
     ScriptEngine::push(v, pThis);
     sq_pushstring(v, _SC(name), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
+    if (SQ_FAILED(sq_get(v, -2)))
     {
         sq_settop(v, top);
         trace("can't find {} function", name);
@@ -185,7 +185,7 @@ bool ScriptEngine::call(TThis pThis, const char* name)
     auto top = sq_gettop(v);
     ScriptEngine::push(v, pThis);
     sq_pushstring(v, _SC(name), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
+    if (SQ_FAILED(sq_get(v, -2)))
     {
         sq_settop(v, top);
         trace("can't find {} function", name);
@@ -212,7 +212,7 @@ bool ScriptEngine::callFunc(TResult& result, TThis pThis, const char* name, T...
     auto v = g_pEngine->getVm();
     ScriptEngine::push(v, pThis);
     sq_pushstring(v, _SC(name), -1);
-    if (SQ_FAILED(sq_rawget(v, -2)))
+    if (SQ_FAILED(sq_get(v, -2)))
     {
         sq_pop(v, 1);
         trace("can't find {} function", name);
@@ -246,7 +246,7 @@ bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char* name, T& result)
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
-  if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+  if (SQ_SUCCEEDED(sq_get(v, -2)))
   {
     auto status = ScriptEngine::get(v, -1, result);
     sq_settop(v, top);
@@ -263,7 +263,7 @@ bool ScriptEngine::exists(TThis pThis, const char* name)
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
-  if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+  if (SQ_SUCCEEDED(sq_get(v, -2)))
   {
     sq_settop(v, top);
     return true;

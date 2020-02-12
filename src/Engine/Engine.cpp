@@ -153,6 +153,7 @@ struct Engine::Impl
     _TalkingState _talkingState;
     int _showDrawWalkboxes{0};
     OptionsDialog _optionsDialog;
+    bool _run{false};
 
     Impl();
 
@@ -192,6 +193,7 @@ struct Engine::Impl
     void drawWalkboxes(sf::RenderTarget &target) const;
     const Verb* getHoveredVerb() const;
     std::wstring getDisplayName(const std::wstring& name) const;
+    void run(bool state);
 };
 
 Engine::Impl::Impl()
@@ -321,8 +323,6 @@ void Engine::removeCallback(int id)
 std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actors; }
 
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
-
-bool Engine::actorShouldRun() const { return _pImpl->_mouseDownTime > sf::seconds(0.5f); }
 
 void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb)
 {
@@ -621,6 +621,18 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
     ScriptEngine::call("enteredRoom", pRoom);
 
     return 0;
+}
+
+void Engine::Impl::run(bool state)
+{
+    if(_run != state)
+    {
+        _run = state;
+        if(_pCurrentActor)
+        {
+            ScriptEngine::call(_pCurrentActor, "run", state);
+        }
+    }
 }
 
 void Engine::Impl::setCurrentRoom(Room *pRoom)
@@ -1019,10 +1031,15 @@ void Engine::update(const sf::Time &el)
     if(!wasMouseDown || !_pImpl->_isMouseDown)
     {
         _pImpl->_mouseDownTime = sf::seconds(0);
+        _pImpl->run(false);
     }
     else 
     {
         _pImpl->_mouseDownTime += elapsed;
+        if(_pImpl->_mouseDownTime > sf::seconds(0.5f))
+        {
+            _pImpl->run(true);
+        }
     }
     _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && _pImpl->_pWindow->hasFocus();
     bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;

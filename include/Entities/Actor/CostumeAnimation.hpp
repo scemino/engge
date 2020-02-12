@@ -24,7 +24,6 @@ public:
   void pause() { _state = AnimationState::Pause; }
   bool isPlaying() const { return _state == AnimationState::Play; }
   void setFps(int fps);
-  void setSpeedFactor(float speedFactor);
 
   void setFlags(int flags) { _flags = flags; }
   int getFlags() const { return _flags; }

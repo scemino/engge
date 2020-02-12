@@ -175,7 +175,6 @@ class Engine : public NonCopyable
 
     void setCurrentActor(Actor *pCurrentActor, bool userSelected);
     Actor *getCurrentActor();
-    [[nodiscard]] bool actorShouldRun() const;
 
     void setWalkboxesFlags(int flags);
     [[nodiscard]] int getWalkboxesFlags() const;

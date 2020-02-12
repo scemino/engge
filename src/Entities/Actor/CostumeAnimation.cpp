@@ -5,13 +5,6 @@
 namespace ng
 {
 
-void CostumeAnimation::setSpeedFactor(float speedFactor){
-    for (auto &layer : _layers)
-    {
-        layer.setSpeedFactor(speedFactor);
-    }
-}
-
 void CostumeAnimation::play(bool loop)
 {
     if(_loop == loop && _state == AnimationState::Play) return;

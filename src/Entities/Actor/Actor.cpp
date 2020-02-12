@@ -270,10 +270,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
     vDuration.x = std::abs(delta.x)/vSpeed.x;
     vDuration.y = std::abs(delta.y)/vSpeed.y;
     auto maxDuration = std::max(vDuration.x, vDuration.y);
-    auto speedFactor = (_pActor->pImpl->_engine.actorShouldRun() ? 8 : 2);
-    auto pAnim = _pActor->getCostume().getAnimation();
-    if(pAnim) pAnim->setSpeedFactor(speedFactor);
-    auto factor = (speedFactor * _elapsed.asSeconds()) / maxDuration;
+    auto factor = (2.f * _elapsed.asSeconds()) / maxDuration;
     auto end = factor >= 1.f;
     auto newPos = end ? _path[0] : (_init + factor*delta); 
     _pActor->setPosition(newPos);

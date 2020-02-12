@@ -31,7 +31,6 @@ public:
   void setLoop(bool loop) { _loop = loop; }
   bool getLoop() const { return _loop; }
   void play(bool loop = false) { _animation.play(_loop || loop); }
-  void setSpeedFactor(float speedFactor) { _animation.setSpeedFactor(speedFactor); }
   
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
