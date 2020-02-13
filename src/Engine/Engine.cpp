@@ -507,16 +507,16 @@ SQInteger Engine::Impl::exitRoom(Object *pObject)
     sq_remove(_vm, -2);
     if (nparams == 2)
     {
-        ScriptEngine::call(pOldRoom, "exit", pObject);
+        ScriptEngine::rawCall(pOldRoom, "exit", pObject);
     }
     else
     {
-        ScriptEngine::call(pOldRoom, "exit");
+        ScriptEngine::rawCall(pOldRoom, "exit");
     }
 
     pOldRoom->exit();
 
-    ScriptEngine::call("exitedRoom", pOldRoom);
+    ScriptEngine::rawCall("exitedRoom", pOldRoom);
 
     // remove all local threads
     _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](auto& pThread) -> bool {
@@ -564,12 +564,12 @@ void Engine::Impl::actorEnter()
     if (!_pCurrentActor)
         return;
 
-    ScriptEngine::call("actorEnter", _pCurrentActor);
+    ScriptEngine::rawCall("actorEnter", _pCurrentActor);
 
     if (!_pRoom)
         return;
 
-    ScriptEngine::call(_pRoom, "actorEnter", _pCurrentActor);
+    ScriptEngine::rawCall(_pRoom, "actorEnter", _pCurrentActor);
 }
 
 void Engine::Impl::actorExit()
@@ -577,34 +577,21 @@ void Engine::Impl::actorExit()
     if (!_pCurrentActor || !_pRoom)
         return;
 
-    ScriptEngine::call(_pRoom, "actorExit", _pCurrentActor);
+    ScriptEngine::rawCall(_pRoom, "actorExit", _pCurrentActor);
 }
 
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 {
     // call enter room function
     trace("call enter room function of {}", pRoom->getName());
-    sq_pushobject(_vm, pRoom->getTable());
-    sq_pushstring(_vm, _SC("enter"), -1);
-    if (SQ_FAILED(sq_rawget(_vm, -2)))
-    {
-        error("can't find enter function");
-        return 0;
-    }
-
-    SQInteger nparams, nfreevars;
-    sq_getclosureinfo(_vm, -1, &nparams, &nfreevars);
-    trace("enter function found with {} parameters", nparams);
-
-    sq_remove(_vm, -2);
-
+    auto nparams = ScriptEngine::getParameterCount(pRoom, "enter");
     if (nparams == 2)
     {
-        ScriptEngine::call(_pRoom, "enter", pObject);
+        ScriptEngine::rawCall(pRoom, "enter", pObject);
     }
     else
     {
-        ScriptEngine::call(_pRoom, "enter");
+        ScriptEngine::rawCall(pRoom, "enter");
     }
 
     actorEnter();
@@ -615,10 +602,13 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
         if (obj->getId() == 0 || obj->isTemporary())
             continue;
 
-        ScriptEngine::call(obj.get(), "enter");
+        if(ScriptEngine::exists(obj.get(), "enter"))
+        {
+            ScriptEngine::rawCall(obj.get(), "enter");
+        }
     }
 
-    ScriptEngine::call("enteredRoom", pRoom);
+    ScriptEngine::rawCall("enteredRoom", pRoom);
 
     return 0;
 }
@@ -1137,7 +1127,7 @@ void Engine::update(const sf::Time &el)
 
     if (_pImpl->_pHoveredEntity)
     {
-        ScriptEngine::call("onObjectClick", _pImpl->_pHoveredEntity);
+        ScriptEngine::rawCall("onObjectClick", _pImpl->_pHoveredEntity);
         auto pVerbOverride = _pImpl->_pVerbOverride;
         if (!pVerbOverride)
         {
@@ -1168,7 +1158,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     setVerbNormalColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlight);
     setVerbHighlightColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlightTint);
 
-    ScriptEngine::call("onActorSelected", pCurrentActor, userSelected);
+    ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
 }
 
 void Engine::Impl::updateKeys()
@@ -1210,7 +1200,7 @@ void Engine::Impl::updateKeyboard()
         {
             if(isKeyPressed(key))
             {
-                ScriptEngine::call(_pRoom, "pressedKey", key);
+                ScriptEngine::rawCall(_pRoom, "pressedKey", key);
             }
         }
     }
@@ -1240,7 +1230,7 @@ void Engine::Impl::onVerbClick(const Verb* pVerb)
     _pObj1 = nullptr;
     _pObj2 = nullptr;
 
-    ScriptEngine::call("onVerbClick");
+    ScriptEngine::rawCall("onVerbClick");
 }
 
 bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
@@ -1249,7 +1239,7 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos)
         return false;
 
     bool handled = false;
-    ScriptEngine::callFunc(handled, _pRoom, "clickedAt", pos.x, pos.y);
+    ScriptEngine::rawCallFunc(handled, _pRoom, "clickedAt", pos.x, pos.y);
     return handled;
 }
 

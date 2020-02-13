@@ -286,7 +286,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
                 _pActor->getCostume().setFacing(_facing.value());
             }
             _pActor->getCostume().setState("stand");
-            ScriptEngine::call(_pActor, "actorArrived");
+            ScriptEngine::rawCall(_pActor, "actorArrived");
         }
         else
         {
@@ -403,7 +403,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     }
 
     pImpl->_path = std::make_unique<_Path>(path);
-    ScriptEngine::call(this, "preWalking");
+    ScriptEngine::rawCall(this, "preWalking");
     pImpl->_walkingState.setDestination(path, facing);
 }
 

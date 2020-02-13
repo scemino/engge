@@ -118,9 +118,9 @@ private:
         setText(_pEngine->getText(id));
 
         const char* key = nullptr;
-        if(!ScriptEngine::get(_pActor, "_talkieKey", key))
+        if(!ScriptEngine::rawGet(_pActor, "_talkieKey", key))
         {
-            ScriptEngine::get(_pActor, "_key", key);
+            ScriptEngine::rawGet(_pActor, "_key", key);
         }
         auto name = str_toupper(key).append("_").append(std::to_string(id));
         std::string path;
@@ -172,7 +172,7 @@ private:
         
         auto sayLine = tostring(_sayText);
         const char* pAnim = anim.empty()? nullptr : anim.data();
-        ScriptEngine::call(_pActor, "sayingLine", pAnim, sayLine);
+        ScriptEngine::rawCall(_pActor, "sayingLine", pAnim, sayLine);
 
         loadActorSpeech(name);
     }

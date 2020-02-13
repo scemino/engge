@@ -1004,20 +1004,20 @@ class _ActorPack : public Pack
         sq_addref(v, &table);
 
         const char *name = nullptr;
-        if(ScriptEngine::get(pActor.get(), "name", name))
+        if(ScriptEngine::rawGet(pActor.get(), "name", name))
         {
             pActor->setName(name);
         }
 
         const char *key = nullptr;
-        if(ScriptEngine::get(pActor.get(), "_key", key))
+        if(ScriptEngine::rawGet(pActor.get(), "_key", key))
         {
             pActor->setKey(key);
         }
 
         // define instance
         const char *icon = nullptr;
-        if(ScriptEngine::get(pActor.get(), "icon", icon))
+        if(ScriptEngine::rawGet(pActor.get(), "icon", icon))
         {
             pActor->setIcon(icon);
         }

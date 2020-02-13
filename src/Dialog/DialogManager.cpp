@@ -204,7 +204,7 @@ void DialogManager::choose(int choice)
         if(dlg.id == 0) continue;
         if((choice-1) == i)
         {
-            ScriptEngine::call("onChoiceClick");
+            ScriptEngine::rawCall("onChoiceClick");
             std::ostringstream os;
             os << '@' << dlg.id;
             if(_parrotModeEnabled) {

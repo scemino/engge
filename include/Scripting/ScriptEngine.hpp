@@ -73,16 +73,13 @@ public:
 
   template <typename T>
   static bool get(HSQUIRRELVM v, SQInteger index, T& result);
-
   template<typename TThis, typename T>
   static bool get(TThis pThis, const char* name, T& result);
-
   template<typename TThis, typename T>
   static bool get(HSQUIRRELVM v, TThis pThis, const char* name, T& result);
 
   template<typename TThis, typename T>
   static void set(TThis pThis, const char* name, T value);
-
   template<typename TThis, typename T>
   static void set(HSQUIRRELVM v, TThis pThis, const char* name, T value);
 
@@ -94,9 +91,33 @@ public:
   static bool call(TThis pThis, const char* name, T... args);
   template<typename TThis>
   static bool call(TThis pThis, const char* name);
+  template<typename TThis>
+  static int getParameterCount(TThis pThis, const char* name);
 
   template<typename TResult, typename TThis, typename...T>
   static bool callFunc(TResult& result, TThis pThis, const char* name, T... args);
+  
+  template<typename TThis>
+  static bool rawExists(TThis pThis, const char* name);
+
+  template<typename TThis, typename T>
+  static bool rawGet(TThis pThis, const char* name, T& result);
+  template<typename TThis, typename T>
+  static bool rawGet(HSQUIRRELVM v, TThis pThis, const char* name, T& result);
+
+  template<typename...T>
+  static bool rawCall(const char* name, T... args);
+  static bool rawCall(const char* name);
+
+  template<typename TThis, typename...T>
+  static bool rawCall(TThis pThis, const char* name, T... args);
+  template<typename TThis>
+  static bool rawCall(TThis pThis, const char* name);
+  template<typename TThis>
+  static int rawGetParameterCount(TThis pThis, const char* name);
+
+  template<typename TResult, typename TThis, typename...T>
+  static bool rawCallFunc(TResult& result, TThis pThis, const char* name, T... args);
 
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
@@ -149,6 +170,79 @@ bool ScriptEngine::call(const char* name, T...args)
     return true;
 }
 
+template<typename TThis>
+int ScriptEngine::getParameterCount(TThis pThis, const char* name)
+{
+  auto v = g_pEngine->getVm();
+  auto top = sq_gettop(v);
+  ScriptEngine::push(v, pThis);
+  sq_pushstring(v, name, -1);
+  if (SQ_FAILED(sq_get(v, -2)))
+  {
+      sq_settop(v, top);
+      trace("can't find {} function", name);
+      return 0;
+  }
+
+  SQInteger nparams, nfreevars;
+  sq_getclosureinfo(v, -1, &nparams, &nfreevars);
+  trace("{} function found with {} parameters", name, nparams);
+  sq_settop(v, top);
+
+  return nparams;
+}
+
+template<typename...T>
+bool ScriptEngine::rawCall(const char* name, T...args)
+{
+    constexpr std::size_t n = sizeof...(T);
+    auto v = g_pEngine->getVm();
+    auto top = sq_gettop(v);
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_settop(v, top);
+        trace("can't find {} function", name);
+        return false;
+    }
+    sq_remove(v, -2);
+
+    sq_pushroottable(v);
+    ScriptEngine::push(v, std::forward<T>(args)...);
+    if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_settop(v, top);
+        error("function {} call failed", name);
+        return false;
+    }
+    sq_settop(v, top);
+    return true;
+}
+
+template<typename TThis>
+int ScriptEngine::rawGetParameterCount(TThis pThis, const char* name)
+{
+  auto v = g_pEngine->getVm();
+  auto top = sq_gettop(v);
+  ScriptEngine::push(v, pThis);
+  sq_pushstring(v, name, -1);
+  if (SQ_FAILED(sq_rawget(v, -2)))
+  {
+      sq_settop(v, top);
+      trace("can't find {} function", name);
+      return 0;
+  }
+
+  SQInteger nparams, nfreevars;
+  sq_getclosureinfo(v, -1, &nparams, &nfreevars);
+  trace("{} function found with {} parameters", name, nparams);
+  sq_settop(v, top);
+
+  return nparams;
+}
+
 template<typename TThis, typename...T>
 bool ScriptEngine::call(TThis pThis, const char* name, T... args)
 {
@@ -178,6 +272,35 @@ bool ScriptEngine::call(TThis pThis, const char* name, T... args)
     return true;
 }
 
+template<typename TThis, typename...T>
+bool ScriptEngine::rawCall(TThis pThis, const char* name, T... args)
+{
+    constexpr std::size_t n = sizeof...(T);
+    auto v = g_pEngine->getVm();
+    auto top = sq_gettop(v);
+    ScriptEngine::push(v, pThis);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_settop(v, top);
+        trace("can't find {} function", name);
+        return false;
+    }
+    sq_remove(v, -2);
+
+    ScriptEngine::push(v, pThis);
+    ScriptEngine::push(v, std::forward<T>(args)...);
+    if (SQ_FAILED(sq_call(v, n + 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_settop(v, top);
+        error("function {} call failed", name);
+        return false;
+    }
+    sq_settop(v, top);
+    return true;
+}
+
 template<typename TThis>
 bool ScriptEngine::call(TThis pThis, const char* name)
 {
@@ -186,6 +309,33 @@ bool ScriptEngine::call(TThis pThis, const char* name)
     ScriptEngine::push(v, pThis);
     sq_pushstring(v, _SC(name), -1);
     if (SQ_FAILED(sq_get(v, -2)))
+    {
+        sq_settop(v, top);
+        trace("can't find {} function", name);
+        return false;
+    }
+    sq_remove(v, -2);
+
+    ScriptEngine::push(v, pThis);
+    if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_settop(v, top);
+        error("function {} call failed", name);
+        return false;
+    }
+    sq_settop(v, top);
+    return true;
+}
+
+template<typename TThis>
+bool ScriptEngine::rawCall(TThis pThis, const char* name)
+{
+    auto v = g_pEngine->getVm();
+    auto top = sq_gettop(v);
+    ScriptEngine::push(v, pThis);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
     {
         sq_settop(v, top);
         trace("can't find {} function", name);
@@ -234,10 +384,45 @@ bool ScriptEngine::callFunc(TResult& result, TThis pThis, const char* name, T...
     return true;
 }
 
+template<typename TResult, typename TThis, typename...T>
+bool ScriptEngine::rawCallFunc(TResult& result, TThis pThis, const char* name, T... args)
+{
+    constexpr std::size_t n = sizeof...(T);
+    auto v = g_pEngine->getVm();
+    ScriptEngine::push(v, pThis);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return false;
+    }
+    sq_remove(v, -2);
+
+    ScriptEngine::push(v, pThis);
+    ScriptEngine::push(v, std::forward<T>(args)...);
+    if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return false;
+    }
+    ScriptEngine::get(v, -1, result);
+    sq_pop(v, 1);
+    return true;
+}
+
 template<typename TThis, typename T>
 bool ScriptEngine::get(TThis pThis, const char* name, T& result)
 {
   return ScriptEngine::get(g_pEngine->getVm(), pThis, name, result);
+}
+
+template<typename TThis, typename T>
+bool ScriptEngine::rawGet(TThis pThis, const char* name, T& result)
+{
+  return ScriptEngine::rawGet(g_pEngine->getVm(), pThis, name, result);
 }
 
 template<typename TThis, typename T>
@@ -256,6 +441,22 @@ bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char* name, T& result)
   return false;
 }
 
+template<typename TThis, typename T>
+bool ScriptEngine::rawGet(HSQUIRRELVM v, TThis pThis, const char* name, T& result)
+{
+  auto top = sq_gettop(v);
+  push(v, pThis);
+  sq_pushstring(v, _SC(name), -1);
+  if (SQ_SUCCEEDED(sq_rawget(v, -2)))
+  {
+    auto status = ScriptEngine::get(v, -1, result);
+    sq_settop(v, top);
+    return status;
+  }
+  sq_settop(v, top);
+  return false;
+}
+
 template<typename TThis>
 bool ScriptEngine::exists(TThis pThis, const char* name)
 {
@@ -264,6 +465,22 @@ bool ScriptEngine::exists(TThis pThis, const char* name)
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_SUCCEEDED(sq_get(v, -2)))
+  {
+    sq_settop(v, top);
+    return true;
+  }
+  sq_settop(v, top);
+  return false;
+}
+
+template<typename TThis>
+bool ScriptEngine::rawExists(TThis pThis, const char* name)
+{
+  auto v = g_pEngine->getVm();
+  auto top = sq_gettop(v);
+  push(v, pThis);
+  sq_pushstring(v, _SC(name), -1);
+  if (SQ_SUCCEEDED(sq_rawget(v, -2)))
   {
     sq_settop(v, top);
     return true;

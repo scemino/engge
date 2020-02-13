@@ -587,12 +587,37 @@ std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMe
     }
 }
 
-bool ScriptEngine::call(const char *name)
+bool ScriptEngine::rawCall(const char *name)
 {
     auto v = g_pEngine->getVm();
     sq_pushroottable(v);
     sq_pushstring(v, _SC(name), -1);
     if (SQ_FAILED(sq_rawget(v, -2)))
+    {
+        sq_pop(v, 1);
+        trace("can't find {} function", name);
+        return false;
+    }
+    sq_remove(v, -2);
+
+    sq_pushroottable(v);
+    if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)))
+    {
+        sqstd_printcallstack(v);
+        sq_pop(v, 1);
+        error("function {} call failed", name);
+        return false;
+    }
+    sq_pop(v, 1);
+    return true;
+}
+
+bool ScriptEngine::call(const char *name)
+{
+    auto v = g_pEngine->getVm();
+    sq_pushroottable(v);
+    sq_pushstring(v, _SC(name), -1);
+    if (SQ_FAILED(sq_get(v, -2)))
     {
         sq_pop(v, 1);
         trace("can't find {} function", name);
