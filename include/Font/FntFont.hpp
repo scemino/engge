@@ -134,7 +134,7 @@ class FntFont
 
 	bool loadFromFile(const std::string& path);
 
-	int getLineHeight();
+	int getLineHeight() const;
 	const sf::Glyph& getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const;
 	float getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const;
 	const sf::Texture& getTexture(unsigned int characterSize) const;

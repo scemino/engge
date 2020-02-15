@@ -254,8 +254,7 @@ sf::Vector2f Text::findCharacterPos(std::size_t index) const
     float whitespaceWidth = m_font->getGlyph(L' ', m_characterSize, isBold).advance;
     float letterSpacing = (whitespaceWidth / 3.f) * (m_letterSpacingFactor - 1.f);
     whitespaceWidth += letterSpacing;
-    //TODO: float lineSpacing = m_font->getLineSpacing(m_characterSize) * m_lineSpacingFactor;
-    float lineSpacing = 10;
+    float lineSpacing = m_font->getLineHeight();
 
     // Compute the position
     sf::Vector2f position;
@@ -368,8 +367,7 @@ void Text::ensureGeometryUpdate() const
     float whitespaceWidth = m_font->getGlyph(L' ', m_characterSize, isBold).advance;
     float letterSpacing = (whitespaceWidth / 3.f) * (m_letterSpacingFactor - 1.f);
     whitespaceWidth += letterSpacing;
-    // TODO: float lineSpacing = m_font->getLineSpacing(m_characterSize) * m_lineSpacingFactor;
-    float lineSpacing = 10;
+    float lineSpacing = m_font->getLineHeight();
     float x = 0.f;
     float y = static_cast<float>(m_characterSize);
 

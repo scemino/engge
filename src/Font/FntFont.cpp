@@ -234,7 +234,7 @@ bool FntFont::parse(const std::string &path)
     return true;
 }
 
-int FntFont::getLineHeight()
+int FntFont::getLineHeight() const
 {
     return m_chars.lineHeight;
 }
