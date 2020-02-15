@@ -298,9 +298,9 @@ void Costume::updateAnimation()
             name.append("right");
             break;
         }
-        if(!setAnimation(name) && !setMatchingAnimation(name))
+        if(!setAnimation(name))
         {
-            _pCurrentAnimation = nullptr;
+            setMatchingAnimation(name);
         }
     }
 
