@@ -239,6 +239,30 @@ bool Costume::setAnimation(const std::string &animName)
     return false;
 }
 
+bool Costume::setMatchingAnimation(const std::string &animName)
+{
+    if (_pCurrentAnimation && startsWith(_pCurrentAnimation->getName(), animName))
+        return true;
+
+    for(auto& anim : _animations)
+    {
+        if(startsWith(anim.getName(), animName))
+        {
+            _pCurrentAnimation = &anim;
+            for(auto& layer : _pCurrentAnimation->getLayers())
+            {
+                auto layerName = layer.getName();
+                layer.setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
+            }
+
+            _pCurrentAnimation->play();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Costume::updateAnimation()
 {
     // special case for eyes... bof
@@ -274,7 +298,7 @@ void Costume::updateAnimation()
             name.append("right");
             break;
         }
-        if(!setAnimation(name))
+        if(!setAnimation(name) && !setMatchingAnimation(name))
         {
             _pCurrentAnimation = nullptr;
         }

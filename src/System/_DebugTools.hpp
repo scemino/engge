@@ -416,6 +416,12 @@ class _DebugTools
             ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
             ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
             ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
+            auto facing = facingToInt(actor->getCostume().getFacing());
+            auto facings = "Front\0Back\0Left\0Right\0";
+            if (ImGui::Combo("Facing", &facing, facings))
+            {
+                actor->getCostume().setFacing(intToFacing(facing));
+            }
             if (pRoom)
             {
                 auto scale = actor->getScale();
@@ -469,6 +475,34 @@ class _DebugTools
             ImGui::Unindent();
         }
         ImGui::Unindent();
+    }
+
+    static int facingToInt(Facing facing){
+        switch(facing){
+            case Facing::FACE_FRONT:
+            return 0;
+            case Facing::FACE_BACK:
+            return 1;
+            case Facing::FACE_LEFT:
+            return 2;
+            case Facing::FACE_RIGHT:
+            return 3;
+        }
+        return 0;
+    }
+
+    static Facing intToFacing(int facing){
+        switch(facing){
+            case 0:
+            return Facing::FACE_FRONT;
+            case 1:
+            return Facing::FACE_BACK;
+            case 2:
+            return Facing::FACE_LEFT;
+            case 3:
+            return Facing::FACE_RIGHT;
+        }
+        return Facing::FACE_FRONT;
     }
 
     void showObjects()

@@ -38,6 +38,7 @@ public:
   Facing getFacing() const;
   void setState(const std::string &name);
   bool setAnimation(const std::string &name);
+  bool setMatchingAnimation(const std::string &animName);
   CostumeAnimation *getAnimation() { return _pCurrentAnimation; }
   std::vector<CostumeAnimation>& getAnimations() { return _animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
