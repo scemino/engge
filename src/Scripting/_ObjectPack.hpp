@@ -1164,7 +1164,13 @@ class _ObjectPack : public Pack
     static SQInteger createObject(HSQUIRRELVM v)
     {
         auto numArgs = sq_gettop(v);
-        if (numArgs == 2)
+        if (numArgs == 1)
+        {
+            auto &obj = g_pEngine->getRoom()->createObject();
+            _createObject(v, obj);
+            return 1;
+        }
+        else if (numArgs == 2)
         {
             std::vector<std::string> anims;
             for (int i = 0; i < numArgs - 1; i++)

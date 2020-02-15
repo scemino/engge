@@ -53,6 +53,7 @@ public:
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   Object &createObject(const std::vector<std::string> &anims);
   Object &createObject(const std::string &image);
+  Object &createObject();
   TextObject &createTextObject(const std::string &fontName);
   void deleteObject(Object &textObject);
   [[nodiscard]] sf::Vector2i getRoomSize() const;

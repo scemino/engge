@@ -653,6 +653,19 @@ Object &Room::createObject(const std::string &image)
     return obj;
 }
 
+Object &Room::createObject()
+{
+    auto object = std::make_unique<Object>();
+
+    auto &obj = *object;
+    obj.setTemporary(true);
+    obj.setZOrder(1);
+    obj.setRoom(this);
+    pImpl->_layers[0]->addEntity(obj);
+    pImpl->_objects.push_back(std::move(object));
+    return obj;
+}
+
 const Graph* Room::getGraph() const
 {
     if (pImpl->_pf)
