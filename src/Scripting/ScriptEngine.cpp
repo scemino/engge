@@ -490,6 +490,7 @@ void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionNa
 
 void ScriptEngine::executeScript(const std::string &name)
 {
+    auto v = g_pEngine->getVm();
     if (SQ_FAILED(sqstd_dofile(v, name.c_str(), SQFalse, SQTrue)))
     {
         error("failed to execute {}", name);
@@ -501,6 +502,7 @@ void ScriptEngine::executeScript(const std::string &name)
 
 void ScriptEngine::executeNutScript(const std::string &name)
 {
+    auto v = g_pEngine->getVm();
     std::vector<char> code;
 
     std::ifstream is(name);
@@ -556,18 +558,7 @@ void ScriptEngine::executeBootScript()
     executeNutScript("Defines.nut");
     executeNutScript("Boot.nut");
 
-    // call start
-    sq_pushroottable(v);
-    sq_pushstring(v, _SC("start"), -1);
-    sq_get(v, -2);
-
-    sq_pushroottable(v);
-    sq_pushbool(v, SQTrue);
-    if (SQ_FAILED(sq_call(v, 2, SQFalse, SQTrue)))
-    {
-        error("Error calling start");
-        return;
-    }
+    call("start", true);
 }
 
 std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMethod index)

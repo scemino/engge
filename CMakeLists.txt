@@ -16,7 +16,6 @@ add_subdirectory(src)
 add_subdirectory(extlibs/squirrel)
 
 # Install misc. files
-install(FILES test.nut DESTINATION .)
 install(FILES LICENSE DESTINATION .)
 
 # Install libraries on Linux

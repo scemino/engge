@@ -45,18 +45,6 @@ int main(int argc, char **argv)
         game->setEngine(engine.get());
         scriptEngine->setEngine(*engine);
 
-        std::ifstream is("test.nut");
-        if (is.is_open())
-        {
-            ng::info("execute test.nut");
-            scriptEngine->executeScript("test.nut");
-        }
-        else
-        {
-            ng::info("execute boot script");
-            scriptEngine->executeBootScript();
-        }
-
         game->getInputEventHandlers().push_back(std::make_unique<ng::DefaultInputEventHandler>(*engine, game->getWindow()));
         game->run();
 

@@ -257,6 +257,7 @@ class Engine : public NonCopyable
 
     void showOptions(bool visible);
     void quit();
+    void run();
 
   private:
     struct Impl;

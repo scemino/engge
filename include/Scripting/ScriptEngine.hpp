@@ -35,8 +35,8 @@ public:
   template <typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar*, TConstant>> list);
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
-  void executeScript(const std::string &name);
-  void executeNutScript(const std::string& name);
+  static void executeScript(const std::string &name);
+  static void executeNutScript(const std::string& name);
   void executeBootScript();
 
   template <class TPack>

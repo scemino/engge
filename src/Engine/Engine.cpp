@@ -10,6 +10,7 @@
 #include "Math/PathFinding/Graph.hpp"
 #include "Engine/Inventory.hpp"
 #include "UI/OptionsDialog.hpp"
+#include "UI/StartScreenDialog.hpp"
 #include "Engine/Preferences.hpp"
 #include "Room/Room.hpp"
 #include "Room/RoomScaling.hpp"
@@ -88,7 +89,7 @@ bool operator&(CursorDirection lhs, CursorDirection rhs)
 }
 
 enum class EngineState {
-    Game, Paused, Options
+    Game, Paused, Options, StartScreen
 };
 
 struct Engine::Impl
@@ -146,13 +147,14 @@ struct Engine::Impl
     std::unique_ptr<Sentence> _pSentence{};
     std::set<int> _oldKeyDowns;
     std::set<int> _newKeyDowns;
-    EngineState _state{EngineState::Game};
+    EngineState _state{EngineState::StartScreen};
     mutable sf::Shader _verbShader{};
     sf::Vector2f _ranges{0.8f, 0.8f};
     sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
     _TalkingState _talkingState;
     int _showDrawWalkboxes{0};
     OptionsDialog _optionsDialog;
+    StartScreenDialog _startScreenDialog;
     bool _run{false};
 
     Impl();
@@ -257,6 +259,14 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
     _pImpl->_textDb.load(s.str());
 
     _pImpl->_optionsDialog.setEngine(this);
+    _pImpl->_optionsDialog.setCallback([this](){
+        showOptions(false);
+    });
+    _pImpl->_startScreenDialog.setEngine(this);
+    _pImpl->_startScreenDialog.setNewGameCallback([this](){
+        _pImpl->_state = EngineState::Game;
+        ScriptEngine::call("start",true);
+    });
     _pImpl->_verbSheet.load("VerbSheet");
     _pImpl->_gameSheet.load("GameSheet");
     _pImpl->_saveLoadSheet.load("SaveLoadSheet");
@@ -992,6 +1002,10 @@ void Engine::update(const sf::Time &el)
     {
         _pImpl->_optionsDialog.update(elapsed);
     }
+    else if(_pImpl->_state == EngineState::StartScreen)
+    {
+        _pImpl->_startScreenDialog.update(elapsed);
+    }
     else if(_pImpl->isKeyPressed(32))
     { 
         _pImpl->_state = _pImpl->_state == EngineState::Game ? EngineState::Paused : EngineState::Game; 
@@ -1270,6 +1284,10 @@ void Engine::draw(sf::RenderWindow &window) const
         if(_pImpl->_state == EngineState::Options)
         {
             window.draw(_pImpl->_optionsDialog);
+        }
+        else if(_pImpl->_state == EngineState::StartScreen)
+        {
+            window.draw(_pImpl->_startScreenDialog);
         }
         _pImpl->drawPause(window);
 
@@ -1761,6 +1779,23 @@ void Engine::showOptions(bool visible)
 void Engine::quit()
 {
     _pImpl->_pWindow->close();
+}
+
+void Engine::run()
+{
+    std::ifstream is("engge.nut");
+    if (is.is_open())
+    {
+        info("execute engge.nut");
+        _pImpl->_state = EngineState::Game;
+        ScriptEngine::executeScript("engge.nut");
+        return;
+    }
+
+    ng::info("execute boot script");
+    ScriptEngine::executeNutScript("Defines.nut");
+    ScriptEngine::executeNutScript("Boot.nut");
+    execute("cameraInRoom(StartScreen)");
 }
 
 } // namespace ng

@@ -74,6 +74,7 @@ struct OptionsDialog::Impl
     std::vector<_Slider> _sliders;
     bool _showQuit{false};
     QuitDialog _quit;
+    Callback _callback{nullptr};
 
     inline static float getSlotPos(int slot)
     {
@@ -124,7 +125,7 @@ struct OptionsDialog::Impl
             _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this](){ updateState(State::TextAndSpeech); });
             _buttons.emplace_back(Ids::Help, getSlotPos(6), [this](){ updateState(State::Help); });
             _buttons.emplace_back(Ids::Quit, getSlotPos(7), [this](){ _showQuit = true;}, true);
-            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ _pEngine->showOptions(false); }, true, _Button::Size::Medium);
+            _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ if(_callback) _callback(); }, true, _Button::Size::Medium);
             break;
         case State::Sound:
             setHeading(Ids::Sound);
@@ -338,5 +339,15 @@ void OptionsDialog::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 void OptionsDialog::update(const sf::Time& elapsed)
 {
     _pImpl->update(elapsed);
+}
+
+void OptionsDialog::showHelp()
+{
+    _pImpl->updateState(Impl::State::Help);
+}
+
+void OptionsDialog::setCallback(Callback callback)
+{
+    _pImpl->_callback = callback;
 }
 }

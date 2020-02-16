@@ -7,7 +7,7 @@ namespace ng
 {
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
-Game::Game() : _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge", sf::Style::Titlebar | sf::Style::Resize)
+Game::Game() : _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge")
 {
     _window.setSize(sf::Vector2u(Screen::Width, Screen::Height));
     _window.setMouseCursorVisible(false);
@@ -24,6 +24,7 @@ void Game::setEngine(Engine *pEngine)
 
 void Game::run()
 {
+    _pEngine->run();
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     while (_window.isOpen())

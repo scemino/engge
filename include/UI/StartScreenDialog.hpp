@@ -3,19 +3,18 @@
 
 namespace ng
 {
-class OptionsDialog : public sf::Drawable
+class StartScreenDialog : public sf::Drawable
 {
 public:
     typedef std::function<void()> Callback;
 
 public:
-    OptionsDialog();
-    ~OptionsDialog();
+    StartScreenDialog();
+    ~StartScreenDialog();
 
-    void setCallback(Callback callback);
+    void setNewGameCallback(Callback callback);
     void setEngine(Engine* pEngine);
     void update(const sf::Time& elapsed);
-    void showHelp();
 
 private:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
