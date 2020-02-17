@@ -195,9 +195,10 @@ class _GiveFunction : public Function
 class _TalkToFunction : public Function
 {
  public:
-    _TalkToFunction(Actor* pActor, Sentence* pSentence)
-        : _pActor(pActor), _pSentence(pSentence)
+    _TalkToFunction(Engine& engine, Actor* pActor, Entity* pEntity, Sentence* pSentence)
+        : _engine(engine), _pActor(pActor), _pSentence(pSentence)
     {
+        _pActor2 = dynamic_cast<Actor*>(pEntity);
     }
 
  private:
@@ -205,14 +206,36 @@ class _TalkToFunction : public Function
 
     void operator()(const sf::Time &) override
     {
-        if(ScriptEngine::call(_pActor, "verbTalkTo")) {
-            _pSentence->stop();
+        if(!ScriptEngine::call(_pActor, "verbTalkTo"))
+        {
+            if(!callVerbDefault())
+            {
+                if(!callDefaultObjectVerb())
+                {
+                    _pSentence->stop();
+                }
+            }
         }
         _done = true;
     }
 
+    bool callDefaultObjectVerb()
+    {
+        auto &obj = _engine.getDefaultObject();
+        auto pActor = _engine.getCurrentActor();
+
+        return ScriptEngine::call(obj, "verbTalkTo", pActor, _pActor2);
+    }
+
+    bool callVerbDefault()
+    {
+        return ScriptEngine::call(_pActor, "verbDefault");
+    }
+
  private:
-    Actor* _pActor{nullptr}; 
+    Engine& _engine;
+    Actor* _pActor{nullptr};
+    Actor* _pActor2{nullptr};
     Sentence* _pSentence{nullptr};
     bool _done{false};
 };
@@ -341,7 +364,7 @@ class _DefaultVerbExecute : public VerbExecute
         }
         else if(pVerb->id == VerbConstants::VERB_TALKTO) 
         {
-            auto func = std::make_unique<_TalkToFunction>(pActor,sentence.get());
+            auto func = std::make_unique<_TalkToFunction>(_engine, pActor, pObject1, sentence.get());
             sentence->push_back(std::move(func));
         }
 
