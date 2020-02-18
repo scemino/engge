@@ -224,7 +224,7 @@ class _TalkToFunction : public Function
         auto &obj = _engine.getDefaultObject();
         auto pActor = _engine.getCurrentActor();
 
-        return ScriptEngine::call(obj, "verbTalkTo", pActor, _pActor2);
+        return ScriptEngine::call(obj, "verbTalkTo", _pActor2, pActor);
     }
 
     bool callVerbDefault()
@@ -367,6 +367,10 @@ class _DefaultVerbExecute : public VerbExecute
         {
             auto func = std::make_unique<_TalkToFunction>(_engine, pActor, pObject1, sentence.get());
             sentence->push_back(std::move(func));
+            auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
+            sentence->push_back(std::move(setDefaultVerb));
+            _engine.setSentence(std::move(sentence));
+            return;
         }
 
         if(pVerb->id == VerbConstants::VERB_PICKUP || pVerb->id == VerbConstants::VERB_OPEN || pVerb->id == VerbConstants::VERB_CLOSE ||

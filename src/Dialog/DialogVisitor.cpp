@@ -24,9 +24,11 @@ void DialogVisitor::visit(const Ast::Statement &node)
 
 void DialogVisitor::visit(const Ast::Label &node)
 {
+    _hasChoice = false;
     for (auto &statement : node.statements)
     {
         statement->accept(*this);
+        if(_hasChoice) return;
     }
 }
 
@@ -43,7 +45,7 @@ void DialogVisitor::ConditionVisitor::visit(const Ast::CodeCondition &node)
     const auto name = node.code;
     auto it = std::find_if(actors.cbegin(), actors.cend(), [&name](const std::unique_ptr<Actor> &actor) {
         return actor->getKey() == name; });
-    if (it != actors.end())
+    if (it != actors.cend())
     {
         // yes, so we check if the current actor is the given actor name
         std::string code("currentActor==");
@@ -156,6 +158,8 @@ void DialogVisitor::visit(const Ast::Code &node)
 void DialogVisitor::visit(const Ast::Goto &node)
 {
     _dialogManager.selectLabel(node.name);
+    auto& dialog = _dialogManager.getDialog();
+    _hasChoice = std::any_of(dialog.begin(),dialog.end(),[](auto& line){ return line.id!=0;});
 }
 
 void DialogVisitor::visit(const Ast::Shutup &)

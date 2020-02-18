@@ -72,6 +72,7 @@ private:
   DialogManager &_dialogManager;
   std::vector<const Ast::Node *> _nodesVisited;
   std::vector<const Ast::Node *> _nodesSelected;
+  bool _hasChoice{false};
 };
 
 enum class DialogManagerState
