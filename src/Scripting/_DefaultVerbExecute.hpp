@@ -359,7 +359,8 @@ class _DefaultVerbExecute : public VerbExecute
 
         if(pVerb->id == VerbConstants::VERB_GIVE) 
         {
-            auto func = std::make_unique<_GiveFunction>(pActor,pObject1,sentence.get());
+            auto pActor = dynamic_cast<Actor*>(pObject2);
+            auto func = std::make_unique<_GiveFunction>(pActor, pObject1, sentence.get());
             sentence->push_back(std::move(func));
         }
         else if(pVerb->id == VerbConstants::VERB_TALKTO) 
