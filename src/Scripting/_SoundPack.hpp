@@ -120,8 +120,9 @@ private:
         {
             return sq_throwerror(v, _SC("failed to get music"));
         }
-        g_pEngine->getSoundManager().playMusic(pSound, -1);
-        return 0;
+        auto music = g_pEngine->getSoundManager().playMusic(pSound, -1);
+        ScriptEngine::pushObject(v, music);
+        return 1;
     }
 
     static SQInteger masterSoundVolume(HSQUIRRELVM v)

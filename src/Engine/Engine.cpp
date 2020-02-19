@@ -265,6 +265,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>())
     _pImpl->_startScreenDialog.setEngine(this);
     _pImpl->_startScreenDialog.setNewGameCallback([this](){
         _pImpl->_state = EngineState::Game;
+        _pImpl->exitRoom(nullptr);
         ScriptEngine::call("start",true);
     });
     _pImpl->_verbSheet.load("VerbSheet");
