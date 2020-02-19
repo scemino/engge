@@ -49,7 +49,7 @@ void Animation::update(const sf::Time &elapsed)
     _time += elapsed;
     if (_time.asSeconds() > (1.f / _fps))
     {
-        _time = sf::seconds(0);
+        _time = sf::seconds(_time.asSeconds() - (1.f / _fps));
         if(_loop || _index != _frames.size()-1)
         {
             _index = (_index + 1) % _frames.size();
