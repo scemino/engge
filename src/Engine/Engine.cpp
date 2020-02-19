@@ -196,6 +196,7 @@ struct Engine::Impl
     const Verb* getHoveredVerb() const;
     std::wstring getDisplayName(const std::wstring& name) const;
     void run(bool state);
+    void stopAllTalking();
 };
 
 Engine::Impl::Impl()
@@ -1110,7 +1111,15 @@ void Engine::update(const sf::Time &el)
     _pImpl->updateKeys();
 
     if (_pImpl->_dialogManager.getState() != DialogManagerState::None)
+    {
+        auto rightClickSkipsDialog = getPreferences().getUserPreference(PreferenceNames::RightClickSkipsDialog, PreferenceDefaultValues::RightClickSkipsDialog);
+        auto keySkip = _pImpl->toKey(getPreferences().getUserPreference(PreferenceNames::KeySkipText, PreferenceDefaultValues::KeySkipText));
+        if(_pImpl->isKeyPressed(keySkip) || (rightClickSkipsDialog && isRightClick))
+        {
+            _pImpl->stopAllTalking();
+        }
         return;
+    }
 
     if (_pImpl->_actorIcons.isMouseOver())
         return;
@@ -1174,6 +1183,13 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     setVerbHighlightColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlightTint);
 
     ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
+}
+
+void Engine::Impl::stopAllTalking()
+{
+    for (auto &&a : _pEngine->getActors()) {
+        a->stopTalking();
+    }
 }
 
 void Engine::Impl::updateKeys()

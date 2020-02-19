@@ -27,6 +27,8 @@ namespace PreferenceNames
     static const std::string ToiletPaperOver = "toiletPaperOver";
     static const std::string SafeArea = "safeScale";
     static const std::string Fullscreen = "windowFullscreen";
+    static const std::string RightClickSkipsDialog = "rightClickSkipsDialog";
+    static const std::string KeySkipText = "keySkipText";
     static const std::string GameSpeedFactor = "gameSpeedFactor"; // engge only
 }
 
@@ -50,6 +52,8 @@ namespace PreferenceDefaultValues
     static const bool ToiletPaperOver = true;
     static const float SafeArea = 1.f;
     static const bool Fullscreen = true;
+    static const bool RightClickSkipsDialog = false;
+    static const std::string KeySkipText = ".";
     static const float GameSpeedFactor = 1.f;
 }
 class Preferences
