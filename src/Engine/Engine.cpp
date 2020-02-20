@@ -1008,7 +1008,7 @@ void Engine::update(const sf::Time &el)
     {
         _pImpl->_startScreenDialog.update(elapsed);
     }
-    else if(_pImpl->isKeyPressed(32))
+    else if(_pImpl->isKeyPressed(InputConstants::KEY_SPACE))
     { 
         _pImpl->_state = _pImpl->_state == EngineState::Game ? EngineState::Paused : EngineState::Game; 
         if(_pImpl->_state == EngineState::Paused)
@@ -1018,6 +1018,13 @@ void Engine::update(const sf::Time &el)
         else
         {
             _pImpl->_soundManager.resumeAllSounds();
+        }
+    }
+    else if(_pImpl->isKeyPressed(InputConstants::KEY_ESCAPE))
+    { 
+        if(inCutscene())
+        { 
+            cutsceneOverride();
         }
     }
     
