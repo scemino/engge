@@ -6,6 +6,7 @@
 #include "Scripting/ScriptEngine.hpp"
 #include "Graphics/Text.hpp"
 #include "_SayFunction.hpp"
+#include "Graphics/Screen.hpp"
 
 namespace ng
 {
@@ -81,20 +82,25 @@ void DialogManager::selectLabel(const std::string &name)
     }
 }
 
-void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
 {
     if (!_functions.empty())
         return;
 
+    const auto& win = _pEngine->getWindow();
+    auto pos = win.mapPixelToCoords(sf::Mouse::getPosition(win), sf::View(sf::FloatRect(0,0,Screen::Width, Screen::Height)));
+
+    const auto view = target.getView();
+    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+
     int dialog = 0;
-    auto screen = target.getView().getSize();
-    auto scale = (screen.y * 5.f) / (8.f * 512.f);
 
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
     const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
+    auto y = 534.f;
+
     NGText text;
-    text.scale(scale, scale);
     text.setFont(font);
     for (auto &dlg : _dialog)
     {
@@ -103,7 +109,6 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 
         if((dialog+1) >= _limit) break;
 
-        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         std::wstring dialogText = dlg.text;
         std::wregex re(L"(\\{([^\\}]*)\\})");
         std::wsmatch matches;
@@ -116,16 +121,21 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates states) cons
         s = L"● ";
         s += dialogText;
         text.setText(s);
-        text.setColor(text.getBoundRect().contains(_pEngine->getMousePos()) ? _pEngine->getVerbUiColors(_actorName)->dialogHighlight : _pEngine->getVerbUiColors(_actorName)->dialogNormal);
-        target.draw(text, states);
+        text.setPosition(0, y);
+        text.setColor(text.getBoundRect().contains(pos) ? _pEngine->getVerbUiColors(_actorName)->dialogHighlight : _pEngine->getVerbUiColors(_actorName)->dialogNormal);
+        target.draw(text);
+        
+        y += text.getBoundRect().height;
         dialog++;
     }
+
+    target.setView(view);
 }
 
 void DialogManager::update(const sf::Time &elapsed)
 {
-    auto screen = _pEngine->getWindow().getView().getSize();
-    auto scale = (screen.y * 5.f) / (8.f * 512.f);
+    const auto& win = _pEngine->getWindow();
+    auto pos = win.mapPixelToCoords(sf::Mouse::getPosition(win), sf::View(sf::FloatRect(0,0,Screen::Width, Screen::Height)));
 
     if(!_functions.empty())
     {
@@ -161,6 +171,7 @@ void DialogManager::update(const sf::Time &elapsed)
         return;
 
     int dialog = 0;
+    auto y = 534.f;
     for (const auto& dlg : _dialog)
     {
         if (dlg.id == 0)
@@ -172,19 +183,19 @@ void DialogManager::update(const sf::Time &elapsed)
         const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
         // HACK: bad, bad, this code is the same as in the draw function
-        NGText text;
-        text.scale(scale, scale);
-        text.setFont(font);
-        text.setPosition(0, screen.y - 3 * screen.y / 14.f + dialog * 6);
         sf::String s;
         s = L"● ";
         s += dlg.text;
+        NGText text;
+        text.setFont(font);
+        text.setPosition(0, y);
         text.setText(s);
-        if (text.getBoundRect().contains(_pEngine->getMousePos()))
+        if (text.getBoundRect().contains(pos))
         {
             choose(dialog + 1);
             break;
         }
+        y += text.getBoundRect().height;
         dialog++;
     }
 }

@@ -6,10 +6,6 @@
 
 namespace ng
 {
-Font::Font() = default;
-
-Font::~Font() = default;
-
 void Font::setTextureManager(TextureManager *textureManager)
 {
     _textureManager = textureManager;
@@ -34,7 +30,7 @@ sf::IntRect Font::getRect(uint32_t letter) const
     return _toRect(_json["frames"][s]["frame"]);
 }
 
-sf::IntRect Font::getSize(uint32_t letter) const
+sf::IntRect Font::getSourceSize(uint32_t letter) const
 {
     auto s = std::to_string(letter);
     return _toRect(_json["frames"][s]["spriteSourceSize"]);
@@ -53,9 +49,9 @@ sf::FloatRect NGText::getBoundRect() const
     {
         auto rect = _font.getRect(letter);
         height = std::max(height, (float)rect.height);
-        width += std::max(rect.width, 10);
+        width += std::max(rect.width - 2, 5);
     }
-    sf::FloatRect r(0, 0, width, height);
+    sf::FloatRect r(0, height/2.f, width, height);
     return getTransform().transformRect(r);
 }
 
@@ -68,9 +64,10 @@ void NGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
     for (auto letter : _text)
     {
         auto rect = _font.getRect(letter);
-        sourceRects.push_back(_font.getSize(letter));
+        sourceRects.push_back(_font.getSourceSize(letter));
         rects.push_back(rect);
-        width += std::max(rect.width, 10);
+        auto w = std::max(rect.width - 2, 5);
+        width += w;
     }
 
     auto x = _alignment == NGTextAlignment::Center ? -width / 2.f : 0.f;
@@ -78,14 +75,15 @@ void NGText::draw(sf::RenderTarget &target, sf::RenderStates states) const
     {
         auto rect = rects[i];
         const auto &sourceRect = sourceRects[i];
-        sf::Sprite _sprite;
-        _sprite.setTextureRect(rect);
-        _sprite.setTexture(_font.getTexture());
-        _sprite.setOrigin(-sourceRect.left, -sourceRect.top);
-        _sprite.setColor(_color);
-        _sprite.setPosition(x, 0);
-        target.draw(_sprite, states);
-        x += std::max(rect.width, 10);
+        sf::Sprite sprite;
+        sprite.setTextureRect(rect);
+        sprite.setTexture(_font.getTexture());
+        sprite.setOrigin(-sourceRect.left, -sourceRect.top);
+        sprite.setColor(_color);
+        sprite.setPosition(x, 0);
+        target.draw(sprite, states);
+        auto w = std::max(rect.width - 2, 5);
+        x += w;
     }
 }
 
