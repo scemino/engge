@@ -118,7 +118,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
         }
         
         sf::String s;
-        s = L"● ";
+        s = L"\u25CF ";
         s += dialogText;
         text.setText(s);
         text.setPosition(0, y);
@@ -184,7 +184,7 @@ void DialogManager::update(const sf::Time &elapsed)
 
         // HACK: bad, bad, this code is the same as in the draw function
         sf::String s;
-        s = L"● ";
+        s = L"\u25CF ";
         s += dlg.text;
         NGText text;
         text.setFont(font);
