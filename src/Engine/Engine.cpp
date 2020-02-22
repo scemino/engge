@@ -156,12 +156,14 @@ struct Engine::Impl
     OptionsDialog _optionsDialog;
     StartScreenDialog _startScreenDialog;
     bool _run{false};
+    sf::Time _noOverrideElapsed{sf::seconds(2)};
 
     Impl();
 
     void drawVerbs(sf::RenderWindow &window) const;
     void drawCursor(sf::RenderWindow &window) const;
     void drawCursorText(sf::RenderTarget &target) const;
+    void drawNoOverride(sf::RenderTarget &target) const;
     int getCurrentActorIndex() const;
     sf::IntRect getCursorRect() const;
     void appendUseFlag(std::wstring &sentence) const;
@@ -1023,8 +1025,12 @@ void Engine::update(const sf::Time &el)
     else if(_pImpl->isKeyPressed(InputConstants::KEY_ESCAPE))
     { 
         if(inCutscene())
-        { 
-            cutsceneOverride();
+        {
+            if(_pImpl->_pCutscene && _pImpl->_pCutscene->hasCutsceneOverride()){
+                cutsceneOverride();
+            } else {
+                _pImpl->_noOverrideElapsed = sf::seconds(0);
+            }
         }
     }
     
@@ -1059,6 +1065,7 @@ void Engine::update(const sf::Time &el)
     auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
 
     _pImpl->_time += elapsed;
+    _pImpl->_noOverrideElapsed += elapsed;
 
     _pImpl->_camera.update(elapsed);
     _pImpl->_soundManager.update(elapsed);
@@ -1317,6 +1324,7 @@ void Engine::draw(sf::RenderWindow &window) const
 
         _pImpl->drawCursor(window);
         _pImpl->drawCursorText(window);
+        _pImpl->drawNoOverride(window);
         _pImpl->_pDebugTools->render();
     }
 }
@@ -1528,6 +1536,26 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     auto x = std::clamp((int)_mousePos.x, 20, (int)(screen.x - 20 - (int)text.getBoundRect().width / 2));
     text.setPosition(x, y);
     target.draw(text, sf::RenderStates::Default);
+}
+
+void Engine::Impl::drawNoOverride(sf::RenderTarget &target) const
+{
+    if(_noOverrideElapsed > sf::seconds(2)) return;
+
+    const auto view = target.getView();
+    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+
+    sf::Color c(sf::Color::White);
+    c.a = static_cast<sf::Uint8>((2.f - _noOverrideElapsed.asSeconds()/2.f) * 255);
+    sf::Sprite spriteNo;
+    spriteNo.setColor(c);
+    spriteNo.setPosition(sf::Vector2f(8.f, 8.f));
+    spriteNo.setScale(sf::Vector2f(2.f, 2.f));
+    spriteNo.setTexture(_gameSheet.getTexture());
+    spriteNo.setTextureRect(_gameSheet.getRect("icon_no"));
+    target.draw(spriteNo);
+
+    target.setView(view);
 }
 
 void Engine::Impl::appendUseFlag(std::wstring &sentence) const
