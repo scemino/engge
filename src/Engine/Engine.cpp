@@ -1065,6 +1065,7 @@ void Engine::update(const sf::Time &el)
     _pImpl->updateCutscene(elapsed);
     _pImpl->updateFunctions(elapsed);
     _pImpl->updateSentence(elapsed);
+    _pImpl->updateKeys();
 
     if (!_pImpl->_pRoom)
         return;
@@ -1115,7 +1116,6 @@ void Engine::update(const sf::Time &el)
         return;
 
     _pImpl->updateKeyboard();
-    _pImpl->updateKeys();
 
     if (_pImpl->_dialogManager.getState() != DialogManagerState::None)
     {
