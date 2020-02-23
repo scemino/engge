@@ -35,6 +35,16 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-graphics.so.2.5 ./src/engge)")
     install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-graphics.so.2.5 ./src/engge)")
 
+# Install libraries on Windows
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+
+    install(FILES "${ImGui-SFML_DIR}/../../../bin/ImGui-SFML.dll" DESTINATION .)
+    install(FILES "${SFML_DIR}/../../../bin/openal32.dll" DESTINATION .)
+    install(FILES "${SFML_DIR}/../../../bin/sfml-audio-2.dll" DESTINATION .)
+    install(FILES "${SFML_DIR}/../../../bin/sfml-graphics-2.dll" DESTINATION .)
+    install(FILES "${SFML_DIR}/../../../bin/sfml-system-2.dll" DESTINATION .)
+    install(FILES "${SFML_DIR}/../../../bin/sfml-window-2.dll" DESTINATION .)
+
 endif()
 
 target_compile_features("${appName}" PRIVATE cxx_std_17)
