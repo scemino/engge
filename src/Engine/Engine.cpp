@@ -1418,7 +1418,7 @@ void Engine::Impl::stopThreads()
 
 void Engine::Impl::drawCursor(sf::RenderWindow &window) const
 {
-    if (!_showCursor)
+    if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
         return;
 
     auto screen = _pWindow->getView().getSize();
