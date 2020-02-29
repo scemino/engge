@@ -1810,16 +1810,17 @@ void Engine::keyUp(int key)
 void Engine::sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string& text)
 {
     _pImpl->_talkingState.setTalkColor(color);
-    auto y = getRoom()->getRoomSize().y;
-    sf::Vector2f p(pos.x, y - pos.y);
-    _pImpl->_talkingState.setPosition(p);
+    auto size = getRoom()->getRoomSize();
+    sf::Vector2i p(pos.x, size.y - pos.y);
+    _pImpl->_talkingState.setPosition(toDefaultView(p, size));
     _pImpl->_talkingState.setText(getText(text));
     _pImpl->_talkingState.setDuration(duration);
 }
 
 void Engine::sayLineAt(sf::Vector2i pos, Actor& actor, const std::string& text)
 {
-    _pImpl->_talkingState.setPosition((sf::Vector2f)pos);
+    auto size = getRoom()->getRoomSize();
+    _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
     _pImpl->_talkingState.loadLip(text, &actor);
 }
 

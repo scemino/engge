@@ -185,14 +185,13 @@ private:
         if(!_pEngine->getPreferences().getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText))
             return;
 
-        auto screen = target.getView().getSize();
-        auto scale = screen.y / (2.f * 512.f);
+        auto view = target.getView();
+        target.setView(sf::View(sf::FloatRect(0,0,Screen::Width,Screen::Height)));
 
         auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
         const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
         NGText text;
-        text.scale(scale, scale);
         text.setAlignment(NGTextAlignment::Center);
         text.setFont(font);
         text.setColor(_talkColor);
@@ -201,6 +200,7 @@ private:
         states.transform *= getTransform();
 
         target.draw(text, states);
+        target.setView(view);
     }
 
 private:

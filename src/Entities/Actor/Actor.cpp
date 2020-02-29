@@ -133,7 +133,8 @@ void Actor::say(const std::string& text)
     auto at = pImpl->_engine.getCamera().getAt();
     pos.x = pos.x - at.x + pImpl->_talkOffset.x;
     pos.y = pos.y - at.y - pImpl->_talkOffset.y;
-    pImpl->_talkingState.setPosition(pos);
+    auto p = toDefaultView((sf::Vector2i)pos, pImpl->_engine.getRoom()->getScreenSize());
+    pImpl->_talkingState.setPosition(p);
 }
 
 void Actor::stopTalking() { pImpl->_talkingState.stop(); }

@@ -320,4 +320,10 @@ sf::Color _fromRgb(SQInteger color)
     sf::Color c((col >> 16u) & 255u, (col >> 8u) & 255u, col & 255u);
     return c;
 }
+
+sf::Vector2f toDefaultView(sf::Vector2i pos, sf::Vector2i fromSize)
+{
+    return sf::Vector2f((Screen::Width * pos.x)/fromSize.x,(Screen::Height * pos.y)/fromSize.y);
+}
+
 } // namespace ng

@@ -5,6 +5,7 @@
 #include "Math/PathFinding/Walkbox.hpp"
 #include "Parsers/GGPack.hpp"
 #include "../Math/Vector.hpp"
+#include "Graphics/Screen.hpp"
 
 namespace ng
 {
@@ -60,4 +61,7 @@ void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices,
 sf::Color _toColor(const std::string& color);
 sf::Color _toColor(SQInteger color);
 sf::Color _fromRgb(SQInteger color);
+
+sf::Vector2f toDefaultView(sf::Vector2i pos, sf::Vector2i fromSize);
+
 } // namespace ng
