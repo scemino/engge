@@ -25,6 +25,7 @@
 #include "Engine/TextDatabase.hpp"
 #include "Engine/Thread.hpp"
 #include "Engine/Verb.hpp"
+#include "Graphics/NGText.hpp"
 #include "Scripting/VerbExecute.hpp"
 #include "../System/_DebugTools.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"

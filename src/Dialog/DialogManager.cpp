@@ -7,6 +7,7 @@
 #include "Graphics/Text.hpp"
 #include "_SayFunction.hpp"
 #include "Graphics/Screen.hpp"
+#include "Graphics/NGText.hpp"
 
 namespace ng
 {
