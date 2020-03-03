@@ -75,6 +75,7 @@ struct OptionsDialog::Impl
     bool _showQuit{false};
     QuitDialog _quit;
     Callback _callback{nullptr};
+    bool _isDirty{false};
 
     inline static float getSlotPos(int slot)
     {
@@ -109,6 +110,11 @@ struct OptionsDialog::Impl
 
     void updateState(State state)
     {
+        if(_isDirty)
+        {
+            Locator<Preferences>::get().save();
+            _isDirty = false;
+        }
         _sliders.clear();
         _buttons.clear();
         _switchButtons.clear();
@@ -129,54 +135,55 @@ struct OptionsDialog::Impl
             break;
         case State::Sound:
             setHeading(Ids::Sound);
-            _sliders.emplace_back(Ids::SoundVolume, getSlotPos(2), true, Locator<SoundManager>::get().getSoundVolume(), [](auto value){ Locator<SoundManager>::get().setSoundVolume(value); });
-            _sliders.emplace_back(Ids::MusicVolume, getSlotPos(3), true, Locator<SoundManager>::get().getMusicVolume(), [](auto value){ Locator<SoundManager>::get().setMusicVolume(value); });
-            _sliders.emplace_back(Ids::VoiceVolume, getSlotPos(4), true, Locator<SoundManager>::get().getTalkVolume(), [](auto value){ Locator<SoundManager>::get().setTalkVolume(value); });
+            _sliders.emplace_back(Ids::SoundVolume, getSlotPos(2), true, Locator<SoundManager>::get().getSoundVolume(), [this](auto value){ _isDirty = true; Locator<SoundManager>::get().setSoundVolume(value); });
+            _sliders.emplace_back(Ids::MusicVolume, getSlotPos(3), true, Locator<SoundManager>::get().getMusicVolume(), [this](auto value){ _isDirty = true; Locator<SoundManager>::get().setMusicVolume(value); });
+            _sliders.emplace_back(Ids::VoiceVolume, getSlotPos(4), true, Locator<SoundManager>::get().getTalkVolume(), [this](auto value){ _isDirty = true; Locator<SoundManager>::get().setTalkVolume(value); });
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, _Button::Size::Medium);
             break;
         case State::Video:
             setHeading(Ids::Video);
             _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), false, 
                 getUserPreference(PreferenceNames::Fullscreen, PreferenceDefaultValues::Fullscreen),
-                [this](auto value){ setUserPreference(PreferenceNames::Fullscreen, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::Fullscreen, value); });
             _sliders.emplace_back(Ids::SafeArea, getSlotPos(2), false, 
                 getUserPreference(PreferenceNames::SafeArea, PreferenceDefaultValues::SafeArea),
-                [this](auto value){ setUserPreference(PreferenceNames::SafeArea, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::SafeArea, value); });
             _checkboxes.emplace_back(Ids::ToiletPaperOver, getSlotPos(4), true, 
                 getUserPreference(PreferenceNames::ToiletPaperOver, PreferenceDefaultValues::ToiletPaperOver),
-                [this](auto value){ setUserPreference(PreferenceNames::ToiletPaperOver, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::ToiletPaperOver, value); });
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, _Button::Size::Medium);
             break;
         case State::Controls:
             setHeading(Ids::Controls);
             _checkboxes.emplace_back(Ids::Controller, getSlotPos(1), false, 
                 getUserPreference(PreferenceNames::Controller, PreferenceDefaultValues::Controller),
-                [this](auto value){ setUserPreference(PreferenceNames::Controller, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::Controller, value); });
             _checkboxes.emplace_back(Ids::ScrollSyncCursor, getSlotPos(2), false, 
                 getUserPreference(PreferenceNames::ScrollSyncCursor, PreferenceDefaultValues::ScrollSyncCursor),
-                [this](auto value){ setUserPreference(PreferenceNames::ScrollSyncCursor, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::ScrollSyncCursor, value); });
             _checkboxes.emplace_back(Ids::InvertVerbColors, getSlotPos(4), true, 
                 getUserPreference(PreferenceNames::InvertVerbHighlight, PreferenceDefaultValues::InvertVerbHighlight),
-                [this](auto value){ setUserPreference(PreferenceNames::InvertVerbHighlight, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::InvertVerbHighlight, value); });
             _checkboxes.emplace_back(Ids::RetroFonts, getSlotPos(5), true, 
                 getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts),
-                [this](auto value){ setUserPreference(PreferenceNames::RetroFonts, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::RetroFonts, value); });
             _checkboxes.emplace_back(Ids::RetroVerbs, getSlotPos(6), true, 
                 getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs),
-                [this](auto value){ setUserPreference(PreferenceNames::RetroVerbs, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::RetroVerbs, value); });
             _checkboxes.emplace_back(Ids::ClassicSentence, getSlotPos(7), true, 
                 getUserPreference(PreferenceNames::ClassicSentence, PreferenceDefaultValues::ClassicSentence),
-                [this](auto value){ setUserPreference(PreferenceNames::ClassicSentence, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::ClassicSentence, value); });
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, _Button::Size::Medium);
             break;
         case State::TextAndSpeech:
             setHeading(Ids::TextAndSpeech);
             _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), true, 
                 getUserPreference(PreferenceNames::SayLineSpeed, PreferenceDefaultValues::SayLineSpeed),
-                [this](auto value){ setUserPreference(PreferenceNames::SayLineSpeed, value); });
+                [this](auto value){ _isDirty = true; setUserPreference(PreferenceNames::SayLineSpeed, value); });
             _checkboxes.emplace_back(Ids::DisplayText, getSlotPos(3), true, 
                 getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText),
                 [this](auto value) { 
+                    _isDirty = true;
                     if(!value && !getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice)) {
                         _checkboxes[1].setChecked(true);
                         setUserPreference(PreferenceNames::HearVoice, true);    
@@ -186,6 +193,7 @@ struct OptionsDialog::Impl
             _checkboxes.emplace_back(Ids::HearVoice, getSlotPos(4), true, 
                 getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice),
                 [this](auto value) {
+                    _isDirty = true;
                     if(!value && !getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText)) {
                         _checkboxes[0].setChecked(true);
                         setUserPreference(PreferenceNames::DisplayText, true);    
@@ -194,7 +202,7 @@ struct OptionsDialog::Impl
                 });
             _switchButtons.push_back(_SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText, Ids::SpanishText}, getSlotPos(5), true, 
                 getLanguageUserPreference(), [this](auto index){
-                setUserPreference(PreferenceNames::Language, LanguageValues[index]);
+                _isDirty = true; setUserPreference(PreferenceNames::Language, LanguageValues[index]);
             }));
             _buttons.emplace_back(Ids::Back, getSlotPos(9), [this](){ updateState(State::Main); }, true, _Button::Size::Medium);
             break;
