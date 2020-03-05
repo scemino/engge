@@ -4,7 +4,7 @@
 #include "SFML/Graphics.hpp"
 #include "Parsers/YackParser.hpp"
 #include "Engine/Function.hpp"
-#include "Font/Font.hpp"
+#include "Font/GGFont.hpp"
 
 namespace ng
 {

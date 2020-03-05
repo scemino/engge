@@ -14,7 +14,7 @@
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Audio/SoundTrigger.hpp"
-#include "Graphics/NGText.hpp"
+#include "Graphics/Text.hpp"
 #include "_TalkingState.hpp"
 #include "../../System/_Util.hpp"
 #include "../../Math/PathFinding/_Path.hpp"

@@ -6,7 +6,7 @@
 #include "Engine/Cutscene.hpp"
 #include "Dialog/DialogManager.hpp"
 #include "Font/FntFont.hpp"
-#include "Font/Font.hpp"
+#include "Font/GGFont.hpp"
 #include "Math/PathFinding/Graph.hpp"
 #include "Engine/Inventory.hpp"
 #include "UI/OptionsDialog.hpp"
@@ -25,7 +25,7 @@
 #include "Engine/TextDatabase.hpp"
 #include "Engine/Thread.hpp"
 #include "Engine/Verb.hpp"
-#include "Graphics/NGText.hpp"
+#include "Graphics/Text.hpp"
 #include "Scripting/VerbExecute.hpp"
 #include "../System/_DebugTools.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
@@ -1393,18 +1393,17 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
     target.setView(sf::View(viewRect));
 
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-    const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+    const GGFont& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
-    NGText text;
+    Text text;
     auto screen = target.getView().getSize();
     auto scale = screen.y / 512.f;
     text.setScale(scale, scale);
-    text.setAlignment(NGTextAlignment::Center);
     text.setPosition(viewCenter);
     text.setFont(font);
-    text.setColor(sf::Color::White);
-    text.setText(_pEngine->getText(99951));
-    auto bounds = text.getBoundRect();
+    text.setFillColor(sf::Color::White);
+    text.setString(_pEngine->getText(99951));
+    auto bounds = text.getGlobalBounds();
     text.move(0, -bounds.height);
     target.draw(text);
     
@@ -1497,15 +1496,14 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
         return;
 
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-    const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+    const GGFont& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
-    NGText text;
+    Text text;
     auto screen = target.getView().getSize();
     auto scale = screen.y / (2.f * 512.f);
-    text.setAlignment(NGTextAlignment::Center);
     text.setScale(scale, scale);
     text.setFont(font);
-    text.setColor(_verbUiColors.at(currentActorIndex).sentence);
+    text.setFillColor(_verbUiColors.at(currentActorIndex).sentence);
 
     std::wstring s;
     if (pVerb->id != VerbConstants::VERB_WALKTO || _pHoveredEntity)
@@ -1522,7 +1520,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     {
         s.append(L" ").append(getDisplayName(_pEngine->getText(_pObj2->getName())));
     }
-    text.setText(s);
+    text.setString(s);
 
     // do display cursor position:
     // auto mousePosInRoom = _mousePos + _camera.getAt();
@@ -1534,7 +1532,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;
     if (y < 0)
         y = 0;
-    auto x = std::clamp((int)_mousePos.x, 20, (int)(screen.x - 20 - (int)text.getBoundRect().width / 2));
+    auto x = std::clamp<float>(_mousePos.x-text.getGlobalBounds().width/2, 20.f, screen.x - 20 - text.getGlobalBounds().width/2);
     text.setPosition(x, y);
     target.draw(text, sf::RenderStates::Default);
 }

@@ -40,10 +40,6 @@ const sf::Glyph &CharSet::getChar(int id) const
     return it->second;
 }
 
-FntFont::FntFont() = default;
-
-FntFont::~FntFont() = default;
-
 bool FntFont::loadFromFile(const std::string &path)
 {
     // Parse .fnt file
@@ -243,24 +239,6 @@ const sf::Glyph &
 FntFont::getGlyph(sf::Uint32 codePoint, unsigned int, bool, float) const
 {
     return m_chars.getChar((int)codePoint);
-}
-
-sf::Vector2i FntFont::getTextSize(const std::wstring &text, int begin, int end)
-{
-    if (begin < 0)
-        return sf::Vector2i();
-    if (end < 0 || end >= static_cast<int>(text.size()))
-        end = text.size() - 1;
-
-    // TODO FntFont::getTextSize() : exact height instead of max height
-
-    sf::Vector2i size(0, getLineHeight());
-    for (int i = begin; i <= end; ++i)
-    {
-        const sf::Glyph &cd = m_chars.getChar(text[i]);
-        size.x += cd.advance;
-    }
-    return size;
 }
 
 } // namespace ng

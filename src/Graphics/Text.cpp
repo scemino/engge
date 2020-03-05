@@ -93,7 +93,7 @@ void Text::setString(const sf::String &string)
 }
 
 ////////////////////////////////////////////////////////////
-void Text::setFont(const FntFont &font)
+void Text::setFont(const Font &font)
 {
     if (m_font != &font)
     {
@@ -192,7 +192,7 @@ const sf::String &Text::getString() const
 }
 
 ////////////////////////////////////////////////////////////
-const FntFont *Text::getFont() const
+const Font *Text::getFont() const
 {
     return m_font;
 }

@@ -25,7 +25,7 @@ public:
     Text(const sf::String& string, const FntFont& font, unsigned int characterSize = 30);
 
     void setString(const sf::String& string);
-    void setFont(const FntFont& font);
+    void setFont(const Font& font);
     void setCharacterSize(unsigned int size);
     void setLineSpacing(float spacingFactor);
     void setLetterSpacing(float spacingFactor);
@@ -36,7 +36,7 @@ public:
     void setMaxWidth(int maxWidth);
 
     const sf::String& getString() const;
-    const FntFont* getFont() const;
+    const Font* getFont() const;
     unsigned int getCharacterSize() const;
     float getLetterSpacing() const;
     float getLineSpacing() const;
@@ -55,7 +55,7 @@ private:
     void ensureGeometryUpdate() const;
 
     sf::String                 m_string;              ///< String to display
-    const FntFont*             m_font;                ///< Font used to display the string
+    const Font*                m_font;                ///< GGFont used to display the string
     unsigned int               m_characterSize;       ///< Base size of characters, in pixels
     float                      m_letterSpacingFactor; ///< Spacing factor between letters
     float                      m_lineSpacingFactor;   ///< Spacing factor between lines

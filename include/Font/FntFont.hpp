@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <unordered_map>
+#include "Font.hpp"
 
 namespace ng
 {
@@ -121,7 +122,7 @@ class CharSet
 	std::list<Kerning> m_kernings;
 };
 
-class FntFont
+class FntFont: public Font
 {
   private:
 	CharSet m_chars;
@@ -129,17 +130,12 @@ class FntFont
 	std::vector<sf::Texture> m_textures;
 
   public:
-	FntFont();
-	~FntFont();
-
 	bool loadFromFile(const std::string& path);
 
-	int getLineHeight() const;
-	const sf::Glyph& getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const;
-	float getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const;
-	const sf::Texture& getTexture(unsigned int characterSize) const;
-
-	sf::Vector2i getTextSize(const std::wstring &text, int begin = 0, int end = -1);
+	int getLineHeight() const override;
+	const sf::Glyph& getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const override;
+	float getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const override;
+	const sf::Texture& getTexture(unsigned int characterSize) const override;
 
   private:
 	bool parse(const std::string& path);

@@ -1,27 +1,16 @@
 #pragma once
-#include "SFML/Graphics.hpp"
-#include "Parsers/JsonTokenReader.hpp"
-#include "Graphics/TextureManager.hpp"
+#include <SFML/Graphics.hpp>
 
 namespace ng
 {
+
 class Font
 {
 public:
-  void setTextureManager(TextureManager *textureManager);
-
-  void load(const std::string &path);
-
-  const sf::Texture &getTexture() const { return _texture; }
-  sf::IntRect getRect(uint32_t letter) const;
-  sf::IntRect getSourceSize(uint32_t letter) const;
-
-private:
-  TextureManager *_textureManager{nullptr};
-  std::string _path;
-  std::string _jsonFilename;
-  ng::GGPackValue _json;
-  sf::Texture _texture;
+	virtual int getLineHeight() const = 0;
+	virtual const sf::Glyph& getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const = 0;
+	virtual float getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const = 0;
+	virtual const sf::Texture& getTexture(unsigned int characterSize) const = 0;
 };
 
-} // namespace ng
+} // namespace gg

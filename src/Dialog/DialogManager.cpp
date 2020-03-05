@@ -7,7 +7,6 @@
 #include "Graphics/Text.hpp"
 #include "_SayFunction.hpp"
 #include "Graphics/Screen.hpp"
-#include "Graphics/NGText.hpp"
 
 namespace ng
 {
@@ -97,11 +96,11 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
     int dialog = 0;
 
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-    const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+    const GGFont& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
     auto y = 534.f;
 
-    NGText text;
+    Text text;
     text.setFont(font);
     for (auto &dlg : _dialog)
     {
@@ -121,12 +120,12 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
         sf::String s;
         s = L"\u25CF ";
         s += dialogText;
-        text.setText(s);
+        text.setString(s);
         text.setPosition(0, y);
-        text.setColor(text.getBoundRect().contains(pos) ? _pEngine->getVerbUiColors(_actorName)->dialogHighlight : _pEngine->getVerbUiColors(_actorName)->dialogNormal);
+        text.setFillColor(text.getGlobalBounds().contains(pos) ? _pEngine->getVerbUiColors(_actorName)->dialogHighlight : _pEngine->getVerbUiColors(_actorName)->dialogNormal);
         target.draw(text);
         
-        y += text.getBoundRect().height;
+        y += text.getGlobalBounds().height;
         dialog++;
     }
 
@@ -181,22 +180,22 @@ void DialogManager::update(const sf::Time &elapsed)
         if((dialog+1) >= _limit) break;
 
         auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-        const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+        const GGFont& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
         // HACK: bad, bad, this code is the same as in the draw function
         sf::String s;
         s = L"\u25CF ";
         s += dlg.text;
-        NGText text;
+        Text text;
         text.setFont(font);
         text.setPosition(0, y);
-        text.setText(s);
-        if (text.getBoundRect().contains(pos))
+        text.setString(s);
+        if (text.getGlobalBounds().contains(pos))
         {
             choose(dialog + 1);
             break;
         }
-        y += text.getBoundRect().height;
+        y += text.getGlobalBounds().height;
         dialog++;
     }
 }

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Engine/EngineSettings.hpp"
 #include "Font/FntFont.hpp"
-#include "Font/Font.hpp"
+#include "Font/GGFont.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Graphics/TextureManager.hpp"
@@ -37,7 +37,7 @@ void TextureManager::load(const std::string &id)
 void TextureManager::loadFont(const std::string &id)
 {
     info("Load font {}", id);
-    auto font = std::make_shared<Font>();
+    auto font = std::make_shared<GGFont>();
     font->setTextureManager(this);
     font->load(id);
     _fontMap.insert(std::make_pair(id, font));
@@ -62,7 +62,7 @@ const sf::Texture &TextureManager::get(const std::string &id)
     return *found->second;
 }
 
-const Font &TextureManager::getFont(const std::string &id)
+const GGFont &TextureManager::getFont(const std::string &id)
 {
     auto found = _fontMap.find(id);
     if (found == _fontMap.end())

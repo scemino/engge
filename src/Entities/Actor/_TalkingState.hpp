@@ -1,8 +1,9 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "Engine/Engine.hpp"
-#include "Font/Font.hpp"
+#include "Font/GGFont.hpp"
 #include "Graphics/Screen.hpp"
+#include "Graphics/Text.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "_LipAnimation.hpp"
 #include "../../System/_Util.hpp"
@@ -177,7 +178,7 @@ private:
         loadActorSpeech(name);
     }
 
-    void draw(sf::RenderTarget &target, sf::RenderStates states) const override
+    void draw(sf::RenderTarget &target, sf::RenderStates) const override
     {
         if (!_isTalking)
             return;
@@ -189,15 +190,32 @@ private:
         target.setView(sf::View(sf::FloatRect(0,0,Screen::Width,Screen::Height)));
 
         auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-        const Font& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
+        const GGFont& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
 
-        NGText text;
-        text.setAlignment(NGTextAlignment::Center);
+        Text text;
+        text.setMaxWidth(static_cast<int>((Screen::Width*3)/4));
         text.setFont(font);
-        text.setColor(_talkColor);
-        text.setText(_sayText);
+        text.setFillColor(_talkColor);
+        text.setString(_sayText);
 
-        states.transform *= getTransform();
+        auto bounds = text.getGlobalBounds();
+        auto pos = getPosition();
+        sf::Transformable transform;
+        if((pos.x + bounds.width/2) > Screen::Width)
+        {
+            transform.setPosition(Screen::Width-bounds.width, pos.y-bounds.height);
+        }
+        else if((pos.x-bounds.width/2) < 0)
+        {
+            transform.setPosition(0, pos.y-bounds.height);
+        }
+        else
+        {
+            transform.setPosition(pos.x-bounds.width/2, pos.y-bounds.height);
+        }
+
+        sf::RenderStates states;
+        states.transform *= transform.getTransform();
 
         target.draw(text, states);
         target.setView(view);
