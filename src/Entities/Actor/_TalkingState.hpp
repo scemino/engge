@@ -198,26 +198,44 @@ private:
         text.setFillColor(_talkColor);
         text.setString(_sayText);
 
-        auto bounds = text.getGlobalBounds();
+        auto bounds = text.getLocalBounds();
         auto pos = getPosition();
-        sf::Transformable transform;
-        if((pos.x + bounds.width/2) > Screen::Width)
+
+        if((pos.x + bounds.width/2) > (Screen::Width-20))
         {
-            transform.setPosition(Screen::Width-bounds.width, pos.y-bounds.height);
+            pos.x = Screen::Width-bounds.width - 20;
         }
-        else if((pos.x-bounds.width/2) < 0)
+        else if((pos.x - bounds.width/2) < 20)
         {
-            transform.setPosition(0, pos.y-bounds.height);
+            pos.x = 20;
         }
         else
         {
-            transform.setPosition(pos.x-bounds.width/2, pos.y-bounds.height);
+            pos.x = pos.x-bounds.width / 2;
         }
+        if((pos.y + bounds.height) > (Screen::Height-20))
+        {
+            pos.y = Screen::Height - 20 - bounds.height;
+        }
+        else if((pos.y - bounds.height) < 20)
+        {
+            pos.y = 20 + bounds.height;
+        }
+        else
+        {
+            pos.y = pos.y-bounds.height;
+        }
+        text.setPosition(pos);
+        target.draw(text);
 
-        sf::RenderStates states;
-        states.transform *= transform.getTransform();
+        // sf::RectangleShape shape;
+        // shape.setFillColor(sf::Color::Transparent);
+        // shape.setOutlineColor(sf::Color::White);
+        // shape.setOutlineThickness(1.f);
+        // shape.setSize(sf::Vector2f(bounds.width, bounds.height));
+        // shape.setPosition(pos);
+        // target.draw(shape);
 
-        target.draw(text, states);
         target.setView(view);
     }
 

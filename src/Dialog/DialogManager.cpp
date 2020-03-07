@@ -100,6 +100,9 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
 
     auto y = 534.f;
 
+    auto dialogHighlight = _pEngine->getVerbUiColors(_actorName)->dialogHighlight;
+    auto dialogNormal = _pEngine->getVerbUiColors(_actorName)->dialogNormal;
+
     Text text;
     text.setFont(font);
     for (auto &dlg : _dialog)
@@ -122,9 +125,10 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
         s += dialogText;
         text.setString(s);
         text.setPosition(0, y);
-        text.setFillColor(text.getGlobalBounds().contains(pos) ? _pEngine->getVerbUiColors(_actorName)->dialogHighlight : _pEngine->getVerbUiColors(_actorName)->dialogNormal);
+        auto bounds = text.getGlobalBounds();
+        text.setFillColor(bounds.contains(pos) ? dialogHighlight : dialogNormal);
         target.draw(text);
-        
+
         y += text.getGlobalBounds().height;
         dialog++;
     }

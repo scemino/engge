@@ -49,7 +49,7 @@ namespace ng
 ////////////////////////////////////////////////////////////
 Text::Text() : m_string(),
                m_font(nullptr),
-               m_characterSize(30),
+               m_characterSize(0),
                m_letterSpacingFactor(1.f),
                m_lineSpacingFactor(1.f),
                m_style(Regular),
@@ -128,6 +128,16 @@ void Text::setLineSpacing(float spacingFactor)
     if (m_lineSpacingFactor != spacingFactor)
     {
         m_lineSpacingFactor = spacingFactor;
+        m_geometryNeedUpdate = true;
+    }
+}
+
+////////////////////////////////////////////////////////////
+void Text::setMaxWidth(float maxWidth)
+{
+    if (m_maxWidth != maxWidth)
+    {
+        m_maxWidth = maxWidth;
         m_geometryNeedUpdate = true;
     }
 }
@@ -236,60 +246,6 @@ const sf::Color &Text::getOutlineColor() const
 float Text::getOutlineThickness() const
 {
     return m_outlineThickness;
-}
-
-////////////////////////////////////////////////////////////
-sf::Vector2f Text::findCharacterPos(std::size_t index) const
-{
-    // Make sure that we have a valid font
-    if (!m_font)
-        return sf::Vector2f();
-
-    // Adjust the index if it's out of range
-    if (index > m_string.getSize())
-        index = m_string.getSize();
-
-    // Precompute the variables needed by the algorithm
-    bool isBold = m_style & Bold;
-    float whitespaceWidth = m_font->getGlyph(L' ', m_characterSize, isBold).advance;
-    float letterSpacing = (whitespaceWidth / 3.f) * (m_letterSpacingFactor - 1.f);
-    whitespaceWidth += letterSpacing;
-    float lineSpacing = m_font->getLineHeight();
-
-    // Compute the position
-    sf::Vector2f position;
-    sf::Uint32 prevChar = 0;
-    for (std::size_t i = 0; i < index; ++i)
-    {
-        sf::Uint32 curChar = m_string[i];
-
-        // Apply the kerning offset
-        position.x += m_font->getKerning(prevChar, curChar, m_characterSize);
-        prevChar = curChar;
-
-        // Handle special characters
-        switch (curChar)
-        {
-        case ' ':
-            position.x += whitespaceWidth;
-            continue;
-        case '\t':
-            position.x += whitespaceWidth * 4;
-            continue;
-        case '\n':
-            position.y += lineSpacing;
-            position.x = 0;
-            continue;
-        }
-
-        // For regular characters, add the advance offset of the glyph
-        position.x += m_font->getGlyph(curChar, m_characterSize, isBold).advance + letterSpacing;
-    }
-
-    // Transform the position to global coordinates
-    position = getTransform().transformPoint(position);
-
-    return position;
 }
 
 sf::FloatRect Text::getLocalBounds() const
@@ -442,7 +398,7 @@ void Text::ensureGeometryUpdate() const
             maxX = std::max(maxX, x);
             maxY = std::max(maxY, y);
 
-            if(_maxWidth && x >= _maxWidth)
+            if(m_maxWidth && x >= m_maxWidth)
             {
                 y += lineSpacing;
                 x = 0;
@@ -520,7 +476,5 @@ void Text::ensureGeometryUpdate() const
     m_bounds.width = maxX - minX;
     m_bounds.height = maxY - minY;
 }
-
-void Text::setMaxWidth(int maxWidth) { _maxWidth = maxWidth; }
 
 } // namespace ng

@@ -50,12 +50,12 @@ void GGFont::load(const std::string &path)
         auto spriteSourceSize = _toRect(_json["frames"][sValue]["spriteSourceSize"]);
         auto sourceSize = _toSize(_json["frames"][sValue]["sourceSize"]);
         sf::Glyph glyph;
-        glyph.advance = sourceSize.x - spriteSourceSize.left - 4;
+        glyph.advance = std::max(sourceSize.x - spriteSourceSize.left - 4, 0);
         glyph.bounds = (sf::FloatRect)spriteSourceSize; 
         glyph.textureRect = frame;
         _glyphs[key] = glyph;
     }
-
+    
     _texture = _textureManager->get(_path);
 }
 } // namespace ng
