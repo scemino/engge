@@ -87,6 +87,9 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
     if (!_functions.empty())
         return;
 
+    if (_actorName.empty())
+        return;
+
     const auto& win = _pEngine->getWindow();
     auto pos = win.mapPixelToCoords(sf::Mouse::getPosition(win), sf::View(sf::FloatRect(0,0,Screen::Width, Screen::Height)));
 
