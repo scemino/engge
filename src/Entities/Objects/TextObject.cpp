@@ -39,7 +39,7 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     txt.setFillColor(getColor());
     txt.setString(_text);
     txt.setMaxWidth(_maxWidth);
-    auto bounds = txt.getGlobalBounds();
+    auto bounds = txt.getLocalBounds();
     sf::Vector2f offset;
     if (_alignment & TextAlignment::Center)
     {
@@ -51,11 +51,15 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
     if (_alignment & TextAlignment::Top)
     {
-        offset.y = -bounds.height / 2;
+        offset.y = 0;
     }
     else if (_alignment & TextAlignment::Bottom)
     {
-        offset.y = bounds.height / 2;
+        offset.y = -bounds.height;
+    }
+    else
+    {
+        offset.y = -bounds.height / 2;
     }
     txt.move(offset);
     states.transform *= _transform.getTransform();

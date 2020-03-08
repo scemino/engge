@@ -812,6 +812,10 @@ sf::Vector2i Room::getScreenSize() const
     auto height = getScreenHeight();
     switch (height)
     {
+        case 0:
+        {
+            return getRoomSize();
+        }
         case 128:
         {
             return sf::Vector2i(320, 180);

@@ -28,6 +28,7 @@
 #include "Graphics/Text.hpp"
 #include "Scripting/VerbExecute.hpp"
 #include "../System/_DebugTools.hpp"
+#include "../System/_Util.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "System/Logger.hpp"
 #include "../Math/PathFinding/_WalkboxDrawable.hpp"
@@ -1495,15 +1496,11 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     if(currentActorIndex == -1)
         return;
 
+    const auto view = target.getView();
+    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
     const GGFont& font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet": "FontModernSheet");
-
-    Text text;
-    auto screen = target.getView().getSize();
-    auto scale = screen.y / (2.f * 512.f);
-    text.setScale(scale, scale);
-    text.setFont(font);
-    text.setFillColor(_verbUiColors.at(currentActorIndex).sentence);
 
     std::wstring s;
     if (pVerb->id != VerbConstants::VERB_WALKTO || _pHoveredEntity)
@@ -1520,6 +1517,10 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     {
         s.append(L" ").append(getDisplayName(_pEngine->getText(_pObj2->getName())));
     }
+
+    Text text;
+    text.setFont(font);
+    text.setFillColor(_verbUiColors.at(currentActorIndex).sentence);
     text.setString(s);
 
     // do display cursor position:
@@ -1529,12 +1530,15 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     // ss << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";
     // text.setText(ss.str());
 
-    auto y = _mousePos.y - 22 < 8 ? _mousePos.y + 8 : _mousePos.y - 22;
-    if (y < 0)
-        y = 0;
-    auto x = std::clamp<float>(_mousePos.x-text.getGlobalBounds().width/2, 20.f, screen.x - 20 - text.getGlobalBounds().width/2);
-    text.setPosition(x, y);
+    auto screenSize =  _pRoom->getScreenSize();
+    auto pos = toDefaultView((sf::Vector2i)_mousePos, screenSize);
+
+    auto bounds = text.getGlobalBounds();
+    auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 30;
+    auto x = std::clamp<float>(pos.x-bounds.width/2.f, 20.f, Screen::Width - 20.f - bounds.width);
+    text.setPosition(x, y - bounds.height);
     target.draw(text, sf::RenderStates::Default);
+    target.setView(view);
 }
 
 void Engine::Impl::drawNoOverride(sf::RenderTarget &target) const
