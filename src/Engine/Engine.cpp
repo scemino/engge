@@ -1405,7 +1405,7 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
     text.setFillColor(sf::Color::White);
     text.setString(_pEngine->getText(99951));
     auto bounds = text.getGlobalBounds();
-    text.move(0, -bounds.height);
+    text.move(-bounds.width/2.f, -scale*bounds.height/2.f);
     target.draw(text);
     
     target.setView(view);
