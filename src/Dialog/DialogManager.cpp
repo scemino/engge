@@ -84,10 +84,10 @@ void DialogManager::selectLabel(const std::string &name)
 
 void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const
 {
-    if (!_functions.empty())
+    if(getState() != DialogManagerState::WaitingForChoice)
         return;
 
-    if (_actorName.empty())
+    if (!_functions.empty())
         return;
 
     const auto& win = _pEngine->getWindow();
