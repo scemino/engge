@@ -1,5 +1,7 @@
 #include "_Util.hpp"
 #include "../Math/Segment.hpp"
+#include "System/Locator.hpp"
+#include "Engine/Preferences.hpp"
 
 namespace ng
 {
@@ -59,6 +61,27 @@ void removeFirstParenthesis(std::wstring &text)
 bool startsWith(const std::string &str, const std::string &prefix)
 {
     return str.length() >= prefix.length() && 0 == str.compare(0, prefix.length(), prefix);
+}
+
+bool endsWith(const std::string &str, const std::string &suffix)
+{
+    return str.length() >= suffix.length() && 0 == str.compare(str.length()-suffix.length(), suffix.length(), suffix);
+}
+
+void checkLanguage(std::string &str)
+{
+    if(endsWith(str, "_en"))
+    {
+        const auto& lang = Locator<Preferences>::get().getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
+        str = str.substr(0, str.length()-3).append("_").append(lang);
+        return;
+    }
+
+    if(str.length()>7 && str[str.length()-4] == '.' && str.substr(str.length()-7,3) == "_en")
+    {
+        const auto& lang = Locator<Preferences>::get().getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
+        str = str.substr(0, str.length()-7).append("_").append(lang).append(str.substr(str.length()-4,4));
+    }
 }
 
 bool getLine(GGPackBufferStream &input, std::string &line)

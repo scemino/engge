@@ -17,7 +17,7 @@ namespace ng
 struct Object::Impl
 {
     std::vector<std::unique_ptr<Animation>> _anims;
-    std::optional<Animation> _pAnim{std::nullopt};
+    std::optional<Animation*> _pAnim{std::nullopt};
     std::wstring _name;
     int _zorder{0};
     UseDirection _direction{UseDirection::Front};
@@ -145,13 +145,13 @@ void Object::setStateAnimIndex(int animIndex)
 void Object::playAnim(const std::string &anim, bool loop)
 {
     setAnimation(anim);
-    pImpl->_pAnim->play(loop);
+    (*pImpl->_pAnim)->play(loop);
 }
 
 void Object::playAnim(int animIndex, bool loop)
 {
     setStateAnimIndex(animIndex);
-    pImpl->_pAnim->play(loop);
+    (*pImpl->_pAnim)->play(loop);
 }
 
 int Object::getState() { return pImpl->_state; }
@@ -167,10 +167,10 @@ void Object::setAnimation(const std::string &name)
     }
 
     auto &anim = *(it->get());
-    pImpl->_pAnim = anim;
+    pImpl->_pAnim = &anim;
 }
 
-std::optional<Animation> &Object::getAnimation() { return pImpl->_pAnim; }
+std::optional<Animation*> &Object::getAnimation() { return pImpl->_pAnim; }
 
 void Object::update(const sf::Time &elapsed)
 {
@@ -194,7 +194,7 @@ void Object::update(const sf::Time &elapsed)
     }
     if (pImpl->_pAnim)
     {
-        pImpl->_pAnim->update(elapsed);
+        (*pImpl->_pAnim)->update(elapsed);
     }
     if (pImpl->_triggerEnabled && pImpl->_trigger.has_value())
     {
@@ -304,8 +304,8 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const
 
     if (pImpl->_pAnim)
     {
-        pImpl->_pAnim->setColor(getColor());
-        target.draw(*pImpl->_pAnim, s);
+        (*pImpl->_pAnim)->setColor(getColor());
+        target.draw(*(*pImpl->_pAnim), s);
     }
 
     drawHotspot(target, s);
@@ -325,8 +325,8 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     if (pImpl->_pAnim)
     {
-        pImpl->_pAnim->setColor(getColor());
-        target.draw(*pImpl->_pAnim, states);
+        (*pImpl->_pAnim)->setColor(getColor());
+        target.draw(*(*pImpl->_pAnim), states);
     }
 
     drawHotspot(target, states);
@@ -342,7 +342,7 @@ void Object::setFps(int fps)
 {
     if (pImpl->_pAnim.has_value())
     {
-        pImpl->_pAnim->setFps(fps);
+        (*pImpl->_pAnim)->setFps(fps);
     }
 }
 

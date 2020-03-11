@@ -104,7 +104,7 @@ public:
 class _BreakWhileAnimatingObjectFunction : public _BreakFunction
 {
 private:
-    std::optional<Animation> &_animation;
+    std::optional<Animation*> _animation;
 
 public:
     _BreakWhileAnimatingObjectFunction(Engine &engine, int id, Object &object)
@@ -119,7 +119,7 @@ public:
 
     bool isElapsed() override
     {
-        return !_animation.has_value() || !_animation.value().isPlaying();
+        return !_animation.has_value() || !_animation.value()->isPlaying();
     }
 };
 

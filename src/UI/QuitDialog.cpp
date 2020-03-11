@@ -194,4 +194,9 @@ void QuitDialog::setCallback(Callback callback)
 {
     _pImpl->_callback = callback;
 }
+
+void QuitDialog::updateLanguage()
+{
+    _pImpl->updateState();
+}
 }

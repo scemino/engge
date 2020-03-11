@@ -273,11 +273,14 @@ private:
 
     static SQInteger loadArray(HSQUIRRELVM v)
     {
-        const SQChar *filename;
-        if (SQ_FAILED(sq_getstring(v, 2, &filename)))
+        std::string filename;
+        const SQChar *name;
+        if (SQ_FAILED(sq_getstring(v, 2, &name)))
         {
             return sq_throwerror(v, "Failed to get filename");
         }
+        filename = name;
+        checkLanguage(filename);
         std::vector<char> buffer;
         Locator<EngineSettings>::get().readEntry(filename, buffer);
         GGPackBufferStream input(buffer);

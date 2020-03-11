@@ -13,6 +13,10 @@ public:
 public:
     AnimationFrame(sf::IntRect rect, Callback callback = nullptr);
 
+    void setName(const std::string& name);
+    const std::string& getName() const;
+
+    void setRect(sf::IntRect rect);
     sf::IntRect getRect(bool leftDirection) const;
     sf::Vector2f getOrigin(bool leftDirection) const;
     
@@ -29,6 +33,7 @@ public:
     void call();
 
 private:
+    std::string _name;
     sf::IntRect _rect;
     sf::IntRect _sourceRect;
     sf::Vector2i _size;

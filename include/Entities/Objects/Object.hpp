@@ -107,7 +107,7 @@ public:
   void playAnim(const std::string& anim, bool loop);
   int getState();
   void setAnimation(const std::string &name);
-  std::optional<Animation>& getAnimation();
+  std::optional<Animation*>& getAnimation();
 
   Room *getRoom() override;
   const Room *getRoom() const override;

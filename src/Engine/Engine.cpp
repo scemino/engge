@@ -612,9 +612,28 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject)
 
     actorEnter();
 
+    auto lang = Locator<Preferences>::get().getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
+    const auto& spriteSheet = pRoom->getSpriteSheet();
     auto &objects = pRoom->getObjects();
     for (auto & obj : objects)
     {
+        for(auto& anim : obj->getAnims())
+        {
+            for(size_t i=0; i<anim->size(); ++i)
+            {
+                auto& frame = anim->at(i);
+                auto name = frame.getName();
+                if(!endsWith(name, "_en")) continue;
+
+                checkLanguage(name);
+                auto rect = spriteSheet.getRect(name);
+                auto sourceRect = spriteSheet.getSpriteSourceSize(name);
+                auto size = spriteSheet.getSourceSize(name);
+                frame.setRect(rect);
+                frame.setSourceRect(sourceRect);
+                frame.setSize(size);
+            }
+        }
         if (obj->getId() == 0 || obj->isTemporary())
             continue;
 

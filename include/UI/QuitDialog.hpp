@@ -15,6 +15,7 @@ public:
     void setCallback(Callback callback);
     void setEngine(Engine* pEngine);
     void update(const sf::Time& elapsed);
+    void updateLanguage();
 
 private:
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

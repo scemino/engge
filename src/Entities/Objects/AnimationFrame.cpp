@@ -19,6 +19,11 @@ void AnimationFrame::call()
     } 
 }
 
+void AnimationFrame::setRect(sf::IntRect rect)
+{
+    _rect = rect;
+}
+
 sf::IntRect AnimationFrame::getRect(bool leftDirection) const
 {
     sf::IntRect rect = _rect;
@@ -46,5 +51,9 @@ sf::Vector2f AnimationFrame::getOrigin(bool leftDirection) const
     auto x = static_cast<int>(leftDirection ? _sourceRect.left + _size.x / 2.f + _sourceRect.width - _size.x : _size.x / 2.f - _sourceRect.left);
     return sf::Vector2f(static_cast<float>(x), static_cast<float>(y));
 }
+
+void AnimationFrame::setName(const std::string& name) { _name = name; }
+
+const std::string& AnimationFrame::getName() const { return _name; }
 
 }

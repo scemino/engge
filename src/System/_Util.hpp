@@ -30,6 +30,8 @@ void replaceAll(std::wstring &text, const std::wstring &search, const std::wstri
 
 void removeFirstParenthesis(std::wstring &text);
 bool startsWith(const std::string &str, const std::string &prefix);
+bool endsWith(const std::string &str, const std::string &suffix);
+void checkLanguage(std::string &str);
 
 bool getLine(GGPackBufferStream &input, std::string &line);
 

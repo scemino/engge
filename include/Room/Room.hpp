@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "Graphics/SpriteSheet.hpp"
 #include "SFML/Graphics.hpp"
 #include "squirrel.h"
 #include "Scripting/ScriptObject.hpp"
@@ -65,6 +66,8 @@ public:
   void setRoomScaling(const RoomScaling & scaling);
   [[nodiscard]] const RoomScaling &getRoomScaling() const;
   HSQOBJECT &getTable();
+
+  const SpriteSheet& getSpriteSheet() const;
 
   void setAmbientLight(sf::Color color);
   [[nodiscard]] sf::Color getAmbientLight() const;

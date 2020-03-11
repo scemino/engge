@@ -283,6 +283,7 @@ struct Room::Impl
                             callback = [trigger,pObj](){  pObj->trig(trigger.value()); };
                         }
                         AnimationFrame frame(rect, callback);
+                        frame.setName(name);
                         frame.setSourceRect(sourceRect);
                         frame.setSize(size);
                         anim->addFrame(std::move(frame));
@@ -593,10 +594,13 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
 
     auto object = std::make_unique<Object>();
     auto animation = std::make_unique<Animation>(texture, "state0");
-    for (const auto &n : anims)
+    for (auto n : anims)
     {
         if (json["frames"][n].isNull())
             continue;
+
+        checkLanguage(n);
+
         auto frame = json["frames"][n]["frame"];
         auto rect = _toRect(frame);
         auto size = _toSize(json["frames"][n]["sourceSize"]);
@@ -628,7 +632,11 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
 
 Object &Room::createObject(const std::string &image)
 {
-    auto &texture = pImpl->_textureManager.get(image);
+    auto name = image;
+    checkLanguage(name);
+        
+    const std::vector<std::string> anims{name};
+    auto &texture = pImpl->_textureManager.get(name);
 
     auto object = std::make_unique<Object>();
     auto animation = std::make_unique<Animation>(texture, "state0");
@@ -806,6 +814,8 @@ int Room::getEffect() const { return pImpl->_selectedEffect; }
 void Room::setOverlayColor(sf::Color color) { pImpl->_overlayColor = color; }
 
 sf::Color Room::getOverlayColor() const { return pImpl->_overlayColor; }
+
+const SpriteSheet& Room::getSpriteSheet() const { return pImpl->_spriteSheet; }
 
 sf::Vector2i Room::getScreenSize() const
 {

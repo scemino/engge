@@ -76,6 +76,7 @@ struct OptionsDialog::Impl
     QuitDialog _quit;
     Callback _callback{nullptr};
     bool _isDirty{false};
+    State _state{State::Main};
 
     inline static float getSlotPos(int slot)
     {
@@ -108,11 +109,18 @@ struct OptionsDialog::Impl
         return static_cast<int>(std::distance(LanguageValues.begin(),it));
     }
 
+    void updateLanguage()
+    {
+        updateState(_state);
+    }
+
     void updateState(State state)
     {
+        _state = state;
         if(_isDirty)
         {
             Locator<Preferences>::get().save();
+            _quit.updateLanguage();
             _isDirty = false;
         }
         _sliders.clear();
@@ -347,6 +355,11 @@ void OptionsDialog::draw(sf::RenderTarget &target, sf::RenderStates states) cons
 void OptionsDialog::update(const sf::Time& elapsed)
 {
     _pImpl->update(elapsed);
+}
+
+void OptionsDialog::updateLanguage()
+{
+    _pImpl->updateLanguage();
 }
 
 void OptionsDialog::showHelp()
