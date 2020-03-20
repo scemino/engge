@@ -94,7 +94,7 @@ struct QuitDialog::Impl
     {
         _headingText.setString(_pEngine->getText(id));
         auto textRect = _headingText.getGlobalBounds();
-        _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, 240.f));
+        _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, 260.f));
     }
 
     void updateState()

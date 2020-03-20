@@ -26,7 +26,6 @@ public:
         _text.setFont(uiFontMedium);
         _text.setString(_pEngine->getText(_id));
         auto textRect = _text.getLocalBounds();
-        _text.setOrigin(sf::Vector2f(0, textRect.height));
         _text.setPosition(Screen::Width/2.f-textRect.width/2.f, _y);
 
         _pSpriteSheet=pSpriteSheet;

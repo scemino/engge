@@ -29,6 +29,7 @@ struct StartScreenDialog::Impl
         inline static const int Help=99961;
     };   
 
+    static constexpr float yPosStart = 84.f;
     static constexpr float yPosLarge = 58.f;
     static constexpr float yPosSmall = 54.f;
 
@@ -42,7 +43,7 @@ struct StartScreenDialog::Impl
 
     inline static float getSlotPos(int slot)
     {
-        return 44.f+yPosLarge+yPosSmall*slot;
+        return yPosStart+yPosLarge+yPosSmall*slot;
     }
 
     void updateState(State state)

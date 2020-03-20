@@ -61,6 +61,7 @@ struct OptionsDialog::Impl
     };    
 
     inline static const std::array<std::string,5> LanguageValues = {"en","fr","it","de","es"};
+    static constexpr float yPosStart = 84.f;
     static constexpr float yPosLarge = 58.f;
     static constexpr float yPosSmall = 54.f;
 
@@ -80,14 +81,14 @@ struct OptionsDialog::Impl
 
     inline static float getSlotPos(int slot)
     {
-        return 44.f+yPosLarge+yPosSmall*slot;
+        return yPosStart+yPosLarge+yPosSmall*slot;
     }
 
     void setHeading(int id)
     {
         _headingText.setString(_pEngine->getText(id));
         auto textRect = _headingText.getGlobalBounds();
-        _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, 44.f-textRect.height/2));
+        _headingText.setPosition(sf::Vector2f((Screen::Width-textRect.width)/2.f, yPosStart-textRect.height/2));
     }
 
     template <typename T>
