@@ -1207,7 +1207,7 @@ void Engine::update(const sf::Time &el)
             pVerbOverride = _pImpl->_pVerb;
         }
         pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
-        auto pObj1 = _pImpl->getEntity(_pImpl->_pObj1);
+        auto pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(_pImpl->_pObj1) : _pImpl->_pObj1;
         if (pObj1)
         {
             _pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, _pImpl->_pObj2);
