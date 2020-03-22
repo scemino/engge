@@ -294,12 +294,8 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const
     const auto view = target.getView();
     target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
-    auto size = getRoom()->getRoomSize();
-
     sf::RenderStates s;
     auto transform = _transform;
-    transform.move(getOffset());
-    transform.move(0, 720.f - size.y);
     s.transform = transform.getTransform();
 
     if (pImpl->_pAnim)

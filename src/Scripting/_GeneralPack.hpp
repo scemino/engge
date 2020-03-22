@@ -173,14 +173,17 @@ private:
         }
         else
         {
-            auto actor = ScriptEngine::getActor(v, 2);
-            if (!actor)
+            auto entity = ScriptEngine::getEntity(v, 2);
+            if (!entity)
             {
-                return sq_throwerror(v, _SC("failed to get actor"));
+                return sq_throwerror(v, _SC("failed to get object or actor"));
             }
-            pos = actor->getRealPosition() - g_pEngine->getCamera().getAt();
+            pos = entity->getRealPosition() - g_pEngine->getCamera().getAt();
+            auto screenSize = g_pEngine->getRoom()->getScreenSize();
+            pos = sf::Vector2f(Screen::Width * pos.x/screenSize.x, Screen::Height * pos.y/screenSize.y);
         }
-        ScriptEngine::push(v, pos);
+        auto roomSize = g_pEngine->getRoom()->getRoomSize();
+        ScriptEngine::push(v, sf::Vector2f(pos.x, roomSize.y - pos.y));
         return 1;
     }
 

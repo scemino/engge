@@ -414,8 +414,8 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-
-        obj->moveTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
+        auto roomSize = g_pEngine->getRoom()->getRoomSize();
+        obj->moveTo(sf::Vector2f(x, roomSize.y - y), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
