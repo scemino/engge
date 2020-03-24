@@ -46,6 +46,8 @@ public:
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
+  DialogManager& getDialogManager() { return _dialogManager; }
+  void setHasChoices(bool hasChoices) { _hasChoice = hasChoices; }
 
 private:
   void visit(const Ast::Statement &node) override;

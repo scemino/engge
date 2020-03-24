@@ -2,6 +2,7 @@
 #include "Engine/Engine.hpp"
 #include "Entities/Actor/Actor.hpp"
 #include "System/Logger.hpp"
+#include "_GotoFunction.hpp"
 #include "_SayFunction.hpp"
 #include "_ExecuteCodeFunction.hpp"
 #include "_ShutupFunction.hpp"
@@ -151,14 +152,14 @@ void DialogVisitor::visit(const Ast::Choice &node)
 
 void DialogVisitor::visit(const Ast::Code &node)
 {
-    _pEngine->execute(node.code);
+    auto executeCode = std::make_unique<_ExecuteCodeFunction>(*_pEngine, node.code);
+    _dialogManager.addFunction(std::move(executeCode));
 }
 
 void DialogVisitor::visit(const Ast::Goto &node)
 {
-    _dialogManager.selectLabel(node.name);
-    auto& dialog = _dialogManager.getDialog();
-    _hasChoice = std::any_of(dialog.begin(),dialog.end(),[](auto& line){ return line.id!=0;});
+    auto gotoFunction = std::make_unique<_GotoFunction>(*this, node.name);
+    _dialogManager.addFunction(std::move(gotoFunction));
 }
 
 void DialogVisitor::visit(const Ast::Shutup &)
