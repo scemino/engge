@@ -97,11 +97,11 @@ float Entity::getScale() const
     return _transform.getScale().x;
 }
 
-sf::Transform Entity::getTransform() const
+sf::Transformable Entity::getTransform() const
 {
     auto transform = _transform;
     transform.move(_offset.x, _offset.y);
-    return transform.getTransform();
+    return transform;
 }
 
 sf::Vector2f Entity::getUsePosition() const

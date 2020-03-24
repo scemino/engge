@@ -214,9 +214,8 @@ class _ActorPack : public Pack
             auto pos = pObj->getRealPosition();
             auto usePos = pObj->getUsePosition();
             auto hotspot = pObj->getHotspot();
-            auto roomHeight = pObj->getRoom()->getRoomSize().y;
             pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
-            pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2.f;
+            pos.y += usePos.y + hotspot.top + hotspot.height / 2.f;
             pRoom = pObj->getRoom();
             pActor->setRoom(pRoom);
             pActor->setPosition(pos);
@@ -239,8 +238,7 @@ class _ActorPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            auto roomHeight = pActor->getRoom()->getRoomSize().y;
-            pActor->setPosition(sf::Vector2f(x, roomHeight - y));
+            pActor->setPosition(sf::Vector2f(x, y));
             return 0;
         }
         else if (numArgs >= 5)
@@ -269,8 +267,7 @@ class _ActorPack : public Pack
                 return sq_throwerror(v, _SC("failed to get direction"));
             }
             auto facing = _getFacing(dir, pActor->getCostume().getFacing());
-            auto roomHeight = pRoom->getRoomSize().y;
-            pActor->setPosition(sf::Vector2f(x, roomHeight - y));
+            pActor->setPosition(sf::Vector2f(x, y));
             pActor->getCostume().setFacing(facing);
             pActor->setRoom(pRoom);
             return 0;
@@ -583,13 +580,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        auto pRoom = pActor->getRoom();
-        if (!pRoom)
-        {
-            return sq_throwerror(v, _SC("failed to get actor room"));
-        }
-        auto roomHeight = pRoom->getRoomSize().y;
-        sq_pushinteger(v, roomHeight - pActor->getRealPosition().y);
+        sq_pushinteger(v, pActor->getRealPosition().y);
         return 1;
     }
 
@@ -881,10 +872,10 @@ class _ActorPack : public Pack
         switch (actor->getCostume().getFacing())
         {
             case Facing::FACE_FRONT:
-                direction = sf::Vector2f(0, dist);
+                direction = sf::Vector2f(0, -dist);
                 break;
             case Facing::FACE_BACK:
-                direction = sf::Vector2f(0, -dist);
+                direction = sf::Vector2f(0, dist);
                 break;
             case Facing::FACE_LEFT:
                 direction = sf::Vector2f(-dist, 0);
@@ -952,9 +943,8 @@ class _ActorPack : public Pack
             {
                 auto pos = pObject->getRealPosition();
                 auto usePos = pObject->getUsePosition();
-                auto roomHeight = pObject->getRoom()->getRoomSize().y;
                 pos.x += usePos.x;
-                pos.y += usePos.y - roomHeight;
+                pos.y += usePos.y;
                 pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));
                 return 0;
             }

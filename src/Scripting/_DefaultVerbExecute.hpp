@@ -16,10 +16,9 @@ class _ActorWalk : public Function
     _ActorWalk(Actor &actor, const Entity *pEntity) : _actor(actor)
     {
         auto pos = pEntity->getRealPosition();
-        auto roomHeight = pEntity->getRoom()->getRoomSize().y;
         auto usePos = pEntity->getUsePosition();
         pos.x += usePos.x;
-        pos.y += usePos.y - roomHeight;
+        pos.y += usePos.y;
         auto facing = getFacing(pEntity);
         _actor.walkTo(pos, facing);
     }

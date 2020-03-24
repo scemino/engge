@@ -34,6 +34,12 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if(!isVisible())
         return;
+
+    const auto view = target.getView();
+    if (getScreenSpace() == ScreenSpace::Object) {
+        target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+    }
+
     Text txt;
     txt.setFont(_font);
     txt.setFillColor(getColor());
@@ -43,11 +49,11 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     sf::Vector2f offset;
     if (_alignment & TextAlignment::Center)
     {
-        offset.x = -bounds.width / 2;
+        offset.x = getScale() * -bounds.width / 2;
     }
     else if (_alignment & TextAlignment::Right)
     {
-        offset.x = bounds.width / 2;
+        offset.x = getScale() * bounds.width / 2;
     }
     if (_alignment & TextAlignment::Top)
     {
@@ -55,15 +61,26 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     }
     else if (_alignment & TextAlignment::Bottom)
     {
-        offset.y = -bounds.height;
+        offset.y = getScale() * bounds.height;
     }
     else
     {
-        offset.y = -bounds.height / 2;
+        offset.y = getScale() * bounds.height / 2;
     }
-    txt.move(offset);
-    states.transform *= _transform.getTransform();
-    target.draw(txt, states);
+    auto height = target.getView().getSize().y;
+    auto transformable = getTransform();
+    transformable.move(offset.x, offset.y);
+    transformable.setPosition(transformable.getPosition().x, height - transformable.getPosition().y);
+
+    if (getScreenSpace() == ScreenSpace::Object) {
+        sf::RenderStates s;
+        s.transform *= transformable.getTransform();
+        target.draw(txt, s);
+        target.setView(view);
+    } else {
+        states.transform *= transformable.getTransform();
+        target.draw(txt, states);
+    }
 }
 
 } // namespace ng

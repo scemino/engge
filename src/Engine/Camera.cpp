@@ -30,17 +30,15 @@ void Camera::Impl::clampCamera(sf::Vector2f &at)
     if (!pRoom)
         return;
     
-    const auto &size = pRoom->getRoomSize();
     if (_bounds)
     {
         at.x = std::clamp<int>(at.x, _bounds->left, _bounds->left + _bounds->width);
-        at.y = std::clamp<int>(at.y, size.y - _bounds->top, size.y - _bounds->top + _bounds->height);
+        at.y = std::clamp<int>(at.y, _bounds->top, _bounds->top + _bounds->height);
     }
 
-    const auto &window = _pEngine->getWindow();
-    auto screen = window.getView().getSize();
-    at.x = std::clamp<int>(at.x, 0, size.x - screen.x);
-    at.y = std::clamp<int>(at.y, 0, size.y - screen.y);
+    auto roomSize = pRoom->getRoomSize();
+    at.x = std::clamp<int>(at.x, 0, roomSize.x);
+    at.y = std::clamp<int>(at.y, 0, roomSize.y);
 }
 
 Camera::Camera() : _pImpl(std::make_unique<Impl>()) {}

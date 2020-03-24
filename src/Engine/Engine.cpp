@@ -113,7 +113,7 @@ struct Engine::Impl
     std::array<VerbUiColors, 6> _verbUiColors;
     bool _inputHUD{true};
     bool _inputActive{false};
-    bool _showCursor{false};
+    bool _showCursor{true};
     bool _inputVerbsActive{false};
     SpriteSheet _verbSheet, _gameSheet, _saveLoadSheet;
     Actor *_pFollowActor{nullptr};
@@ -429,15 +429,13 @@ void Engine::follow(Actor *pActor)
         return;
 
     auto pos = pActor->getRealPosition();
-    auto screen = _pImpl->_pWindow->getView().getSize();
     setRoom(pActor->getRoom());
     if (panCamera)
     {
-        _pImpl->_camera.panTo(pos - sf::Vector2f(screen.x / 2, screen.y / 2), sf::seconds(4),
-                              InterpolationMethod::EaseOut);
+        _pImpl->_camera.panTo(pos, sf::seconds(4), InterpolationMethod::EaseOut);
         return;
     }
-    _pImpl->_camera.at(pos - sf::Vector2f(screen.x / 2, screen.y / 2));
+    _pImpl->_camera.at(pos);
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
@@ -478,7 +476,7 @@ sf::Vector2f Engine::findScreenPosition(int verbId) const
     auto pVerb = getVerb(verbId);
     auto s = _pImpl->getVerbName(*pVerb);
     auto r = _pImpl->_verbSheet.getSpriteSourceSize(s);
-    return sf::Vector2f(r.left + r.width / 2.f, r.top + r.height / 2.f);
+    return sf::Vector2f(r.left + r.width / 2.f, Screen::Height - (r.top + r.height / 2.f));
 }
 
 Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
@@ -739,9 +737,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor)
         actor->setRoom(pRoom);
         auto pos = pDoor->getRealPosition();
         auto usePos = pDoor->getUsePosition();
-        auto roomHeight = pDoor->getRoom()->getRoomSize().y;
-        pos.x += usePos.x;
-        pos.y += usePos.y - roomHeight;
+        pos += usePos;
         actor->setPosition(pos);
         _pImpl->_camera.at(pos);
     }
@@ -1135,7 +1131,8 @@ void Engine::update(const sf::Time &el)
     _pImpl->_cursorDirection = CursorDirection::None;
     _pImpl->updateMouseCursor();
 
-    _pImpl->_mousePosInRoom = _pImpl->_mousePos + _pImpl->_camera.getAt();
+    auto mousePos = sf::Vector2f(_pImpl->_mousePos.x, _pImpl->_pWindow->getView().getSize().y - _pImpl->_mousePos.y);
+    _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getAt();
 
     _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
     _pImpl->_dialogManager.update(elapsed);
@@ -1235,6 +1232,11 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected)
     setVerbHighlightColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlightTint);
 
     ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
+    auto pRoom = pCurrentActor ? pCurrentActor->getRoom() : nullptr;
+    if(pRoom)
+    {
+        ScriptEngine::rawCall(pRoom, "onActorSelected", pCurrentActor, userSelected);
+    }
 }
 
 void Engine::Impl::stopAllTalking()
@@ -1379,9 +1381,10 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
     auto screen = target.getView().getSize();
     auto w = screen.x/2.f;
     auto h = screen.y/2.f;
+    auto at = _camera.getAt();
     sf::Transform t;
     t.rotate(_pRoom->getRotation(), w, h);
-    t.translate(-_camera.getAt());
+    t.translate(-at.x, at.y);
     sf::RenderStates states;
     states.transform = t;
 
@@ -1575,11 +1578,10 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const
     text.setString(s);
 
     // do display cursor position:
-    // auto mousePosInRoom = _mousePos + _camera.getAt();
     // std::wstringstream ss;
-    // std::wstring txt = text.getText();
-    // ss << txt << L" (" << std::fixed << std::setprecision(0) << mousePosInRoom.x << L"," << mousePosInRoom.y << L")";
-    // text.setText(ss.str());
+    // std::wstring txt = text.getString();
+    // ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
+    // text.setString(ss.str());
 
     auto screenSize =  _pRoom->getScreenSize();
     auto pos = toDefaultView((sf::Vector2i)_mousePos, screenSize);
@@ -1865,8 +1867,7 @@ void Engine::sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, con
 {
     _pImpl->_talkingState.setTalkColor(color);
     auto size = getRoom()->getRoomSize();
-    sf::Vector2i p(pos.x, size.y - pos.y);
-    _pImpl->_talkingState.setPosition(toDefaultView(p, size));
+    _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
     _pImpl->_talkingState.setText(getText(text));
     _pImpl->_talkingState.setDuration(duration);
 }

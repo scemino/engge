@@ -158,9 +158,8 @@ bool Actor::contains(const sf::Vector2f &pos) const
     if (!pAnim)
         return false;
 
-    auto size = pImpl->_pRoom->getRoomSize();
-    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
-    auto transform = getTransform();
+    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(getRealPosition().y);
+    auto transform = getTransform().getTransform();
     transform.scale(scale, scale);
     transform.translate((sf::Vector2f)-getRenderOffset() * scale);
     auto t = transform.getInverse();
@@ -257,7 +256,7 @@ Facing Actor::Impl::WalkingState::getFacing()
     auto dy = _path[0].y - pos.y;
     if (fabs(dx) > fabs(dy))
         return (dx > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
-    return (dy > 0) ? Facing::FACE_FRONT : Facing::FACE_BACK;
+    return (dy < 0) ? Facing::FACE_FRONT : Facing::FACE_BACK;
 }
 
 void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
@@ -316,7 +315,7 @@ Actor::~Actor() = default;
 
 const Room *Actor::getRoom() const { return pImpl->_pRoom; }
 
-int Actor::getZOrder() const { return static_cast<int>(getRoom()->getRoomSize().y - getRealPosition().y); }
+int Actor::getZOrder() const { return static_cast<int>(getRealPosition().y); }
 
 void Actor::setRoom(Room *pRoom)
 {
@@ -341,8 +340,7 @@ void Actor::setCostume(const std::string &name, const std::string &sheet)
 
 float Actor::getScale() const
 {
-    auto size = pImpl->_pRoom->getRoomSize();
-    return pImpl->_pRoom->getRoomScaling().getScaling(size.y - getRealPosition().y);
+    return pImpl->_pRoom->getRoomScaling().getScaling(getRealPosition().y);
 }
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -351,17 +349,19 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     if (isVisible()) {
         auto scale = getScale();
-        auto transform = getTransform();
-        transform.scale(scale, scale);
-        transform.translate(getRenderOffset().x, -getRenderOffset().y);
-        states.transform *= transform;
+        auto transformable = getTransform();
+        transformable.scale(scale, scale);
+        transformable.move(getRenderOffset().x*scale, getRenderOffset().y*scale);
+        transformable.setPosition(transformable.getPosition().x, target.getView().getSize().y - transformable.getPosition().y);
+        states.transform *= transformable.getTransform();
         target.draw(pImpl->_costume, states);
     }
         
     auto scale = getScale();
-    auto transform = getTransform();
-    transform.scale(scale, scale);
-    statesHotSpot.transform *= transform;
+    auto transformable = getTransform();
+    transformable.scale(scale, scale);
+    transformable.setPosition(transformable.getPosition().x, target.getView().getSize().y - transformable.getPosition().y);
+    statesHotSpot.transform *= transformable.getTransform();
     pImpl->drawHotspot(target, statesHotSpot);
 }
 
