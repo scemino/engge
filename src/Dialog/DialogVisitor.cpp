@@ -151,8 +151,7 @@ void DialogVisitor::visit(const Ast::Choice &node)
 
 void DialogVisitor::visit(const Ast::Code &node)
 {
-    auto executeCode = std::make_unique<_ExecuteCodeFunction>(*_pEngine, node.code);
-    _dialogManager.addFunction(std::move(executeCode));
+    _pEngine->execute(node.code);
 }
 
 void DialogVisitor::visit(const Ast::Goto &node)
