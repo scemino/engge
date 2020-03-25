@@ -401,9 +401,9 @@ struct Room::Impl
         _pf.reset();
     }
 
-    static void toPath(const Walkbox& walkbox, ClipperLib::Path& path) {
+    static void toPath(const Walkbox& walkbox, ClipperLib::Path& path){
         const auto& vertices = walkbox.getVertices();
-        std::transform(vertices.begin(), vertices.end(),std::back_inserter(path),[](const auto& p) -> ClipperLib::IntPoint {
+        std::transform(vertices.rbegin(), vertices.rend(),std::back_inserter(path),[](const auto& p) -> ClipperLib::IntPoint {
             return {p.x,p.y};
         });
     }
@@ -426,9 +426,7 @@ struct Room::Impl
         for (int i = 1; i < _walkboxes.size(); i++) {
             if (!_walkboxes[i].isEnabled()) continue;
             path.clear();
-            for (auto &p : _walkboxes[i].getVertices()) {
-                path.emplace_back(p.x, p.y);
-            }
+            toPath(_walkboxes[i], path);
             ClipperLib::Clipper clipper;
             clipper.AddPaths(solutions, ClipperLib::ptSubject, true);
             clipper.AddPath(path, ClipperLib::ptClip, true);
@@ -713,7 +711,7 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const
 
         sf::Transform t;
         t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
-        t.translate(-cameraPos.x*parallax.x, cameraPos.y*parallax.x);
+        t.translate(-cameraPos.x*parallax.x, cameraPos.y*parallax.y);
         states.transform = t;
         layer.second->draw(window, states);
     }
@@ -728,20 +726,17 @@ void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPo
     }
 
     auto screen = window.getView().getSize();
-    auto w = screen.x / 2.f;
-    auto h = screen.y / 2.f;
+    auto halfScreen = sf::Vector2f(screen.x/2.f, screen.y/2.f);
 
     pImpl->drawFade(window);
 
     for (const auto &layer : pImpl->_layers)
     {
         auto parallax = layer.second->getParallax();
-        auto posX = (w - cameraPos.x) * parallax.x - w;
-        auto posY = (h - cameraPos.y) * parallax.y - h;
 
         sf::Transform t;
-        t.rotate(pImpl->_rotation, w, h);
-        t.translate(posX + (w - w * parallax.x), posY + (h - h * parallax.y));
+        t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
+        t.translate(-cameraPos.x*parallax.x, cameraPos.y*parallax.y);
         states.transform = t;
         layer.second->drawForeground(window, states);
     }
@@ -830,21 +825,13 @@ sf::Vector2i Room::getScreenSize() const
     switch (height)
     {
         case 0:
-        {
             return getRoomSize();
-        }
         case 128:
-        {
             return sf::Vector2i(320, 180);
-        }
         case 172:
-        {
             return sf::Vector2i(428, 240);
-        }
         case 256:
-        {
             return sf::Vector2i(640, 360);
-        }
         default:
         {
             height = 180.f * height / 128.f;

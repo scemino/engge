@@ -429,13 +429,15 @@ void Engine::follow(Actor *pActor)
         return;
 
     auto pos = pActor->getRealPosition();
+    auto screen = _pImpl->_pWindow->getView().getSize();
     setRoom(pActor->getRoom());
     if (panCamera)
     {
-        _pImpl->_camera.panTo(pos, sf::seconds(4), InterpolationMethod::EaseOut);
+        _pImpl->_camera.panTo(pos - sf::Vector2f(screen.x / 2, screen.y / 2), sf::seconds(4),
+                              InterpolationMethod::EaseOut);
         return;
     }
-    _pImpl->_camera.at(pos);
+    _pImpl->_camera.at(pos - sf::Vector2f(screen.x / 2, screen.y / 2));
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute)
@@ -1384,7 +1386,7 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const
     auto at = _camera.getAt();
     sf::Transform t;
     t.rotate(_pRoom->getRotation(), w, h);
-    t.translate(-at.x, at.y);
+    t.translate(-at);
     sf::RenderStates states;
     states.transform = t;
 
