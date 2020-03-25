@@ -132,6 +132,7 @@ public:
   void setOwner(Actor* pActor);
 
   void setScreenSpace(ScreenSpace screenSpace);
+  ScreenSpace getScreenSpace() const;
 
   void stopObjectMotors() override;
 

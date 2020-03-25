@@ -317,7 +317,7 @@ class _ObjectPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get y"));
         }
-        obj->setOffset(sf::Vector2f(x, -y));
+        obj->setOffset(sf::Vector2f(x, y));
         return 0;
     }
 
@@ -383,7 +383,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->offsetTo(sf::Vector2f(x, -y), sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->offsetTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -414,8 +414,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        auto roomSize = g_pEngine->getRoom()->getRoomSize();
-        obj->moveTo(sf::Vector2f(x, roomSize.y - y), sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->moveTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
         return 0;
     }
 
@@ -517,9 +516,8 @@ class _ObjectPack : public Pack
             auto pos = spot->getRealPosition();
             auto usePos = spot->getUsePosition();
             auto hotspot = spot->getHotspot();
-            auto roomHeight = spot->getRoom()->getRoomSize().y;
-            pos.x += usePos.x + hotspot.left + hotspot.width / 2;
-            pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
+            pos.x += usePos.x + hotspot.left + hotspot.width  / 2;
+            pos.y += usePos.y + hotspot.top  + hotspot.height / 2;
             x = pos.x;
             y = pos.y;
         }
@@ -533,8 +531,6 @@ class _ObjectPack : public Pack
             {
                 return sq_throwerror(v, _SC("failed to get y"));
             }
-            auto size = g_pEngine->getRoom()->getRoomSize();
-            y = size.y - y;
         }
         obj->setPosition(sf::Vector2f(x, y));
         return 0;
@@ -606,8 +602,7 @@ class _ObjectPack : public Pack
         auto pos = obj->getRealPosition();
         auto hotspot = obj->getHotspot();
         auto usePos = obj->getUsePosition();
-        auto roomHeight = obj->getRoom()->getRoomSize().y;
-        pos.y += usePos.y - roomHeight - hotspot.top - hotspot.height / 2;
+        pos.y += usePos.y + hotspot.top + hotspot.height / 2;
         sq_pushinteger(v, static_cast<SQInteger>(pos.y));
         return 1;
     }
@@ -854,10 +849,7 @@ class _ObjectPack : public Pack
         {
             pos = obj->getRealPosition();
             auto usePos = obj->getUsePosition();
-            auto roomHeight = obj->getRoom()->getRoomSize().y;
-            pos.x += usePos.x;
-            pos.y += usePos.y - roomHeight;
-            pos.y = roomHeight - pos.y;
+            pos += usePos;
         }
         else
         {
@@ -867,8 +859,6 @@ class _ObjectPack : public Pack
                 return sq_throwerror(v, _SC("failed to get object or actor"));
             }
             pos = actor->getPosition();
-            auto roomHeight = actor->getRoom()->getRoomSize().y;
-            pos.y = roomHeight - pos.y;
         }
 
         ScriptEngine::push(v, pos);

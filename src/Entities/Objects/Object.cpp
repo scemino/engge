@@ -121,7 +121,7 @@ bool Object::isTouchable() const
 sf::IntRect Object::getRealHotspot() const
 {
     auto rect = getHotspot();
-    auto transform = getTransform();
+    auto transform = getTransform().getTransform();
     return (sf::IntRect)transform.transformRect((sf::FloatRect)rect);
 }
 
@@ -208,6 +208,8 @@ bool Object::isHotspotVisible() const { return pImpl->_hotspotVisible; }
 
 void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->_screenSpace = screenSpace; }
 
+ScreenSpace Object::getScreenSpace() const  { return pImpl->_screenSpace; }
+
 void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const
 {
     if (!pImpl->_hotspotVisible)
@@ -240,12 +242,12 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
     target.draw(s, states);
 
     sf::RectangleShape vl(sf::Vector2f(1, 7));
-    vl.setPosition(pImpl->_usePos.x, -pImpl->_usePos.y - 3);
+    vl.setPosition(pImpl->_usePos.x, pImpl->_usePos.y - 3);
     vl.setFillColor(color);
     target.draw(vl, states);
 
     sf::RectangleShape hl(sf::Vector2f(7, 1));
-    hl.setPosition(pImpl->_usePos.x - 3, -pImpl->_usePos.y);
+    hl.setPosition(pImpl->_usePos.x - 3, pImpl->_usePos.y);
     hl.setFillColor(color);
     target.draw(hl, states);
 
@@ -254,7 +256,7 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
         case UseDirection::Front:
         {
             sf::RectangleShape dirShape(sf::Vector2f(3, 1));
-            dirShape.setPosition(pImpl->_usePos.x - 1, -pImpl->_usePos.y + 2);
+            dirShape.setPosition(pImpl->_usePos.x - 1, pImpl->_usePos.y + 2);
             dirShape.setFillColor(color);
             target.draw(dirShape, states);
         }
@@ -262,7 +264,7 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
         case UseDirection::Back:
         {
             sf::RectangleShape dirShape(sf::Vector2f(3, 1));
-            dirShape.setPosition(pImpl->_usePos.x - 1, -pImpl->_usePos.y - 2);
+            dirShape.setPosition(pImpl->_usePos.x - 1, pImpl->_usePos.y - 2);
             dirShape.setFillColor(color);
             target.draw(dirShape, states);
         }
@@ -297,10 +299,9 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const
     auto size = getRoom()->getRoomSize();
 
     sf::RenderStates s;
-    auto transform = _transform;
-    transform.move(getOffset());
-    transform.move(0, 720.f - size.y);
-    s.transform = transform.getTransform();
+    auto transformable = getTransform();
+    transformable.setPosition(transformable.getPosition().x, target.getView().getSize().y - transformable.getPosition().y);
+    s.transform *= transformable.getTransform();
 
     if (pImpl->_pAnim)
     {
@@ -320,8 +321,9 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const
     if (pImpl->_screenSpace == ScreenSpace::Object)
         return;
 
-    auto transform = getTransform();
-    states.transform *= transform;
+    auto transformable = getTransform();
+    transformable.setPosition(transformable.getPosition().x, target.getView().getSize().y - transformable.getPosition().y);
+    states.transform *= transformable.getTransform();
 
     if (pImpl->_pAnim)
     {

@@ -182,8 +182,7 @@ private:
             auto screenSize = g_pEngine->getRoom()->getScreenSize();
             pos = sf::Vector2f(Screen::Width * pos.x/screenSize.x, Screen::Height * pos.y/screenSize.y);
         }
-        auto roomSize = g_pEngine->getRoom()->getRoomSize();
-        ScriptEngine::push(v, sf::Vector2f(pos.x, roomSize.y - pos.y));
+        ScriptEngine::push(v, pos);
         return 1;
     }
 

@@ -81,7 +81,7 @@ public:
   virtual void stopObjectMotors();
 
 protected:
-  sf::Transform getTransform() const;
+  sf::Transformable getTransform() const;
   sf::Transformable _transform;
 
 private:

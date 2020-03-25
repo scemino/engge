@@ -309,7 +309,7 @@ sf::IntRect _parseRect(const std::string &text)
     return sf::IntRect(left, top, right - left, bottom - top);
 }
 
-void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices, int roomHeight)
+void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices)
 {
     int i = 1;
     int endPos;
@@ -320,7 +320,7 @@ void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices,
         endPos = text.find_first_of('}', commaPos + 1);
         auto y = std::strtol(text.substr(commaPos + 1, endPos - commaPos - 1).c_str(), nullptr,10);
         i = endPos + 3;
-        vertices.emplace_back(x, roomHeight - y);
+        vertices.emplace_back(x, y);
     } while (text.length() - 1 != endPos);
 }
 

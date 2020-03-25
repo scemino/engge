@@ -58,7 +58,7 @@ sf::Vector2i _toSize(const ng::GGPackValue &json);
 
 sf::Vector2f _parsePos(const std::string &text);
 sf::IntRect _parseRect(const std::string &text);
-void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices, int roomHeight);
+void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices);
 
 sf::Color _toColor(const std::string& color);
 sf::Color _toColor(SQInteger color);
