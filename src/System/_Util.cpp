@@ -349,4 +349,18 @@ sf::Vector2f toDefaultView(sf::Vector2i pos, sf::Vector2i fromSize)
     return sf::Vector2f((Screen::Width * pos.x)/fromSize.x,(Screen::Height * pos.y)/fromSize.y);
 }
 
+InterpolationMethod toInterpolationMethod(SQInteger interpolation)
+{
+    auto method = static_cast<InterpolationMethod>((interpolation&7)+1);
+    if(interpolation&0x100)
+    {
+        method |= InterpolationMethod::Looping;
+    }
+    if(interpolation&0x200)
+    {
+        method |= InterpolationMethod::Swing;
+    }
+    return method;
+}
+
 } // namespace ng

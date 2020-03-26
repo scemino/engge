@@ -235,7 +235,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->alphaTo(alpha, sf::seconds(time), (InterpolationMethod)interpolation);
+        obj->alphaTo(alpha, sf::seconds(time), toInterpolationMethod(interpolation));
         return 0;
     }
 
@@ -383,7 +383,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->offsetTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->offsetTo(sf::Vector2f(x, y), sf::seconds(t), toInterpolationMethod(interpolation));
         return 0;
     }
 
@@ -414,7 +414,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->moveTo(sf::Vector2f(x, y), sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->moveTo(sf::Vector2f(x, y), sf::seconds(t), toInterpolationMethod(interpolation));
         return 0;
     }
 
@@ -574,7 +574,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->scaleTo(value, sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->scaleTo(value, sf::seconds(t), toInterpolationMethod(interpolation));
         return 0;
     }
 
@@ -699,7 +699,7 @@ class _ObjectPack : public Pack
         {
             interpolation = 0;
         }
-        obj->rotateTo(value, sf::seconds(t), (InterpolationMethod)interpolation);
+        obj->rotateTo(value, sf::seconds(t), toInterpolationMethod(interpolation));
         return 0;
     }
 

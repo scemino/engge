@@ -310,8 +310,8 @@ ScriptEngine::ScriptEngine()
         {"EASE_OUT", 3},
         {"SLOW_EASE_IN", 4},
         {"SLOW_EASE_OUT", 5},
+        {"LOOPING", 0x100},
         {"SWING", 0X200},
-        {"LOOPING", 6},
         {"ALIGN_LEFT", 0x10000000},
         {"ALIGN_CENTER", 0x20000000},
         {"ALIGN_RIGHT", 0x40000000},
@@ -559,23 +559,6 @@ void ScriptEngine::executeBootScript()
     executeNutScript("Boot.nut");
 
     call("start", true);
-}
-
-std::function<float(float)> ScriptEngine::getInterpolationMethod(InterpolationMethod index)
-{
-    switch (index)
-    {
-        case InterpolationMethod::SlowEaseIn:
-        case InterpolationMethod::EaseIn:
-            return Interpolations::easeIn;
-        case InterpolationMethod::EaseInOut:
-            return Interpolations::easeInOut;
-        case InterpolationMethod::SlowEaseOut:
-        case InterpolationMethod::EaseOut:
-            return Interpolations::easeOut;
-        default:
-            return Interpolations::linear;
-    }
 }
 
 bool ScriptEngine::rawCall(const char *name)

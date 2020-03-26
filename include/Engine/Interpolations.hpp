@@ -1,18 +1,29 @@
 #pragma once
 #include <cmath>
+#include <functional>
 
 namespace ng
 {
 enum class InterpolationMethod
 {
-    Linear,
-    EaseIn,
-    EaseInOut,
-    EaseOut,
-    SlowEaseIn,
-    SlowEaseOut,
-    Looping
+    None        = 0,
+    Linear      = 1,
+    EaseIn      = 2,
+    EaseInOut   = 3,
+    EaseOut     = 4,
+    SlowEaseIn  = 5,
+    SlowEaseOut = 6,
+    Looping     = 0x10,
+    Swing       = 0x20,
 };
+
+template<class T> inline T operator~ (T a) { return (T)~(int)a; }
+template<class T> inline T operator| (T a, T b) { return (T)((int)a | (int)b); }
+template<class T> inline T operator& (T a, T b) { return (T)((int)a & (int)b); }
+template<class T> inline T operator^ (T a, T b) { return (T)((int)a ^ (int)b); }
+template<class T> inline T& operator|= (T& a, T b) { return (T&)((int&)a |= (int)b); }
+template<class T> inline T& operator&= (T& a, T b) { return (T&)((int&)a &= (int)b); }
+template<class T> inline T& operator^= (T& a, T b) { return (T&)((int&)a ^= (int)b); }
 
 class Interpolations
 {
@@ -39,5 +50,26 @@ class Interpolations
     }
 
     static float easeOutCubic(float t) { return 1 - pow(1 - t, 3); }
+};
+
+class InterpolationHelper
+{
+    public:
+        static std::function<float(float)> getInterpolationMethod(InterpolationMethod index)
+        {
+            switch (index)
+            {
+                case InterpolationMethod::SlowEaseIn:
+                case InterpolationMethod::EaseIn:
+                    return Interpolations::easeIn;
+                case InterpolationMethod::EaseInOut:
+                    return Interpolations::easeInOut;
+                case InterpolationMethod::SlowEaseOut:
+                case InterpolationMethod::EaseOut:
+                    return Interpolations::easeOut;
+                default:
+                    return Interpolations::linear;
+            }
+        }
 };
 } // namespace ng

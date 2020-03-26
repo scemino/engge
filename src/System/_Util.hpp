@@ -66,4 +66,6 @@ sf::Color _fromRgb(SQInteger color);
 
 sf::Vector2f toDefaultView(sf::Vector2i pos, sf::Vector2i fromSize);
 
+InterpolationMethod toInterpolationMethod(SQInteger interpolation);
+
 } // namespace ng

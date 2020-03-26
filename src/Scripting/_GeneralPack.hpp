@@ -428,7 +428,7 @@ private:
             }
         }
 
-        g_pEngine->getCamera().panTo(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f), sf::seconds(t), (InterpolationMethod)interpolation);
+        g_pEngine->getCamera().panTo(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f), sf::seconds(t), toInterpolationMethod(interpolation));
         return 0;
     }
 

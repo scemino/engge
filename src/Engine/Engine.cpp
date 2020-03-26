@@ -1827,10 +1827,9 @@ float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a / 255.f; }
 
 void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method)
 {
-    auto m = ScriptEngine::getInterpolationMethod(method);
     auto get = [this]() -> float {return getFadeAlpha();};
     auto set = [this](const float& a){ setFadeAlpha(a);};
-    auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, m);
+    auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
     addFunction(std::move(f));
 }
 

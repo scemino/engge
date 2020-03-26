@@ -163,7 +163,6 @@ sf::Vector2i Entity::getRenderOffset() const
 
 void Entity::alphaTo(float destination, sf::Time time, InterpolationMethod method)
 {
-    auto m = ScriptEngine::getInterpolationMethod(method);
     auto getAlpha = [](const Entity &o) { return (o.getColor().a / 255.f); };
     auto setAlpha = [](Entity &o, float a) {
         const auto c = o.getColor();
@@ -171,47 +170,40 @@ void Entity::alphaTo(float destination, sf::Time time, InterpolationMethod metho
     };
     auto getalpha = std::bind(getAlpha, std::cref(*this));
     auto setalpha = std::bind(setAlpha, std::ref(*this), std::placeholders::_1);
-    auto alphaTo = std::make_unique<ChangeProperty<float>>(getalpha, setalpha, destination, time, m);
+    auto alphaTo = std::make_unique<ChangeProperty<float>>(getalpha, setalpha, destination, time, method);
     _functions.push_back(std::move(alphaTo));
 }
 
 void Entity::offsetTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method)
 {
-    auto m = ScriptEngine::getInterpolationMethod(method);
     auto get = std::bind(&Entity::getOffset, this);
     auto set = std::bind(&Entity::setOffset, this, std::placeholders::_1);
-    auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, m);
+    auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
     _functions.push_back(std::move(offsetTo));
 }
 
 void Entity::moveTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method)
 {
-    auto m = ScriptEngine::getInterpolationMethod(method);
     auto get = std::bind(&Entity::getPosition, this);
     auto set = std::bind(&Entity::setPosition, this, std::placeholders::_1);
-    auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, m, 
-        method == InterpolationMethod::Looping);
+    auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
     _functions.push_back(std::move(offsetTo));
 }
 
 void Entity::rotateTo(float destination, sf::Time time, InterpolationMethod method)
 {
-    auto m = ScriptEngine::getInterpolationMethod(method);
     auto get = std::bind(&Entity::getRotation, this);
     auto set = std::bind(&Entity::setRotation, this, std::placeholders::_1);
     auto rotateTo =
-        std::make_unique<ChangeProperty<float>>(get, set, destination, time, m,
-                                                method == InterpolationMethod::Looping);
+        std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
     _functions.push_back(std::move(rotateTo));
 }
 
 void Entity::scaleTo(float destination, sf::Time time, InterpolationMethod method)
 {
-    auto m = ScriptEngine::getInterpolationMethod(method);
     auto get = std::bind(&Entity::getScale, this);
     auto set = std::bind(&Entity::setScale, this, std::placeholders::_1);
-    auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, destination, time, m,
-        method == InterpolationMethod::Looping);
+    auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
     _functions.push_back(std::move(scalteTo));
 }
 

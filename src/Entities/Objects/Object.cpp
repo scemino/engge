@@ -296,8 +296,6 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const
     const auto view = target.getView();
     target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
-    auto size = getRoom()->getRoomSize();
-
     sf::RenderStates s;
     auto transformable = getTransform();
     transformable.setPosition(transformable.getPosition().x, target.getView().getSize().y - transformable.getPosition().y);

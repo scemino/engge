@@ -61,8 +61,6 @@ public:
   template <class T>
   static void pushObject(HSQUIRRELVM v, T *pObject);
 
-  static std::function<float(float)> getInterpolationMethod(InterpolationMethod index);
-
   template <typename T>
   static void push(HSQUIRRELVM v, T value);
   template <typename First, typename... Rest>

@@ -112,7 +112,7 @@ private:
 
     static void _fadeTo(float a, const sf::Time &time)
     {
-        g_pEngine->fadeTo(a, time, (InterpolationMethod)0);
+        g_pEngine->fadeTo(a, time, InterpolationMethod::Linear);
     }
 
     static SQInteger createLight(HSQUIRRELVM v)

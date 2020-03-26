@@ -55,17 +55,18 @@ template <typename Value>
 class ChangeProperty : public TimeFunction
 {
 public:
-  ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time, std::function<float(float)> anim = Interpolations::linear, bool isLooping = false)
+  ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time, InterpolationMethod method = InterpolationMethod::Linear)
       : TimeFunction(time),
         _get(get),
         _set(set),
         _destination(destination),
         _init(get()),
         _delta(_destination - _init),
-        _current(_init),
-        _anim(anim),
-        _isLooping(isLooping)
+        _current(_init)
   {
+    _anim = InterpolationHelper::getInterpolationMethod(method);
+    _isLooping = ((method & InterpolationMethod::Looping) | (method & InterpolationMethod::Swing)) != InterpolationMethod::None;
+    _isSwing = (method & InterpolationMethod::Swing) != InterpolationMethod::None;
   }
 
   void operator()(const sf::Time &elapsed) override
@@ -75,11 +76,12 @@ public:
     if (!isElapsed())
     {
       auto t = _elapsed.asSeconds() / _time.asSeconds();
-      auto f = _anim(t);
+      auto f = _dirForward ? _anim(t) : 1.f - _anim(t);
       _current = _init + f * _delta;
       if (_elapsed >= _time && _isLooping)
       {
-        _elapsed = sf::seconds(0);
+        _elapsed = sf::seconds(_elapsed.asSeconds() - _time.asSeconds());
+        _dirForward = !_dirForward;
       }
     }
   }
@@ -104,6 +106,8 @@ private:
   Value _delta;
   Value _current;
   std::function<float(float)> _anim;
-  bool _isLooping;
+  bool _isLooping{false};
+  bool _isSwing{false};
+  bool _dirForward{true};
 };
 } // namespace ng

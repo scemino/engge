@@ -14,7 +14,7 @@ struct Camera::Impl
     bool _isMoving{false};
     sf::Vector2f _init, _target;
     sf::Time _elapsed, _time;
-    std::function<float(float)> _function = ScriptEngine::getInterpolationMethod(InterpolationMethod::Linear);
+    std::function<float(float)> _function = InterpolationHelper::getInterpolationMethod(InterpolationMethod::Linear);
 
     void clampCamera(sf::Vector2f &at);
 };
@@ -85,7 +85,7 @@ void Camera::panTo(sf::Vector2f target, sf::Time time, InterpolationMethod inter
         _pImpl->_init = _pImpl->_at;
         _pImpl->_elapsed = sf::seconds(0);
     }
-    _pImpl->_function = ScriptEngine::getInterpolationMethod((InterpolationMethod)interpolation);
+    _pImpl->_function = InterpolationHelper::getInterpolationMethod(interpolation);
     _pImpl->_target = target;
     _pImpl->_time = time;
 }
