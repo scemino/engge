@@ -342,6 +342,8 @@ void Costume::setHeadIndex(int index)
     }
 }
 
+int Costume::getHeadIndex() const { return _headIndex; }
+
 void Costume::setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim)
 {
     if (!headAnim.empty())

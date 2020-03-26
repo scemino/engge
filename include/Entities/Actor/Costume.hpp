@@ -43,6 +43,7 @@ public:
   std::vector<CostumeAnimation>& getAnimations() { return _animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
+  int getHeadIndex() const;
 
   void setAnimationNames(const std::string &headAnim, const std::string &standAnim, const std::string &walkAnim, const std::string &reachAnim);
   void setActor(Actor *pActor) { _pActor = pActor; }

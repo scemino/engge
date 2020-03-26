@@ -338,6 +338,12 @@ class _DebugTools
         ImGui::Combo("##Actor", &_selectedActor, stringGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
         auto &actor = actors[_selectedActor];
 
+        auto head = actor->getCostume().getHeadIndex();
+        if(ImGui::SliderInt("Head index", &head, 0, 5))
+        {
+            actor->getCostume().setHeadIndex(head);
+        }
+
         ImGui::PushID("costume");
         _filterCostume.Draw("Filter");
         if (ImGui::ListBoxHeader("Costume")) 
