@@ -38,8 +38,8 @@ void Camera::Impl::clampCamera(sf::Vector2f &at)
 
     auto roomSize = pRoom->getRoomSize();
     auto screenSize = pRoom->getScreenSize();
-    at.x = std::clamp<int>(at.x, 0, roomSize.x - screenSize.x);
-    at.y = std::clamp<int>(at.y, 0, roomSize.y - screenSize.y);
+    at.x = std::clamp<int>(at.x, 0, std::max(roomSize.x - screenSize.x, 0));
+    at.y = std::clamp<int>(at.y, 0, std::max(roomSize.y - screenSize.y, 0));
 }
 
 Camera::Camera() : _pImpl(std::make_unique<Impl>()) {}
