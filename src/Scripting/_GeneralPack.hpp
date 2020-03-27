@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
 #include "squirrel.h"
+#include "Dialog/DialogManager.hpp"
 #include "Engine/Camera.hpp"
 #include "Engine/Cutscene.hpp"
-#include "Dialog/DialogManager.hpp"
 #include "Engine/EngineSettings.hpp"
+#include "Engine/Inventory.hpp"
 #include "System/Locator.hpp"
 
 namespace ng
@@ -178,9 +179,17 @@ private:
             {
                 return sq_throwerror(v, _SC("failed to get object or actor"));
             }
-            pos = entity->getRealPosition() - g_pEngine->getCamera().getAt();
-            auto screenSize = g_pEngine->getRoom()->getScreenSize();
-            pos = sf::Vector2f(Screen::Width * pos.x/screenSize.x, Screen::Height * pos.y/screenSize.y);
+            if(entity->isInventoryObject())
+            {
+                const auto pObject = dynamic_cast<Object*>(entity);
+                pos = g_pEngine->getInventory().getPosition(pObject);
+            }
+            else
+            {
+                pos = entity->getRealPosition() - g_pEngine->getCamera().getAt();
+                auto screenSize = g_pEngine->getRoom()->getScreenSize();
+                pos = sf::Vector2f(Screen::Width * pos.x/screenSize.x, Screen::Height * pos.y/screenSize.y);
+            }
         }
         ScriptEngine::push(v, pos);
         return 1;

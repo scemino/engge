@@ -1907,4 +1907,6 @@ void Engine::run()
     execute("cameraInRoom(StartScreen)");
 }
 
+Inventory& Engine::getInventory() { return _pImpl->_inventory; }
+
 } // namespace ng

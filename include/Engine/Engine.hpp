@@ -104,6 +104,7 @@ class Cutscene;
 class DialogManager;
 class Entity;
 class Function;
+class Inventory;
 class Object;
 class Preferences;
 class Room;
@@ -258,6 +259,8 @@ class Engine : public NonCopyable
     void showOptions(bool visible);
     void quit();
     void run();
+
+    Inventory& getInventory();
 
   private:
     struct Impl;

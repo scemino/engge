@@ -22,6 +22,7 @@ public:
 
   void setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
   Object *getCurrentInventoryObject() { return _pCurrentInventoryObject; }
+  sf::Vector2f getPosition(Object* pObject) const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
