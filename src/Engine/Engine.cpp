@@ -1336,8 +1336,7 @@ void Engine::draw(sf::RenderWindow &window) const
     {
         _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
         _pImpl->drawFade(window);
-        _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
-
+        
         _pImpl->drawWalkboxes(window);
 
         window.draw(_pImpl->_talkingState);
@@ -1353,6 +1352,8 @@ void Engine::draw(sf::RenderWindow &window) const
                 if(_pImpl->_inputActive) window.draw(_pImpl->_actorIcons);
             }
         }
+
+        _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
 
         if(_pImpl->_state == EngineState::Options)
         {
