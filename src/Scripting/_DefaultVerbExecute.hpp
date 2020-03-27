@@ -205,12 +205,7 @@ class _TalkToFunction : public Function
 
     void operator()(const sf::Time &) override
     {
-        const char* dialog = nullptr;
-        if(_pActor2 && ScriptEngine::rawGet(_pActor2, "dialog", dialog) && dialog)
-        {
-            ScriptEngine::call(_pActor2, "verbTalkTo");
-        }
-        else if(!ScriptEngine::call(_pActor, "verbTalkTo"))
+        if(!_pActor2 || !ScriptEngine::call(_pActor2, "verbTalkTo"))
         {
             if(!callVerbDefault())
             {
