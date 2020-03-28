@@ -256,7 +256,7 @@ sf::Vector2f Inventory::getPosition(Object* pObject) const
     auto it = std::find(objects.cbegin(), objects.cend(), pObject);
     auto index = std::distance(objects.cbegin(), it);
     auto inventoryRect = _gameSheet.getRect("inventory_background");
-    auto x = index == 0 ? 0 : (inventoryRect.width + 5) * (index-1);
+    auto x = (index%4) == 0 ? 0 : (inventoryRect.width + 5) * ((index%4) - 1);
     auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
     sf::Vector2f scrollUpPosition(Screen::Width / 2.f,  Screen::Height - 3 *  Screen::Height / 14.f);
     sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
