@@ -158,11 +158,11 @@ bool Actor::contains(const sf::Vector2f &pos) const
     if (!pAnim)
         return false;
 
-    auto scale = pImpl->_pRoom->getRoomScaling().getScaling(getRealPosition().y);
-    auto transform = getTransform().getTransform();
-    transform.scale(scale, scale);
-    transform.translate((sf::Vector2f)-getRenderOffset() * scale);
-    auto t = transform.getInverse();
+    auto scale = getScale();
+    auto transformable = getTransform();
+    transformable.scale(scale, scale);
+    transformable.move(getRenderOffset().x*scale, getRenderOffset().y*scale);
+    auto t = transformable.getInverseTransform();
     auto pos2 = t.transformPoint(pos);
     return pAnim->contains(pos2);
 }
