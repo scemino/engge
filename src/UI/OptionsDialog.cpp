@@ -11,6 +11,8 @@
 #include "Graphics/Text.hpp"
 #include "System/Logger.hpp"
 #include "UI/OptionsDialog.hpp"
+
+#include <utility>
 #include "UI/QuitDialog.hpp"
 #include "imgui.h"
 
@@ -81,7 +83,7 @@ struct OptionsDialog::Impl
 
     inline static float getSlotPos(int slot)
     {
-        return yPosStart+yPosLarge+yPosSmall*slot;
+        return yPosStart+yPosLarge+yPosSmall* static_cast<float>(slot);
     }
 
     void setHeading(int id)
@@ -108,11 +110,6 @@ struct OptionsDialog::Impl
         auto lang = Locator<Preferences>::get().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
         auto it = std::find(LanguageValues.begin(),LanguageValues.end(),lang);
         return static_cast<int>(std::distance(LanguageValues.begin(),it));
-    }
-
-    void updateLanguage()
-    {
-        updateState(_state);
     }
 
     void updateState(State state)
@@ -285,7 +282,7 @@ struct OptionsDialog::Impl
         sf::Sprite sprite;
         sprite.setPosition(viewCenter);
         sprite.setTexture(_saveLoadSheet.getTexture());
-        sprite.setOrigin(rect.width/2,rect.height/2);
+        sprite.setOrigin(static_cast<float>(rect.width/2),static_cast<float>(rect.height/2));
         sprite.setTextureRect(rect);
         target.draw(sprite);
 
@@ -365,6 +362,6 @@ void OptionsDialog::update(const sf::Time& elapsed)
 
 void OptionsDialog::setCallback(Callback callback)
 {
-    _pImpl->_callback = callback;
+    _pImpl->_callback = std::move(callback);
 }
 }

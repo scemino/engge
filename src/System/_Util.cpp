@@ -97,7 +97,6 @@ bool getLine(GGPackBufferStream &input, std::string &line)
         }
         line.append(&c, 1);
     } while (true);
-    return false;
 }
 
 std::wstring towstring(const std::string &text)
@@ -134,8 +133,6 @@ bool getLine(GGPackBufferStream &input, std::wstring &wline)
         }
         line.append(&c, 1);
     } while (true);
-
-    return false;
 }
 
 float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2)
@@ -231,7 +228,6 @@ Facing _toFacing(UseDirection direction)
     case UseDirection::Right:
         return Facing::FACE_RIGHT;
     }
-    throw std::logic_error("Invalid direction");
 }
 
 Facing getOppositeFacing(Facing facing)
@@ -247,7 +243,6 @@ Facing getOppositeFacing(Facing facing)
         case Facing::FACE_RIGHT:
             return Facing::FACE_LEFT;
     }
-    return Facing::FACE_BACK;
 }
 
 sf::IntRect _toRect(const ng::GGPackValue &json)

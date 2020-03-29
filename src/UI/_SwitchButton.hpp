@@ -44,7 +44,7 @@ public:
             ImGuiIO &io = ImGui::GetIO();
             if(!io.WantCaptureMouse && _wasMouseDown && !isDown)
             {
-                _index=(_index+1)%_ids.size();
+                _index=(_index+1)% static_cast<int>(_ids.size());
                 text.setString(_pEngine->getText(_ids[_index]));
                 if(_callback) {
                     _callback(_index);

@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 #include "SFML/Graphics.hpp"
 #include "imgui.h"
 #include "_ControlConstants.hpp"
@@ -12,7 +13,7 @@ public:
 
 public:
     _Checkbox(int id, float y, bool enabled = true, bool checked = false, Callback callback = nullptr)
-    : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked), _callback(callback)
+    : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked), _callback(std::move(std::move(callback)))
     {
     }
 

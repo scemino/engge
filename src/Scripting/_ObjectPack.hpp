@@ -154,7 +154,7 @@ class _ObjectPack : public Pack
 
     static SQInteger jiggleObject(HSQUIRRELVM v)
     {
-        std::cerr << "TODO: jiggleObject: not implemented" << std::endl;
+        error("TODO: jiggleObject: not implemented");
         Object *obj = ScriptEngine::getObject(v, 2);
         if (!obj)
         {

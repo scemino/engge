@@ -44,7 +44,7 @@ void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const
     txt.setFont(_font);
     txt.setFillColor(getColor());
     txt.setString(_text);
-    txt.setMaxWidth(_maxWidth);
+    txt.setMaxWidth(static_cast<float>(_maxWidth));
     auto bounds = txt.getLocalBounds();
     sf::Vector2f offset;
     if (_alignment & TextAlignment::Center)

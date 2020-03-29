@@ -655,17 +655,17 @@ class _DebugTools
         auto &room = rooms[currentRoom];
 
         auto options = _engine.getWalkboxesFlags();
-        auto showWalkboxes = (options&4)?true:false;
+        auto showWalkboxes = (options & 4) != 0;
         if (ImGui::Checkbox("Walkboxes", &showWalkboxes))
         {
             _engine.setWalkboxesFlags(showWalkboxes?(4|options):(options&~4));
         }
-        auto showMergedWalkboxes = (options&1)?true:false;
+        auto showMergedWalkboxes = (options & 1) != 0;
         if (ImGui::Checkbox("Merged Walkboxes", &showMergedWalkboxes))
         {
             _engine.setWalkboxesFlags(showMergedWalkboxes?(1|options):(options&~1));
         }
-        auto showGraph = (options&2)?true:false;
+        auto showGraph = (options & 2) != 0;
         if (ImGui::Checkbox("Graph", &showGraph))
         {
             _engine.setWalkboxesFlags(showGraph?(2|options):(options&~2));

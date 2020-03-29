@@ -28,7 +28,6 @@ public:
         auto textRect = _text.getLocalBounds();
         _text.setPosition(Screen::Width/2.f-textRect.width/2.f, _y);
 
-        _pSpriteSheet=pSpriteSheet;
         auto sliderRect = pSpriteSheet->getRect("slider");
         auto handleRect = pSpriteSheet->getRect("slider_handle");
         sf::Vector2f scale(Screen::Width/320.f,Screen::Height/180.f);
@@ -68,7 +67,6 @@ public:
             {
                 _isDragging = true;
             }
-            _wasMouseDown = isDown;
         }
         else
         {
@@ -105,11 +103,9 @@ private:
     float _y{0};
     float _min{0}, _max{0}, _value{0};
     bool _isDragging{false};
-    bool _wasMouseDown{false};
     sf::Sprite _sprite;
     sf::Sprite _spriteHandle;
     Text _text;
-    SpriteSheet* _pSpriteSheet{nullptr};
     std::optional<Callback> onValueChanged;
 };
 }

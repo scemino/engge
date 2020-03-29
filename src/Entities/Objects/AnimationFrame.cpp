@@ -47,7 +47,7 @@ sf::Vector2f AnimationFrame::getOffset(bool leftDirection) const
 
 sf::Vector2f AnimationFrame::getOrigin(bool leftDirection) const
 {
-    auto y = static_cast<int>((_size.y + 1) / 2.f - _sourceRect.top);
+    auto y = static_cast<int>((_size.y + 1) / 2 - _sourceRect.top);
     auto x = static_cast<int>(leftDirection ? _sourceRect.left + _size.x / 2.f + _sourceRect.width - _size.x : _size.x / 2.f - _sourceRect.left);
     return sf::Vector2f(static_cast<float>(x), static_cast<float>(y));
 }

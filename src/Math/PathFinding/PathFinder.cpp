@@ -1,4 +1,3 @@
-#include <utility>
 #include <cmath>
 #include "_AstarAlgorithm.hpp"
 #include "Math/PathFinding/Graph.hpp"

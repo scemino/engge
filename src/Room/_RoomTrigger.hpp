@@ -10,12 +10,9 @@ class _RoomTriggerThread : public ThreadBase
 {
   public:
     explicit _RoomTriggerThread(HSQOBJECT thread_obj) : _thread_obj(thread_obj) {}
-    virtual ~_RoomTriggerThread()
-    {
+    ~_RoomTriggerThread() override = default;
 
-    }
-
-    HSQUIRRELVM getThread() const override { return _thread_obj._unVal.pThread; }
+    [[nodiscard]] HSQUIRRELVM getThread() const override { return _thread_obj._unVal.pThread; }
 
   private:
     HSQOBJECT _thread_obj;

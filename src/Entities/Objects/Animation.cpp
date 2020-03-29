@@ -1,7 +1,6 @@
 #include <iostream>
 #include <utility>
 #include "Entities/Objects/Animation.hpp"
-#include "Entities/Objects/Object.hpp"
 
 namespace ng
 {
@@ -47,9 +46,9 @@ void Animation::update(const sf::Time &elapsed)
         return;
 
     _time += elapsed;
-    if (_time.asSeconds() > (1.f / _fps))
+    if (_time.asSeconds() > (1.f / static_cast<float>(_fps)))
     {
-        _time = sf::seconds(_time.asSeconds() - (1.f / _fps));
+        _time = sf::seconds(_time.asSeconds() - (1.f / static_cast<float>(_fps)));
         if(_loop || _index != _frames.size()-1)
         {
             _index = (_index + 1) % _frames.size();

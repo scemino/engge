@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Engine/EngineSettings.hpp"
 #include "Font/FntFont.hpp"
 #include "Font/GGFont.hpp"

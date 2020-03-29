@@ -724,7 +724,7 @@ private:
         verb.image = image;
         verb.text = text;
         verb.key = key;
-        g_pEngine->setVerb(actorSlot - 1, verbSlot, verb);
+        g_pEngine->setVerb(static_cast<int>(actorSlot - 1), verbSlot, verb);
         return 0;
     }
 

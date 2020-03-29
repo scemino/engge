@@ -19,7 +19,7 @@ SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, 
 
 SoundId::~SoundId()
 {
-    trace("delete SoundId ({}) {}", (long)this, _pSoundDefinition->getPath());
+    //trace("delete SoundId ({}) {}", (long)this, _pSoundDefinition->getPath());
     stop();
     _pSoundDefinition = nullptr;
 }
@@ -135,7 +135,7 @@ void SoundId::update(const sf::Time &elapsed)
         else
         {
             auto path = _pSoundDefinition->getPath();
-            trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
+            //trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
             _soundManager.stopSound(this);
             return;
         }

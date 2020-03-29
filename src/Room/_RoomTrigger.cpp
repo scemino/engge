@@ -2,7 +2,6 @@
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Entities/Objects/Object.hpp"
-#include "Engine/ResourceManager.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "../System/_Util.hpp"
 #include "squirrel.h"

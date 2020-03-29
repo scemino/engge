@@ -1,5 +1,7 @@
 #pragma once
 #include "Engine/Function.hpp"
+
+#include <utility>
 #include "Dialog/DialogManager.hpp"
 
 namespace ng
@@ -7,8 +9,8 @@ namespace ng
 class _GotoFunction : public Function
 {
 public:
-  explicit _GotoFunction(DialogVisitor &dialogVisitor, const std::string& name)
-      : _dialogVisitor(dialogVisitor), _name(name)
+  explicit _GotoFunction(DialogVisitor &dialogVisitor, std::string name)
+      : _dialogVisitor(dialogVisitor), _name(std::move(name))
   {
   }
 

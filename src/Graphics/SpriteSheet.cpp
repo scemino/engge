@@ -1,4 +1,3 @@
-#include <string>
 #include "Engine/EngineSettings.hpp"
 #include "Parsers/JsonTokenReader.hpp"
 #include "System/Locator.hpp"
@@ -7,10 +6,7 @@
 
 namespace ng
 {
-SpriteSheet::SpriteSheet()
-    : _pTextureManager(nullptr)
-{
-}
+SpriteSheet::SpriteSheet() = default;
 
 void SpriteSheet::load(const std::string &name)
 {
@@ -34,14 +30,13 @@ void SpriteSheet::load(const std::string &name)
         out.write(buffer.data(), buffer.size());
         out.close();
 #endif
-        ng::Json::Parser parser;
-        parser.parse(buffer, json);
+        ng::Json::Parser::parse(buffer, json);
     }
 
     auto jFrames = json["frames"];
-    for (auto it = jFrames.hash_value.begin(); it != jFrames.hash_value.end(); ++it)
+    for (auto & it : jFrames.hash_value)
     {
-        auto& n = it->first;
+        auto& n = it.first;
         auto rect = _toRect(json["frames"][n]["frame"]);
         _rects.insert(std::make_pair(n, rect));
         rect = _toRect(json["frames"][n]["spriteSourceSize"]);

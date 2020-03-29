@@ -5,6 +5,8 @@
 #include "Graphics/SpriteSheet.hpp"
 #include "Graphics/Text.hpp"
 #include "UI/QuitDialog.hpp"
+
+#include <utility>
 #include "imgui.h"
 
 namespace ng
@@ -145,7 +147,7 @@ struct QuitDialog::Impl
         sf::Sprite sprite;
         sprite.setPosition(viewCenter);
         sprite.setTexture(_saveLoadSheet.getTexture());
-        sprite.setOrigin(rect.width/2,rect.height/2);
+        sprite.setOrigin(static_cast<float>(rect.width/2),static_cast<float>(rect.height/2));
         sprite.setTextureRect(rect);
         target.draw(sprite);
 
@@ -192,7 +194,7 @@ void QuitDialog::update(const sf::Time& elapsed)
 
 void QuitDialog::setCallback(Callback callback)
 {
-    _pImpl->_callback = callback;
+    _pImpl->_callback = std::move(callback);
 }
 
 void QuitDialog::updateLanguage()

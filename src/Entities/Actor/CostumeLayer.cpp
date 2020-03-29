@@ -6,7 +6,7 @@
 namespace ng
 {
 CostumeLayer::CostumeLayer(Animation&& animation)
-: _animation(std::move(animation))
+: _animation(animation)
 {
 }
 

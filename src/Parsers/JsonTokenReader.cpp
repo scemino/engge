@@ -284,7 +284,7 @@ void Parser::parse(TokenReader::iterator& it, GGPackValue &value)
     {
         value.type = 6;
         auto text = reader.readText(token);
-        value.double_value = std::atof(text.data());
+        value.double_value = std::strtod(text.data(), nullptr);
         break;
     }
     case TokenId::String:

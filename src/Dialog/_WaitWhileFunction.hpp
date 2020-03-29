@@ -1,13 +1,15 @@
 #pragma once
 #include "Engine/Function.hpp"
 
+#include <utility>
+
 namespace ng
 {
 class _WaitWhileFunction: public Function
 {
   public:
-    explicit _WaitWhileFunction(Engine& engine, const std::string& condition)
-        : _engine(engine), _condition(condition)
+    explicit _WaitWhileFunction(Engine& engine, std::string condition)
+        : _engine(engine), _condition(std::move(condition))
     {
     }
 

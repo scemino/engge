@@ -20,7 +20,7 @@ public:
   sf::Vector2i getSourceSize(const std::string &name) const;
 
 private:
-  TextureManager *_pTextureManager;
+  TextureManager *_pTextureManager{nullptr};
   sf::Texture _texture;
   std::map<std::string, sf::IntRect> _rects;
   std::map<std::string, sf::IntRect> _spriteSourceSize;

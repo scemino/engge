@@ -41,7 +41,7 @@ sf::Vector2f Walkbox::getClosestPointOnEdge(sf::Vector2f p3) const
     int vi2 = -1;
     float mindist = 100000;
 
-    for (size_t i = 0; i < _polygon.size(); i++)
+    for (int i = 0; i < static_cast<int>(_polygon.size()); i++)
     {
         auto dist = distanceToSegment(p3, (sf::Vector2f)_polygon[i], (sf::Vector2f)_polygon[(i + 1) % _polygon.size()]);
         if (dist < mindist)
