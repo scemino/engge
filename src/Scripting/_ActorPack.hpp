@@ -1074,7 +1074,7 @@ class _ActorPack : public Pack
         return 1;
     }
 
-    static SQInteger _sayLine(HSQUIRRELVM v)
+    static SQInteger _sayLine(HSQUIRRELVM v, bool mumble = false)
     {
         auto type = sq_gettype(v, 2);
         Actor *actor;
@@ -1106,12 +1106,12 @@ class _ActorPack : public Pack
                 return sq_throwerror(v, _SC("failed to get text"));
             }
 
-            actor->say(idText);
+            actor->say(idText, mumble);
         }
         return 0;
     }
 
-    static SQInteger mumbleLine(HSQUIRRELVM v) { return _sayLine(v); }
+    static SQInteger mumbleLine(HSQUIRRELVM v) { return _sayLine(v, true); }
 
     static SQInteger sayLine(HSQUIRRELVM v)
     {

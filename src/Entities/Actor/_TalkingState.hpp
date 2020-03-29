@@ -42,7 +42,7 @@ public:
                 _isTalking = false;
                 return;
             }
-            loadId(_ids.front());
+            loadId(std::get<0>(_ids.front()), std::get<1>(_ids.front()));
             _ids.erase(_ids.begin());
         }
         _lipAnim.update(elapsed);
@@ -78,7 +78,7 @@ public:
     
     inline void setText(const std::wstring& text) { _sayText = text; }
     
-    void loadLip(const std::string& text, Actor* pActor)
+    void loadLip(const std::string& text, Actor* pActor, bool mumble = false)
     { 
         _pActor = pActor;
         setTalkColor(pActor->getTalkColor());
@@ -88,11 +88,11 @@ public:
 
         if (_isTalking)
         {
-            _ids.push_back(id);
+            _ids.push_back(std::make_tuple(id,mumble));
             return;
         }
 
-        loadId(id);
+        loadId(id, mumble);
     }
 
 private:
@@ -114,7 +114,7 @@ private:
         }
     }
 
-    void loadId(int id)
+    void loadId(int id, bool mumble)
     {
         setText(_pEngine->getText(id));
 
@@ -134,7 +134,7 @@ private:
         std::wsmatch matches;
         std::string anim;
 
-        bool loadLipAnim = true;
+        bool loadLipAnim = !mumble;
         if (std::regex_search(_sayText, matches, re))
         {
             anim = tostring(matches[1].str());
@@ -249,6 +249,6 @@ private:
     sf::Time _duration;
     _LipAnimation _lipAnim;
     int _soundId{0};
-    std::vector<int> _ids;
+    std::vector<std::tuple<int,bool>> _ids;
 };
 }

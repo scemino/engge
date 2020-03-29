@@ -39,7 +39,7 @@ public:
   sf::Color getTalkColor() const;
   
   void setTalkOffset(const sf::Vector2i &offset);
-  void say(const std::string& text);
+  void say(const std::string& text, bool mumble = false);
   void stopTalking();
   bool isTalking() const;
 

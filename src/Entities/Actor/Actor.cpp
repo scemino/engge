@@ -127,9 +127,9 @@ sf::Color Actor::getTalkColor() const { return pImpl->_talkingState.getTalkColor
 
 void Actor::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkOffset = offset; }
 
-void Actor::say(const std::string& text)
+void Actor::say(const std::string& text, bool mumble)
 { 
-    pImpl->_talkingState.loadLip(text, this);
+    pImpl->_talkingState.loadLip(text, this, mumble);
     auto pos = getRealPosition();
     auto at = pImpl->_engine.getCamera().getAt();
     pos.x = pos.x - at.x + pImpl->_talkOffset.x;
