@@ -71,10 +71,10 @@ class CharSet
 {
   public:
 	void addKerning(Kerning k);
-	short getKerning(int first, int second) const;
+	[[nodiscard]] short getKerning(int first, int second) const;
 
 	void addChar(int id, sf::Glyph& cd);
-	const sf::Glyph& getChar(int id) const;
+	[[nodiscard]] const sf::Glyph& getChar(int id) const;
 
 	std::vector<std::string> pages; // [id] = file
 
@@ -130,12 +130,13 @@ class FntFont: public Font
 	std::vector<sf::Texture> m_textures;
 
   public:
+    ~FntFont() override;
 	bool loadFromFile(const std::string& path);
 
-	int getLineHeight() const override;
-	const sf::Glyph& getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const override;
-	float getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const override;
-	const sf::Texture& getTexture(unsigned int characterSize) const override;
+	[[nodiscard]] int getLineHeight() const override;
+	[[nodiscard]] const sf::Glyph& getGlyph(sf::Uint32 codePoint, unsigned int characterSize, bool bold, float outlineThickness = 0) const override;
+	[[nodiscard]] float getKerning(sf::Uint32 first, sf::Uint32 second, unsigned int characterSize) const override;
+	[[nodiscard]] const sf::Texture& getTexture(unsigned int characterSize) const override;
 
   private:
 	bool parse(const std::string& path);

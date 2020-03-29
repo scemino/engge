@@ -162,7 +162,7 @@ bool Inventory::hasDownArrow() const
 {
     const auto &objects = _pCurrentActor->getObjects();
     auto inventoryOffset = _pCurrentActor->getInventoryOffset();
-    return objects.size() > (inventoryOffset * 4 + 8);
+    return static_cast<int>(objects.size()) > (inventoryOffset * 4 + 8);
 }
 
 void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const

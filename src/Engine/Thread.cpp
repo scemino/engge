@@ -1,9 +1,7 @@
 #include "squirrel.h"
 #include "System/Locator.hpp"
 #include "Engine/ResourceManager.hpp"
-#include "Scripting/ScriptEngine.hpp"
 #include "Engine/Thread.hpp"
-
 #include <utility>
 
 namespace ng

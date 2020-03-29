@@ -2,7 +2,6 @@
 #include "Engine/Camera.hpp"
 #include "Engine/Engine.hpp"
 #include "Room/Room.hpp"
-#include "Scripting/ScriptEngine.hpp"
 
 namespace ng
 {

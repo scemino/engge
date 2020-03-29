@@ -6,6 +6,8 @@
 
 namespace ng
 {
+GGFont::~GGFont() = default;
+
 const sf::Texture &GGFont::getTexture(unsigned int) const { return _texture; }
 
 float GGFont::getKerning(sf::Uint32, sf::Uint32, unsigned int) const { return 0; }

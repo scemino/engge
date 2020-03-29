@@ -17,8 +17,8 @@ public:
   ~RoomScaling() = default;
 
   void setTrigger(const std::string &trigger);
-  const std::string& getName() const;
-  float getScaling(float yPos) const;
+  [[nodiscard]] const std::string& getName() const;
+  [[nodiscard]] float getScaling(float yPos) const;
   std::vector<Scaling> &getScalings();
 
 private:

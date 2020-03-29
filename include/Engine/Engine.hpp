@@ -182,7 +182,7 @@ class Engine : public NonCopyable
 
     void setVerb(int characterSlot, int verbSlot, const Verb &verb);
     void setVerbUiColors(int characterSlot, VerbUiColors colors);
-    const VerbUiColors *getVerbUiColors(const std::string& name) const;
+    [[nodiscard]] const VerbUiColors *getVerbUiColors(const std::string& name) const;
     void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
     [[nodiscard]] const Verb *getVerb(int id) const;
     void setDefaultVerb();
@@ -202,7 +202,7 @@ class Engine : public NonCopyable
     void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);
     
     void addThread(std::unique_ptr<ThreadBase> thread);
-    void stopThread(int threadId);
+
     std::vector<std::unique_ptr<ThreadBase>>& getThreads();
 
     void startDialog(const std::string &dialog, const std::string &node);
@@ -211,7 +211,6 @@ class Engine : public NonCopyable
     bool executeCondition(const std::string &code);
     std::string executeDollar(const std::string &code);
 
-    [[nodiscard]] sf::Vector2f getMousePos() const;
     [[nodiscard]] sf::Vector2f getMousePositionInRoom() const;
     [[nodiscard]] sf::Vector2f findScreenPosition(int verb) const;
 

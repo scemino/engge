@@ -470,7 +470,7 @@ void GGPack::getOffsets()
     _offsets.clear();
     do
     {
-        int offset;
+        uint32_t offset;
         _bufferStream.read((char *)&offset, 4);
         if (offset == 0xFFFFFFFF)
             return;

@@ -553,15 +553,7 @@ void ScriptEngine::executeNutScript(const std::string &name)
     sq_settop(v, top);
 }
 
-void ScriptEngine::executeBootScript()
-{
-    executeNutScript("Defines.nut");
-    executeNutScript("Boot.nut");
-
-    call("start", true);
-}
-
-bool ScriptEngine::rawCall(const char *name)
+    bool ScriptEngine::rawCall(const char *name)
 {
     auto v = g_pEngine->getVm();
     sq_pushroottable(v);

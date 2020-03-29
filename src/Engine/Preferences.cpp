@@ -48,12 +48,12 @@ void Preferences::removePrivatePreference(const std::string &name)
     }
 }
 
-void Preferences::subscribe(std::function<void(const std::string &)> function)
+void Preferences::subscribe(const std::function<void(const std::string &)>& function)
 {
     _functions.emplace_back(function);
 }
 
-GGPackValue Preferences::getUserPreferenceCore(const std::string &name, GGPackValue defaultValue) const
+GGPackValue Preferences::getUserPreferenceCore(const std::string &name, const GGPackValue& defaultValue) const
 {
     auto it = _values.hash_value.find(name);
     if (it != _values.hash_value.end())
@@ -63,7 +63,7 @@ GGPackValue Preferences::getUserPreferenceCore(const std::string &name, GGPackVa
     return defaultValue;
 }
 
-GGPackValue Preferences::getPrivatePreferenceCore(const std::string &name, GGPackValue defaultValue) const
+GGPackValue Preferences::getPrivatePreferenceCore(const std::string &name, const GGPackValue& defaultValue) const
 {
     auto it = _privateValues.hash_value.find(name);
     if (it != _privateValues.hash_value.end())
@@ -74,31 +74,31 @@ GGPackValue Preferences::getPrivatePreferenceCore(const std::string &name, GGPac
 }
 
 template <>
-int Preferences::fromGGPackValue<int>(GGPackValue value)
+int Preferences::fromGGPackValue<int>(const GGPackValue& value)
 {
     return value.int_value;
 }
 
 template <>
-bool Preferences::fromGGPackValue<bool>(GGPackValue value)
+bool Preferences::fromGGPackValue<bool>(const GGPackValue& value)
 {
-    return value.int_value?true:false;
+    return value.int_value != 0;
 }
 
 template <>
-std::string Preferences::fromGGPackValue<std::string>(GGPackValue value)
+std::string Preferences::fromGGPackValue<std::string>(const GGPackValue& value)
 {
     return value.string_value;
 }
 
 template <>
-float Preferences::fromGGPackValue<float>(GGPackValue value)
+float Preferences::fromGGPackValue<float>(const GGPackValue& value)
 {
     return value.double_value;
 }
 
 template <>
-GGPackValue Preferences::fromGGPackValue<GGPackValue>(GGPackValue value)
+GGPackValue Preferences::fromGGPackValue<GGPackValue>(const GGPackValue& value)
 {
     return value;
 }

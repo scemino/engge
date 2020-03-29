@@ -10,7 +10,7 @@ public:
 
 public:
     StartScreenDialog();
-    ~StartScreenDialog();
+    ~StartScreenDialog() override;
 
     void setNewGameCallback(Callback callback);
     void setEngine(Engine* pEngine);

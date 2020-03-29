@@ -40,7 +40,7 @@ void _IndexedPriorityQueue::reorderUp() {
 void _IndexedPriorityQueue::reorderDown() {
     if (_data.empty())
         return;
-    for (int a = 0; a < _data.size() - 1; a++) {
+    for (int a = 0; a < static_cast<int>(_data.size() - 1); a++) {
         if (_keys[_data[a]] <= _keys[_data[a + 1]])
             return;
         int tmp = _data[a];

@@ -99,7 +99,7 @@ CostumeLayer Costume::loadLayer(const GGPackValue& jLayer) const
         auto frameName = jFrame.string_value;
         if (frameName == "null")
         {
-            animation.addFrame({sf::IntRect()});
+            animation.addFrame(AnimationFrame(sf::IntRect()));
         }
         else
         {

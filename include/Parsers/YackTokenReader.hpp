@@ -35,7 +35,7 @@ struct Token
   friend std::ostream &operator<<(std::ostream &os, const Token &obj);
 
 private:
-  std::string readToken() const;
+  [[nodiscard]] std::string readToken() const;
 };
 
 class YackTokenReader

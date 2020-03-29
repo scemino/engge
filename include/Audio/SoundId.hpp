@@ -19,10 +19,10 @@ public:
     void resume();
 
     void setVolume(float volume);
-    float getVolume() const;
+    [[nodiscard]] float getVolume() const;
 
     SoundDefinition *getSoundDefinition();
-    bool isPlaying() const;
+    [[nodiscard]] bool isPlaying() const;
     void fadeTo(float volume, const sf::Time &duration);
 
     void setEntity(Entity *pEntity);

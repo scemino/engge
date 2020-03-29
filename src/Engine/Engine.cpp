@@ -5,7 +5,6 @@
 #include "Engine/Camera.hpp"
 #include "Engine/Cutscene.hpp"
 #include "Dialog/DialogManager.hpp"
-#include "Font/FntFont.hpp"
 #include "Font/GGFont.hpp"
 #include "Math/PathFinding/Graph.hpp"
 #include "Engine/Inventory.hpp"
@@ -360,7 +359,7 @@ const VerbUiColors *Engine::getVerbUiColors(const std::string& name) const
         if(index == -1) return nullptr;
         return &_pImpl->_verbUiColors.at(index);
     }
-    for (auto i = 0; i < _pImpl->_actorsIconSlots.size(); i++)
+    for (int i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); i++)
     {
         const auto &selectableActor = _pImpl->_actorsIconSlots.at(i);
         if (selectableActor.pActor->getKey() == name)
@@ -469,9 +468,7 @@ void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.pu
 
 std::vector<std::unique_ptr<ThreadBase>>& Engine::getThreads() { return _pImpl->_threads; }
 
-sf::Vector2f Engine::getMousePos() const { return _pImpl->_mousePos; }
-
-sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
+    sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
 
 sf::Vector2f Engine::findScreenPosition(int verbId) const
 {
@@ -1019,7 +1016,7 @@ const Verb* Engine::Impl::getHoveredVerb() const
     auto currentActorIndex = getCurrentActorIndex();
     if(currentActorIndex == -1) return nullptr;
 
-    for (size_t i = 0; i < _verbRects.size(); i++)
+    for (int i = 0; i < static_cast<int>(_verbRects.size()); i++)
     {
         if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
             auto verbId = _verbSlots.at(currentActorIndex).getVerb(1 + i).id;
@@ -1427,7 +1424,7 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const
     sf::Sprite sprite;
     sprite.setPosition(viewCenter);
     sprite.setTexture(_saveLoadSheet.getTexture());
-    sprite.setOrigin(rect.width/2,rect.height/2);
+    sprite.setOrigin(rect.width/2.f,rect.height/2.f);
     sprite.setTextureRect(rect);
     target.draw(sprite);
 
@@ -1640,7 +1637,7 @@ void Engine::Impl::appendUseFlag(std::wstring &sentence) const
 
 int Engine::Impl::getCurrentActorIndex() const
 {
-    for (auto i = 0; i < _actorsIconSlots.size(); i++)
+    for (int i = 0; i < static_cast<int>(_actorsIconSlots.size()); i++)
     {
         const auto &selectableActor = _actorsIconSlots.at(i);
         if (selectableActor.pActor == _pCurrentActor)
@@ -1691,7 +1688,7 @@ void Engine::Impl::drawVerbs(sf::RenderWindow &window) const
     }
     else if(_state == EngineState::Game)
     {
-        for (size_t i = 0; i < _verbRects.size(); i++)
+        for (int i = 0; i < static_cast<int>(_verbRects.size()); i++)
         {
             if (_verbRects.at(i).contains((sf::Vector2i)_mousePos))
             {
@@ -1824,7 +1821,7 @@ const Verb *Engine::getActiveVerb() const { return _pImpl->_pVerb; }
 
 void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
 
-float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a / 255.f; }
+float Engine::getFadeAlpha() const { return static_cast<float>(_pImpl->_fadeColor.a) / 255.f; }
 
 void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method)
 {

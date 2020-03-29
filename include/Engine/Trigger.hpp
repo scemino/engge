@@ -13,7 +13,7 @@ class Trigger
             return;
         trigCore();
     }
-    bool isEnabled() const { return _isEnabled; }
+    [[nodiscard]] bool isEnabled() const { return _isEnabled; }
     void disable() { _isEnabled = false; }
     virtual std::string getName() = 0;
 

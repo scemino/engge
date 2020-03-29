@@ -358,12 +358,7 @@ void OptionsDialog::update(const sf::Time& elapsed)
     _pImpl->update(elapsed);
 }
 
-void OptionsDialog::updateLanguage()
-{
-    _pImpl->updateLanguage();
-}
-
-void OptionsDialog::showHelp()
+    void OptionsDialog::showHelp()
 {
     _pImpl->updateState(Impl::State::Help);
 }

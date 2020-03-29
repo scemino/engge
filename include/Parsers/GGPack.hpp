@@ -1,15 +1,14 @@
-#include <utility>
 
 #pragma once
-#include <cstring>
 #include <codecvt>
-#include <string>
-#include <map>
-#include <vector>
+#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <map>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace ng
 {
@@ -33,12 +32,12 @@ public:
   GGPackValue();
   GGPackValue(const GGPackValue &value);
 
-  bool isNull() const;
-  bool isHash() const;
-  bool isArray() const;
-  bool isString() const;
-  bool isInteger() const;
-  bool isDouble() const;
+  [[nodiscard]] bool isNull() const;
+  [[nodiscard]] bool isHash() const;
+  [[nodiscard]] bool isArray() const;
+  [[nodiscard]] bool isString() const;
+  [[nodiscard]] bool isInteger() const;
+  [[nodiscard]] bool isDouble() const;
 
   GGPackValue &operator[](std::size_t index);
   const GGPackValue &operator[](std::size_t index) const;
@@ -47,9 +46,9 @@ public:
   GGPackValue &operator=(const GGPackValue &other);
   virtual ~GGPackValue();
   
-  int getInt() const;
-  double getDouble() const;
-  std::string getString() const;
+  [[nodiscard]] int getInt() const;
+  [[nodiscard]] double getDouble() const;
+  [[nodiscard]] std::string getString() const;
 
   friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
 };
@@ -59,9 +58,9 @@ public:
   virtual void read(char *data, size_t size) = 0;
   virtual void seek(int pos) = 0;
   virtual int tell() = 0;
-  virtual int getLength() const = 0;
-  virtual bool eof() const = 0;
-  virtual char peek() const = 0;
+  [[nodiscard]] virtual int getLength() const = 0;
+  [[nodiscard]] virtual bool eof() const = 0;
+  [[nodiscard]] virtual char peek() const = 0;
 };
 
 class GGPackBufferStream : public GGPackStream
@@ -77,7 +76,7 @@ public:
   }
   void read(char *data, size_t size) override
   {
-    if ((_offset + size) > getLength())
+    if ((static_cast<int>(_offset + size)) > getLength())
       return;
     memcpy(data, _input.data() + _offset, size);
     _offset += size;
@@ -86,7 +85,7 @@ public:
   {
     _offset = pos;
   }
-  int getLength() const override
+  [[nodiscard]] int getLength() const override
   {
     return _input.size();
   }
@@ -94,17 +93,17 @@ public:
   {
     return _offset;
   }
-  bool eof() const override
+  [[nodiscard]] bool eof() const override
   {
-    return _offset == _input.size();
+    return _offset == static_cast<int>(_input.size());
   }
-  char peek() const override
+  [[nodiscard]] char peek() const override
   {
     return _input[_offset];
   }
   GGPackBufferStream &ignore(std::streamsize n = 1, int delim = EOF)
   {
-    for (int i = 0; i < n && _offset < _input.size(); i++)
+    for (int i = 0; i < n && _offset < static_cast<int>(_input.size()); i++)
     {
       if (_input[_offset++] == delim)
         return *this;

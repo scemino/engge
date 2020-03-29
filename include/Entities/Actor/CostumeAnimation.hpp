@@ -16,19 +16,18 @@ class CostumeAnimation : public sf::Drawable
 {
 public:
   void setName(const std::string &name) { _name = name; }
-  const std::string &getName() const { return _name; }
+  [[nodiscard]] const std::string &getName() const { return _name; }
 
   std::vector<CostumeLayer> &getLayers() { return _layers; }
 
   void play(bool loop = false);
   void pause() { _state = AnimationState::Pause; }
-  bool isPlaying() const { return _state == AnimationState::Play; }
-  void setFps(int fps);
+  [[nodiscard]] bool isPlaying() const { return _state == AnimationState::Play; }
 
   void setFlags(int flags) { _flags = flags; }
-  int getFlags() const { return _flags; }
+  [[nodiscard]] int getFlags() const { return _flags; }
 
-  bool contains(const sf::Vector2f& pos) const;
+  [[nodiscard]] bool contains(const sf::Vector2f& pos) const;
 
   void update(const sf::Time &elapsed);
 

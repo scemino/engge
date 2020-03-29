@@ -40,6 +40,8 @@ const sf::Glyph &CharSet::getChar(int id) const
     return it->second;
 }
 
+FntFont::~FntFont() = default;
+
 bool FntFont::loadFromFile(const std::string &path)
 {
     // Parse .fnt file

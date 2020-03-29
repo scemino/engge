@@ -37,9 +37,8 @@ public:
   void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck = 0, const SQChar *typemask = nullptr);
   static void executeScript(const std::string &name);
   static void executeNutScript(const std::string& name);
-  void executeBootScript();
 
-  template <class TPack>
+    template <class TPack>
   void addPack();
 
   template <typename TScriptObject>

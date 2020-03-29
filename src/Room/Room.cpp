@@ -423,7 +423,7 @@ struct Room::Impl
         toPath(_walkboxes[0], path);
         solutions.push_back(path);
 
-        for (int i = 1; i < _walkboxes.size(); i++) {
+        for (int i = 1; i < static_cast<int>(_walkboxes.size()); i++) {
             if (!_walkboxes[i].isEnabled()) continue;
             path.clear();
             toPath(_walkboxes[i], path);

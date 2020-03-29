@@ -54,8 +54,9 @@ if (MSVC)
     # TODO: warning level 4 and all warnings as errors
     # target_compile_options("${appName}" PRIVATE /W4 /WX)
 else()
-    # lots of warnings and all warnings as errors TODO remove: -Wno-sign-compare and add -Werror
-    target_compile_options("${appName}" PRIVATE -Wall -Wextra -pedantic-errors -Wno-sign-compare)
+    # lots of warnings and all warnings as errors
+    # TODO: treat warnings as errors: -Werror
+    target_compile_options("${appName}" PRIVATE -Wall -Wextra -pedantic-errors)
 endif()
 
 # Configure CPack

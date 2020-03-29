@@ -321,7 +321,7 @@ void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices)
         auto y = std::strtol(text.substr(commaPos + 1, endPos - commaPos - 1).c_str(), nullptr,10);
         i = endPos + 3;
         vertices.emplace_back(x, y);
-    } while (text.length() - 1 != endPos);
+    } while (static_cast<int>(text.length() - 1) != endPos);
 }
 
 sf::Color _toColor(const std::string& color)

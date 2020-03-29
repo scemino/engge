@@ -21,8 +21,8 @@ public:
     [[nodiscard]] virtual HSQUIRRELVM getThread() const = 0;
 
     inline void setPauseable(bool value) { _isPauseable = value; }
-    inline bool isPauseable() const { return _isPauseable; }
-    virtual bool isGlobal() const { return false; }
+    [[nodiscard]] inline bool isPauseable() const { return _isPauseable; }
+    [[nodiscard]] virtual bool isGlobal() const { return false; }
 
     inline void stop() { _isStopped = true; }
 

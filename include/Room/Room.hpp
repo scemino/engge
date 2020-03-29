@@ -30,7 +30,7 @@ static const int EFFECT_BLACKANDWHITE = 5;
 class Room : public ScriptObject
 {
 public:
-  Room(TextureManager &textureManager);
+  explicit Room(TextureManager &textureManager);
   ~Room() override;
 
   void setName(const std::string& name);
@@ -67,7 +67,7 @@ public:
   [[nodiscard]] const RoomScaling &getRoomScaling() const;
   HSQOBJECT &getTable();
 
-  const SpriteSheet& getSpriteSheet() const;
+  [[nodiscard]] const SpriteSheet& getSpriteSheet() const;
 
   void setAmbientLight(sf::Color color);
   [[nodiscard]] sf::Color getAmbientLight() const;

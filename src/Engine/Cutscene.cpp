@@ -1,9 +1,7 @@
 #include "Engine/Camera.hpp"
 #include "Engine/Cutscene.hpp"
 #include "Engine/Engine.hpp"
-#include "System/Locator.hpp"
 #include "System/Logger.hpp"
-#include "Engine/ResourceManager.hpp"
 #include "Scripting/ScriptEngine.hpp"
 
 namespace ng

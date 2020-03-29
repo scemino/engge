@@ -10,7 +10,7 @@ public:
 
 public:
     QuitDialog();
-    ~QuitDialog();
+    ~QuitDialog() override;
 
     void setCallback(Callback callback);
     void setEngine(Engine* pEngine);

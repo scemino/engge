@@ -17,7 +17,7 @@ class Actor : public Entity
 {
 public:
   explicit Actor(Engine &engine);
-  virtual ~Actor() override;
+  ~Actor() override;
 
   void setKey(const std::string &key);
   const std::string &getKey() const;

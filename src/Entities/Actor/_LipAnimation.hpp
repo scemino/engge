@@ -32,11 +32,11 @@ public:
         
         auto time = _lip.getData()[_index].time;
         _elapsed+=elapsed;
-        if (_elapsed > time && _index < _lip.getData().size())
+        if (_elapsed > time && _index < static_cast<int>(_lip.getData().size()))
         {
             _index++;
         }
-        if (_index == _lip.getData().size())
+        if (_index == static_cast<int>(_lip.getData().size()))
         {
             _pActor->getCostume().setHeadIndex(0);
             return;
@@ -46,7 +46,7 @@ public:
 
     void updateHead()
     {
-        if (_lip.getData().empty() && _index >= _lip.getData().size()) return;
+        if (_lip.getData().empty() && _index >= static_cast<int>(_lip.getData().size())) return;
         auto letter = _lip.getData()[_index].letter;
         if (letter == 'X' || letter == 'G')
             letter = 'A';
@@ -58,7 +58,7 @@ public:
         _pActor->getCostume().setHeadIndex(index);
     }
 
-    sf::Time getDuration() const 
+    [[nodiscard]] sf::Time getDuration() const
     {
         if(_lip.getData().empty()) return sf::seconds(0);
         return _lip.getData().back().time;

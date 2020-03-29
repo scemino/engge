@@ -34,7 +34,7 @@ public:
   bool isElapsed() override;
   void operator()(const sf::Time &elapsed) override;
   void cutsceneOverride();
-  bool hasCutsceneOverride() const {return _hasCutsceneOverride;}
+  [[nodiscard]] bool hasCutsceneOverride() const {return _hasCutsceneOverride;}
 
 private:
   void startCutscene();

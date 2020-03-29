@@ -72,7 +72,7 @@ class Object : public Entity
 {
 public:
   Object();
-  ~Object();
+  ~Object() override;
 
   void setZOrder(int zorder);
   int getZOrder() const override;

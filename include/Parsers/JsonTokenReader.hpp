@@ -5,9 +5,7 @@
 #include <vector>
 #include "GGPack.hpp"
 
-namespace ng
-{
-namespace Json
+namespace ng::Json
 {
 enum class TokenId
 {
@@ -33,7 +31,7 @@ struct Token
     friend std::ostream &operator<<(std::ostream &os, const Token &obj);
 
 private:
-    std::string readToken() const;
+    [[nodiscard]] std::string readToken() const;
 };
 
 class TokenReader
@@ -98,5 +96,4 @@ private:
     static void parse(TokenReader::iterator& it, GGPackValue &value);
     static void readHash(TokenReader::iterator& it, GGPackValue &value);
 };
-} // namespace Json
 } // namespace ng

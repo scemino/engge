@@ -46,8 +46,10 @@ struct Verb
                 return "verbPull";
             case VerbConstants::VERB_PUSH:
                 return "verbPush";
-            case VerbConstants::VERB_WALKTO:
+            case VerbConstants::VERB_TALKTO:
                 return "verbTalkTo";
+            case VerbConstants::VERB_WALKTO:
+                return "verbWalkTo";
             case VerbConstants::VERB_USE:
                 return "verbUse";
         }
@@ -59,8 +61,8 @@ class VerbSlot
 {
   public:
     void setVerb(int index, const Verb &verb) { _verbs.at(index) = verb; }
-    const Verb &getVerb(int index) const { return _verbs.at(index); }
-    size_t getVerbIndex(int id) const
+    [[nodiscard]] const Verb &getVerb(int index) const { return _verbs.at(index); }
+    [[nodiscard]] size_t getVerbIndex(int id) const
     {
         for (size_t i = 0; i < _verbs.size(); i++)
         {

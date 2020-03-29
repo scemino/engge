@@ -97,7 +97,7 @@ class DefaultInputEventHandler : public InputEventHandler
         }
     }
 
-    int toButtonKey(sf::Event::JoystickButtonEvent event)
+    static int toButtonKey(sf::Event::JoystickButtonEvent event)
     {
         auto button = event.button;
         switch(button)
@@ -119,7 +119,7 @@ class DefaultInputEventHandler : public InputEventHandler
         }
     }
 
-    int toKey(sf::Keyboard::Key key)
+    static int toKey(sf::Keyboard::Key key)
     {
         if(key >= sf::Keyboard::Key::A && key <= sf::Keyboard::Key::Z)
         {

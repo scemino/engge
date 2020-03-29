@@ -16,13 +16,13 @@ class Camera
     void panTo(sf::Vector2f target, sf::Time time, InterpolationMethod interpolation);
     void at(const sf::Vector2f &at);
     void move(const sf::Vector2f &offset);
-    bool isMoving() const;
+    [[nodiscard]] bool isMoving() const;
     
     void setBounds(const sf::IntRect &cameraBounds);
-    std::optional<sf::IntRect> getBounds() const;
+    [[nodiscard]] std::optional<sf::IntRect> getBounds() const;
     void resetBounds();
     
-    sf::Vector2f getAt() const;
+    [[nodiscard]] sf::Vector2f getAt() const;
 
     void setEngine(Engine *pEngine);
     void update(const sf::Time &elapsed);

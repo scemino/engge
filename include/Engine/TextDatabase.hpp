@@ -10,7 +10,7 @@ public:
   TextDatabase();
 
   void load(const std::string &path);
-  std::wstring getText(int id) const;
+  [[nodiscard]] std::wstring getText(int id) const;
 
 private:
   std::map<int, std::wstring> _texts;

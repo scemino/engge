@@ -36,20 +36,9 @@ private:
         engine.registerGlobalFunction(stopSound, "stopSound");
     }
 
-    static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<SoundId *> &array)
-    {
-        for (size_t i = 0; i < size; i++)
-        {
-            auto pSound = ScriptEngine::getSound(v, index + i);
-            if (!pSound) return false;
-            array.push_back(pSound);
-        }
-        return true;
-    }
-
     static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<SoundDefinition *> &array)
     {
-        for (size_t i = 0; i < size; i++)
+        for (auto i = 0; i < static_cast<int>(size); i++)
         {
             auto pSound = ScriptEngine::getSoundDefinition(v, index + i);
             if (!pSound) return false;

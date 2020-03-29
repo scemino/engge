@@ -14,7 +14,7 @@ private:
 
 public:
     Callback(HSQUIRRELVM v, sf::Time duration, HSQOBJECT method);
-    int getId() const {return _id;}
+    [[nodiscard]] int getId() const {return _id;}
 
 private:
     void onElapsed() override;

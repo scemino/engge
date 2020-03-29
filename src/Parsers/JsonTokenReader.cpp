@@ -117,7 +117,7 @@ std::string TokenReader::readText(std::streampos pos, std::streamsize size)
     out.reserve(size);
     _stream.seek(pos);
     char c;
-    for (size_t i = 0; i < size; i++)
+    for (auto i = 0; i < static_cast<int>(size); i++)
     {
         _stream.read(&c, 1);
         out.append(&c, 1);

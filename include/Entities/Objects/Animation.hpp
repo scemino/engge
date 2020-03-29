@@ -22,20 +22,18 @@ public:
   explicit Animation(const sf::Texture &texture, std::string name);
   ~Animation() override;
 
-  void setTexture(const sf::Texture* pTexture) { _pTexture = pTexture; }
-
   void setName(const std::string &name) { _name = name; }
-  const std::string &getName() const { return _name; }
+  [[nodiscard]] const std::string &getName() const { return _name; }
 
   void setColor(const sf::Color& color) { _color = color; }
-  sf::Color getColor() const { return _color; }
+  [[nodiscard]] sf::Color getColor() const { return _color; }
 
   void addFrame(AnimationFrame&& frame);
   AnimationFrame& at(size_t index);
 
-  size_t size() const noexcept;
-  bool empty() const noexcept;
-  size_t getIndex() const { return _index; }
+  [[nodiscard]] size_t size() const noexcept;
+  [[nodiscard]] bool empty() const noexcept;
+  [[nodiscard]] size_t getIndex() const { return _index; }
   void setIndex(size_t index) { _index = index; }
 
   void setFps(int fps) { _fps = fps; }
@@ -47,9 +45,9 @@ public:
   void reset();
   void play(bool loop = false);
   void pause() { _state = AnimState::Pause; }
-  bool isPlaying() const { return _state == AnimState::Play; }
+  [[nodiscard]] bool isPlaying() const { return _state == AnimState::Play; }
 
-  bool contains(const sf::Vector2f &pos) const;
+  [[nodiscard]] bool contains(const sf::Vector2f &pos) const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

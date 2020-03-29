@@ -48,8 +48,6 @@ class Interpolations
         float f = (t - 1);
         return -8 * f * f * f * f + 1;
     }
-
-    static float easeOutCubic(float t) { return 1 - pow(1 - t, 3); }
 };
 
 class InterpolationHelper

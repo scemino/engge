@@ -26,7 +26,7 @@ private:
   {
   public:
     ConditionVisitor(DialogVisitor &dialogVisitor, const Ast::Statement &statement);
-    bool isAccepted() const { return _isAccepted; }
+    [[nodiscard]] bool isAccepted() const { return _isAccepted; }
 
   private:
     void visit(const Ast::CodeCondition &node) override;
@@ -95,7 +95,7 @@ public:
   std::array<DialogSlot, 8> &getDialog() { return _dialog; }
   void update(const sf::Time &elapsed);
 
-  DialogManagerState getState() const { return _state; }
+  [[nodiscard]] DialogManagerState getState() const { return _state; }
   void addFunction(std::unique_ptr<Function> function);
   void choose(int choice);
   void setActorName(const std::string& actor);

@@ -59,7 +59,7 @@ std::vector<sf::Vector2f> PathFinder::calculatePath(sf::Vector2f from, sf::Vecto
 
     //Are there more polygons? Then check if endpoint is inside oine of them and find closest point on edge
     if (_walkboxes.size() > 1) {
-        for (int i=1;i<_walkboxes.size();i++) {
+        for (int i=1;i<static_cast<int>(_walkboxes.size());i++) {
             if (_walkboxes[i].inside(to)) {
                 to = _walkboxes[i].getClosestPointOnEdge(to);
                 break;
@@ -69,7 +69,7 @@ std::vector<sf::Vector2f> PathFinder::calculatePath(sf::Vector2f from, sf::Vecto
 
     walkgraph.addNode(from);
 
-    for (int i = 0; i < walkgraph.concaveVertices.size(); i++) {
+    for (int i = 0; i < static_cast<int>(walkgraph.concaveVertices.size()); i++) {
         auto c = (sf::Vector2f)walkgraph.concaveVertices[i];
         if (inLineOfSight(from, c)) {
             walkgraph.addEdge(std::make_shared<GraphEdge>(startNodeIndex, i, distance(from, c)));
@@ -80,7 +80,7 @@ std::vector<sf::Vector2f> PathFinder::calculatePath(sf::Vector2f from, sf::Vecto
     int endNodeIndex = static_cast<int>(walkgraph.nodes.size());
     walkgraph.addNode(to);
 
-    for (int i = 0; i < walkgraph.concaveVertices.size(); i++) {
+    for (int i = 0; i < static_cast<int>(walkgraph.concaveVertices.size()); i++) {
         auto c = (sf::Vector2f)walkgraph.concaveVertices[i];
         if (inLineOfSight(to, c)) {
             auto edge = std::make_shared<GraphEdge>(i, endNodeIndex, distance(to, c));
@@ -135,7 +135,7 @@ bool PathFinder::inLineOfSight(sf::Vector2f start, sf::Vector2f end) {
     // Finally the middle point in the segment determines if in LOS or not
     sf::Vector2f v2 = (start + end) / 2.f;
     auto inside = _walkboxes[0].inside(v2);
-    for (int i=1;i<_walkboxes.size();i++) {
+    for (int i=1;i<static_cast<int>(_walkboxes.size());i++) {
         if (_walkboxes[i].inside(v2, false)) {
             inside = false;
         }

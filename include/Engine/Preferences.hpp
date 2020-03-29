@@ -76,17 +76,17 @@ public:
     template <typename T>
     T getPrivatePreference(const std::string &name, T value) const;
 
-    void subscribe(std::function<void(const std::string&)> function);
+    void subscribe(const std::function<void(const std::string&)>& function);
 
     template <typename T>
     static GGPackValue toGGPackValue(T value);
 
     template <typename T>
-    static T fromGGPackValue(GGPackValue value);
+    static T fromGGPackValue(const GGPackValue& value);
 
 private:
-    GGPackValue getUserPreferenceCore(const std::string &name, GGPackValue defaultValue) const;
-    GGPackValue getPrivatePreferenceCore(const std::string &name, GGPackValue defaultValue) const;
+    [[nodiscard]] GGPackValue getUserPreferenceCore(const std::string &name, const GGPackValue& defaultValue) const;
+    [[nodiscard]] GGPackValue getPrivatePreferenceCore(const std::string &name, const GGPackValue& defaultValue) const;
 
 private:
     GGPackValue _values;

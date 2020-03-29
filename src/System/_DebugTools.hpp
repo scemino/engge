@@ -255,8 +255,8 @@ class _DebugTools
     void getStack(std::vector<std::string> &stack)
     {
         HSQOBJECT obj;
-        auto size = sq_gettop(_engine.getVm());
-        for (size_t i = 1; i <= size; ++i)
+        auto size = static_cast<int>(sq_gettop(_engine.getVm()));
+        for (int i = 1; i <= size; ++i)
         {
             auto type = sq_gettype(_engine.getVm(), -i);
             sq_getstackobj(_engine.getVm(), -i, &obj);

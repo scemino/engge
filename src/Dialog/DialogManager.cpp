@@ -214,9 +214,9 @@ void DialogManager::setActorName(const std::string& actor)
 
 void DialogManager::choose(int choice)
 {
-    if((choice < 1) || (choice > _dialog.size())) return;
+    if((choice < 1) || (choice > static_cast<int>(_dialog.size()))) return;
 
-    size_t i = 0;
+    int i = 0;
     for(const auto& dlg : _dialog)
     {
         if(dlg.id == 0) continue;
