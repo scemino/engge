@@ -21,6 +21,13 @@ enum class Facing
   FACE_RIGHT = DirectionConstants::FACE_RIGHT
 };
 
+enum class Reaching
+{
+    High,
+    Medium,
+    Low
+};
+
 class Actor;
 
 class Costume : public sf::Drawable
@@ -37,6 +44,9 @@ public:
   void setFacing(Facing facing);
   Facing getFacing() const;
   void setState(const std::string &name);
+  void setStandState() { setState(_standAnimName); }
+  void setWalkState() { setState(_walkAnimName); }
+  void setReachState(Reaching reaching);
   bool setAnimation(const std::string &name);
   bool setMatchingAnimation(const std::string &animName);
   CostumeAnimation *getAnimation() { return _pCurrentAnimation; }
@@ -64,10 +74,10 @@ private:
   std::vector<CostumeAnimation> _animations;
   CostumeAnimation* _pCurrentAnimation{nullptr};
   Facing _facing{Facing::FACE_FRONT};
-  std::string _animation{"stand"};
   std::set<std::string> _hiddenLayers;
-  std::string _headAnimName{"head"};
+  std::string _animation{"stand"};
   std::string _standAnimName{"stand"};
+  std::string _headAnimName{"head"};
   std::string _walkAnimName{"walk"};
   std::string _reachAnimName{"reach"};
   int _headIndex{0};

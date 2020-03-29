@@ -628,7 +628,7 @@ class _ActorPack : public Pack
         {
             return sq_throwerror(v, _SC("failed to get actor"));
         }
-        pActor->getCostume().setAnimation("stand");
+        pActor->getCostume().setStandState();
         return 0;
     }
 

@@ -232,7 +232,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
     _facing = facing;
     _path.erase(_path.begin());
     _pActor->getCostume().setFacing(getFacing());
-    _pActor->getCostume().setState("walk");
+    _pActor->getCostume().setWalkState();
     auto pAnim = _pActor->getCostume().getAnimation();
     if(pAnim) {
         pAnim->play(true);
@@ -286,13 +286,13 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed)
             {
                 _pActor->getCostume().setFacing(_facing.value());
             }
-            _pActor->getCostume().setState("stand");
+            _pActor->getCostume().setStandState();
             ScriptEngine::rawCall(_pActor, "actorArrived");
         }
         else
         {
             _pActor->getCostume().setFacing(getFacing());
-            _pActor->getCostume().setState("walk");
+            _pActor->getCostume().setWalkState();
             auto pAnim = _pActor->getCostume().getAnimation();
             if(pAnim)
             { 

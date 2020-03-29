@@ -105,18 +105,17 @@ class _ReachAnim : public Function
 
         if ((flags & ObjectFlagConstants::REACH_HIGH) == ObjectFlagConstants::REACH_HIGH)
         {
-            _animName = "reach_high";
+            _reaching = Reaching::High;
         }
         else if ((flags & ObjectFlagConstants::REACH_MED) == ObjectFlagConstants::REACH_MED)
         {
-            _animName = "reach_med";
+            _reaching = Reaching::Medium;
         }
         else if ((flags & ObjectFlagConstants::REACH_LOW) == ObjectFlagConstants::REACH_LOW)
         {
-            _animName = "reach_low";
+            _reaching = Reaching::Low;
         }
-
-        if(_animName.empty()) {
+        else {
             _state = 2;
         }
     }
@@ -124,10 +123,9 @@ class _ReachAnim : public Function
   private:
     bool isElapsed() override { return _state == 3; }
 
-    void playAnim(const std::string &name)
+    void playReachAnim()
     {
-        trace("Play anim {}", name);
-        _actor.getCostume().setState(name);
+        _actor.getCostume().setReachState(_reaching);
         _pAnim = _actor.getCostume().getAnimation();
         if (_pAnim)
         {
@@ -140,16 +138,16 @@ class _ReachAnim : public Function
         switch (_state)
         {
             case 0:
-                playAnim(_animName);
+                playReachAnim();
                 _state = 1;
                 break;
             case 1:
-                _elapsed+=elapsed;
+                _elapsed += elapsed;
                 if (_elapsed.asSeconds()>0.330)
                     _state = 2;
                 break;
             case 2:
-                playAnim("stand");
+                _actor.getCostume().setStandState();
                 _state = 3;
                 break;
         }
@@ -159,7 +157,7 @@ class _ReachAnim : public Function
     int32_t _state{0};
     Actor &_actor;
     Entity* _pObject;
-    std::string _animName;
+    Reaching _reaching;
     CostumeAnimation *_pAnim{nullptr};
     sf::Time _elapsed;
 };
@@ -303,7 +301,7 @@ class _VerbExecute : public Function
         return ScriptEngine::call(obj, _pVerb->func.data(), pActor, &_object);
     }
 
-    bool callVerbDefault(Entity* pEntity)
+    static bool callVerbDefault(Entity* pEntity)
     {
         return ScriptEngine::call(pEntity, "verbDefault");
     }
@@ -358,8 +356,8 @@ class _DefaultVerbExecute : public VerbExecute
 
         if(pVerb->id == VerbConstants::VERB_GIVE) 
         {
-            auto pActor = dynamic_cast<Actor*>(pObject2);
-            auto func = std::make_unique<_GiveFunction>(pActor, pObject1, sentence.get());
+            auto pGiveActor = dynamic_cast<Actor*>(pObject2);
+            auto func = std::make_unique<_GiveFunction>(pGiveActor, pObject1, sentence.get());
             sentence->push_back(std::move(func));
         }
         else if(pVerb->id == VerbConstants::VERB_TALKTO) 

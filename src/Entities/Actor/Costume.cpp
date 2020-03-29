@@ -87,6 +87,26 @@ void Costume::setState(const std::string &name)
     updateAnimation();
 }
 
+void Costume::setReachState(Reaching reaching)
+{
+    std::string animName;
+    switch(reaching) {
+        case Reaching::High:
+            animName = _reachAnimName + "_high";
+            break;
+        case Reaching::Medium:
+            animName = _reachAnimName + "_med";
+            break;
+        case Reaching::Low:
+            animName = _reachAnimName + "_low";
+            break;
+    }
+    setState(animName);
+    if(!_pCurrentAnimation) {
+        setState(_reachAnimName);
+    }
+}
+
 CostumeLayer Costume::loadLayer(const GGPackValue& jLayer) const
 {
     auto name = jLayer["name"].string_value;
@@ -212,7 +232,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet)
     }
 
     // don't know if it's necessary, reyes has no costume in the intro
-    setAnimation("stand_front");
+    setStandState();
 }
 
 bool Costume::setAnimation(const std::string &animName)
