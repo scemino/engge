@@ -4,15 +4,16 @@ matrix:
   include:
   - name: Linux
     addons:
-      apt_packages:
-      - cmake
-      - libxrandr-dev
-      - libudev-dev
-      - libopenal-dev
-      - libflac-dev
-      - libvorbis-dev
-      - libgl1-mesa-dev
-      - unzip
+      apt:
+        packages:
+          - cmake
+          - libxrandr-dev
+          - libudev-dev
+          - libopenal-dev
+          - libflac-dev
+          - libvorbis-dev
+          - libgl1-mesa-dev
+          - unzip
     before_install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-get update -q
