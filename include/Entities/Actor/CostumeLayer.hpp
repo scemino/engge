@@ -4,15 +4,13 @@
 #include "SFML/Graphics.hpp"
 #include "../Objects/Animation.hpp"
 
-namespace ng
-{
+namespace ng {
 class Actor;
 
-class CostumeLayer : public sf::Drawable
-{
+class CostumeLayer : public sf::Drawable {
 public:
-  explicit CostumeLayer(Animation&& animation);
-  
+  explicit CostumeLayer(Animation &&animation);
+
   void setName(const std::string &name) { _name = name; }
   [[nodiscard]] const std::string &getName() const { return _name; }
 
@@ -24,14 +22,14 @@ public:
 
   void reset();
   void setActor(Actor *pActor) { _pActor = pActor; }
-  
-  Animation& getAnimation() { return _animation; }
-  [[nodiscard]] const Animation& getAnimation() const { return _animation; }
-  
+
+  Animation &getAnimation() { return _animation; }
+  [[nodiscard]] const Animation &getAnimation() const { return _animation; }
+
   void setLoop(bool loop) { _loop = loop; }
   [[nodiscard]] bool getLoop() const { return _loop; }
   void play(bool loop = false) { _animation.play(_loop || loop); }
-  
+
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
   bool update(const sf::Time &elapsed);

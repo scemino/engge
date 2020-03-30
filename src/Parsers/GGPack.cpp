@@ -1,7 +1,6 @@
 #include "Parsers/GGPack.hpp"
 
-namespace ng
-{
+namespace ng {
 static const unsigned char _magicBytes[] = {
     0x4f, 0xd0, 0xa0, 0xac, 0x4a, 0x5b, 0xb9, 0xe5, 0x93, 0x79, 0x45, 0xa5, 0xc1, 0xcb, 0x31, 0x93};
 
@@ -9,32 +8,28 @@ GGPackValue GGPackValue::nullValue;
 
 GGPackValue::GGPackValue() { type = 1; }
 GGPackValue::GGPackValue(const GGPackValue &value)
-    : type(value.type)
-{
-    switch (type)
-    {
-    case 1:
-        break;
-    case 2:
-        // hash
-        hash_value = value.hash_value;
-        break;
-    case 3:
-        // array
-        array_value = value.array_value;
-        break;
-    case 4:
-        // string
-        string_value = value.string_value;
-        break;
-    case 5:
-        int_value = value.int_value;
-        break;
-    case 6:
-        // double
-        double_value = value.double_value;
-        break;
-    }
+    : type(value.type) {
+  switch (type) {
+  case 1:break;
+  case 2:
+    // hash
+    hash_value = value.hash_value;
+    break;
+  case 3:
+    // array
+    array_value = value.array_value;
+    break;
+  case 4:
+    // string
+    string_value = value.string_value;
+    break;
+  case 5:int_value = value.int_value;
+    break;
+  case 6:
+    // double
+    double_value = value.double_value;
+    break;
+  }
 }
 
 bool GGPackValue::isNull() const { return type == 1; }
@@ -44,446 +39,393 @@ bool GGPackValue::isString() const { return type == 4; }
 bool GGPackValue::isInteger() const { return type == 5; }
 bool GGPackValue::isDouble() const { return type == 6; }
 
-GGPackValue &GGPackValue::operator[](std::size_t index)
-{
-    if (type == 3)
-        return array_value[index];
-    throw std::logic_error("This is not an array");
+GGPackValue &GGPackValue::operator[](std::size_t index) {
+  if (type == 3)
+    return array_value[index];
+  throw std::logic_error("This is not an array");
 }
 
-const GGPackValue &GGPackValue::operator[](std::size_t index) const
-{
-    if (type == 3)
-        return array_value[index];
-    throw std::logic_error("This is not an array");
+const GGPackValue &GGPackValue::operator[](std::size_t index) const {
+  if (type == 3)
+    return array_value[index];
+  throw std::logic_error("This is not an array");
 }
 
-GGPackValue &GGPackValue::operator[](const std::string &key)
-{
-    if (type == 2)
-    {
-        if (hash_value.find(key) == hash_value.end())
-            return nullValue;
-        return hash_value[key];
+GGPackValue &GGPackValue::operator[](const std::string &key) {
+  if (type == 2) {
+    if (hash_value.find(key) == hash_value.end())
+      return nullValue;
+    return hash_value[key];
+  }
+  throw std::logic_error("This is not an hashtable");
+}
+
+const GGPackValue &GGPackValue::operator[](const std::string &key) const {
+  if (type == 2) {
+    if (hash_value.find(key) == hash_value.end())
+      return nullValue;
+    return hash_value.at(key);
+  }
+  throw std::logic_error("This is not an hashtable");
+}
+
+GGPackValue &GGPackValue::operator=(const GGPackValue &other) {
+  if (this != &other) { // protect against invalid self-assignment
+    type = other.type;
+    switch (type) {
+    case 1:break;
+    case 2:
+      // hash
+      hash_value = other.hash_value;
+      break;
+    case 3:
+      // array
+      array_value = other.array_value;
+      break;
+    case 4:
+      // string
+      string_value = other.string_value;
+      break;
+    case 5:int_value = other.int_value;
+      break;
+    case 6: {
+      // double
+      double_value = other.double_value;
+      break;
     }
-    throw std::logic_error("This is not an hashtable");
-}
-
-const GGPackValue &GGPackValue::operator[](const std::string &key) const
-{
-    if (type == 2)
-    {
-        if (hash_value.find(key) == hash_value.end())
-            return nullValue;
-        return hash_value.at(key);
     }
-    throw std::logic_error("This is not an hashtable");
+  }
+  // by convention, always return *this
+  return *this;
 }
 
-GGPackValue &GGPackValue::operator=(const GGPackValue &other)
-{
-    if (this != &other)
-    { // protect against invalid self-assignment
-        type = other.type;
-        switch (type)
-        {
-        case 1:
-            break;
-        case 2:
-            // hash
-            hash_value = other.hash_value;
-            break;
-        case 3:
-            // array
-            array_value = other.array_value;
-            break;
-        case 4:
-            // string
-            string_value = other.string_value;
-            break;
-        case 5:
-            int_value = other.int_value;
-            break;
-        case 6:
-        {
-            // double
-            double_value = other.double_value;
-            break;
-        }
-        }
+int GGPackValue::getInt() const {
+  if (isInteger())
+    return int_value;
+  if (isDouble())
+    return static_cast<int>(double_value);
+  return 0;
+}
+
+double GGPackValue::getDouble() const {
+  if (isDouble())
+    return double_value;
+  if (isInteger())
+    return static_cast<double>(int_value);
+  return 0;
+}
+
+std::string GGPackValue::getString() const {
+  if (isString())
+    return string_value;
+  return "";
+}
+
+static std::ostream &_dumpValue(std::ostream &os, const GGPackValue &value, int indent);
+
+static std::ostream &_dumpHash(std::ostream &os, const GGPackValue &value, int indent) {
+  indent++;
+  std::string padding(indent * 2, ' ');
+  os << "{";
+  for (auto iterator = value.hash_value.begin(); iterator != value.hash_value.end();) {
+    os << std::endl << padding << "\"" << iterator->first << "\": ";
+    _dumpValue(os, iterator->second, indent);
+    if (++iterator != value.hash_value.end()) {
+      os << ",";
     }
-    // by convention, always return *this
-    return *this;
+  }
+  indent--;
+  padding = std::string(indent * 2, ' ');
+  os << std::endl << padding << "}";
+  return os;
 }
 
-int GGPackValue::getInt() const
-{
-    if(isInteger()) return int_value;
-    if(isDouble()) return static_cast<int>(double_value);
-    return 0;
-}
-
-double GGPackValue::getDouble() const
-{
-    if(isDouble()) return double_value;
-    if(isInteger()) return static_cast<double>(int_value);
-    return 0;
-}
-
-std::string GGPackValue::getString() const
-{
-    if(isString()) return string_value;
-    return "";
-}
-
-static std::ostream &_dumpValue(std::ostream& os, const GGPackValue& value, int indent);
-
-static std::ostream &_dumpHash(std::ostream& os, const GGPackValue& value, int indent)
-{
-    indent++;
-    std::string padding(indent*2, ' ');
-    os << "{";
-    for (auto iterator = value.hash_value.begin(); iterator!=value.hash_value.end();)
-    {
-        os << std::endl << padding << "\"" << iterator->first << "\": ";
-        _dumpValue(os, iterator->second, indent);
-        if(++iterator != value.hash_value.end())
-        {
-            os << ",";
-        }
+static std::ostream &_dumpArray(std::ostream &os, const GGPackValue &value, int indent) {
+  indent++;
+  std::string padding(indent * 2, ' ');
+  os << "[";
+  for (auto iterator = value.array_value.begin(); iterator != value.array_value.end();) {
+    os << std::endl << padding;
+    _dumpValue(os, *iterator, indent);
+    if (++iterator != value.array_value.end()) {
+      os << ",";
     }
-    indent--;
-    padding = std::string(indent*2, ' ');
-    os << std::endl << padding << "}";
+  }
+  indent--;
+  padding = std::string(indent * 2, ' ');
+  os << std::endl << padding << "]";
+  return os;
+}
+
+static std::ostream &_dumpValue(std::ostream &os, const GGPackValue &value, int indent) {
+  if (value.isHash()) {
+    _dumpHash(os, value, indent);
     return os;
-}
-
-static std::ostream &_dumpArray(std::ostream& os, const GGPackValue& value, int indent)
-{
-    indent++;
-    std::string padding(indent*2, ' ');
-    os << "[";
-    for (auto iterator = value.array_value.begin(); iterator!=value.array_value.end();)
-    {
-        os << std::endl << padding;
-        _dumpValue(os, *iterator, indent);
-        if(++iterator != value.array_value.end())
-        {
-            os << ",";
-        }
-    }
-    indent--;
-    padding = std::string(indent*2, ' ');
-    os << std::endl << padding << "]";
+  }
+  if (value.isArray()) {
+    _dumpArray(os, value, indent);
     return os;
-}
-
-static std::ostream &_dumpValue(std::ostream& os, const GGPackValue& value, int indent)
-{
-    if(value.isHash())
-    {
-        _dumpHash(os, value, indent);
-        return os;
-    }
-    if(value.isArray())
-    {
-        _dumpArray(os, value, indent);
-        return os;
-    }
-    if(value.isDouble())
-    {
-        os << value.double_value;
-        return os;
-    }
-    if(value.isInteger())
-    {
-        os << value.int_value;
-        return os;
-    }
-    if(value.isNull())
-    {
-        os << "null";
-        return os;
-    }
-    if(value.isString())
-    {
-        os << "\"" << value.string_value << "\"";
-        return os;
-    }
+  }
+  if (value.isDouble()) {
+    os << value.double_value;
     return os;
+  }
+  if (value.isInteger()) {
+    os << value.int_value;
+    return os;
+  }
+  if (value.isNull()) {
+    os << "null";
+    return os;
+  }
+  if (value.isString()) {
+    os << "\"" << value.string_value << "\"";
+    return os;
+  }
+  return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const GGPackValue &value)
-{
-    return _dumpValue(os, value, 0);
+std::ostream &operator<<(std::ostream &os, const GGPackValue &value) {
+  return _dumpValue(os, value, 0);
 }
 
 GGPackValue::~GGPackValue() = default;
 
 GGPack::GGPack() = default;
 
-void GGPack::open(const std::string &path)
-{
-    _input.open(path, std::ios::binary);
-    readPack();
+void GGPack::open(const std::string &path) {
+  _input.open(path, std::ios::binary);
+  readPack();
 }
 
-void GGPack::readHashEntry(const std::string &name, GGPackValue &value)
-{
-    std::vector<char> data;
-    readEntry(name, data);
-    readHash(data, value);
+void GGPack::readHashEntry(const std::string &name, GGPackValue &value) {
+  std::vector<char> data;
+  readEntry(name, data);
+  readHash(data, value);
 }
 
-void GGPack::readHash(std::vector<char> &buffer, GGPackValue &value)
-{
-    int sig = 0;
-    _bufferStream.setBuffer(buffer);
-    _bufferStream.read((char *)&sig, 4);
+void GGPack::readHash(std::vector<char> &buffer, GGPackValue &value) {
+  int sig = 0;
+  _bufferStream.setBuffer(buffer);
+  _bufferStream.read((char *) &sig, 4);
 
-    if (sig != 0x04030201)
-        throw std::logic_error("GGPack directory signature incorrect");
+  if (sig != 0x04030201)
+    throw std::logic_error("GGPack directory signature incorrect");
 
-    getOffsets();
+  getOffsets();
 
-    // read hash
-    value.type = 2;
-    _bufferStream.seek(12);
+  // read hash
+  value.type = 2;
+  _bufferStream.seek(12);
+  readHash(value);
+}
+
+void GGPack::readPack() {
+  if (!_input.is_open())
+    return;
+
+  int dataOffset, dataSize;
+  _input.read((char *) &dataOffset, 4);
+  _input.read((char *) &dataSize, 4);
+
+  std::vector<char> buf(dataSize);
+
+  // try to detect correct method to decode data
+  int sig = 0;
+  for (_method = 3; _method >= 0; _method--) {
+    _input.seekg(dataOffset, std::ios::beg);
+    _input.read(&buf[0], dataSize);
+    decodeUnbreakableXor(&buf[0], dataSize);
+    sig = *(int *) buf.data();
+    if (sig == 0x04030201)
+      break;
+  }
+
+  if (sig != 0x04030201)
+    throw std::logic_error("This version of package is not supported (yet?)");
+
+  _bufferStream.setBuffer(buf);
+
+  // read hash
+  _entries.clear();
+  GGPackValue entries;
+  readHash(buf, entries);
+
+  auto len = entries["files"].array_value.size();
+  for (size_t i = 0; i < len; i++) {
+    auto filename = entries["files"][i]["filename"].string_value;
+    GGPackEntry entry{};
+    entry.offset = entries["files"][i]["offset"].int_value;
+    entry.size = entries["files"][i]["size"].int_value;
+    _entries.insert(std::pair<std::string, GGPackEntry>(filename, entry));
+  }
+}
+
+bool GGPack::hasEntry(const std::string &name) {
+  return _entries.find(name) != _entries.end();
+}
+
+void GGPack::readEntry(const std::string &name, std::vector<char> &data) {
+  auto entry = _entries[name];
+  data.resize(entry.size + 1);
+  _input.seekg(entry.offset, std::ios::beg);
+
+  _input.read(data.data(), entry.size);
+  decodeUnbreakableXor(data.data(), entry.size);
+  data[entry.size] = 0;
+}
+
+void GGPack::readString(int offset, std::string &key) {
+  auto pos = _bufferStream.tell();
+  offset = _offsets[offset];
+  auto off = offset;
+  _bufferStream.seek(off);
+  char c;
+  do {
+    _bufferStream.read(&c, 1);
+    if (c == 0)
+      break;
+    key.append(&c, 1);
+  } while (true);
+  _bufferStream.seek(pos);
+}
+
+void GGPack::readHash(GGPackValue &value) {
+  char c = 0;
+  _bufferStream.read(&c, 1);
+  if (c != 2) {
+    throw std::logic_error("trying to parse a non-hash");
+  }
+  int n_pairs = 0;
+  _bufferStream.read((char *) &n_pairs, 4);
+  if (n_pairs == 0) {
+    throw std::logic_error("empty hash");
+  }
+  for (auto i = 0; i < n_pairs; i++) {
+    int key_plo_idx = 0;
+    _bufferStream.read((char *) &key_plo_idx, 4);
+
+    std::string hash_key;
+    readString(key_plo_idx, hash_key);
+    GGPackValue hash_value;
+    readValue(hash_value);
+    value.hash_value[hash_key] = hash_value;
+  }
+
+  _bufferStream.read(&c, 1);
+  if (c != 2)
+    throw std::logic_error("unterminated hash");
+}
+
+void GGPack::readValue(GGPackValue &value) {
+  _bufferStream.read((char *) &value.type, 1);
+  switch (value.type) {
+  case 1:
+    // null
+    return;
+  case 2:
+    // hash
+    _bufferStream.seek(_bufferStream.tell() - 1);
     readHash(value);
-}
-
-void GGPack::readPack()
-{
-    if (!_input.is_open())
-        return;
-    
-    int dataOffset, dataSize;
-    _input.read((char *)&dataOffset, 4);
-    _input.read((char *)&dataSize, 4);
-
-    std::vector<char> buf(dataSize);
-
-    // try to detect correct method to decode data
-    int sig = 0;
-    for (_method = 3; _method >= 0; _method--)
-    {
-        _input.seekg(dataOffset, std::ios::beg);
-        _input.read(&buf[0], dataSize);
-        decodeUnbreakableXor(&buf[0], dataSize);
-        sig = *(int *)buf.data();
-        if (sig == 0x04030201)
-            break;
+    return;
+  case 3:
+    // array
+  {
+    int length = 0;
+    _bufferStream.read((char *) &length, 4);
+    for (int i = 0; i < length; i++) {
+      GGPackValue item;
+      readValue(item);
+      value.array_value.push_back(item);
     }
-
-    if (sig != 0x04030201)
-        throw std::logic_error("This version of package is not supported (yet?)");
-
-    _bufferStream.setBuffer(buf);
-
-    // read hash
-    _entries.clear();
-    GGPackValue entries;
-    readHash(buf, entries);
-
-    auto len = entries["files"].array_value.size();
-    for (size_t i = 0; i < len; i++)
-    {
-        auto filename = entries["files"][i]["filename"].string_value;
-        GGPackEntry entry{};
-        entry.offset = entries["files"][i]["offset"].int_value;
-        entry.size = entries["files"][i]["size"].int_value;
-        _entries.insert(std::pair<std::string, GGPackEntry>(filename, entry));
-    }
-}
-
-bool GGPack::hasEntry(const std::string &name)
-{
-    return _entries.find(name) != _entries.end();
-}
-
-void GGPack::readEntry(const std::string &name, std::vector<char> &data)
-{
-    auto entry = _entries[name];
-    data.resize(entry.size + 1);
-    _input.seekg(entry.offset, std::ios::beg);
-
-    _input.read(data.data(), entry.size);
-    decodeUnbreakableXor(data.data(), entry.size);
-    data[entry.size] = 0;
-}
-
-void GGPack::readString(int offset, std::string &key)
-{
-    auto pos = _bufferStream.tell();
-    offset = _offsets[offset];
-    auto off = offset;
-    _bufferStream.seek(off);
-    char c;
-    do
-    {
-        _bufferStream.read(&c, 1);
-        if (c == 0)
-            break;
-        key.append(&c, 1);
-    } while (true);
-    _bufferStream.seek(pos);
-}
-
-void GGPack::readHash(GGPackValue &value)
-{
     char c = 0;
     _bufferStream.read(&c, 1);
-    if (c != 2)
-    {
-        throw std::logic_error("trying to parse a non-hash");
+    if (c != 3)
+      throw std::logic_error("unterminated array");
+    return;
+  }
+  case 4:
+    // string
+  {
+    int plo_idx_int = 0;
+    _bufferStream.read((char *) &plo_idx_int, 4);
+    readString(plo_idx_int, value.string_value);
+    return;
+  }
+  case 5:
+  case 6: {
+    // int
+    // double
+    int plo_idx_int = 0;
+    _bufferStream.read((char *) &plo_idx_int, 4);
+    std::string num_str;
+    readString(plo_idx_int, num_str);
+    if (value.type == 5) {
+      value.int_value = std::strtol(num_str.data(), nullptr, 10);
+      return;
     }
-    int n_pairs = 0;
-    _bufferStream.read((char *)&n_pairs, 4);
-    if (n_pairs == 0)
-    {
-        throw std::logic_error("empty hash");
-    }
-    for (auto i = 0; i < n_pairs; i++)
-    {
-        int key_plo_idx = 0;
-        _bufferStream.read((char *)&key_plo_idx, 4);
-
-        std::string hash_key;
-        readString(key_plo_idx, hash_key);
-        GGPackValue hash_value;
-        readValue(hash_value);
-        value.hash_value[hash_key] = hash_value;
-    }
-
-    _bufferStream.read(&c, 1);
-    if (c != 2)
-        throw std::logic_error("unterminated hash");
+    value.double_value = std::strtod(num_str.data(), nullptr);
+    return;
+  }
+  default: {
+    std::stringstream s;
+    s << "Not Implemented: value type " << value.type;
+    throw std::logic_error(s.str());
+  }
+  }
 }
 
-void GGPack::readValue(GGPackValue &value)
-{
-    _bufferStream.read((char *)&value.type, 1);
-    switch (value.type)
-    {
-    case 1:
-        // null
-        return;
-    case 2:
-        // hash
-        _bufferStream.seek(_bufferStream.tell() - 1);
-        readHash(value);
-        return;
-    case 3:
-        // array
-        {
-            int length = 0;
-            _bufferStream.read((char *)&length, 4);
-            for (int i = 0; i < length; i++)
-            {
-                GGPackValue item;
-                readValue(item);
-                value.array_value.push_back(item);
-            }
-            char c = 0;
-            _bufferStream.read(&c, 1);
-            if (c != 3)
-                throw std::logic_error("unterminated array");
-            return;
-        }
-    case 4:
-        // string
-        {
-            int plo_idx_int = 0;
-            _bufferStream.read((char *)&plo_idx_int, 4);
-            readString(plo_idx_int, value.string_value);
-            return;
-        }
-    case 5:
-    case 6:
-    {
-        // int
-        // double
-        int plo_idx_int = 0;
-        _bufferStream.read((char *)&plo_idx_int, 4);
-        std::string num_str;
-        readString(plo_idx_int, num_str);
-        if (value.type == 5)
-        {
-            value.int_value = std::strtol(num_str.data(),nullptr,10);
-            return;
-        }
-        value.double_value = std::strtod(num_str.data(), nullptr);
-        return;
+char *GGPack::decodeUnbreakableXor(char *buffer, int length) {
+  int code = _method != 2 ? 0x6d : 0xad;
+  char previous = length & 0xff;
+  for (auto i = 0; i < length; i++) {
+    auto x = (char) (buffer[i] ^ _magicBytes[i & 0xf] ^ (i * code));
+    buffer[i] = (char) (x ^ previous);
+    previous = x;
+  }
+  if (_method != 0) {
+    //Loop through in blocks of 16 and xor the 6th and 7th bytes
+    int i = 5;
+    while (i < length) {
+      buffer[i] = (char) (buffer[i] ^ 0x0d);
+      if (i + 1 < length) {
+        buffer[i + 1] = (char) (buffer[i + 1] ^ 0x0d);
+      }
+      i += 16;
     }
-    default:
-    {
-        std::stringstream s;
-        s << "Not Implemented: value type " << value.type;
-        throw std::logic_error(s.str());
-    }
-    }
+  }
+  return buffer;
 }
 
-char *GGPack::decodeUnbreakableXor(char *buffer, int length)
-{
-    int code = _method != 2 ? 0x6d : 0xad;
-    char previous = length & 0xff;
-    for (auto i = 0; i < length; i++)
-    {
-        auto x = (char)(buffer[i] ^ _magicBytes[i & 0xf] ^ (i * code));
-        buffer[i] = (char)(x ^ previous);
-        previous = x;
-    }
-    if (_method != 0)
-    {
-        //Loop through in blocks of 16 and xor the 6th and 7th bytes
-        int i = 5;
-        while (i < length)
-        {
-            buffer[i] = (char)(buffer[i] ^ 0x0d);
-            if(i + 1 < length) {
-                buffer[i + 1] = (char)(buffer[i + 1] ^ 0x0d);
-            }
-            i += 16;
-        }
-    }
-    return buffer;
+void GGPack::getOffsets() {
+  _bufferStream.seek(8);
+  // read ptr list offset & point to first file name offset
+  int plo = 0;
+  _bufferStream.read((char *) &plo, 4);
+  if (plo < 12 || plo >= _bufferStream.getLength() - 4)
+    throw std::logic_error("GGPack plo out of range");
+
+  char c = 0;
+  _bufferStream.seek(plo);
+  _bufferStream.read(&c, 1);
+  if (c != 7) {
+    throw std::logic_error("GGPack cannot find plo");
+  }
+
+  _offsets.clear();
+  do {
+    uint32_t offset;
+    _bufferStream.read((char *) &offset, 4);
+    if (offset == 0xFFFFFFFF)
+      return;
+    _offsets.push_back(offset);
+  } while (true);
 }
 
-void GGPack::getOffsets()
-{
-    _bufferStream.seek(8);
-    // read ptr list offset & point to first file name offset
-    int plo = 0;
-    _bufferStream.read((char *)&plo, 4);
-    if (plo < 12 || plo >= _bufferStream.getLength() - 4)
-        throw std::logic_error("GGPack plo out of range");
-
-    char c = 0;
-    _bufferStream.seek(plo);
-    _bufferStream.read(&c, 1);
-    if (c != 7)
-    {
-        throw std::logic_error("GGPack cannot find plo");
-    }
-
-    _offsets.clear();
-    do
-    {
-        uint32_t offset;
-        _bufferStream.read((char *)&offset, 4);
-        if (offset == 0xFFFFFFFF)
-            return;
-        _offsets.push_back(offset);
-    } while (true);
-}
-
-void GGPack::getEntries(std::vector<std::string>& entries)
-{
-    for(auto& entry : _entries)
-    {
-        entries.push_back(entry.first);
-    }
+void GGPack::getEntries(std::vector<std::string> &entries) {
+  for (auto &entry : _entries) {
+    entries.push_back(entry.first);
+  }
 }
 
 } // namespace ng

@@ -3,13 +3,11 @@
 #include "Function.hpp"
 #include "ThreadBase.hpp"
 
-namespace ng
-{
+namespace ng {
 class Actor;
 class Engine;
 class Room;
-class Cutscene : public ThreadBase, public Function
-{
+class Cutscene : public ThreadBase, public Function {
 private:
   Engine &_engine;
   HSQUIRRELVM _v{};
@@ -23,7 +21,12 @@ private:
   bool _hasCutsceneOverride{false};
 
 public:
-  Cutscene(Engine &engine, HSQUIRRELVM v, HSQOBJECT thread, HSQOBJECT closureObj, HSQOBJECT closureCutsceneOverrideObj, HSQOBJECT envObj);
+  Cutscene(Engine &engine,
+           HSQUIRRELVM v,
+           HSQOBJECT thread,
+           HSQOBJECT closureObj,
+           HSQOBJECT closureCutsceneOverrideObj,
+           HSQOBJECT envObj);
   ~Cutscene() override;
 
   [[nodiscard]] HSQUIRRELVM getThread() const override;
@@ -34,7 +37,7 @@ public:
   bool isElapsed() override;
   void operator()(const sf::Time &elapsed) override;
   void cutsceneOverride();
-  [[nodiscard]] bool hasCutsceneOverride() const {return _hasCutsceneOverride;}
+  [[nodiscard]] bool hasCutsceneOverride() const { return _hasCutsceneOverride; }
 
 private:
   void startCutscene();

@@ -3,30 +3,28 @@
 #include <vector>
 #include "Engine/Trigger.hpp"
 
-namespace ng
-{
+namespace ng {
 class Entity;
 class Engine;
 class SoundDefinition;
 class SoundId;
-class SoundTrigger : public Trigger
-{
+class SoundTrigger : public Trigger {
 public:
-    SoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds, Entity* pEntity);
-    ~SoundTrigger() override;
+  SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, Entity *pEntity);
+  ~SoundTrigger() override;
 
-    std::string getName() override;
-
-private:
-    void trigCore() override;
+  std::string getName() override;
 
 private:
-    Engine &_engine;
-    Entity* _pEntity{nullptr};
-    std::vector<SoundDefinition*> _soundsDefinitions;
-    std::vector<int> _sounds;
-    std::default_random_engine _generator;
-    std::uniform_int_distribution<int> _distribution;
-    std::string _name;
+  void trigCore() override;
+
+private:
+  Engine &_engine;
+  Entity *_pEntity{nullptr};
+  std::vector<SoundDefinition *> _soundsDefinitions;
+  std::vector<int> _sounds;
+  std::default_random_engine _generator;
+  std::uniform_int_distribution<int> _distribution;
+  std::string _name;
 };
 }

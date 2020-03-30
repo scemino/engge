@@ -10,16 +10,13 @@
 #include <utility>
 #include <vector>
 
-namespace ng
-{
-struct GGPackEntry
-{
+namespace ng {
+struct GGPackEntry {
   int offset;
   int size;
 };
 
-struct GGPackValue
-{
+struct GGPackValue {
   char type;
   std::string string_value;
   int int_value{0};
@@ -45,15 +42,14 @@ public:
   const GGPackValue &operator[](const std::string &key) const;
   GGPackValue &operator=(const GGPackValue &other);
   virtual ~GGPackValue();
-  
+
   [[nodiscard]] int getInt() const;
   [[nodiscard]] double getDouble() const;
   [[nodiscard]] std::string getString() const;
 
   friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
 };
-class GGPackStream
-{
+class GGPackStream {
 public:
   virtual void read(char *data, size_t size) = 0;
   virtual void seek(int pos) = 0;
@@ -63,48 +59,38 @@ public:
   [[nodiscard]] virtual char peek() const = 0;
 };
 
-class GGPackBufferStream : public GGPackStream
-{
+class GGPackBufferStream : public GGPackStream {
 public:
   GGPackBufferStream() = default;
   explicit GGPackBufferStream(std::vector<char> input) : _input(std::move(input)) {}
 
-  void setBuffer(const std::vector<char> &input)
-  {
+  void setBuffer(const std::vector<char> &input) {
     _input = input;
     _offset = 0;
   }
-  void read(char *data, size_t size) override
-  {
+  void read(char *data, size_t size) override {
     if ((static_cast<int>(_offset + size)) > getLength())
       return;
     memcpy(data, _input.data() + _offset, size);
     _offset += size;
   }
-  void seek(int pos) override
-  {
+  void seek(int pos) override {
     _offset = pos;
   }
-  [[nodiscard]] int getLength() const override
-  {
+  [[nodiscard]] int getLength() const override {
     return _input.size();
   }
-  int tell() override
-  {
+  int tell() override {
     return _offset;
   }
-  [[nodiscard]] bool eof() const override
-  {
+  [[nodiscard]] bool eof() const override {
     return _offset == static_cast<int>(_input.size());
   }
-  [[nodiscard]] char peek() const override
-  {
+  [[nodiscard]] char peek() const override {
     return _input[_offset];
   }
-  GGPackBufferStream &ignore(std::streamsize n = 1, int delim = EOF)
-  {
-    for (int i = 0; i < n && _offset < static_cast<int>(_input.size()); i++)
-    {
+  GGPackBufferStream &ignore(std::streamsize n = 1, int delim = EOF) {
+    for (int i = 0; i < n && _offset < static_cast<int>(_input.size()); i++) {
       if (_input[_offset++] == delim)
         return *this;
     }
@@ -116,13 +102,12 @@ private:
   int _offset{0};
 };
 
-class GGPack
-{
+class GGPack {
 public:
   GGPack();
 
   void open(const std::string &path);
-  void getEntries(std::vector<std::string>& entries);
+  void getEntries(std::vector<std::string> &entries);
   bool hasEntry(const std::string &name);
   void readEntry(const std::string &name, std::vector<char> &data);
   void readHashEntry(const std::string &name, GGPackValue &value);
@@ -137,10 +122,8 @@ private:
   void getOffsets();
 
 private:
-  struct CaseInsensitiveCompare
-  {
-    bool operator()(const std::string &a, const std::string &b) const noexcept
-    {
+  struct CaseInsensitiveCompare {
+    bool operator()(const std::string &a, const std::string &b) const noexcept {
 #ifdef WIN32
       return _stricmp(a.c_str(), b.c_str()) < 0;
 #else

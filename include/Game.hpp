@@ -6,23 +6,20 @@
 #include "System/NonCopyable.hpp"
 #include "Engine/Engine.hpp"
 
-namespace ng
-{
-class InputEventHandler
-{
+namespace ng {
+class InputEventHandler {
 public:
   virtual void run(sf::Event event) = 0;
   virtual ~InputEventHandler() = default;
 };
 
-class Game : public NonCopyable
-{
+class Game : public NonCopyable {
 public:
   Game();
   ~Game();
 
   void run();
-  void setEngine(Engine* pEngine);
+  void setEngine(Engine *pEngine);
 
   sf::RenderWindow &getWindow() { return _window; }
   std::vector<std::unique_ptr<InputEventHandler>> &getInputEventHandlers() { return _inputEventHandlers; }

@@ -3,10 +3,8 @@
 #include <map>
 #include "Graphics/TextureManager.hpp"
 
-namespace ng
-{
-class SpriteSheet
-{
+namespace ng {
+class SpriteSheet {
 public:
   SpriteSheet();
   ~SpriteSheet() = default;

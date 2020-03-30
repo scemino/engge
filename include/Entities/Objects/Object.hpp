@@ -5,24 +5,20 @@
 #include "Entities/Actor/DirectionConstants.hpp"
 #include "Entities/Entity.hpp"
 
-namespace ng
-{
-enum class UseDirection
-{
+namespace ng {
+enum class UseDirection {
   Front = DirectionConstants::FACE_FRONT,
   Back = DirectionConstants::FACE_BACK,
   Left = DirectionConstants::FACE_LEFT,
   Right = DirectionConstants::FACE_RIGHT,
 };
 
-enum class ScreenSpace
-{
+enum class ScreenSpace {
   Room,
   Object
 };
 
-enum class ObjectType
-{
+enum class ObjectType {
   Object,
   Spot,
   Prop,
@@ -33,8 +29,7 @@ class Actor;
 class Animation;
 class Room;
 
-namespace ObjectStateConstants
-{
+namespace ObjectStateConstants {
 static const int ALL = 1;
 static const int HERE = 0;
 static const int GONE = 4;
@@ -46,30 +41,28 @@ static const int OPEN = 1;
 static const int CLOSED = 0;
 }
 
-namespace ObjectFlagConstants
-{
-static const int USE_WITH   = 2;
-static const int USE_ON     = 4;
-static const int USE_IN     = 8;
-static const int DOOR       = 0x40;
-static const int DOOR_LEFT  = 0x140;
+namespace ObjectFlagConstants {
+static const int USE_WITH = 2;
+static const int USE_ON = 4;
+static const int USE_IN = 8;
+static const int DOOR = 0x40;
+static const int DOOR_LEFT = 0x140;
 static const int DOOR_RIGHT = 0x240;
-static const int DOOR_BACK  = 0x440;
+static const int DOOR_BACK = 0x440;
 static const int DOOR_FRONT = 0x840;
-static const int GIVEABLE   = 0x1000;
-static const int TALKABLE   = 0x2000;
-static const int IMMEDIATE  = 0x4000;
-static const int FEMALE     = 0x80000;
-static const int MALE       = 0x100000;
-static const int PERSON     = 0x200000;
+static const int GIVEABLE = 0x1000;
+static const int TALKABLE = 0x2000;
+static const int IMMEDIATE = 0x4000;
+static const int FEMALE = 0x80000;
+static const int MALE = 0x100000;
+static const int PERSON = 0x200000;
 static const int REACH_HIGH = 0x8000;
-static const int REACH_MED  = 0x10000;
-static const int REACH_LOW  = 0x20000;
+static const int REACH_MED = 0x10000;
+static const int REACH_LOW = 0x20000;
 static const int REACH_NONE = 0x40000;
 }
 
-class Object : public Entity
-{
+class Object : public Entity {
 public:
   Object();
   ~Object() override;
@@ -104,10 +97,10 @@ public:
   bool isVisible() const override;
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
-  void playAnim(const std::string& anim, bool loop);
+  void playAnim(const std::string &anim, bool loop);
   int getState();
   void setAnimation(const std::string &name);
-  std::optional<Animation*>& getAnimation();
+  std::optional<Animation *> &getAnimation();
 
   Room *getRoom() override;
   const Room *getRoom() const override;
@@ -118,18 +111,18 @@ public:
   friend std::wostream &operator<<(std::wostream &os, const Object &obj);
   void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
-  void addTrigger(const std::shared_ptr<Trigger>& trigger);
+  void addTrigger(const std::shared_ptr<Trigger> &trigger);
   void removeTrigger();
-  Trigger* getTrigger();
+  Trigger *getTrigger();
   void enableTrigger(bool enabled);
 
-  void dependentOn(Object* parentObject, int state);
-  void addChild(Object* child);
+  void dependentOn(Object *parentObject, int state);
+  void addChild(Object *child);
 
   void setFps(int fps) override;
 
-  Actor* getOwner() const;
-  void setOwner(Actor* pActor);
+  Actor *getOwner() const;
+  void setOwner(Actor *pActor);
 
   void setScreenSpace(ScreenSpace screenSpace);
   ScreenSpace getScreenSpace() const;

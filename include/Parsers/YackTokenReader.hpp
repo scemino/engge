@@ -5,10 +5,8 @@
 #include "vector"
 #include "GGPack.hpp"
 
-namespace ng
-{
-enum class TokenId
-{
+namespace ng {
+enum class TokenId {
   None,
   NewLine,
   Identifier,
@@ -26,8 +24,7 @@ enum class TokenId
   End
 };
 
-struct Token
-{
+struct Token {
   TokenId id;
   std::streampos start;
   std::streampos end;
@@ -38,11 +35,9 @@ private:
   [[nodiscard]] std::string readToken() const;
 };
 
-class YackTokenReader
-{
+class YackTokenReader {
 public:
-  class Iterator : public std::iterator<std::forward_iterator_tag, Token>
-  {
+  class Iterator : public std::iterator<std::forward_iterator_tag, Token> {
   private:
     YackTokenReader &_reader;
     std::streampos _pos;
@@ -85,7 +80,7 @@ private:
 
 private:
   GGPackBufferStream _stream;
-  std::map<int,int> _lines;
+  std::map<int, int> _lines;
   int _offset;
 };
 } // namespace ng

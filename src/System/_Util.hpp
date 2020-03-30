@@ -7,19 +7,16 @@
 #include "../Math/Vector.hpp"
 #include "Graphics/Screen.hpp"
 
-namespace ng
-{
+namespace ng {
 
-struct CaseInsensitiveCompare
-{
-bool operator()(const std::string &a, const std::string &b) const noexcept
-{
+struct CaseInsensitiveCompare {
+  bool operator()(const std::string &a, const std::string &b) const noexcept {
 #ifdef WIN32
     return _stricmp(a.c_str(), b.c_str()) == 0;
 #else
     return ::strcasecmp(a.c_str(), b.c_str()) == 0;
 #endif
-}
+  }
 };
 
 SQInteger int_rand(SQInteger min, SQInteger max);
@@ -60,7 +57,7 @@ sf::Vector2f _parsePos(const std::string &text);
 sf::IntRect _parseRect(const std::string &text);
 void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices);
 
-sf::Color _toColor(const std::string& color);
+sf::Color _toColor(const std::string &color);
 sf::Color _toColor(SQInteger color);
 sf::Color _fromRgb(SQInteger color);
 

@@ -6,14 +6,11 @@
 #include "vector"
 #include "YackTokenReader.hpp"
 
-namespace ng
-{
-namespace Ast
-{
+namespace ng {
+namespace Ast {
 class AstVisitor;
 
-class Node
-{
+class Node {
 protected:
   Node() = default;
 
@@ -24,8 +21,7 @@ public:
   std::streampos start;
   std::streampos end;
 };
-class Expression : public Node
-{
+class Expression : public Node {
 protected:
   Expression() = default;
 
@@ -33,15 +29,13 @@ public:
   ~Expression() override;
 };
 
-class Condition : public Node
-{
+class Condition : public Node {
 protected:
   Condition() = default;
 public:
   ~Condition() override;
 };
-class CodeCondition : public Condition
-{
+class CodeCondition : public Condition {
 public:
   CodeCondition() = default;
   ~CodeCondition() override;
@@ -50,40 +44,35 @@ public:
 
   std::string code;
 };
-class OnceCondition : public Condition
-{
+class OnceCondition : public Condition {
 public:
   OnceCondition() = default;
   ~OnceCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
-class ShowOnceCondition : public Condition
-{
+class ShowOnceCondition : public Condition {
 public:
   ShowOnceCondition() = default;
   ~ShowOnceCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
-class OnceEverCondition : public Condition
-{
+class OnceEverCondition : public Condition {
 public:
   OnceEverCondition() = default;
   ~OnceEverCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
-class TempOnceCondition : public Condition
-{
+class TempOnceCondition : public Condition {
 public:
   TempOnceCondition() = default;
   ~TempOnceCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
-class Statement : public Node
-{
+class Statement : public Node {
 public:
   Statement() = default;
   ~Statement() override;
@@ -93,8 +82,7 @@ public:
   std::unique_ptr<Expression> expression;
   std::vector<std::unique_ptr<Condition>> conditions;
 };
-class Goto : public Expression
-{
+class Goto : public Expression {
 public:
   Goto() = default;
   ~Goto() override;
@@ -102,8 +90,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string name;
 };
-class Code : public Expression
-{
+class Code : public Expression {
 public:
   Code() = default;
   ~Code() override;
@@ -111,8 +98,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string code;
 };
-class Choice : public Expression
-{
+class Choice : public Expression {
 public:
   Choice() = default;
   ~Choice() override;
@@ -122,8 +108,7 @@ public:
   std::string text;
   std::unique_ptr<Goto> gotoExp;
 };
-class Say : public Expression
-{
+class Say : public Expression {
 public:
   Say() = default;
   ~Say() override;
@@ -132,8 +117,7 @@ public:
   std::string actor;
   std::string text;
 };
-class Pause : public Expression
-{
+class Pause : public Expression {
 public:
   Pause() = default;
   ~Pause() override;
@@ -141,8 +125,7 @@ public:
   void accept(AstVisitor &visitor) override;
   float time{0};
 };
-class Parrot : public Expression
-{
+class Parrot : public Expression {
 public:
   Parrot() = default;
   ~Parrot() override;
@@ -150,8 +133,7 @@ public:
   void accept(AstVisitor &visitor) override;
   bool active{true};
 };
-class Dialog : public Expression
-{
+class Dialog : public Expression {
 public:
   Dialog() = default;
   ~Dialog() override;
@@ -159,8 +141,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string actor;
 };
-class Override : public Expression
-{
+class Override : public Expression {
 public:
   Override() = default;
   ~Override() override;
@@ -168,36 +149,32 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string node;
 };
-class Shutup : public Expression
-{
+class Shutup : public Expression {
 public:
   Shutup() = default;
   ~Shutup() override;
 
   void accept(AstVisitor &visitor) override;
 };
-class AllowObjects : public Expression
-{
+class AllowObjects : public Expression {
 public:
   AllowObjects() = default;
   ~AllowObjects() override;
 
   void accept(AstVisitor &visitor) override;
-  
+
   bool allow{true};
 };
-class Limit : public Expression
-{
+class Limit : public Expression {
 public:
   Limit() = default;
   ~Limit() override;
 
   void accept(AstVisitor &visitor) override;
-  
+
   int max{0};
 };
-class WaitWhile : public Expression
-{
+class WaitWhile : public Expression {
 public:
   WaitWhile() = default;
   ~WaitWhile() override;
@@ -206,8 +183,7 @@ public:
 
   std::string condition;
 };
-class WaitFor : public Expression
-{
+class WaitFor : public Expression {
 public:
   WaitFor() = default;
   ~WaitFor() override;
@@ -215,8 +191,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string actor;
 };
-class Label : public Node
-{
+class Label : public Node {
 public:
   Label() = default;
   ~Label() override;
@@ -225,16 +200,14 @@ public:
   std::string name;
   std::vector<std::unique_ptr<Statement>> statements;
 };
-class CompilationUnit
-{
+class CompilationUnit {
 public:
   CompilationUnit() = default;
   virtual ~CompilationUnit();
 
   std::vector<std::unique_ptr<Label>> labels;
 };
-class AstVisitor
-{
+class AstVisitor {
 public:
   virtual ~AstVisitor();
   virtual void visit(const Statement &node);
@@ -261,8 +234,7 @@ public:
 };
 } // namespace Ast
 
-class YackParser
-{
+class YackParser {
 public:
   explicit YackParser(YackTokenReader &reader);
   std::unique_ptr<Ast::CompilationUnit> parse();

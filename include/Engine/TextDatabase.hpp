@@ -2,10 +2,8 @@
 #include <string>
 #include <map>
 
-namespace ng
-{
-class TextDatabase
-{
+namespace ng {
+class TextDatabase {
 public:
   TextDatabase();
 

@@ -1,9 +1,7 @@
 #pragma once
 
-namespace ng
-{
-class NonCopyable
-{
+namespace ng {
+class NonCopyable {
 protected:
   NonCopyable() = default;
 

@@ -6,12 +6,10 @@
 #include "Engine/Function.hpp"
 #include "Font/GGFont.hpp"
 
-namespace ng
-{
+namespace ng {
 class Engine;
 
-struct DialogSlot
-{
+struct DialogSlot {
   int id;
   std::wstring text;
   std::string label;
@@ -19,11 +17,9 @@ struct DialogSlot
 };
 
 class DialogManager;
-class DialogVisitor : public Ast::AstVisitor
-{
+class DialogVisitor : public Ast::AstVisitor {
 private:
-  class ConditionVisitor : public Ast::AstVisitor
-  {
+  class ConditionVisitor : public Ast::AstVisitor {
   public:
     ConditionVisitor(DialogVisitor &dialogVisitor, const Ast::Statement &statement);
     [[nodiscard]] bool isAccepted() const { return _isAccepted; }
@@ -46,7 +42,7 @@ public:
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
-  DialogManager& getDialogManager() { return _dialogManager; }
+  DialogManager &getDialogManager() { return _dialogManager; }
   void setHasChoices(bool hasChoices) { _hasChoice = hasChoices; }
 
 private:
@@ -77,15 +73,13 @@ private:
   bool _hasChoice{false};
 };
 
-enum class DialogManagerState
-{
+enum class DialogManagerState {
   None,
   Active,
   WaitingForChoice
 };
 
-class DialogManager : public sf::Drawable
-{
+class DialogManager : public sf::Drawable {
 public:
   DialogManager();
 
@@ -98,7 +92,7 @@ public:
   [[nodiscard]] DialogManagerState getState() const { return _state; }
   void addFunction(std::unique_ptr<Function> function);
   void choose(int choice);
-  void setActorName(const std::string& actor);
+  void setActorName(const std::string &actor);
   inline void enableParrotMode(bool enable) { _parrotModeEnabled = enable; }
   inline void setLimit(int limit) { _limit = limit; }
 

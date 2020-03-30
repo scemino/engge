@@ -4,16 +4,13 @@
 #include "SFML/Graphics.hpp"
 #include "CostumeLayer.hpp"
 
-namespace ng
-{
-enum class AnimationState
-{
+namespace ng {
+enum class AnimationState {
   Pause,
   Play
 };
 
-class CostumeAnimation : public sf::Drawable
-{
+class CostumeAnimation : public sf::Drawable {
 public:
   void setName(const std::string &name) { _name = name; }
   [[nodiscard]] const std::string &getName() const { return _name; }
@@ -27,7 +24,7 @@ public:
   void setFlags(int flags) { _flags = flags; }
   [[nodiscard]] int getFlags() const { return _flags; }
 
-  [[nodiscard]] bool contains(const sf::Vector2f& pos) const;
+  [[nodiscard]] bool contains(const sf::Vector2f &pos) const;
 
   void update(const sf::Time &elapsed);
 

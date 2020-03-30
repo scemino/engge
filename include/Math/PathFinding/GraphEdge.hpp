@@ -5,13 +5,13 @@
 
 namespace ng {
 struct GraphEdge {
-    int from{0};
-    int to{0};
-    float cost{0};
+  int from{0};
+  int to{0};
+  float cost{0};
 
-    GraphEdge();
-    GraphEdge(int from, int to, float cost);
+  GraphEdge();
+  GraphEdge(int from, int to, float cost);
 
-    friend std::ostream &operator<<(std::ostream &os, const GraphEdge &edge);
+  friend std::ostream &operator<<(std::ostream &os, const GraphEdge &edge);
 };
 }

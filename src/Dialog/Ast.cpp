@@ -1,7 +1,6 @@
 #include "Parsers/YackParser.hpp"
 
-namespace ng::Ast
-{
+namespace ng::Ast {
 void Statement::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Label::accept(AstVisitor &visitor) { visitor.visit(*this); }
 void Say::accept(AstVisitor &visitor) { visitor.visit(*this); }

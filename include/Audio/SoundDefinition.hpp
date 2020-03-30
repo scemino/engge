@@ -6,18 +6,15 @@
 #include "Engine/Function.hpp"
 #include "Scripting/ScriptObject.hpp"
 
-namespace ng
-{
+namespace ng {
 class SoundId;
 
-class Sound : public ScriptObject
-{
+class Sound : public ScriptObject {
 public:
   ~Sound() override;
 };
 
-class SoundDefinition : public Sound
-{
+class SoundDefinition : public Sound {
   friend class SoundId;
 
 public:

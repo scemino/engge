@@ -2,13 +2,11 @@
 #include <vector>
 #include "SFML/Graphics.hpp"
 
-namespace ng
-{
+namespace ng {
 class Walkbox;
 class Graph;
 
-class PathFinder
-{
+class PathFinder {
 public:
   explicit PathFinder(const std::vector<Walkbox> &walkboxes);
 
@@ -19,8 +17,8 @@ private:
   std::shared_ptr<Graph> createGraph();
   bool inLineOfSight(sf::Vector2f start, sf::Vector2f end);
 
- private:
+private:
   std::shared_ptr<Graph> _graph;
-  const  std::vector<Walkbox>& _walkboxes;
+  const std::vector<Walkbox> &_walkboxes;
 };
 } // namespace ng

@@ -3,14 +3,12 @@
 #include "SFML/Graphics.hpp"
 #include "System/NonCopyable.hpp"
 
-namespace ng
-{
+namespace ng {
 class FntFont;
 class GGFont;
 
 // should be renamed to ResourceManager
-class TextureManager : public NonCopyable
-{
+class TextureManager : public NonCopyable {
 private:
   std::map<std::string, std::shared_ptr<sf::Texture>> _textureMap;
   std::map<std::string, std::shared_ptr<GGFont>> _fontMap;

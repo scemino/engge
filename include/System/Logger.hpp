@@ -4,91 +4,79 @@
 #include "Locator.hpp"
 #undef Yield
 
-namespace ng
-{
+namespace ng {
 template<typename T>
 using basic_string_view_t = fmt::basic_string_view<T>;
 
 using string_view_t = spdlog::string_view_t;
 
-class Logger
-{
-  public:
-    Logger();
-    virtual ~Logger() = default;
+class Logger {
+public:
+  Logger();
+  virtual ~Logger() = default;
 
-    template<typename... Args>
-    void trace(string_view_t message, const Args &... args);
-    template<typename... Args>
-    void info(string_view_t message, const Args &... args);
-    template<typename... Args>
-    void warn(string_view_t message, const Args &... args);
-    template<typename... Args>
-    void error(string_view_t message, const Args &... args);
-    template<typename... Args>
-    void critical(string_view_t message, const Args &... args);
+  template<typename... Args>
+  void trace(string_view_t message, const Args &... args);
+  template<typename... Args>
+  void info(string_view_t message, const Args &... args);
+  template<typename... Args>
+  void warn(string_view_t message, const Args &... args);
+  template<typename... Args>
+  void error(string_view_t message, const Args &... args);
+  template<typename... Args>
+  void critical(string_view_t message, const Args &... args);
 
 private:
-    std::shared_ptr<spdlog::logger> _out;
+  std::shared_ptr<spdlog::logger> _out;
 };
 
 template<typename... Args>
-void Logger::trace(string_view_t message, const Args &... args)
-{
-    _out->trace(message, args...);
+void Logger::trace(string_view_t message, const Args &... args) {
+  _out->trace(message, args...);
 }
 
 template<typename... Args>
-void Logger::info(string_view_t message, const Args &... args)
-{
-    _out->info(message, args...);
+void Logger::info(string_view_t message, const Args &... args) {
+  _out->info(message, args...);
 }
 
 template<typename... Args>
-void Logger::warn(string_view_t message, const Args &... args)
-{
-    _out->warn(message, args...);
+void Logger::warn(string_view_t message, const Args &... args) {
+  _out->warn(message, args...);
 }
 
 template<typename... Args>
-void Logger::error(string_view_t message, const Args &... args)
-{
-    _out->error(message, args...);
+void Logger::error(string_view_t message, const Args &... args) {
+  _out->error(message, args...);
 }
 
 template<typename... Args>
-void Logger::critical(string_view_t message, const Args &... args)
-{
-    _out->critical(message, args...);
+void Logger::critical(string_view_t message, const Args &... args) {
+  _out->critical(message, args...);
 }
 
 template<typename... Args>
-static void trace(string_view_t message, const Args &... args)
-{
-    Locator<Logger>::get().trace(message, args...);
+static void trace(string_view_t message, const Args &... args) {
+  Locator<Logger>::get().trace(message, args...);
 }
 
 template<typename... Args>
-static void info(string_view_t message, const Args &... args)
-{
-    Locator<Logger>::get().info(message, args...);
+static void info(string_view_t message, const Args &... args) {
+  Locator<Logger>::get().info(message, args...);
 }
 
 template<typename... Args>
-static void warn(string_view_t message, const Args &... args)
-{
-    Locator<Logger>::get().warn(message, args...);
+static void warn(string_view_t message, const Args &... args) {
+  Locator<Logger>::get().warn(message, args...);
 }
 
 template<typename... Args>
-static void error(string_view_t message, const Args &... args)
-{
-    Locator<Logger>::get().error(message, args...);
+static void error(string_view_t message, const Args &... args) {
+  Locator<Logger>::get().error(message, args...);
 }
 
 template<typename... Args>
-static void critical(string_view_t message, const Args &... args)
-{
-    Locator<Logger>::get().critical(message, args...);
+static void critical(string_view_t message, const Args &... args) {
+  Locator<Logger>::get().critical(message, args...);
 }
 } // namespace ng

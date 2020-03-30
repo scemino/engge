@@ -6,15 +6,13 @@
 #include "Costume.hpp"
 #include "Entities/Entity.hpp"
 
-namespace ng
-{
+namespace ng {
 class Engine;
 class Lip;
 class Object;
 class Room;
 
-class Actor : public Entity
-{
+class Actor : public Entity {
 public:
   explicit Actor(Engine &engine);
   ~Actor() override;
@@ -37,9 +35,9 @@ public:
 
   void setTalkColor(sf::Color color);
   sf::Color getTalkColor() const;
-  
+
   void setTalkOffset(const sf::Vector2i &offset);
-  void say(const std::string& text, bool mumble = false);
+  void say(const std::string &text, bool mumble = false);
   void stopTalking();
   bool isTalking() const;
 
@@ -54,22 +52,22 @@ public:
   sf::IntRect getHotspot() const;
   void showHotspot(bool show);
   bool isHotspotVisible() const;
-  bool contains(const sf::Vector2f& pos) const;
+  bool contains(const sf::Vector2f &pos) const;
 
   void update(const sf::Time &time) override;
 
-  void pickupObject(Object* pObject);
-  void pickupReplacementObject(Object* pObject1,Object* pObject2);
-  void giveTo(Object* pObject, Actor* pActor);
-  void removeInventory(Object* pObject);
+  void pickupObject(Object *pObject);
+  void pickupReplacementObject(Object *pObject1, Object *pObject2);
+  void giveTo(Object *pObject, Actor *pActor);
+  void removeInventory(Object *pObject);
   void clearInventory();
-  const std::vector<Object*> &getObjects() const;
+  const std::vector<Object *> &getObjects() const;
   void setInventoryOffset(int offset);
   int getInventoryOffset() const;
 
   void setWalkSpeed(const sf::Vector2i &speed);
   const sf::Vector2i &getWalkSpeed() const;
-  
+
   void walkTo(const sf::Vector2f &destination, std::optional<Facing> facing = std::nullopt);
   void stopWalking();
   bool isWalking() const;

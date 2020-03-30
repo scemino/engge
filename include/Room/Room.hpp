@@ -5,8 +5,7 @@
 #include "squirrel.h"
 #include "Scripting/ScriptObject.hpp"
 
-namespace ng
-{
+namespace ng {
 class Entity;
 class Graph;
 class Light;
@@ -17,8 +16,7 @@ class TextObject;
 class ThreadBase;
 class Walkbox;
 
-namespace RoomEffectConstants
-{
+namespace RoomEffectConstants {
 static const int EFFECT_NONE = 0;
 static const int EFFECT_SEPIA = 1;
 static const int EFFECT_EGA = 2;
@@ -27,13 +25,12 @@ static const int EFFECT_GHOST = 4;
 static const int EFFECT_BLACKANDWHITE = 5;
 }
 
-class Room : public ScriptObject
-{
+class Room : public ScriptObject {
 public:
   explicit Room(TextureManager &textureManager);
   ~Room() override;
 
-  void setName(const std::string& name);
+  void setName(const std::string &name);
   [[nodiscard]] std::string getName() const;
 
   void load(const char *name);
@@ -47,9 +44,9 @@ public:
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
   [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
   [[nodiscard]] std::vector<sf::Vector2f> calculatePath(sf::Vector2f start, sf::Vector2f end) const;
-  std::vector<Walkbox>& getWalkboxes();
-  std::vector<Walkbox>& getGraphWalkboxes();
-  [[nodiscard]] const Graph* getGraph() const;
+  std::vector<Walkbox> &getWalkboxes();
+  std::vector<Walkbox> &getGraphWalkboxes();
+  [[nodiscard]] const Graph *getGraph() const;
 
   Object &createObject(const std::string &sheet, const std::vector<std::string> &anims);
   Object &createObject(const std::vector<std::string> &anims);
@@ -63,22 +60,22 @@ public:
   [[nodiscard]] int32_t getScreenHeight() const;
   void setAsParallaxLayer(Entity *pEntity, int layer);
   void roomLayer(int layer, bool enabled);
-  void setRoomScaling(const RoomScaling & scaling);
+  void setRoomScaling(const RoomScaling &scaling);
   [[nodiscard]] const RoomScaling &getRoomScaling() const;
   HSQOBJECT &getTable();
 
-  [[nodiscard]] const SpriteSheet& getSpriteSheet() const;
+  [[nodiscard]] const SpriteSheet &getSpriteSheet() const;
 
   void setAmbientLight(sf::Color color);
   [[nodiscard]] sf::Color getAmbientLight() const;
 
   void removeEntity(Entity *pEntity);
-  std::vector<RoomScaling>& getScalings();
+  std::vector<RoomScaling> &getScalings();
 
   [[nodiscard]] float getRotation() const;
   void setRotation(float angle);
 
-  Light* createLight(sf::Color color, sf::Vector2i pos);
+  Light *createLight(sf::Color color, sf::Vector2i pos);
   void exit();
 
   void setEffect(int shader);

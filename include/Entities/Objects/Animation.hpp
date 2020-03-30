@@ -4,19 +4,16 @@
 #include "System/NonCopyable.hpp"
 #include "Entities/Objects/AnimationFrame.hpp"
 
-namespace ng
-{
+namespace ng {
 class Object;
 class AnimationFrame;
 
-enum class AnimState
-{
+enum class AnimState {
   Pause,
   Play
 };
 
-class Animation : public sf::Drawable
-{
+class Animation : public sf::Drawable {
 public:
   Animation();
   explicit Animation(const sf::Texture &texture, std::string name);
@@ -25,11 +22,11 @@ public:
   void setName(const std::string &name) { _name = name; }
   [[nodiscard]] const std::string &getName() const { return _name; }
 
-  void setColor(const sf::Color& color) { _color = color; }
+  void setColor(const sf::Color &color) { _color = color; }
   [[nodiscard]] sf::Color getColor() const { return _color; }
 
-  void addFrame(AnimationFrame&& frame);
-  AnimationFrame& at(size_t index);
+  void addFrame(AnimationFrame &&frame);
+  AnimationFrame &at(size_t index);
 
   [[nodiscard]] size_t size() const noexcept;
   [[nodiscard]] bool empty() const noexcept;
@@ -37,7 +34,7 @@ public:
   void setIndex(size_t index) { _index = index; }
 
   void setFps(int fps) { _fps = fps; }
-  
+
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
   void update(const sf::Time &elapsed);
@@ -53,7 +50,7 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  const sf::Texture* _pTexture{nullptr};
+  const sf::Texture *_pTexture{nullptr};
   std::string _name;
   std::vector<AnimationFrame> _frames;
   int _fps{10};

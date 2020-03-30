@@ -5,18 +5,15 @@
 #include "System/NonCopyable.hpp"
 #include "Interpolations.hpp"
 
-namespace ng
-{
-class Function : public NonCopyable
-{
+namespace ng {
+class Function : public NonCopyable {
 public:
   virtual bool isElapsed() { return true; }
-  virtual void operator()(const sf::Time &){ }
+  virtual void operator()(const sf::Time &) {}
   virtual ~Function() = default;
 };
 
-class TimeFunction : public Function
-{
+class TimeFunction : public Function {
 protected:
   sf::Time _elapsed;
   sf::Time _time;
@@ -24,77 +21,70 @@ protected:
 
 public:
   explicit TimeFunction(const sf::Time &time)
-      : _time(time)
-  {
+      : _time(time) {
   }
 
   ~TimeFunction() override = default;
 
-  void operator()(const sf::Time &elapsed) override
-  {
+  void operator()(const sf::Time &elapsed) override {
     _elapsed += elapsed;
   }
 
-  bool isElapsed() override
-  {
+  bool isElapsed() override {
     auto isElapsed = _elapsed > _time;
-    if (isElapsed && !_done)
-    {
+    if (isElapsed && !_done) {
       _done = true;
       onElapsed();
     }
     return isElapsed;
   }
 
-  virtual void onElapsed()
-  {
+  virtual void onElapsed() {
   }
 };
 
-template <typename Value>
-class ChangeProperty : public TimeFunction
-{
+template<typename Value>
+class ChangeProperty : public TimeFunction {
 public:
-  ChangeProperty(std::function<Value()> get, std::function<void(const Value &)> set, Value destination, const sf::Time &time, InterpolationMethod method = InterpolationMethod::Linear)
+  ChangeProperty(std::function<Value()> get,
+                 std::function<void(const Value &)> set,
+                 Value destination,
+                 const sf::Time &time,
+                 InterpolationMethod method = InterpolationMethod::Linear)
       : TimeFunction(time),
         _get(get),
         _set(set),
         _destination(destination),
         _init(get()),
         _delta(_destination - _init),
-        _current(_init)
-  {
+        _current(_init) {
     _anim = InterpolationHelper::getInterpolationMethod(method);
-    _isLooping = ((method & InterpolationMethod::Looping) | (method & InterpolationMethod::Swing)) != InterpolationMethod::None;
+    _isLooping =
+        ((method & InterpolationMethod::Looping) | (method & InterpolationMethod::Swing)) != InterpolationMethod::None;
     _isSwing = (method & InterpolationMethod::Swing) != InterpolationMethod::None;
   }
 
-  void operator()(const sf::Time &elapsed) override
-  {
+  void operator()(const sf::Time &elapsed) override {
     TimeFunction::operator()(elapsed);
     _set(_current);
-    if (!isElapsed())
-    {
+    if (!isElapsed()) {
       auto t = _elapsed.asSeconds() / _time.asSeconds();
       auto f = _dirForward ? _anim(t) : 1.f - _anim(t);
       _current = _init + f * _delta;
-      if (_elapsed >= _time && _isLooping)
-      {
+      if (_elapsed >= _time && _isLooping) {
         _elapsed = sf::seconds(_elapsed.asSeconds() - _time.asSeconds());
         _dirForward = !_dirForward;
       }
     }
   }
 
-  bool isElapsed() override
-  {
+  bool isElapsed() override {
     if (!_isLooping)
       return TimeFunction::isElapsed();
     return false;
   }
 
-  void onElapsed() override
-  {
+  void onElapsed() override {
     _set(_destination);
   }
 

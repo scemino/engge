@@ -1,31 +1,29 @@
 #pragma once
 #include <memory>
 
-namespace ng
-{
+namespace ng {
 class Logger;
 class ResourceManager;
 
 template<typename TService>
-struct Locator
-{
+struct Locator {
   Locator() = delete;
   ~Locator() = delete;
 
   inline static void set(std::shared_ptr<TService> pService) {
-        _pService = std::move(pService);
-    }
+    _pService = std::move(pService);
+  }
 
-  inline static TService& get() {
-      return *_pService;
+  inline static TService &get() {
+    return *_pService;
   }
 
   static void reset() {
-      _pService.reset();
+    _pService.reset();
   }
 
-  private:
-    static std::shared_ptr<TService> _pService;
+private:
+  static std::shared_ptr<TService> _pService;
 };
 
 template<typename TService>

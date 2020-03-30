@@ -7,15 +7,13 @@
 #include "SFML/Graphics.hpp"
 #include "Scripting/ScriptObject.hpp"
 
-namespace ng
-{
+namespace ng {
 class Engine;
 class Room;
 class SoundDefinition;
 class SoundTrigger;
 class Trigger;
-class Entity : public ScriptObject, public sf::Drawable
-{
+class Entity : public ScriptObject, public sf::Drawable {
 public:
   virtual void update(const sf::Time &elapsed);
   virtual int getZOrder() const = 0;
@@ -56,7 +54,7 @@ public:
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;
 
-  void setTrigger(int triggerNumber, Trigger* pTrigger);
+  void setTrigger(int triggerNumber, Trigger *pTrigger);
   void trig(int triggerNumber);
 
   virtual float getVolume() const { return 1.f; }
@@ -70,7 +68,7 @@ public:
   virtual HSQOBJECT &getTable() = 0;
   virtual HSQOBJECT &getTable() const = 0;
 
-  SoundTrigger* createSoundTrigger(Engine &engine, const std::vector<SoundDefinition*> &sounds);
+  SoundTrigger *createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds);
 
   void alphaTo(float destination, sf::Time time, InterpolationMethod method);
   void offsetTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method);
@@ -85,7 +83,7 @@ protected:
   sf::Transformable _transform;
 
 private:
-  std::map<int, Trigger*> _triggers;
+  std::map<int, Trigger *> _triggers;
   std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
   sf::Vector2f _usePos;
   sf::Vector2f _offset;

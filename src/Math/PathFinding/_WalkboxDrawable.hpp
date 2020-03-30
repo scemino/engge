@@ -6,13 +6,13 @@ namespace ng {
 class Walkbox;
 
 class _WalkboxDrawable : public sf::Drawable {
- public:
-    _WalkboxDrawable(const ng::Walkbox &walkbox);
+public:
+  _WalkboxDrawable(const ng::Walkbox &walkbox);
 
- private:
-    void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+private:
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
- private:
-    const ng::Walkbox &_walkbox;
+private:
+  const ng::Walkbox &_walkbox;
 };
 }

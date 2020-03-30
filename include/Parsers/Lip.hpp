@@ -4,17 +4,14 @@
 
 // see https://github.com/DanielSWolf/rhubarb-lip-sync for more details
 
-namespace ng
-{
-struct NGLipData
-{
+namespace ng {
+struct NGLipData {
 public:
   sf::Time time;
   char letter;
 };
 
-class Lip
-{
+class Lip {
 public:
   Lip();
 

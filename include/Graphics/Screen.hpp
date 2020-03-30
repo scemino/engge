@@ -1,9 +1,7 @@
 #pragma once
 
-namespace ng
-{
-class Screen
-{
+namespace ng {
+class Screen {
 public:
   static const int Width = 1280;
   static const int Height = 720;

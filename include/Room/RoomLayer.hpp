@@ -3,10 +3,8 @@
 #include "SFML/Graphics.hpp"
 #include "Entities/Entity.hpp"
 
-namespace ng
-{
-class RoomLayer
-{
+namespace ng {
+class RoomLayer {
 public:
   RoomLayer();
   ~RoomLayer() = default;

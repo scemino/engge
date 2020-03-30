@@ -5,13 +5,11 @@
 #include "Verb.hpp"
 #include "Graphics/SpriteSheet.hpp"
 
-namespace ng
-{
+namespace ng {
 class Engine;
 class Object;
 
-class Inventory : public sf::Drawable
-{
+class Inventory : public sf::Drawable {
 public:
   Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
             std::array<VerbUiColors, 6> &verbUiColors,
@@ -22,7 +20,7 @@ public:
 
   void setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
   Object *getCurrentInventoryObject() { return _pCurrentInventoryObject; }
-  sf::Vector2f getPosition(Object* pObject) const;
+  sf::Vector2f getPosition(Object *pObject) const;
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -40,7 +38,7 @@ private:
   std::array<VerbUiColors, 6> &_verbUiColors;
   SpriteSheet _gameSheet, _inventoryItems;
   Actor *&_pCurrentActor;
-  std::array<sf::IntRect,8> _inventoryRects;
+  std::array<sf::IntRect, 8> _inventoryRects;
   Object *_pCurrentInventoryObject{nullptr};
   sf::Vector2f _mousePos;
   float _jiggleTime{0};

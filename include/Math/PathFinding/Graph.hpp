@@ -4,8 +4,7 @@
 #include "SFML/Graphics.hpp"
 #include "GraphEdge.hpp"
 
-namespace ng
-{
+namespace ng {
 
 /*
  * This class has been ported from http://www.groebelsloot.com/2016/03/13/pathfinding-part-2/
@@ -15,8 +14,7 @@ namespace ng
  * Code is ported to HaXe and modified when needed
  * http://code.tutsplus.com/tutorials/artificial-intelligence-series-part-1-path-finding--active-4439
  */
-class Graph : public sf::Drawable
-{
+class Graph : public sf::Drawable {
 public:
   std::vector<sf::Vector2f> nodes;
   std::vector<std::vector<std::shared_ptr<GraphEdge>>> edges;
@@ -28,7 +26,7 @@ public:
 
   std::shared_ptr<GraphEdge> getEdge(int from, int to);
   int addNode(sf::Vector2f node);
-  void addEdge(const std::shared_ptr<GraphEdge>& edge);
+  void addEdge(const std::shared_ptr<GraphEdge> &edge);
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

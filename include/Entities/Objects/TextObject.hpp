@@ -3,23 +3,20 @@
 #include "Font/FntFont.hpp"
 #include "SFML/Graphics.hpp"
 
-namespace ng
-{
-enum class TextAlignment: unsigned long
-{
+namespace ng {
+enum class TextAlignment : unsigned long {
   None = 0x00000000,
   Left = 0x10000000,
   Center = 0x20000000,
   Right = 0x40000000,
-  Horizontal = Left|Center|Right,
+  Horizontal = Left | Center | Right,
   Top = 0x80000000,
   Bottom = 0x01000000,
-  Vertical = Top|Bottom,
+  Vertical = Top | Bottom,
   All = Horizontal | Vertical
 };
 
-class TextObject : public Object
-{
+class TextObject : public Object {
 public:
   explicit TextObject();
   FntFont &getFont() { return _font; }
