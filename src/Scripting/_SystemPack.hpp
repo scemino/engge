@@ -910,7 +910,7 @@ private:
 
   static SQInteger isInputOn(HSQUIRRELVM v) {
     bool isActive = g_pEngine->getInputActive();
-    sq_push(v, isActive ? SQTrue : SQFalse);
+    sq_pushinteger(v, isActive ? 1 : 0);
     return 1;
   }
 
