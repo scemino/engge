@@ -859,7 +859,7 @@ private:
     if (type == SQObjectType::OT_BOOL) {
       SQBool b;
       sq_getbool(v, 3, &b);
-      setPref(key, Preferences::toGGPackValue(b ? true : false));
+      setPref(key, Preferences::toGGPackValue(b != 0));
       return 0;
     }
     if (type == SQObjectType::OT_FLOAT) {
@@ -880,7 +880,7 @@ private:
       return sq_throwerror(v, "failed to get filename");
     }
     trace("include {}", filename);
-    _pScriptEngine->executeNutScript(filename);
+    ng::ScriptEngine::executeNutScript(filename);
     return 0;
   }
 

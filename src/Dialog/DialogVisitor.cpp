@@ -2,7 +2,6 @@
 #include "Engine/Engine.hpp"
 #include "Entities/Actor/Actor.hpp"
 #include "System/Logger.hpp"
-#include "_GotoFunction.hpp"
 #include "_SayFunction.hpp"
 #include "_ExecuteCodeFunction.hpp"
 #include "_ShutupFunction.hpp"
@@ -18,15 +17,6 @@ void DialogVisitor::visit(const Ast::Statement &node) {
   if (!acceptConditions(node))
     return;
   node.expression->accept(*this);
-}
-
-void DialogVisitor::visit(const Ast::Label &node) {
-  _hasChoice = false;
-  for (auto &statement : node.statements) {
-    statement->accept(*this);
-    if (_hasChoice)
-      return;
-  }
 }
 
 DialogVisitor::ConditionVisitor::ConditionVisitor(DialogVisitor &dialogVisitor, const Ast::Statement &statement)
@@ -67,11 +57,13 @@ void DialogVisitor::ConditionVisitor::visit(const Ast::ShowOnceCondition &) {
 
 void DialogVisitor::ConditionVisitor::visit(const Ast::OnceEverCondition &) {
   // TODO: OnceEverCondition
+  trace("TODO: OnceEverCondition");
   _isAccepted = true;
 }
 
 void DialogVisitor::ConditionVisitor::visit(const Ast::TempOnceCondition &) {
   // TODO: TempOnceCondition
+  trace("TODO: TempOnceCondition");
   _isAccepted = true;
 }
 
@@ -106,13 +98,14 @@ void DialogVisitor::visit(const Ast::Say &node) {
   if (id > 0) {
     auto say = std::make_unique<_SayFunction>(*pActor, node.text);
     _dialogManager.addFunction(std::move(say));
-  } else {
-    auto anim = node.text.substr(2, node.text.length() - 3);
-    std::stringstream s;
-    s << "actorPlayAnimation(" << node.actor << ", \"" << anim << "\", NO)";
-    auto executeCode = std::make_unique<_ExecuteCodeFunction>(*_pEngine, s.str());
-    _dialogManager.addFunction(std::move(executeCode));
+    return;
   }
+
+  auto anim = node.text.substr(2, node.text.length() - 3);
+  std::stringstream s;
+  s << "actorPlayAnimation(" << node.actor << ", \"" << anim << "\", NO)";
+  auto executeCode = std::make_unique<_ExecuteCodeFunction>(*_pEngine, s.str());
+  _dialogManager.addFunction(std::move(executeCode));
 }
 
 void DialogVisitor::visit(const Ast::Choice &node) {
@@ -136,8 +129,9 @@ void DialogVisitor::visit(const Ast::Code &node) {
 }
 
 void DialogVisitor::visit(const Ast::Goto &node) {
-  auto gotoFunction = std::make_unique<_GotoFunction>(*this, node.name);
-  _dialogManager.addFunction(std::move(gotoFunction));
+  //auto gotoFunction = std::make_unique<_GotoFunction>(*this, node.name);
+  //_dialogManager.addFunction(std::move(gotoFunction));
+  _dialogManager.selectLabel(node.name);
 }
 
 void DialogVisitor::visit(const Ast::Shutup &) {
@@ -158,9 +152,8 @@ void DialogVisitor::visit(const Ast::WaitFor &) {
   trace("TODO: waitfor");
 }
 
-void DialogVisitor::visit(const Ast::Override &) {
-  // TODO: override
-  trace("TODO: override");
+void DialogVisitor::visit(const Ast::Override &node) {
+  _dialogManager.setOverride(node.node);
 }
 
 void DialogVisitor::visit(const Ast::Parrot &node) {

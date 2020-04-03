@@ -17,8 +17,6 @@ public:
     if (_done)
       return;
     _dialogVisitor.getDialogManager().selectLabel(_name);
-    auto &dialog = _dialogVisitor.getDialogManager().getDialog();
-    _dialogVisitor.setHasChoices(std::any_of(dialog.begin(), dialog.end(), [](auto &line) { return line.id != 0; }));
     _done = true;
   }
 

@@ -7,6 +7,7 @@
 #include "Font/GGFont.hpp"
 
 namespace ng {
+class Actor;
 class Engine;
 
 struct DialogSlot {
@@ -43,11 +44,9 @@ public:
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
   DialogManager &getDialogManager() { return _dialogManager; }
-  void setHasChoices(bool hasChoices) { _hasChoice = hasChoices; }
 
 private:
   void visit(const Ast::Statement &node) override;
-  void visit(const Ast::Label &node) override;
   void visit(const Ast::Say &node) override;
   void visit(const Ast::Choice &node) override;
   void visit(const Ast::Code &node) override;
@@ -70,7 +69,6 @@ private:
   DialogManager &_dialogManager;
   std::vector<const Ast::Node *> _nodesVisited;
   std::vector<const Ast::Node *> _nodesSelected;
-  bool _hasChoice{false};
 };
 
 enum class DialogManagerState {
@@ -95,6 +93,9 @@ public:
   void setActorName(const std::string &actor);
   inline void enableParrotMode(bool enable) { _parrotModeEnabled = enable; }
   inline void setLimit(int limit) { _limit = limit; }
+  inline void setOverride(const std::string& override) { _override = override; }
+
+  Actor* getTalkingActor();
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -110,5 +111,7 @@ private:
   std::string _actorName;
   bool _parrotModeEnabled{true};
   int _limit{6};
+  std::vector<std::unique_ptr<Ast::Statement>, std::allocator<std::unique_ptr<Ast::Statement>>>::iterator _currentStatement;
+  std::string _override;
 };
 } // namespace ng
