@@ -62,6 +62,8 @@ int Preferences::fromGGPackValue<int>(const GGPackValue &value) {
 
 template<>
 bool Preferences::fromGGPackValue<bool>(const GGPackValue &value) {
+  if(value.isDouble())
+    return value.double_value != 0;
   return value.int_value != 0;
 }
 

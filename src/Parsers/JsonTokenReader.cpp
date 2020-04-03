@@ -58,11 +58,11 @@ TokenId TokenReader::readNumber() {
 }
 
 TokenId TokenReader::readTokenId() {
-  char c = 0;
-  _stream.read(&c, 1);
   if (_stream.eof()) {
     return TokenId::End;
   }
+  char c = 0;
+  _stream.read(&c, 1);
 
   switch (c) {
   case '\0':return TokenId::End;
