@@ -1,5 +1,6 @@
 #pragma once
 #include "SFML/Graphics.hpp"
+#include "SFML/Window.hpp"
 #include "SFML/Audio.hpp"
 #include "Entities/Objects/Object.hpp"
 #include "Engine/Function.hpp"
@@ -28,10 +29,13 @@ private:
   void processEvents();
   void update(const sf::Time &time);
   void render();
+  sf::Uint32 getStyle() const;
 
   Engine *_pEngine{};
   sf::RenderWindow _window;
   std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
   static const sf::Time TimePerFrame;
+  static const sf::VideoMode VideoMode;
+  static const std::string Title;
 };
 } // namespace ng

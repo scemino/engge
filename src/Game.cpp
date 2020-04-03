@@ -2,17 +2,36 @@
 #include "Graphics/Screen.hpp"
 #include "imgui-SFML.h"
 #include "imgui.h"
+#include "Engine/Preferences.hpp"
+#include "System/Locator.hpp"
 
 namespace ng {
 const sf::Time Game::TimePerFrame = sf::seconds(1.f / 60.f);
+const std::string Game::Title = "Engge";
+const sf::VideoMode Game::VideoMode = sf::VideoMode(Screen::Width, Screen::Height);
 
-Game::Game() : _window(sf::VideoMode(Screen::Width, Screen::Height), "Engge") {
-  _window.setSize(sf::Vector2u(Screen::Width, Screen::Height));
+Game::Game() {
+  auto style = getStyle();
+  _window.create(VideoMode, Title, style);
   _window.setMouseCursorVisible(false);
   ImGui::SFML::Init(_window);
+
+  Locator<Preferences>::get().subscribe([this](const std::string &name) {
+    if (name == PreferenceNames::Fullscreen) {
+      auto style = getStyle();
+      auto view = _window.getView();
+      _window.create(VideoMode, Title, style);
+      _window.setView(view);
+    }
+  });
 }
 
 Game::~Game() { ImGui::SFML::Shutdown(); }
+
+sf::Uint32 Game::getStyle() const {
+  return Locator<Preferences>::get().getUserPreference(PreferenceNames::Fullscreen, PreferenceDefaultValues::Fullscreen)
+         ? sf::Style::Fullscreen : sf::Style::Default;
+}
 
 void Game::setEngine(Engine *pEngine) {
   _pEngine = pEngine;

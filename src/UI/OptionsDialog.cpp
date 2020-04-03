@@ -163,7 +163,7 @@ struct OptionsDialog::Impl {
                             _Button::Size::Medium);
       break;
     case State::Video:setHeading(Ids::Video);
-      _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), false,
+      _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), true,
                                getUserPreference(PreferenceNames::Fullscreen, PreferenceDefaultValues::Fullscreen),
                                [this](auto value) {
                                  _isDirty = true;
