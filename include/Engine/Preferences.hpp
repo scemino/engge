@@ -23,6 +23,7 @@ static const std::string SayLineBaseTime = "sayLineBaseTime";
 static const std::string SayLineCharTime = "sayLineCharTime";
 static const std::string SayLineMinTime = "sayLineMinTime";
 static const std::string ToiletPaperOver = "toiletPaperOver";
+static const std::string AnnoyingInJokes = "annoyingInJokes";
 static const std::string SafeArea = "safeScale";
 static const std::string Fullscreen = "windowFullscreen";
 static const std::string RightClickSkipsDialog = "rightClickSkipsDialog";
@@ -52,6 +53,7 @@ static const bool Fullscreen = true;
 static const bool RightClickSkipsDialog = false;
 static const std::string KeySkipText = ".";
 static const float GameSpeedFactor = 1.f;
+static const bool AnnoyingInJokes = false;
 }
 class Preferences {
 public:

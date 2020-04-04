@@ -57,6 +57,7 @@ struct OptionsDialog::Impl {
     inline static const int MouseTips = 99967;
     inline static const int ControllerTips = 99968;
     inline static const int ControllerMap = 99969;
+    inline static const int AnnoyingInJokes = 99971;
   };
 
   inline static const std::array<std::string, 5> LanguageValues = {"en", "fr", "it", "de", "es"};
@@ -181,6 +182,13 @@ struct OptionsDialog::Impl {
                                [this](auto value) {
                                  _isDirty = true;
                                  setUserPreference(PreferenceNames::ToiletPaperOver, value);
+                               });
+      _checkboxes.emplace_back(Ids::AnnoyingInJokes, getSlotPos(5), true,
+                               getUserPreference(PreferenceNames::AnnoyingInJokes,
+                                                 PreferenceDefaultValues::AnnoyingInJokes),
+                               [this](auto value) {
+                                 _isDirty = true;
+                                 setUserPreference(PreferenceNames::AnnoyingInJokes, value);
                                });
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
