@@ -228,6 +228,10 @@ struct OptionsDialog::Impl {
                                [this](auto value) {
                                  _isDirty = true;
                                  setUserPreference(PreferenceNames::RetroVerbs, value);
+                                 if(value) {
+                                   _checkboxes[3].setChecked(true);
+                                   _checkboxes[5].setChecked(true);
+                                 }
                                });
       _checkboxes.emplace_back(Ids::ClassicSentence, getSlotPos(7), true,
                                getUserPreference(PreferenceNames::ClassicSentence,

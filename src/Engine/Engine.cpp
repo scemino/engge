@@ -1396,6 +1396,9 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   if (currentActorIndex == -1)
     return;
 
+  auto classicSentence = _pEngine->getPreferences().getUserPreference(PreferenceNames::ClassicSentence,
+                                                                      PreferenceDefaultValues::ClassicSentence);
+
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
@@ -1431,9 +1434,15 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   auto pos = toDefaultView((sf::Vector2i) _mousePos, screenSize);
 
   auto bounds = text.getGlobalBounds();
-  auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 30;
-  auto x = std::clamp<float>(pos.x - bounds.width / 2.f, 20.f, Screen::Width - 20.f - bounds.width);
-  text.setPosition(x, y - bounds.height);
+  if(classicSentence) {
+    auto y = Screen::Height - 210.f;
+    auto x = Screen::HalfWidth - bounds.width / 2.f;
+    text.setPosition(x, y);
+  } else {
+    auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 30;
+    auto x = std::clamp<float>(pos.x - bounds.width / 2.f, 20.f, Screen::Width - 20.f - bounds.width);
+    text.setPosition(x, y - bounds.height);
+  }
   target.draw(text, sf::RenderStates::Default);
   target.setView(view);
 }
