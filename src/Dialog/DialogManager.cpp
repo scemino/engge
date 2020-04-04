@@ -86,7 +86,6 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
-  int dialog = 0;
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
@@ -99,6 +98,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   Text text;
   text.setFont(font);
+  int dialog = 0;
   for (auto &dlg : _dialog) {
     if (dlg.id == 0)
       continue;
@@ -117,7 +117,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
     s = L"\u25CF ";
     s += dialogText;
     text.setString(s);
-    text.setPosition(0, y);
+    text.setPosition(dlg.pos, y);
     auto bounds = text.getGlobalBounds();
     text.setFillColor(bounds.contains(pos) ? dialogHighlight : dialogNormal);
     target.draw(text);
@@ -177,11 +177,8 @@ void DialogManager::update(const sf::Time &elapsed) {
     return;
   }
 
-  if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-    return;
-
-  int dialog = 0;
   auto y = 534.f;
+  int dialog = 0;
   for (const auto &dlg : _dialog) {
     if (dlg.id == 0)
       continue;
@@ -199,7 +196,52 @@ void DialogManager::update(const sf::Time &elapsed) {
     s += dlg.text;
     Text text;
     text.setFont(font);
-    text.setPosition(0, y);
+    text.setPosition(dlg.pos, y);
+    text.setString(s);
+    auto bounds = text.getGlobalBounds();
+    if(bounds.width > Screen::Width) {
+      if (bounds.contains(pos)) {
+        if ((bounds.width + dlg.pos) > Screen::Width) {
+          dlg.pos -= SlidingSpeed * elapsed.asSeconds();
+          if ((bounds.width + dlg.pos) < Screen::Width) {
+            dlg.pos = Screen::Width - bounds.width;
+          }
+        }
+      } else {
+        if (dlg.pos < 0) {
+          dlg.pos += SlidingSpeed * elapsed.asSeconds();
+          if (dlg.pos> 0) {
+            dlg.pos = 0;
+          }
+        }
+      }
+    }
+    y += bounds.height;
+    dialog++;
+  }
+
+  if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+    return;
+
+  dialog = 0;
+  for (const auto &dlg : _dialog) {
+    if (dlg.id == 0)
+      continue;
+
+    if ((dialog + 1) >= _limit)
+      break;
+
+    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
+                                                                   PreferenceDefaultValues::RetroFonts);
+    const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+
+    // HACK: bad, bad, this code is the same as in the draw function
+    sf::String s;
+    s = L"\u25CF ";
+    s += dlg.text;
+    Text text;
+    text.setFont(font);
+    text.setPosition(dlg.pos, y);
     text.setString(s);
     if (text.getGlobalBounds().contains(pos)) {
       choose(dialog + 1);

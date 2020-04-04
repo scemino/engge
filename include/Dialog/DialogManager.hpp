@@ -11,10 +11,11 @@ class Actor;
 class Engine;
 
 struct DialogSlot {
-  int id;
+  int id{0};
   std::wstring text;
   std::string label;
-  const Ast::Choice *pChoice;
+  const Ast::Choice *pChoice{nullptr};
+  mutable float pos;
 };
 
 class DialogManager;
@@ -43,7 +44,6 @@ public:
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
-  DialogManager &getDialogManager() { return _dialogManager; }
 
 private:
   void visit(const Ast::Statement &node) override;
@@ -78,6 +78,9 @@ enum class DialogManagerState {
 };
 
 class DialogManager : public sf::Drawable {
+private:
+  static constexpr float SlidingSpeed = 25.f;
+
 public:
   DialogManager();
 
