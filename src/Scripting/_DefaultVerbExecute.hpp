@@ -382,14 +382,14 @@ private:
     int verb;
     if (pVerb) {
       verb = pVerb->id;
-      pVerb = _engine.getVerb(verb);
+      pVerb = _engine.getHud().getVerb(verb);
       return;
     }
     auto defaultVerb = getDefaultVerb(pObj);
     if (!defaultVerb)
       return;
     verb = defaultVerb;
-    pVerb = _engine.getVerb(verb);
+    pVerb = _engine.getHud().getVerb(verb);
   }
 
   SQInteger getDefaultVerb(Entity *pObj) {

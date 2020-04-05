@@ -117,7 +117,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
     s = L"\u25CF ";
     s += dialogText;
     text.setString(s);
-    text.setPosition(dlg.pos, y);
+    text.setPosition(dlg.pos.x, y + dlg.pos.y);
     auto bounds = text.getGlobalBounds();
     text.setFillColor(bounds.contains(pos) ? dialogHighlight : dialogNormal);
     target.draw(text);
@@ -196,22 +196,22 @@ void DialogManager::update(const sf::Time &elapsed) {
     s += dlg.text;
     Text text;
     text.setFont(font);
-    text.setPosition(dlg.pos, y);
+    text.setPosition(dlg.pos.x, dlg.pos.y + y);
     text.setString(s);
     auto bounds = text.getGlobalBounds();
     if(bounds.width > Screen::Width) {
       if (bounds.contains(pos)) {
-        if ((bounds.width + dlg.pos) > Screen::Width) {
-          dlg.pos -= SlidingSpeed * elapsed.asSeconds();
-          if ((bounds.width + dlg.pos) < Screen::Width) {
-            dlg.pos = Screen::Width - bounds.width;
+        if ((bounds.width + dlg.pos.x) > Screen::Width) {
+          dlg.pos.x -= SlidingSpeed * elapsed.asSeconds();
+          if ((bounds.width + dlg.pos.x) < Screen::Width) {
+            dlg.pos.x = Screen::Width - bounds.width;
           }
         }
       } else {
-        if (dlg.pos < 0) {
-          dlg.pos += SlidingSpeed * elapsed.asSeconds();
-          if (dlg.pos> 0) {
-            dlg.pos = 0;
+        if (dlg.pos.x < 0) {
+          dlg.pos.x += SlidingSpeed * elapsed.asSeconds();
+          if (dlg.pos.x> 0) {
+            dlg.pos.x = 0;
           }
         }
       }
@@ -241,7 +241,7 @@ void DialogManager::update(const sf::Time &elapsed) {
     s += dlg.text;
     Text text;
     text.setFont(font);
-    text.setPosition(dlg.pos, y);
+    text.setPosition(dlg.pos.x, dlg.pos.y + y);
     text.setString(s);
     if (text.getGlobalBounds().contains(pos)) {
       choose(dialog + 1);

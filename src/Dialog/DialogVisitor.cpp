@@ -121,7 +121,7 @@ void DialogVisitor::visit(const Ast::Choice &node) {
   _dialogManager.getDialog()[node.number - 1].text = _pEngine->getText(id);
   _dialogManager.getDialog()[node.number - 1].label = node.gotoExp->name;
   _dialogManager.getDialog()[node.number - 1].pChoice = &node;
-  _dialogManager.getDialog()[node.number - 1].pos = 0;
+  _dialogManager.getDialog()[node.number - 1].pos = {0,0};
 }
 
 void DialogVisitor::visit(const Ast::Code &node) {
@@ -130,8 +130,6 @@ void DialogVisitor::visit(const Ast::Code &node) {
 }
 
 void DialogVisitor::visit(const Ast::Goto &node) {
-  //auto gotoFunction = std::make_unique<_GotoFunction>(*this, node.name);
-  //_dialogManager.addFunction(std::move(gotoFunction));
   _dialogManager.selectLabel(node.name);
 }
 

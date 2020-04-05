@@ -8,11 +8,12 @@
 namespace ng {
 class Engine;
 class Object;
+class Hud;
 
 class Inventory : public sf::Drawable {
 public:
   Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
-            std::array<VerbUiColors, 6> &verbUiColors,
+            Hud &hud,
             Actor *&pCurrentActor);
 
   void setEngine(Engine *pEngine);
@@ -35,7 +36,7 @@ private:
 private:
   Engine *_pEngine{nullptr};
   std::array<ActorIconSlot, 6> &_actorsIconSlots;
-  std::array<VerbUiColors, 6> &_verbUiColors;
+  Hud &_hud;
   SpriteSheet _gameSheet, _inventoryItems;
   Actor *&_pCurrentActor;
   std::array<sf::IntRect, 8> _inventoryRects;

@@ -15,7 +15,7 @@ struct DialogSlot {
   std::wstring text;
   std::string label;
   const Ast::Choice *pChoice{nullptr};
-  mutable float pos;
+  mutable sf::Vector2f pos;
 };
 
 class DialogManager;

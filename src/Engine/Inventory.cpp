@@ -8,10 +8,10 @@
 
 namespace ng {
 Inventory::Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
-                     std::array<VerbUiColors, 6> &verbUiColors,
+                     Hud &hud,
                      Actor *&pCurrentActor)
     : _actorsIconSlots(actorsIconSlots),
-      _verbUiColors(verbUiColors),
+      _hud(hud),
       _pCurrentActor(pCurrentActor) {
 }
 
@@ -110,7 +110,7 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const {
   sf::Vector2f scrollUpSize(rect.width, rect.height);
   sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
   sf::RectangleShape scrollUpShape;
-  scrollUpShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
+  scrollUpShape.setFillColor(_hud.getVerbUiColors(currentActorIndex).verbNormal);
   scrollUpShape.setPosition(scrollUpPosition);
   scrollUpShape.setSize(scrollUpSize);
   scrollUpShape.setTexture(&_gameSheet.getTexture());
@@ -128,7 +128,7 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const {
 
   auto scrollDownFrameRect = _gameSheet.getRect(isRetro ? "scroll_down_retro" : "scroll_down");
   sf::RectangleShape scrollDownShape;
-  scrollDownShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
+  scrollDownShape.setFillColor(_hud.getVerbUiColors(currentActorIndex).verbNormal);
   scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height);
   scrollDownShape.setSize(scrollUpSize);
   scrollDownShape.setTexture(&_gameSheet.getTexture());
@@ -160,7 +160,7 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
   sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
   sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
 
-  sf::Color c(_verbUiColors.at(currentActorIndex).inventoryBackground);
+  sf::Color c(_hud.getVerbUiColors(currentActorIndex).inventoryBackground);
   c.a = 128;
 
   auto inventoryRect = _gameSheet.getRect("inventory_background");
