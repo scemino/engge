@@ -133,7 +133,7 @@ enum class UseFlag {
 
 class Engine : public NonCopyable {
 public:
-  explicit Engine();
+  Engine();
   ~Engine();
 
   void setWindow(sf::RenderWindow &window);

@@ -10,13 +10,20 @@
 
 namespace ng {
 class Hud : public sf::Drawable {
+private:
+  enum class State {
+    Off,
+    FadeIn,
+    On,
+    FadeOut
+  };
 public:
   Hud();
 
   void setTextureManager(TextureManager *pTextureManager);
 
   void setVerb(int characterSlot, int verbSlot, const Verb &verb);
-  [[nodiscard]] const VerbSlot& getVerbSlot(int characterSlot) const;
+  [[nodiscard]] const VerbSlot &getVerbSlot(int characterSlot) const;
   const Verb *getVerb(int id) const;
 
   void setVerbUiColors(int characterSlot, VerbUiColors colors);
@@ -29,8 +36,8 @@ public:
 
   void setCurrentVerb(const Verb *pVerb) { _pVerb = pVerb; }
   void setVerbOverride(const Verb *pVerb) { _pVerbOverride = pVerb; }
-  const Verb * getCurrentVerb() const { return _pVerb; }
-  const Verb * getVerbOverride() const { return _pVerbOverride; }
+  const Verb *getCurrentVerb() const { return _pVerb; }
+  const Verb *getVerbOverride() const { return _pVerbOverride; }
   void setHoveredEntity(Entity *pEntity) { _pHoveredEntity = pEntity; };
   Entity *getHoveredEntity() const { return _pHoveredEntity; }
 
@@ -42,8 +49,11 @@ public:
 
   void update(const sf::Time &elapsed);
 
+  void setActive(bool active);
+  bool getActive() const { return _active; }
+
 private:
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   std::string getVerbName(const Verb &verb) const;
   int getDefaultVerb(Entity *pEntity) const;
 
@@ -59,5 +69,8 @@ private:
   mutable sf::Shader _verbShader{};
   sf::Vector2f _mousePos;
   Inventory _inventory;
+  bool _active{true};
+  State _state{State::On};
+  float _alpha{1.f};
 };
 }

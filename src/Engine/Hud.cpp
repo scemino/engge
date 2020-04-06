@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Glsl.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -119,7 +120,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   auto verbColor = invertVerbHighlight ? verbUiColors.verbHighlight : sf::Color::White;
   auto uiBackingRect = hudSentence ? _gameSheet.getRect("ui_backing_tall") : _gameSheet.getRect("ui_backing");
   sf::Sprite uiBacking;
-  uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * 255));
+  uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * _alpha * 255));
   uiBacking.setPosition(0, 720.f - uiBackingRect.height);
   uiBacking.setTexture(_gameSheet.getTexture());
   uiBacking.setTextureRect(uiBackingRect);
@@ -135,12 +136,15 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   verbStates.shader = &_verbShader;
   for (int i = 1; i <= 9; i++) {
     auto verb = getVerbSlot(_currentActorIndex).getVerb(i);
-    _verbShader.setUniform("color", sf::Glsl::Vec4(verb.id == verbId ? verbHighlight : verbColor));
+    auto color = verb.id == verbId ? verbHighlight : verbColor;
+    color.a = static_cast<sf::Uint8>(_alpha * 255.f);
+    _verbShader.setUniform("color", sf::Glsl::Vec4(color));
 
     auto verbName = getVerbName(verb);
     auto rect = _verbSheet.getRect(verbName);
     auto s = _verbSheet.getSpriteSourceSize(verbName);
     sf::Sprite verbSprite;
+    verbSprite.setColor(color);
     verbSprite.setPosition(s.left, s.top);
     verbSprite.setTexture(_verbSheet.getTexture());
     verbSprite.setTextureRect(rect);
@@ -148,6 +152,8 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   }
 
   target.setView(view);
+
+  target.draw(_inventory);
 }
 
 void Hud::setCurrentActorIndex(int index) {
@@ -156,7 +162,7 @@ void Hud::setCurrentActorIndex(int index) {
   _inventory.setVerbUiColors(&getVerbUiColors(_currentActorIndex));
 }
 
-void Hud::setCurrentActor(Actor* pActor) {
+void Hud::setCurrentActor(Actor *pActor) {
   _inventory.setCurrentActor(pActor);
 }
 
@@ -221,7 +227,30 @@ const Verb *Hud::getHoveredVerb() const {
 }
 
 void Hud::update(const sf::Time &elapsed) {
+  if (_state == State::FadeIn) {
+    _alpha += elapsed.asSeconds();
+    if (_alpha >= 1.f) {
+      _state = State::On;
+      _alpha = 1.f;
+    }
+  } else if (_state == State::FadeOut) {
+    _alpha -= elapsed.asSeconds();
+    if (_alpha <= 0.f) {
+      _state = State::Off;
+      _alpha = 0.f;
+    }
+  }
+  _inventory.setAlpha(_alpha);
   _inventory.update(elapsed);
+}
+
+void Hud::setActive(bool active) {
+  if (!_active && active) {
+    _state = State::FadeIn;
+  } else if (_active && !active) {
+    _state = State::FadeOut;
+  }
+  _active = active;
 }
 
 }

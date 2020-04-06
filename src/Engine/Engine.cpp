@@ -69,7 +69,6 @@ struct Engine::Impl {
   sf::RenderWindow *_pWindow{nullptr};
   TextDatabase _textDb;
   Actor *_pCurrentActor{nullptr};
-  bool _inputHUD{true};
   bool _inputActive{false};
   bool _showCursor{true};
   bool _inputVerbsActive{false};
@@ -113,7 +112,7 @@ struct Engine::Impl {
 
   Impl();
 
-  void drawVerbs(sf::RenderWindow &window) const;
+  void drawHud(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
   void drawCursorText(sf::RenderTarget &target) const;
   void drawNoOverride(sf::RenderTarget &target) const;
@@ -312,10 +311,10 @@ void Engine::setInputState(int state) {
     _pImpl->_showCursor = false;
   }
   if ((state & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON) {
-    _pImpl->_inputHUD = true;
+    _pImpl->_hud.setActive(true);
   }
   if ((state & InputStateConstants::UI_HUDOBJECTS_OFF) == InputStateConstants::UI_HUDOBJECTS_OFF) {
-    _pImpl->_inputHUD = false;
+    _pImpl->_hud.setActive(false);
   }
 }
 
@@ -324,7 +323,7 @@ int Engine::getInputState() const {
   inputState |= (_pImpl->_inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
   inputState |= (_pImpl->_inputVerbsActive ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
   inputState |= (_pImpl->_showCursor ? InputStateConstants::UI_CURSOR_ON : InputStateConstants::UI_CURSOR_OFF);
-  inputState |= (_pImpl->_inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
+  inputState |= (_pImpl->_hud.getActive() ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
   return inputState;
 }
 
@@ -604,7 +603,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   return _pImpl->enterRoom(pRoom, pDoor);
 }
 
-void Engine::setInputHUD(bool on) { _pImpl->_inputHUD = on; }
+void Engine::setInputHUD(bool on) { _pImpl->_hud.setActive(on); }
 
 void Engine::setInputActive(bool active) {
   _pImpl->_inputActive = active;
@@ -956,7 +955,7 @@ void Engine::update(const sf::Time &el) {
 
   const auto *pVerb = _pImpl->getHoveredVerb();
   // input click on a verb ?
-  if (pVerb) {
+  if (_pImpl->_hud.getActive() && pVerb) {
     _pImpl->onVerbClick(pVerb);
     return;
   }
@@ -1094,9 +1093,8 @@ void Engine::draw(sf::RenderWindow &window) const {
     window.draw(_pImpl->_dialogManager);
 
     if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)) {
-      if (_pImpl->_inputHUD && _pImpl->_pRoom->getFullscreen() != 1) {
-        _pImpl->drawVerbs(window);
-        window.draw(_pImpl->_hud.getInventory());
+      if (_pImpl->_pRoom->getFullscreen() != 1) {
+        _pImpl->drawHud(window);
         if (_pImpl->_inputActive)
           window.draw(_pImpl->_actorIcons);
       }
@@ -1385,7 +1383,7 @@ int Engine::Impl::getCurrentActorIndex() const {
   return -1;
 }
 
-void Engine::Impl::drawVerbs(sf::RenderWindow &window) const {
+void Engine::Impl::drawHud(sf::RenderWindow &window) const {
   if (!_inputVerbsActive)
     return;
 
