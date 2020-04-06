@@ -4,7 +4,9 @@
 #include <SFML/Graphics/Shader.hpp>
 #include <Graphics/SpriteSheet.hpp>
 #include <Entities/Entity.hpp>
+#include <Entities/Actor/Actor.hpp>
 #include "Verb.hpp"
+#include "Inventory.hpp"
 
 namespace ng {
 class Hud : public sf::Drawable {
@@ -22,6 +24,7 @@ public:
 
   sf::Vector2f findScreenPosition(int verbId) const;
 
+  void setCurrentActor(ng::Actor *pActor);
   void setCurrentActorIndex(int index);
 
   void setCurrentVerb(const Verb *pVerb) { _pVerb = pVerb; }
@@ -34,9 +37,15 @@ public:
   void setMousePosition(sf::Vector2f pos);
   const Verb *getHoveredVerb() const;
 
+  const Inventory &getInventory() const { return _inventory; }
+  Inventory &getInventory() { return _inventory; }
+
+  void update(const sf::Time &elapsed);
+
 private:
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   std::string getVerbName(const Verb &verb) const;
+  int getDefaultVerb(Entity *pEntity) const;
 
 private:
   std::array<VerbSlot, 6> _verbSlots;
@@ -48,7 +57,7 @@ private:
   const Verb *_pVerbOverride{nullptr};
   Entity *_pHoveredEntity{nullptr};
   mutable sf::Shader _verbShader{};
-  int getDefaultVerb(Entity *pEntity) const;
   sf::Vector2f _mousePos;
+  Inventory _inventory;
 };
 }

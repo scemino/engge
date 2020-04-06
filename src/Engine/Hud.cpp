@@ -61,6 +61,7 @@ Hud::Hud() {
 }
 
 void Hud::setTextureManager(TextureManager *pTextureManager) {
+  _inventory.setTextureManager(pTextureManager);
   _gameSheet.setTextureManager(pTextureManager);
   _verbSheet.setTextureManager(pTextureManager);
   _gameSheet.load("GameSheet");
@@ -151,6 +152,12 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
 void Hud::setCurrentActorIndex(int index) {
   _currentActorIndex = index;
+  _inventory.setCurrentActorIndex(index);
+  _inventory.setVerbUiColors(&getVerbUiColors(_currentActorIndex));
+}
+
+void Hud::setCurrentActor(Actor* pActor) {
+  _inventory.setCurrentActor(pActor);
 }
 
 sf::Vector2f Hud::findScreenPosition(int verbId) const {
@@ -197,6 +204,7 @@ int Hud::getDefaultVerb(Entity *pEntity) const {
 
 void Hud::setMousePosition(sf::Vector2f pos) {
   _mousePos = pos;
+  _inventory.setMousePosition(pos);
 }
 
 const Verb *Hud::getHoveredVerb() const {
@@ -210,6 +218,10 @@ const Verb *Hud::getHoveredVerb() const {
     }
   }
   return nullptr;
+}
+
+void Hud::update(const sf::Time &elapsed) {
+  _inventory.update(elapsed);
 }
 
 }

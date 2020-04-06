@@ -90,7 +90,6 @@ struct Engine::Impl {
   std::array<ActorIconSlot, 6> _actorsIconSlots;
   UseFlag _useFlag{UseFlag::None};
   ActorIcons _actorIcons;
-  Inventory _inventory;
   HSQUIRRELVM _vm{};
   sf::Time _time;
   bool _isMouseDown{false};
@@ -159,8 +158,7 @@ struct Engine::Impl {
 Engine::Impl::Impl()
     : _preferences(Locator<Preferences>::get()),
       _soundManager(Locator<SoundManager>::get()),
-      _actorIcons(_actorsIconSlots, _hud, _pCurrentActor),
-      _inventory(_actorsIconSlots, _hud, _pCurrentActor) {
+      _actorIcons(_actorsIconSlots, _hud, _pCurrentActor) {
   _gameSheet.setTextureManager(&_textureManager);
   _saveLoadSheet.setTextureManager(&_textureManager);
   _hud.setTextureManager(&_textureManager);
@@ -194,7 +192,6 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
   _pImpl->_soundManager.setEngine(this);
   _pImpl->_dialogManager.setEngine(this);
   _pImpl->_actorIcons.setEngine(this);
-  _pImpl->_inventory.setEngine(this);
   _pImpl->_camera.setEngine(this);
   _pImpl->_talkingState.setEngine(this);
 
@@ -705,7 +702,7 @@ Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos) {
 
   if (!pCurrentObject) {
     // mouse on inventory object ?
-    pCurrentObject = _inventory.getCurrentInventoryObject();
+    pCurrentObject = _hud.getInventory().getCurrentInventoryObject();
   }
 
   return pCurrentObject;
@@ -914,7 +911,6 @@ void Engine::update(const sf::Time &el) {
   auto mousePos = sf::Vector2f(_pImpl->_mousePos.x, _pImpl->_pWindow->getView().getSize().y - _pImpl->_mousePos.y);
   _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getAt();
 
-  _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
   _pImpl->_dialogManager.update(elapsed);
   _pImpl->_hud.setHoveredEntity(_pImpl->getEntity(_pImpl->getHoveredEntity(_pImpl->_mousePosInRoom)));
   _pImpl->updateHoveredEntity(isRightClick);
@@ -929,8 +925,7 @@ void Engine::update(const sf::Time &el) {
   if (!_pImpl->_inputActive)
     return;
 
-  if (_pImpl->_inventory.update(elapsed))
-    return;
+  _pImpl->_hud.update(elapsed);
 
   _pImpl->updateKeyboard();
 
@@ -999,6 +994,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
 
   int currentActorIndex = _pImpl->getCurrentActorIndex();
   _pImpl->_hud.setCurrentActorIndex(currentActorIndex);
+  _pImpl->_hud.setCurrentActor(_pImpl->_pCurrentActor);
 
   ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
   auto pRoom = pCurrentActor ? pCurrentActor->getRoom() : nullptr;
@@ -1100,7 +1096,7 @@ void Engine::draw(sf::RenderWindow &window) const {
     if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)) {
       if (_pImpl->_inputHUD && _pImpl->_pRoom->getFullscreen() != 1) {
         _pImpl->drawVerbs(window);
-        window.draw(_pImpl->_inventory);
+        window.draw(_pImpl->_hud.getInventory());
         if (_pImpl->_inputActive)
           window.draw(_pImpl->_actorIcons);
       }
@@ -1546,7 +1542,7 @@ void Engine::run() {
   execute("cameraInRoom(StartScreen)");
 }
 
-Inventory &Engine::getInventory() { return _pImpl->_inventory; }
+Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
 Hud &Engine::getHud() { return _pImpl->_hud; }
 
 } // namespace ng
