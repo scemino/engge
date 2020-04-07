@@ -304,15 +304,13 @@ void Text::ensureGeometryUpdate() const {
   float whitespaceWidth = m_font->getGlyph(L' ', m_characterSize, isBold).advance;
   float letterSpacing = (whitespaceWidth / 3.f) * (m_letterSpacingFactor - 1.f);
   whitespaceWidth += letterSpacing;
-  float lineSpacing = m_font->getLineHeight();
   float x = 0.f;
-  float y = static_cast<float>(m_characterSize);
+  float y = 0.f;
 
   // Create one quad for each character
-  float minX = static_cast<float>(m_characterSize);
-  float minY = static_cast<float>(m_characterSize);
   float maxX = 0.f;
   float maxY = 0.f;
+  float maxLineY = 0.f;
   sf::Uint32 prevChar = 0;
   for (std::size_t i = 0; i < m_string.getSize(); ++i) {
     sf::Uint32 curChar = m_string[i];
@@ -344,17 +342,15 @@ void Text::ensureGeometryUpdate() const {
 
     // Handle special characters
     if ((curChar == L' ') || (curChar == L'\n') || (curChar == L'\t') || (curChar == L'#')) {
-      // Update the current bounds (min coordinates)
-      minX = std::min(minX, x);
-      minY = std::min(minY, y);
 
       switch (curChar) {
       case L' ':x += whitespaceWidth;
         break;
       case L'\t':x += whitespaceWidth * 4;
         break;
-      case L'\n':y += lineSpacing;
+      case L'\n':y += maxLineY;
         x = 0;
+        maxLineY = 0;
         break;
       case L'#':auto strColor = m_string.substring(i + 1, 6);
         auto color = _toColor(strColor.toAnsiString());
@@ -370,7 +366,8 @@ void Text::ensureGeometryUpdate() const {
       maxY = std::max(maxY, y);
 
       if (m_maxWidth && x >= m_maxWidth) {
-        y += lineSpacing;
+        y += maxLineY;
+        maxLineY = 0;
         x = 0;
       }
 
@@ -382,7 +379,6 @@ void Text::ensureGeometryUpdate() const {
     if (m_outlineThickness != 0) {
       const sf::Glyph &glyph = m_font->getGlyph(curChar, m_characterSize, isBold, m_outlineThickness);
 
-      float left = glyph.bounds.left;
       float top = glyph.bounds.top;
       float right = glyph.bounds.left + glyph.bounds.width;
       float bottom = glyph.bounds.top + glyph.bounds.height;
@@ -391,29 +387,21 @@ void Text::ensureGeometryUpdate() const {
       addGlyphQuad(m_outlineVertices, sf::Vector2f(x, y), m_outlineColor, glyph, italicShear, m_outlineThickness);
 
       // Update the current bounds with the outlined glyph bounds
-      minX = std::min(minX, x + left - italicShear * bottom - m_outlineThickness);
       maxX = std::max(maxX, x + right - italicShear * top - m_outlineThickness);
-      minY = std::min(minY, y + top - m_outlineThickness);
       maxY = std::max(maxY, y + bottom - m_outlineThickness);
     }
 
     // Extract the current glyph's description
     const sf::Glyph &glyph = m_font->getGlyph(curChar, m_characterSize, isBold);
+    maxLineY = std::max(maxLineY, glyph.bounds.height);
 
     // Add the glyph to the vertices
     addGlyphQuad(m_vertices, sf::Vector2f(x, y), m_fillColor, glyph, italicShear);
 
     // Update the current bounds with the non outlined glyph bounds
     if (m_outlineThickness == 0) {
-      float left = glyph.bounds.left;
-      float top = glyph.bounds.top;
-      float right = glyph.bounds.left + glyph.bounds.width;
-      float bottom = glyph.bounds.top + glyph.bounds.height;
-
-      minX = std::min(minX, x + left - italicShear * bottom);
-      maxX = std::max(maxX, x + right - italicShear * top);
-      minY = std::min(minY, y + top);
-      maxY = std::max(maxY, y + bottom);
+      maxX = std::max(maxX, x + glyph.bounds.width );
+      maxY = std::max(maxY, glyph.bounds.height);
     }
 
     // Advance to the next character
@@ -437,10 +425,10 @@ void Text::ensureGeometryUpdate() const {
   }
 
   // Update the bounding rectangle
-  m_bounds.left = minX;
-  m_bounds.top = minY;
-  m_bounds.width = maxX - minX;
-  m_bounds.height = maxY - minY;
+  m_bounds.left = 0;
+  m_bounds.top = maxY/2.f;
+  m_bounds.width = maxX;
+  m_bounds.height = maxY;
 }
 
 } // namespace ng

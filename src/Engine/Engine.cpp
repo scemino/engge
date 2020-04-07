@@ -1334,7 +1334,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
     auto x = Screen::HalfWidth - bounds.width / 2.f;
     text.setPosition(x, y);
   } else {
-    auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 30;
+    auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 60;
     auto x = std::clamp<float>(pos.x - bounds.width / 2.f, 20.f, Screen::Width - 20.f - bounds.width);
     text.setPosition(x, y - bounds.height);
   }
