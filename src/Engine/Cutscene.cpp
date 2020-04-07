@@ -18,7 +18,7 @@ Cutscene::Cutscene(Engine &engine,
   _inputState = _engine.getInputState();
   trace("Cutscene with inputState {}", _inputState);
   _engine.setInputActive(false);
-  _engine.setInputHUD(false);
+  _engine.setInputVerbs(false);
 
   sq_addref(_engineVm, &_thread);
   sq_addref(_engineVm, &_closureObj);
