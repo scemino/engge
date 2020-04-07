@@ -294,10 +294,10 @@ bool Engine::getInputActive() const { return _pImpl->_inputActive; }
 
 void Engine::setInputState(int state) {
   if ((state & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON) {
-    _pImpl->_inputHUD = true;
+    _pImpl->_inputActive = true;
   }
   if ((state & InputStateConstants::UI_INPUT_OFF) == InputStateConstants::UI_INPUT_OFF) {
-    _pImpl->_inputHUD = false;
+    _pImpl->_inputActive = false;
   }
   if ((state & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON) {
     _pImpl->_inputVerbsActive = true;
