@@ -4,9 +4,9 @@
 #include "Engine/Engine.hpp"
 
 namespace ng {
-ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, std::array<VerbUiColors, 6> &verbUiColors,
+ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, Hud &hud,
                        Actor *&pCurrentActor)
-    : _actorsIconSlots(actorsIconSlots), _verbUiColors(verbUiColors), _pCurrentActor(pCurrentActor) {
+    : _actorsIconSlots(actorsIconSlots), _hud(hud), _pCurrentActor(pCurrentActor) {
 }
 
 void ActorIcons::setEngine(Engine *pEngine) {
@@ -137,7 +137,7 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
 void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot,
                                const sf::Vector2f &offset, sf::Uint8 alpha) const {
-  const auto &colors = _verbUiColors[actorSlot];
+  const auto &colors = _hud.getVerbUiColors(actorSlot);
   drawActorIcon(target, icon, colors.inventoryBackground, colors.inventoryFrame, offset, alpha);
 }
 

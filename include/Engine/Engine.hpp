@@ -133,7 +133,7 @@ enum class UseFlag {
 
 class Engine : public NonCopyable {
 public:
-  explicit Engine();
+  Engine();
   ~Engine();
 
   void setWindow(sf::RenderWindow &window);
@@ -174,11 +174,8 @@ public:
   void setWalkboxesFlags(int flags);
   [[nodiscard]] int getWalkboxesFlags() const;
 
-  void setVerb(int characterSlot, int verbSlot, const Verb &verb);
-  void setVerbUiColors(int characterSlot, VerbUiColors colors);
   [[nodiscard]] const VerbUiColors *getVerbUiColors(const std::string &name) const;
   void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
-  [[nodiscard]] const Verb *getVerb(int id) const;
   void setDefaultVerb();
   [[nodiscard]] const Verb *getActiveVerb() const;
   void pushSentence(int id, Entity *pObj1, Entity *pObj2);
@@ -206,7 +203,6 @@ public:
   std::string executeDollar(const std::string &code);
 
   [[nodiscard]] sf::Vector2f getMousePositionInRoom() const;
-  [[nodiscard]] sf::Vector2f findScreenPosition(int verb) const;
 
   Preferences &getPreferences();
   SoundManager &getSoundManager();
@@ -235,17 +231,6 @@ public:
   void keyDown(int key);
   void keyUp(int key);
 
-  void setRanges(sf::Vector2f ranges);
-  [[nodiscard]] sf::Vector2f getRanges() const;
-  void setVerbColor(sf::Color color);
-  [[nodiscard]] sf::Color getVerbColor() const;
-  void setVerbShadowColor(sf::Color color);
-  [[nodiscard]] sf::Color getVerbShadowColor() const;
-  void setVerbNormalColor(sf::Color color);
-  [[nodiscard]] sf::Color getVerbNormalColor() const;
-  void setVerbHighlightColor(sf::Color color);
-  [[nodiscard]] sf::Color getVerbHighlightColor() const;
-
   void sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string &text);
   void sayLineAt(sf::Vector2i pos, Actor &actor, const std::string &text);
 
@@ -254,6 +239,7 @@ public:
   void run();
 
   Inventory &getInventory();
+  Hud &getHud();
 
 private:
   struct Impl;

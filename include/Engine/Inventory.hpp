@@ -1,26 +1,26 @@
 #pragma once
 #include <array>
 #include "SFML/Graphics.hpp"
-#include "Engine/ActorIconSlot.hpp"
-#include "Verb.hpp"
+#include "Graphics/Screen.hpp"
 #include "Graphics/SpriteSheet.hpp"
 
 namespace ng {
-class Engine;
 class Object;
 
 class Inventory : public sf::Drawable {
 public:
-  Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
-            std::array<VerbUiColors, 6> &verbUiColors,
-            Actor *&pCurrentActor);
-
-  void setEngine(Engine *pEngine);
+  void setTextureManager(TextureManager *pTextureManager);
   bool update(const sf::Time &elapsed);
 
+  void setCurrentActorIndex(int index) { _currentActorIndex = index; }
+  void setCurrentActor(Actor *pActor) { _pCurrentActor = pActor; }
   void setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
   Object *getCurrentInventoryObject() { return _pCurrentInventoryObject; }
   sf::Vector2f getPosition(Object *pObject) const;
+
+  void setVerbUiColors(const VerbUiColors *pColors) { _pColors = pColors; }
+  void setAlpha(float alpha) {_alpha = alpha;}
+  float getAlpha() const {return _alpha;}
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -30,17 +30,16 @@ private:
   bool hasDownArrow() const;
 
 private:
-  int getCurrentActorIndex() const;
-
-private:
-  Engine *_pEngine{nullptr};
-  std::array<ActorIconSlot, 6> &_actorsIconSlots;
-  std::array<VerbUiColors, 6> &_verbUiColors;
   SpriteSheet _gameSheet, _inventoryItems;
-  Actor *&_pCurrentActor;
-  std::array<sf::IntRect, 8> _inventoryRects;
+  std::array<sf::FloatRect, 8> _inventoryRects;
+  sf::FloatRect _scrollUpRect;
+  sf::FloatRect _scrollDownRect;
   Object *_pCurrentInventoryObject{nullptr};
   sf::Vector2f _mousePos;
   float _jiggleTime{0};
+  Actor* _pCurrentActor{nullptr};
+  int _currentActorIndex{0};
+  const VerbUiColors *_pColors{nullptr};
+  float _alpha{1.f};
 };
 } // namespace ng

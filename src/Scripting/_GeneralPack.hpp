@@ -150,7 +150,7 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 2, &verb))) {
         return sq_throwerror(v, _SC("failed to get verb"));
       }
-      pos = g_pEngine->findScreenPosition(static_cast<int>(verb));
+      pos = g_pEngine->getHud().findScreenPosition(static_cast<int>(verb));
     } else {
       auto entity = ScriptEngine::getEntity(v, 2);
       if (!entity) {
@@ -618,7 +618,7 @@ private:
     verb.image = image;
     verb.text = text;
     verb.key = key;
-    g_pEngine->setVerb(static_cast<int>(actorSlot - 1), verbSlot, verb);
+    g_pEngine->getHud().setVerb(static_cast<int>(actorSlot - 1), verbSlot, verb);
     return 0;
   }
 

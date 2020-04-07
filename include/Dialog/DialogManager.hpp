@@ -15,7 +15,7 @@ struct DialogSlot {
   std::wstring text;
   std::string label;
   const Ast::Choice *pChoice{nullptr};
-  mutable float pos;
+  mutable sf::Vector2f pos;
 };
 
 class DialogManager;
@@ -90,6 +90,8 @@ public:
   std::array<DialogSlot, 8> &getDialog() { return _dialog; }
   void update(const sf::Time &elapsed);
 
+  void setMousePosition(sf::Vector2f pos);
+
   [[nodiscard]] DialogManagerState getState() const { return _state; }
   void addFunction(std::unique_ptr<Function> function);
   void choose(int choice);
@@ -116,5 +118,6 @@ private:
   int _limit{6};
   std::vector<std::unique_ptr<Ast::Statement>, std::allocator<std::unique_ptr<Ast::Statement>>>::iterator _currentStatement;
   std::string _override;
+  sf::Vector2f _mousePos;
 };
 } // namespace ng

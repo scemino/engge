@@ -9,6 +9,7 @@
 #include "Graphics/Screen.hpp"
 #include "Graphics/SpriteSheet.hpp"
 #include "Graphics/Text.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include "System/Logger.hpp"
 #include "UI/OptionsDialog.hpp"
 
@@ -57,6 +58,7 @@ struct OptionsDialog::Impl {
     inline static const int MouseTips = 99967;
     inline static const int ControllerTips = 99968;
     inline static const int ControllerMap = 99969;
+    inline static const int KeyboardMap = 99970;
     inline static const int AnnoyingInJokes = 99971;
   };
 
@@ -288,11 +290,13 @@ struct OptionsDialog::Impl {
                             _Button::Size::Medium);
       break;
     case State::Help:setHeading(Ids::Help);
-      _buttons.emplace_back(Ids::Introduction, getSlotPos(1), []() {}, false);
+      _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this]() {
+          _pEngine->execute("HelpScreens.helpIntro()");
+        }, true);
       _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), []() {}, false);
       _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), []() {}, false);
       _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), []() {}, false);
-      // _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this](){}, false);
+      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [](){}, false);
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },

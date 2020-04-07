@@ -1108,7 +1108,7 @@ private:
     colors.inventoryBackground = _fromRgb(inventoryBackground);
     colors.retroNormal = _fromRgb(retroNormal);
     colors.retroHighlight = _fromRgb(retroHighlight);
-    g_pEngine->setVerbUiColors(static_cast<int>(actorSlot) - 1, colors);
+    g_pEngine->getHud().setVerbUiColors(static_cast<int>(actorSlot) - 1, colors);
     return 0;
   }
 };

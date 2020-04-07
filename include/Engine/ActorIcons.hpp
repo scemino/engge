@@ -3,6 +3,7 @@
 #include "SFML/Graphics.hpp"
 #include "Graphics/SpriteSheet.hpp"
 #include "Verb.hpp"
+#include "Hud.hpp"
 
 namespace ng {
 enum class ActorSlotSelectableMode {
@@ -15,7 +16,7 @@ enum class ActorSlotSelectableMode {
 class Engine;
 class ActorIcons : public sf::Drawable {
 public:
-  ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, std::array<VerbUiColors, 6> &verbUiColors,
+  ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, Hud &hud,
              Actor *&pCurrentActor);
 
   void setEngine(Engine *pEngine);
@@ -39,7 +40,7 @@ private:
   Engine *_pEngine{nullptr};
   SpriteSheet _gameSheet;
   std::array<ActorIconSlot, 6> &_actorsIconSlots;
-  std::array<VerbUiColors, 6> &_verbUiColors;
+  Hud &_hud;
   Actor *&_pCurrentActor;
   sf::Vector2f _mousePos;
   sf::Clock _clock;

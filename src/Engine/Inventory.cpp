@@ -5,23 +5,43 @@
 #include "Engine/Preferences.hpp"
 #include "Room/Room.hpp"
 #include "Graphics/Screen.hpp"
+#include "System/Locator.hpp"
 
 namespace ng {
-Inventory::Inventory(std::array<ActorIconSlot, 6> &actorsIconSlots,
-                     std::array<VerbUiColors, 6> &verbUiColors,
-                     Actor *&pCurrentActor)
-    : _actorsIconSlots(actorsIconSlots),
-      _verbUiColors(verbUiColors),
-      _pCurrentActor(pCurrentActor) {
-}
 
-void Inventory::setEngine(Engine *pEngine) {
-  _pEngine = pEngine;
-  _gameSheet.setTextureManager(&_pEngine->getTextureManager());
+void Inventory::setTextureManager(TextureManager *pTextureManager) {
+  _gameSheet.setTextureManager(pTextureManager);
   _gameSheet.load("GameSheet");
 
-  _inventoryItems.setTextureManager(&_pEngine->getTextureManager());
+  _inventoryItems.setTextureManager(pTextureManager);
   _inventoryItems.load("InventoryItems");
+
+  // compute all inventory rects
+  auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
+  auto inventoryRect = _gameSheet.getRect("inventory_background");
+
+  _scrollUpRect = {Screen::Width - 627.f, Screen::Height - 167.f, static_cast<float>(scrollUpFrameRect.width), static_cast<float>(scrollUpFrameRect.height)};
+  _scrollDownRect = {Screen::Width - 627.f, Screen::Height - 73.f, static_cast<float>(scrollUpFrameRect.width), static_cast<float>(scrollUpFrameRect.height)};
+
+  sf::Vector2f sizeBack = {static_cast<float>(inventoryRect.width), static_cast<float>(inventoryRect.height)};
+  sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
+  sf::Vector2f scrollUpMargin(4, 7);
+
+  auto startX = sizeBack.x / 2.f + _scrollUpRect.left + scrollUpSize.x + scrollUpMargin.x;
+  auto startY = sizeBack.y / 2.f + _scrollUpRect.top;
+
+  auto x = 0, y = 0;
+  sf::Vector2f gap = {7.f, 7.f};
+
+  for (size_t i = 0; i < 8; i++) {
+    _inventoryRects[i] = {x + startX, y + startY, sizeBack.x, sizeBack.y};
+    if ((i % 4) == 3) {
+      x = 0;
+      y += sizeBack.y + gap.y;
+    } else {
+      x += sizeBack.x + gap.x;
+    }
+  }
 }
 
 bool Inventory::update(const sf::Time &elapsed) {
@@ -31,28 +51,12 @@ bool Inventory::update(const sf::Time &elapsed) {
   if (_pCurrentActor == nullptr)
     return false;
 
-  auto screen = _pEngine->getWindow().getView().getSize();
-  // inventory rects
-  auto x = 0, y = 0;
-  auto ratio = sf::Vector2f(screen.x / 1280.f, screen.y / 720.f);
-  auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-  sf::Vector2f scrollUpPosition(screen.x / 2.f, screen.y - 3 * screen.y / 14.f);
-  sf::Vector2f scrollUpSize(scrollUpFrameRect.width * ratio.x, scrollUpFrameRect.height * ratio.y);
-  for (auto i = 0; i < 8; i++) {
-    sf::Vector2f pos(x + scrollUpPosition.x + scrollUpSize.x, y + screen.y - 3 * screen.y / 14.f);
-    auto size = sf::Vector2f(206.f * screen.x / 1920.f, 112.f * screen.y / 1080.f);
-    _inventoryRects[i] = sf::IntRect(pos.x, pos.y, size.x, size.y);
-    x += size.x;
-    if (i == 3) {
-      x = 0;
-      y += size.y;
-    }
-  }
-
   auto inventoryOffset = _pCurrentActor->getInventoryOffset();
   for (size_t i = 0; i < _inventoryRects.size(); i++) {
-    const auto &r = _inventoryRects.at(i);
-    if (r.contains((sf::Vector2i) _mousePos)) {
+    auto r = _inventoryRects.at(i);
+    r.left -= r.width/2.f;
+    r.top -= r.height/2.f;
+    if (r.contains(_mousePos)) {
       auto &objects = _pCurrentActor->getObjects();
       if ((inventoryOffset * 4 + i) < objects.size()) {
         _pCurrentInventoryObject = objects[inventoryOffset * 4 + i];
@@ -64,26 +68,15 @@ bool Inventory::update(const sf::Time &elapsed) {
   if (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
     return false;
 
-  const auto &win = _pEngine->getWindow();
-  auto pos = sf::Mouse::getPosition(win);
-  auto posInInventory = win.mapPixelToCoords(pos, sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-
-  auto rect = _gameSheet.getRect("scroll_up");
-  scrollUpSize = sf::Vector2f(rect.width, rect.height);
-  scrollUpPosition = sf::Vector2f(Screen::Width / 2.f, 580.f);
-
   if (hasUpArrow()) {
-    sf::FloatRect r(Screen::Width / 2.f, 580.f, scrollUpSize.x, scrollUpSize.y);
-    if (r.contains(posInInventory)) {
+    if (_scrollUpRect.contains(_mousePos)) {
       _pCurrentActor->setInventoryOffset(inventoryOffset - 1);
       return true;
     }
   }
 
   if (hasDownArrow()) {
-    sf::FloatRect r(scrollUpPosition.x, scrollUpPosition.y + scrollUpSize.y,
-                    scrollUpSize.x, scrollUpSize.y);
-    if (r.contains(posInInventory)) {
+    if (_scrollDownRect.contains(_mousePos)) {
       _pCurrentActor->setInventoryOffset(inventoryOffset + 1);
       return true;
     }
@@ -91,27 +84,22 @@ bool Inventory::update(const sf::Time &elapsed) {
   return false;
 }
 
-int Inventory::getCurrentActorIndex() const {
-  for (size_t i = 0; i < _actorsIconSlots.size(); i++) {
-    const auto &selectableActor = _actorsIconSlots.at(i);
-    if (selectableActor.pActor == _pCurrentActor) {
-      return i;
-    }
-  }
-  return -1;
-}
-
 void Inventory::drawUpArrow(sf::RenderTarget &target) const {
+  if (!hasUpArrow())
+    return;
+
+  const auto &preferences = Locator<Preferences>::get();
   auto isRetro =
-      _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
-  int currentActorIndex = getCurrentActorIndex();
+      preferences.getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
   auto rect = _gameSheet.getRect(isRetro ? "scroll_up_retro" : "scroll_up");
 
+  auto color = _pColors->verbNormal;
+  color.a = static_cast<sf::Uint8>(255.f * _alpha);
+
   sf::Vector2f scrollUpSize(rect.width, rect.height);
-  sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
   sf::RectangleShape scrollUpShape;
-  scrollUpShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
-  scrollUpShape.setPosition(scrollUpPosition);
+  scrollUpShape.setFillColor(color);
+  scrollUpShape.setPosition(_scrollUpRect.left, _scrollUpRect.top);
   scrollUpShape.setSize(scrollUpSize);
   scrollUpShape.setTexture(&_gameSheet.getTexture());
   scrollUpShape.setTextureRect(rect);
@@ -119,18 +107,23 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const {
 }
 
 void Inventory::drawDownArrow(sf::RenderTarget &target) const {
+  if (!hasDownArrow())
+    return;
+
+  const auto &preferences = Locator<Preferences>::get();
   auto isRetro =
-      _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
-  int currentActorIndex = getCurrentActorIndex();
-  auto scrollUpFrameRect = _gameSheet.getRect(isRetro ? "scroll_up_retro" : "scroll_up");
-  sf::Vector2f scrollUpPosition(Screen::Width / 2.f, 580.f);
-  sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
+      preferences.getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
 
   auto scrollDownFrameRect = _gameSheet.getRect(isRetro ? "scroll_down_retro" : "scroll_down");
+  sf::Vector2f scrollDownSize(scrollDownFrameRect.width, scrollDownFrameRect.height);
+
+  auto color = _pColors->verbNormal;
+  color.a = static_cast<sf::Uint8>(255.f * _alpha);
+
   sf::RectangleShape scrollDownShape;
-  scrollDownShape.setFillColor(_verbUiColors.at(currentActorIndex).verbNormal);
-  scrollDownShape.setPosition(scrollUpPosition.x, scrollUpPosition.y + scrollUpFrameRect.height);
-  scrollDownShape.setSize(scrollUpSize);
+  scrollDownShape.setFillColor(color);
+  scrollDownShape.setPosition(_scrollDownRect.left, _scrollDownRect.top);
+  scrollDownShape.setSize(scrollDownSize);
   scrollDownShape.setTexture(&_gameSheet.getTexture());
   scrollDownShape.setTextureRect(scrollDownFrameRect);
   target.draw(scrollDownShape);
@@ -148,34 +141,27 @@ bool Inventory::hasDownArrow() const {
 }
 
 void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
-  int currentActorIndex = getCurrentActorIndex();
-  if (currentActorIndex == -1)
+  if (_currentActorIndex == -1)
     return;
 
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
-  // inventory arrows
-  auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-  sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
-  sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
+  auto color = sf::Color::White;
+  color.a = static_cast<sf::Uint8>(_alpha * 255.f);
 
-  sf::Color c(_verbUiColors.at(currentActorIndex).inventoryBackground);
-  c.a = 128;
+  // draw inventory items
+  sf::Color c(_pColors->inventoryBackground);
+  c.a = static_cast<sf::Uint8>(_alpha * 128.f);
 
   auto inventoryRect = _gameSheet.getRect("inventory_background");
-  sf::Vector2i sizeBack(inventoryRect.width, inventoryRect.height);
   sf::Sprite inventoryShape;
   inventoryShape.setColor(c);
   inventoryShape.setTexture(_gameSheet.getTexture());
   inventoryShape.setTextureRect(inventoryRect);
-  auto gapX = 10.f;
-  auto gapY = 10.f;
   for (auto i = 0; i < 8; i++) {
-    auto x = (i % 4) * (sizeBack.x + gapX);
-    auto y = (i / 4) * (sizeBack.y + gapY);
-    inventoryShape.setPosition(sf::Vector2f(scrollUpPosition.x + scrollUpSize.x + x,
-                                            y + Screen::Height - 3 * Screen::Height / 14.f));
+    inventoryShape.setPosition(_inventoryRects[i].left, _inventoryRects[i].top);
+    inventoryShape.setOrigin(_inventoryRects[i].width/2.f, _inventoryRects[i].height/2.f);
     target.draw(inventoryShape);
   }
 
@@ -183,18 +169,10 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
   if (!_pCurrentActor)
     return;
 
-  auto startX = sizeBack.x / 2.f + scrollUpPosition.x + scrollUpSize.x;
-  auto startY = sizeBack.y / 2.f + Screen::Height - 3 * Screen::Height / 14.f;
-
   auto &objects = _pCurrentActor->getObjects();
-  if (hasUpArrow()) {
-    drawUpArrow(target);
-  }
-  if (hasDownArrow()) {
-    drawDownArrow(target);
-  }
+  drawUpArrow(target);
+  drawDownArrow(target);
 
-  auto x = 0, y = 0;
   auto inventoryOffset = _pCurrentActor->getInventoryOffset();
   auto count = std::min((size_t) 8, objects.size() - inventoryOffset * 4);
   for (size_t i = inventoryOffset * 4; i < inventoryOffset * 4 + count; i++) {
@@ -210,34 +188,27 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
     if (object->getJiggle()) {
       sprite.setRotation(3.f * sinf(_jiggleTime));
     }
-    sprite.setPosition(sf::Vector2f(x + startX, y + startY));
+    sprite.setPosition(_inventoryRects[i].left, _inventoryRects[i].top);
     sprite.setTexture(_inventoryItems.getTexture());
     sprite.setTextureRect(rect);
     sprite.scale(4, 4);
+    sprite.setColor(color);
     target.draw(sprite);
-    if ((i % 4) == 3) {
-      x = 0;
-      y += sizeBack.y;
-    } else {
-      x += sizeBack.x + 5;
-    }
   }
   target.setView(view);
 }
 
 sf::Vector2f Inventory::getPosition(Object *pObject) const {
+  if(!_pCurrentActor) return sf::Vector2f();
+  auto inventoryOffset = _pCurrentActor->getInventoryOffset() * 4;
   const auto &objects = _pCurrentActor->getObjects();
   auto it = std::find(objects.cbegin(), objects.cend(), pObject);
   auto index = std::distance(objects.cbegin(), it);
-  auto inventoryRect = _gameSheet.getRect("inventory_background");
-  auto x = (index % 4) == 0 ? 0 : (inventoryRect.width + 5) * ((index % 4) - 1);
-  auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
-  sf::Vector2f scrollUpPosition(Screen::Width / 2.f, Screen::Height - 3 * Screen::Height / 14.f);
-  sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
-  auto startX = inventoryRect.width / 2.f + scrollUpPosition.x + scrollUpSize.x;
-  auto startY = inventoryRect.height / 2.f + Screen::Height - 3 * Screen::Height / 14.f;
-  auto y = (index / 4) > 0 ? inventoryRect.height : 0;
-  return sf::Vector2f(x + startX, Screen::Height - (y + startY));
+  if( index >= inventoryOffset && index < (inventoryOffset+8)){
+    const auto& rect = _inventoryRects.at(index - inventoryOffset);
+    return sf::Vector2f(rect.left, rect.top);
+  }
+  return sf::Vector2f();
 }
 
 } // namespace ng

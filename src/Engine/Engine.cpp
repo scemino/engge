@@ -4,6 +4,7 @@
 #include "Engine/ActorIcons.hpp"
 #include "Engine/Camera.hpp"
 #include "Engine/Cutscene.hpp"
+#include "Engine/Hud.hpp"
 #include "Dialog/DialogManager.hpp"
 #include "Font/GGFont.hpp"
 #include "Math/PathFinding/Graph.hpp"
@@ -38,42 +39,6 @@
 #include <string>
 
 namespace ng {
-static const char *_verbShaderCode = "\n"
-                                     "#ifdef GL_ES\n"
-                                     "precision highp float;\n"
-                                     "#endif\n"
-                                     "\n"
-                                     "\n"
-                                     "uniform vec4 color;\n"
-                                     "uniform vec4 shadowColor;\n"
-                                     "uniform vec4 normalColor;\n"
-                                     "uniform vec4 highlightColor;\n"
-                                     "uniform vec2 ranges;\n"
-                                     "uniform sampler2D colorMap;\n"
-                                     "\n"
-                                     "void main(void)\n"
-                                     "{\n"
-                                     "    float shadows = ranges.x;\n"
-                                     "    float highlights = ranges.y;\n"
-                                     "    \n"
-                                     "    vec4 texColor = texture2D( colorMap, gl_TexCoord[0].xy);\n"
-                                     "    \n"
-                                     "    if ( texColor.g <= shadows)\n"
-                                     "    {\n"
-                                     "        texColor*=shadowColor;\n"
-                                     "    }\n"
-                                     "    else if (texColor.g >= highlights)\n"
-                                     "    {\n"
-                                     "        texColor*=highlightColor;\n"
-                                     "    }\n"
-                                     "    else\n"
-                                     "    {\n"
-                                     "        texColor*=normalColor;\n"
-                                     "    }\n"
-                                     "    texColor *= color;\n"
-                                     "    gl_FragColor = texColor;\n"
-                                     "}\n";
-
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs) {
   lhs = static_cast<CursorDirection>(static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
       static_cast<std::underlying_type<CursorDirection>::type>(rhs));
@@ -104,25 +69,19 @@ struct Engine::Impl {
   sf::RenderWindow *_pWindow{nullptr};
   TextDatabase _textDb;
   Actor *_pCurrentActor{nullptr};
-  std::array<VerbSlot, 6> _verbSlots;
-  std::array<VerbUiColors, 6> _verbUiColors;
-  bool _inputHUD{true};
+  bool _inputHUD{false};
   bool _inputActive{false};
   bool _showCursor{true};
   bool _inputVerbsActive{false};
-  SpriteSheet _verbSheet, _gameSheet, _saveLoadSheet;
+  SpriteSheet _gameSheet, _saveLoadSheet;
   Actor *_pFollowActor{nullptr};
-  std::array<sf::IntRect, 9> _verbRects;
   Entity *_pUseObject{nullptr};
   Entity *_pObj1{nullptr};
   Entity *_pObj2{nullptr};
-  Entity *_pHoveredEntity{nullptr};
   sf::Vector2f _mousePos;
   sf::Vector2f _mousePosInRoom;
   std::unique_ptr<VerbExecute> _pVerbExecute;
   std::unique_ptr<ScriptExecute> _pScriptExecute;
-  const Verb *_pVerb{nullptr};
-  const Verb *_pVerbOverride{nullptr};
   std::vector<std::unique_ptr<ThreadBase>> _threads;
   DialogManager _dialogManager;
   Preferences &_preferences;
@@ -131,7 +90,6 @@ struct Engine::Impl {
   std::array<ActorIconSlot, 6> _actorsIconSlots;
   UseFlag _useFlag{UseFlag::None};
   ActorIcons _actorIcons;
-  Inventory _inventory;
   HSQUIRRELVM _vm{};
   sf::Time _time;
   bool _isMouseDown{false};
@@ -145,19 +103,17 @@ struct Engine::Impl {
   std::set<int> _oldKeyDowns;
   std::set<int> _newKeyDowns;
   EngineState _state{EngineState::StartScreen};
-  mutable sf::Shader _verbShader{};
-  sf::Vector2f _ranges{0.8f, 0.8f};
-  sf::Color _verbColor, _verbShadowColor, _verbNormalColor, _verbHighlightColor;
   _TalkingState _talkingState;
   int _showDrawWalkboxes{0};
   OptionsDialog _optionsDialog;
   StartScreenDialog _startScreenDialog;
   bool _run{false};
   sf::Time _noOverrideElapsed{sf::seconds(2)};
+  Hud _hud;
 
   Impl();
 
-  void drawVerbs(sf::RenderWindow &window) const;
+  void drawHud(sf::RenderWindow &window) const;
   void drawCursor(sf::RenderWindow &window) const;
   void drawCursorText(sf::RenderTarget &target) const;
   void drawNoOverride(sf::RenderTarget &target) const;
@@ -182,7 +138,6 @@ struct Engine::Impl {
   void actorEnter();
   void actorExit();
   void onLanguageChange(const std::string &lang);
-  std::string getVerbName(const Verb &verb) const;
   void drawFade(sf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
   void updateKeyboard();
@@ -203,19 +158,11 @@ struct Engine::Impl {
 Engine::Impl::Impl()
     : _preferences(Locator<Preferences>::get()),
       _soundManager(Locator<SoundManager>::get()),
-      _actorIcons(_actorsIconSlots, _verbUiColors, _pCurrentActor),
-      _inventory(_actorsIconSlots, _verbUiColors, _pCurrentActor) {
-  _verbSheet.setTextureManager(&_textureManager);
+      _actorIcons(_actorsIconSlots, _hud, _pCurrentActor) {
   _gameSheet.setTextureManager(&_textureManager);
   _saveLoadSheet.setTextureManager(&_textureManager);
+  _hud.setTextureManager(&_textureManager);
   sq_resetobject(&_pDefaultObject);
-
-  // load vertex shader
-  if (!_verbShader.loadFromMemory(_verbShaderCode, sf::Shader::Type::Fragment)) {
-    std::cerr << "Error loading shaders" << std::endl;
-    return;
-  }
-  _verbShader.setUniform("colorMap", sf::Shader::CurrentTexture);
 }
 
 void Engine::Impl::onLanguageChange(const std::string &lang) {
@@ -245,7 +192,6 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
   _pImpl->_soundManager.setEngine(this);
   _pImpl->_dialogManager.setEngine(this);
   _pImpl->_actorIcons.setEngine(this);
-  _pImpl->_inventory.setEngine(this);
   _pImpl->_camera.setEngine(this);
   _pImpl->_talkingState.setEngine(this);
 
@@ -266,7 +212,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
     _pImpl->exitRoom(nullptr);
     ScriptEngine::call("start", true);
   });
-  _pImpl->_verbSheet.load("VerbSheet");
+
   _pImpl->_gameSheet.load("GameSheet");
   _pImpl->_saveLoadSheet.load("SaveLoadSheet");
 
@@ -328,25 +274,17 @@ std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actor
 
 Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
 
-void Engine::setVerb(int characterSlot, int verbSlot, const Verb &verb) {
-  _pImpl->_verbSlots.at(characterSlot).setVerb(verbSlot, verb);
-}
-
-void Engine::setVerbUiColors(int characterSlot, VerbUiColors colors) {
-  _pImpl->_verbUiColors.at(characterSlot) = colors;
-}
-
 const VerbUiColors *Engine::getVerbUiColors(const std::string &name) const {
   if (name.empty()) {
     auto index = _pImpl->getCurrentActorIndex();
     if (index == -1)
       return nullptr;
-    return &_pImpl->_verbUiColors.at(index);
+    return &_pImpl->_hud.getVerbUiColors(index);
   }
   for (int i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); i++) {
     const auto &selectableActor = _pImpl->_actorsIconSlots.at(i);
     if (selectableActor.pActor->getKey() == name) {
-      return &_pImpl->_verbUiColors.at(i);
+      return &_pImpl->_hud.getVerbUiColors(i);
     }
   }
   return nullptr;
@@ -356,10 +294,10 @@ bool Engine::getInputActive() const { return _pImpl->_inputActive; }
 
 void Engine::setInputState(int state) {
   if ((state & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON) {
-    _pImpl->_inputActive = true;
+    _pImpl->_inputHUD = true;
   }
   if ((state & InputStateConstants::UI_INPUT_OFF) == InputStateConstants::UI_INPUT_OFF) {
-    _pImpl->_inputActive = false;
+    _pImpl->_inputHUD = false;
   }
   if ((state & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON) {
     _pImpl->_inputVerbsActive = true;
@@ -414,13 +352,13 @@ void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) {
 }
 
 void Engine::setDefaultVerb() {
-  _pImpl->_pHoveredEntity = nullptr;
+  _pImpl->_hud.setHoveredEntity(nullptr);
   auto index = _pImpl->getCurrentActorIndex();
   if (index == -1)
     return;
 
-  const auto &verbSlot = _pImpl->_verbSlots.at(index);
-  _pImpl->_pVerb = &verbSlot.getVerb(0);
+  const auto &verbSlot = _pImpl->_hud.getVerbSlot(index);
+  _pImpl->_hud.setCurrentVerb(&verbSlot.getVerb(0));
   _pImpl->_useFlag = UseFlag::None;
   _pImpl->_pUseObject = nullptr;
   _pImpl->_pObj1 = nullptr;
@@ -436,13 +374,6 @@ void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.pu
 std::vector<std::unique_ptr<ThreadBase>> &Engine::getThreads() { return _pImpl->_threads; }
 
 sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
-
-sf::Vector2f Engine::findScreenPosition(int verbId) const {
-  auto pVerb = getVerb(verbId);
-  auto s = _pImpl->getVerbName(*pVerb);
-  auto r = _pImpl->_verbSheet.getSpriteSourceSize(s);
-  return sf::Vector2f(r.left + r.width / 2.f, Screen::Height - (r.top + r.height / 2.f));
-}
 
 Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
 
@@ -516,18 +447,12 @@ int Engine::Impl::getDefaultVerb(Entity *pEntity) const {
 }
 
 void Engine::Impl::updateScreenSize() {
-  if (_pRoom) {
-    auto screen = _pRoom->getFullscreen() == 1 ? _pRoom->getRoomSize() : _pRoom->getScreenSize();
-    sf::View view(sf::FloatRect(0, 0, screen.x, screen.y));
-    _pWindow->setView(view);
+  if (!_pRoom)
+    return;
 
-    sf::Vector2f size(screen.x / 6.f, screen.y / 14.f);
-    for (auto i = 0; i < 9; i++) {
-      auto left = (i / 3) * size.x;
-      auto top = screen.y - size.y * 3 + (i % 3) * size.y;
-      _verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
-    }
-  }
+  auto screen = _pRoom->getFullscreen() == 1 ? _pRoom->getRoomSize() : _pRoom->getScreenSize();
+  sf::View view(sf::FloatRect(0, 0, screen.x, screen.y));
+  _pWindow->setView(view);
 }
 
 void Engine::Impl::actorEnter() {
@@ -690,28 +615,6 @@ void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
 
 void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
-std::string Engine::Impl::getVerbName(const Verb &verb) const {
-  auto lang = _preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
-  auto isRetro = _preferences.getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
-  std::string s;
-  s.append(verb.image).append(isRetro ? "_retro" : "").append("_").append(lang);
-  return s;
-}
-
-const Verb *Engine::getVerb(int id) const {
-  auto index = _pImpl->getCurrentActorIndex();
-  if (index < 0)
-    return nullptr;
-  const auto &verbSlot = _pImpl->_verbSlots.at(index);
-  for (auto i = 0; i < 10; i++) {
-    const auto &verb = verbSlot.getVerb(i);
-    if (verb.id == id) {
-      return &verb;
-    }
-  }
-  return nullptr;
-}
-
 void Engine::Impl::updateCutscene(const sf::Time &elapsed) {
   if (_pCutscene) {
     (*_pCutscene)(elapsed);
@@ -797,30 +700,30 @@ Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos) {
       pCurrentObject = pObj.get();
   });
 
-  if (!pCurrentObject) {
+  if (!pCurrentObject && _pRoom && _pRoom->getFullscreen() != 1) {
     // mouse on inventory object ?
-    pCurrentObject = _inventory.getCurrentInventoryObject();
+    pCurrentObject = _hud.getInventory().getCurrentInventoryObject();
   }
 
   return pCurrentObject;
 }
 
 void Engine::Impl::updateHoveredEntity(bool isRightClick) {
-  _pVerbOverride = nullptr;
-  if (!_pVerb) {
-    _pVerb = _pEngine->getVerb(VerbConstants::VERB_WALKTO);
+  _hud.setVerbOverride(nullptr);
+  if (!_hud.getCurrentVerb()) {
+    _hud.setCurrentVerb(_hud.getVerb(VerbConstants::VERB_WALKTO));
   }
 
   if (_pUseObject) {
     _pObj1 = _pUseObject;
-    _pObj2 = _pHoveredEntity;
+    _pObj2 = _hud.getHoveredEntity();
   } else {
-    _pObj1 = _pHoveredEntity;
+    _pObj1 = _hud.getHoveredEntity();
     _pObj2 = nullptr;
   }
 
   // abort some invalid actions
-  if (!_pObj1 || !_pVerb) {
+  if (!_pObj1 || !_hud.getCurrentVerb()) {
     return;
   }
 
@@ -829,19 +732,19 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   }
 
   if (_pObj1 && isRightClick) {
-    _pVerbOverride = _pEngine->getVerb(getDefaultVerb(_pObj1));
+    _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(_pObj1)));
   }
 
-  if (_pVerb->id == VerbConstants::VERB_WALKTO) {
+  if (_hud.getCurrentVerb()->id == VerbConstants::VERB_WALKTO) {
     if (_pObj1 && _pObj1->isInventoryObject()) {
-      _pVerbOverride = _pEngine->getVerb(getDefaultVerb(_pObj1));
+      _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(_pObj1)));
     }
-  } else if (_pVerb->id == VerbConstants::VERB_TALKTO) {
+  } else if (_hud.getCurrentVerb()->id == VerbConstants::VERB_TALKTO) {
     // select actor/object only if talkable flag is set
     auto flags = getFlags(_pObj1);
     if (!(flags & ObjectFlagConstants::TALKABLE))
       _pObj1 = nullptr;
-  } else if (_pVerb->id == VerbConstants::VERB_GIVE) {
+  } else if (_hud.getCurrentVerb()->id == VerbConstants::VERB_GIVE) {
     if (!_pObj1->isInventoryObject())
       _pObj1 = nullptr;
 
@@ -905,22 +808,12 @@ void Engine::Impl::updateRoomScalings() {
 }
 
 const Verb *Engine::Impl::getHoveredVerb() const {
-  if (!_inputVerbsActive)
+  if (!_hud.getActive())
     return nullptr;
   if (_pRoom && _pRoom->getFullscreen() == 1)
     return nullptr;
 
-  auto currentActorIndex = getCurrentActorIndex();
-  if (currentActorIndex == -1)
-    return nullptr;
-
-  for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
-    if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
-      auto verbId = _verbSlots.at(currentActorIndex).getVerb(1 + i).id;
-      return _pEngine->getVerb(verbId);
-    }
-  }
-  return nullptr;
+  return _hud.getHoveredVerb();
 }
 
 void Engine::update(const sf::Time &el) {
@@ -929,6 +822,12 @@ void Engine::update(const sf::Time &el) {
   const sf::Time elapsed(sf::seconds(el.asSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
   _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
+  if (_pImpl->_pRoom) {
+    auto screenSize = _pImpl->_pRoom->getScreenSize();
+    auto screenMouse = toDefaultView((sf::Vector2i) _pImpl->_mousePos, screenSize);
+    _pImpl->_hud.setMousePosition(screenMouse);
+    _pImpl->_dialogManager.setMousePosition(screenMouse);
+  }
   if (_pImpl->_state == EngineState::Options) {
     _pImpl->_optionsDialog.update(elapsed);
   } else if (_pImpl->_state == EngineState::StartScreen) {
@@ -1013,9 +912,11 @@ void Engine::update(const sf::Time &el) {
   auto mousePos = sf::Vector2f(_pImpl->_mousePos.x, _pImpl->_pWindow->getView().getSize().y - _pImpl->_mousePos.y);
   _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getAt();
 
-  _pImpl->_inventory.setMousePosition(_pImpl->_mousePos);
   _pImpl->_dialogManager.update(elapsed);
-  _pImpl->_pHoveredEntity = _pImpl->getHoveredEntity(_pImpl->_mousePosInRoom);
+
+  _pImpl->_hud.setActive(_pImpl->_inputVerbsActive && _pImpl->_dialogManager.getState() == DialogManagerState::None
+                             && _pImpl->_pRoom->getFullscreen() != 1);
+  _pImpl->_hud.setHoveredEntity(_pImpl->getEntity(_pImpl->getHoveredEntity(_pImpl->_mousePosInRoom)));
   _pImpl->updateHoveredEntity(isRightClick);
 
   if (_pImpl->_pCurrentActor) {
@@ -1025,10 +926,9 @@ void Engine::update(const sf::Time &el) {
     }
   }
 
-  if (!_pImpl->_inputActive)
-    return;
+  _pImpl->_hud.update(elapsed);
 
-  if (_pImpl->_inventory.update(elapsed))
+  if (!_pImpl->_inputActive)
     return;
 
   _pImpl->updateKeyboard();
@@ -1060,22 +960,22 @@ void Engine::update(const sf::Time &el) {
 
   const auto *pVerb = _pImpl->getHoveredVerb();
   // input click on a verb ?
-  if (pVerb) {
+  if (_pImpl->_hud.getActive() && pVerb) {
     _pImpl->onVerbClick(pVerb);
     return;
   }
 
   if (!isMouseClick && !isRightClick) {
-    if (!pVerb && !_pImpl->_pHoveredEntity)
+    if (!pVerb && !_pImpl->_hud.getHoveredEntity())
       _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
     return;
   }
 
-  if (_pImpl->_pHoveredEntity) {
-    ScriptEngine::rawCall("onObjectClick", _pImpl->_pHoveredEntity);
-    auto pVerbOverride = _pImpl->_pVerbOverride;
+  if (_pImpl->_hud.getHoveredEntity()) {
+    ScriptEngine::rawCall("onObjectClick", _pImpl->_hud.getHoveredEntity());
+    auto pVerbOverride = _pImpl->_hud.getVerbOverride();
     if (!pVerbOverride) {
-      pVerbOverride = _pImpl->_pVerb;
+      pVerbOverride = _pImpl->_hud.getCurrentVerb();
     }
     pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
     auto pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(_pImpl->_pObj1) : _pImpl->_pObj1;
@@ -1097,10 +997,8 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   }
 
   int currentActorIndex = _pImpl->getCurrentActorIndex();
-  setVerbColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlight);
-  setVerbShadowColor(_pImpl->_verbUiColors.at(currentActorIndex).verbNormalTint);
-  setVerbNormalColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlight);
-  setVerbHighlightColor(_pImpl->_verbUiColors.at(currentActorIndex).verbHighlightTint);
+  _pImpl->_hud.setCurrentActorIndex(currentActorIndex);
+  _pImpl->_hud.setCurrentActor(_pImpl->_pCurrentActor);
 
   ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
   auto pRoom = pCurrentActor ? pCurrentActor->getRoom() : nullptr;
@@ -1156,7 +1054,7 @@ void Engine::Impl::updateKeyboard() {
   if (currentActorIndex == -1)
     return;
 
-  const auto &verbSlot = _verbSlots.at(currentActorIndex);
+  const auto &verbSlot = _hud.getVerbSlot(currentActorIndex);
   for (auto i = 0; i < 10; i++) {
     const auto &verb = verbSlot.getVerb(i);
     if (verb.key.length() == 0)
@@ -1170,7 +1068,7 @@ void Engine::Impl::updateKeyboard() {
 }
 
 void Engine::Impl::onVerbClick(const Verb *pVerb) {
-  _pVerb = pVerb;
+  _hud.setCurrentVerb(pVerb);
   _useFlag = UseFlag::None;
   _pUseObject = nullptr;
   _pObj1 = nullptr;
@@ -1199,13 +1097,10 @@ void Engine::draw(sf::RenderWindow &window) const {
 
     window.draw(_pImpl->_dialogManager);
 
-    if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)) {
-      if (_pImpl->_inputHUD && _pImpl->_pRoom->getFullscreen() != 1) {
-        _pImpl->drawVerbs(window);
-        window.draw(_pImpl->_inventory);
-        if (_pImpl->_inputActive)
-          window.draw(_pImpl->_actorIcons);
-      }
+    _pImpl->drawHud(window);
+    if ((_pImpl->_pRoom->getFullscreen() != 1) && (_pImpl->_dialogManager.getState() == DialogManagerState::None)
+        && _pImpl->_inputActive) {
+      window.draw(_pImpl->_actorIcons);
     }
 
     _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
@@ -1372,7 +1267,7 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
   const char *dialog = nullptr;
   auto pObj1 = getEntity(_pObj1);
   if (pObj1 && ScriptEngine::rawGet(pObj1, "dialog", dialog) && dialog) {
-    pVerb = _pEngine->getVerb(VerbConstants::VERB_TALKTO);
+    pVerb = _hud.getVerb(VerbConstants::VERB_TALKTO);
   }
   return pVerb;
 }
@@ -1384,9 +1279,9 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   if (_dialogManager.getState() != DialogManagerState::None)
     return;
 
-  auto pVerb = _pVerbOverride;
+  auto pVerb = _hud.getVerbOverride();
   if (!pVerb)
-    pVerb = _pVerb;
+    pVerb = _hud.getCurrentVerb();
   if (!pVerb)
     return;
 
@@ -1407,7 +1302,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   std::wstring s;
-  if (pVerb->id != VerbConstants::VERB_WALKTO || _pHoveredEntity) {
+  if (pVerb->id != VerbConstants::VERB_WALKTO || _hud.getHoveredEntity()) {
     auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
     s.append(_pEngine->getText(id));
   }
@@ -1421,7 +1316,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
 
   Text text;
   text.setFont(font);
-  text.setFillColor(_verbUiColors.at(currentActorIndex).sentence);
+  text.setFillColor(_hud.getVerbUiColors(currentActorIndex).sentence);
   text.setString(s);
 
   // do display cursor position:
@@ -1434,7 +1329,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   auto pos = toDefaultView((sf::Vector2i) _mousePos, screenSize);
 
   auto bounds = text.getGlobalBounds();
-  if(classicSentence) {
+  if (classicSentence) {
     auto y = Screen::Height - 210.f;
     auto x = Screen::HalfWidth - bounds.width / 2.f;
     text.setPosition(x, y);
@@ -1491,91 +1386,11 @@ int Engine::Impl::getCurrentActorIndex() const {
   return -1;
 }
 
-void Engine::setRanges(sf::Vector2f ranges) { _pImpl->_ranges = ranges; }
-
-sf::Vector2f Engine::getRanges() const { return _pImpl->_ranges; }
-
-void Engine::setVerbColor(sf::Color color) { _pImpl->_verbColor = color; }
-sf::Color Engine::getVerbColor() const { return _pImpl->_verbColor; }
-
-void Engine::setVerbShadowColor(sf::Color color) { _pImpl->_verbShadowColor = color; }
-sf::Color Engine::getVerbShadowColor() const { return _pImpl->_verbShadowColor; }
-
-void Engine::setVerbNormalColor(sf::Color color) { _pImpl->_verbNormalColor = color; }
-sf::Color Engine::getVerbNormalColor() const { return _pImpl->_verbNormalColor; }
-
-void Engine::setVerbHighlightColor(sf::Color color) { _pImpl->_verbHighlightColor = color; }
-sf::Color Engine::getVerbHighlightColor() const { return _pImpl->_verbHighlightColor; }
-
-void Engine::Impl::drawVerbs(sf::RenderWindow &window) const {
-  if (!_inputVerbsActive)
+void Engine::Impl::drawHud(sf::RenderWindow &window) const {
+  if (_state != EngineState::Game)
     return;
 
-  if (_pRoom && _pRoom->getFullscreen() == 1)
-    return;
-
-  int currentActorIndex = getCurrentActorIndex();
-  if (currentActorIndex == -1 || _verbSlots.at(currentActorIndex).getVerb(0).id == 0)
-    return;
-
-  auto pVerb = _pVerbOverride;
-  if (!pVerb) {
-    pVerb = _pVerb;
-  }
-  auto verbId = pVerb->id;
-  if (_pHoveredEntity && verbId == VerbConstants::VERB_WALKTO) {
-    verbId = getDefaultVerb(_pHoveredEntity);
-  } else if (_state == EngineState::Game) {
-    for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
-      if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
-        verbId = _verbSlots.at(currentActorIndex).getVerb(1 + i).id;
-        break;
-      }
-    }
-  }
-
-  const auto view = window.getView();
-  window.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-
-  // draw UI background
-  auto hudSentence = _preferences.getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
-  auto uiBackingAlpha =
-      _preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
-  auto invertVerbHighlight = _preferences.getUserPreference(PreferenceNames::InvertVerbHighlight,
-                                                            PreferenceDefaultValues::InvertVerbHighlight);
-  auto verbHighlight = invertVerbHighlight ? sf::Color::White : _verbColor;
-  auto verbColor = invertVerbHighlight ? _verbColor : sf::Color::White;
-  auto uiBackingRect = hudSentence ? _gameSheet.getRect("ui_backing_tall") : _gameSheet.getRect("ui_backing");
-  sf::Sprite uiBacking;
-  uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * 255));
-  uiBacking.setPosition(0, 720.f - uiBackingRect.height);
-  uiBacking.setTexture(_gameSheet.getTexture());
-  uiBacking.setTextureRect(uiBackingRect);
-  window.draw(uiBacking);
-
-  // draw verbs
-  _verbShader.setUniform("ranges", _ranges);
-  _verbShader.setUniform("shadowColor", sf::Glsl::Vec4(_verbShadowColor));
-  _verbShader.setUniform("normalColor", sf::Glsl::Vec4(_verbNormalColor));
-  _verbShader.setUniform("highlightColor", sf::Glsl::Vec4(_verbHighlightColor));
-
-  sf::RenderStates verbStates;
-  verbStates.shader = &_verbShader;
-  for (int i = 1; i <= 9; i++) {
-    auto verb = _verbSlots.at(currentActorIndex).getVerb(i);
-    _verbShader.setUniform("color", sf::Glsl::Vec4(verb.id == verbId ? verbHighlight : verbColor));
-
-    auto verbName = getVerbName(verb);
-    auto rect = _verbSheet.getRect(verbName);
-    auto s = _verbSheet.getSpriteSourceSize(verbName);
-    sf::Sprite verbSprite;
-    verbSprite.setPosition(s.left, s.top);
-    verbSprite.setTexture(_verbSheet.getTexture());
-    verbSprite.setTextureRect(rect);
-    window.draw(verbSprite, verbStates);
-  }
-
-  window.setView(view);
+  window.draw(_hud);
 }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node) {
@@ -1643,7 +1458,7 @@ HSQOBJECT &Engine::getDefaultObject() { return _pImpl->_pDefaultObject; }
 
 void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
-const Verb *Engine::getActiveVerb() const { return _pImpl->_pVerb; }
+const Verb *Engine::getActiveVerb() const { return _pImpl->_hud.getCurrentVerb(); }
 
 void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
 
@@ -1657,7 +1472,7 @@ void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method
 }
 
 void Engine::pushSentence(int id, Entity *pObj1, Entity *pObj2) {
-  const Verb *pVerb = getVerb(id);
+  const Verb *pVerb = _pImpl->_hud.getVerb(id);
   if (!pVerb)
     return;
   _pImpl->_pVerbExecute->execute(pVerb, pObj1, pObj2);
@@ -1722,6 +1537,7 @@ void Engine::run() {
   execute("cameraInRoom(StartScreen)");
 }
 
-Inventory &Engine::getInventory() { return _pImpl->_inventory; }
+Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
+Hud &Engine::getHud() { return _pImpl->_hud; }
 
 } // namespace ng
