@@ -69,8 +69,8 @@ private:
   mutable sf::Shader _verbShader{};
   sf::Vector2f _mousePos;
   Inventory _inventory;
-  bool _active{true};
-  State _state{State::On};
+  bool _active{false};
+  State _state{State::Off};
   float _alpha{1.f};
 };
 }

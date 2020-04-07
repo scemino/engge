@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Glsl.hpp>
 #include <SFML/Graphics/View.hpp>
