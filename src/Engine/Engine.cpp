@@ -822,7 +822,7 @@ void Engine::update(const sf::Time &el) {
   const sf::Time elapsed(sf::seconds(el.asSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
   _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
-  if(_pImpl->_pRoom) {
+  if (_pImpl->_pRoom) {
     auto screenSize = _pImpl->_pRoom->getScreenSize();
     auto screenMouse = toDefaultView((sf::Vector2i) _pImpl->_mousePos, screenSize);
     _pImpl->_hud.setMousePosition(screenMouse);
@@ -914,7 +914,8 @@ void Engine::update(const sf::Time &el) {
 
   _pImpl->_dialogManager.update(elapsed);
 
-  _pImpl->_hud.setActive(_pImpl->_inputVerbsActive && _pImpl->_dialogManager.getState() == DialogManagerState::None);
+  _pImpl->_hud.setActive(_pImpl->_inputVerbsActive && _pImpl->_dialogManager.getState() == DialogManagerState::None
+                             && _pImpl->_pRoom->getFullscreen() != 1);
   _pImpl->_hud.setHoveredEntity(_pImpl->getEntity(_pImpl->getHoveredEntity(_pImpl->_mousePosInRoom)));
   _pImpl->updateHoveredEntity(isRightClick);
 
@@ -1096,12 +1097,10 @@ void Engine::draw(sf::RenderWindow &window) const {
 
     window.draw(_pImpl->_dialogManager);
 
-    if (_pImpl->_pRoom->getFullscreen() != 1) {
-      _pImpl->drawHud(window);
-      if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)) {
-        if (_pImpl->_inputActive)
-          window.draw(_pImpl->_actorIcons);
-      }
+    _pImpl->drawHud(window);
+    if ((_pImpl->_pRoom->getFullscreen() != 1) && (_pImpl->_dialogManager.getState() == DialogManagerState::None)
+        && _pImpl->_inputActive) {
+      window.draw(_pImpl->_actorIcons);
     }
 
     _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
@@ -1388,9 +1387,6 @@ int Engine::Impl::getCurrentActorIndex() const {
 }
 
 void Engine::Impl::drawHud(sf::RenderWindow &window) const {
-  if (_pRoom && _pRoom->getFullscreen() == 1)
-    return;
-
   if (_state != EngineState::Game)
     return;
 
