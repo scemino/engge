@@ -825,6 +825,7 @@ void Engine::update(const sf::Time &el) {
     auto screenSize = _pImpl->_pRoom->getScreenSize();
     auto screenMouse = toDefaultView((sf::Vector2i) _pImpl->_mousePos, screenSize);
     _pImpl->_hud.setMousePosition(screenMouse);
+    _pImpl->_dialogManager.setMousePosition(screenMouse);
   }
   if (_pImpl->_state == EngineState::Options) {
     _pImpl->_optionsDialog.update(elapsed);

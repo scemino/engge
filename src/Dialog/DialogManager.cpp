@@ -79,10 +79,6 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
   if (!_functions.empty())
     return;
 
-  const auto &win = _pEngine->getWindow();
-  auto pos = win.mapPixelToCoords(sf::Mouse::getPosition(win),
-                                  sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
@@ -119,7 +115,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
     text.setString(s);
     text.setPosition(dlg.pos.x, y + dlg.pos.y);
     auto bounds = text.getGlobalBounds();
-    text.setFillColor(bounds.contains(pos) ? dialogHighlight : dialogNormal);
+    text.setFillColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
     target.draw(text);
 
     y += text.getGlobalBounds().height;
@@ -130,10 +126,6 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
 }
 
 void DialogManager::update(const sf::Time &elapsed) {
-  const auto &win = _pEngine->getWindow();
-  auto pos = win.mapPixelToCoords(sf::Mouse::getPosition(win),
-                                  sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-
   auto hasChoice = std::any_of(_dialog.cbegin(), _dialog.cend(), [](const auto &line) { return line.id != 0; });
   if (hasChoice) {
     _state = DialogManagerState::WaitingForChoice;
@@ -200,7 +192,7 @@ void DialogManager::update(const sf::Time &elapsed) {
     text.setString(s);
     auto bounds = text.getGlobalBounds();
     if(bounds.width > Screen::Width) {
-      if (bounds.contains(pos)) {
+      if (bounds.contains(_mousePos)) {
         if ((bounds.width + dlg.pos.x) > Screen::Width) {
           dlg.pos.x -= SlidingSpeed * elapsed.asSeconds();
           if ((bounds.width + dlg.pos.x) < Screen::Width) {
@@ -223,6 +215,7 @@ void DialogManager::update(const sf::Time &elapsed) {
   if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
     return;
 
+  y = 534.f;
   dialog = 0;
   for (const auto &dlg : _dialog) {
     if (dlg.id == 0)
@@ -243,7 +236,7 @@ void DialogManager::update(const sf::Time &elapsed) {
     text.setFont(font);
     text.setPosition(dlg.pos.x, dlg.pos.y + y);
     text.setString(s);
-    if (text.getGlobalBounds().contains(pos)) {
+    if (text.getGlobalBounds().contains(_mousePos)) {
       choose(dialog + 1);
       break;
     }
@@ -278,6 +271,10 @@ void DialogManager::choose(int choice) {
     }
     i++;
   }
+}
+
+void DialogManager::setMousePosition(sf::Vector2f pos) {
+  _mousePos = pos;
 }
 
 } // namespace ng
