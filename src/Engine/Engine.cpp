@@ -56,6 +56,106 @@ enum class EngineState {
 };
 
 struct Engine::Impl {
+
+  class _SaveGameSystem {
+  public:
+    explicit _SaveGameSystem(Engine::Impl* pImpl) : _pImpl(pImpl) {}
+
+    void saveGame(const std::string &path) const {
+      GGPackValue saveGameHash;
+      saveGameHash.type = 2;
+      GGPackValue actorsHash;
+      saveActors(actorsHash);
+
+      GGPackValue callbacksHash;
+      saveCallbacks(callbacksHash);
+
+      GGPackValue dialogHash;
+      dialogHash.type = 2;
+      GGPackValue gameSceneHash;
+      gameSceneHash.type = 2;
+      GGPackValue globalsHash;
+      globalsHash.type = 2;
+      GGPackValue inventoryHash;
+      inventoryHash.type = 2;
+      GGPackValue objectsHash;
+      objectsHash.type = 2;
+      GGPackValue roomsHash;
+      roomsHash.type = 2;
+
+      time_t now;
+      time(&now);
+
+      saveGameHash.hash_value = {
+          {"actors", actorsHash},
+          {"callbacks", callbacksHash},
+          {"currentRoom", GGPackValue::toGGPackValue(_pImpl->_pRoom->getName())},
+          {"dialog", dialogHash},
+          {"easy_mode", GGPackValue::toGGPackValue(1)}, // TODO: easy_mode
+          {"gameGUID", GGPackValue::toGGPackValue(std::string())},
+          {"gameScene", gameSceneHash},
+          {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.asSeconds())},
+          {"globals", globalsHash}, // TODO: gameTime
+          {"inputState", GGPackValue::toGGPackValue(_pImpl->_pEngine->getInputState())},
+          {"inventory", inventoryHash},
+          {"objects", objectsHash},
+          {"rooms", roomsHash},
+          {"savebuild", GGPackValue::toGGPackValue(958)},
+          {"savetime", GGPackValue::toGGPackValue(static_cast<int>(now))},
+          {"selectedActor", GGPackValue::toGGPackValue(_pImpl->_pEngine->getCurrentActor()->getKey())},
+          {"version", GGPackValue::toGGPackValue(2)},
+      };
+
+      std::ofstream os(path, std::ofstream::out);
+      os << saveGameHash;
+      os.close();
+    }
+
+  private:
+    void saveActors(GGPackValue& actorsHash) const {
+      actorsHash.type = 2;
+      for(auto& pActor : _pImpl->_actors){
+        // TODO: find why this entry exists...
+        if(pActor->getKey().empty()) continue;
+
+        GGPackValue actorHash;
+        actorHash.type = 2;
+        auto costume = pActor->getCostume().getPath();
+        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size()-5));
+        actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
+        // TODO: _lockFacing
+        actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
+        if(pActor->getRoom()) {
+          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
+        } else {
+          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(nullptr);
+        }
+        actorsHash.hash_value[pActor->getKey()] = actorHash;
+      }
+    }
+
+    void saveCallbacks(GGPackValue& callbacksHash) const {
+      // TODO: save callbacks
+      callbacksHash.type = 2;
+      GGPackValue callbacksArray;
+      callbacksArray.type = 3;
+      callbacksHash.hash_value = {
+          {"callbacks", callbacksArray},
+          {"nextGuid", GGPackValue::toGGPackValue(8000000)},
+      };
+    }
+
+    static std::string toString(const sf::Vector2f& pos){
+      std::ostringstream os;
+      os << "{" << static_cast<int>(pos.x) << "," << static_cast<int>(pos.y) << "}";
+      return os.str();
+    }
+
+  private:
+    Impl* _pImpl{nullptr};
+  };
+
+
   Engine *_pEngine{nullptr};
   std::unique_ptr<_DebugTools> _pDebugTools;
   TextureManager _textureManager;
@@ -1539,5 +1639,10 @@ void Engine::run() {
 
 Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
 Hud &Engine::getHud() { return _pImpl->_hud; }
+
+void Engine::saveGame(const std::string &path) {
+  Impl::_SaveGameSystem _saveGameSystem(_pImpl.get());
+  _saveGameSystem.saveGame(path);
+}
 
 } // namespace ng

@@ -241,6 +241,8 @@ public:
   Inventory &getInventory();
   Hud &getHud();
 
+  void saveGame(const std::string& path);
+
 private:
   struct Impl;
   std::unique_ptr<Impl> _pImpl;

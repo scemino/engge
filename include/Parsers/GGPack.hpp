@@ -47,8 +47,16 @@ public:
   [[nodiscard]] double getDouble() const;
   [[nodiscard]] std::string getString() const;
 
+  template<typename T>
+  static GGPackValue toGGPackValue(T value);
+
+  template<typename T>
+  static T fromGGPackValue(const GGPackValue &value);
+
   friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
 };
+
+
 class GGPackStream {
 public:
   virtual void read(char *data, size_t size) = 0;

@@ -121,6 +121,45 @@ std::string GGPackValue::getString() const {
   return "";
 }
 
+template<>
+GGPackValue GGPackValue::toGGPackValue<int>(int value) {
+  GGPackValue packValue;
+  packValue.type = 5;
+  packValue.int_value = value;
+  return packValue;
+}
+
+template<>
+GGPackValue GGPackValue::toGGPackValue<bool>(bool value) {
+  GGPackValue packValue;
+  packValue.type = 5;
+  packValue.int_value = value ? 1 : 0;
+  return packValue;
+}
+
+template<>
+GGPackValue GGPackValue::toGGPackValue<float>(float value) {
+  GGPackValue packValue;
+  packValue.type = 6;
+  packValue.double_value = value;
+  return packValue;
+}
+
+template<>
+GGPackValue GGPackValue::toGGPackValue<std::string>(std::string value) {
+  GGPackValue packValue;
+  packValue.type = 4;
+  packValue.string_value = std::move(value);
+  return packValue;
+}
+
+template<>
+GGPackValue GGPackValue::toGGPackValue<std::nullptr_t>(std::nullptr_t) {
+  GGPackValue packValue;
+  packValue.type = 1;
+  return packValue;
+}
+
 static std::ostream &_dumpValue(std::ostream &os, const GGPackValue &value, int indent);
 
 static std::ostream &_dumpHash(std::ostream &os, const GGPackValue &value, int indent) {

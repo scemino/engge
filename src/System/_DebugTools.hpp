@@ -47,6 +47,10 @@ public:
       _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
     }
 
+    if(ImGui::Button("Save game")){
+      _engine.saveGame("savegame.json");
+    }
+
     showCamera();
     showInputState();
     showPrefs();
