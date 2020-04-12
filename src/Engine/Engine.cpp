@@ -59,9 +59,9 @@ struct Engine::Impl {
 
   class _SaveGameSystem {
   public:
-    explicit _SaveGameSystem(Engine::Impl* pImpl) : _pImpl(pImpl) {}
+    explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
 
-    void saveGame(const std::string &path) const {
+    void saveGame(const std::string &path) {
       GGPackValue saveGameHash;
       saveGameHash.type = 2;
       GGPackValue actorsHash;
@@ -74,8 +74,10 @@ struct Engine::Impl {
       dialogHash.type = 2;
       GGPackValue gameSceneHash;
       gameSceneHash.type = 2;
+
       GGPackValue globalsHash;
-      globalsHash.type = 2;
+      saveGlobals(globalsHash);
+
       GGPackValue inventoryHash;
       inventoryHash.type = 2;
       GGPackValue objectsHash;
@@ -112,29 +114,124 @@ struct Engine::Impl {
     }
 
   private:
-    void saveActors(GGPackValue& actorsHash) const {
+    void saveActors(GGPackValue &actorsHash) {
       actorsHash.type = 2;
-      for(auto& pActor : _pImpl->_actors){
+      for (auto &pActor : _pImpl->_actors) {
         // TODO: find why this entry exists...
-        if(pActor->getKey().empty()) continue;
+        if (pActor->getKey().empty())
+          continue;
 
         GGPackValue actorHash;
         actorHash.type = 2;
         auto costume = pActor->getCostume().getPath();
-        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size()-5));
+        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
         actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
         // TODO: _lockFacing
         actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
-        if(pActor->getRoom()) {
+        if (pActor->getRoom()) {
           actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
         } else {
           actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(nullptr);
         }
+
+        auto table = pActor->getTable();
+        saveTable(table, actorHash);
+
         actorsHash.hash_value[pActor->getKey()] = actorHash;
       }
     }
 
-    void saveCallbacks(GGPackValue& callbacksHash) const {
+    void saveGlobals(GGPackValue& globalsHash) {
+      globalsHash.type = 2;
+      auto v = _pImpl->_pEngine->getVm();
+      sq_pushroottable(v);
+      sq_pushstring(v, _SC("g"), -1);
+      sq_get(v, -2);
+      HSQOBJECT g;
+      sq_getstackobj(v, -1, &g);
+
+      saveTable(g, globalsHash);
+    }
+
+    static void saveTable(HSQOBJECT table, GGPackValue &hash) {
+      hash.type = 2;
+      SQObjectPtr refpos;
+      SQObjectPtr outkey, outvar;
+      SQInteger res;
+      while ((res = table._unVal.pTable->Next(false, refpos, outkey, outvar)) != -1) {
+        std::string key = _stringval(outkey);
+        if (!key.empty() && key[0] != '_') {
+          switch (sq_type(outvar)) {
+          case OT_STRING:hash.hash_value[key] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
+            break;
+          case OT_INTEGER:
+          case OT_BOOL:
+            hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
+            break;
+          case OT_FLOAT:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
+            break;
+          case OT_NULL:hash.hash_value[key] = GGPackValue::toGGPackValue(nullptr);
+            break;
+          case OT_TABLE: {
+            GGPackValue value;
+            saveTable(outvar, value);
+            hash.hash_value[key] = value;
+            break;
+          }
+          case OT_ARRAY: {
+            GGPackValue value;
+            saveArray(outvar, value);
+            hash.hash_value[key] = value;
+            break;
+          }
+          default:break;
+          }
+        }
+        refpos._type = OT_INTEGER;
+        refpos._unVal.nInteger = res;
+      }
+    }
+
+    static void saveArray(HSQOBJECT array, GGPackValue &hash) {
+      hash.type = 3;
+      SQObjectPtr refpos;
+      SQObjectPtr outkey, outvar;
+      SQInteger res;
+      auto size = array._unVal.pArray->Size();
+      hash.array_value.resize(size);
+      while ((res = array._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
+        auto index = _integer(outkey);
+          switch (sq_type(outvar)) {
+          case OT_STRING:hash.array_value[index] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
+            break;
+          case OT_INTEGER:
+          case OT_BOOL:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
+            break;
+          case OT_FLOAT:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
+            break;
+          case OT_NULL:hash.array_value[index] = GGPackValue::toGGPackValue(nullptr);
+            break;
+          case OT_TABLE: {
+            GGPackValue value;
+            saveTable(outvar, value);
+            hash.array_value[index] = value;
+            break;
+          }
+          case OT_ARRAY: {
+            GGPackValue value;
+            saveArray(outvar, value);
+            hash.array_value[index] = value;
+            break;
+          }
+          default:break;
+          }
+
+        refpos._type = OT_INTEGER;
+        refpos._unVal.nInteger = res;
+      }
+    }
+
+    void saveCallbacks(GGPackValue &callbacksHash) const {
       // TODO: save callbacks
       callbacksHash.type = 2;
       GGPackValue callbacksArray;
@@ -145,16 +242,15 @@ struct Engine::Impl {
       };
     }
 
-    static std::string toString(const sf::Vector2f& pos){
+    static std::string toString(const sf::Vector2f &pos) {
       std::ostringstream os;
       os << "{" << static_cast<int>(pos.x) << "," << static_cast<int>(pos.y) << "}";
       return os.str();
     }
 
   private:
-    Impl* _pImpl{nullptr};
+    Impl *_pImpl{nullptr};
   };
-
 
   Engine *_pEngine{nullptr};
   std::unique_ptr<_DebugTools> _pDebugTools;
