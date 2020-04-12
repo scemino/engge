@@ -32,6 +32,8 @@
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "System/Logger.hpp"
 #include "../Math/PathFinding/_WalkboxDrawable.hpp"
+#include "Parsers/GGHashReader.hpp"
+#include "Parsers/GGPackValue.hpp"
 #include <iostream>
 #include <cmath>
 #include <memory>
@@ -113,7 +115,135 @@ struct Engine::Impl {
       os.close();
     }
 
+    void loadGame(const std::string &path) {
+      std::ifstream is(path, std::ifstream::binary);
+      is.seekg(0, std::ios::end);
+      auto size = is.tellg();
+      is.seekg(0, std::ios::beg);
+      std::vector<char> data(size, u8'\0');
+      is.read(data.data(), size);
+      is.close();
+
+      const int32_t decSize = size / -4;
+      const uint8_t key[] = { 0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B };
+
+      sub_4D9710((uint32_t *)&data[0], decSize, (uint8_t*)key);
+
+      GGHashReader reader;
+      GGPackValue hash;
+      reader.readHash(data, hash);
+    }
+
   private:
+    static void sub_4D9710(uint32_t *data, int size, const uint8_t* key)
+    {
+      int v3; // ecx
+      uint32_t  *v4; // edx
+      unsigned int v5; // eax
+      int v6; // esi
+      unsigned int v7; // edi
+      unsigned int v8; // ebx
+      unsigned int v9; // edx
+      int v10; // esi
+      int v11; // eax
+      unsigned int v12; // edx
+      int v13; // esi
+      int v14; // eax
+      bool v15; // zf
+      uint32_t  *v16; // edx
+      int v17; // edi
+      int v18; // ebx
+      unsigned int v19; // eax
+      unsigned int v20; // ecx
+      int v21; // ebx
+      int v22; // esi
+      int v23; // edi
+      uint32_t  *v24; // [esp+Ch] [ebp-10h]
+      uint32_t  *v25; // [esp+Ch] [ebp-10h]
+      unsigned int v26; // [esp+10h] [ebp-Ch]
+      int i; // [esp+10h] [ebp-Ch]
+      int v28; // [esp+14h] [ebp-8h]
+      int v29; // [esp+14h] [ebp-8h]
+      int v30; // [esp+18h] [ebp-4h]
+      unsigned int v31; // [esp+28h] [ebp+Ch]
+      int v32; // [esp+28h] [ebp+Ch]
+
+      if (size <= 1)
+      {
+        if (size < -1)
+        {
+          v16 = data;
+          v17 = -size - 1;
+          v29 = -size - 1;
+          v18 = 0x9E3779B9 * (52 / -size + 6);
+          v19 = *data;
+          v25 = &data[-size - 1];
+          v32 = 0x9E3779B9 * (52 / -size + 6);
+          do
+          {
+            v20 = v18;
+            v21 = v17;
+            for (i = (v20 >> 2) & 3; v21; --v21)
+            {
+              v22 = v16[v21 - 1];
+              v23 = (16 * v22 ^ (v19 >> 3)) + ((v16[v21 - 1] >> 5) ^ 4 * v19);
+              v16 = data;
+              v16[v21] -= ((v32 ^ v19) + (v22 ^ *(uint32_t  *)(key + 4 * (i ^ v21 & 3)))) ^ v23;
+              v19 = data[v21];
+            }
+            v16 = data;
+            *v16 -= ((v32 ^ v19) + (*v25 ^ *(uint32_t  *)(key + 4 * (i ^ v21 & 3)))) ^ ((16 * *v25 ^ (v19 >> 3))
+                + ((*v25 >> 5) ^ 4 * v19));
+            v15 = v32 == 0x9E3779B9;
+            v18 = v32 + 0x61C88647;
+            v19 = *data;
+            v17 = v29;
+            v32 += 0x61C88647;
+          } while (!v15);
+        }
+      }
+      else
+      {
+        v3 = 0;
+        v4 = data;
+        v28 = 52 / size + 6;
+        v5 = data[size - 1];
+        v6 = size - 1;
+        v24 = &data[size - 1];
+        v31 = data[size - 1];
+        v26 = v6;
+        do
+        {
+          v7 = 0;
+          v30 = v3 - 0x61C88647;
+          v8 = ((unsigned int)(v3 - 0x61C88647) >> 2) & 3;
+          if (v6)
+          {
+            do
+            {
+              v9 = v4[v7 + 1];
+              v10 = (16 * v31 ^ (v9 >> 3)) + ((v5 >> 5) ^ 4 * v9);
+              v11 = (v30 ^ v9) + (v31 ^ *(uint32_t  *)(key + 4 * (v8 ^ v7 & 3)));
+              v4 = data;
+              v4[v7] += v11 ^ v10;
+              v5 = data[v7++];
+              v31 = v5;
+            } while (v7 < v26);
+          }
+          v12 = *v4;
+          v13 = (16 * v31 ^ (v12 >> 3)) + ((v5 >> 5) ^ 4 * v12);
+          v3 -= 0x61C88647;
+          v14 = (v30 ^ v12) + (v31 ^ *(uint32_t  *)(key + 4 * (v8 ^ v7 & 3)));
+          v4 = data;
+          *v24 += v14 ^ v13;
+          v15 = v28-- == 1;
+          v5 = *v24;
+          v6 = v26;
+          v31 = *v24;
+        } while (!v15);
+      }
+    }
+
     void saveActors(GGPackValue &actorsHash) {
       actorsHash.type = 2;
       for (auto &pActor : _pImpl->_actors) {
@@ -141,7 +271,7 @@ struct Engine::Impl {
       }
     }
 
-    void saveGlobals(GGPackValue& globalsHash) {
+    void saveGlobals(GGPackValue &globalsHash) {
       globalsHash.type = 2;
       auto v = _pImpl->_pEngine->getVm();
       sq_pushroottable(v);
@@ -165,8 +295,7 @@ struct Engine::Impl {
           case OT_STRING:hash.hash_value[key] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
             break;
           case OT_INTEGER:
-          case OT_BOOL:
-            hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
+          case OT_BOOL:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
             break;
           case OT_FLOAT:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
             break;
@@ -201,30 +330,30 @@ struct Engine::Impl {
       hash.array_value.resize(size);
       while ((res = array._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
         auto index = _integer(outkey);
-          switch (sq_type(outvar)) {
-          case OT_STRING:hash.array_value[index] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
-            break;
-          case OT_INTEGER:
-          case OT_BOOL:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
-            break;
-          case OT_FLOAT:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
-            break;
-          case OT_NULL:hash.array_value[index] = GGPackValue::toGGPackValue(nullptr);
-            break;
-          case OT_TABLE: {
-            GGPackValue value;
-            saveTable(outvar, value);
-            hash.array_value[index] = value;
-            break;
-          }
-          case OT_ARRAY: {
-            GGPackValue value;
-            saveArray(outvar, value);
-            hash.array_value[index] = value;
-            break;
-          }
-          default:break;
-          }
+        switch (sq_type(outvar)) {
+        case OT_STRING:hash.array_value[index] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
+          break;
+        case OT_INTEGER:
+        case OT_BOOL:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
+          break;
+        case OT_FLOAT:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
+          break;
+        case OT_NULL:hash.array_value[index] = GGPackValue::toGGPackValue(nullptr);
+          break;
+        case OT_TABLE: {
+          GGPackValue value;
+          saveTable(outvar, value);
+          hash.array_value[index] = value;
+          break;
+        }
+        case OT_ARRAY: {
+          GGPackValue value;
+          saveArray(outvar, value);
+          hash.array_value[index] = value;
+          break;
+        }
+        default:break;
+        }
 
         refpos._type = OT_INTEGER;
         refpos._unVal.nInteger = res;
@@ -1739,6 +1868,11 @@ Hud &Engine::getHud() { return _pImpl->_hud; }
 void Engine::saveGame(const std::string &path) {
   Impl::_SaveGameSystem _saveGameSystem(_pImpl.get());
   _saveGameSystem.saveGame(path);
+}
+
+void Engine::loadGame(const std::string &path) {
+  Impl::_SaveGameSystem _saveGameSystem(_pImpl.get());
+  _saveGameSystem.loadGame(path);
 }
 
 } // namespace ng

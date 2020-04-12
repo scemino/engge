@@ -242,6 +242,7 @@ public:
   Hud &getHud();
 
   void saveGame(const std::string& path);
+  void loadGame(const std::string& path);
 
 private:
   struct Impl;

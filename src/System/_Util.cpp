@@ -1,3 +1,4 @@
+#include <codecvt>
 #include "_Util.hpp"
 #include "../Math/Segment.hpp"
 #include "System/Locator.hpp"

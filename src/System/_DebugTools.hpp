@@ -50,6 +50,9 @@ public:
     if(ImGui::Button("Save game")){
       _engine.saveGame("savegame.json");
     }
+    if(ImGui::Button("Load game")){
+      _engine.loadGame("Savegame1.save");
+    }
 
     showCamera();
     showInputState();

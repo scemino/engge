@@ -4,9 +4,9 @@
 #include "Entities/Actor/Costume.hpp"
 #include "Entities/Objects/AnimationFrame.hpp"
 #include "Engine/EngineSettings.hpp"
-#include "Parsers/JsonTokenReader.hpp"
 #include "System/Locator.hpp"
 #include "../../System/_Util.hpp"
+#include "Parsers/GGPackValue.hpp"
 
 namespace ng {
 Costume::Costume(TextureManager &textureManager)
