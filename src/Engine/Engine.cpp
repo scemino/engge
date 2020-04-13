@@ -185,7 +185,7 @@ struct Engine::Impl {
     }
 
     void loadInventory(GGPackValue &hash) {
-      for(int i=0; i<_pImpl->_actorsIconSlots.size();++i){
+      for(auto i=0; i< static_cast<int>(_pImpl->_actorsIconSlots.size());++i){
         auto* pActor = _pImpl->_actorsIconSlots[i].pActor;
         auto& slot = hash["slots"].array_value.at(i);
         pActor->clearInventory();
@@ -198,6 +198,48 @@ struct Engine::Impl {
         }
         auto scroll = slot["scroll"].getInt();
         pActor->setInventoryOffset(scroll);
+      }
+    }
+
+    void loadObjects(GGPackValue &hash) {
+      for (auto &obj :  hash.hash_value) {
+        auto objName = obj.first;
+        auto pObj = getObject(objName);
+        // TODO: if the object does not exist creates it
+        if (!pObj)
+          continue;
+        int state;
+        if(ScriptEngine::get(pObj, "_state", state)) {
+          pObj->setStateAnimIndex(state);
+        }
+        bool touchable;
+        if(ScriptEngine::get(pObj, "_touchable", touchable)) {
+          pObj->setTouchable(touchable);
+        }
+        const char* offset;
+        if(ScriptEngine::get(pObj, "_offset", offset)) {
+          pObj->setOffset(_parsePos(offset));
+        }
+        bool hidden;
+        if(ScriptEngine::get(pObj, "_hidden", hidden)) {
+          pObj->setVisible(!hidden);
+        }
+
+        for (auto &objProperty :  obj.second.hash_value) {
+          if(objProperty.first.empty() || objProperty.first[0] == '_')
+            continue;
+
+          if (objProperty.second.isString()) {
+            ScriptEngine::set(pObj, objProperty.first.data(), objProperty.second.getString());
+          } else if (objProperty.second.isDouble()) {
+            ScriptEngine::set(pObj, objProperty.first.data(), static_cast<float>(objProperty.second.getDouble()));
+          } else if (objProperty.second.isInteger()) {
+            ScriptEngine::set(pObj, objProperty.first.data(), objProperty.second.getInt());
+          } else if (objProperty.second.isNull()) {
+            ScriptEngine::set(pObj, objProperty.first.data(), nullptr);
+          }
+          // TODO: other types
+        }
       }
     }
 
@@ -221,7 +263,9 @@ struct Engine::Impl {
 
       auto &inventory = hash["inventory"];
       loadInventory(inventory);
-      //TODO: const auto &objects = hash["objects"];
+
+      auto &objects = hash["objects"];
+      loadObjects(objects);
       //TODO: const auto &rooms = hash["rooms"];
 
       //TODO: auto savebuild = hash["savebuild"].getInt();
@@ -278,6 +322,15 @@ struct Engine::Impl {
       sq_pushstring(v, name.data(), -1);
       sq_get(v, -2);
       return ScriptEngine::getObject(v, -1);
+    }
+
+    Object* getObject(const std::string &name) {
+      for(auto& pRoom : _pImpl->_rooms){
+        for(auto& pObj : pRoom->getObjects()){
+          if(pObj->getName() == name) return pObj.get();
+        }
+      }
+      return nullptr;
     }
 
     void setCurrentRoom(const std::string &name) {
