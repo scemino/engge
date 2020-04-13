@@ -75,6 +75,9 @@ public:
   template<typename TThis, typename T>
   static bool get(HSQUIRRELVM v, TThis pThis, const char *name, T &result);
 
+  template<typename T>
+  static void set(const char *name, T value);
+
   template<typename TThis, typename T>
   static void set(TThis pThis, const char *name, T value);
   template<typename TThis, typename T>
@@ -445,6 +448,16 @@ bool ScriptEngine::rawExists(TThis pThis, const char *name) {
   }
   sq_settop(v, top);
   return false;
+}
+
+template<typename T>
+void ScriptEngine::set(const char *name, T value) {
+  auto v = g_pEngine->getVm();
+  sq_pushroottable(v);
+  sq_pushstring(v, _SC(name), -1);
+  ScriptEngine::push(v, value);
+  sq_newslot(v, -3, SQFalse);
+  sq_pop(v, 1);
 }
 
 template<typename TThis, typename T>

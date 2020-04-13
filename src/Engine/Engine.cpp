@@ -115,30 +115,151 @@ struct Engine::Impl {
       os.close();
     }
 
+    void loadSaveDat(const std::string &path) {
+      std::ifstream is(path, std::ifstream::binary);
+      is.seekg(0, std::ios::end);
+      auto size = is.tellg();
+      is.seekg(0, std::ios::beg);
+      std::vector<char> data(size, '\0');
+      is.read(data.data(), size);
+      is.close();
+
+      const int32_t decSize = size / -4;
+      const uint8_t
+          key[] = {0x93, 0x9D, 0xAB, 0x2A, 0x2A, 0x56, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA3, 0x4B, 0x2B};
+
+      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
+
+//      std::ofstream os("Save.dat.txt", std::ifstream::binary);
+//      os.write(data.data(), size);
+//      os.close();
+    }
+
     void loadGame(const std::string &path) {
       std::ifstream is(path, std::ifstream::binary);
       is.seekg(0, std::ios::end);
       auto size = is.tellg();
       is.seekg(0, std::ios::beg);
-      std::vector<char> data(size, u8'\0');
+      std::vector<char> data(size, '\0');
       is.read(data.data(), size);
       is.close();
 
       const int32_t decSize = size / -4;
-      const uint8_t key[] = { 0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B };
+      const uint8_t
+          key[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
 
-      sub_4D9710((uint32_t *)&data[0], decSize, (uint8_t*)key);
+      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
 
       GGHashReader reader;
       GGPackValue hash;
       reader.readHash(data, hash);
+
+      loadGame(hash);
     }
 
   private:
-    static void sub_4D9710(uint32_t *data, int size, const uint8_t* key)
-    {
+    void loadActors(const GGPackValue &hash) {
+      for(auto& pActor : _pImpl->_actors){
+        if(pActor->getKey().empty()) continue;
+        auto& actorHash = hash[pActor->getKey()];
+        auto pos = _parsePos(actorHash["_pos"].getString());
+        auto costume = actorHash["_costume"].getString();
+        auto* pRoom = getRoom(actorHash["_roomKey"].getString());
+        auto dir = actorHash["_dir"].getInt();
+        pActor->setRoom(pRoom);
+        pActor->setCostume(costume);
+        pActor->setPosition(pos);
+        pActor->getCostume().setFacing((Facing)dir);
+      }
+    }
+
+    void loadGameScene(GGPackValue &hash) {
+      // TODO: auto actorsSelectable = hash["actorsSelectable"].getInt();
+      // TODO: auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
+      // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
+      for(auto& selectableActor : hash["selectableActors"].array_value){
+        auto pActor = getActor(selectableActor["_actorKey"].getString());
+        auto selectable = selectableActor["selectable"].getInt() != 0;
+        _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
+      }
+    }
+
+    void loadGame(GGPackValue &hash) {
+      const auto &actors = hash["actors"];
+      loadActors(actors);
+
+      //TODO: const auto &callbacks = hash["callbacks"];
+      auto currentRoom = hash["currentRoom"].getString();
+      //TODO: const auto &dialog = hash["dialog"];
+      //TODO: auto easy_mode = hash["easy_mode"].getInt();
+      //TODO: auto gameGUID = hash["gameGUID"].getString();
+      auto &gameScene = hash["gameScene"];
+      loadGameScene(gameScene);
+      _pImpl->_time = sf::seconds(hash["gameTime"].getDouble());
+
+      const auto &globals = hash["globals"];
+      loadTable(globals);
+
+      _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
+
+      //TODO: const auto &inventory = hash["inventory"];
+      //TODO: const auto &objects = hash["objects"];
+      //TODO: const auto &rooms = hash["rooms"];
+
+      //TODO: auto savebuild = hash["savebuild"].getInt();
+      //TODO: auto savetime = hash["savetime"].getInt();
+
+      setActor(hash["selectedActor"].getString());
+      setCurrentRoom(currentRoom);
+
+      //TODO: auto version = hash["version"].getInt();
+    }
+
+    void loadTable(const GGPackValue &hash) {
+      for (const auto &variable : hash.hash_value) {
+        if (variable.second.isString()) {
+          ScriptEngine::set(variable.first.data(), variable.second.getString());
+        } else if (variable.second.isDouble()) {
+          ScriptEngine::set(variable.first.data(), static_cast<float>(variable.second.getDouble()));
+        } else if (variable.second.isInteger()) {
+          ScriptEngine::set(variable.first.data(), variable.second.getInt());
+        } else if (variable.second.isNull()) {
+          ScriptEngine::set(variable.first.data(), nullptr);
+        }
+      }
+    }
+
+    void setActor(const std::string &name) {
+      auto *pActor = getActor(name);
+      _pImpl->_pCurrentActor = pActor;
+      _pImpl->_pFollowActor = pActor;
+    }
+
+    Actor* getActor(const std::string &name) {
+      for (const auto &pActor : _pImpl->_pEngine->getActors()) {
+        if (pActor->getKey() == name) {
+          return pActor.get();
+        }
+      }
+      return nullptr;
+    }
+
+    Room* getRoom(const std::string &name) {
+      for (const auto &pRoom : _pImpl->_pEngine->getRooms()) {
+        if (pRoom->getName() == name) {
+          return pRoom.get();
+        }
+      }
+      return nullptr;
+    }
+
+    void setCurrentRoom(const std::string &name) {
+      _pImpl->_pEngine->setRoom(getRoom(name));
+    }
+
+    static void sub_4D9710(uint32_t *data, int size, const uint8_t *key) {
       int v3; // ecx
-      uint32_t  *v4; // edx
+      uint32_t *v4; // edx
       unsigned int v5; // eax
       int v6; // esi
       unsigned int v7; // edi
@@ -150,7 +271,7 @@ struct Engine::Impl {
       int v13; // esi
       int v14; // eax
       bool v15; // zf
-      uint32_t  *v16; // edx
+      uint32_t *v16; // edx
       int v17; // edi
       int v18; // ebx
       unsigned int v19; // eax
@@ -158,8 +279,8 @@ struct Engine::Impl {
       int v21; // ebx
       int v22; // esi
       int v23; // edi
-      uint32_t  *v24; // [esp+Ch] [ebp-10h]
-      uint32_t  *v25; // [esp+Ch] [ebp-10h]
+      uint32_t *v24; // [esp+Ch] [ebp-10h]
+      uint32_t *v25; // [esp+Ch] [ebp-10h]
       unsigned int v26; // [esp+10h] [ebp-Ch]
       int i; // [esp+10h] [ebp-Ch]
       int v28; // [esp+14h] [ebp-8h]
@@ -168,10 +289,8 @@ struct Engine::Impl {
       unsigned int v31; // [esp+28h] [ebp+Ch]
       int v32; // [esp+28h] [ebp+Ch]
 
-      if (size <= 1)
-      {
-        if (size < -1)
-        {
+      if (size <= 1) {
+        if (size < -1) {
           v16 = data;
           v17 = -size - 1;
           v29 = -size - 1;
@@ -179,20 +298,18 @@ struct Engine::Impl {
           v19 = *data;
           v25 = &data[-size - 1];
           v32 = 0x9E3779B9 * (52 / -size + 6);
-          do
-          {
+          do {
             v20 = v18;
             v21 = v17;
-            for (i = (v20 >> 2) & 3; v21; --v21)
-            {
+            for (i = (v20 >> 2) & 3; v21; --v21) {
               v22 = v16[v21 - 1];
               v23 = (16 * v22 ^ (v19 >> 3)) + ((v16[v21 - 1] >> 5) ^ 4 * v19);
               v16 = data;
-              v16[v21] -= ((v32 ^ v19) + (v22 ^ *(uint32_t  *)(key + 4 * (i ^ v21 & 3)))) ^ v23;
+              v16[v21] -= ((v32 ^ v19) + (v22 ^ *(uint32_t *) (key + 4 * (i ^ v21 & 3)))) ^ v23;
               v19 = data[v21];
             }
             v16 = data;
-            *v16 -= ((v32 ^ v19) + (*v25 ^ *(uint32_t  *)(key + 4 * (i ^ v21 & 3)))) ^ ((16 * *v25 ^ (v19 >> 3))
+            *v16 -= ((v32 ^ v19) + (*v25 ^ *(uint32_t *) (key + 4 * (i ^ v21 & 3)))) ^ ((16 * *v25 ^ (v19 >> 3))
                 + ((*v25 >> 5) ^ 4 * v19));
             v15 = v32 == 0x9E3779B9;
             v18 = v32 + 0x61C88647;
@@ -201,9 +318,7 @@ struct Engine::Impl {
             v32 += 0x61C88647;
           } while (!v15);
         }
-      }
-      else
-      {
+      } else {
         v3 = 0;
         v4 = data;
         v28 = 52 / size + 6;
@@ -212,18 +327,15 @@ struct Engine::Impl {
         v24 = &data[size - 1];
         v31 = data[size - 1];
         v26 = v6;
-        do
-        {
+        do {
           v7 = 0;
           v30 = v3 - 0x61C88647;
-          v8 = ((unsigned int)(v3 - 0x61C88647) >> 2) & 3;
-          if (v6)
-          {
-            do
-            {
+          v8 = ((unsigned int) (v3 - 0x61C88647) >> 2) & 3;
+          if (v6) {
+            do {
               v9 = v4[v7 + 1];
               v10 = (16 * v31 ^ (v9 >> 3)) + ((v5 >> 5) ^ 4 * v9);
-              v11 = (v30 ^ v9) + (v31 ^ *(uint32_t  *)(key + 4 * (v8 ^ v7 & 3)));
+              v11 = (v30 ^ v9) + (v31 ^ *(uint32_t *) (key + 4 * (v8 ^ v7 & 3)));
               v4 = data;
               v4[v7] += v11 ^ v10;
               v5 = data[v7++];
@@ -233,7 +345,7 @@ struct Engine::Impl {
           v12 = *v4;
           v13 = (16 * v31 ^ (v12 >> 3)) + ((v5 >> 5) ^ 4 * v12);
           v3 -= 0x61C88647;
-          v14 = (v30 ^ v12) + (v31 ^ *(uint32_t  *)(key + 4 * (v8 ^ v7 & 3)));
+          v14 = (v30 ^ v12) + (v31 ^ *(uint32_t *) (key + 4 * (v8 ^ v7 & 3)));
           v4 = data;
           *v24 += v14 ^ v13;
           v15 = v28-- == 1;

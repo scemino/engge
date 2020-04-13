@@ -2,6 +2,7 @@
 #pragma once
 #include <fstream>
 #include <map>
+#include <cstring>
 #include <vector>
 #include "GGPackStream.hpp"
 #include "GGPackBufferStream.hpp"
