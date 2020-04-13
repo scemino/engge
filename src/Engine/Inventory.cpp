@@ -65,8 +65,13 @@ bool Inventory::update(const sf::Time &elapsed) {
     }
   }
 
-  if (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
+  auto mouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+  if (!_mouseWasDown || mouseDown) {
+    _mouseWasDown = mouseDown;
     return false;
+  }
+
+  _mouseWasDown = mouseDown;
 
   if (hasUpArrow()) {
     if (_scrollUpRect.contains(_mousePos)) {
@@ -175,8 +180,8 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   auto inventoryOffset = _pCurrentActor->getInventoryOffset();
   auto count = std::min((size_t) 8, objects.size() - inventoryOffset * 4);
-  for (size_t i = inventoryOffset * 4; i < inventoryOffset * 4 + count; i++) {
-    auto &object = objects.at(i);
+  for (size_t i = 0; i < count; i++) {
+    auto &object = objects.at(inventoryOffset * 4 + i);
     auto icon = object->getIcon();
     auto rect = _inventoryItems.getRect(icon);
     auto spriteSourceSize = _inventoryItems.getSpriteSourceSize(icon);
