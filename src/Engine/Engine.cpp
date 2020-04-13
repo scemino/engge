@@ -184,6 +184,23 @@ struct Engine::Impl {
       }
     }
 
+    void loadInventory(GGPackValue &hash) {
+      for(int i=0; i<_pImpl->_actorsIconSlots.size();++i){
+        auto* pActor = _pImpl->_actorsIconSlots[i].pActor;
+        auto& slot = hash["slots"].array_value.at(i);
+        pActor->clearInventory();
+        for(auto& obj : slot["objects"].array_value){
+          auto pObj = getInventoryObject(obj.getString());
+          // TODO: why we don't find the inventory object here ?
+          if(!pObj)
+            continue;
+          pActor->pickupObject(pObj);
+        }
+        auto scroll = slot["scroll"].getInt();
+        pActor->setInventoryOffset(scroll);
+      }
+    }
+
     void loadGame(GGPackValue &hash) {
       const auto &actors = hash["actors"];
       loadActors(actors);
@@ -202,7 +219,8 @@ struct Engine::Impl {
 
       _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
 
-      //TODO: const auto &inventory = hash["inventory"];
+      auto &inventory = hash["inventory"];
+      loadInventory(inventory);
       //TODO: const auto &objects = hash["objects"];
       //TODO: const auto &rooms = hash["rooms"];
 
@@ -251,6 +269,15 @@ struct Engine::Impl {
         }
       }
       return nullptr;
+    }
+
+    Object* getInventoryObject(const std::string &name) {
+      // TODO: fix mem leak here
+      auto v = _pImpl->_pEngine->getVm();
+      sq_pushroottable(v);
+      sq_pushstring(v, name.data(), -1);
+      sq_get(v, -2);
+      return ScriptEngine::getObject(v, -1);
     }
 
     void setCurrentRoom(const std::string &name) {
