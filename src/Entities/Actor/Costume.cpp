@@ -164,10 +164,6 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
 
   // load animations
   _animations.clear();
-  _hiddenLayers.clear();
-  _hiddenLayers.emplace("blink");
-  _hiddenLayers.emplace("eyes_left");
-  _hiddenLayers.emplace("eyes_right");
   for (int i = 0; i < 6; i++) {
     std::ostringstream s;
     s << _headAnimName << (i + 1);
@@ -184,7 +180,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
       auto layer = loadLayer(j);
       animation.getLayers().push_back(std::move(layer));
     } else {
-      for (auto jLayer : j["layers"].array_value) {
+      for (const auto& jLayer : j["layers"].array_value) {
         auto layer = loadLayer(jLayer);
         animation.getLayers().push_back(std::move(layer));
       }
@@ -257,8 +253,7 @@ void Costume::updateAnimation() {
       break;
     case Facing::FACE_FRONT:name.append("front");
       break;
-    case Facing::FACE_LEFT:name.append("right");
-      break;
+    case Facing::FACE_LEFT:
     case Facing::FACE_RIGHT:name.append("right");
       break;
     }
