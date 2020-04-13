@@ -161,15 +161,35 @@ struct Engine::Impl {
     void loadActors(const GGPackValue &hash) {
       for(auto& pActor : _pImpl->_actors){
         if(pActor->getKey().empty()) continue;
+
         auto& actorHash = hash[pActor->getKey()];
         auto pos = _parsePos(actorHash["_pos"].getString());
         auto costume = actorHash["_costume"].getString();
         auto* pRoom = getRoom(actorHash["_roomKey"].getString());
         auto dir = actorHash["_dir"].getInt();
+
         pActor->setRoom(pRoom);
         pActor->setCostume(costume);
         pActor->setPosition(pos);
         pActor->getCostume().setFacing((Facing)dir);
+
+        for (auto &property :  actorHash.hash_value) {
+          if(property.first.empty() || property.first[0] == '_')
+            continue;
+
+          if (property.second.isString()) {
+            ScriptEngine::set(pActor.get(), property.first.data(), property.second.getString());
+          } else if (property.second.isDouble()) {
+            ScriptEngine::set(pActor.get(), property.first.data(), static_cast<float>(property.second.getDouble()));
+          } else if (property.second.isInteger()) {
+            ScriptEngine::set(pActor.get(), property.first.data(), property.second.getInt());
+          } else if (property.second.isNull()) {
+            ScriptEngine::set(pActor.get(), property.first.data(), nullptr);
+          } else {
+            // TODO: other types
+            trace("save: actor property '{}' not saved", property.first);
+          }
+        }
       }
     }
 
@@ -237,8 +257,10 @@ struct Engine::Impl {
             ScriptEngine::set(pObj, objProperty.first.data(), objProperty.second.getInt());
           } else if (objProperty.second.isNull()) {
             ScriptEngine::set(pObj, objProperty.first.data(), nullptr);
+          } else {
+            // TODO: other types
+            trace("save: object property '{}' not saved", objProperty.first);
           }
-          // TODO: other types
         }
       }
     }
@@ -385,11 +407,11 @@ struct Engine::Impl {
               v22 = v16[v21 - 1];
               v23 = (16 * v22 ^ (v19 >> 3)) + ((v16[v21 - 1] >> 5) ^ 4 * v19);
               v16 = data;
-              v16[v21] -= ((v32 ^ v19) + (v22 ^ *(uint32_t *) (key + 4 * (i ^ v21 & 3)))) ^ v23;
+              v16[v21] -= ((v32 ^ v19) + (v22 ^ *(uint32_t *) (key + 4 * (i ^ (v21 & 3))))) ^ v23;
               v19 = data[v21];
             }
             v16 = data;
-            *v16 -= ((v32 ^ v19) + (*v25 ^ *(uint32_t *) (key + 4 * (i ^ v21 & 3)))) ^ ((16 * *v25 ^ (v19 >> 3))
+            *v16 -= ((v32 ^ v19) + (*v25 ^ *(uint32_t *) (key + 4 * (i ^ (v21 & 3))))) ^ ((16 * *v25 ^ (v19 >> 3))
                 + ((*v25 >> 5) ^ 4 * v19));
             v15 = v32 == 0x9E3779B9;
             v18 = v32 + 0x61C88647;
@@ -415,7 +437,7 @@ struct Engine::Impl {
             do {
               v9 = v4[v7 + 1];
               v10 = (16 * v31 ^ (v9 >> 3)) + ((v5 >> 5) ^ 4 * v9);
-              v11 = (v30 ^ v9) + (v31 ^ *(uint32_t *) (key + 4 * (v8 ^ v7 & 3)));
+              v11 = (v30 ^ v9) + (v31 ^ *(uint32_t *) (key + 4 * (v8 ^ (v7 & 3))));
               v4 = data;
               v4[v7] += v11 ^ v10;
               v5 = data[v7++];
@@ -425,7 +447,7 @@ struct Engine::Impl {
           v12 = *v4;
           v13 = (16 * v31 ^ (v12 >> 3)) + ((v5 >> 5) ^ 4 * v12);
           v3 -= 0x61C88647;
-          v14 = (v30 ^ v12) + (v31 ^ *(uint32_t *) (key + 4 * (v8 ^ v7 & 3)));
+          v14 = (v30 ^ v12) + (v31 ^ *(uint32_t *) (key + 4 * (v8 ^ (v7 & 3))));
           v4 = data;
           *v24 += v14 ^ v13;
           v15 = v28-- == 1;
