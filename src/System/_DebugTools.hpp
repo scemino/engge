@@ -48,10 +48,17 @@ public:
     }
 
     if(ImGui::Button("Save game")){
-      _engine.saveGame("savegame.json");
+      // TODO:
+      _engine.saveGame(1);
     }
+
+    if(_slots.empty()) {
+      _engine.getSlotSavegames(_slots);
+    }
+    ImGui::Combo("", &_selectedSavegameSlot, savegameGetter, static_cast<void *>(&_slots), _slots.size());
+    ImGui::SameLine();
     if(ImGui::Button("Load game")){
-      _engine.loadGame("Savegame1.save");
+      _engine.loadGame(_slots[_selectedSavegameSlot].slot);
     }
 
     showCamera();
@@ -587,7 +594,16 @@ private:
     if (idx < 0 || idx >= static_cast<int>(vector.size())) {
       return false;
     }
-    *out_text = vector.at(idx).c_str();
+    *out_text = vector.at(idx).data();
+    return true;
+  }
+
+  static bool savegameGetter(void *vec, int idx, const char **out_text) {
+    auto &vector = *static_cast<std::vector<SavegameSlot> *>(vec);
+    if (idx < 0 || idx >= static_cast<int>(vector.size())) {
+      return false;
+    }
+    *out_text = vector.at(idx).getString().data();
     return true;
   }
 
@@ -637,6 +653,7 @@ private:
 
 private:
   Engine &_engine;
+  std::vector<SavegameSlot> _slots;
   int _selectedActor{0};
   Object *_pSelectedObject{nullptr};
   int _selectedStack{0};
@@ -647,6 +664,7 @@ private:
   static const char *_langs[];
   CostumeAnimation *_pSelectedAnim{nullptr};
   ImGuiTextFilter _filterCostume;
+  int _selectedSavegameSlot{0};
 };
 const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng

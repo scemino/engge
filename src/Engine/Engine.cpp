@@ -36,6 +36,8 @@
 #include "Parsers/GGPackValue.hpp"
 #include <iostream>
 #include <cmath>
+#include <cstdio>
+#include <ctime>
 #include <memory>
 #include <set>
 #include <string>
@@ -62,6 +64,12 @@ struct Engine::Impl {
   class _SaveGameSystem {
   public:
     explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
+
+    static std::string getSlotPath(int slot) {
+      std::ostringstream path;
+      path << "Savegame" << slot << ".save";
+      return path.str();
+    }
 
     void saveGame(const std::string &path) {
       GGPackValue saveGameHash;
@@ -99,7 +107,7 @@ struct Engine::Impl {
           {"gameGUID", GGPackValue::toGGPackValue(std::string())},
           {"gameScene", gameSceneHash},
           {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.asSeconds())},
-          {"globals", globalsHash}, // TODO: gameTime
+          {"globals", globalsHash},
           {"inputState", GGPackValue::toGGPackValue(_pImpl->_pEngine->getInputState())},
           {"inventory", inventoryHash},
           {"objects", objectsHash},
@@ -110,7 +118,7 @@ struct Engine::Impl {
           {"version", GGPackValue::toGGPackValue(2)},
       };
 
-      std::ofstream os(path, std::ofstream::out);
+      std::ofstream os("savegame.json", std::ofstream::out);
       os << saveGameHash;
       os.close();
     }
@@ -133,6 +141,29 @@ struct Engine::Impl {
 //      std::ofstream os("Save.dat.txt", std::ifstream::binary);
 //      os.write(data.data(), size);
 //      os.close();
+    }
+
+    static void getSlot(SavegameSlot &slot) {
+      std::ifstream is(slot.path, std::ifstream::binary);
+      is.seekg(0, std::ios::end);
+      auto size = is.tellg();
+      is.seekg(0, std::ios::beg);
+      std::vector<char> data(size, '\0');
+      is.read(data.data(), size);
+      is.close();
+
+      const int32_t decSize = size / -4;
+      const uint8_t
+          key[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
+
+      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
+
+      GGHashReader reader;
+      GGPackValue hash;
+      reader.readHash(data, hash);
+
+      slot.savetime = (time_t) hash["savetime"].getInt();
+      slot.gametime = sf::seconds(hash["gameTime"].getDouble());
     }
 
     void loadGame(const std::string &path) {
@@ -159,22 +190,24 @@ struct Engine::Impl {
 
   private:
     void loadActors(const GGPackValue &hash) {
-      for(auto& pActor : _pImpl->_actors){
-        if(pActor->getKey().empty()) continue;
+      for (auto &pActor : _pImpl->_actors) {
+        if (pActor->getKey().empty())
+          continue;
 
-        auto& actorHash = hash[pActor->getKey()];
+        auto &actorHash = hash[pActor->getKey()];
         auto pos = _parsePos(actorHash["_pos"].getString());
         auto costume = actorHash["_costume"].getString();
-        auto* pRoom = getRoom(actorHash["_roomKey"].getString());
+        auto roomKey = actorHash["_roomKey"];
+        auto *pRoom = getRoom(roomKey.isNull() ? "Void" : roomKey.getString());
         auto dir = actorHash["_dir"].getInt();
 
         pActor->setRoom(pRoom);
         pActor->setCostume(costume);
         pActor->setPosition(pos);
-        pActor->getCostume().setFacing((Facing)dir);
+        pActor->getCostume().setFacing((Facing) dir);
 
         for (auto &property :  actorHash.hash_value) {
-          if(property.first.empty() || property.first[0] == '_')
+          if (property.first.empty() || property.first[0] == '_')
             continue;
 
           if (property.second.isString()) {
@@ -197,7 +230,7 @@ struct Engine::Impl {
       // TODO: auto actorsSelectable = hash["actorsSelectable"].getInt();
       // TODO: auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
       // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
-      for(auto& selectableActor : hash["selectableActors"].array_value){
+      for (auto &selectableActor : hash["selectableActors"].array_value) {
         auto pActor = getActor(selectableActor["_actorKey"].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
         _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
@@ -205,14 +238,14 @@ struct Engine::Impl {
     }
 
     void loadInventory(GGPackValue &hash) {
-      for(auto i=0; i< static_cast<int>(_pImpl->_actorsIconSlots.size());++i){
-        auto* pActor = _pImpl->_actorsIconSlots[i].pActor;
-        auto& slot = hash["slots"].array_value.at(i);
+      for (auto i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); ++i) {
+        auto *pActor = _pImpl->_actorsIconSlots[i].pActor;
+        auto &slot = hash["slots"].array_value.at(i);
         pActor->clearInventory();
-        for(auto& obj : slot["objects"].array_value){
+        for (auto &obj : slot["objects"].array_value) {
           auto pObj = getInventoryObject(obj.getString());
           // TODO: why we don't find the inventory object here ?
-          if(!pObj)
+          if (!pObj)
             continue;
           pActor->pickupObject(pObj);
         }
@@ -229,24 +262,24 @@ struct Engine::Impl {
         if (!pObj)
           continue;
         int state;
-        if(ScriptEngine::get(pObj, "_state", state)) {
+        if (ScriptEngine::get(pObj, "_state", state)) {
           pObj->setStateAnimIndex(state);
         }
         bool touchable;
-        if(ScriptEngine::get(pObj, "_touchable", touchable)) {
+        if (ScriptEngine::get(pObj, "_touchable", touchable)) {
           pObj->setTouchable(touchable);
         }
-        const char* offset;
-        if(ScriptEngine::get(pObj, "_offset", offset)) {
+        const char *offset;
+        if (ScriptEngine::get(pObj, "_offset", offset)) {
           pObj->setOffset(_parsePos(offset));
         }
         bool hidden;
-        if(ScriptEngine::get(pObj, "_hidden", hidden)) {
+        if (ScriptEngine::get(pObj, "_hidden", hidden)) {
           pObj->setVisible(!hidden);
         }
 
         for (auto &objProperty :  obj.second.hash_value) {
-          if(objProperty.first.empty() || objProperty.first[0] == '_')
+          if (objProperty.first.empty() || objProperty.first[0] == '_')
             continue;
 
           if (objProperty.second.isString()) {
@@ -319,7 +352,7 @@ struct Engine::Impl {
       _pImpl->_pFollowActor = pActor;
     }
 
-    Actor* getActor(const std::string &name) {
+    Actor *getActor(const std::string &name) {
       for (const auto &pActor : _pImpl->_pEngine->getActors()) {
         if (pActor->getKey() == name) {
           return pActor.get();
@@ -328,7 +361,7 @@ struct Engine::Impl {
       return nullptr;
     }
 
-    Room* getRoom(const std::string &name) {
+    Room *getRoom(const std::string &name) {
       for (const auto &pRoom : _pImpl->_pEngine->getRooms()) {
         if (pRoom->getName() == name) {
           return pRoom.get();
@@ -337,7 +370,7 @@ struct Engine::Impl {
       return nullptr;
     }
 
-    Object* getInventoryObject(const std::string &name) {
+    Object *getInventoryObject(const std::string &name) {
       // TODO: fix mem leak here
       auto v = _pImpl->_pEngine->getVm();
       sq_pushroottable(v);
@@ -346,10 +379,11 @@ struct Engine::Impl {
       return ScriptEngine::getObject(v, -1);
     }
 
-    Object* getObject(const std::string &name) {
-      for(auto& pRoom : _pImpl->_rooms){
-        for(auto& pObj : pRoom->getObjects()){
-          if(pObj->getName() == name) return pObj.get();
+    Object *getObject(const std::string &name) {
+      for (auto &pRoom : _pImpl->_rooms) {
+        for (auto &pObj : pRoom->getObjects()) {
+          if (pObj->getName() == name)
+            return pObj.get();
         }
       }
       return nullptr;
@@ -692,6 +726,7 @@ struct Engine::Impl {
   void stopAllTalking();
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
+  static std::string getSlotPath(int slot);
 };
 
 Engine::Impl::Impl()
@@ -2079,14 +2114,63 @@ void Engine::run() {
 Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
 Hud &Engine::getHud() { return _pImpl->_hud; }
 
-void Engine::saveGame(const std::string &path) {
-  Impl::_SaveGameSystem _saveGameSystem(_pImpl.get());
-  _saveGameSystem.saveGame(path);
+void Engine::saveGame(int slot) {
+  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
+  saveGameSystem.saveGame(Impl::_SaveGameSystem::getSlotPath(slot));
 }
 
-void Engine::loadGame(const std::string &path) {
-  Impl::_SaveGameSystem _saveGameSystem(_pImpl.get());
-  _saveGameSystem.loadGame(path);
+void Engine::loadGame(int slot) {
+  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
+  saveGameSystem.loadGame(Impl::_SaveGameSystem::getSlotPath(slot));
+}
+
+void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) const {
+  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
+  std::ifstream is;
+  for (int i = 1; i <= 9; ++i) {
+    auto path = Impl::_SaveGameSystem::getSlotPath(i);
+    is.open(path, std::ifstream::in);
+    if (is.is_open()) {
+      is.close();
+
+      SavegameSlot slot;
+      slot.slot = i;
+      slot.path = path;
+      saveGameSystem.getSlot(slot);
+      slots.push_back(slot);
+    }
+  }
+}
+
+std::string SavegameSlot::getString() const {
+  std::ostringstream s;
+  tm *ltm = localtime(&savetime);
+  char buffer[120];
+  strftime(buffer, 120, "%b %d at %H:%M", ltm);
+  s << slot << ": " << buffer << " ";
+  auto min = static_cast<int>(gametime.asSeconds() / 60.0);
+  if (min < 2) {
+    snprintf(buffer, 120, "%d minute", min);
+  } else if (min < 60) {
+    snprintf(buffer, 120, "%d minutes", min);
+  } else {
+    const char *format;
+    int hour = min / 60;
+    min = min % 60;
+    if (hour < 2 && min < 2) {
+      format = "%d hour %d minute";
+    } else if (hour < 2 && min >= 2) {
+      format = "%d hour %d minutes";
+    } else if (hour >= 2 && min < 2) {
+      format = "%d hours %d minute";
+    } else {
+      format = "%d hours %d minutes";
+    }
+    snprintf(buffer, 120, format, hour, min);
+  }
+
+  s << buffer;
+  return s.str();
 }
 
 } // namespace ng

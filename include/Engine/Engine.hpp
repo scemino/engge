@@ -114,6 +114,16 @@ class ThreadBase;
 struct Verb;
 class VerbExecute;
 
+class SavegameSlot {
+public:
+  int slot;
+  time_t savetime;
+  sf::Time gametime;
+  std::string path;
+
+  [[nodiscard]] std::string getString() const;
+};
+
 enum class CursorDirection : unsigned int {
   None = 0,
   Left = 1,
@@ -241,8 +251,9 @@ public:
   Inventory &getInventory();
   Hud &getHud();
 
-  void saveGame(const std::string& path);
-  void loadGame(const std::string& path);
+  void saveGame(int slot);
+  void loadGame(int slot);
+  void getSlotSavegames(std::vector<SavegameSlot>& slots) const;
 
 private:
   struct Impl;
