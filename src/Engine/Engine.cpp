@@ -1,3 +1,5 @@
+#include <filesystem>
+#include <time.h>
 #include "squirrel.h"
 #include "Engine/Engine.hpp"
 #include "Engine/ActorIconSlot.hpp"
@@ -2126,29 +2128,33 @@ void Engine::loadGame(int slot) {
 
 void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) const {
   Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
-  std::ifstream is;
   for (int i = 1; i <= 9; ++i) {
     auto path = Impl::_SaveGameSystem::getSlotPath(i);
-    is.open(path, std::ifstream::in);
-    if (is.is_open()) {
-      is.close();
 
-      SavegameSlot slot;
-      slot.slot = i;
-      slot.path = path;
+    SavegameSlot slot;
+    slot.slot = i;
+    slot.path = path;
+
+    if (std::filesystem::exists(path)) {
       saveGameSystem.getSlot(slot);
-      slots.push_back(slot);
     }
+    slots.push_back(slot);
   }
 }
 
-std::string SavegameSlot::getString() const {
-  std::ostringstream s;
-  tm *ltm = localtime(&savetime);
+std::string SavegameSlot::getSaveTimeString() const {
+  tm* ltm = localtime(&savetime);
   char buffer[120];
+  // TODO: translate
   strftime(buffer, 120, "%b %d at %H:%M", ltm);
-  s << slot << ": " << buffer << " ";
+  std::string s(buffer);
+  return s;
+}
+
+std::string SavegameSlot::getGameTimeString() const {
+  char buffer[120];
   auto min = static_cast<int>(gametime.asSeconds() / 60.0);
+  // TODO: translate
   if (min < 2) {
     snprintf(buffer, 120, "%d minute", min);
   } else if (min < 60) {
@@ -2169,8 +2175,8 @@ std::string SavegameSlot::getString() const {
     snprintf(buffer, 120, format, hour, min);
   }
 
-  s << buffer;
-  return s.str();
+  std::string s(buffer);
+  return s;
 }
 
 } // namespace ng

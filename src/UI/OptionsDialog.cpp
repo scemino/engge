@@ -124,9 +124,14 @@ struct OptionsDialog::Impl {
     _checkboxes.clear();
     switch (state) {
     case State::Main:setHeading(Ids::Options);
-      _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), []() {}, false);
+      _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [this]() {
+        _saveload.updateLanguage();
+        _saveload.setSaveMode(true);
+        _showSaveLoad = true;
+        });
       _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
         _saveload.updateLanguage();
+        _saveload.setSaveMode(false);
         _showSaveLoad = true;
       });
       _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this]() { updateState(State::Sound); });
@@ -354,10 +359,17 @@ struct OptionsDialog::Impl {
       _showSaveLoad = false;
     });
     _saveload.setSlotCallback([this](int slot) {
-      _pEngine->loadGame(slot);
-      _showSaveLoad = false;
-      if (_callback)
-        _callback();
+      if(_saveload.getSaveMode()) {
+        _pEngine->saveGame(slot);
+        _showSaveLoad = false;
+        if (_callback)
+          _callback();
+      } else {
+        _pEngine->loadGame(slot);
+        _showSaveLoad = false;
+        if (_callback)
+          _callback();
+      }
     });
 
     updateState(State::Main);

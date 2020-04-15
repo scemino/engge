@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "SFML/Graphics.hpp"
 
 namespace ng {
@@ -14,6 +15,8 @@ public:
   SaveLoadDialog();
   ~SaveLoadDialog() override;
 
+  void setSaveMode(bool saveMode);
+  bool getSaveMode() const;
   void setCallback(Callback callback);
   void setSlotCallback(SlotCallback callback);
   void setEngine(Engine *pEngine);
@@ -25,6 +28,6 @@ private:
 
 private:
   struct Impl;
-  std::__1::unique_ptr<Impl> _pImpl;
+  std::unique_ptr<Impl> _pImpl;
 };
 }

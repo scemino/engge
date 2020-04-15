@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "UI/SaveLoadDialog.hpp"
 #include "_ControlConstants.hpp"
 #include "Engine/Engine.hpp"
@@ -63,12 +64,40 @@ struct SaveLoadDialog::Impl {
   };
 
   class _Slot : public sf::Drawable, public sf::Transformable {
+  private:
+    inline static const int AutosaveId = 99901;
+
   public:
-    void init(int index, SpriteSheet &spriteSheet) {
-      _index = index;
+    void init(SavegameSlot& slot, SpriteSheet &spriteSheet, Engine& engine) {
+      _index = slot.slot - 1;
       auto x = _index % 3;
       auto y = _index / 3;
       setPosition({168.f + 39.f * 4.f + 78.f * 4.f * x + 4.f * x, 92.f + 22.f * 4.f + 44.f * 4.f * y + 4.f * y});
+
+      const FntFont &uiFontSmallBold = engine.getTextureManager().getFntFont("UIFontSmallBold.fnt");
+
+      _gameTimeText.setString(slot.getGameTimeString());
+      _gameTimeText.setFont(uiFontSmallBold);
+      _gameTimeText.setFillColor(sf::Color::White);
+      _gameTimeText.setPosition(0.f, -64.f);
+
+      auto gameTimeSize = _gameTimeText.getGlobalBounds();
+      _gameTimeText.setOrigin(static_cast<float>(gameTimeSize.width / 2), static_cast<float>(gameTimeSize.height / 2));
+
+      sf::String saveTimeText;
+      if(slot.slot == 1) {
+        saveTimeText = engine.getText(AutosaveId);
+      } else {
+        saveTimeText = slot.getSaveTimeString();
+      }
+      _saveTimeText.setString(saveTimeText);
+
+      _saveTimeText.setFont(uiFontSmallBold);
+      _saveTimeText.setFillColor(sf::Color::White);
+      _saveTimeText.setPosition(0.f, 64.f);
+
+      auto saveTimeSize = _saveTimeText.getGlobalBounds();
+      _saveTimeText.setOrigin(static_cast<float>(saveTimeSize.width / 2), static_cast<float>(saveTimeSize.height / 2));
 
       auto rect = spriteSheet.getRect("saveload_slot_frame");
       auto saveslotRect = spriteSheet.getRect("saveload_slot");
@@ -80,7 +109,8 @@ struct SaveLoadDialog::Impl {
       std::ostringstream s;
       s << "Savegame" << (_index + 1) << ".png";
 
-      if (std::filesystem::exists(s.str())) {
+      _isEmpty = !std::filesystem::exists(s.str());
+      if (!_isEmpty) {
         _texture.loadFromFile(s.str());
         _spriteImg.setTexture(_texture, true);
         _spriteImg.setOrigin(160.f, 90.f);
@@ -95,10 +125,14 @@ struct SaveLoadDialog::Impl {
       _spriteImg.setScale(4.f, 4.f);
     }
 
-    bool contains(const sf::Vector2f &pos) {
+    bool contains(const sf::Vector2f &pos) const {
       auto trsf = getTransform();
       trsf.translate(-156.f, -88.f);
       return trsf.transformRect(_rect).contains(pos);
+    }
+
+    inline bool isEmpty() const {
+      return _isEmpty;
     }
 
   private:
@@ -106,16 +140,24 @@ struct SaveLoadDialog::Impl {
       states.transform *= getTransform();
       target.draw(_spriteImg, states);
       target.draw(_sprite, states);
+      if(!_isEmpty) {
+        target.draw(_gameTimeText, states);
+        target.draw(_saveTimeText, states);
+      }
     }
 
   private:
     int _index{0};
+    bool _isEmpty{true};
     sf::Texture _texture;
     sf::Sprite _sprite, _spriteImg;
+    Text _gameTimeText;
+    Text _saveTimeText;
     sf::FloatRect _rect{0, 0, 78 * 4, 44 * 4};
   };
 
   inline static const int LoadGameId = 99910;
+  inline static const int SaveGameId = 99911;
 
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
@@ -125,9 +167,10 @@ struct SaveLoadDialog::Impl {
   SlotCallback _slotCallback{nullptr};
   std::array<_Slot, 9> _slots;
   bool _wasMouseDown{false};
+  bool _saveMode{false};
 
-  void setHeading() {
-    _headingText.setString(_pEngine->getText(LoadGameId));
+  void setHeading(bool saveMode) {
+    _headingText.setString(_pEngine->getText(saveMode?SaveGameId : LoadGameId));
     auto textRect = _headingText.getGlobalBounds();
     _headingText.setOrigin(sf::Vector2f(textRect.width / 2.f, textRect.height / 2.f));
     _headingText.setPosition(sf::Vector2f(Screen::Width / 2.f, 54.f));
@@ -135,7 +178,7 @@ struct SaveLoadDialog::Impl {
 
   void updateState() {
     _wasMouseDown = false;
-    setHeading();
+    setHeading(_saveMode);
 
     _backButton.setCallback([this]() {
       if (_callback)
@@ -154,9 +197,11 @@ struct SaveLoadDialog::Impl {
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    int i = 0;
-    for (auto &slot : _slots) {
-      slot.init(i++, _saveLoadSheet);
+    std::vector<SavegameSlot> slots;
+    _pEngine->getSlotSavegames(slots);
+
+    for (int i = 0; i < static_cast<int>(_slots.size()); ++i) {
+      _slots[i].init(slots[i], _saveLoadSheet, *_pEngine);
     }
 
     const FntFont &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
@@ -213,12 +258,12 @@ struct SaveLoadDialog::Impl {
     _backButton.update(pos);
 
     bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-    ImGuiIO &io = ImGui::GetIO();
+    const ImGuiIO &io = ImGui::GetIO();
     if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
       int i = 0;
       for (auto &slot : _slots) {
         if (slot.contains(pos)) {
-          if (_slotCallback) {
+          if ((_saveMode || !slot.isEmpty()) && _slotCallback) {
             _slotCallback(i + 1);
           }
           return;
@@ -257,4 +302,11 @@ void SaveLoadDialog::setSlotCallback(SlotCallback callback) {
 void SaveLoadDialog::updateLanguage() {
   _pImpl->updateState();
 }
+
+void SaveLoadDialog::setSaveMode(bool saveMode) {
+  _pImpl->_saveMode = saveMode;
+  _pImpl->setHeading(saveMode);
+}
+
+bool SaveLoadDialog::getSaveMode() const { return _pImpl->_saveMode;}
 }

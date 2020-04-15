@@ -121,7 +121,8 @@ public:
   sf::Time gametime;
   std::string path;
 
-  [[nodiscard]] std::string getString() const;
+  [[nodiscard]] std::string getSaveTimeString() const;
+  [[nodiscard]] std::string getGameTimeString() const;
 };
 
 enum class CursorDirection : unsigned int {

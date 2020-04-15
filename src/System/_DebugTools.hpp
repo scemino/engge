@@ -603,7 +603,7 @@ private:
     if (idx < 0 || idx >= static_cast<int>(vector.size())) {
       return false;
     }
-    *out_text = vector.at(idx).getString().data();
+    *out_text = vector.at(idx).getSaveTimeString().data();
     return true;
   }
 
