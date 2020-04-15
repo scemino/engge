@@ -12,9 +12,10 @@
 #include "Scripting/ScriptEngine.hpp"
 #include "System/Logger.hpp"
 #include "UI/OptionsDialog.hpp"
+#include "UI/SaveLoadDialog.hpp"
+#include "UI/QuitDialog.hpp"
 
 #include <utility>
-#include "UI/QuitDialog.hpp"
 #include "imgui.h"
 
 namespace ng {
@@ -76,7 +77,9 @@ struct OptionsDialog::Impl {
   std::vector<_Checkbox> _checkboxes;
   std::vector<_Slider> _sliders;
   bool _showQuit{false};
+  bool _showSaveLoad{false};
   QuitDialog _quit;
+  SaveLoadDialog _saveload;
   Callback _callback{nullptr};
   bool _isDirty{false};
   State _state{State::Main};
@@ -122,7 +125,10 @@ struct OptionsDialog::Impl {
     switch (state) {
     case State::Main:setHeading(Ids::Options);
       _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), []() {}, false);
-      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), []() {}, false);
+      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
+        _saveload.updateLanguage();
+        _showSaveLoad = true;
+      });
       _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this]() { updateState(State::Sound); });
       _buttons.emplace_back(Ids::Video, getSlotPos(3), [this]() { updateState(State::Video); });
       _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this]() { updateState(State::Controls); });
@@ -230,7 +236,7 @@ struct OptionsDialog::Impl {
                                [this](auto value) {
                                  _isDirty = true;
                                  setUserPreference(PreferenceNames::RetroVerbs, value);
-                                 if(value) {
+                                 if (value) {
                                    _checkboxes[3].setChecked(true);
                                    _checkboxes[5].setChecked(true);
                                  }
@@ -291,12 +297,12 @@ struct OptionsDialog::Impl {
       break;
     case State::Help:setHeading(Ids::Help);
       _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this]() {
-          _pEngine->execute("HelpScreens.helpIntro()");
-        }, true);
+        _pEngine->execute("HelpScreens.helpIntro()");
+      }, true);
       _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), []() {}, false);
       _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), []() {}, false);
       _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), []() {}, false);
-      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [](){}, false);
+      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), []() {}, false);
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
@@ -341,6 +347,17 @@ struct OptionsDialog::Impl {
       if (result)
         _pEngine->quit();
       _showQuit = result;
+    });
+
+    _saveload.setEngine(pEngine);
+    _saveload.setCallback([this]() {
+      _showSaveLoad = false;
+    });
+    _saveload.setSlotCallback([this](int slot) {
+      _pEngine->loadGame(slot);
+      _showSaveLoad = false;
+      if (_callback)
+        _callback();
     });
 
     updateState(State::Main);
@@ -389,12 +406,21 @@ struct OptionsDialog::Impl {
 
     target.setView(view);
 
+    if (_showSaveLoad) {
+      target.draw(_saveload, states);
+    }
+
     if (_showQuit) {
       target.draw(_quit, states);
     }
   }
 
   void update(const sf::Time &elapsed) {
+    if (_showSaveLoad) {
+      _saveload.update(elapsed);
+      return;
+    }
+
     if (_showQuit) {
       _quit.update(elapsed);
       return;

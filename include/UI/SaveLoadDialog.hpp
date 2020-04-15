@@ -2,15 +2,20 @@
 #include "SFML/Graphics.hpp"
 
 namespace ng {
-class QuitDialog : public sf::Drawable {
+
+class Engine;
+
+class SaveLoadDialog : public sf::Drawable {
 public:
-  typedef std::function<void(bool)> Callback;
+  typedef std::function<void()> Callback;
+  typedef std::function<void(int slot)> SlotCallback;
 
 public:
-  QuitDialog();
-  ~QuitDialog() override;
+  SaveLoadDialog();
+  ~SaveLoadDialog() override;
 
   void setCallback(Callback callback);
+  void setSlotCallback(SlotCallback callback);
   void setEngine(Engine *pEngine);
   void update(const sf::Time &elapsed);
   void updateLanguage();
@@ -20,7 +25,6 @@ private:
 
 private:
   struct Impl;
-  std::unique_ptr<Impl> _pImpl;
+  std::__1::unique_ptr<Impl> _pImpl;
 };
-
 }

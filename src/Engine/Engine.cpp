@@ -71,7 +71,7 @@ struct Engine::Impl {
       return path.str();
     }
 
-    void saveGame(const std::string &path) {
+    void saveGame(const std::string &) {
       GGPackValue saveGameHash;
       saveGameHash.type = 2;
       GGPackValue actorsHash;
@@ -332,7 +332,7 @@ struct Engine::Impl {
       //TODO: auto version = hash["version"].getInt();
     }
 
-    void loadTable(const GGPackValue &hash) {
+    static void loadTable(const GGPackValue &hash) {
       for (const auto &variable : hash.hash_value) {
         if (variable.second.isString()) {
           ScriptEngine::set(variable.first.data(), variable.second.getString());
