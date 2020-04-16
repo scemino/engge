@@ -182,6 +182,7 @@ struct Room::Impl {
       // name
       auto objectName = jObject["name"].string_value;
       object->setName(objectName);
+      object->setKey(objectName);
       // parent
       if (jObject["parent"].isString()) {
         auto parent = jObject["parent"].string_value;

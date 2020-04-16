@@ -67,6 +67,9 @@ public:
   Object();
   ~Object() override;
 
+  void setKey(const std::string &key);
+  const std::string &getKey() const;
+
   void setZOrder(int zorder);
   int getZOrder() const override;
 

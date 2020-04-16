@@ -39,6 +39,7 @@ struct Object::Impl {
   std::vector<Object *> _children;
   bool _temporary{false};
   bool _jiggle{false};
+  std::string _key;
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
@@ -46,6 +47,11 @@ Object::Object() : pImpl(std::make_unique<Impl>()) {
 }
 
 Object::~Object() = default;
+
+void Object::setKey(const std::string &key) { pImpl->_key = key; }
+
+const std::string &Object::getKey() const { return pImpl->_key; }
+
 
 void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
 

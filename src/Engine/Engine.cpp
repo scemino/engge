@@ -653,10 +653,9 @@ struct Engine::Impl {
 
         GGPackValue objects;
         objects.type = 3;
-//        for (auto &obj : slot.pActor->getObjects()) {
-//          // TODO: use the key not the name, but... where is the key ? :S
-//          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getName()));
-//        }
+        for (auto &obj : slot.pActor->getObjects()) {
+          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
+        }
 
         GGPackValue actorSlot;
         actorSlot.type = 2;
