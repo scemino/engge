@@ -1,5 +1,3 @@
-#include <filesystem>
-#include <ctime>
 #include "squirrel.h"
 #include "Engine/Engine.hpp"
 #include "Engine/ActorIconSlot.hpp"
@@ -36,10 +34,11 @@
 #include "../Math/PathFinding/_WalkboxDrawable.hpp"
 #include "Parsers/GGHashReader.hpp"
 #include "Parsers/GGPackValue.hpp"
-#include <iostream>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
+#include <filesystem>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -66,12 +65,6 @@ struct Engine::Impl {
   class _SaveGameSystem {
   public:
     explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
-
-    static std::string getSlotPath(int slot) {
-      std::ostringstream path;
-      path << "Savegame" << slot << ".save";
-      return path.str();
-    }
 
     void saveGame(const std::string &) {
 
@@ -149,6 +142,34 @@ struct Engine::Impl {
 //      os.close();
     }
 
+    void loadGame(const std::string &path) {
+      std::ifstream is(path, std::ifstream::binary);
+      is.seekg(0, std::ios::end);
+      auto size = is.tellg();
+      is.seekg(0, std::ios::beg);
+      std::vector<char> data(size, '\0');
+      is.read(data.data(), size);
+      is.close();
+
+      const int32_t decSize = size / -4;
+      const uint8_t
+          key[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
+
+      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
+
+      GGHashReader reader;
+      GGPackValue hash;
+      reader.readHash(data, hash);
+
+      loadGame(hash);
+    }
+
+    static std::string getSlotPath(int slot) {
+      std::ostringstream path;
+      path << "Savegame" << slot << ".save";
+      return path.str();
+    }
+
     static void getSlot(SavegameSlot &slot) {
       std::ifstream is(slot.path, std::ifstream::binary);
       is.seekg(0, std::ios::end);
@@ -170,28 +191,6 @@ struct Engine::Impl {
 
       slot.savetime = (time_t) hash["savetime"].getInt();
       slot.gametime = sf::seconds(hash["gameTime"].getDouble());
-    }
-
-    void loadGame(const std::string &path) {
-      std::ifstream is(path, std::ifstream::binary);
-      is.seekg(0, std::ios::end);
-      auto size = is.tellg();
-      is.seekg(0, std::ios::beg);
-      std::vector<char> data(size, '\0');
-      is.read(data.data(), size);
-      is.close();
-
-      const int32_t decSize = size / -4;
-      const uint8_t
-          key[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
-
-      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
-
-      GGHashReader reader;
-      GGPackValue hash;
-      reader.readHash(data, hash);
-
-      loadGame(hash);
     }
 
   private:
@@ -226,7 +225,7 @@ struct Engine::Impl {
             ScriptEngine::set(pActor.get(), property.first.data(), nullptr);
           } else {
             // TODO: other types
-            trace("save: actor property '{}' not saved", property.first);
+            trace("load: actor property '{}' not loaded (type={})", property.first, property.second.type);
           }
         }
       }
@@ -265,8 +264,10 @@ struct Engine::Impl {
         auto objName = obj.first;
         auto pObj = getObject(objName);
         // TODO: if the object does not exist creates it
-        if (!pObj)
+        if (!pObj) {
+          trace("load: object '{}' not loaded because it has not been found", objName);
           continue;
+        }
         int state;
         if (ScriptEngine::get(pObj, "_state", state)) {
           pObj->setStateAnimIndex(state);
@@ -298,7 +299,7 @@ struct Engine::Impl {
             ScriptEngine::set(pObj, objProperty.first.data(), nullptr);
           } else {
             // TODO: other types
-            trace("save: object property '{}' not saved", objProperty.first);
+            trace("load: object property '{}' not loaded", objProperty.first);
           }
         }
       }
@@ -336,20 +337,6 @@ struct Engine::Impl {
       setCurrentRoom(currentRoom);
 
       //TODO: auto version = hash["version"].getInt();
-    }
-
-    static void loadTable(const GGPackValue &hash) {
-      for (const auto &variable : hash.hash_value) {
-        if (variable.second.isString()) {
-          ScriptEngine::set(variable.first.data(), variable.second.getString());
-        } else if (variable.second.isDouble()) {
-          ScriptEngine::set(variable.first.data(), static_cast<float>(variable.second.getDouble()));
-        } else if (variable.second.isInteger()) {
-          ScriptEngine::set(variable.first.data(), variable.second.getInt());
-        } else if (variable.second.isNull()) {
-          ScriptEngine::set(variable.first.data(), nullptr);
-        }
-      }
     }
 
     void setActor(const std::string &name) {
@@ -397,6 +384,136 @@ struct Engine::Impl {
 
     void setCurrentRoom(const std::string &name) {
       _pImpl->_pEngine->setRoom(getRoom(name));
+    }
+
+    void saveActors(GGPackValue &actorsHash) {
+      actorsHash.type = 2;
+      for (auto &pActor : _pImpl->_actors) {
+        // TODO: find why this entry exists...
+        if (pActor->getKey().empty())
+          continue;
+
+        GGPackValue actorHash;
+        actorHash.type = 2;
+        auto costume = pActor->getCostume().getPath();
+        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
+        actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
+        // TODO: _lockFacing
+        actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
+        if (pActor->getRoom()) {
+          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
+        } else {
+          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(nullptr);
+        }
+
+        auto table = pActor->getTable();
+        saveTable(table, actorHash);
+
+        actorsHash.hash_value[pActor->getKey()] = actorHash;
+      }
+    }
+
+    void saveGlobals(GGPackValue &globalsHash) {
+      globalsHash.type = 2;
+      auto v = _pImpl->_pEngine->getVm();
+      sq_pushroottable(v);
+      sq_pushstring(v, _SC("g"), -1);
+      sq_get(v, -2);
+      HSQOBJECT g;
+      sq_getstackobj(v, -1, &g);
+
+      saveTable(g, globalsHash);
+    }
+
+    void saveDialogs(GGPackValue &hash) const {
+      hash.type = 2;
+    }
+
+    void saveGameScene(GGPackValue &hash) const {
+      auto actorsSelectable =
+          ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
+      auto actorsTempUnselectable = ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
+          == ActorSlotSelectableMode::TemporaryUnselectable);
+
+      GGPackValue selectableActors;
+      selectableActors.type = 3;
+      for (auto &slot : _pImpl->_actorsIconSlots) {
+        GGPackValue selectableActor;
+        selectableActor.type = 2;
+        selectableActor.hash_value = {
+            {"_actorKey", GGPackValue::toGGPackValue(slot.pActor->getKey())},
+            {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
+        };
+        selectableActors.array_value.push_back(selectableActor);
+      }
+
+      hash.type = 2;
+      hash.hash_value = {
+          {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
+          {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
+          {"forceTalkieText", GGPackValue::toGGPackValue(0)},
+          {"selectableActors", selectableActors}
+      };
+    }
+
+    void saveInventory(GGPackValue &hash) const {
+
+      GGPackValue slots;
+      slots.type = 3;
+      for (auto &slot : _pImpl->_actorsIconSlots) {
+
+        GGPackValue objects;
+        objects.type = 3;
+        for (auto &obj : slot.pActor->getObjects()) {
+          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
+        }
+
+        GGPackValue actorSlot;
+        actorSlot.type = 2;
+        actorSlot.hash_value = {
+            {"objects", objects},
+            {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
+        };
+        slots.array_value.push_back(actorSlot);
+      }
+
+      hash.type = 2;
+      hash.hash_value = {
+          {"slots", slots},
+      };
+    }
+
+    void saveObjects(GGPackValue &hash) const {
+      hash.type = 2;
+    }
+
+    void saveRooms(GGPackValue &hash) const {
+      hash.type = 2;
+    }
+
+    void saveCallbacks(GGPackValue &callbacksHash) const {
+      // TODO: save callbacks
+      callbacksHash.type = 2;
+      GGPackValue callbacksArray;
+      callbacksArray.type = 3;
+      callbacksHash.hash_value = {
+          {"callbacks", callbacksArray},
+          {"nextGuid", GGPackValue::toGGPackValue(8000000)},
+      };
+    }
+
+    static void loadTable(const GGPackValue &hash) {
+      for (const auto &variable : hash.hash_value) {
+        if (variable.second.isString()) {
+          ScriptEngine::set(variable.first.data(), variable.second.getString());
+        } else if (variable.second.isDouble()) {
+          ScriptEngine::set(variable.first.data(), static_cast<float>(variable.second.getDouble()));
+        } else if (variable.second.isInteger()) {
+          ScriptEngine::set(variable.first.data(), variable.second.getInt());
+        } else if (variable.second.isNull()) {
+          ScriptEngine::set(variable.first.data(), nullptr);
+        }
+      }
     }
 
     static void sub_4D9710(uint32_t *data, int size, const uint8_t *key) {
@@ -498,43 +615,10 @@ struct Engine::Impl {
       }
     }
 
-    void saveActors(GGPackValue &actorsHash) {
-      actorsHash.type = 2;
-      for (auto &pActor : _pImpl->_actors) {
-        // TODO: find why this entry exists...
-        if (pActor->getKey().empty())
-          continue;
-
-        GGPackValue actorHash;
-        actorHash.type = 2;
-        auto costume = pActor->getCostume().getPath();
-        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
-        actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
-        // TODO: _lockFacing
-        actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
-        if (pActor->getRoom()) {
-          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
-        } else {
-          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(nullptr);
-        }
-
-        auto table = pActor->getTable();
-        saveTable(table, actorHash);
-
-        actorsHash.hash_value[pActor->getKey()] = actorHash;
-      }
-    }
-
-    void saveGlobals(GGPackValue &globalsHash) {
-      globalsHash.type = 2;
-      auto v = _pImpl->_pEngine->getVm();
-      sq_pushroottable(v);
-      sq_pushstring(v, _SC("g"), -1);
-      sq_get(v, -2);
-      HSQOBJECT g;
-      sq_getstackobj(v, -1, &g);
-
-      saveTable(g, globalsHash);
+    static std::string toString(const sf::Vector2f &pos) {
+      std::ostringstream os;
+      os << "{" << static_cast<int>(pos.x) << "," << static_cast<int>(pos.y) << "}";
+      return os.str();
     }
 
     static void saveTable(HSQOBJECT table, GGPackValue &hash) {
@@ -612,89 +696,6 @@ struct Engine::Impl {
         refpos._type = OT_INTEGER;
         refpos._unVal.nInteger = res;
       }
-    }
-
-    void saveDialogs(GGPackValue &hash) const {
-      hash.type = 2;
-    }
-
-    void saveGameScene(GGPackValue &hash) const {
-      auto actorsSelectable =
-          ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
-      auto actorsTempUnselectable = ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
-          == ActorSlotSelectableMode::TemporaryUnselectable);
-
-      GGPackValue selectableActors;
-      selectableActors.type = 3;
-      for (auto &slot : _pImpl->_actorsIconSlots) {
-        GGPackValue selectableActor;
-        selectableActor.type = 2;
-        selectableActor.hash_value = {
-            {"_actorKey", GGPackValue::toGGPackValue(slot.pActor->getKey())},
-            {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
-        };
-        selectableActors.array_value.push_back(selectableActor);
-      }
-
-      hash.type = 2;
-      hash.hash_value = {
-          {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
-          {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
-          {"forceTalkieText", GGPackValue::toGGPackValue(0)},
-          {"selectableActors", selectableActors}
-      };
-    }
-
-    void saveInventory(GGPackValue &hash) const {
-
-      GGPackValue slots;
-      slots.type = 3;
-      for (auto &slot : _pImpl->_actorsIconSlots) {
-
-        GGPackValue objects;
-        objects.type = 3;
-        for (auto &obj : slot.pActor->getObjects()) {
-          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
-        }
-
-        GGPackValue actorSlot;
-        actorSlot.type = 2;
-        actorSlot.hash_value = {
-            {"objects", objects},
-            {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
-        };
-        slots.array_value.push_back(actorSlot);
-      }
-
-      hash.type = 2;
-      hash.hash_value = {
-          {"slots", slots},
-      };
-    }
-
-    void saveObjects(GGPackValue &hash) const {
-      hash.type = 2;
-    }
-
-    void saveRooms(GGPackValue &hash) const {
-      hash.type = 2;
-    }
-
-    void saveCallbacks(GGPackValue &callbacksHash) const {
-      // TODO: save callbacks
-      callbacksHash.type = 2;
-      GGPackValue callbacksArray;
-      callbacksArray.type = 3;
-      callbacksHash.hash_value = {
-          {"callbacks", callbacksArray},
-          {"nextGuid", GGPackValue::toGGPackValue(8000000)},
-      };
-    }
-
-    static std::string toString(const sf::Vector2f &pos) {
-      std::ostringstream os;
-      os << "{" << static_cast<int>(pos.x) << "," << static_cast<int>(pos.y) << "}";
-      return os.str();
     }
 
   private:
@@ -798,7 +799,6 @@ struct Engine::Impl {
   void stopAllTalking();
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
-  static std::string getSlotPath(int slot);
 };
 
 Engine::Impl::Impl()
