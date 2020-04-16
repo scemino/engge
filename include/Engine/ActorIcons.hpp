@@ -25,6 +25,7 @@ public:
   bool isMouseOver() const { return _isInside; }
   void flash(bool on);
   void setMode(ActorSlotSelectableMode mode);
+  inline ActorSlotSelectableMode getMode() const { return _mode; }
 
 private:
   void drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot, const sf::Vector2f &offset,

@@ -1,5 +1,5 @@
 #include <filesystem>
-#include <time.h>
+#include <ctime>
 #include "squirrel.h"
 #include "Engine/Engine.hpp"
 #include "Engine/ActorIconSlot.hpp"
@@ -74,8 +74,7 @@ struct Engine::Impl {
     }
 
     void saveGame(const std::string &) {
-      GGPackValue saveGameHash;
-      saveGameHash.type = 2;
+
       GGPackValue actorsHash;
       saveActors(actorsHash);
 
@@ -83,23 +82,28 @@ struct Engine::Impl {
       saveCallbacks(callbacksHash);
 
       GGPackValue dialogHash;
-      dialogHash.type = 2;
+      saveDialogs(dialogHash);
+
       GGPackValue gameSceneHash;
-      gameSceneHash.type = 2;
+      saveGameScene(gameSceneHash);
 
       GGPackValue globalsHash;
       saveGlobals(globalsHash);
 
       GGPackValue inventoryHash;
-      inventoryHash.type = 2;
+      saveInventory(inventoryHash);
+
       GGPackValue objectsHash;
-      objectsHash.type = 2;
+      saveObjects(objectsHash);
+
       GGPackValue roomsHash;
-      roomsHash.type = 2;
+      saveRooms(roomsHash);
 
       time_t now;
       time(&now);
 
+      GGPackValue saveGameHash;
+      saveGameHash.type = 2;
       saveGameHash.hash_value = {
           {"actors", actorsHash},
           {"callbacks", callbacksHash},
@@ -608,6 +612,73 @@ struct Engine::Impl {
         refpos._type = OT_INTEGER;
         refpos._unVal.nInteger = res;
       }
+    }
+
+    void saveDialogs(GGPackValue &hash) const {
+      hash.type = 2;
+    }
+
+    void saveGameScene(GGPackValue &hash) const {
+      auto actorsSelectable =
+          ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
+      auto actorsTempUnselectable = ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
+          == ActorSlotSelectableMode::TemporaryUnselectable);
+
+      GGPackValue selectableActors;
+      selectableActors.type = 3;
+      for (auto &slot : _pImpl->_actorsIconSlots) {
+        GGPackValue selectableActor;
+        selectableActor.type = 2;
+        selectableActor.hash_value = {
+            {"_actorKey", GGPackValue::toGGPackValue(slot.pActor->getKey())},
+            {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
+        };
+        selectableActors.array_value.push_back(selectableActor);
+      }
+
+      hash.type = 2;
+      hash.hash_value = {
+          {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
+          {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
+          {"forceTalkieText", GGPackValue::toGGPackValue(0)},
+          {"selectableActors", selectableActors}
+      };
+    }
+
+    void saveInventory(GGPackValue &hash) const {
+
+      GGPackValue slots;
+      slots.type = 3;
+      for (auto &slot : _pImpl->_actorsIconSlots) {
+
+        GGPackValue objects;
+        objects.type = 3;
+//        for (auto &obj : slot.pActor->getObjects()) {
+//          // TODO: use the key not the name, but... where is the key ? :S
+//          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getName()));
+//        }
+
+        GGPackValue actorSlot;
+        actorSlot.type = 2;
+        actorSlot.hash_value = {
+            {"objects", objects},
+            {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
+        };
+        slots.array_value.push_back(actorSlot);
+      }
+
+      hash.type = 2;
+      hash.hash_value = {
+          {"slots", slots},
+      };
+    }
+
+    void saveObjects(GGPackValue &hash) const {
+      hash.type = 2;
+    }
+
+    void saveRooms(GGPackValue &hash) const {
+      hash.type = 2;
     }
 
     void saveCallbacks(GGPackValue &callbacksHash) const {
@@ -2143,7 +2214,7 @@ void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) const {
 }
 
 std::string SavegameSlot::getSaveTimeString() const {
-  tm* ltm = localtime(&savetime);
+  tm *ltm = localtime(&savetime);
   char buffer[120];
   // TODO: translate
   strftime(buffer, 120, "%b %d at %H:%M", ltm);
