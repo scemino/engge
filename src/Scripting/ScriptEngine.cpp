@@ -67,20 +67,17 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
   }
   sq_pop(v, 2);
 
+  return getScriptObjectFromId<TScriptObject>(id);
+}
+
+template<typename TScriptObject>
+TScriptObject *ScriptEngine::getScriptObjectFromId(int id) {
   if (ResourceManager::isActor(id)) {
-    for (auto &&actor : g_pEngine->getActors()) {
-      if (actor->getId() == id)
-        return dynamic_cast<TScriptObject *>(actor.get());
-    }
-    return nullptr;
+    return dynamic_cast<TScriptObject *>(getActorFromId(id));
   }
 
   if (ResourceManager::isRoom(id)) {
-    for (auto &&room : g_pEngine->getRooms()) {
-      if (room->getId() == id)
-        return dynamic_cast<TScriptObject *>(room.get());
-    }
-    return nullptr;
+    return dynamic_cast<TScriptObject *>(getRoomFromId(id));
   }
 
   if (ResourceManager::isLight(id)) {
@@ -94,19 +91,46 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
   }
 
   if (ResourceManager::isObject(id)) {
-    for (auto &&room : g_pEngine->getRooms()) {
-      for (auto &&obj : room->getObjects()) {
-        if (obj->getId() == id)
-          return dynamic_cast<TScriptObject *>(obj.get());
-      }
-    }
-    return nullptr;
+    return dynamic_cast<TScriptObject *>(getObjectFromId(id));
   }
 
   if (ResourceManager::isSound(id)) {
     return dynamic_cast<TScriptObject *>(getSoundFromId(id));
   }
 
+  return nullptr;
+}
+
+Actor *ScriptEngine::getActorFromId(int id) {
+  if (!ResourceManager::isActor(id))
+    return nullptr;
+
+  for (auto &&actor : g_pEngine->getActors()) {
+    if (actor->getId() == id)
+      return actor.get();
+  }
+  return nullptr;
+}
+
+Object *ScriptEngine::getObjectFromId(int id) {
+  if (!ResourceManager::isObject(id))
+    return nullptr;
+  for (auto &&room : g_pEngine->getRooms()) {
+    for (auto &&obj : room->getObjects()) {
+      if (obj->getId() == id)
+        return obj.get();
+    }
+  }
+  return nullptr;
+}
+
+Room *ScriptEngine::getRoomFromId(int id) {
+  if (!ResourceManager::isRoom(id))
+    return nullptr;
+  for (auto &&room : g_pEngine->getRooms()) {
+    if (room->getId() == id)
+      return room.get();
+  }
   return nullptr;
 }
 

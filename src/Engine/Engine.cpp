@@ -647,16 +647,30 @@ struct Engine::Impl {
           case OT_TABLE: {
             GGPackValue value;
             int id;
-            if(checkId && ScriptEngine::get(outvar, "_id", id)){
-              break;
-//              value.type = 2;
-//              if(ResourceManager::isActor(id)){
-//                value.hash_value = {{"_actorKey", GGPackValue::toGGPackValue(id)}};
-//              } else if(ResourceManager::isObject(id)){
-//                value.hash_value = {{"_objectKey", GGPackValue::toGGPackValue(id)}};
-//              } else if(ResourceManager::isRoom(id)){
-//                value.hash_value = {{"_roomKey", GGPackValue::toGGPackValue(id)}};
-//              }
+            if (checkId && ScriptEngine::get(outvar, "_id", id)) {
+              value.type = 2;
+              if (ResourceManager::isActor(id)) {
+                auto pActor = ScriptEngine::getActorFromId(id);
+                if (pActor && pActor->getKey() != key) {
+                  value.hash_value = {{"_actorKey", GGPackValue::toGGPackValue(pActor->getKey())}};
+                } else {
+                  break;
+                }
+              } else if (ResourceManager::isObject(id)) {
+                auto pObj = ScriptEngine::getObjectFromId(id);
+                if (pObj && pObj->getKey() != key) {
+                  value.hash_value = {{"_objectKey", GGPackValue::toGGPackValue(pObj->getKey())}};
+                } else {
+                  break;
+                }
+              } else if (ResourceManager::isRoom(id)) {
+                auto pRoom = ScriptEngine::getRoomFromId(id);
+                if (pRoom && pRoom->getName() != key) {
+                  value.hash_value = {{"_roomKey", GGPackValue::toGGPackValue(pRoom->getName())}};
+                } else {
+                  break;
+                }
+              }
             } else {
               saveTable(outvar, value, true);
             }

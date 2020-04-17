@@ -559,7 +559,7 @@ private:
         obj->setName(objName);
       }
 
-      trace("Set object id to {}", obj->getKey());
+//      trace("Set object id to {}", obj->getKey());
       ScriptEngine::set(obj.get(), "_id", obj->getId());
 
       sq_pushobject(v, obj->getTable());
@@ -590,7 +590,7 @@ private:
         object->setKey(roomObject.first);
         sq_pushobject(v, roomObject.second);
         sq_getstackobj(v, -1, &object->getTable());
-        trace("Set object id to {}", roomObject.first);
+//        trace("Set object id to {}", roomObject.first);
         ScriptEngine::set(object.get(), "_id", object->getId());
       }
 

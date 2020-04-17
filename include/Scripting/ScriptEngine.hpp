@@ -43,6 +43,8 @@ public:
 
   template<typename TScriptObject>
   static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
+  template<typename TScriptObject>
+  static TScriptObject *getScriptObjectFromId(int id);
 
   static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
   static Object *getObject(HSQUIRRELVM v, SQInteger index);
@@ -51,6 +53,9 @@ public:
   static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
   static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
 
+  static Actor *getActorFromId(int id);
+  static Room *getRoomFromId(int id);
+  static Object *getObjectFromId(int id);
   static Sound *getSoundFromId(int id);
   static ThreadBase *getThreadFromId(int id);
   static ThreadBase *getThreadFromVm(HSQUIRRELVM v);
