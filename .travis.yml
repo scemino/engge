@@ -42,7 +42,7 @@ matrix:
   - name: macOS
     compiler: clang
     os: osx
-    osx_image: xcode10.2
+    osx_image: xcode11
     before_script:
     - brew install sfml
     - wget "https://github.com/ocornut/imgui/archive/v1.73.zip" && unzip v1.73.zip
