@@ -488,6 +488,16 @@ struct Engine::Impl {
 
     void saveObjects(GGPackValue &hash) const {
       hash.type = 2;
+      for (auto &room : _pImpl->_rooms) {
+        for (auto &object : room->getObjects()) {
+          if(object->getType() != ObjectType::Object) continue;
+          auto pRoom = object->getRoom();
+          if(pRoom && pRoom->isPseudoRoom()) continue;
+          GGPackValue hashObject;
+          saveTable(object->getTable(), hashObject, false);
+          hash.hash_value.insert({object->getKey(), hashObject});
+        }
+      }
     }
 
     void saveRooms(GGPackValue &hash) const {
