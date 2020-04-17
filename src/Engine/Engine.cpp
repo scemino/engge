@@ -28,7 +28,6 @@
 #include "Graphics/Text.hpp"
 #include "Scripting/VerbExecute.hpp"
 #include "../System/_DebugTools.hpp"
-#include "../System/_Util.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "System/Logger.hpp"
 #include "../Math/PathFinding/_WalkboxDrawable.hpp"
@@ -59,6 +58,11 @@ bool operator&(CursorDirection lhs, CursorDirection rhs) {
 enum class EngineState {
   Game, Paused, Options, StartScreen
 };
+
+static const char *const _objectKey = "_objectKey";
+static const char *const _roomKey = "_roomKey";
+static const char *const _actorKey = "_actorKey";
+static const char *const _idKey = "_id";
 
 struct Engine::Impl {
 
@@ -202,7 +206,7 @@ struct Engine::Impl {
         auto &actorHash = hash[pActor->getKey()];
         auto pos = _parsePos(actorHash["_pos"].getString());
         auto costume = actorHash["_costume"].getString();
-        auto roomKey = actorHash["_roomKey"];
+        auto roomKey = actorHash[_roomKey];
         auto *pRoom = getRoom(roomKey.isNull() ? "Void" : roomKey.getString());
         auto dir = actorHash["_dir"].getInt();
 
@@ -236,7 +240,7 @@ struct Engine::Impl {
       // TODO: auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
       // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
       for (auto &selectableActor : hash["selectableActors"].array_value) {
-        auto pActor = getActor(selectableActor["_actorKey"].getString());
+        auto pActor = getActor(selectableActor[_actorKey].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
         _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
       }
@@ -401,14 +405,13 @@ struct Engine::Impl {
         // TODO: _lockFacing
         actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
         if (pActor->getRoom()) {
-          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
+          actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
         } else {
-          actorHash.hash_value["_roomKey"] = GGPackValue::toGGPackValue(nullptr);
+          actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(nullptr);
         }
 
         auto table = pActor->getTable();
-        saveTable(table, actorHash);
-
+        saveTable(table, actorHash, false);
         actorsHash.hash_value[pActor->getKey()] = actorHash;
       }
     }
@@ -422,7 +425,7 @@ struct Engine::Impl {
       HSQOBJECT g;
       sq_getstackobj(v, -1, &g);
 
-      saveTable(g, globalsHash);
+      saveTable(g, globalsHash, false);
     }
 
     void saveDialogs(GGPackValue &hash) const {
@@ -441,7 +444,7 @@ struct Engine::Impl {
         GGPackValue selectableActor;
         selectableActor.type = 2;
         selectableActor.hash_value = {
-            {"_actorKey", GGPackValue::toGGPackValue(slot.pActor->getKey())},
+            {_actorKey, GGPackValue::toGGPackValue(slot.pActor->getKey())},
             {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
         };
         selectableActors.array_value.push_back(selectableActor);
@@ -491,7 +494,7 @@ struct Engine::Impl {
       hash.type = 2;
       for (auto &room : _pImpl->_rooms) {
         GGPackValue hashRoom;
-        saveTable(room->getTable(), hashRoom, true);
+        saveTable(room->getTable(), hashRoom, false);
         hash.hash_value.insert({room->getName(), hashRoom});
       }
     }
@@ -626,8 +629,43 @@ struct Engine::Impl {
       return os.str();
     }
 
-    static void saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = false) {
+    static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = true, const std::string &tableKey = "") {
       hash.type = 2;
+
+      int id;
+      if (checkId && ScriptEngine::get(table, _idKey, id)) {
+        hash.type = 2;
+        if (ResourceManager::isActor(id)) {
+          auto pActor = ScriptEngine::getActorFromId(id);
+          if (pActor && pActor->getKey() != tableKey) {
+            hash.hash_value = {{_actorKey, GGPackValue::toGGPackValue(pActor->getKey())}};
+            return true;
+          }
+          return false;
+        }
+        if (ResourceManager::isObject(id)) {
+          auto pObj = ScriptEngine::getObjectFromId(id);
+          if (pObj && pObj->getKey() != tableKey) {
+            auto pRoom = pObj->getRoom();
+            if (pRoom) {
+              hash.hash_value = {{_roomKey, GGPackValue::toGGPackValue(pRoom->getName())}};
+            }
+            hash.hash_value = {{_objectKey, GGPackValue::toGGPackValue(pObj->getKey())}};
+            return true;
+          }
+          return false;
+        }
+        if (ResourceManager::isRoom(id)) {
+          auto pRoom = ScriptEngine::getRoomFromId(id);
+          if (pRoom && pRoom->getName() != tableKey) {
+            hash.hash_value = {{_roomKey, GGPackValue::toGGPackValue(pRoom->getName())}};
+            return true;
+          }
+          return false;
+        }
+        return false;
+      }
+
       SQObjectPtr refpos;
       SQObjectPtr outkey, outvar;
       SQInteger res;
@@ -646,35 +684,9 @@ struct Engine::Impl {
             break;
           case OT_TABLE: {
             GGPackValue value;
-            int id;
-            if (checkId && ScriptEngine::get(outvar, "_id", id)) {
-              value.type = 2;
-              if (ResourceManager::isActor(id)) {
-                auto pActor = ScriptEngine::getActorFromId(id);
-                if (pActor && pActor->getKey() != key) {
-                  value.hash_value = {{"_actorKey", GGPackValue::toGGPackValue(pActor->getKey())}};
-                } else {
-                  break;
-                }
-              } else if (ResourceManager::isObject(id)) {
-                auto pObj = ScriptEngine::getObjectFromId(id);
-                if (pObj && pObj->getKey() != key) {
-                  value.hash_value = {{"_objectKey", GGPackValue::toGGPackValue(pObj->getKey())}};
-                } else {
-                  break;
-                }
-              } else if (ResourceManager::isRoom(id)) {
-                auto pRoom = ScriptEngine::getRoomFromId(id);
-                if (pRoom && pRoom->getName() != key) {
-                  value.hash_value = {{"_roomKey", GGPackValue::toGGPackValue(pRoom->getName())}};
-                } else {
-                  break;
-                }
-              }
-            } else {
-              saveTable(outvar, value, true);
+            if (saveTable(outvar, value, true, key)) {
+              hash.hash_value[key] = value;
             }
-            hash.hash_value[key] = value;
             break;
           }
           case OT_ARRAY: {
@@ -683,12 +695,13 @@ struct Engine::Impl {
             hash.hash_value[key] = value;
             break;
           }
-          default:break;
+          default: break;
           }
         }
         refpos._type = OT_INTEGER;
         refpos._unVal.nInteger = res;
       }
+      return true;
     }
 
     static void saveArray(HSQOBJECT array, GGPackValue &hash) {
@@ -712,8 +725,9 @@ struct Engine::Impl {
           break;
         case OT_TABLE: {
           GGPackValue value;
-          saveTable(outvar, value, true);
-          hash.array_value[index] = value;
+          if (saveTable(outvar, value)) {
+            hash.array_value[index] = value;
+          }
           break;
         }
         case OT_ARRAY: {
