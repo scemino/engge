@@ -483,9 +483,9 @@ private:
     sq_newslot(v, -3, SQFalse);
   }
 
-  static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom) {
-    auto &table = pRoom->getTable();
-    sq_getstackobj(v, index, &table);
+  static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom, bool isPseudoRoom) {
+    auto &roomTable = pRoom->getTable();
+    sq_getstackobj(v, index, &roomTable);
 
     // loadRoom
     const char *background = nullptr;
@@ -494,6 +494,7 @@ private:
     }
 
     pRoom->load(background);
+    pRoom->setPseudoRoom(isPseudoRoom);
 
     // define instance
     ScriptEngine::set(pRoom, "_id", pRoom->getId());
@@ -501,7 +502,7 @@ private:
     std::unordered_map<std::string, HSQOBJECT> roomObjects;
 
     // define room objects
-    sq_pushobject(v, table);
+    sq_pushobject(v, roomTable);
     sq_pushnull(v);
     while (SQ_SUCCEEDED(sq_next(v, -2))) {
       //here -1 is the value and -2 is the key
@@ -523,12 +524,12 @@ private:
     for (auto &obj : pRoom->getObjects()) {
       sq_resetobject(&obj->getTable());
 
-      sq_pushobject(v, table);
+      sq_pushobject(v, roomTable);
       sq_pushstring(v, obj->getName().c_str(), -1);
       if (SQ_FAILED(sq_rawget(v, -2))) {
         setObjectSlot(v, obj->getName().c_str(), *obj);
 
-        sq_pushobject(v, table);
+        sq_pushobject(v, roomTable);
         sq_pushstring(v, obj->getName().c_str(), -1);
         sq_rawget(v, -2);
         sq_getstackobj(v, -1, &obj->getTable());
@@ -558,6 +559,7 @@ private:
         obj->setName(objName);
       }
 
+      trace("Set object id to {}", obj->getKey());
       ScriptEngine::set(obj.get(), "_id", obj->getId());
 
       sq_pushobject(v, obj->getTable());
@@ -569,7 +571,7 @@ private:
       }
 
       sq_pushobject(v, obj->getTable());
-      sq_pushobject(v, table);
+      sq_pushobject(v, roomTable);
       sq_setdelegate(v, -2);
     }
 
@@ -582,11 +584,20 @@ private:
       sq_pushobject(v, roomObject.second);
       sq_newslot(v, -3, SQFalse);
 
+      std::unique_ptr<Object> object;
+      if(!ScriptEngine::rawExists(roomObject.second,"_id")) {
+        object = std::make_unique<Object>();
+        object->setKey(roomObject.first);
+        sq_pushobject(v, roomObject.second);
+        sq_getstackobj(v, -1, &object->getTable());
+        trace("Set object id to {}", roomObject.first);
+        ScriptEngine::set(object.get(), "_id", object->getId());
+      }
+
       sq_pushobject(v, roomObject.second);
       sq_pushstring(v, _SC("icon"), -1);
       if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
-        auto object = std::make_unique<Object>();
-        object->setKey(roomObject.first);
+
         object->setTouchable(true);
 
         if (sq_gettype(v, -1) == OT_STRING) {
@@ -614,19 +625,14 @@ private:
           error("TODO: objectIcon with type {} not implemented", sq_gettype(v, -1));
         }
 
-        sq_pushobject(v, roomObject.second);
-        sq_getstackobj(v, -1, &object->getTable());
-
         const char *objName;
         if (ScriptEngine::get(v, object.get(), "name", objName)) {
           object->setName(objName);
           trace("inventory object {} {} {}", roomObject.first, objName, object->getId());
         }
 
-        ScriptEngine::set(object.get(), "_id", object->getId());
-
         sq_pushobject(v, object->getTable());
-        sq_pushobject(v, table);
+        sq_pushobject(v, roomTable);
         sq_setdelegate(v, -2);
 
         pRoom->getObjects().push_back(std::move(object));
@@ -641,7 +647,7 @@ private:
       return sq_throwerror(v, _SC("failed to get name"));
     }
     auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
-    auto result = _defineRoom(v, 3, pRoom.get());
+    auto result = _defineRoom(v, 3, pRoom.get(), true);
     if (SQ_FAILED(result))
       return result;
 
@@ -653,7 +659,7 @@ private:
 
   static SQInteger defineRoom(HSQUIRRELVM v) {
     auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
-    auto result = _defineRoom(v, 2, pRoom.get());
+    auto result = _defineRoom(v, 2, pRoom.get(), false);
     if (SQ_SUCCEEDED(result)) {
       g_pEngine->addRoom(std::move(pRoom));
     }

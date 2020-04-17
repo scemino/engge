@@ -84,6 +84,9 @@ public:
   void setOverlayColor(sf::Color color);
   [[nodiscard]] sf::Color getOverlayColor() const;
 
+  void setPseudoRoom(bool pseudoRoom);
+  bool isPseudoRoom() const;
+
 private:
   struct Impl;
   std::unique_ptr<Impl> pImpl;

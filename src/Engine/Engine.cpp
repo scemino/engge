@@ -489,6 +489,11 @@ struct Engine::Impl {
 
     void saveRooms(GGPackValue &hash) const {
       hash.type = 2;
+      for (auto &room : _pImpl->_rooms) {
+        GGPackValue hashRoom;
+        saveTable(room->getTable(), hashRoom, true);
+        hash.hash_value.insert({room->getName(), hashRoom});
+      }
     }
 
     void saveCallbacks(GGPackValue &callbacksHash) const {
@@ -621,7 +626,7 @@ struct Engine::Impl {
       return os.str();
     }
 
-    static void saveTable(HSQOBJECT table, GGPackValue &hash) {
+    static void saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = false) {
       hash.type = 2;
       SQObjectPtr refpos;
       SQObjectPtr outkey, outvar;
@@ -641,7 +646,20 @@ struct Engine::Impl {
             break;
           case OT_TABLE: {
             GGPackValue value;
-            saveTable(outvar, value);
+            int id;
+            if(checkId && ScriptEngine::get(outvar, "_id", id)){
+              break;
+//              value.type = 2;
+//              if(ResourceManager::isActor(id)){
+//                value.hash_value = {{"_actorKey", GGPackValue::toGGPackValue(id)}};
+//              } else if(ResourceManager::isObject(id)){
+//                value.hash_value = {{"_objectKey", GGPackValue::toGGPackValue(id)}};
+//              } else if(ResourceManager::isRoom(id)){
+//                value.hash_value = {{"_roomKey", GGPackValue::toGGPackValue(id)}};
+//              }
+            } else {
+              saveTable(outvar, value, true);
+            }
             hash.hash_value[key] = value;
             break;
           }
@@ -680,7 +698,7 @@ struct Engine::Impl {
           break;
         case OT_TABLE: {
           GGPackValue value;
-          saveTable(outvar, value);
+          saveTable(outvar, value, true);
           hash.array_value[index] = value;
           break;
         }

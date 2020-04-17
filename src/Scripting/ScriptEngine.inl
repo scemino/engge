@@ -1,4 +1,5 @@
 #include "Entities/Objects/Object.hpp"
+#include "../../extlibs/squirrel/squirrel/sqobject.h"
 
 namespace ng {
 template<>
@@ -130,6 +131,11 @@ void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t) {
 
 template<>
 void ScriptEngine::push<HSQOBJECT>(HSQUIRRELVM v, HSQOBJECT obj) {
+  sq_pushobject(v, obj);
+}
+
+template<>
+void ScriptEngine::push<SQObjectPtr>(HSQUIRRELVM v, SQObjectPtr obj) {
   sq_pushobject(v, obj);
 }
 

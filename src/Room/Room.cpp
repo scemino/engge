@@ -50,6 +50,7 @@ struct Room::Impl {
   sf::Shader _shader{};
   int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
   sf::Color _overlayColor{sf::Color::Transparent};
+  bool _pseudoRoom{false};
 
   explicit Impl(TextureManager &textureManager)
       : _textureManager(textureManager) {
@@ -752,6 +753,14 @@ sf::Vector2i Room::getScreenSize() const {
     return sf::Vector2i(ratio * height, height);
   }
   }
+}
+
+void Room::setPseudoRoom(bool pseudoRoom) {
+  pImpl->_pseudoRoom=pseudoRoom;
+}
+
+bool Room::isPseudoRoom() const {
+  return pImpl->_pseudoRoom;
 }
 
 } // namespace ng
