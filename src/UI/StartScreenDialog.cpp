@@ -3,6 +3,7 @@
 #include "Engine/Preferences.hpp"
 #include "Graphics/Screen.hpp"
 #include "UI/OptionsDialog.hpp"
+#include "UI/SaveLoadDialog.hpp"
 #include "UI/StartScreenDialog.hpp"
 #include "UI/QuitDialog.hpp"
 #include "imgui.h"
@@ -28,6 +29,7 @@ struct StartScreenDialog::Impl {
   std::vector<_Button> _buttons;
   QuitDialog _quit;
   OptionsDialog _options;
+  SaveLoadDialog _saveload;
   State _state{State::Main};
   Callback _newGameCallback;
 
@@ -39,7 +41,12 @@ struct StartScreenDialog::Impl {
     _state = state;
     _buttons.clear();
     switch (state) {
-    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), []() {}, false);
+    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {_showSaveLoad = true;});
+      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
+        _saveload.updateLanguage();
+        _saveload.setSaveMode(false);
+        _showSaveLoad = true;
+      });
       _buttons.emplace_back(Ids::NewGame, getSlotPos(2), [this]() {
         if (_newGameCallback)
           _newGameCallback();
@@ -65,6 +72,11 @@ struct StartScreenDialog::Impl {
     _pEngine = pEngine;
     if (!pEngine)
       return;
+
+    _saveload.setEngine(pEngine);
+    _saveload.setCallback([this]() {
+      _showSaveLoad = false;
+    });
 
     _options.setEngine(pEngine);
     _options.setCallback([this]() {
@@ -94,6 +106,10 @@ struct StartScreenDialog::Impl {
       }
 
       target.setView(view);
+
+      if (_showSaveLoad) {
+        target.draw(_saveload, states);
+      }
       break;
     }
 
@@ -116,6 +132,11 @@ struct StartScreenDialog::Impl {
       break;
 
     default:
+      if (_showSaveLoad) {
+        _saveload.update(elapsed);
+        return;
+      }
+
       auto pos = (sf::Vector2f) _pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()),
                                                                        sf::View(sf::FloatRect(0,
                                                                                               0,
@@ -127,6 +148,7 @@ struct StartScreenDialog::Impl {
       break;
     }
   }
+  bool _showSaveLoad{false};
 };
 
 StartScreenDialog::StartScreenDialog()
@@ -147,5 +169,9 @@ void StartScreenDialog::update(const sf::Time &elapsed) {
 
 void StartScreenDialog::setNewGameCallback(Callback callback) {
   _pImpl->_newGameCallback = callback;
+}
+
+void StartScreenDialog::setSlotCallback(SaveLoadDialog::SlotCallback callback) {
+  _pImpl->_saveload.setSlotCallback(callback);
 }
 }

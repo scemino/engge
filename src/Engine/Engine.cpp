@@ -215,7 +215,7 @@ struct Engine::Impl {
         pActor->setPosition(pos);
         pActor->getCostume().setFacing((Facing) dir);
 
-        for (auto &property :  actorHash.hash_value) {
+        for (auto &property : actorHash.hash_value) {
           if (property.first.empty() || property.first[0] == '_')
             continue;
 
@@ -379,7 +379,7 @@ struct Engine::Impl {
     Object *getObject(const std::string &name) {
       for (auto &pRoom : _pImpl->_rooms) {
         for (auto &pObj : pRoom->getObjects()) {
-          if (pObj->getName() == name)
+          if (pObj->getKey() == name)
             return pObj.get();
         }
       }
@@ -490,9 +490,11 @@ struct Engine::Impl {
       hash.type = 2;
       for (auto &room : _pImpl->_rooms) {
         for (auto &object : room->getObjects()) {
-          if(object->getType() != ObjectType::Object) continue;
+          if (object->getType() != ObjectType::Object)
+            continue;
           auto pRoom = object->getRoom();
-          if(pRoom && pRoom->isPseudoRoom()) continue;
+          if (pRoom && pRoom->isPseudoRoom())
+            continue;
           GGPackValue hashObject;
           saveTable(object->getTable(), hashObject, false);
           hash.hash_value.insert({object->getKey(), hashObject});
@@ -913,6 +915,10 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
     _pImpl->_state = EngineState::Game;
     _pImpl->exitRoom(nullptr);
     ScriptEngine::call("start", true);
+  });
+  _pImpl->_startScreenDialog.setSlotCallback([this](int slot) {
+    _pImpl->_state = EngineState::Game;
+    loadGame(slot);
   });
 
   _pImpl->_gameSheet.load("GameSheet");
