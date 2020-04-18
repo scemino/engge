@@ -37,3 +37,9 @@ Just type `./build/engge`, don't forget the prerequisites.
 ## Disclaimer
 
 This project is experimental, you won't be able to run the full game
+
+---
+
+![CLion](https://github.com/JetBrains/logos/blob/master/web/clion/clion.svg)
+
+[JetBrains](https://www.jetbrains.com/) have been kind enough to supply me with a free Open Source license of [CLion](https://www.jetbrains.com/clion).
