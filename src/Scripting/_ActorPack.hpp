@@ -534,12 +534,18 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 2, &selectable))) {
         return sq_throwerror(v, _SC("failed to get selectable"));
       }
-      if (selectable >= 0 && selectable <= 3) {
-        auto mode = static_cast<ActorSlotSelectableMode>(selectable);
-        g_pEngine->setActorSlotSelectable(mode);
+      auto mode = g_pEngine->getActorSlotSelectable();
+      switch (selectable) {
+      case 0:g_pEngine->setActorSlotSelectable(mode & ~ActorSlotSelectableMode::On);
         return 0;
+      case 1:g_pEngine->setActorSlotSelectable((mode & ~ActorSlotSelectableMode::On) | ActorSlotSelectableMode::On);
+        return 0;
+      case 2:g_pEngine->setActorSlotSelectable(mode | ActorSlotSelectableMode::TemporaryUnselectable);
+        return 0;
+      case 3:g_pEngine->setActorSlotSelectable(mode & ~ActorSlotSelectableMode::TemporaryUnselectable);
+        return 0;
+      default:return sq_throwerror(v, _SC("invalid selectable value"));
       }
-      return sq_throwerror(v, _SC("invalid selectable value"));
     }
 
     if (numArgs == 3) {

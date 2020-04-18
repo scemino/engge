@@ -10,7 +10,6 @@ enum class ActorSlotSelectableMode {
   Off = 0,
   On = 1,
   TemporaryUnselectable = 2,
-  TemporarySelectable = 3
 };
 
 class Engine;

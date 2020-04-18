@@ -224,6 +224,7 @@ public:
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);
   void setActorSlotSelectable(ActorSlotSelectableMode mode);
+  [[nodiscard]] ActorSlotSelectableMode getActorSlotSelectable() const;
   bool isActorSelectable(Actor *pActor) const;
   void setUseFlag(UseFlag flag, Entity *object);
   void flashSelectableActor(bool on);

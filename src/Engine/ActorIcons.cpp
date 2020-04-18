@@ -46,15 +46,16 @@ void ActorIcons::update(const sf::Time &elapsed) {
     return;
   }
 
-  auto isEnabled = _mode == ActorSlotSelectableMode::On || _mode == ActorSlotSelectableMode::TemporarySelectable;
-  if (isEnabled && _isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+  auto isEnabled = ((_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
+      && ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
+  if (_isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
     _isMouseButtonPressed = false;
     iconRect = sf::FloatRect(screen.x - 16, 15, 16, 16);
     for (auto selectableActor : _actorsIconSlots) {
       if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
         continue;
 
-      if (iconRect.contains(_mousePos)) {
+      if (isEnabled && iconRect.contains(_mousePos)) {
         _pEngine->setCurrentActor(selectableActor.pActor, true);
         return;
       }
@@ -74,8 +75,6 @@ float ActorIcons::getOffsetY(int num) const {
 }
 
 int ActorIcons::getIconsNum() const {
-  if (!_pCurrentActor)
-    return 0;
   int numIcons = 1;
   for (auto selectableActor : _actorsIconSlots) {
     if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
@@ -95,7 +94,7 @@ void ActorIcons::flash(bool on) {
 void ActorIcons::setMode(ActorSlotSelectableMode mode) { _mode = mode; }
 
 void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
-  if (!_pCurrentActor || _mode == ActorSlotSelectableMode::Off)
+  if (_mode == ActorSlotSelectableMode::Off)
     return;
 
   int numIcons = 0;
@@ -103,7 +102,8 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
   sf::Vector2f offset(screen.x - 8, 8);
 
   sf::Uint8 alpha;
-  auto isEnabled = _mode == ActorSlotSelectableMode::On || _mode == ActorSlotSelectableMode::TemporarySelectable;
+  auto isEnabled = ((_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
+      && ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
   if (isEnabled) {
     alpha = _isInside ? 0xFF : _alpha;
   } else {

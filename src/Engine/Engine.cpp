@@ -236,8 +236,13 @@ struct Engine::Impl {
     }
 
     void loadGameScene(GGPackValue &hash) {
-      // TODO: auto actorsSelectable = hash["actorsSelectable"].getInt();
-      // TODO: auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
+      auto actorsSelectable = hash["actorsSelectable"].getInt();
+      auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
+      auto mode = actorsSelectable ? ActorSlotSelectableMode::On : ActorSlotSelectableMode::Off;
+      if(actorsTempUnselectable) {
+        mode |= ActorSlotSelectableMode::TemporaryUnselectable;
+      }
+      _pImpl->_pEngine->setActorSlotSelectable(mode);
       // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
       for (auto &selectableActor : hash["selectableActors"].array_value) {
         auto pActor = getActor(selectableActor[_actorKey].getString());
@@ -1806,7 +1811,7 @@ void Engine::draw(sf::RenderWindow &window) const {
     window.draw(_pImpl->_dialogManager);
 
     _pImpl->drawHud(window);
-    if ((_pImpl->_pRoom->getFullscreen() != 1) && (_pImpl->_dialogManager.getState() == DialogManagerState::None)
+    if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
         && _pImpl->_inputActive) {
       window.draw(_pImpl->_actorIcons);
     }
@@ -2139,6 +2144,8 @@ bool Engine::isActorSelectable(Actor *pActor) const {
   }
   return false;
 }
+
+ActorSlotSelectableMode Engine::getActorSlotSelectable() const { return _pImpl->_actorIcons.getMode(); }
 
 void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { _pImpl->_actorIcons.setMode(mode); }
 
