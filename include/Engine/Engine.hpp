@@ -176,7 +176,7 @@ public:
   std::vector<std::unique_ptr<Actor>> &getActors();
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window) const;
+  void draw(sf::RenderTarget &target, bool screenshot = false) const;
   [[nodiscard]] int getFrameCounter() const;
 
   void setCurrentActor(Actor *pCurrentActor, bool userSelected);
@@ -255,7 +255,7 @@ public:
 
   void saveGame(int slot);
   void loadGame(int slot);
-  void getSlotSavegames(std::vector<SavegameSlot>& slots) const;
+  static void getSlotSavegames(std::vector<SavegameSlot>& slots) ;
 
 private:
   struct Impl;

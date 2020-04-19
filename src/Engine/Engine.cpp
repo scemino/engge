@@ -193,7 +193,7 @@ struct Engine::Impl {
     }
 
   private:
-    void saveGameInJson(const GGPackValue &saveGameHash, const std::string &path) {
+    static void saveGameInJson(const GGPackValue &saveGameHash, const std::string &path) {
       std::string json(path);
       json.append(".json");
       std::ofstream os(json, std::ofstream::out);
@@ -862,8 +862,8 @@ struct Engine::Impl {
 
   Impl();
 
-  void drawHud(sf::RenderWindow &window) const;
-  void drawCursor(sf::RenderWindow &window) const;
+  void drawHud(sf::RenderTarget &target) const;
+  void drawCursor(sf::RenderTarget &target) const;
   void drawCursorText(sf::RenderTarget &target) const;
   void drawNoOverride(sf::RenderTarget &target) const;
   int getCurrentActorIndex() const;
@@ -902,6 +902,7 @@ struct Engine::Impl {
   void stopAllTalking();
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
+  void captureScreen(const std::string &path) const;
 };
 
 Engine::Impl::Impl()
@@ -1839,35 +1840,35 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos) {
   return handled;
 }
 
-void Engine::draw(sf::RenderWindow &window) const {
+void Engine::draw(sf::RenderTarget &target, bool screenshot) const {
   if (_pImpl->_pRoom) {
-    _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
-    _pImpl->drawFade(window);
+    _pImpl->_pRoom->draw(target, _pImpl->_camera.getAt());
+    _pImpl->drawFade(target);
+    _pImpl->drawWalkboxes(target);
+    target.draw(_pImpl->_talkingState);
+    target.draw(_pImpl->_dialogManager);
+    _pImpl->drawHud(target);
 
-    _pImpl->drawWalkboxes(window);
-
-    window.draw(_pImpl->_talkingState);
-
-    window.draw(_pImpl->_dialogManager);
-
-    _pImpl->drawHud(window);
     if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
         && _pImpl->_inputActive) {
-      window.draw(_pImpl->_actorIcons);
+      target.draw(_pImpl->_actorIcons);
     }
 
-    _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
+    _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+
+    if (screenshot)
+      return;
 
     if (_pImpl->_state == EngineState::Options) {
-      window.draw(_pImpl->_optionsDialog);
+      target.draw(_pImpl->_optionsDialog);
     } else if (_pImpl->_state == EngineState::StartScreen) {
-      window.draw(_pImpl->_startScreenDialog);
+      target.draw(_pImpl->_startScreenDialog);
     }
-    _pImpl->drawPause(window);
 
-    _pImpl->drawCursor(window);
-    _pImpl->drawCursorText(window);
-    _pImpl->drawNoOverride(window);
+    _pImpl->drawPause(target);
+    _pImpl->drawCursor(target);
+    _pImpl->drawCursorText(target);
+    _pImpl->drawNoOverride(target);
     _pImpl->_pDebugTools->render();
   }
 }
@@ -1959,7 +1960,7 @@ void Engine::Impl::stopThreads() {
   }), _threads.end());
 }
 
-void Engine::Impl::drawCursor(sf::RenderWindow &window) const {
+void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
   if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
     return;
 
@@ -1972,7 +1973,7 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const {
   shape.setSize(cursorSize);
   shape.setTexture(&_gameSheet.getTexture());
   shape.setTextureRect(getCursorRect());
-  window.draw(shape);
+  target.draw(shape);
 }
 
 sf::IntRect Engine::Impl::getCursorRect() const {
@@ -2139,11 +2140,30 @@ int Engine::Impl::getCurrentActorIndex() const {
   return -1;
 }
 
-void Engine::Impl::drawHud(sf::RenderWindow &window) const {
+void Engine::Impl::drawHud(sf::RenderTarget &target) const {
   if (_state != EngineState::Game)
     return;
 
-  window.draw(_hud);
+  target.draw(_hud);
+}
+
+void Engine::Impl::captureScreen(const std::string &path) const {
+  sf::RenderTexture target;
+  target.create(static_cast<unsigned int>(Screen::Width), static_cast<unsigned int>(Screen::Height));
+  target.setView(_pEngine->getWindow().getView());
+  _pEngine->draw(target, true);
+  target.display();
+
+  sf::Sprite s(target.getTexture());
+  s.scale(1.f / 4.f, 1.f / 4.f);
+
+  sf::RenderTexture rt;
+  rt.create(320u, 180u);
+  rt.draw(s);
+  rt.display();
+
+  auto screenshot = rt.getTexture().copyToImage();
+  screenshot.saveToFile(path);
 }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node) {
@@ -2297,7 +2317,11 @@ Hud &Engine::getHud() { return _pImpl->_hud; }
 
 void Engine::saveGame(int slot) {
   Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
-  saveGameSystem.saveGame(Impl::_SaveGameSystem::getSlotPath(slot));
+  auto path = Impl::_SaveGameSystem::getSlotPath(slot);
+  std::filesystem::path screenshotPath(path);
+  screenshotPath.replace_extension(".png");
+  _pImpl->captureScreen(screenshotPath);
+  saveGameSystem.saveGame(path);
 }
 
 void Engine::loadGame(int slot) {
@@ -2305,8 +2329,7 @@ void Engine::loadGame(int slot) {
   saveGameSystem.loadGame(Impl::_SaveGameSystem::getSlotPath(slot));
 }
 
-void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) const {
-  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
+void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
   for (int i = 1; i <= 9; ++i) {
     auto path = Impl::_SaveGameSystem::getSlotPath(i);
 
@@ -2315,7 +2338,7 @@ void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) const {
     slot.path = path;
 
     if (std::filesystem::exists(path)) {
-      saveGameSystem.getSlot(slot);
+      Impl::_SaveGameSystem::getSlot(slot);
     }
     slots.push_back(slot);
   }

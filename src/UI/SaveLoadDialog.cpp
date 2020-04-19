@@ -6,12 +6,11 @@
 #include "Graphics/Screen.hpp"
 #include "Graphics/SpriteSheet.hpp"
 #include "Graphics/Text.hpp"
-#include "UI/QuitDialog.hpp"
 #include "imgui.h"
 
 namespace ng {
 struct SaveLoadDialog::Impl {
-  class _BackButton : public sf::Drawable {
+  class _BackButton final : public sf::Drawable {
   private:
     inline static const int BackId = 99904;
 
@@ -63,7 +62,7 @@ struct SaveLoadDialog::Impl {
     Text _text;
   };
 
-  class _Slot : public sf::Drawable, public sf::Transformable {
+  class _Slot final : public sf::Drawable, public sf::Transformable {
   private:
     inline static const int AutosaveId = 99901;
 
@@ -74,7 +73,7 @@ struct SaveLoadDialog::Impl {
       auto y = _index / 3;
       setPosition({168.f + 39.f * 4.f + 78.f * 4.f * x + 4.f * x, 92.f + 22.f * 4.f + 44.f * 4.f * y + 4.f * y});
 
-      const FntFont &uiFontSmallBold = engine.getTextureManager().getFntFont("UIFontSmallBold.fnt");
+      const auto &uiFontSmallBold = engine.getTextureManager().getFntFont("UIFontSmallBold.fnt");
 
       _gameTimeText.setString(slot.getGameTimeString());
       _gameTimeText.setFont(uiFontSmallBold);
@@ -91,7 +90,6 @@ struct SaveLoadDialog::Impl {
         saveTimeText = slot.getSaveTimeString();
       }
       _saveTimeText.setString(saveTimeText);
-
       _saveTimeText.setFont(uiFontSmallBold);
       _saveTimeText.setFillColor(sf::Color::White);
       _saveTimeText.setPosition(0.f, 64.f);
@@ -100,10 +98,9 @@ struct SaveLoadDialog::Impl {
       _saveTimeText.setOrigin(static_cast<float>(saveTimeSize.width / 2), static_cast<float>(saveTimeSize.height / 2));
 
       auto rect = spriteSheet.getRect("saveload_slot_frame");
-      auto saveslotRect = spriteSheet.getRect("saveload_slot");
       _sprite.setTexture(spriteSheet.getTexture());
-      _sprite.setOrigin(static_cast<float>(rect.width / 2), static_cast<float>(rect.height / 2));
-      _sprite.scale(4, 4);
+      _sprite.setOrigin(static_cast<float>(rect.width / 2.f), static_cast<float>(rect.height / 2.f));
+      _sprite.setScale(4, 4);
       _sprite.setTextureRect(rect);
 
       std::ostringstream s;
@@ -119,9 +116,10 @@ struct SaveLoadDialog::Impl {
         return;
       }
 
+      auto saveslotRect = spriteSheet.getRect("saveload_slot");
       _spriteImg.setTextureRect(saveslotRect);
       _spriteImg.setTexture(spriteSheet.getTexture());
-      _spriteImg.setOrigin(static_cast<float>(saveslotRect.width / 2), static_cast<float>(saveslotRect.height / 2));
+      _spriteImg.setOrigin(static_cast<float>(saveslotRect.width / 2.f), static_cast<float>(saveslotRect.height / 2.f));
       _spriteImg.setScale(4.f, 4.f);
     }
 
@@ -177,6 +175,13 @@ struct SaveLoadDialog::Impl {
   }
 
   void updateState() {
+    std::vector<SavegameSlot> slots;
+    ng::Engine::getSlotSavegames(slots);
+
+    for (int i = 0; i < static_cast<int>(_slots.size()); ++i) {
+      _slots[i].init(slots[i], _saveLoadSheet, *_pEngine);
+    }
+
     _wasMouseDown = false;
     setHeading(_saveMode);
 
@@ -197,18 +202,9 @@ struct SaveLoadDialog::Impl {
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    std::vector<SavegameSlot> slots;
-    _pEngine->getSlotSavegames(slots);
-
-    for (int i = 0; i < static_cast<int>(_slots.size()); ++i) {
-      _slots[i].init(slots[i], _saveLoadSheet, *_pEngine);
-    }
-
     const FntFont &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
     _headingText.setFillColor(sf::Color::White);
-
-    updateState();
   }
 
   void draw(sf::RenderTarget &target, sf::RenderStates) {
@@ -228,7 +224,7 @@ struct SaveLoadDialog::Impl {
     sf::Sprite sprite;
     sprite.setPosition(viewCenter);
     sprite.setTexture(_saveLoadSheet.getTexture());
-    sprite.setOrigin(static_cast<float>(rect.width / 2), static_cast<float>(rect.height / 2));
+    sprite.setOrigin(static_cast<float>(rect.width / 2.f), static_cast<float>(rect.height / 2.f));
     sprite.setTextureRect(rect);
     target.draw(sprite);
 

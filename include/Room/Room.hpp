@@ -38,8 +38,8 @@ public:
   std::vector<std::unique_ptr<Light>> &getLights();
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
-  void drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void draw(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const;
+  void drawForeground(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const;
 
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
   [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
