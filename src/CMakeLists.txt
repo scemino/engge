@@ -14,7 +14,7 @@ set(SOURCES
         Engine/Light.cpp Engine/Thread.cpp System/_Util.cpp Engine/Camera.cpp System/Logger.cpp Engine/EngineSettings.cpp Engine/Preferences.cpp
         Engine/Sentence.cpp Room/_RoomTrigger.cpp Entities/Actor/BlinkState.cpp Engine/Callback.cpp Math/PathFinding/_IndexedPriorityQueue.cpp
         Math/PathFinding/GraphEdge.cpp Math/PathFinding/_Path.cpp Math/PathFinding/_AstarAlgorithm.cpp Math/PathFinding/_WalkboxDrawable.cpp
-        Math/clipper.cpp Math/Segment.cpp UI/OptionsDialog.cpp UI/QuitDialog.cpp UI/SaveLoadDialog.cpp Entities/Objects/AnimationFrame.cpp UI/StartScreenDialog.cpp Engine/Hud.cpp ../include/Engine/Hud.hpp ../include/Parsers/GGHashReader.hpp Parsers/GGHashReader.cpp)
+        Math/clipper.cpp Math/Segment.cpp UI/OptionsDialog.cpp UI/QuitDialog.cpp UI/SaveLoadDialog.cpp Entities/Objects/AnimationFrame.cpp UI/StartScreenDialog.cpp Engine/Hud.cpp ../include/Engine/Hud.hpp ../include/Parsers/GGHashReader.hpp Parsers/GGHashReader.cpp ../include/Parsers/GGHashWriter.hpp Parsers/GGHashWriter.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

@@ -32,6 +32,7 @@
 #include "System/Logger.hpp"
 #include "../Math/PathFinding/_WalkboxDrawable.hpp"
 #include "Parsers/GGHashReader.hpp"
+#include "Parsers/GGHashWriter.hpp"
 #include "Parsers/GGPackValue.hpp"
 #include <cmath>
 #include <cstdio>
@@ -63,6 +64,8 @@ static const char *const _objectKey = "_objectKey";
 static const char *const _roomKey = "_roomKey";
 static const char *const _actorKey = "_actorKey";
 static const char *const _idKey = "_id";
+static const uint8_t
+    _savegameKey[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
 
 struct Engine::Impl {
 
@@ -70,7 +73,7 @@ struct Engine::Impl {
   public:
     explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
 
-    void saveGame(const std::string &) {
+    void saveGame(const std::string &path) {
 
       GGPackValue actorsHash;
       saveActors(actorsHash);
@@ -121,9 +124,7 @@ struct Engine::Impl {
           {"version", GGPackValue::toGGPackValue(2)},
       };
 
-      std::ofstream os("savegame.json", std::ofstream::out);
-      os << saveGameHash;
-      os.close();
+      saveGame(saveGameHash, path);
     }
 
     void loadSaveDat(const std::string &path) {
@@ -156,10 +157,7 @@ struct Engine::Impl {
       is.close();
 
       const int32_t decSize = size / -4;
-      const uint8_t
-          key[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
-
-      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
+      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) _savegameKey);
 
       GGHashReader reader;
       GGPackValue hash;
@@ -184,10 +182,7 @@ struct Engine::Impl {
       is.close();
 
       const int32_t decSize = size / -4;
-      const uint8_t
-          key[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
-
-      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) key);
+      sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) _savegameKey);
 
       GGHashReader reader;
       GGPackValue hash;
@@ -198,26 +193,68 @@ struct Engine::Impl {
     }
 
   private:
+    void saveGameInJson(const GGPackValue &saveGameHash, const std::string &path) {
+      std::string json(path);
+      json.append(".json");
+      std::ofstream os(json, std::ofstream::out);
+      os << saveGameHash;
+      os.close();
+    }
+
+    void saveGame(const GGPackValue &saveGameHash, const std::string &path) {
+      saveGameInJson(saveGameHash, path);
+
+      // save hash
+      std::stringstream o;
+      GGHashWriter writer;
+      writer.writeHash(saveGameHash, o);
+
+      // encode data
+      o.seekp(0, std::ios_base::end);
+      const auto fullSize = static_cast<int32_t>(o.tellp());
+      std::vector<char> buf(fullSize);
+      o.read(buf.data(), fullSize);
+
+      const auto decSize = fullSize / 4;
+      sub_4D9710((uint32_t *) buf.data(), decSize, (uint8_t *) _savegameKey);
+
+      // write data
+      std::ofstream os(path, std::ofstream::out);
+      os.write((char *) buf.data(), fullSize);
+      os.close();
+    }
+
     void loadActors(const GGPackValue &hash) {
       for (auto &pActor : _pImpl->_actors) {
         if (pActor->getKey().empty())
           continue;
 
         auto &actorHash = hash[pActor->getKey()];
-        auto pos = _parsePos(actorHash["_pos"].getString());
-        auto costume = actorHash["_costume"].getString();
-        auto roomKey = actorHash[_roomKey];
-        auto *pRoom = getRoom(roomKey.isNull() ? "Void" : roomKey.getString());
-        auto dir = actorHash["_dir"].getInt();
-
-        pActor->setRoom(pRoom);
-        pActor->setCostume(costume);
-        pActor->setPosition(pos);
-        pActor->getCostume().setFacing((Facing) dir);
 
         for (auto &property : actorHash.hash_value) {
-          if (property.first.empty() || property.first[0] == '_')
+          if (property.first.empty() || property.first[0] == '_') {
+            if (property.first == "_pos") {
+              auto pos = _parsePos(property.second.getString());
+              pActor->setPosition(pos);
+            } else if (property.first == "_costume") {
+              auto costume = property.second.getString();
+              pActor->setCostume(costume);
+            } else if (property.first == _roomKey) {
+              auto roomKey = property.second;
+              auto *pRoom = getRoom(roomKey.isNull() ? "Void" : roomKey.getString());
+              pActor->setRoom(pRoom);
+            } else if (property.first == "_dir") {
+              auto dir = property.second.getInt();
+              pActor->getCostume().setFacing((Facing) dir);
+            } else {
+              // TODO: other types
+              trace("load: actor {} property '{}' not loaded (type={})",
+                    pActor->getKey(),
+                    property.first,
+                    static_cast<int>(property.second.type));
+            }
             continue;
+          }
 
           if (property.second.isString()) {
             ScriptEngine::set(pActor.get(), property.first.data(), property.second.getString());
@@ -229,7 +266,10 @@ struct Engine::Impl {
             ScriptEngine::set(pActor.get(), property.first.data(), nullptr);
           } else {
             // TODO: other types
-            trace("load: actor property '{}' not loaded (type={})", property.first, property.second.type);
+            trace("load: actor {} property '{}' not loaded (type={})",
+                  pActor->getKey(),
+                  property.first,
+                  static_cast<int>(property.second.type));
           }
         }
       }
@@ -239,7 +279,7 @@ struct Engine::Impl {
       auto actorsSelectable = hash["actorsSelectable"].getInt();
       auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
       auto mode = actorsSelectable ? ActorSlotSelectableMode::On : ActorSlotSelectableMode::Off;
-      if(actorsTempUnselectable) {
+      if (actorsTempUnselectable) {
         mode |= ActorSlotSelectableMode::TemporaryUnselectable;
       }
       _pImpl->_pEngine->setActorSlotSelectable(mode);
@@ -308,7 +348,7 @@ struct Engine::Impl {
             ScriptEngine::set(pObj, objProperty.first.data(), nullptr);
           } else {
             // TODO: other types
-            trace("load: object property '{}' not loaded", objProperty.first);
+            trace("load: object {} property '{}' not loaded", objName, objProperty.first);
           }
         }
       }
