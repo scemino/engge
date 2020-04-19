@@ -11,6 +11,7 @@ public:
   ~OptionsDialog() override;
 
   void setCallback(Callback callback);
+  void setSaveEnabled(bool enabled);
   void setEngine(Engine *pEngine);
   void update(const sf::Time &elapsed);
 

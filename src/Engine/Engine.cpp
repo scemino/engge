@@ -952,6 +952,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
   s << "ThimbleweedText_" << lang << ".tsv";
   _pImpl->_textDb.load(s.str());
 
+  _pImpl->_optionsDialog.setSaveEnabled(true);
   _pImpl->_optionsDialog.setEngine(this);
   _pImpl->_optionsDialog.setCallback([this]() {
     showOptions(false);

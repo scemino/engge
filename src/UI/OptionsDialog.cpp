@@ -5,7 +5,6 @@
 #include "Audio/SoundManager.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Preferences.hpp"
-#include "Font/FntFont.hpp"
 #include "Graphics/Screen.hpp"
 #include "Graphics/SpriteSheet.hpp"
 #include "Graphics/Text.hpp"
@@ -14,7 +13,6 @@
 #include "UI/OptionsDialog.hpp"
 #include "UI/SaveLoadDialog.hpp"
 #include "UI/QuitDialog.hpp"
-
 #include <utility>
 #include "imgui.h"
 
@@ -83,6 +81,7 @@ struct OptionsDialog::Impl {
   Callback _callback{nullptr};
   bool _isDirty{false};
   State _state{State::Main};
+  bool _saveEnabled{false};
 
   inline static float getSlotPos(int slot) {
     return yPosStart + yPosLarge + yPosSmall * static_cast<float>(slot);
@@ -104,7 +103,7 @@ struct OptionsDialog::Impl {
     return Locator<Preferences>::get().getUserPreference(name, value);
   }
 
-  int getLanguageUserPreference() const {
+  static int getLanguageUserPreference() {
     auto lang =
         Locator<Preferences>::get().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
     auto it = std::find(LanguageValues.begin(), LanguageValues.end(), lang);
@@ -128,7 +127,7 @@ struct OptionsDialog::Impl {
         _saveload.updateLanguage();
         _saveload.setSaveMode(true);
         _showSaveLoad = true;
-        });
+      }, _saveEnabled);
       _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
         _saveload.updateLanguage();
         _saveload.setSaveMode(false);
@@ -339,11 +338,11 @@ struct OptionsDialog::Impl {
     if (!pEngine)
       return;
 
-    TextureManager &tm = pEngine->getTextureManager();
+    auto &tm = pEngine->getTextureManager();
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const FntFont &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
+    const auto &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
     _headingText.setFillColor(sf::Color::White);
 
@@ -359,7 +358,7 @@ struct OptionsDialog::Impl {
       _showSaveLoad = false;
     });
     _saveload.setSlotCallback([this](int slot) {
-      if(_saveload.getSaveMode()) {
+      if (_saveload.getSaveMode()) {
         _pEngine->saveGame(slot);
         _showSaveLoad = false;
         if (_callback)
@@ -463,6 +462,8 @@ OptionsDialog::OptionsDialog()
 }
 
 OptionsDialog::~OptionsDialog() = default;
+
+void OptionsDialog::setSaveEnabled(bool enabled) { _pImpl->_saveEnabled = enabled; }
 
 void OptionsDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
 

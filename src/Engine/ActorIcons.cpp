@@ -97,6 +97,10 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
   if (_mode == ActorSlotSelectableMode::Off)
     return;
 
+  auto currentActorIndex = getCurrentActorIndex();
+  if (currentActorIndex < 0)
+    return;
+
   int numIcons = 0;
   auto screen = target.getView().getSize();
   sf::Vector2f offset(screen.x - 8, 8);
@@ -110,7 +114,6 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
     alpha = 0x60;
   }
 
-  auto currentActorIndex = getCurrentActorIndex();
   const auto &icon = _actorsIconSlots.at(currentActorIndex).pActor->getIcon();
 
   offset.y = getOffsetY(numIcons);
