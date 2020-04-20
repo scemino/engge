@@ -150,7 +150,7 @@ struct Engine::Impl {
     void loadGame(const std::string &path) {
       std::ifstream is(path, std::ifstream::binary);
       is.seekg(0, std::ios::end);
-      auto size = is.tellg();
+      auto size = static_cast<int32_t>(is.tellg());
       is.seekg(0, std::ios::beg);
       std::vector<char> data(size, '\0');
       is.read(data.data(), size);
@@ -158,6 +158,14 @@ struct Engine::Impl {
 
       const int32_t decSize = size / -4;
       sub_4D9710((uint32_t *) &data[0], decSize, (uint8_t *) _savegameKey);
+
+      const auto hashData = *(int32_t *) &data[size - 16];
+      const auto hashCheck = computeHash(data, size - 16);
+
+      if (hashData != hashCheck) {
+        warn("Invalid savegame: {}", path);
+        return;
+      }
 
       GGHashReader reader;
       GGPackValue hash;
@@ -210,18 +218,39 @@ struct Engine::Impl {
       writer.writeHash(saveGameHash, o);
 
       // encode data
-      o.seekp(0, std::ios_base::end);
-      const auto fullSize = static_cast<int32_t>(o.tellp());
-      std::vector<char> buf(fullSize);
+      const auto fullSize = 500000;
+      const auto fullSizeAndFooter = fullSize + 16;
+      const auto marker = 8 - ((fullSize + 9) % 8);
+
+      std::vector<char> buf(fullSizeAndFooter);
       o.read(buf.data(), fullSize);
 
-      const auto decSize = fullSize / 4;
+      // write at the end 16 bytes: hashdata (4 bytes) + savetime (4 bytes) + marker (8 bytes)
+      const auto hashData = computeHash(buf, fullSize);
+      *(int32_t *) &buf[fullSize] = hashData;
+      *(int32_t *) &buf[fullSize + 4] = saveGameHash["savetime"].getInt();
+      memset(&buf[fullSize + 8], marker, 8);
+
+      // then encode data
+      const auto decSize = fullSizeAndFooter / 4;
       sub_4D9710((uint32_t *) buf.data(), decSize, (uint8_t *) _savegameKey);
 
       // write data
       std::ofstream os(path, std::ofstream::out);
-      os.write((char *) buf.data(), fullSize);
+      os.write((char *) buf.data(), fullSizeAndFooter);
       os.close();
+    }
+
+    static int32_t computeHash(const std::vector<char> &data, int32_t size) {
+      int32_t v10 = 0;
+      int32_t v11 = 0x6583463;
+      int32_t v12;
+
+      do {
+        v12 = *(uint8_t *) &data[v10++];
+        v11 += v12;
+      } while (v10 < size);
+      return v11;
     }
 
     void loadActors(const GGPackValue &hash) {
@@ -308,7 +337,7 @@ struct Engine::Impl {
           } else if (property.second.isNull()) {
             ScriptEngine::set(pActor.get(), property.first.data(), nullptr);
           } else if (property.second.isHash()) {
-            loadReferenceVariable(pActor.get(), property.first.data(), property.second.hash_value);
+            loadReferenceVariable(pActor.get(), property.first, property.second.hash_value);
           } else {
             // TODO: other types
             trace("load: actor {} property '{}' not loaded (type={})",
@@ -506,7 +535,7 @@ struct Engine::Impl {
       return nullptr;
     }
 
-    Object *getObject(Room *pRoom, const std::string &name) {
+    static Object *getObject(Room *pRoom, const std::string &name) {
       for (auto &pObj : pRoom->getObjects()) {
         if (pObj->getKey() == name)
           return pObj.get();

@@ -575,7 +575,7 @@ private:
   static SQInteger logWarning(HSQUIRRELVM v) {
     const SQChar *msg = nullptr;
     if (SQ_SUCCEEDED(sq_getstring(v, 2, &msg))) {
-      error(msg);
+      warn(msg);
     }
     return 0;
   }
