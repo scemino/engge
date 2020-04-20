@@ -2321,7 +2321,7 @@ void Engine::saveGame(int slot) {
   auto path = Impl::_SaveGameSystem::getSlotPath(slot);
   std::filesystem::path screenshotPath(path);
   screenshotPath.replace_extension(".png");
-  _pImpl->captureScreen(screenshotPath);
+  _pImpl->captureScreen(screenshotPath.string());
   saveGameSystem.saveGame(path);
 }
 
