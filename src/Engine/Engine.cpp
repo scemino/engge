@@ -127,7 +127,7 @@ struct Engine::Impl {
       saveGame(saveGameHash, path);
     }
 
-    void loadSaveDat(const std::string &path) {
+    [[maybe_unused]] static void loadSaveDat(const std::string &path) {
       std::ifstream is(path, std::ifstream::binary);
       is.seekg(0, std::ios::end);
       auto size = is.tellg();
@@ -189,7 +189,7 @@ struct Engine::Impl {
       reader.readHash(data, hash);
 
       slot.savetime = (time_t) hash["savetime"].getInt();
-      slot.gametime = sf::seconds(hash["gameTime"].getDouble());
+      slot.gametime = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
     }
 
   private:
@@ -201,7 +201,7 @@ struct Engine::Impl {
       os.close();
     }
 
-    void saveGame(const GGPackValue &saveGameHash, const std::string &path) {
+    static void saveGame(const GGPackValue &saveGameHash, const std::string &path) {
       saveGameInJson(saveGameHash, path);
 
       // save hash
@@ -233,25 +233,68 @@ struct Engine::Impl {
 
         for (auto &property : actorHash.hash_value) {
           if (property.first.empty() || property.first[0] == '_') {
-            if (property.first == "_pos") {
+            if (property.first == "_animations") {
+              std::vector<std::string> anims;
+              for (auto &value : property.second.array_value) {
+                anims.push_back(value.getString());
+              }
+              // TODO: _animations
+              trace("load: actor {} property '{}' not loaded (type={}) size={}",
+                    pActor->getKey(),
+                    property.first,
+                    static_cast<int>(property.second.type), anims.size());
+            } else if (property.first == "_pos") {
               auto pos = _parsePos(property.second.getString());
               pActor->setPosition(pos);
             } else if (property.first == "_costume") {
               auto costume = property.second.getString();
-              pActor->setCostume(costume);
+              std::string
+                  costumeSheet = actorHash["_costumeSheet"].isNull() ? "" : actorHash["_costumeSheet"].getString();
+              pActor->setCostume(costume, costumeSheet);
+            } else if (property.first == "_costumeSheet") {
+              // skip: done with _costume
             } else if (property.first == _roomKey) {
               auto roomKey = property.second;
               auto *pRoom = getRoom(roomKey.isNull() ? "Void" : roomKey.getString());
               pActor->setRoom(pRoom);
+            } else if (property.first == "_color") {
+              auto color = _toColor(property.second.getInt());
+              pActor->setColor(color);
             } else if (property.first == "_dir") {
-              auto dir = property.second.getInt();
-              pActor->getCostume().setFacing((Facing) dir);
+              auto dir = static_cast<Facing>(property.second.getInt());
+              pActor->getCostume().setFacing(dir);
+            } else if (property.first == "_useDir") {
+              auto dir = static_cast<UseDirection>(property.second.getInt());
+              pActor->setUseDirection(dir);
+            } else if (property.first == "_lockFacing") {
+              auto facing = static_cast<Facing>(property.second.getInt());
+              pActor->getCostume().lockFacing(facing, facing, facing, facing);
+            } else if (property.first == "_volume") {
+              auto volume = static_cast<float>(property.second.getDouble());
+              pActor->setVolume(volume);
+            } else if (property.first == "_usePos") {
+              auto pos = _parsePos(property.second.getString());
+              pActor->setUsePosition(pos);
+            } else if (property.first == "_renderOffset") {
+              auto renderOffset = (sf::Vector2i) _parsePos(property.second.getString());
+              pActor->setRenderOffset(renderOffset);
+            } else if (property.first == "_offset") {
+              auto offset = _parsePos(property.second.getString());
+              pActor->setOffset(offset);
             } else {
               // TODO: other types
-              trace("load: actor {} property '{}' not loaded (type={})",
+              std::ostringstream s;
+              if (property.second.isInteger()) {
+                s << property.second.int_value;
+              } else if (property.second.isDouble()) {
+                s << property.second.double_value;
+              } else if (property.second.isString()) {
+                s << property.second.string_value;
+              }
+              trace("load: actor {} property '{}' not loaded (type={}): {}",
                     pActor->getKey(),
                     property.first,
-                    static_cast<int>(property.second.type));
+                    static_cast<int>(property.second.type), s.str());
             }
             continue;
           }
@@ -264,6 +307,8 @@ struct Engine::Impl {
             ScriptEngine::set(pActor.get(), property.first.data(), property.second.getInt());
           } else if (property.second.isNull()) {
             ScriptEngine::set(pActor.get(), property.first.data(), nullptr);
+          } else if (property.second.isHash()) {
+            loadReferenceVariable(pActor.get(), property.first.data(), property.second.hash_value);
           } else {
             // TODO: other types
             trace("load: actor {} property '{}' not loaded (type={})",
@@ -288,6 +333,37 @@ struct Engine::Impl {
         auto pActor = getActor(selectableActor[_actorKey].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
         _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
+      }
+    }
+
+    void loadReferenceVariable(ScriptObject *pScriptObject,
+                               const std::string &key,
+                               const std::map<std::string, GGPackValue> &properties) {
+      auto itActor = properties.find(_actorKey);
+      auto itEnd = properties.cend();
+      if (itActor != itEnd) {
+        auto pActor = getActor(itActor->second.getString());
+        ScriptEngine::set(pScriptObject, key.data(), pActor);
+        return;
+      }
+      auto itObject = properties.find(_objectKey);
+      auto itRoom = properties.find(_roomKey);
+      if (itObject != itEnd) {
+        Object *pObject;
+        if (itRoom != itEnd) {
+          auto pRoom = getRoom(itRoom->second.getString());
+          pObject = getObject(pRoom, itObject->second.getString());
+          ScriptEngine::set(pScriptObject, key.data(), pObject);
+          return;
+        }
+        pObject = getObject(itObject->second.getString());
+        ScriptEngine::set(pScriptObject, key.data(), pObject);
+        return;
+      }
+
+      if (itRoom != itEnd) {
+        auto pRoom = getRoom(itRoom->second.getString());
+        ScriptEngine::set(pScriptObject, key.data(), pRoom);
       }
     }
 
@@ -365,7 +441,7 @@ struct Engine::Impl {
       //TODO: auto gameGUID = hash["gameGUID"].getString();
       auto &gameScene = hash["gameScene"];
       loadGameScene(gameScene);
-      _pImpl->_time = sf::seconds(hash["gameTime"].getDouble());
+      _pImpl->_time = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
 
       const auto &globals = hash["globals"];
       loadTable(globals);
@@ -404,11 +480,10 @@ struct Engine::Impl {
     }
 
     Room *getRoom(const std::string &name) {
-      for (const auto &pRoom : _pImpl->_pEngine->getRooms()) {
-        if (pRoom->getName() == name) {
-          return pRoom.get();
-        }
-      }
+      auto &rooms = _pImpl->_pEngine->getRooms();
+      auto it = std::find_if(rooms.begin(), rooms.end(), [&name](auto &pRoom) { return pRoom->getName() == name; });
+      if (it != rooms.end())
+        return it->get();
       return nullptr;
     }
 
@@ -427,6 +502,14 @@ struct Engine::Impl {
           if (pObj->getKey() == name)
             return pObj.get();
         }
+      }
+      return nullptr;
+    }
+
+    Object *getObject(Room *pRoom, const std::string &name) {
+      for (auto &pObj : pRoom->getObjects()) {
+        if (pObj->getKey() == name)
+          return pObj.get();
       }
       return nullptr;
     }
@@ -473,7 +556,7 @@ struct Engine::Impl {
       saveTable(g, globalsHash, false);
     }
 
-    void saveDialogs(GGPackValue &hash) const {
+    static void saveDialogs(GGPackValue &hash) {
       hash.type = 2;
     }
 
@@ -556,7 +639,7 @@ struct Engine::Impl {
       }
     }
 
-    void saveCallbacks(GGPackValue &callbacksHash) const {
+    static void saveCallbacks(GGPackValue &callbacksHash) {
       // TODO: save callbacks
       callbacksHash.type = 2;
       GGPackValue callbacksArray;
@@ -869,23 +952,23 @@ struct Engine::Impl {
   int getCurrentActorIndex() const;
   sf::IntRect getCursorRect() const;
   void appendUseFlag(std::wstring &sentence) const;
-  bool clickedAt(const sf::Vector2f &pos);
+  bool clickedAt(const sf::Vector2f &pos) const;
   void updateCutscene(const sf::Time &elapsed);
   void updateFunctions(const sf::Time &elapsed);
   void updateActorIcons(const sf::Time &elapsed);
-  void updateSentence(const sf::Time &elapsed);
+  void updateSentence(const sf::Time &elapsed) const;
   void updateMouseCursor();
   void updateHoveredEntity(bool isRightClick);
-  SQInteger enterRoom(Room *pRoom, Object *pObject);
+  SQInteger enterRoom(Room *pRoom, Object *pObject) const;
   SQInteger exitRoom(Object *pObject);
-  void updateScreenSize();
-  void updateRoomScalings();
+  void updateScreenSize() const;
+  void updateRoomScalings() const;
   void setCurrentRoom(Room *pRoom);
   int getFlags(Entity *pEntity) const;
   int getDefaultVerb(Entity *pEntity) const;
   Entity *getHoveredEntity(const sf::Vector2f &mousPos);
-  void actorEnter();
-  void actorExit();
+  void actorEnter() const;
+  void actorExit() const;
   void onLanguageChange(const std::string &lang);
   void drawFade(sf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
@@ -897,9 +980,9 @@ struct Engine::Impl {
   void stopThreads();
   void drawWalkboxes(sf::RenderTarget &target) const;
   const Verb *getHoveredVerb() const;
-  std::wstring getDisplayName(const std::wstring &name) const;
+  static std::wstring getDisplayName(const std::wstring &name);
   void run(bool state);
-  void stopAllTalking();
+  void stopAllTalking() const;
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
   void captureScreen(const std::string &path) const;
@@ -1201,7 +1284,7 @@ int Engine::Impl::getDefaultVerb(Entity *pEntity) const {
   return VerbConstants::VERB_LOOKAT;
 }
 
-void Engine::Impl::updateScreenSize() {
+void Engine::Impl::updateScreenSize() const {
   if (!_pRoom)
     return;
 
@@ -1210,7 +1293,7 @@ void Engine::Impl::updateScreenSize() {
   _pWindow->setView(view);
 }
 
-void Engine::Impl::actorEnter() {
+void Engine::Impl::actorEnter() const {
   if (!_pCurrentActor)
     return;
 
@@ -1222,14 +1305,14 @@ void Engine::Impl::actorEnter() {
   ScriptEngine::rawCall(_pRoom, "actorEnter", _pCurrentActor);
 }
 
-void Engine::Impl::actorExit() {
+void Engine::Impl::actorExit() const {
   if (!_pCurrentActor || !_pRoom)
     return;
 
   ScriptEngine::rawCall(_pRoom, "actorExit", _pCurrentActor);
 }
 
-SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) {
+SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) const {
   // call enter room function
   trace("call enter room function of {}", pRoom->getName());
   auto nparams = ScriptEngine::getParameterCount(pRoom, "enter");
@@ -1379,7 +1462,7 @@ void Engine::Impl::updateCutscene(const sf::Time &elapsed) {
   }
 }
 
-void Engine::Impl::updateSentence(const sf::Time &elapsed) {
+void Engine::Impl::updateSentence(const sf::Time &elapsed) const {
   if (!_pSentence)
     return;
   (*_pSentence)(elapsed);
@@ -1537,7 +1620,7 @@ int Engine::Impl::getFlags(Entity *pEntity) const {
   return flags;
 }
 
-void Engine::Impl::updateRoomScalings() {
+void Engine::Impl::updateRoomScalings() const {
   auto actor = _pCurrentActor;
   if (!actor)
     return;
@@ -1762,7 +1845,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   }
 }
 
-void Engine::Impl::stopAllTalking() {
+void Engine::Impl::stopAllTalking() const {
   for (auto &&a : _pEngine->getActors()) {
     a->stopTalking();
   }
@@ -1832,7 +1915,7 @@ void Engine::Impl::onVerbClick(const Verb *pVerb) {
   ScriptEngine::rawCall("onVerbClick");
 }
 
-bool Engine::Impl::clickedAt(const sf::Vector2f &pos) {
+bool Engine::Impl::clickedAt(const sf::Vector2f &pos) const {
   if (!_pRoom)
     return false;
 
@@ -2007,7 +2090,7 @@ sf::IntRect Engine::Impl::getCursorRect() const {
                                                        : _gameSheet.getRect("cursor");
 }
 
-std::wstring Engine::Impl::getDisplayName(const std::wstring &name) const {
+std::wstring Engine::Impl::getDisplayName(const std::wstring &name) {
   auto len = name.length();
   if (len > 2 && name[len - 2] == '#') {
     return name.substr(0, len - 2);

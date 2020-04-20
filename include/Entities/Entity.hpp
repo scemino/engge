@@ -6,8 +6,16 @@
 #include "Engine/Interpolations.hpp"
 #include "SFML/Graphics.hpp"
 #include "Scripting/ScriptObject.hpp"
+#include "Entities/Actor/DirectionConstants.hpp"
 
 namespace ng {
+enum class UseDirection {
+  Front = DirectionConstants::FACE_FRONT,
+  Back = DirectionConstants::FACE_BACK,
+  Left = DirectionConstants::FACE_LEFT,
+  Right = DirectionConstants::FACE_RIGHT,
+};
+
 class Engine;
 class Room;
 class SoundDefinition;
@@ -34,6 +42,9 @@ public:
 
   void setRenderOffset(const sf::Vector2i &offset);
   sf::Vector2i getRenderOffset() const;
+
+  void setUseDirection(UseDirection direction);
+  UseDirection getUseDirection() const;
 
   void setUsePosition(const sf::Vector2f &pos);
   void setPosition(const sf::Vector2f &pos);
@@ -86,6 +97,7 @@ private:
   std::map<int, Trigger *> _triggers;
   std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
   sf::Vector2f _usePos;
+  UseDirection _useDir{UseDirection::Front};
   sf::Vector2f _offset;
   bool _isLit{true};
   bool _isVisible{true};

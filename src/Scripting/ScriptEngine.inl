@@ -125,6 +125,25 @@ void ScriptEngine::push<Object *>(HSQUIRRELVM v, Object *pObject) {
 }
 
 template<>
+void ScriptEngine::push<ScriptObject *>(HSQUIRRELVM v, ScriptObject *pObject) {
+  if (!pObject) {
+    sq_pushnull(v);
+    return;
+  }
+  auto pEntity = dynamic_cast<Entity*>(pObject);
+  if(pEntity) {
+    sq_pushobject(v, pEntity->getTable());
+    return;
+  }
+  auto pRoom = dynamic_cast<Room*>(pObject);
+  if(pRoom) {
+    sq_pushobject(v, pRoom->getTable());
+    return;
+  }
+  throw std::logic_error("Unable to push an unknown ScriptObject type");
+}
+
+template<>
 void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t) {
   sq_pushnull(v);
 }

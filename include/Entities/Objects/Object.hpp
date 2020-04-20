@@ -2,17 +2,9 @@
 #include <optional>
 #include "squirrel.h"
 #include "SFML/Graphics.hpp"
-#include "Entities/Actor/DirectionConstants.hpp"
 #include "Entities/Entity.hpp"
 
 namespace ng {
-enum class UseDirection {
-  Front = DirectionConstants::FACE_FRONT,
-  Back = DirectionConstants::FACE_BACK,
-  Left = DirectionConstants::FACE_LEFT,
-  Right = DirectionConstants::FACE_RIGHT,
-};
-
 enum class ScreenSpace {
   Room,
   Object
@@ -78,9 +70,6 @@ public:
 
   bool isTouchable() const override;
   bool isInventoryObject() const override;
-
-  void setUseDirection(UseDirection direction);
-  UseDirection getUseDirection() const;
 
   void setHotspot(const sf::IntRect &hotspot);
   const sf::IntRect &getHotspot() const;

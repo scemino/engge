@@ -34,6 +34,14 @@ void Entity::setUsePosition(const sf::Vector2f &pos) {
   _usePos = pos;
 }
 
+void Entity::setUseDirection(UseDirection direction) {
+  _useDir = direction;
+}
+
+UseDirection Entity::getUseDirection() const {
+  return _useDir;
+}
+
 void Entity::setPosition(const sf::Vector2f &pos) {
   _transform.setPosition(pos);
 }

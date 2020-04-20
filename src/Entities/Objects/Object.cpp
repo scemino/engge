@@ -18,7 +18,6 @@ struct Object::Impl {
   std::optional<Animation *> _pAnim{std::nullopt};
   std::wstring _name;
   int _zorder{0};
-  UseDirection _direction{UseDirection::Front};
   ObjectType _type{ObjectType::Object};
   sf::Vector2f _usePos;
   sf::IntRect _hotspot;
@@ -59,9 +58,6 @@ int Object::getZOrder() const { return pImpl->_zorder; }
 
 void Object::setType(ObjectType type) { pImpl->_type = type; }
 ObjectType Object::getType() const { return pImpl->_type; }
-
-void Object::setUseDirection(UseDirection direction) { pImpl->_direction = direction; }
-UseDirection Object::getUseDirection() const { return pImpl->_direction; }
 
 void Object::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
 const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
