@@ -312,41 +312,30 @@ struct Engine::Impl {
               pActor->setOffset(offset);
             } else {
               // TODO: other types
-              std::ostringstream s;
-              if (property.second.isInteger()) {
-                s << property.second.int_value;
-              } else if (property.second.isDouble()) {
-                s << property.second.double_value;
-              } else if (property.second.isString()) {
-                s << property.second.string_value;
-              }
+              auto s = getValue(property);
               trace("load: actor {} property '{}' not loaded (type={}): {}",
                     pActor->getKey(),
                     property.first,
-                    static_cast<int>(property.second.type), s.str());
+                    static_cast<int>(property.second.type), s);
             }
             continue;
           }
 
-          if (property.second.isString()) {
-            ScriptEngine::set(pActor.get(), property.first.data(), property.second.getString());
-          } else if (property.second.isDouble()) {
-            ScriptEngine::set(pActor.get(), property.first.data(), static_cast<float>(property.second.getDouble()));
-          } else if (property.second.isInteger()) {
-            ScriptEngine::set(pActor.get(), property.first.data(), property.second.getInt());
-          } else if (property.second.isNull()) {
-            ScriptEngine::set(pActor.get(), property.first.data(), nullptr);
-          } else if (property.second.isHash()) {
-            loadReferenceVariable(pActor.get(), property.first, property.second.hash_value);
-          } else {
-            // TODO: other types
-            trace("load: actor {} property '{}' not loaded (type={})",
-                  pActor->getKey(),
-                  property.first,
-                  static_cast<int>(property.second.type));
-          }
+          _table(pActor->getTable())->Set(toSquirrel(property.first), toSquirrel(property.second));
         }
       }
+    }
+
+    static std::string getValue(const std::pair<std::string, GGPackValue> &property) {
+      std::ostringstream s;
+      if (property.second.isInteger()) {
+        s << property.second.int_value;
+      } else if (property.second.isDouble()) {
+        s << property.second.double_value;
+      } else if (property.second.isString()) {
+        s << property.second.string_value;
+      }
+      return s.str();
     }
 
     void loadGameScene(GGPackValue &hash) {
@@ -365,35 +354,63 @@ struct Engine::Impl {
       }
     }
 
-    void loadReferenceVariable(ScriptObject *pScriptObject,
-                               const std::string &key,
-                               const std::map<std::string, GGPackValue> &properties) {
-      auto itActor = properties.find(_actorKey);
-      auto itEnd = properties.cend();
-      if (itActor != itEnd) {
-        auto pActor = getActor(itActor->second.getString());
-        ScriptEngine::set(pScriptObject, key.data(), pActor);
-        return;
+    SQObjectPtr toSquirrel(const std::string &value) {
+      return SQString::Create(_ss(_pImpl->_vm), value.c_str());
+    }
+
+    SQObjectPtr toSquirrel(const GGPackValue &value) {
+      if (value.isString()) {
+        return toSquirrel(value.getString());
       }
-      auto itObject = properties.find(_objectKey);
-      auto itRoom = properties.find(_roomKey);
-      if (itObject != itEnd) {
-        Object *pObject;
+      if (value.isInteger()) {
+        return static_cast<SQInteger>(value.getInt());
+      }
+      if (value.isDouble()) {
+        return static_cast<SQFloat>(value.getDouble());
+      }
+      if (value.isArray()) {
+        auto array = SQArray::Create(_ss(_pImpl->_vm), value.array_value.size());
+        SQInteger i = 0;
+        for (auto &item : value.array_value) {
+          array->Set(i++, toSquirrel(item));
+        }
+        return array;
+      }
+      if (value.isHash()) {
+        auto itActor = value.hash_value.find(_actorKey);
+        auto itEnd = value.hash_value.cend();
+        if (itActor != itEnd) {
+          auto pActor = getActor(itActor->second.getString());
+          return pActor->getTable();
+        }
+        auto itObject = value.hash_value.find(_objectKey);
+        auto itRoom = value.hash_value.find(_roomKey);
+        if (itObject != itEnd) {
+          Object *pObject;
+          if (itRoom != itEnd) {
+            auto pRoom = getRoom(itRoom->second.getString());
+            pObject = getObject(pRoom, itObject->second.getString());
+            return pObject->getTable();
+          }
+          pObject = getObject(itObject->second.getString());
+          return pObject->getTable();
+        }
+
         if (itRoom != itEnd) {
           auto pRoom = getRoom(itRoom->second.getString());
-          pObject = getObject(pRoom, itObject->second.getString());
-          ScriptEngine::set(pScriptObject, key.data(), pObject);
-          return;
+          return pRoom->getTable();
         }
-        pObject = getObject(itObject->second.getString());
-        ScriptEngine::set(pScriptObject, key.data(), pObject);
-        return;
-      }
 
-      if (itRoom != itEnd) {
-        auto pRoom = getRoom(itRoom->second.getString());
-        ScriptEngine::set(pScriptObject, key.data(), pRoom);
+        auto table = SQTable::Create(_ss(_pImpl->_vm), value.hash_value.size());
+        for (const auto& [key,value] : value.hash_value) {
+          table->Set(toSquirrel(key), toSquirrel(value));
+        }
+        return table;
       }
+      if (!value.isNull()) {
+        warn("trying to convert an unknown value (type={}) to squirrel", static_cast<int >(value.type));
+      }
+      return SQObjectPtr();
     }
 
     void loadInventory(GGPackValue &hash) {
@@ -443,18 +460,7 @@ struct Engine::Impl {
           if (objProperty.first.empty() || objProperty.first[0] == '_')
             continue;
 
-          if (objProperty.second.isString()) {
-            ScriptEngine::set(pObj, objProperty.first.data(), objProperty.second.getString());
-          } else if (objProperty.second.isDouble()) {
-            ScriptEngine::set(pObj, objProperty.first.data(), static_cast<float>(objProperty.second.getDouble()));
-          } else if (objProperty.second.isInteger()) {
-            ScriptEngine::set(pObj, objProperty.first.data(), objProperty.second.getInt());
-          } else if (objProperty.second.isNull()) {
-            ScriptEngine::set(pObj, objProperty.first.data(), nullptr);
-          } else {
-            // TODO: other types
-            trace("load: object {} property '{}' not loaded", objName, objProperty.first);
-          }
+          _table(pObj->getTable())->Set(toSquirrel(objProperty.first), toSquirrel(objProperty.second));
         }
       }
     }
