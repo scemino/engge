@@ -103,9 +103,9 @@ struct Engine::Impl {
       time(&now);
 
       SQObjectPtr g;
-      _table(_pImpl->_vm->_roottable)->Get(toSquirrel("g"), g);
+      _table(_pImpl->_vm->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
       SQObjectPtr easyMode;
-      _table(g)->Get(toSquirrel("easy_mode"), easyMode);
+      _table(g)->Get(ScriptEngine::toSquirrel("easy_mode"), easyMode);
 
       GGPackValue saveGameHash;
       saveGameHash.type = 2;
@@ -176,7 +176,7 @@ struct Engine::Impl {
       GGPackValue hash;
       reader.readHash(data, hash);
 
-      std::ofstream os(path+".json");
+      std::ofstream os(path + ".json");
       os << hash;
       os.close();
 
@@ -275,13 +275,9 @@ struct Engine::Impl {
       return s.str();
     }
 
-    SQObjectPtr toSquirrel(const std::string &value) {
-      return SQString::Create(_ss(_pImpl->_vm), value.c_str());
-    }
-
     SQObjectPtr toSquirrel(const GGPackValue &value) {
       if (value.isString()) {
-        return toSquirrel(value.getString());
+        return ScriptEngine::toSquirrel(value.getString());
       }
       if (value.isInteger()) {
         return static_cast<SQInteger>(value.getInt());
@@ -332,7 +328,7 @@ struct Engine::Impl {
 
         auto table = SQTable::Create(_ss(_pImpl->_vm), value.hash_value.size());
         for (const auto&[key, value] : value.hash_value) {
-          table->Set(toSquirrel(key), toSquirrel(value));
+          table->Set(ScriptEngine::toSquirrel(key), toSquirrel(value));
         }
         return table;
       }
@@ -368,11 +364,15 @@ struct Engine::Impl {
     }
 
     void loadCallbacks(const GGPackValue &hash) {
-      // TODO: load dialog
-      for (auto &value : hash["callbacks"].array_value) {
-        warn("load callbacks: value not loaded (type={}): {}",
-             static_cast<int>(value.type), getValue(value));
+      _pImpl->_callbacks.clear();
+      for (auto &callBackHash : hash["callbacks"].array_value) {
+        auto name = callBackHash["function"].getString();
+        auto id = callBackHash["guid"].getInt();
+        auto time = sf::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
+        auto callback = std::make_unique<Callback>(id, time, name);
+        _pImpl->_callbacks.push_back(std::move(callback));
       }
+      Locator<ResourceManager>::get().setCallbackId(hash["nextGuid"].getInt());
     }
 
     void loadActors(const GGPackValue &hash) {
@@ -443,7 +443,7 @@ struct Engine::Impl {
             continue;
           }
 
-          _table(pActor->getTable())->Set(toSquirrel(property.first), toSquirrel(property.second));
+          _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
         }
       }
     }
@@ -495,7 +495,7 @@ struct Engine::Impl {
           if (objProperty.first.empty() || objProperty.first[0] == '_')
             continue;
 
-          _table(pObj->getTable())->Set(toSquirrel(objProperty.first), toSquirrel(objProperty.second));
+          _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(objProperty.first), toSquirrel(objProperty.second));
         }
       }
     }
@@ -522,7 +522,7 @@ struct Engine::Impl {
             }
           }
 
-          _table(pRoom->getTable())->Set(toSquirrel(property.first), toSquirrel(property.second));
+          _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
         }
       }
     }
@@ -674,7 +674,6 @@ struct Engine::Impl {
     }
 
     void saveInventory(GGPackValue &hash) const {
-
       GGPackValue slots;
       slots.type = 3;
       for (auto &slot : _pImpl->_actorsIconSlots) {
@@ -725,21 +724,36 @@ struct Engine::Impl {
       }
     }
 
-    static void saveCallbacks(GGPackValue &callbacksHash) {
-      // TODO: save callbacks
+    void saveCallbacks(GGPackValue &callbacksHash) {
       callbacksHash.type = 2;
       GGPackValue callbacksArray;
       callbacksArray.type = 3;
+
+      for (auto& callback : _pImpl->_callbacks) {
+        GGPackValue callbackHash;
+        callbackHash.type = 2;
+        callbackHash.hash_value = {
+            {"function", GGPackValue::toGGPackValue(callback->getMethod())},
+            {"guid", GGPackValue::toGGPackValue(callback->getId())},
+            {"time", GGPackValue::toGGPackValue(callback->getElapsed().asMilliseconds())}
+        };
+        callbacksArray.array_value.push_back(callbackHash);
+      }
+
+      auto& resourceManager = Locator<ResourceManager>::get();
+      auto id = resourceManager.getCallbackId();
+      resourceManager.setCallbackId(id);
+
       callbacksHash.hash_value = {
           {"callbacks", callbacksArray},
-          {"nextGuid", GGPackValue::toGGPackValue(8000000)},
+          {"nextGuid", GGPackValue::toGGPackValue(id)},
       };
     }
 
     void loadTable(const GGPackValue &hash) {
       SQTable *pRootTable = _table(_pImpl->_vm->_roottable);
       for (const auto &variable : hash.hash_value) {
-        pRootTable->Set(toSquirrel(variable.first), toSquirrel(variable.second));
+        pRootTable->Set(ScriptEngine::toSquirrel(variable.first), toSquirrel(variable.second));
       }
     }
 
@@ -1561,9 +1575,19 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
   _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
                                   [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
                    _functions.end());
-  for (auto &callback : _callbacks) {
+
+
+  std::vector<std::unique_ptr<Callback>> callbacks;
+  std::move(_callbacks.begin(),_callbacks.end(),std::back_inserter(callbacks));
+  _callbacks.clear();
+  for (auto &callback : callbacks) {
     (*callback)(elapsed);
   }
+  callbacks.erase(std::remove_if(callbacks.begin(),
+                                 callbacks.end(),
+                                  [](auto &f) { return f->isElapsed(); }),
+                  callbacks.end());
+  std::move(callbacks.begin(),callbacks.end(),std::back_inserter(_callbacks));
 }
 
 void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {

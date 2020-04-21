@@ -12,7 +12,7 @@ private:
   Engine &_engine;
   HSQUIRRELVM _v{};
   HSQUIRRELVM _engineVm{};
-  HSQOBJECT _thread{};
+  HSQOBJECT _threadCutscene{};
   int _state{0};
   HSQOBJECT _closureObj{};
   HSQOBJECT _closureCutsceneOverrideObj{};

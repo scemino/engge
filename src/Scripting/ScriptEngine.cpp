@@ -1,5 +1,8 @@
 #include <cstdarg>
 #include "squirrel.h"
+#include "../../extlibs/squirrel/squirrel/sqpcheader.h"
+#include "../../extlibs/squirrel/squirrel/sqvm.h"
+#include "../../extlibs/squirrel/squirrel/sqstring.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
 #include "sqstdstring.h"
@@ -579,6 +582,11 @@ bool ScriptEngine::call(const char *name) {
   }
   sq_pop(v, 1);
   return true;
+}
+
+SQObjectPtr ScriptEngine::toSquirrel(const std::string &value) {
+  SQObjectPtr string = SQString::Create(_ss(getVm()), value.c_str());
+  return string;
 }
 
 Engine *ScriptEngine::g_pEngine = nullptr;

@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <string>
+#include "../../extlibs/squirrel/squirrel/sqobject.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
 #include "Engine/Engine.hpp"
@@ -28,6 +29,10 @@ public:
 
   void setEngine(Engine &engine);
   Engine &getEngine();
+
+  static HSQUIRRELVM getVm() { return g_pEngine->getVm(); }
+
+  static SQObjectPtr toSquirrel(const std::string &value);
 
   template<typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list);

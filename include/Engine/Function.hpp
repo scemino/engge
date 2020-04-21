@@ -30,6 +30,8 @@ public:
     _elapsed += elapsed;
   }
 
+  sf::Time getElapsed() const { return _elapsed; }
+
   bool isElapsed() override {
     auto isElapsed = _elapsed > _time;
     if (isElapsed && !_done) {
