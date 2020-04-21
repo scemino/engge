@@ -116,10 +116,11 @@ class VerbExecute;
 
 class SavegameSlot {
 public:
-  int slot;
-  time_t savetime;
+  int slot{0};
+  time_t savetime{};
   sf::Time gametime;
   std::string path;
+  bool easyMode{false};
 
   [[nodiscard]] std::string getSaveTimeString() const;
   [[nodiscard]] std::string getGameTimeString() const;

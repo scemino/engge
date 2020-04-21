@@ -102,6 +102,11 @@ struct Engine::Impl {
       time_t now;
       time(&now);
 
+      SQObjectPtr g;
+      _table(_pImpl->_vm->_roottable)->Get(toSquirrel("g"), g);
+      SQObjectPtr easyMode;
+      _table(g)->Get(toSquirrel("easy_mode"), easyMode);
+
       GGPackValue saveGameHash;
       saveGameHash.type = 2;
       saveGameHash.hash_value = {
@@ -109,7 +114,7 @@ struct Engine::Impl {
           {"callbacks", callbacksHash},
           {"currentRoom", GGPackValue::toGGPackValue(_pImpl->_pRoom->getName())},
           {"dialog", dialogHash},
-          {"easy_mode", GGPackValue::toGGPackValue(1)}, // TODO: easy_mode
+          {"easy_mode", GGPackValue::toGGPackValue(static_cast<int>(_integer(easyMode)))},
           {"gameGUID", GGPackValue::toGGPackValue(std::string())},
           {"gameScene", gameSceneHash},
           {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.asSeconds())},
@@ -196,6 +201,7 @@ struct Engine::Impl {
       GGPackValue hash;
       reader.readHash(data, hash);
 
+      slot.easyMode = hash["easy_mode"].getInt() != 0;
       slot.savetime = (time_t) hash["savetime"].getInt();
       slot.gametime = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
     }
@@ -2469,6 +2475,9 @@ std::string SavegameSlot::getSaveTimeString() const {
   // TODO: translate
   strftime(buffer, 120, "%b %d at %H:%M", ltm);
   std::string s(buffer);
+  if(easyMode){
+    s.append(" (casual)");
+  }
   return s;
 }
 
