@@ -176,6 +176,10 @@ struct Engine::Impl {
       GGPackValue hash;
       reader.readHash(data, hash);
 
+      std::ofstream os(path+".json");
+      os << hash;
+      os.close();
+
       loadGame(hash);
     }
 
@@ -259,6 +263,118 @@ struct Engine::Impl {
       return v11;
     }
 
+    static std::string getValue(const GGPackValue &property) {
+      std::ostringstream s;
+      if (property.isInteger()) {
+        s << property.int_value;
+      } else if (property.isDouble()) {
+        s << property.double_value;
+      } else if (property.isString()) {
+        s << property.string_value;
+      }
+      return s.str();
+    }
+
+    SQObjectPtr toSquirrel(const std::string &value) {
+      return SQString::Create(_ss(_pImpl->_vm), value.c_str());
+    }
+
+    SQObjectPtr toSquirrel(const GGPackValue &value) {
+      if (value.isString()) {
+        return toSquirrel(value.getString());
+      }
+      if (value.isInteger()) {
+        return static_cast<SQInteger>(value.getInt());
+      }
+      if (value.isDouble()) {
+        return static_cast<SQFloat>(value.getDouble());
+      }
+      if (value.isArray()) {
+        auto array = SQArray::Create(_ss(_pImpl->_vm), value.array_value.size());
+        SQInteger i = 0;
+        for (auto &item : value.array_value) {
+          array->Set(i++, toSquirrel(item));
+        }
+        return array;
+      }
+      if (value.isHash()) {
+        auto itActor = value.hash_value.find(_actorKey);
+        auto itEnd = value.hash_value.cend();
+        if (itActor != itEnd) {
+          auto pActor = getActor(itActor->second.getString());
+          return pActor->getTable();
+        }
+        auto itObject = value.hash_value.find(_objectKey);
+        auto itRoom = value.hash_value.find(_roomKey);
+        if (itObject != itEnd) {
+          Object *pObject;
+          if (itRoom != itEnd) {
+            auto pRoom = getRoom(itRoom->second.getString());
+            pObject = getObject(pRoom, itObject->second.getString());
+            if (!pObject) {
+              warn("load: object {} not found", itObject->second.getString());
+              return SQObjectPtr();
+            }
+            return pObject->getTable();
+          }
+          pObject = getObject(itObject->second.getString());
+          if (!pObject) {
+            warn("load: object {} not found", itObject->second.getString());
+            return SQObjectPtr();
+          }
+          return pObject->getTable();
+        }
+
+        if (itRoom != itEnd) {
+          auto pRoom = getRoom(itRoom->second.getString());
+          return pRoom->getTable();
+        }
+
+        auto table = SQTable::Create(_ss(_pImpl->_vm), value.hash_value.size());
+        for (const auto&[key, value] : value.hash_value) {
+          table->Set(toSquirrel(key), toSquirrel(value));
+        }
+        return table;
+      }
+      if (!value.isNull()) {
+        warn("trying to convert an unknown value (type={}) to squirrel", static_cast<int >(value.type));
+      }
+      return SQObjectPtr();
+    }
+
+    void loadGameScene(const GGPackValue &hash) {
+      auto actorsSelectable = hash["actorsSelectable"].getInt();
+      auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
+      auto mode = actorsSelectable ? ActorSlotSelectableMode::On : ActorSlotSelectableMode::Off;
+      if (actorsTempUnselectable) {
+        mode |= ActorSlotSelectableMode::TemporaryUnselectable;
+      }
+      _pImpl->_pEngine->setActorSlotSelectable(mode);
+      // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
+      for (auto &selectableActor : hash["selectableActors"].array_value) {
+        auto pActor = getActor(selectableActor[_actorKey].getString());
+        auto selectable = selectableActor["selectable"].getInt() != 0;
+        _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
+      }
+    }
+
+    void loadDialog(const GGPackValue &hash) {
+      // TODO: load dialog
+      for (auto &property : hash.hash_value) {
+        warn("load dialog: property '{}' not loaded (type={}): {}",
+             property.first,
+             static_cast<int>(property.second.type), getValue(property.second));
+      }
+    }
+
+    void loadCallbacks(const GGPackValue &hash) {
+      // TODO: load dialog
+      for (auto &value : hash["callbacks"].array_value) {
+        warn("load callbacks: value not loaded (type={}): {}",
+             static_cast<int>(value.type), getValue(value));
+      }
+    }
+
     void loadActors(const GGPackValue &hash) {
       for (auto &pActor : _pImpl->_actors) {
         if (pActor->getKey().empty())
@@ -318,7 +434,7 @@ struct Engine::Impl {
               pActor->setOffset(offset);
             } else {
               // TODO: other types
-              auto s = getValue(property);
+              auto s = getValue(property.second);
               trace("load: actor {} property '{}' not loaded (type={}): {}",
                     pActor->getKey(),
                     property.first,
@@ -332,94 +448,7 @@ struct Engine::Impl {
       }
     }
 
-    static std::string getValue(const std::pair<std::string, GGPackValue> &property) {
-      std::ostringstream s;
-      if (property.second.isInteger()) {
-        s << property.second.int_value;
-      } else if (property.second.isDouble()) {
-        s << property.second.double_value;
-      } else if (property.second.isString()) {
-        s << property.second.string_value;
-      }
-      return s.str();
-    }
-
-    void loadGameScene(GGPackValue &hash) {
-      auto actorsSelectable = hash["actorsSelectable"].getInt();
-      auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
-      auto mode = actorsSelectable ? ActorSlotSelectableMode::On : ActorSlotSelectableMode::Off;
-      if (actorsTempUnselectable) {
-        mode |= ActorSlotSelectableMode::TemporaryUnselectable;
-      }
-      _pImpl->_pEngine->setActorSlotSelectable(mode);
-      // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
-      for (auto &selectableActor : hash["selectableActors"].array_value) {
-        auto pActor = getActor(selectableActor[_actorKey].getString());
-        auto selectable = selectableActor["selectable"].getInt() != 0;
-        _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
-      }
-    }
-
-    SQObjectPtr toSquirrel(const std::string &value) {
-      return SQString::Create(_ss(_pImpl->_vm), value.c_str());
-    }
-
-    SQObjectPtr toSquirrel(const GGPackValue &value) {
-      if (value.isString()) {
-        return toSquirrel(value.getString());
-      }
-      if (value.isInteger()) {
-        return static_cast<SQInteger>(value.getInt());
-      }
-      if (value.isDouble()) {
-        return static_cast<SQFloat>(value.getDouble());
-      }
-      if (value.isArray()) {
-        auto array = SQArray::Create(_ss(_pImpl->_vm), value.array_value.size());
-        SQInteger i = 0;
-        for (auto &item : value.array_value) {
-          array->Set(i++, toSquirrel(item));
-        }
-        return array;
-      }
-      if (value.isHash()) {
-        auto itActor = value.hash_value.find(_actorKey);
-        auto itEnd = value.hash_value.cend();
-        if (itActor != itEnd) {
-          auto pActor = getActor(itActor->second.getString());
-          return pActor->getTable();
-        }
-        auto itObject = value.hash_value.find(_objectKey);
-        auto itRoom = value.hash_value.find(_roomKey);
-        if (itObject != itEnd) {
-          Object *pObject;
-          if (itRoom != itEnd) {
-            auto pRoom = getRoom(itRoom->second.getString());
-            pObject = getObject(pRoom, itObject->second.getString());
-            return pObject->getTable();
-          }
-          pObject = getObject(itObject->second.getString());
-          return pObject->getTable();
-        }
-
-        if (itRoom != itEnd) {
-          auto pRoom = getRoom(itRoom->second.getString());
-          return pRoom->getTable();
-        }
-
-        auto table = SQTable::Create(_ss(_pImpl->_vm), value.hash_value.size());
-        for (const auto& [key,value] : value.hash_value) {
-          table->Set(toSquirrel(key), toSquirrel(value));
-        }
-        return table;
-      }
-      if (!value.isNull()) {
-        warn("trying to convert an unknown value (type={}) to squirrel", static_cast<int >(value.type));
-      }
-      return SQObjectPtr();
-    }
-
-    void loadInventory(GGPackValue &hash) {
+    void loadInventory(const GGPackValue &hash) {
       for (auto i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); ++i) {
         auto *pActor = _pImpl->_actorsIconSlots[i].pActor;
         auto &slot = hash["slots"].array_value.at(i);
@@ -436,7 +465,7 @@ struct Engine::Impl {
       }
     }
 
-    void loadObjects(GGPackValue &hash) {
+    void loadObjects(const GGPackValue &hash) {
       for (auto &obj :  hash.hash_value) {
         auto objName = obj.first;
         auto pObj = getObject(objName);
@@ -471,38 +500,54 @@ struct Engine::Impl {
       }
     }
 
-    void loadGame(GGPackValue &hash) {
-      const auto &actors = hash["actors"];
-      loadActors(actors);
+    void loadRooms(const GGPackValue &hash) {
+      for (auto &roomHash :  hash.hash_value) {
+        auto roomName = roomHash.first;
+        auto pRoom = getRoom(roomName);
+        if (!pRoom) {
+          trace("load: room '{}' not loaded because it has not been found", roomName);
+          continue;
+        }
 
-      //TODO: const auto &callbacks = hash["callbacks"];
-      auto currentRoom = hash["currentRoom"].getString();
-      //TODO: const auto &dialog = hash["dialog"];
-      //TODO: auto easy_mode = hash["easy_mode"].getInt();
-      //TODO: auto gameGUID = hash["gameGUID"].getString();
-      auto &gameScene = hash["gameScene"];
-      loadGameScene(gameScene);
+        for (auto &property : roomHash.second.hash_value) {
+          if (property.first.empty() || property.first[0] == '_') {
+            if (property.first == "_pseudoObjects") {
+              // TODO:
+            } else {
+              trace("load: room '{}' property '{}' (type={}) not loaded",
+                    roomName,
+                    property.first,
+                    static_cast<int>(property.second.type));
+              continue;
+            }
+          }
+
+          _table(pRoom->getTable())->Set(toSquirrel(property.first), toSquirrel(property.second));
+        }
+      }
+    }
+
+    void loadGame(const GGPackValue &hash) {
+      auto version = hash["version"].getInt();
+      if (version != 2) {
+        warn("Cannot load savegame version {}", version);
+        return;
+      }
+
+      loadGameScene(hash["gameScene"]);
+      loadDialog(hash["dialog"]);
+      loadCallbacks(hash["callbacks"]);
+      loadTable(hash["globals"]);
+      loadActors(hash["actors"]);
+      loadObjects(hash["objects"]);
+      loadInventory(hash["inventory"]);
+      loadRooms(hash["rooms"]);
+
       _pImpl->_time = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
-
-      const auto &globals = hash["globals"];
-      loadTable(globals);
-
       _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
 
-      auto &inventory = hash["inventory"];
-      loadInventory(inventory);
-
-      auto &objects = hash["objects"];
-      loadObjects(objects);
-      //TODO: const auto &rooms = hash["rooms"];
-
-      //TODO: auto savebuild = hash["savebuild"].getInt();
-      //TODO: auto savetime = hash["savetime"].getInt();
-
       setActor(hash["selectedActor"].getString());
-      setCurrentRoom(currentRoom);
-
-      //TODO: auto version = hash["version"].getInt();
+      setCurrentRoom(hash["currentRoom"].getString());
     }
 
     void setActor(const std::string &name) {
@@ -691,17 +736,10 @@ struct Engine::Impl {
       };
     }
 
-    static void loadTable(const GGPackValue &hash) {
+    void loadTable(const GGPackValue &hash) {
+      SQTable *pRootTable = _table(_pImpl->_vm->_roottable);
       for (const auto &variable : hash.hash_value) {
-        if (variable.second.isString()) {
-          ScriptEngine::set(variable.first.data(), variable.second.getString());
-        } else if (variable.second.isDouble()) {
-          ScriptEngine::set(variable.first.data(), static_cast<float>(variable.second.getDouble()));
-        } else if (variable.second.isInteger()) {
-          ScriptEngine::set(variable.first.data(), variable.second.getInt());
-        } else if (variable.second.isNull()) {
-          ScriptEngine::set(variable.first.data(), nullptr);
-        }
+        pRootTable->Set(toSquirrel(variable.first), toSquirrel(variable.second));
       }
     }
 
@@ -2475,7 +2513,7 @@ std::string SavegameSlot::getSaveTimeString() const {
   // TODO: translate
   strftime(buffer, 120, "%b %d at %H:%M", ltm);
   std::string s(buffer);
-  if(easyMode){
+  if (easyMode) {
     s.append(" (casual)");
   }
   return s;
