@@ -470,8 +470,6 @@ void Room::removeEntity(Entity *pEntity) {
 }
 
 void Room::load(const char *name) {
-  pImpl->_name = name;
-
   // load wimpy file
   std::string wimpyFilename;
   wimpyFilename.append(name).append(".wimpy");

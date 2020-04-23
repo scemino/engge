@@ -357,9 +357,17 @@ struct Engine::Impl {
     void loadDialog(const GGPackValue &hash) {
       // TODO: load dialog
       for (auto &property : hash.hash_value) {
-        warn("load dialog: property '{}' not loaded (type={}): {}",
-             property.first,
-             static_cast<int>(property.second.type), getValue(property.second));
+        auto dialog = property.first;
+        // dialog format: mode dialog number actor
+        // example: #ChetAgentStreetDialog14reyes
+        // mode:
+        // ?: once
+        // #: showonce
+        // &: onceever
+        // $: showonceever
+        // ^: temponce
+        auto value = property.second.getInt();
+        warn("load dialog: property '{}:{}'", dialog, value);
       }
     }
 
@@ -474,29 +482,66 @@ struct Engine::Impl {
           trace("load: object '{}' not loaded because it has not been found", objName);
           continue;
         }
-        int state;
-        if (ScriptEngine::get(pObj, "_state", state)) {
-          pObj->setStateAnimIndex(state);
-        }
-        bool touchable;
-        if (ScriptEngine::get(pObj, "_touchable", touchable)) {
-          pObj->setTouchable(touchable);
-        }
-        const char *offset;
-        if (ScriptEngine::get(pObj, "_offset", offset)) {
-          pObj->setOffset(_parsePos(offset));
-        }
-        bool hidden;
-        if (ScriptEngine::get(pObj, "_hidden", hidden)) {
-          pObj->setVisible(!hidden);
+        loadObject(pObj, obj.second);
+      }
+    }
+
+    void loadObject(Object *pObj, const GGPackValue &hash) {
+      for (auto &property :  hash.hash_value) {
+        if (property.first.empty() || property.first[0] == '_') {
+          if (property.first == "_state") {
+            int state;
+            if (ScriptEngine::get(pObj, "_state", state)) {
+              pObj->setStateAnimIndex(state);
+            }
+          } else if (property.first == "_touchable") {
+            bool touchable;
+            if (ScriptEngine::get(pObj, "_touchable", touchable)) {
+              pObj->setTouchable(touchable);
+            }
+          } else if (property.first == "_offset") {
+            const char *offset;
+            if (ScriptEngine::get(pObj, "_offset", offset)) {
+              pObj->setOffset(_parsePos(offset));
+            }
+          } else if (property.first == "_hidden") {
+            bool hidden;
+            if (ScriptEngine::get(pObj, "_hidden", hidden)) {
+              pObj->setVisible(!hidden);
+            }
+          } else if (property.first == "_rotation") {
+            float rotation;
+            if (ScriptEngine::get(pObj, "_rotation", rotation)) {
+              pObj->setRotation(rotation);
+            }
+          } else if (property.first == "_color") {
+            int color;
+            if (ScriptEngine::get(pObj, "_color", color)) {
+              pObj->setColor(_toColor(color));
+            }
+          } else {
+            // TODO: other types
+            auto s = getValue(property.second);
+            trace("load: object {} property '{}' not loaded (type={}): {}",
+                  pObj->getKey(),
+                  property.first,
+                  static_cast<int>(property.second.type), s);
+          }
+          continue;
         }
 
-        for (auto &objProperty :  obj.second.hash_value) {
-          if (objProperty.first.empty() || objProperty.first[0] == '_')
-            continue;
+        _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+      }
+    }
 
-          _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(objProperty.first), toSquirrel(objProperty.second));
+    void loadPseudoObjects(Room *pRoom, const std::map<std::string, GGPackValue> &hash) {
+      for (auto &[objName, objValue] :  hash) {
+        auto pObj = getObject(pRoom, objName);
+        if (!pObj) {
+          trace("load: room '{}' object '{}' not loaded because it has not been found", pRoom->getName(), objName);
+          continue;
         }
+        loadObject(pObj, objValue);
       }
     }
 
@@ -512,7 +557,7 @@ struct Engine::Impl {
         for (auto &property : roomHash.second.hash_value) {
           if (property.first.empty() || property.first[0] == '_') {
             if (property.first == "_pseudoObjects") {
-              // TODO:
+              loadPseudoObjects(pRoom, property.second.hash_value);
             } else {
               trace("load: room '{}' property '{}' (type={}) not loaded",
                     roomName,
@@ -729,7 +774,7 @@ struct Engine::Impl {
       GGPackValue callbacksArray;
       callbacksArray.type = 3;
 
-      for (auto& callback : _pImpl->_callbacks) {
+      for (auto &callback : _pImpl->_callbacks) {
         GGPackValue callbackHash;
         callbackHash.type = 2;
         callbackHash.hash_value = {
@@ -740,7 +785,7 @@ struct Engine::Impl {
         callbacksArray.array_value.push_back(callbackHash);
       }
 
-      auto& resourceManager = Locator<ResourceManager>::get();
+      auto &resourceManager = Locator<ResourceManager>::get();
       auto id = resourceManager.getCallbackId();
       resourceManager.setCallbackId(id);
 
@@ -1576,18 +1621,17 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
                                   [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
                    _functions.end());
 
-
   std::vector<std::unique_ptr<Callback>> callbacks;
-  std::move(_callbacks.begin(),_callbacks.end(),std::back_inserter(callbacks));
+  std::move(_callbacks.begin(), _callbacks.end(), std::back_inserter(callbacks));
   _callbacks.clear();
   for (auto &callback : callbacks) {
     (*callback)(elapsed);
   }
   callbacks.erase(std::remove_if(callbacks.begin(),
                                  callbacks.end(),
-                                  [](auto &f) { return f->isElapsed(); }),
+                                 [](auto &f) { return f->isElapsed(); }),
                   callbacks.end());
-  std::move(callbacks.begin(),callbacks.end(),std::back_inserter(_callbacks));
+  std::move(callbacks.begin(), callbacks.end(), std::back_inserter(_callbacks));
 }
 
 void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {

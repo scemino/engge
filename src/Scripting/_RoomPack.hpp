@@ -485,7 +485,14 @@ private:
 
   static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom, bool isPseudoRoom) {
     auto &roomTable = pRoom->getTable();
-    sq_getstackobj(v, index, &roomTable);
+    if (isPseudoRoom) {
+      // if this is a pseudo room, we have to clone the table
+      // to have a different instance by room
+      sq_clone(v, index);
+      sq_getstackobj(v, -1, &roomTable);
+    } else {
+      sq_getstackobj(v, index, &roomTable);
+    }
 
     // loadRoom
     const char *background = nullptr;
@@ -493,6 +500,9 @@ private:
       return sq_throwerror(v, _SC("can't find background entry"));
     }
 
+    if (!isPseudoRoom) {
+      pRoom->setName(background);
+    }
     pRoom->load(background);
     pRoom->setPseudoRoom(isPseudoRoom);
 
@@ -512,25 +522,33 @@ private:
         sq_getstring(v, -2, &key);
         HSQOBJECT object;
         sq_resetobject(&object);
+        if (isPseudoRoom) {
+          // if this is a pseudo room object, we have to clone the table
+          // to have a different instance by room object
+          sq_clone(v, -1);
+        }
         if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object))) {
           sq_addref(v, &object);
           roomObjects[key] = object;
+        }
+        if (isPseudoRoom) {
+          sq_pop(v, 1);
         }
       }
       sq_pop(v, 2); //pops key and val before the nex iteration
     }
     sq_pop(v, 1); //pops the null iterator
 
-    for (auto &obj : pRoom->getObjects()) {
+    for (auto &obj: pRoom->getObjects()) {
       sq_resetobject(&obj->getTable());
 
       sq_pushobject(v, roomTable);
-      sq_pushstring(v, obj->getName().c_str(), -1);
+      sq_pushstring(v, obj->getKey().c_str(), -1);
       if (SQ_FAILED(sq_rawget(v, -2))) {
-        setObjectSlot(v, obj->getName().c_str(), *obj);
+        setObjectSlot(v, obj->getKey().c_str(), *obj);
 
         sq_pushobject(v, roomTable);
-        sq_pushstring(v, obj->getName().c_str(), -1);
+        sq_pushstring(v, obj->getKey().c_str(), -1);
         sq_rawget(v, -2);
         sq_getstackobj(v, -1, &obj->getTable());
         if (!sq_istable(obj->getTable())) {
@@ -559,7 +577,7 @@ private:
         obj->setName(objName);
       }
 
-//      trace("Set object id to {}", obj->getKey());
+      trace("Room {}: Set object id {} to {}", pRoom->getName(), obj->getId(), obj->getKey());
       ScriptEngine::set(obj.get(), "_id", obj->getId());
 
       sq_pushobject(v, obj->getTable());
@@ -578,20 +596,31 @@ private:
     // don't know if this is the best way to do this
     // but it seems that room objects and inventory objects are accessible
     // from the roottable
-    for (auto &roomObject : roomObjects) {
-      sq_pushroottable(v);
-      sq_pushstring(v, roomObject.first.data(), -1);
-      sq_pushobject(v, roomObject.second);
-      sq_newslot(v, -3, SQFalse);
+    for (auto &roomObject: roomObjects) {
+      if (!isPseudoRoom) {
+        sq_pushroottable(v);
+        sq_pushstring(v, roomObject.first.data(), -1);
+        sq_pushobject(v, roomObject.second);
+        sq_newslot(v, -3, SQFalse);
+      }
 
       std::unique_ptr<Object> object;
-      if(!ScriptEngine::rawExists(roomObject.second,"_id")) {
+      if (!ScriptEngine::rawExists(roomObject.second, "_id")) {
         object = std::make_unique<Object>();
         object->setKey(roomObject.first);
         sq_pushobject(v, roomObject.second);
         sq_getstackobj(v, -1, &object->getTable());
-//        trace("Set object id to {}", roomObject.first);
+        trace("Room {}: Set object id {} to {}", pRoom->getName(), object->getId(), object->getKey());
         ScriptEngine::set(object.get(), "_id", object->getId());
+
+        if (!ScriptEngine::rawExists(object.get(), "icon")) {
+          sq_pushobject(v, object->getTable());
+          sq_pushobject(v, roomTable);
+          sq_setdelegate(v, -2);
+
+          pRoom->getObjects().push_back(std::move(object));
+          continue;
+        }
       }
 
       sq_pushobject(v, roomObject.second);
@@ -647,11 +676,12 @@ private:
       return sq_throwerror(v, _SC("failed to get name"));
     }
     auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
+    pRoom->setName(name);
+
     auto result = _defineRoom(v, 3, pRoom.get(), true);
     if (SQ_FAILED(result))
       return result;
 
-    pRoom->setName(name);
     sq_pushobject(v, pRoom->getTable());
     g_pEngine->addRoom(std::move(pRoom));
     return 1;

@@ -27,6 +27,14 @@ bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, const char *&result) {
 }
 
 template<>
+bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, float &result) {
+  SQFloat value = 0;
+  auto status = SQ_SUCCEEDED(sq_getfloat(v, index, &value));
+  result = value;
+  return status;
+}
+
+template<>
 void ScriptEngine::push<bool>(HSQUIRRELVM v, bool value) {
   sq_pushbool(v, value ? SQTrue : SQFalse);
 }
