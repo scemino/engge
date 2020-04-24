@@ -13,9 +13,9 @@ private:
   void _writeHash(const GGPackValue &hash, std::ostream &os);
   void _writeArray(const GGPackValue &hash, std::ostream &os);
   void _writeValue(const GGPackValue &value, std::ostream &os);
-  void _writeKey(const std::string &key);
+  void _writeString(const std::string &key, std::ostream &os);
 
 private:
-  std::vector <std::string> _keys;
+  std::vector<std::string> _keys;
 };
 }

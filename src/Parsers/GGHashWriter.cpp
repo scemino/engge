@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <sstream>
 #include "Parsers/GGHashWriter.hpp"
 
@@ -11,9 +12,7 @@ void GGHashWriter::_writeHash(const GGPackValue &hash, std::ostream &os) {
   os.write((char *) &n_pairs, 4);
 
   for (auto &value: hash.hash_value) {
-    int plo_idx_int = static_cast<int>(_keys.size());
-    os.write((char *) &plo_idx_int, 4);
-    _writeKey(value.first);
+    _writeString(value.first, os);
     _writeValue(value.second, os);
   }
 
@@ -37,8 +36,16 @@ void GGHashWriter::_writeArray(const GGPackValue &array, std::ostream &os) {
   os.write(&array.type, 1);
 }
 
-void GGHashWriter::_writeKey(const std::string &key) {
-  _keys.push_back(key);
+void GGHashWriter::_writeString(const std::string &key, std::ostream &os) {
+  auto it = std::find(_keys.begin(), _keys.end(), key);
+  int32_t index;
+  if (it == _keys.end()) {
+    index = static_cast<int32_t>(_keys.size());
+    _keys.push_back(key);
+  } else {
+    index = static_cast<int32_t>(std::distance(_keys.begin(), it));
+  }
+  os.write((char *) &index, 4);
 }
 
 void GGHashWriter::_writeValue(const GGPackValue &value, std::ostream &os) {
@@ -51,27 +58,21 @@ void GGHashWriter::_writeValue(const GGPackValue &value, std::ostream &os) {
     break;
   case 4: {
     os.write(&value.type, 1);
-    auto plo_idx_int = static_cast<int32_t>(_keys.size());
-    os.write((char *) &plo_idx_int, 4);
-    _writeKey(value.string_value);
+    _writeString(value.string_value, os);
     break;
   }
   case 5: {
     os.write(&value.type, 1);
-    auto plo_idx_int = static_cast<int32_t>(_keys.size());
-    os.write((char *) &plo_idx_int, 4);
     std::ostringstream num;
     num << value.int_value;
-    _writeKey(num.str());
+    _writeString(num.str(), os);
     break;
   }
   case 6: {
     os.write(&value.type, 1);
-    auto plo_idx_int = static_cast<int32_t>(_keys.size());
-    os.write((char *) &plo_idx_int, 4);
     std::ostringstream num;
     num << value.double_value;
-    _writeKey(num.str());
+    _writeString(num.str(), os);
     break;
   }
   }
