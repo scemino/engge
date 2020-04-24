@@ -604,7 +604,7 @@ private:
     if (idx < 0 || idx >= static_cast<int>(vector.size())) {
       return false;
     }
-    *out_text = vector.at(idx).getSaveTimeString().data();
+    *out_text = toUtf8(vector.at(idx).getSaveTimeString()).data();
     return true;
   }
 

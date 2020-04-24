@@ -37,6 +37,7 @@
 #include <cmath>
 #include <cstdio>
 #include <ctime>
+#include <cwchar>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -1149,7 +1150,6 @@ struct Engine::Impl {
   std::vector<std::unique_ptr<Callback>> _callbacks;
   Cutscene *_pCutscene{nullptr};
   sf::RenderWindow *_pWindow{nullptr};
-  TextDatabase _textDb;
   Actor *_pCurrentActor{nullptr};
   bool _inputHUD{false};
   bool _inputActive{false};
@@ -1251,7 +1251,7 @@ Engine::Impl::Impl()
 void Engine::Impl::onLanguageChange(const std::string &lang) {
   std::stringstream ss;
   ss << "ThimbleweedText_" << lang << ".tsv";
-  _textDb.load(ss.str());
+  Locator<TextDatabase>::get().load(ss.str());
 
   ScriptEngine::call("onLanguageChange");
 }
@@ -1283,7 +1283,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
   auto lang =
       _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
   s << "ThimbleweedText_" << lang << ".tsv";
-  _pImpl->_textDb.load(s.str());
+  Locator<TextDatabase>::get().load(s.str());
 
   _pImpl->_optionsDialog.setSaveEnabled(true);
   _pImpl->_optionsDialog.setEngine(this);
@@ -1326,18 +1326,11 @@ TextureManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 
 std::wstring Engine::getText(int id) const {
-  auto text = _pImpl->_textDb.getText(id);
-  replaceAll(text, L"\\\"", L"\"");
-  removeFirstParenthesis(text);
-  return text;
+  return Locator<TextDatabase>::get().getText(id);
 }
 
 std::wstring Engine::getText(const std::string &text) const {
-  if (!text.empty() && text[0] == '@') {
-    auto id = std::strtol(text.c_str() + 1, nullptr, 10);
-    return getText(id);
-  }
-  return towstring(text);
+  return Locator<TextDatabase>::get().getText(text);
 }
 
 void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
@@ -2689,43 +2682,52 @@ void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
   }
 }
 
-std::string SavegameSlot::getSaveTimeString() const {
+std::wstring SavegameSlot::getSaveTimeString() const {
   tm *ltm = localtime(&savetime);
-  char buffer[120];
-  // TODO: translate
-  strftime(buffer, 120, "%b %d at %H:%M", ltm);
-  std::string s(buffer);
+  wchar_t buffer[120];
+  // time format: "%b %d at %H:%M"
+  auto format = Locator<TextDatabase>::get().getText(99944);
+  wcsftime(buffer, 120, format.data(), ltm);
+  std::wstring s(buffer);
   if (easyMode) {
-    s.append(" (casual)");
+    s.append(1, L' ');
+    s.append(Locator<TextDatabase>::get().getText(99955));
   }
   return s;
 }
 
-std::string SavegameSlot::getGameTimeString() const {
-  char buffer[120];
+std::wstring SavegameSlot::getGameTimeString() const {
+  wchar_t buffer[120];
   auto min = static_cast<int>(gametime.asSeconds() / 60.0);
-  // TODO: translate
   if (min < 2) {
-    snprintf(buffer, 120, "%d minute", min);
+    // "%d minute"
+    auto format = Locator<TextDatabase>::get().getText(99945);
+    swprintf(buffer, 120, format.data(), min);
   } else if (min < 60) {
-    snprintf(buffer, 120, "%d minutes", min);
+    // "%d minutes"
+    auto format = Locator<TextDatabase>::get().getText(99946);
+    swprintf(buffer, 120, format.data(), min);
   } else {
-    const char *format;
+    int format;
     int hour = min / 60;
     min = min % 60;
     if (hour < 2 && min < 2) {
-      format = "%d hour %d minute";
+      // "%d hour %d minute"
+      format = 99947;
     } else if (hour < 2 && min >= 2) {
-      format = "%d hour %d minutes";
+      // "%d hour %d minutes";
+      format = 99948;
     } else if (hour >= 2 && min < 2) {
-      format = "%d hours %d minute";
+      // "%d hours %d minute";
+      format = 99949;
     } else {
-      format = "%d hours %d minutes";
+      // "%d hours %d minutes";
+      format = 99950;
     }
-    snprintf(buffer, 120, format, hour, min);
+    swprintf(buffer, 120, Locator<TextDatabase>::get().getText(format).data(), hour, min);
   }
 
-  std::string s(buffer);
+  std::wstring s(buffer);
   return s;
 }
 

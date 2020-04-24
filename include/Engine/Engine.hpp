@@ -122,8 +122,8 @@ public:
   std::string path;
   bool easyMode{false};
 
-  [[nodiscard]] std::string getSaveTimeString() const;
-  [[nodiscard]] std::string getGameTimeString() const;
+  [[nodiscard]] std::wstring getSaveTimeString() const;
+  [[nodiscard]] std::wstring getGameTimeString() const;
 };
 
 enum class CursorDirection : unsigned int {

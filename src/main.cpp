@@ -2,6 +2,7 @@
 #include "Game.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/EngineSettings.hpp"
+#include "Engine/TextDatabase.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Engine/Preferences.hpp"
@@ -29,6 +30,8 @@ int main(int argc, char **argv) {
 
     auto pPreferences = std::make_shared<ng::Preferences>();
     ng::Locator<ng::Preferences>::set(pPreferences);
+
+    ng::Locator<ng::TextDatabase>::set(std::make_shared<ng::TextDatabase>());
 
     if (argc == 2) {
       auto filename = argv[1];

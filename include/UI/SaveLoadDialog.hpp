@@ -16,7 +16,7 @@ public:
   ~SaveLoadDialog() override;
 
   void setSaveMode(bool saveMode);
-  bool getSaveMode() const;
+  [[nodiscard]] bool getSaveMode() const;
   void setCallback(Callback callback);
   void setSlotCallback(SlotCallback callback);
   void setEngine(Engine *pEngine);
