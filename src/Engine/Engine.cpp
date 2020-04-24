@@ -426,10 +426,11 @@ struct Engine::Impl {
 
       int lockFacing = static_cast<int>(Facing::FACE_FRONT);
       getValue(actorHash, "_lockFacing", lockFacing);
-      pActor->getCostume().lockFacing(static_cast<Facing>(lockFacing),
+      // TODO: _lockFacing
+      /*pActor->getCostume().lockFacing(static_cast<Facing>(lockFacing),
                                       static_cast<Facing>(lockFacing),
                                       static_cast<Facing>(lockFacing),
-                                      static_cast<Facing>(lockFacing));
+                                      static_cast<Facing>(lockFacing));*/
 
       float volume = 0;
       getValue(actorHash, "_volume", volume);
@@ -1219,7 +1220,7 @@ struct Engine::Impl {
   Entity *getHoveredEntity(const sf::Vector2f &mousPos);
   void actorEnter() const;
   void actorExit() const;
-  void onLanguageChange(const std::string &lang);
+  static void onLanguageChange(const std::string &lang);
   void drawFade(sf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
   void updateKeyboard();
