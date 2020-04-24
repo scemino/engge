@@ -77,6 +77,8 @@ struct Engine::Impl {
 
     void saveGame(const std::string &path) {
 
+      ScriptEngine::call("preSave");
+
       GGPackValue actorsHash;
       saveActors(actorsHash);
 
@@ -132,6 +134,8 @@ struct Engine::Impl {
       };
 
       saveGame(saveGameHash, path);
+
+      ScriptEngine::call("postSave");
     }
 
     [[maybe_unused]] static void loadSaveDat(const std::string &path) {
@@ -637,6 +641,8 @@ struct Engine::Impl {
         return;
       }
 
+      ScriptEngine::call("preLoad");
+
       loadGameScene(hash["gameScene"]);
       loadDialog(hash["dialog"]);
       loadCallbacks(hash["callbacks"]);
@@ -651,6 +657,8 @@ struct Engine::Impl {
 
       setActor(hash["selectedActor"].getString());
       setCurrentRoom(hash["currentRoom"].getString());
+
+      ScriptEngine::call("postLoad");
     }
 
     void setActor(const std::string &name) {
