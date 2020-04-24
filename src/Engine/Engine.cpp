@@ -655,8 +655,7 @@ struct Engine::Impl {
 
     void setActor(const std::string &name) {
       auto *pActor = getActor(name);
-      _pImpl->_pCurrentActor = pActor;
-      _pImpl->_pFollowActor = pActor;
+      _pImpl->_pEngine->setCurrentActor(pActor, false);
     }
 
     Actor *getActor(const std::string &name) {
