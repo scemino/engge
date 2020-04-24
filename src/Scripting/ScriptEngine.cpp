@@ -511,7 +511,7 @@ void ScriptEngine::executeNutScript(const std::string &name) {
     Locator<EngineSettings>::get().readEntry(entryName, code);
 
     // decode bnut
-    int cursor = (code.size() - 1) & 0xff;
+    int cursor = static_cast<int>(code.size() - 1) & 0xff;
     for (char &i : code) {
       i ^= _bnutPass[cursor];
       cursor = (cursor + 1) % 4096;

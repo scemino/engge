@@ -177,7 +177,7 @@ private:
         return sq_throwerror(v, _SC("failed to get object or room"));
       }
       auto pos = pObj->getRealPosition();
-      auto usePos = pObj->getUsePosition();
+      auto usePos = pObj->getUsePosition().value_or(sf::Vector2f());
       auto hotspot = pObj->getHotspot();
       pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
       pos.y += usePos.y + hotspot.top + hotspot.height / 2.f;
@@ -671,6 +671,7 @@ private:
   }
 
   static SQInteger actorUsePos(HSQUIRRELVM v) {
+    auto numArgs = sq_gettop(v);
     Actor *actor = ScriptEngine::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
@@ -681,6 +682,13 @@ private:
     }
     auto usePos = obj->getUsePosition();
     actor->setUsePosition(usePos);
+    if(numArgs==4) {
+      SQInteger dir;
+      if (SQ_FAILED(sq_getinteger(v, 5, &dir))) {
+        return sq_throwerror(v, _SC("failed to get direction"));
+      }
+      actor->setUseDirection(static_cast<UseDirection>(dir));
+    }
     return 0;
   }
 
@@ -774,7 +782,7 @@ private:
       auto *pObject = ScriptEngine::getObject(v, 3);
       if (pObject) {
         auto pos = pObject->getRealPosition();
-        auto usePos = pObject->getUsePosition();
+        auto usePos = pObject->getUsePosition().value_or(sf::Vector2f());
         pos.x += usePos.x;
         pos.y += usePos.y;
         pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));

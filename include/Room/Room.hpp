@@ -35,6 +35,7 @@ public:
 
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
+  [[nodiscard]] const std::vector<std::unique_ptr<Object>> &getObjects() const;
   std::vector<std::unique_ptr<Light>> &getLights();
 
   void update(const sf::Time &elapsed);

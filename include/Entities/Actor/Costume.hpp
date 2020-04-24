@@ -34,6 +34,7 @@ public:
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
   std::string getPath() const { return _path; }
+  std::string getSheet() const { return _sheet; }
   void lockFacing(Facing left, Facing right, Facing front, Facing back);
   void unlockFacing();
   void resetLockFacing();

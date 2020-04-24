@@ -13,7 +13,7 @@ class _ActorWalk : public Function {
 public:
   _ActorWalk(Actor &actor, const Entity *pEntity) : _actor(actor) {
     auto pos = pEntity->getRealPosition();
-    auto usePos = pEntity->getUsePosition();
+    auto usePos = pEntity->getUsePosition().value_or(sf::Vector2f());
     pos.x += usePos.x;
     pos.y += usePos.y;
     auto facing = getFacing(pEntity);

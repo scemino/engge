@@ -152,15 +152,15 @@ CostumeLayer Costume::loadLayer(const GGPackValue &jLayer) const {
 
 void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   _path = path;
-  _sheet = sheet;
+  auto costumeSheet = _sheet = sheet;
 
   Locator<EngineSettings>::get().readEntry(_path, _hash);
-  if (_sheet.empty()) {
-    _sheet = _hash["sheet"].string_value;
+  if (costumeSheet.empty()) {
+    costumeSheet = _hash["sheet"].string_value;
   }
 
   _costumeSheet.setTextureManager(&_textureManager);
-  _costumeSheet.load(_sheet);
+  _costumeSheet.load(costumeSheet);
 
   // load animations
   _animations.clear();

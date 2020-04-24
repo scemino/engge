@@ -432,6 +432,7 @@ void Room::setName(const std::string &name) { pImpl->_name = name; }
 std::string Room::getName() const { return pImpl->_name; }
 
 std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_objects; }
+const std::vector<std::unique_ptr<Object>> &Room::getObjects() const { return pImpl->_objects; }
 
 std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 

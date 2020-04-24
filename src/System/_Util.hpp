@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <regex>
 #include "Entities/Actor/Costume.hpp"
 #include "Entities/Objects/Object.hpp"
@@ -46,7 +47,7 @@ bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::V
 
 float length(const sf::Vector2f &v);
 
-Facing _toFacing(UseDirection direction);
+Facing _toFacing(std::optional<UseDirection> direction);
 UseDirection _toDirection(const std::string &text);
 Facing getOppositeFacing(Facing facing);
 

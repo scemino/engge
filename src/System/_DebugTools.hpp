@@ -1,3 +1,4 @@
+#include <optional>
 #include "squirrel.h"
 #include "../../extlibs/squirrel/squirrel/sqpcheader.h"
 #include "../../extlibs/squirrel/squirrel/sqvm.h"
@@ -371,7 +372,7 @@ private:
       if (InputFloat2("Position", pos)) {
         actor->setPosition(pos);
       }
-      auto usePos = actor->getUsePosition();
+      auto usePos = actor->getUsePosition().value_or(sf::Vector2f());
       if (InputFloat2("Use Position", usePos)) {
         actor->setUsePosition(usePos);
       }
@@ -483,7 +484,7 @@ private:
       if (InputFloat2("Position", pos)) {
         object->setPosition(pos);
       }
-      auto usePos = object->getUsePosition();
+      auto usePos = object->getUsePosition().value_or(sf::Vector2f());
       if (InputFloat2("Use Position", usePos)) {
         object->setUsePosition(usePos);
       }

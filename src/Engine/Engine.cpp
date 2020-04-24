@@ -67,6 +67,7 @@ static const char *const _idKey = "_id";
 static const uint8_t
     _savegameKey[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
 
+static const char *const pseudoObjectsKey = "_pseudoObjects";
 struct Engine::Impl {
 
   class _SaveGameSystem {
@@ -390,69 +391,90 @@ struct Engine::Impl {
 
         auto &actorHash = hash[pActor->getKey()];
 
-        for (auto &property : actorHash.hash_value) {
-          if (property.first.empty() || property.first[0] == '_') {
-            if (property.first == "_animations") {
-              std::vector<std::string> anims;
-              for (auto &value : property.second.array_value) {
-                anims.push_back(value.getString());
-              }
-              // TODO: _animations
-              trace("load: actor {} property '{}' not loaded (type={}) size={}",
-                    pActor->getKey(),
-                    property.first,
-                    static_cast<int>(property.second.type), anims.size());
-            } else if (property.first == "_pos") {
-              auto pos = _parsePos(property.second.getString());
-              pActor->setPosition(pos);
-            } else if (property.first == "_costume") {
-              auto costume = property.second.getString();
-              std::string
-                  costumeSheet = actorHash["_costumeSheet"].isNull() ? "" : actorHash["_costumeSheet"].getString();
-              pActor->setCostume(costume, costumeSheet);
-            } else if (property.first == "_costumeSheet") {
-              // skip: done with _costume
-            } else if (property.first == _roomKey) {
-              auto roomKey = property.second;
-              auto *pRoom = getRoom(roomKey.isNull() ? "Void" : roomKey.getString());
-              pActor->setRoom(pRoom);
-            } else if (property.first == "_color") {
-              auto color = _toColor(property.second.getInt());
-              pActor->setColor(color);
-            } else if (property.first == "_dir") {
-              auto dir = static_cast<Facing>(property.second.getInt());
-              pActor->getCostume().setFacing(dir);
-            } else if (property.first == "_useDir") {
-              auto dir = static_cast<UseDirection>(property.second.getInt());
-              pActor->setUseDirection(dir);
-            } else if (property.first == "_lockFacing") {
-              auto facing = static_cast<Facing>(property.second.getInt());
-              pActor->getCostume().lockFacing(facing, facing, facing, facing);
-            } else if (property.first == "_volume") {
-              auto volume = static_cast<float>(property.second.getDouble());
-              pActor->setVolume(volume);
-            } else if (property.first == "_usePos") {
-              auto pos = _parsePos(property.second.getString());
-              pActor->setUsePosition(pos);
-            } else if (property.first == "_renderOffset") {
-              auto renderOffset = (sf::Vector2i) _parsePos(property.second.getString());
-              pActor->setRenderOffset(renderOffset);
-            } else if (property.first == "_offset") {
-              auto offset = _parsePos(property.second.getString());
-              pActor->setOffset(offset);
-            } else {
-              // TODO: other types
-              auto s = getValue(property.second);
-              trace("load: actor {} property '{}' not loaded (type={}): {}",
-                    pActor->getKey(),
-                    property.first,
-                    static_cast<int>(property.second.type), s);
-            }
-            continue;
-          }
+        loadActor(pActor.get(), actorHash);
+      }
+    }
 
-          _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+    void loadActor(Actor *pActor, const GGPackValue &actorHash) {
+      sf::Color color{sf::Color::White};
+      getValue(actorHash, "_color", color);
+      pActor->setColor(color);
+
+      sf::Vector2f pos;
+      getValue(actorHash, "_pos", pos);
+      pActor->setPosition(pos);
+
+      std::string costume;
+      getValue(actorHash, "_costume", costume);
+      std::string costumesheet;
+      getValue(actorHash, "_costumeSheet", costumesheet);
+      pActor->getCostume().loadCostume(costume, costumesheet);
+
+      std::string room;
+      getValue(actorHash, _roomKey, room);
+      auto *pRoom = getRoom(room.empty() ? "Void" : room);
+      pActor->setRoom(pRoom);
+
+      int dir = static_cast<int>(Facing::FACE_FRONT);
+      getValue(actorHash, "_dir", dir);
+      pActor->getCostume().setFacing(static_cast<Facing>(dir));
+
+      int useDirValue = static_cast<int>(UseDirection::Front);
+      getValue(actorHash, "_useDir", useDirValue);
+      pActor->setUseDirection(static_cast<UseDirection>(dir));
+
+      int lockFacing = static_cast<int>(Facing::FACE_FRONT);
+      getValue(actorHash, "_lockFacing", lockFacing);
+      pActor->getCostume().lockFacing(static_cast<Facing>(lockFacing),
+                                      static_cast<Facing>(lockFacing),
+                                      static_cast<Facing>(lockFacing),
+                                      static_cast<Facing>(lockFacing));
+
+      float volume = 0;
+      getValue(actorHash, "_volume", volume);
+      pActor->setVolume(volume);
+
+      sf::Vector2f usePos;
+      getValue(actorHash, "_usePos", usePos);
+      pActor->setUsePosition(usePos);
+
+      sf::Vector2f renderOffset;
+      getValue(actorHash, "_renderOffset", renderOffset);
+      pActor->setRenderOffset((sf::Vector2i) renderOffset);
+
+      sf::Vector2f offset;
+      getValue(actorHash, "_offset", offset);
+      pActor->setOffset(offset);
+
+      for (auto &property : actorHash.hash_value) {
+        if (property.first.empty() || property.first[0] == '_') {
+          if (property.first == "_animations") {
+            std::__1::vector<std::string> anims;
+            for (auto &value : property.second.array_value) {
+              anims.push_back(value.getString());
+            }
+            // TODO: _animations
+            trace("load: actor {} property '{}' not loaded (type={}) size={}",
+                  pActor->getKey(),
+                  property.first,
+                  static_cast<int>(property.second.type), anims.size());
+          } else if ((property.first == "_pos") || (property.first == "_costume") || (property.first == "_costumeSheet")
+              || (property.first == _roomKey) ||
+              (property.first == "_color") || (property.first == "_dir") || (property.first == "_useDir")
+              || (property.first == "_lockFacing") || (property.first == "_volume") || (property.first == "_usePos")
+              || (property.first == "_renderOffset") || (property.first == "_offset")) {
+          } else {
+            // TODO: other types
+            auto s = getValue(property.second);
+            trace("load: actor {} property '{}' not loaded (type={}): {}",
+                  pActor->getKey(),
+                  property.first,
+                  static_cast<int>(property.second.type), s);
+          }
+          continue;
         }
+
+        _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
       }
     }
 
@@ -486,47 +508,81 @@ struct Engine::Impl {
       }
     }
 
+    void getValue(const GGPackValue &hash, const std::string &key, int &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = it->second.getInt();
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, std::string &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = it->second.getString();
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, float &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = static_cast<float>(it->second.getDouble());
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, bool &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = it->second.getInt() != 0;
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, sf::Vector2f &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = _parsePos(it->second.getString());
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, sf::Color &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = _toColor(it->second.getInt());
+      }
+    }
+
     void loadObject(Object *pObj, const GGPackValue &hash) {
+      int state = 0;
+      getValue(hash, "_state", state);
+      pObj->setStateAnimIndex(state);
+      bool touchable = true;
+      getValue(hash, "_touchable", touchable);
+      pObj->setTouchable(touchable);
+      sf::Vector2f offset;
+      getValue(hash, "_offset", offset);
+      pObj->setOffset(offset);
+      bool hidden = false;
+      getValue(hash, "_hidden", hidden);
+      pObj->setVisible(!hidden);
+      float rotation = 0;
+      getValue(hash, "_rotation", rotation);
+      pObj->setRotation(rotation);
+      sf::Color color{sf::Color::White};
+      getValue(hash, "_color", color);
+      pObj->setColor(color);
+
       for (auto &property :  hash.hash_value) {
+
         if (property.first.empty() || property.first[0] == '_') {
-          if (property.first == "_state") {
-            int state;
-            if (ScriptEngine::get(pObj, "_state", state)) {
-              pObj->setStateAnimIndex(state);
-            }
-          } else if (property.first == "_touchable") {
-            bool touchable;
-            if (ScriptEngine::get(pObj, "_touchable", touchable)) {
-              pObj->setTouchable(touchable);
-            }
-          } else if (property.first == "_offset") {
-            const char *offset;
-            if (ScriptEngine::get(pObj, "_offset", offset)) {
-              pObj->setOffset(_parsePos(offset));
-            }
-          } else if (property.first == "_hidden") {
-            bool hidden;
-            if (ScriptEngine::get(pObj, "_hidden", hidden)) {
-              pObj->setVisible(!hidden);
-            }
-          } else if (property.first == "_rotation") {
-            float rotation;
-            if (ScriptEngine::get(pObj, "_rotation", rotation)) {
-              pObj->setRotation(rotation);
-            }
-          } else if (property.first == "_color") {
-            int color;
-            if (ScriptEngine::get(pObj, "_color", color)) {
-              pObj->setColor(_toColor(color));
-            }
-          } else {
-            // TODO: other types
-            auto s = getValue(property.second);
-            trace("load: object {} property '{}' not loaded (type={}): {}",
-                  pObj->getKey(),
-                  property.first,
-                  static_cast<int>(property.second.type), s);
-          }
+          if (property.first == "_state" || property.first == "_touchable" || property.first == "_offset"
+              || property.first == "_hidden" || property.first == "_rotation" || property.first == "_color")
+            continue;
+
+          // TODO: other types
+          auto s = getValue(property.second);
+          trace("load: object {} property '{}' not loaded (type={}): {}",
+                pObj->getKey(),
+                property.first,
+                static_cast<int>(property.second.type), s);
           continue;
         }
 
@@ -556,7 +612,7 @@ struct Engine::Impl {
 
         for (auto &property : roomHash.second.hash_value) {
           if (property.first.empty() || property.first[0] == '_') {
-            if (property.first == "_pseudoObjects") {
+            if (property.first == pseudoObjectsKey) {
               loadPseudoObjects(pRoom, property.second.hash_value);
             } else {
               trace("load: room '{}' property '{}' (type={}) not loaded",
@@ -663,6 +719,28 @@ struct Engine::Impl {
         actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
         // TODO: _lockFacing
         actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
+        if (pActor->getVolume().has_value()) {
+          actorHash.hash_value["_volume"] = GGPackValue::toGGPackValue(pActor->getVolume().value());
+        }
+        auto useDir = pActor->getUseDirection();
+        if (useDir.has_value()) {
+          actorHash.hash_value["_useDir"] = GGPackValue::toGGPackValue(static_cast<int>(useDir.value()));
+        }
+        auto usePos = pActor->getUsePosition();
+        if (useDir.has_value()) {
+          actorHash.hash_value["_usePos"] = GGPackValue::toGGPackValue(toString(usePos.value()));
+        }
+        auto renderOffset = pActor->getRenderOffset();
+        if (renderOffset != sf::Vector2i(0, 45)) {
+          actorHash.hash_value["_renderOffset"] = GGPackValue::toGGPackValue(toString(renderOffset));
+        }
+        if (pActor->getColor() != sf::Color::White) {
+          actorHash.hash_value["_color"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getColor().toInteger()));
+        }
+        auto costumeSheet = pActor->getCostume().getSheet();
+        if (!costumeSheet.empty()) {
+          actorHash.hash_value["_costumeSheet"] = GGPackValue::toGGPackValue(costumeSheet);
+        }
         if (pActor->getRoom()) {
           actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
         } else {
@@ -689,6 +767,7 @@ struct Engine::Impl {
 
     static void saveDialogs(GGPackValue &hash) {
       hash.type = 2;
+      // TODO: save dialogs
     }
 
     void saveGameScene(GGPackValue &hash) const {
@@ -754,9 +833,35 @@ struct Engine::Impl {
           if (pRoom && pRoom->isPseudoRoom())
             continue;
           GGPackValue hashObject;
-          saveTable(object->getTable(), hashObject, false);
-          hash.hash_value.insert({object->getKey(), hashObject});
+          saveObject(object.get(), hashObject);
+          hash.hash_value[object->getKey()] = hashObject;
         }
+      }
+    }
+
+    void savePseudoObjects(const Room *pRoom, GGPackValue &hash) const {
+      if (!pRoom->isPseudoRoom())
+        return;
+      GGPackValue hashObjects;
+      hashObjects.type = 2;
+      for (const auto &pObj : pRoom->getObjects()) {
+        GGPackValue hashObject;
+        saveObject(pObj.get(), hashObject);
+        hashObjects.hash_value[pObj->getKey()] = hashObject;
+      }
+      hash.hash_value[pseudoObjectsKey] = hashObjects;
+    }
+
+    void saveObject(const Object *pObject, GGPackValue &hashObject) const {
+      saveTable(pObject->getTable(), hashObject, false);
+      if (pObject->getState() != 0) {
+        hashObject.hash_value["_state"] = GGPackValue::toGGPackValue(pObject->getState());
+      }
+      if (!pObject->isTouchable()) {
+        hashObject.hash_value["_touchable"] = GGPackValue::toGGPackValue(pObject->isTouchable());
+      }
+      if (pObject->getOffset() != sf::Vector2f()) {
+        hashObject.hash_value["_offset"] = GGPackValue::toGGPackValue(toString(pObject->getOffset()));
       }
     }
 
@@ -765,7 +870,8 @@ struct Engine::Impl {
       for (auto &room : _pImpl->_rooms) {
         GGPackValue hashRoom;
         saveTable(room->getTable(), hashRoom, false);
-        hash.hash_value.insert({room->getName(), hashRoom});
+        savePseudoObjects(room.get(), hashRoom);
+        hash.hash_value[room->getName()] = hashRoom;
       }
     }
 
@@ -907,6 +1013,12 @@ struct Engine::Impl {
       return os.str();
     }
 
+    static std::string toString(const sf::Vector2i &pos) {
+      std::ostringstream os;
+      os << "{" << pos.x << "," << pos.y << "}";
+      return os.str();
+    }
+
     static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = true, const std::string &tableKey = "") {
       hash.type = 2;
 
@@ -916,7 +1028,7 @@ struct Engine::Impl {
         if (ResourceManager::isActor(id)) {
           auto pActor = ScriptEngine::getActorFromId(id);
           if (pActor && pActor->getKey() != tableKey) {
-            hash.hash_value = {{_actorKey, GGPackValue::toGGPackValue(pActor->getKey())}};
+            hash.hash_value[_actorKey] = GGPackValue::toGGPackValue(pActor->getKey());
             return true;
           }
           return false;
@@ -925,10 +1037,10 @@ struct Engine::Impl {
           auto pObj = ScriptEngine::getObjectFromId(id);
           if (pObj && pObj->getKey() != tableKey) {
             auto pRoom = pObj->getRoom();
-            if (pRoom) {
-              hash.hash_value = {{_roomKey, GGPackValue::toGGPackValue(pRoom->getName())}};
+            if (pRoom && pRoom->isPseudoRoom()) {
+              hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
             }
-            hash.hash_value = {{_objectKey, GGPackValue::toGGPackValue(pObj->getKey())}};
+            hash.hash_value[_objectKey] = GGPackValue::toGGPackValue(pObj->getKey());
             return true;
           }
           return false;
@@ -936,7 +1048,7 @@ struct Engine::Impl {
         if (ResourceManager::isRoom(id)) {
           auto pRoom = ScriptEngine::getRoomFromId(id);
           if (pRoom && pRoom->getName() != tableKey) {
-            hash.hash_value = {{_roomKey, GGPackValue::toGGPackValue(pRoom->getName())}};
+            hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
             return true;
           }
           return false;
@@ -1542,17 +1654,19 @@ SQInteger Engine::setRoom(Room *pRoom) {
 
 SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   auto dir = pDoor->getUseDirection();
-  Facing facing;
-  switch (dir) {
-  case UseDirection::Back:facing = Facing::FACE_FRONT;
-    break;
-  case UseDirection::Front:facing = Facing::FACE_BACK;
-    break;
-  case UseDirection::Left:facing = Facing::FACE_RIGHT;
-    break;
-  case UseDirection::Right:facing = Facing::FACE_LEFT;
-    break;
-  default:throw std::invalid_argument("direction is invalid");
+  Facing facing = Facing::FACE_FRONT;
+  if (dir.has_value()) {
+    switch (dir.value()) {
+    case UseDirection::Back:facing = Facing::FACE_FRONT;
+      break;
+    case UseDirection::Front:facing = Facing::FACE_BACK;
+      break;
+    case UseDirection::Left:facing = Facing::FACE_RIGHT;
+      break;
+    case UseDirection::Right:facing = Facing::FACE_LEFT;
+      break;
+    default:throw std::invalid_argument("direction is invalid");
+    }
   }
   auto pRoom = pDoor->getRoom();
   auto pOldRoom = _pImpl->_pRoom;
@@ -1571,7 +1685,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   if (pRoom->getFullscreen() != 1) {
     actor->setRoom(pRoom);
     auto pos = pDoor->getRealPosition();
-    auto usePos = pDoor->getUsePosition();
+    auto usePos = pDoor->getUsePosition().value_or(sf::Vector2f());
     pos += usePos;
     actor->setPosition(pos);
     _pImpl->_camera.at(pos);

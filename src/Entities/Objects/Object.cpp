@@ -143,7 +143,7 @@ void Object::playAnim(int animIndex, bool loop) {
   (*pImpl->_pAnim)->play(loop);
 }
 
-int Object::getState() { return pImpl->_state; }
+int Object::getState() const { return pImpl->_state; }
 
 void Object::setAnimation(const std::string &name) {
   auto it = std::find_if(pImpl->_anims.begin(), pImpl->_anims.end(),
@@ -226,7 +226,8 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
   hl.setFillColor(color);
   target.draw(hl, states);
 
-  switch (getUseDirection()) {
+  auto useDir = getUseDirection().value_or(UseDirection::Front);
+  switch (useDir) {
   case UseDirection::Front: {
     sf::RectangleShape dirShape(sf::Vector2f(3, 1));
     dirShape.setPosition(pImpl->_usePos.x - 1, pImpl->_usePos.y + 2);
