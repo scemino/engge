@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <assert.h>
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
