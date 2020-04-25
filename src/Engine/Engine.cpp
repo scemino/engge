@@ -658,6 +658,8 @@ struct Engine::Impl {
       setActor(hash["selectedActor"].getString());
       setCurrentRoom(hash["currentRoom"].getString());
 
+      ScriptEngine::set("SAVEBUILD", hash["savebuild"].getInt());
+
       ScriptEngine::call("postLoad");
     }
 
