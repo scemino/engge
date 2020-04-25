@@ -455,7 +455,7 @@ struct Engine::Impl {
       for (auto &property : actorHash.hash_value) {
         if (property.first.empty() || property.first[0] == '_') {
           if (property.first == "_animations") {
-            std::__1::vector<std::string> anims;
+            std::vector<std::string> anims;
             for (auto &value : property.second.array_value) {
               anims.push_back(value.getString());
             }
