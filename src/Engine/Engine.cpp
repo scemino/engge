@@ -646,7 +646,7 @@ struct Engine::Impl {
       loadGameScene(hash["gameScene"]);
       loadDialog(hash["dialog"]);
       loadCallbacks(hash["callbacks"]);
-      loadTable(hash["globals"]);
+      loadGlobals(hash["globals"]);
       loadActors(hash["actors"]);
       loadObjects(hash["objects"]);
       loadInventory(hash["inventory"]);
@@ -910,10 +910,13 @@ struct Engine::Impl {
       };
     }
 
-    void loadTable(const GGPackValue &hash) {
+    void loadGlobals(const GGPackValue &hash) {
       SQTable *pRootTable = _table(_pImpl->_vm->_roottable);
+      SQObjectPtr gObject;
+      pRootTable->Get(ScriptEngine::toSquirrel("g"), gObject);
+      SQTable *gTable = _table(gObject);
       for (const auto &variable : hash.hash_value) {
-        pRootTable->Set(ScriptEngine::toSquirrel(variable.first), toSquirrel(variable.second));
+        gTable->Set(ScriptEngine::toSquirrel(variable.first), toSquirrel(variable.second));
       }
     }
 
