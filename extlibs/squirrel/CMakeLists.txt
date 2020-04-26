@@ -35,7 +35,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(${SQ_FLAGS})
   endif()
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++0x")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti -std=c++0x")
 elseif(MSVC)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
