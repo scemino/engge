@@ -31,13 +31,16 @@ public:
 
 class Condition : public Node {
 protected:
-  Condition() = default;
+  explicit Condition(int32_t line);
 public:
   ~Condition() override;
+  int32_t getLine() const { return _line; }
+private:
+  int32_t _line;
 };
 class CodeCondition : public Condition {
 public:
-  CodeCondition() = default;
+  explicit CodeCondition(int32_t line);
   ~CodeCondition() override;
 
   void accept(AstVisitor &visitor) override;
@@ -46,28 +49,28 @@ public:
 };
 class OnceCondition : public Condition {
 public:
-  OnceCondition() = default;
+  explicit OnceCondition(int32_t line);
   ~OnceCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
 class ShowOnceCondition : public Condition {
 public:
-  ShowOnceCondition() = default;
+  explicit ShowOnceCondition(int32_t line);
   ~ShowOnceCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
 class OnceEverCondition : public Condition {
 public:
-  OnceEverCondition() = default;
+  explicit OnceEverCondition(int32_t line);
   ~OnceEverCondition() override;
 
   void accept(AstVisitor &visitor) override;
 };
 class TempOnceCondition : public Condition {
 public:
-  TempOnceCondition() = default;
+  explicit TempOnceCondition(int32_t line);
   ~TempOnceCondition() override;
 
   void accept(AstVisitor &visitor) override;

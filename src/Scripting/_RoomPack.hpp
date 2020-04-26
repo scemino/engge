@@ -577,7 +577,7 @@ private:
         obj->setName(objName);
       }
 
-      trace("Room {}: Set object id {} to {}", pRoom->getName(), obj->getId(), obj->getKey());
+//      trace("Room {}: Set object id {} to {}", pRoom->getName(), obj->getId(), obj->getKey());
       ScriptEngine::set(obj.get(), "_id", obj->getId());
 
       sq_pushobject(v, obj->getTable());
@@ -610,7 +610,7 @@ private:
         object->setKey(roomObject.first);
         sq_pushobject(v, roomObject.second);
         sq_getstackobj(v, -1, &object->getTable());
-        trace("Room {}: Set object id {} to {}", pRoom->getName(), object->getId(), object->getKey());
+//        trace("Room {}: Set object id {} to {}", pRoom->getName(), object->getId(), object->getKey());
         ScriptEngine::set(object.get(), "_id", object->getId());
 
         if (!ScriptEngine::rawExists(object.get(), "icon")) {

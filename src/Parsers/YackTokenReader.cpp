@@ -87,6 +87,19 @@ YackTokenReader::YackTokenReader()
     : _offset(-1) {
 }
 
+int YackTokenReader::getLine(const Token &token) const {
+  auto previous = -1;
+  auto previousVal = -1;
+  for (auto &[key, val] : _lines) {
+    if ((previous < token.start) && (token.start < key)) {
+      return val;
+    }
+    previousVal = val;
+    previous = key;
+  }
+  return previousVal + 1;
+}
+
 bool YackTokenReader::readToken(Token &token) {
   std::streampos start = _stream.tell();
   auto id = readTokenId();
@@ -205,6 +218,7 @@ TokenId YackTokenReader::readNumber() {
 
 TokenId YackTokenReader::readComment() {
   _stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  _stream.seek(_stream.tell() - 1);
   return TokenId::Comment;
 }
 

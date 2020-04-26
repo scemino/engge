@@ -1,13 +1,20 @@
+#include <cassert>
 #include "Parsers/YackParser.hpp"
 
 namespace ng {
 Ast::Node::~Node() = default;
 Ast::Expression::~Expression() = default;
+Ast::Condition::Condition(int32_t line) : _line(line) {}
 Ast::Condition::~Condition() = default;
+Ast::CodeCondition::CodeCondition(int32_t line) : Condition(line) {}
 Ast::CodeCondition::~CodeCondition() = default;
+Ast::OnceCondition::OnceCondition(int32_t line) : Condition(line) {}
 Ast::OnceCondition::~OnceCondition() = default;
+Ast::ShowOnceCondition::ShowOnceCondition(int32_t line) : Condition(line) {}
 Ast::ShowOnceCondition::~ShowOnceCondition() = default;
+Ast::OnceEverCondition::OnceEverCondition(int32_t line) : Condition(line) {}
 Ast::OnceEverCondition::~OnceEverCondition() = default;
+Ast::TempOnceCondition::TempOnceCondition(int32_t line) : Condition(line) {}
 Ast::TempOnceCondition::~TempOnceCondition() = default;
 Ast::Statement::~Statement() = default;
 Ast::Goto::~Goto() = default;
@@ -74,16 +81,18 @@ std::unique_ptr<Ast::Statement> YackParser::parseStatement() {
 std::unique_ptr<Ast::Condition> YackParser::parseCondition() {
   auto text = _reader.readText(*_it++);
   auto conditionText = text.substr(1, text.length() - 2);
+  auto line = _reader.getLine(*_it);
+  assert(line > 0);
   if (conditionText == "once") {
-    return std::make_unique<Ast::OnceCondition>();
+    return std::make_unique<Ast::OnceCondition>(line);
   } else if (conditionText == "showonce") {
-    return std::make_unique<Ast::ShowOnceCondition>();
+    return std::make_unique<Ast::ShowOnceCondition>(line);
   } else if (conditionText == "onceever") {
-    return std::make_unique<Ast::OnceEverCondition>();
+    return std::make_unique<Ast::OnceEverCondition>(line);
   } else if (conditionText == "temponce") {
-    return std::make_unique<Ast::TempOnceCondition>();
+    return std::make_unique<Ast::TempOnceCondition>(line);
   }
-  auto pCondition = std::make_unique<Ast::CodeCondition>();
+  auto pCondition = std::make_unique<Ast::CodeCondition>(line);
   pCondition->code = conditionText;
   return pCondition;
 }

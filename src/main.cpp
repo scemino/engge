@@ -15,6 +15,13 @@
 #include "Dialog/_AstDump.hpp"
 
 int main(int argc, char **argv) {
+
+  if (argc == 2) {
+    auto filename = argv[1];
+    ng::_AstDump::dump(filename);
+    return 0;
+  }
+
   try {
     auto pLogger = std::make_shared<ng::Logger>();
     ng::Locator<ng::Logger>::set(pLogger);
@@ -32,12 +39,6 @@ int main(int argc, char **argv) {
     ng::Locator<ng::Preferences>::set(pPreferences);
 
     ng::Locator<ng::TextDatabase>::set(std::make_shared<ng::TextDatabase>());
-
-    if (argc == 2) {
-      auto filename = argv[1];
-      ng::_AstDump::dump(filename);
-      return 0;
-    }
 
     auto game = std::make_unique<ng::Game>();
     auto scriptEngine = std::make_unique<ng::ScriptEngine>();

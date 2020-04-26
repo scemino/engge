@@ -67,6 +67,7 @@ public:
   bool readToken(Token &token);
   std::string readText(std::streampos pos, std::streamsize size);
   std::string readText(const Token &token);
+  int getLine(const Token& token) const;
 
 private:
   TokenId readTokenId();

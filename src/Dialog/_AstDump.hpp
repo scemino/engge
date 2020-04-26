@@ -65,14 +65,17 @@ private:
   void visit(const Ast::Goto &node) override {
     std::cout << "goto " << node.name << std::endl;
   }
-  void visit(const Ast::OnceCondition &) override {
-    std::cout << "condition: once" << std::endl;
+  void visit(const Ast::OnceCondition & node) override {
+    std::cout << "condition: once (" << node.getLine() << ")" << std::endl;
   }
-  void visit(const Ast::ShowOnceCondition &) override {
-    std::cout << "condition: showonce" << std::endl;
+  void visit(const Ast::ShowOnceCondition &node) override {
+    std::cout << "condition: showonce (" << node.getLine() << ")" << std::endl;
   }
   void visit(const Ast::CodeCondition &node) override {
     std::cout << "condition: " << node.code << std::endl;
+  }
+  void visit(const Ast::TempOnceCondition &node) override {
+    std::cout << "condition: temponce (" << node.getLine() << ")" << std::endl;
   }
 };
 } // namespace ng

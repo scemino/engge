@@ -35,6 +35,7 @@
 #include "Parsers/SavegameManager.hpp"
 #include <cmath>
 #include <ctime>
+#include <cctype>
 #include <cwchar>
 #include <filesystem>
 #include <iostream>
@@ -267,7 +268,8 @@ struct Engine::Impl {
     }
 
     void loadDialog(const GGPackValue &hash) {
-      // TODO: load dialog
+      auto &states = _pImpl->_dialogManager.getStates();
+      states.clear();
       for (auto &property : hash.hash_value) {
         auto dialog = property.first;
         // dialog format: mode dialog number actor
@@ -278,9 +280,44 @@ struct Engine::Impl {
         // &: onceever
         // $: showonceever
         // ^: temponce
-        auto value = property.second.getInt();
-        warn("load dialog: property '{}:{}'", dialog, value);
+        auto state = parseState(dialog);
+        states.push_back(state);
+        // TODO: what to do with this dialog value ?
+        //auto value = property.second.getInt();
       }
+    }
+
+    [[nodiscard]] DialogConditionState parseState(const std::string &dialog) const {
+      DialogConditionState state;
+      switch (dialog[0]) {
+      case '?':state.mode = DialogConditionMode::Once;
+        break;
+      case '#':state.mode = DialogConditionMode::ShowOnce;
+        break;
+      case '&':state.mode = DialogConditionMode::OnceEver;
+        break;
+      case '$':state.mode = DialogConditionMode::ShowOnceEver;
+        break;
+      case '^':state.mode = DialogConditionMode::TempOnce;
+        break;
+      }
+      std::string dialogName;
+      int i;
+      for (i = 1; i < static_cast<int>(dialog.length()) && !isdigit(dialog[i]); i++) {
+        dialogName.append(1, dialog[i]);
+      }
+      auto &settings = Locator<EngineSettings>::get();
+      while (!settings.hasEntry(dialogName + ".byack")) {
+        dialogName.append(1, dialog.at(i++));
+      }
+      std::string num;
+      state.dialog = dialogName;
+      for (; i < static_cast<int>(dialog.length()) && isdigit(dialog[i]); i++) {
+        num.append(1, dialog[i]);
+      }
+      state.line = atol(num.data());
+      state.actorKey = dialog.substr(i);
+      return state;
     }
 
     void loadCallbacks(const GGPackValue &hash) {
@@ -682,9 +719,26 @@ struct Engine::Impl {
       saveTable(g, globalsHash, false);
     }
 
-    static void saveDialogs(GGPackValue &hash) {
+    void saveDialogs(GGPackValue &hash) {
       hash.type = 2;
-      // TODO: save dialogs
+      const auto &states = _pImpl->_dialogManager.getStates();
+      for (const auto &state : states) {
+        std::ostringstream s;
+        switch (state.mode) {
+        case DialogConditionMode::TempOnce:continue;
+        case DialogConditionMode::OnceEver:s << "&";
+          break;
+        case DialogConditionMode::ShowOnce:s << "#";
+          break;
+        case DialogConditionMode::Once:s << "?";
+          break;
+        case DialogConditionMode::ShowOnceEver:s << "$";
+          break;
+        }
+        s << state.dialog << state.line << state.actorKey;
+        // TODO: value should be 1 or another value ?
+        hash.hash_value[s.str()] = GGPackValue::toGGPackValue(state.mode == DialogConditionMode::ShowOnce ? 2 : 1);
+      }
     }
 
     void saveGameScene(GGPackValue &hash) const {

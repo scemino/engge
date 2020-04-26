@@ -10,7 +10,7 @@ void GGPackBufferStream::setBuffer(const std::vector<char> &input) {
 
 void GGPackBufferStream::read(char *data, size_t size) {
   if ((static_cast<int>(_offset + size)) > getLength())
-  return;
+    return;
   memcpy(data, _input.data() + _offset, size);
   _offset += size;
 }

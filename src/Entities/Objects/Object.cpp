@@ -70,7 +70,7 @@ void Object::setIcon(const std::string &icon) {
   pImpl->_icons.push_back(icon);
 }
 
-std::string Object::getIcon() const { return pImpl->_icons[pImpl->_index]; }
+std::string Object::getIcon() const { return pImpl->_icons.at(pImpl->_index); }
 
 void Object::setIcon(int fps, const std::vector<std::string> &icons) {
   pImpl->_icons.clear();
