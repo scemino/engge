@@ -164,7 +164,8 @@ void DialogManager::update(const sf::Time &elapsed) {
       auto pStatement = _currentStatement->get();
       pStatement->accept(_dialogVisitor);
       isChoice = dynamic_cast<Ast::Choice *>(pStatement->expression.get()) != nullptr;
-      _currentStatement++;
+      auto isGoto = dynamic_cast<Ast::Goto *>(pStatement->expression.get()) != nullptr;
+      if(!isGoto) _currentStatement++;
     } while (_functions.empty() && isChoice && _currentStatement != _pLabel->statements.end());
   }
 
