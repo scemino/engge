@@ -387,7 +387,7 @@ struct Engine::Impl {
       getValue(actorHash, "_usePos", usePos);
       pActor->setUsePosition(usePos);
 
-      sf::Vector2f renderOffset;
+      sf::Vector2f renderOffset = sf::Vector2f(0, 45);
       getValue(actorHash, "_renderOffset", renderOffset);
       pActor->setRenderOffset((sf::Vector2i) renderOffset);
 
