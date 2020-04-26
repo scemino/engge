@@ -10,6 +10,7 @@
 #include "Entities/Entity.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
+#include "Engine/ExCommandConstants.hpp"
 #include "Engine/ResourceManager.hpp"
 #include "Room/Room.hpp"
 #include "Scripting/ScriptEngine.hpp"
@@ -320,17 +321,18 @@ ScriptEngine::ScriptEngine() {
                              {"ALIGN_RIGHT", 0x40000000},
                              {"ALIGN_TOP", 0x80000000},
                              {"ALIGN_BOTTOM", 0x1000000},
-                             {"EX_ALLOW_SAVEGAMES", 0x01},
-                             {"EX_POP_CHARACTER_SELECTION", 0x02},
-                             {"EX_CAMERA_TRACKING", 0x03},
-                             {"EX_BUTTON_HOVER_SOUND", 0x04},
-                             {"EX_RESTART", 0x06},
-                             {"EX_IDLE_TIME", 0x07},
-                             {"EX_AUTOSAVE", 0x08},
-                             {"EX_AUTOSAVE_STATE", 0x09},
-                             {"EX_DISABLE_SAVESYSTEM", 0x0A},
-                             {"EX_SHOW_OPTIONS", 0x0B},
-                             {"EX_OPTIONS_MUSIC", 0x0C},
+                             {"EX_ALLOW_SAVEGAMES", ExCommandConstants::EX_ALLOW_SAVEGAMES},
+                             {"EX_POP_CHARACTER_SELECTION", ExCommandConstants::EX_POP_CHARACTER_SELECTION},
+                             {"EX_CAMERA_TRACKING", ExCommandConstants::EX_CAMERA_TRACKING},
+                             {"EX_BUTTON_HOVER_SOUND", ExCommandConstants::EX_BUTTON_HOVER_SOUND},
+                             {"EX_RESTART", ExCommandConstants::EX_RESTART},
+                             {"EX_IDLE_TIME", ExCommandConstants::EX_IDLE_TIME},
+                             {"EX_AUTOSAVE", ExCommandConstants::EX_AUTOSAVE},
+                             {"EX_AUTOSAVE_STATE", ExCommandConstants::EX_AUTOSAVE_STATE},
+                             {"EX_DISABLE_SAVESYSTEM", ExCommandConstants::EX_DISABLE_SAVESYSTEM},
+                             {"EX_SHOW_OPTIONS", ExCommandConstants::EX_SHOW_OPTIONS},
+                             {"EX_OPTIONS_MUSIC", ExCommandConstants::EX_OPTIONS_MUSIC},
+                             {"EX_FORCE_TALKIE_TEXT", ExCommandConstants::EX_FORCE_TALKIE_TEXT},
                              {"GRASS_BACKANDFORTH", 0x00},
                              {"EFFECT_NONE", 0x00},
                              {"DOOR", 0x40},

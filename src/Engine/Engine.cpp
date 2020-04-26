@@ -259,7 +259,8 @@ struct Engine::Impl {
         mode |= ActorSlotSelectableMode::TemporaryUnselectable;
       }
       _pImpl->_pEngine->setActorSlotSelectable(mode);
-      // TODO: auto forceTalkieText = hash["forceTalkieText"].getInt();
+      auto forceTalkieText = hash["forceTalkieText"].getInt() != 0;
+      _pImpl->_pEngine->getPreferences().setForceTalkieText(forceTalkieText);
       for (auto &selectableActor : hash["selectableActors"].array_value) {
         auto pActor = getActor(selectableActor[_actorKey].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
@@ -763,7 +764,7 @@ struct Engine::Impl {
       hash.hash_value = {
           {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
           {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
-          {"forceTalkieText", GGPackValue::toGGPackValue(0)},
+          {"forceTalkieText", GGPackValue::toGGPackValue(_pImpl->_pEngine->getPreferences().getForceTalkieText())},
           {"selectableActors", selectableActors}
       };
     }
