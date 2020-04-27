@@ -259,6 +259,7 @@ public:
   static void getSlotSavegames(std::vector<SavegameSlot> &slots);
   void setAutoSave(bool autosave);
   bool getAutoSave() const;
+  void allowSaveGames(bool allow);
 
 private:
   struct Impl;

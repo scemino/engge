@@ -553,6 +553,14 @@ private:
       return sq_throwerror(v, _SC("Failed to get command"));
     }
     switch (command) {
+    case ExCommandConstants::EX_ALLOW_SAVEGAMES: {
+      SQInteger enabled;
+      if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
+        return sq_throwerror(v, _SC("Failed to get enabled"));
+      }
+      g_pEngine->allowSaveGames(enabled != 0);
+      return 0;
+    }
     case ExCommandConstants::EX_AUTOSAVE: {
       if (g_pEngine->getAutoSave()) {
         g_pEngine->saveGame(1);

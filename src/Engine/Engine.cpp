@@ -2555,6 +2555,10 @@ void Engine::setAutoSave(bool autoSave) { _pImpl->_autoSave = autoSave; }
 
 bool Engine::getAutoSave() const { return _pImpl->_autoSave; }
 
+void Engine::allowSaveGames(bool allow) {
+  _pImpl->_optionsDialog.setSaveEnabled(allow);
+}
+
 void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
   for (int i = 1; i <= 9; ++i) {
     auto path = Impl::_SaveGameSystem::getSlotPath(i);
