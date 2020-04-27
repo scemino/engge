@@ -69,6 +69,14 @@ void Costume::unlockFacing() {
   _lockFacing = false;
 }
 
+std::optional<Facing> Costume::getLockFacing() const {
+  if(!_lockFacing) return std::nullopt;
+  auto frontFacing = _facings.find(Facing::FACE_FRONT)->second;
+  auto backFacing = _facings.find(Facing::FACE_BACK)->second;
+  if(frontFacing != backFacing) return std::nullopt;
+  return frontFacing;
+}
+
 void Costume::setState(const std::string &name) {
   _animation = name;
   updateAnimation();

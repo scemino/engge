@@ -372,14 +372,16 @@ struct Engine::Impl {
       getValue(actorHash, "_useDir", useDirValue);
       pActor->setUseDirection(static_cast<UseDirection>(dir));
 
-      int lockFacing = static_cast<int>(Facing::FACE_FRONT);
+      int lockFacing = 0;
       getValue(actorHash, "_lockFacing", lockFacing);
-      // TODO: _lockFacing
-      /*pActor->getCostume().lockFacing(static_cast<Facing>(lockFacing),
-                                      static_cast<Facing>(lockFacing),
-                                      static_cast<Facing>(lockFacing),
-                                      static_cast<Facing>(lockFacing));*/
-
+      if (lockFacing == 0) {
+        pActor->getCostume().unlockFacing();
+      } else {
+        pActor->getCostume().lockFacing(static_cast<Facing>(lockFacing),
+                                        static_cast<Facing>(lockFacing),
+                                        static_cast<Facing>(lockFacing),
+                                        static_cast<Facing>(lockFacing));
+      }
       float volume = 0;
       getValue(actorHash, "_volume", volume);
       pActor->setVolume(volume);
@@ -672,7 +674,9 @@ struct Engine::Impl {
         auto costume = pActor->getCostume().getPath();
         actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
         actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
-        // TODO: _lockFacing
+        auto lockFacing = pActor->getCostume().getLockFacing();
+        actorHash.hash_value["_lockFacing"] =
+            GGPackValue::toGGPackValue(lockFacing.has_value() ? static_cast<int>(lockFacing.value()) : 0);
         actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
         if (pActor->getVolume().has_value()) {
           actorHash.hash_value["_volume"] = GGPackValue::toGGPackValue(pActor->getVolume().value());
