@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
     ng::Locator<ng::ResourceManager>::set(pResManager);
 
     auto pSettings = std::make_shared<ng::EngineSettings>();
+    pSettings->loadPacks();
     ng::Locator<ng::EngineSettings>::set(pSettings);
 
     auto pSoundManager = std::make_shared<ng::SoundManager>();

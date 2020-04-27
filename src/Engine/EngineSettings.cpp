@@ -1,10 +1,22 @@
-#include "Engine/EngineSettings.hpp"
 #include <sstream>
+#include <filesystem>
+#include "Engine/EngineSettings.hpp"
+#include "../System/_Util.hpp"
+namespace fs = std::filesystem;
 
 namespace ng {
 EngineSettings::EngineSettings() {
-  _pack1.open("ThimbleweedPark.ggpack1");
-  _pack2.open("ThimbleweedPark.ggpack2");
+}
+
+void EngineSettings::loadPacks() {
+  auto path = fs::current_path();
+  for (const auto &entry : fs::directory_iterator(path)) {
+    if (ng::startsWith(entry.path().extension(), ".ggpack")) {
+      auto pack = std::make_unique<GGPack>();
+      pack->open(entry.path().string());
+      _packs.push_back(std::move(pack));
+    }
+  }
 }
 
 bool EngineSettings::hasEntry(const std::string &name) {
@@ -14,7 +26,10 @@ bool EngineSettings::hasEntry(const std::string &name) {
     is.close();
     return true;
   }
-  return _pack1.hasEntry(name) || _pack2.hasEntry(name);
+  auto it = std::find_if(_packs.begin(), _packs.end(), [&name](auto &pack) {
+    return pack->hasEntry(name);
+  });
+  return it != _packs.end();
 }
 
 void EngineSettings::readEntry(const std::string &name, std::vector<char> &data) {
@@ -32,28 +47,26 @@ void EngineSettings::readEntry(const std::string &name, std::vector<char> &data)
   }
 
   // not found in filesystem, check in the pack files
-  if (_pack1.hasEntry(name)) {
-    _pack1.readEntry(name, data);
-    return;
-  }
-
-  if (_pack2.hasEntry(name)) {
-    _pack2.readEntry(name, data);
+  auto it = std::find_if(_packs.begin(), _packs.end(), [&name](auto &pack) {
+    return pack->hasEntry(name);
+  });
+  if (it != _packs.end()) {
+    (*it)->readEntry(name, data);
   }
 }
 
 void EngineSettings::readEntry(const std::string &name, GGPackValue &hash) {
-  if (_pack1.hasEntry(name)) {
-    _pack1.readHashEntry(name, hash);
-    return;
-  }
-  if (_pack2.hasEntry(name)) {
-    _pack2.readHashEntry(name, hash);
+  auto it = std::find_if(_packs.begin(), _packs.end(), [&name](auto &pack) {
+    return pack->hasEntry(name);
+  });
+  if (it != _packs.end()) {
+    (*it)->readHashEntry(name, hash);
   }
 }
 
 void EngineSettings::getEntries(std::vector<std::string> &entries) {
-  _pack1.getEntries(entries);
-  _pack2.getEntries(entries);
+  for (auto &pack : _packs) {
+    pack->getEntries(entries);
+  }
 }
 } // namespace ng

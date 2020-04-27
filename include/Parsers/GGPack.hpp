@@ -17,6 +17,7 @@ struct GGPackEntry {
 class GGPack {
 public:
   GGPack();
+  ~GGPack() = default;
 
   void open(const std::string &path);
   void getEntries(std::vector<std::string> &entries);
