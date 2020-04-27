@@ -14,6 +14,7 @@ find_package (ImGui-SFML REQUIRED)
 # Sources
 add_subdirectory(src)
 add_subdirectory(extlibs/squirrel)
+add_subdirectory(extlibs/clipper)
 
 # Install misc. files
 install(FILES LICENSE DESTINATION .)

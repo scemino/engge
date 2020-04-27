@@ -15,7 +15,7 @@
 #include "Entities/Objects/TextObject.hpp"
 #include "../System/_Util.hpp"
 #include "squirrel.h"
-#include "../Math/clipper.hpp"
+#include "clipper.hpp"
 #include <algorithm>
 #include <iostream>
 #include <cmath>
