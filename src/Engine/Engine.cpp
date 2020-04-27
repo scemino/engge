@@ -634,11 +634,11 @@ struct Engine::Impl {
     Object *getInventoryObject(const std::string &name) {
       auto v = _pImpl->_pEngine->getVm();
       SQObjectPtr obj;
-      if(!_table(v->_roottable)->Get(ScriptEngine::toSquirrel(name), obj)){
+      if (!_table(v->_roottable)->Get(ScriptEngine::toSquirrel(name), obj)) {
         return nullptr;
       }
       SQObjectPtr id;
-      if(!_table(obj)->Get(ScriptEngine::toSquirrel(_idKey), id)){
+      if (!_table(obj)->Get(ScriptEngine::toSquirrel(_idKey), id)) {
         return nullptr;
       }
       return ScriptEngine::getObjectFromId(static_cast<int>(_integer(id)));
@@ -1075,6 +1075,7 @@ struct Engine::Impl {
   bool _run{false};
   sf::Time _noOverrideElapsed{sf::seconds(2)};
   Hud _hud;
+  bool _autoSave{true};
 
   Impl();
 
@@ -2549,6 +2550,10 @@ void Engine::loadGame(int slot) {
   Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
   saveGameSystem.loadGame(Impl::_SaveGameSystem::getSlotPath(slot));
 }
+
+void Engine::setAutoSave(bool autoSave) { _pImpl->_autoSave = autoSave; }
+
+bool Engine::getAutoSave() const { return _pImpl->_autoSave; }
 
 void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
   for (int i = 1; i <= 9; ++i) {

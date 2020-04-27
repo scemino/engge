@@ -553,14 +553,29 @@ private:
       return sq_throwerror(v, _SC("Failed to get command"));
     }
     switch (command) {
-    case ExCommandConstants::EX_FORCE_TALKIE_TEXT:SQInteger enabled;
+    case ExCommandConstants::EX_AUTOSAVE: {
+      if (g_pEngine->getAutoSave()) {
+        g_pEngine->saveGame(1);
+      }
+      return 0;
+    }
+    case ExCommandConstants::EX_AUTOSAVE_STATE: {
+      SQInteger enabled;
+      if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
+        return sq_throwerror(v, _SC("Failed to get enabled"));
+      }
+      g_pEngine->setAutoSave(enabled != 0);
+      return 0;
+    }
+    case ExCommandConstants::EX_FORCE_TALKIE_TEXT: {
+      SQInteger enabled;
       if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
         return sq_throwerror(v, _SC("Failed to get enabled"));
       }
       g_pEngine->getPreferences().setForceTalkieText(enabled != 0);
       return 0;
-    default:
-      error("TODO: exCommand {}: not implemented", command);
+    }
+    default:error("TODO: exCommand {}: not implemented", command);
       break;
     }
     return 0;
