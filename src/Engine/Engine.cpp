@@ -632,12 +632,16 @@ struct Engine::Impl {
     }
 
     Object *getInventoryObject(const std::string &name) {
-      // TODO: fix mem leak here
       auto v = _pImpl->_pEngine->getVm();
-      sq_pushroottable(v);
-      sq_pushstring(v, name.data(), -1);
-      sq_get(v, -2);
-      return ScriptEngine::getObject(v, -1);
+      SQObjectPtr obj;
+      if(!_table(v->_roottable)->Get(ScriptEngine::toSquirrel(name), obj)){
+        return nullptr;
+      }
+      SQObjectPtr id;
+      if(!_table(obj)->Get(ScriptEngine::toSquirrel(_idKey), id)){
+        return nullptr;
+      }
+      return ScriptEngine::getObjectFromId(static_cast<int>(_integer(id)));
     }
 
     Object *getObject(const std::string &name) {
