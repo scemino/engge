@@ -41,7 +41,7 @@ void SoundId::play(int loopTimes) {
 void SoundId::setVolume(float volume) {
   if (_pSoundDefinition) {
     auto path = _pSoundDefinition->getPath();
-    trace("setVolume({},{})", path, volume);
+//    trace("setVolume({},{})", path, volume);
   }
   _volume = volume;
 }
@@ -52,7 +52,7 @@ float SoundId::getVolume() const {
 
 void SoundId::stop() {
   auto path = _pSoundDefinition->getPath();
-  trace("stopSoundId({})", path);
+//  trace("stopSoundId({})", path);
   _sound.stop();
 }
 
