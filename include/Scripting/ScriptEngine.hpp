@@ -137,7 +137,6 @@ private:
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
 private:
-  Engine *_pEngine{nullptr};
   HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
 

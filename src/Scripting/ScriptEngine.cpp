@@ -420,7 +420,6 @@ ScriptEngine::ScriptEngine() {
 ScriptEngine::~ScriptEngine() { sq_close(v); }
 
 void ScriptEngine::setEngine(Engine &engine) {
-  _pEngine = &engine;
   g_pEngine = &engine;
   engine.setVm(v);
   auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
@@ -436,7 +435,7 @@ void ScriptEngine::setEngine(Engine &engine) {
   addPack<_SystemPack>();
 }
 
-Engine &ScriptEngine::getEngine() { return *_pEngine; }
+Engine &ScriptEngine::getEngine() { return *g_pEngine; }
 
 SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v) {
   auto pf = sq_geterrorfunc(v);
