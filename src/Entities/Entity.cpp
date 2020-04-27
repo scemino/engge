@@ -30,8 +30,16 @@ bool Entity::isVisible() const {
   return _isVisible;
 }
 
-void Entity::setUsePosition(const sf::Vector2f &pos) {
+void Entity::setUsePosition(std::optional<sf::Vector2f> pos) {
   _usePos = pos;
+}
+
+void Entity::setUseDirection(std::optional<UseDirection> direction) {
+  _useDir = direction;
+}
+
+std::optional<UseDirection> Entity::getUseDirection() const {
+  return _useDir;
 }
 
 void Entity::setPosition(const sf::Vector2f &pos) {
@@ -86,7 +94,7 @@ sf::Transformable Entity::getTransform() const {
   return transform;
 }
 
-sf::Vector2f Entity::getUsePosition() const {
+std::optional<sf::Vector2f> Entity::getUsePosition() const {
   return _usePos;
 }
 

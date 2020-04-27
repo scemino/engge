@@ -11,7 +11,7 @@ Cutscene::Cutscene(Engine &engine,
                    HSQOBJECT closureObj,
                    HSQOBJECT closureCutsceneOverrideObj,
                    HSQOBJECT envObj)
-    : _engine(engine), _v(v), _thread(thread), _state(0), _closureObj(closureObj),
+    : _engine(engine), _v(v), _threadCutscene(thread), _state(0), _closureObj(closureObj),
       _closureCutsceneOverrideObj(closureCutsceneOverrideObj), _envObj(envObj) {
   _engineVm = engine.getVm();
   _hasCutsceneOverride = !sq_isnull(_closureCutsceneOverrideObj);
@@ -20,21 +20,21 @@ Cutscene::Cutscene(Engine &engine,
   _engine.setInputActive(false);
   _engine.setInputVerbs(false);
 
-  sq_addref(_engineVm, &_thread);
+  sq_addref(_engineVm, &_threadCutscene);
   sq_addref(_engineVm, &_closureObj);
   sq_addref(_engineVm, &_closureCutsceneOverrideObj);
   sq_addref(_engineVm, &_envObj);
 }
 
 Cutscene::~Cutscene() {
-  sq_release(_engineVm, &_thread);
+  sq_release(_engineVm, &_threadCutscene);
   sq_release(_engineVm, &_closureObj);
   sq_release(_engineVm, &_closureCutsceneOverrideObj);
   sq_release(_engineVm, &_envObj);
 }
 
 HSQUIRRELVM Cutscene::getThread() const {
-  return _thread._unVal.pThread;
+  return _threadCutscene._unVal.pThread;
 }
 
 bool Cutscene::isElapsed() { return _state == 5; }
@@ -67,9 +67,9 @@ void Cutscene::operator()(const sf::Time &) {
 void Cutscene::startCutscene() {
   _state = 1;
   trace("start cutscene: {}", _id);
-  sq_pushobject(_thread._unVal.pThread, _closureObj);
-  sq_pushobject(_thread._unVal.pThread, _envObj);
-  if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue))) {
+  sq_pushobject(_threadCutscene._unVal.pThread, _closureObj);
+  sq_pushobject(_threadCutscene._unVal.pThread, _envObj);
+  if (SQ_FAILED(sq_call(_threadCutscene._unVal.pThread, 1, SQFalse, SQTrue))) {
     error("Couldn't call cutscene");
   }
 }
@@ -85,9 +85,9 @@ void Cutscene::doCutsceneOverride() {
   if (_hasCutsceneOverride) {
     _state = 3;
     trace("start cutsceneOverride: {}", _id);
-    sq_pushobject(_thread._unVal.pThread, _closureCutsceneOverrideObj);
-    sq_pushobject(_thread._unVal.pThread, _envObj);
-    if (SQ_FAILED(sq_call(_thread._unVal.pThread, 1, SQFalse, SQTrue))) {
+    sq_pushobject(_threadCutscene._unVal.pThread, _closureCutsceneOverrideObj);
+    sq_pushobject(_threadCutscene._unVal.pThread, _envObj);
+    if (SQ_FAILED(sq_call(_threadCutscene._unVal.pThread, 1, SQFalse, SQTrue))) {
       error("Couldn't call cutsceneOverride");
     }
     return;

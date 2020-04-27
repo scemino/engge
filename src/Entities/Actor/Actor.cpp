@@ -1,4 +1,3 @@
-#include "squirrel.h"
 #include "Entities/Actor/Actor.hpp"
 #include "Engine/Camera.hpp"
 #include "Engine/Engine.hpp"
@@ -86,7 +85,7 @@ struct Actor::Impl {
   WalkingState _walkingState;
   _TalkingState _talkingState;
   sf::Vector2i _speed{30, 15};
-  float _volume{1.f};
+  std::optional<float> _volume;
   std::shared_ptr<_Path> _path;
   HSQOBJECT _table{};
   bool _hotspotVisible{false};
@@ -210,7 +209,7 @@ void Actor::stopWalking() { pImpl->_walkingState.stop(); }
 bool Actor::isWalking() const { return pImpl->_walkingState.isWalking(); }
 
 void Actor::setVolume(float volume) { pImpl->_volume = volume; }
-float Actor::getVolume() const { return pImpl->_volume; }
+std::optional<float> Actor::getVolume() const { return pImpl->_volume; }
 
 HSQOBJECT &Actor::getTable() { return pImpl->_table; }
 HSQOBJECT &Actor::getTable() const { return pImpl->_table; }

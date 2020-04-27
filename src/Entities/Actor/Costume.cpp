@@ -4,9 +4,9 @@
 #include "Entities/Actor/Costume.hpp"
 #include "Entities/Objects/AnimationFrame.hpp"
 #include "Engine/EngineSettings.hpp"
-#include "Parsers/JsonTokenReader.hpp"
 #include "System/Locator.hpp"
 #include "../../System/_Util.hpp"
+#include "Parsers/GGPackValue.hpp"
 
 namespace ng {
 Costume::Costume(TextureManager &textureManager)
@@ -67,6 +67,14 @@ void Costume::resetLockFacing() {
 
 void Costume::unlockFacing() {
   _lockFacing = false;
+}
+
+std::optional<Facing> Costume::getLockFacing() const {
+  if(!_lockFacing) return std::nullopt;
+  auto frontFacing = _facings.find(Facing::FACE_FRONT)->second;
+  auto backFacing = _facings.find(Facing::FACE_BACK)->second;
+  if(frontFacing != backFacing) return std::nullopt;
+  return frontFacing;
 }
 
 void Costume::setState(const std::string &name) {
@@ -152,22 +160,18 @@ CostumeLayer Costume::loadLayer(const GGPackValue &jLayer) const {
 
 void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   _path = path;
-  _sheet = sheet;
+  auto costumeSheet = _sheet = sheet;
 
   Locator<EngineSettings>::get().readEntry(_path, _hash);
-  if (_sheet.empty()) {
-    _sheet = _hash["sheet"].string_value;
+  if (costumeSheet.empty()) {
+    costumeSheet = _hash["sheet"].string_value;
   }
 
   _costumeSheet.setTextureManager(&_textureManager);
-  _costumeSheet.load(_sheet);
+  _costumeSheet.load(costumeSheet);
 
   // load animations
   _animations.clear();
-  _hiddenLayers.clear();
-  _hiddenLayers.emplace("blink");
-  _hiddenLayers.emplace("eyes_left");
-  _hiddenLayers.emplace("eyes_right");
   for (int i = 0; i < 6; i++) {
     std::ostringstream s;
     s << _headAnimName << (i + 1);
@@ -184,7 +188,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
       auto layer = loadLayer(j);
       animation.getLayers().push_back(std::move(layer));
     } else {
-      for (auto jLayer : j["layers"].array_value) {
+      for (const auto& jLayer : j["layers"].array_value) {
         auto layer = loadLayer(jLayer);
         animation.getLayers().push_back(std::move(layer));
       }
@@ -257,8 +261,7 @@ void Costume::updateAnimation() {
       break;
     case Facing::FACE_FRONT:name.append("front");
       break;
-    case Facing::FACE_LEFT:name.append("right");
-      break;
+    case Facing::FACE_LEFT:
     case Facing::FACE_RIGHT:name.append("right");
       break;
     }

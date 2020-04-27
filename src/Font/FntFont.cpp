@@ -136,8 +136,11 @@ bool FntFont::parse(const std::string &path) {
             m_chars.pages.resize(id + 1);
         } else if (key == "file") {
           // Remove quotes
-          const std::string filename = value.substr(1, value.length() - 2);
-          m_chars.pages[id] = filename;
+          // m_chars.pages[id] = filename;
+          // this should be the code below but due to a bug in UIFontSmallBold.fnt
+          // (it points to UIFontSmall.png instead of UIFontSmallBold.png)
+          // I replaced it to:
+          m_chars.pages[id] = path.substr(0, path.length() - 4) + ".png";
         }
       }
     } else if (tag == "char") {

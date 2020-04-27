@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <assert.h>
+#include "../../extlibs/squirrel/squirrel/sqobject.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
 #include "Engine/Engine.hpp"
@@ -29,6 +31,10 @@ public:
   void setEngine(Engine &engine);
   Engine &getEngine();
 
+  static HSQUIRRELVM getVm() { return g_pEngine->getVm(); }
+
+  static SQObjectPtr toSquirrel(const std::string &value);
+
   template<typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list);
   void registerGlobalFunction(SQFUNCTION f,
@@ -43,6 +49,8 @@ public:
 
   template<typename TScriptObject>
   static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
+  template<typename TScriptObject>
+  static TScriptObject *getScriptObjectFromId(int id);
 
   static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
   static Object *getObject(HSQUIRRELVM v, SQInteger index);
@@ -51,6 +59,9 @@ public:
   static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
   static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
 
+  static Actor *getActorFromId(int id);
+  static Room *getRoomFromId(int id);
+  static Object *getObjectFromId(int id);
   static Sound *getSoundFromId(int id);
   static ThreadBase *getThreadFromId(int id);
   static ThreadBase *getThreadFromVm(HSQUIRRELVM v);
@@ -74,6 +85,9 @@ public:
   static bool get(TThis pThis, const char *name, T &result);
   template<typename TThis, typename T>
   static bool get(HSQUIRRELVM v, TThis pThis, const char *name, T &result);
+
+  template<typename T>
+  static void set(const char *name, T value);
 
   template<typename TThis, typename T>
   static void set(TThis pThis, const char *name, T value);
@@ -445,6 +459,16 @@ bool ScriptEngine::rawExists(TThis pThis, const char *name) {
   }
   sq_settop(v, top);
   return false;
+}
+
+template<typename T>
+void ScriptEngine::set(const char *name, T value) {
+  auto v = g_pEngine->getVm();
+  sq_pushroottable(v);
+  sq_pushstring(v, _SC(name), -1);
+  ScriptEngine::push(v, value);
+  sq_newslot(v, -3, SQFalse);
+  sq_pop(v, 1);
 }
 
 template<typename TThis, typename T>

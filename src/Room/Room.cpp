@@ -13,7 +13,6 @@
 #include "Graphics/SpriteSheet.hpp"
 #include "Entities/Objects/AnimationFrame.hpp"
 #include "Entities/Objects/TextObject.hpp"
-#include "Engine/Thread.hpp"
 #include "../System/_Util.hpp"
 #include "squirrel.h"
 #include "../Math/clipper.hpp"
@@ -50,6 +49,7 @@ struct Room::Impl {
   sf::Shader _shader{};
   int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
   sf::Color _overlayColor{sf::Color::Transparent};
+  bool _pseudoRoom{false};
 
   explicit Impl(TextureManager &textureManager)
       : _textureManager(textureManager) {
@@ -173,7 +173,7 @@ struct Room::Impl {
     }
   }
 
-  void loadObjects(GGPackValue &jWimpy) {
+  void loadObjects(const GGPackValue &jWimpy) {
     auto &texture = _textureManager.get(_sheet);
 
     for (auto jObject : jWimpy["objects"].array_value) {
@@ -182,6 +182,7 @@ struct Room::Impl {
       // name
       auto objectName = jObject["name"].string_value;
       object->setName(objectName);
+      object->setKey(objectName);
       // parent
       if (jObject["parent"].isString()) {
         auto parent = jObject["parent"].string_value;
@@ -332,7 +333,7 @@ struct Room::Impl {
     }
   }
 
-  void loadWalkboxes(GGPackValue &jWimpy) {
+  void loadWalkboxes(const GGPackValue &jWimpy) {
     for (auto jWalkbox : jWimpy["walkboxes"].array_value) {
       std::vector<sf::Vector2i> vertices;
       auto polygon = jWalkbox["polygon"].string_value;
@@ -410,12 +411,12 @@ struct Room::Impl {
     return true;
   }
 
-  void drawFade(sf::RenderWindow &window) const {
+  void drawFade(sf::RenderTarget &target) const {
     sf::RectangleShape fadeShape;
-    auto screen = window.getView().getSize();
+    auto screen = target.getView().getSize();
     fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
     fadeShape.setFillColor(_overlayColor);
-    window.draw(fadeShape);
+    target.draw(fadeShape);
   }
 };
 
@@ -431,6 +432,7 @@ void Room::setName(const std::string &name) { pImpl->_name = name; }
 std::string Room::getName() const { return pImpl->_name; }
 
 std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_objects; }
+const std::vector<std::unique_ptr<Object>> &Room::getObjects() const { return pImpl->_objects; }
 
 std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 
@@ -469,8 +471,6 @@ void Room::removeEntity(Entity *pEntity) {
 }
 
 void Room::load(const char *name) {
-  pImpl->_name = name;
-
   // load wimpy file
   std::string wimpyFilename;
   wimpyFilename.append(name).append(".wimpy");
@@ -626,13 +626,13 @@ void Room::update(const sf::Time &elapsed) {
   }
 }
 
-void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const {
+void Room::draw(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const {
   sf::RenderStates states;
   if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE) {
     states.shader = &pImpl->_shader;
   }
 
-  auto screen = window.getView().getSize();
+  auto screen = target.getView().getSize();
   auto halfScreen = sf::Vector2f(screen.x / 2.f, screen.y / 2.f);
 
   for (const auto &layer : pImpl->_layers) {
@@ -642,20 +642,20 @@ void Room::draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const {
     t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
     t.translate(-cameraPos.x * parallax.x, cameraPos.y * parallax.y);
     states.transform = t;
-    layer.second->draw(window, states);
+    layer.second->draw(target, states);
   }
 }
 
-void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const {
+void Room::drawForeground(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const {
   sf::RenderStates states;
   if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE) {
     states.shader = &pImpl->_shader;
   }
 
-  auto screen = window.getView().getSize();
+  auto screen = target.getView().getSize();
   auto halfScreen = sf::Vector2f(screen.x / 2.f, screen.y / 2.f);
 
-  pImpl->drawFade(window);
+  pImpl->drawFade(target);
 
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
@@ -664,7 +664,7 @@ void Room::drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPo
     t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
     t.translate(-cameraPos.x * parallax.x, cameraPos.y * parallax.y);
     states.transform = t;
-    layer.second->drawForeground(window, states);
+    layer.second->drawForeground(target, states);
   }
 }
 
@@ -751,6 +751,14 @@ sf::Vector2i Room::getScreenSize() const {
     return sf::Vector2i(ratio * height, height);
   }
   }
+}
+
+void Room::setPseudoRoom(bool pseudoRoom) {
+  pImpl->_pseudoRoom=pseudoRoom;
+}
+
+bool Room::isPseudoRoom() const {
+  return pImpl->_pseudoRoom;
 }
 
 } // namespace ng

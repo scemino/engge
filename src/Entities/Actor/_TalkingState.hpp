@@ -134,7 +134,8 @@ private:
           _lipAnim.clear();
       }
 
-      auto hearVoice = _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice,
+      auto hearVoice = _pEngine->getPreferences().getForceTalkieText() ||
+          _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice,
                                                                     PreferenceDefaultValues::HearVoice);
       if (hearVoice) {
           setDuration(_lipAnim.getDuration());

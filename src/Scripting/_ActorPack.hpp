@@ -177,7 +177,7 @@ private:
         return sq_throwerror(v, _SC("failed to get object or room"));
       }
       auto pos = pObj->getRealPosition();
-      auto usePos = pObj->getUsePosition();
+      auto usePos = pObj->getUsePosition().value_or(sf::Vector2f());
       auto hotspot = pObj->getHotspot();
       pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
       pos.y += usePos.y + hotspot.top + hotspot.height / 2.f;
@@ -534,12 +534,18 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 2, &selectable))) {
         return sq_throwerror(v, _SC("failed to get selectable"));
       }
-      if (selectable >= 0 && selectable <= 3) {
-        auto mode = static_cast<ActorSlotSelectableMode>(selectable);
-        g_pEngine->setActorSlotSelectable(mode);
+      auto mode = g_pEngine->getActorSlotSelectable();
+      switch (selectable) {
+      case 0:g_pEngine->setActorSlotSelectable(mode & ~ActorSlotSelectableMode::On);
         return 0;
+      case 1:g_pEngine->setActorSlotSelectable((mode & ~ActorSlotSelectableMode::On) | ActorSlotSelectableMode::On);
+        return 0;
+      case 2:g_pEngine->setActorSlotSelectable(mode | ActorSlotSelectableMode::TemporaryUnselectable);
+        return 0;
+      case 3:g_pEngine->setActorSlotSelectable(mode & ~ActorSlotSelectableMode::TemporaryUnselectable);
+        return 0;
+      default:return sq_throwerror(v, _SC("invalid selectable value"));
       }
-      return sq_throwerror(v, _SC("invalid selectable value"));
     }
 
     if (numArgs == 3) {
@@ -665,6 +671,7 @@ private:
   }
 
   static SQInteger actorUsePos(HSQUIRRELVM v) {
+    auto numArgs = sq_gettop(v);
     Actor *actor = ScriptEngine::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
@@ -675,6 +682,13 @@ private:
     }
     auto usePos = obj->getUsePosition();
     actor->setUsePosition(usePos);
+    if(numArgs==4) {
+      SQInteger dir;
+      if (SQ_FAILED(sq_getinteger(v, 5, &dir))) {
+        return sq_throwerror(v, _SC("failed to get direction"));
+      }
+      actor->setUseDirection(static_cast<UseDirection>(dir));
+    }
     return 0;
   }
 
@@ -768,7 +782,7 @@ private:
       auto *pObject = ScriptEngine::getObject(v, 3);
       if (pObject) {
         auto pos = pObject->getRealPosition();
-        auto usePos = pObject->getUsePosition();
+        auto usePos = pObject->getUsePosition().value_or(sf::Vector2f());
         pos.x += usePos.x;
         pos.y += usePos.y;
         pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));

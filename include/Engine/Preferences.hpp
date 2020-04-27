@@ -61,6 +61,9 @@ public:
 
   void save();
 
+  void setForceTalkieText(bool forceTalkieText) { _forceTalkieText = forceTalkieText; }
+  [[nodiscard]] bool getForceTalkieText() const { return _forceTalkieText; }
+
   template<typename T>
   void setUserPreference(const std::string &name, T value);
   template<typename T>
@@ -90,6 +93,7 @@ private:
   GGPackValue _values;
   GGPackValue _privateValues;
   std::vector<std::function<void(const std::string &)>> _functions;
+  bool _forceTalkieText{false};
 };
 
 template<typename T>

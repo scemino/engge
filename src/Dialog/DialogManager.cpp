@@ -25,11 +25,20 @@ void DialogManager::addFunction(std::unique_ptr<Function> function) {
   _functions.push_back(std::move(function));
 }
 
-void DialogManager::start(const std::string &name, const std::string &node) {
+void DialogManager::resetState() {
   _actorName.clear();
   _parrotModeEnabled = true;
   _limit = 6;
   _override.clear();
+  _states.erase(std::remove_if(_states.begin(), _states.end(), [](const auto &state) {
+    return state.mode == DialogConditionMode::TempOnce;
+  }), _states.end());
+}
+
+void DialogManager::start(const std::string &name, const std::string &node) {
+  _name = name;
+
+  resetState();
 
   std::string path;
   path.append(name).append(".byack");
@@ -62,8 +71,9 @@ void DialogManager::selectLabel(const std::string &name) {
   update(sf::seconds(0));
 }
 
-Actor* DialogManager::getTalkingActor() {
-  if(_actorName.empty()) return _pEngine->getCurrentActor();
+Actor *DialogManager::getTalkingActor() {
+  if (_actorName.empty())
+    return _pEngine->getCurrentActor();
   for (auto &actor : _pEngine->getActors()) {
     if (actor->getKey() == _actorName) {
       return actor.get();
@@ -81,7 +91,6 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
@@ -155,7 +164,8 @@ void DialogManager::update(const sf::Time &elapsed) {
       auto pStatement = _currentStatement->get();
       pStatement->accept(_dialogVisitor);
       isChoice = dynamic_cast<Ast::Choice *>(pStatement->expression.get()) != nullptr;
-      _currentStatement++;
+      auto isGoto = dynamic_cast<Ast::Goto *>(pStatement->expression.get()) != nullptr;
+      if(!isGoto) _currentStatement++;
     } while (_functions.empty() && isChoice && _currentStatement != _pLabel->statements.end());
   }
 
@@ -191,7 +201,7 @@ void DialogManager::update(const sf::Time &elapsed) {
     text.setPosition(dlg.pos.x, dlg.pos.y + y);
     text.setString(s);
     auto bounds = text.getGlobalBounds();
-    if(bounds.width > Screen::Width) {
+    if (bounds.width > Screen::Width) {
       if (bounds.contains(_mousePos)) {
         if ((bounds.width + dlg.pos.x) > Screen::Width) {
           dlg.pos.x -= SlidingSpeed * elapsed.asSeconds();
@@ -202,7 +212,7 @@ void DialogManager::update(const sf::Time &elapsed) {
       } else {
         if (dlg.pos.x < 0) {
           dlg.pos.x += SlidingSpeed * elapsed.asSeconds();
-          if (dlg.pos.x> 0) {
+          if (dlg.pos.x > 0) {
             dlg.pos.x = 0;
           }
         }

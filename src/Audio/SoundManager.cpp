@@ -63,7 +63,7 @@ SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
   case SoundCategory::Talk:sCategory = "talk";
     break;
   }
-  trace("[{}] loop {} {} {}", index, loopTimes, sCategory, pSoundDefinition->getPath());
+  //trace("[{}] loop {} {} {}", index, loopTimes, sCategory, pSoundDefinition->getPath());
   SoundId *pSoundId = soundId.get();
   _soundIds.at(index) = std::move(soundId);
   pSoundId->play(loopTimes);

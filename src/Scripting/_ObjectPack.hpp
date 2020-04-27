@@ -431,7 +431,7 @@ private:
         return sq_throwerror(v, _SC("failed to get spot"));
       }
       auto pos = spot->getRealPosition();
-      auto usePos = spot->getUsePosition();
+      auto usePos = spot->getUsePosition().value_or(sf::Vector2f());
       auto hotspot = spot->getHotspot();
       pos.x += usePos.x + hotspot.left + hotspot.width / 2;
       pos.y += usePos.y + hotspot.top + hotspot.height / 2;
@@ -490,7 +490,7 @@ private:
     }
     auto pos = obj->getRealPosition();
     auto hotspot = obj->getHotspot();
-    auto usePos = obj->getUsePosition();
+    auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
     sq_pushinteger(v, static_cast<SQInteger>(pos.x + usePos.x + hotspot.left + hotspot.width / 2));
     return 1;
   }
@@ -502,7 +502,7 @@ private:
     }
     auto pos = obj->getRealPosition();
     auto hotspot = obj->getHotspot();
-    auto usePos = obj->getUsePosition();
+    auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
     pos.y += usePos.y + hotspot.top + hotspot.height / 2;
     sq_pushinteger(v, static_cast<SQInteger>(pos.y));
     return 1;
@@ -685,7 +685,8 @@ private:
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    sq_pushinteger(v, (SQInteger) obj->getUsePosition().x);
+    auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
+    sq_pushinteger(v, (SQInteger) usePos.x);
     return 1;
   }
 
@@ -695,7 +696,7 @@ private:
       return sq_throwerror(v, _SC("failed to get object"));
     }
     auto height = obj->getRoom()->getRoomSize().y;
-    sq_pushinteger(v, (SQInteger) height - obj->getUsePosition().y);
+    sq_pushinteger(v, (SQInteger) height - obj->getUsePosition().value_or(sf::Vector2f()).y);
     return 1;
   }
 
@@ -704,7 +705,7 @@ private:
     Object *obj = ScriptEngine::getObject(v, 2);
     if (obj) {
       pos = obj->getRealPosition();
-      auto usePos = obj->getUsePosition();
+      auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
       pos += usePos;
     } else {
       auto *actor = ScriptEngine::getActor(v, 2);

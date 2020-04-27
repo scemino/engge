@@ -114,6 +114,18 @@ class ThreadBase;
 struct Verb;
 class VerbExecute;
 
+class SavegameSlot {
+public:
+  int slot{0};
+  time_t savetime{};
+  sf::Time gametime;
+  std::string path;
+  bool easyMode{false};
+
+  [[nodiscard]] std::wstring getSaveTimeString() const;
+  [[nodiscard]] std::wstring getGameTimeString() const;
+};
+
 enum class CursorDirection : unsigned int {
   None = 0,
   Left = 1,
@@ -165,7 +177,7 @@ public:
   std::vector<std::unique_ptr<Actor>> &getActors();
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window) const;
+  void draw(sf::RenderTarget &target, bool screenshot = false) const;
   [[nodiscard]] int getFrameCounter() const;
 
   void setCurrentActor(Actor *pCurrentActor, bool userSelected);
@@ -213,6 +225,7 @@ public:
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);
   void setActorSlotSelectable(ActorSlotSelectableMode mode);
+  [[nodiscard]] ActorSlotSelectableMode getActorSlotSelectable() const;
   bool isActorSelectable(Actor *pActor) const;
   void setUseFlag(UseFlag flag, Entity *object);
   void flashSelectableActor(bool on);
@@ -240,6 +253,10 @@ public:
 
   Inventory &getInventory();
   Hud &getHud();
+
+  void saveGame(int slot);
+  void loadGame(int slot);
+  static void getSlotSavegames(std::vector<SavegameSlot>& slots) ;
 
 private:
   struct Impl;

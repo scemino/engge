@@ -5,16 +5,15 @@
 #include "Audio/SoundManager.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Preferences.hpp"
-#include "Font/FntFont.hpp"
 #include "Graphics/Screen.hpp"
 #include "Graphics/SpriteSheet.hpp"
 #include "Graphics/Text.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "System/Logger.hpp"
 #include "UI/OptionsDialog.hpp"
-
-#include <utility>
+#include "UI/SaveLoadDialog.hpp"
 #include "UI/QuitDialog.hpp"
+#include <utility>
 #include "imgui.h"
 
 namespace ng {
@@ -76,10 +75,13 @@ struct OptionsDialog::Impl {
   std::vector<_Checkbox> _checkboxes;
   std::vector<_Slider> _sliders;
   bool _showQuit{false};
+  bool _showSaveLoad{false};
   QuitDialog _quit;
+  SaveLoadDialog _saveload;
   Callback _callback{nullptr};
   bool _isDirty{false};
   State _state{State::Main};
+  bool _saveEnabled{false};
 
   inline static float getSlotPos(int slot) {
     return yPosStart + yPosLarge + yPosSmall * static_cast<float>(slot);
@@ -101,7 +103,7 @@ struct OptionsDialog::Impl {
     return Locator<Preferences>::get().getUserPreference(name, value);
   }
 
-  int getLanguageUserPreference() const {
+  static int getLanguageUserPreference() {
     auto lang =
         Locator<Preferences>::get().getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
     auto it = std::find(LanguageValues.begin(), LanguageValues.end(), lang);
@@ -121,8 +123,16 @@ struct OptionsDialog::Impl {
     _checkboxes.clear();
     switch (state) {
     case State::Main:setHeading(Ids::Options);
-      _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), []() {}, false);
-      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), []() {}, false);
+      _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [this]() {
+        _saveload.updateLanguage();
+        _saveload.setSaveMode(true);
+        _showSaveLoad = true;
+      }, _saveEnabled);
+      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
+        _saveload.updateLanguage();
+        _saveload.setSaveMode(false);
+        _showSaveLoad = true;
+      });
       _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this]() { updateState(State::Sound); });
       _buttons.emplace_back(Ids::Video, getSlotPos(3), [this]() { updateState(State::Video); });
       _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this]() { updateState(State::Controls); });
@@ -230,7 +240,7 @@ struct OptionsDialog::Impl {
                                [this](auto value) {
                                  _isDirty = true;
                                  setUserPreference(PreferenceNames::RetroVerbs, value);
-                                 if(value) {
+                                 if (value) {
                                    _checkboxes[3].setChecked(true);
                                    _checkboxes[5].setChecked(true);
                                  }
@@ -291,12 +301,12 @@ struct OptionsDialog::Impl {
       break;
     case State::Help:setHeading(Ids::Help);
       _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this]() {
-          _pEngine->execute("HelpScreens.helpIntro()");
-        }, true);
+        _pEngine->execute("HelpScreens.helpIntro()");
+      }, true);
       _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), []() {}, false);
       _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), []() {}, false);
       _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), []() {}, false);
-      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [](){}, false);
+      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), []() {}, false);
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
@@ -328,11 +338,11 @@ struct OptionsDialog::Impl {
     if (!pEngine)
       return;
 
-    TextureManager &tm = pEngine->getTextureManager();
+    auto &tm = pEngine->getTextureManager();
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const FntFont &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
+    const auto &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
     _headingText.setFillColor(sf::Color::White);
 
@@ -341,6 +351,24 @@ struct OptionsDialog::Impl {
       if (result)
         _pEngine->quit();
       _showQuit = result;
+    });
+
+    _saveload.setEngine(pEngine);
+    _saveload.setCallback([this]() {
+      _showSaveLoad = false;
+    });
+    _saveload.setSlotCallback([this](int slot) {
+      if (_saveload.getSaveMode()) {
+        _pEngine->saveGame(slot);
+        _showSaveLoad = false;
+        if (_callback)
+          _callback();
+      } else {
+        _pEngine->loadGame(slot);
+        _showSaveLoad = false;
+        if (_callback)
+          _callback();
+      }
     });
 
     updateState(State::Main);
@@ -389,12 +417,21 @@ struct OptionsDialog::Impl {
 
     target.setView(view);
 
+    if (_showSaveLoad) {
+      target.draw(_saveload, states);
+    }
+
     if (_showQuit) {
       target.draw(_quit, states);
     }
   }
 
   void update(const sf::Time &elapsed) {
+    if (_showSaveLoad) {
+      _saveload.update(elapsed);
+      return;
+    }
+
     if (_showQuit) {
       _quit.update(elapsed);
       return;
@@ -425,6 +462,8 @@ OptionsDialog::OptionsDialog()
 }
 
 OptionsDialog::~OptionsDialog() = default;
+
+void OptionsDialog::setSaveEnabled(bool enabled) { _pImpl->_saveEnabled = enabled; }
 
 void OptionsDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
 

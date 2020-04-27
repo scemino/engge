@@ -41,7 +41,7 @@ void SoundId::play(int loopTimes) {
 void SoundId::setVolume(float volume) {
   if (_pSoundDefinition) {
     auto path = _pSoundDefinition->getPath();
-    trace("setVolume({},{})", path, volume);
+//    trace("setVolume({},{})", path, volume);
   }
   _volume = volume;
 }
@@ -52,7 +52,7 @@ float SoundId::getVolume() const {
 
 void SoundId::stop() {
   auto path = _pSoundDefinition->getPath();
-  trace("stopSoundId({})", path);
+//  trace("stopSoundId({})", path);
   _sound.stop();
 }
 
@@ -73,7 +73,7 @@ void SoundId::updateVolume() {
   if (_pEntity) {
     auto pRoom = _soundManager.getEngine()->getRoom();
     auto at = _soundManager.getEngine()->getCamera().getAt();
-    entityVolume = pRoom != _pEntity->getRoom() ? 0 : _pEntity->getVolume();
+    entityVolume = pRoom != _pEntity->getRoom() ? 0 : _pEntity->getVolume().value_or(1.f);
 
     if (pRoom == _pEntity->getRoom()) {
       auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;

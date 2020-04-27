@@ -368,11 +368,18 @@ private:
     if (SQ_FAILED(sq_getstackobj(v, 3, &method)) || !sq_isclosure(method)) {
       return sq_throwerror(v, _SC("failed to get method"));
     }
-    auto callback = std::make_unique<Callback>(v, sf::seconds(duration), method);
-    auto id = callback->getId();
+    std::string methodName;
+    if (SQ_SUCCEEDED(sq_getclosurename(v, -1))) {
+      const SQChar *tmpMethodName = nullptr;
+      sq_getstring(v, -1, &tmpMethodName);
+      methodName = tmpMethodName;
+    }
+
+    auto id = Locator<ResourceManager>::get().getCallbackId();
+    auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName);
     g_pEngine->addCallback(std::move(callback));
 
-    sq_pushinteger(v, id);
+    sq_pushinteger(v, static_cast<SQInteger>(id));
     return 1;
   }
 
@@ -540,8 +547,22 @@ private:
     return 1;
   }
 
-  static SQInteger exCommand(HSQUIRRELVM) {
-    error("TODO: exCommand: not implemented");
+  static SQInteger exCommand(HSQUIRRELVM v) {
+    SQInteger command;
+    if (SQ_FAILED(sq_getinteger(v, 2, &command))) {
+      return sq_throwerror(v, _SC("Failed to get command"));
+    }
+    switch (command) {
+    case ExCommandConstants::EX_FORCE_TALKIE_TEXT:SQInteger enabled;
+      if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
+        return sq_throwerror(v, _SC("Failed to get enabled"));
+      }
+      g_pEngine->getPreferences().setForceTalkieText(enabled != 0);
+      return 0;
+    default:
+      error("TODO: exCommand {}: not implemented", command);
+      break;
+    }
     return 0;
   }
 
@@ -575,7 +596,7 @@ private:
   static SQInteger logWarning(HSQUIRRELVM v) {
     const SQChar *msg = nullptr;
     if (SQ_SUCCEEDED(sq_getstring(v, 2, &msg))) {
-      error(msg);
+      warn(msg);
     }
     return 0;
   }

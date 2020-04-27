@@ -41,5 +41,6 @@ private:
   int _currentActorIndex{0};
   const VerbUiColors *_pColors{nullptr};
   float _alpha{1.f};
+  bool _mouseWasDown{false};
 };
 } // namespace ng

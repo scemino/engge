@@ -18,7 +18,6 @@ struct Object::Impl {
   std::optional<Animation *> _pAnim{std::nullopt};
   std::wstring _name;
   int _zorder{0};
-  UseDirection _direction{UseDirection::Front};
   ObjectType _type{ObjectType::Object};
   sf::Vector2f _usePos;
   sf::IntRect _hotspot;
@@ -39,6 +38,7 @@ struct Object::Impl {
   std::vector<Object *> _children;
   bool _temporary{false};
   bool _jiggle{false};
+  std::string _key;
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
@@ -47,15 +47,17 @@ Object::Object() : pImpl(std::make_unique<Impl>()) {
 
 Object::~Object() = default;
 
+void Object::setKey(const std::string &key) { pImpl->_key = key; }
+
+const std::string &Object::getKey() const { return pImpl->_key; }
+
+
 void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
 
 int Object::getZOrder() const { return pImpl->_zorder; }
 
 void Object::setType(ObjectType type) { pImpl->_type = type; }
 ObjectType Object::getType() const { return pImpl->_type; }
-
-void Object::setUseDirection(UseDirection direction) { pImpl->_direction = direction; }
-UseDirection Object::getUseDirection() const { return pImpl->_direction; }
 
 void Object::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
 const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
@@ -68,7 +70,7 @@ void Object::setIcon(const std::string &icon) {
   pImpl->_icons.push_back(icon);
 }
 
-std::string Object::getIcon() const { return pImpl->_icons[pImpl->_index]; }
+std::string Object::getIcon() const { return pImpl->_icons.at(pImpl->_index); }
 
 void Object::setIcon(int fps, const std::vector<std::string> &icons) {
   pImpl->_icons.clear();
@@ -141,7 +143,7 @@ void Object::playAnim(int animIndex, bool loop) {
   (*pImpl->_pAnim)->play(loop);
 }
 
-int Object::getState() { return pImpl->_state; }
+int Object::getState() const { return pImpl->_state; }
 
 void Object::setAnimation(const std::string &name) {
   auto it = std::find_if(pImpl->_anims.begin(), pImpl->_anims.end(),
@@ -224,7 +226,8 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
   hl.setFillColor(color);
   target.draw(hl, states);
 
-  switch (getUseDirection()) {
+  auto useDir = getUseDirection().value_or(UseDirection::Front);
+  switch (useDir) {
   case UseDirection::Front: {
     sf::RectangleShape dirShape(sf::Vector2f(3, 1));
     dirShape.setPosition(pImpl->_usePos.x - 1, pImpl->_usePos.y + 2);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include "SFML/Graphics.hpp"
 #include "Parsers/YackParser.hpp"
 #include "Engine/Function.hpp"
@@ -14,16 +15,56 @@ struct DialogSlot {
   int id{0};
   std::wstring text;
   std::string label;
-  const Ast::Choice *pChoice{nullptr};
+  const Ast::Statement *pChoice{nullptr};
   mutable sf::Vector2f pos;
+};
+
+enum class DialogConditionMode {
+  Once,
+  ShowOnce,
+  OnceEver,
+  ShowOnceEver,
+  TempOnce
+};
+
+struct DialogConditionState {
+public:
+  DialogConditionMode mode;
+  std::string actorKey;
+  std::string dialog;
+  int32_t line;
+};
+
+enum class DialogSelectMode {
+  Show,
+  Choose
 };
 
 class DialogManager;
 class DialogVisitor : public Ast::AstVisitor {
 private:
+  class ConditionStateVisitor : public Ast::AstVisitor {
+  public:
+    explicit ConditionStateVisitor(DialogManager& dialogManager, DialogSelectMode selectMode);
+    ~ConditionStateVisitor() override = default;
+    [[nodiscard]] std::optional<DialogConditionState> getState() const { return _state; }
+
+  private:
+    void visit(const Ast::OnceCondition &node) override;
+    void visit(const Ast::ShowOnceCondition &node) override;
+    void visit(const Ast::OnceEverCondition &node) override;
+    void visit(const Ast::TempOnceCondition &node) override;
+
+    void setState(int32_t line, DialogConditionMode mode);
+
+  private:
+    DialogManager& _dialogManager;
+    DialogSelectMode _selectMode;
+    std::optional<DialogConditionState> _state;
+  };
   class ConditionVisitor : public Ast::AstVisitor {
   public:
-    ConditionVisitor(DialogVisitor &dialogVisitor, const Ast::Statement &statement);
+    explicit ConditionVisitor(DialogVisitor &dialogVisitor);
     [[nodiscard]] bool isAccepted() const { return _isAccepted; }
 
   private:
@@ -35,7 +76,6 @@ private:
 
   private:
     DialogVisitor &_dialogVisitor;
-    const Ast::Statement &_statement;
     bool _isAccepted;
   };
 
@@ -43,7 +83,7 @@ public:
   explicit DialogVisitor(DialogManager &dialogManager);
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
-  void select(const Ast::Node &node) { _nodesSelected.push_back(&node); }
+  void select(const Ast::Statement &node);
 
 private:
   void visit(const Ast::Statement &node) override;
@@ -67,8 +107,7 @@ private:
 private:
   Engine *_pEngine{nullptr};
   DialogManager &_dialogManager;
-  std::vector<const Ast::Node *> _nodesVisited;
-  std::vector<const Ast::Node *> _nodesSelected;
+  const Ast::Statement* _pStatement{nullptr};
 };
 
 enum class DialogManagerState {
@@ -98,12 +137,16 @@ public:
   void setActorName(const std::string &actor);
   inline void enableParrotMode(bool enable) { _parrotModeEnabled = enable; }
   inline void setLimit(int limit) { _limit = limit; }
-  inline void setOverride(const std::string& override) { _override = override; }
+  inline void setOverride(const std::string &override) { _override = override; }
 
-  Actor* getTalkingActor();
+  Actor *getTalkingActor();
+  std::string getDialogName() const { return _name; }
+  std::vector<DialogConditionState>& getStates() { return _states; }
+  const std::vector<DialogConditionState>& getStates() const { return _states; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void resetState();
 
 private:
   Engine *_pEngine{nullptr};
@@ -114,10 +157,12 @@ private:
   DialogVisitor _dialogVisitor;
   std::vector<std::unique_ptr<Function>> _functions;
   std::string _actorName;
+  std::string _name;
   bool _parrotModeEnabled{true};
   int _limit{6};
   std::vector<std::unique_ptr<Ast::Statement>, std::allocator<std::unique_ptr<Ast::Statement>>>::iterator _currentStatement;
   std::string _override;
   sf::Vector2f _mousePos;
+  std::vector<DialogConditionState> _states;
 };
 } // namespace ng

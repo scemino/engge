@@ -1,3 +1,4 @@
+#include <codecvt>
 #include "_Util.hpp"
 #include "../Math/Segment.hpp"
 #include "System/Locator.hpp"
@@ -184,8 +185,9 @@ bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::V
   return intersect(a, b, c, d);
 }
 
-Facing _toFacing(UseDirection direction) {
-  switch (direction) {
+Facing _toFacing(std::optional<UseDirection> direction) {
+  auto dir = direction.value_or(UseDirection::Front);
+  switch (dir) {
   case UseDirection::Front:return Facing::FACE_FRONT;
   case UseDirection::Back:return Facing::FACE_BACK;
   case UseDirection::Left:return Facing::FACE_LEFT;

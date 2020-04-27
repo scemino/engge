@@ -10,12 +10,12 @@
 #include "imgui.h"
 
 namespace ng {
-class _QuitButton : public sf::Drawable {
+class _BackButton : public sf::Drawable {
 public:
   typedef std::function<void()> Callback;
 
 public:
-  _QuitButton(int id, bool value, Callback callback, bool enabled = true)
+  _BackButton(int id, bool value, Callback callback, bool enabled = true)
       : _id(id), _isEnabled(enabled), _value(value), _callback(std::move(callback)) {
   }
 
@@ -76,7 +76,7 @@ struct QuitDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
   Text _headingText;
-  std::vector<_QuitButton> _buttons;
+  std::vector<_BackButton> _buttons;
   Callback _callback{nullptr};
 
   void setHeading(int id) {

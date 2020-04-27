@@ -35,11 +35,12 @@ public:
 
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
+  [[nodiscard]] const std::vector<std::unique_ptr<Object>> &getObjects() const;
   std::vector<std::unique_ptr<Light>> &getLights();
 
   void update(const sf::Time &elapsed);
-  void draw(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
-  void drawForeground(sf::RenderWindow &window, const sf::Vector2f &cameraPos) const;
+  void draw(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const;
+  void drawForeground(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const;
 
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
   [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
@@ -83,6 +84,9 @@ public:
 
   void setOverlayColor(sf::Color color);
   [[nodiscard]] sf::Color getOverlayColor() const;
+
+  void setPseudoRoom(bool pseudoRoom);
+  bool isPseudoRoom() const;
 
 private:
   struct Impl;

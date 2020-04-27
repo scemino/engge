@@ -13,10 +13,10 @@ private:
   static const int END_LIGHTID = 200000;
   static const int START_SOUNDID = 200000;
   static const int END_SOUNDID = 300000;
-  static const int START_CALLBACKID = 300000;
-  static const int END_CALLBACKID = 400000;
-  static const int START_THREADID = 400000;
-  static const int END_THREADID = 500000;
+  static const int START_THREADID = 300000;
+  static const int END_THREADID = 8000000;
+  static const int START_CALLBACKID = 8000000;
+  static const int END_CALLBACKID = 10000000;
 
 public:
   inline int getActorId() { return START_ACTORID + _actorId++; }
@@ -25,6 +25,7 @@ public:
   inline int getLightId() { return START_LIGHTID + _lightId++; }
   inline int getSoundId() { return START_SOUNDID + _soundId++; }
   inline int getCallbackId() { return START_CALLBACKID + _callbackId++; }
+  inline void setCallbackId(int id) { _callbackId = id - START_CALLBACKID; }
   inline int getThreadId() { return START_THREADID + _threadId++; }
 
   static bool isActor(int id) { return isBetween(id, START_ACTORID, END_ACTORID); }
@@ -32,7 +33,6 @@ public:
   static bool isObject(int id) { return isBetween(id, START_OBJECTID, END_OBJECTID); }
   static bool isLight(int id) { return isBetween(id, START_LIGHTID, END_LIGHTID); }
   static bool isSound(int id) { return isBetween(id, START_SOUNDID, END_SOUNDID); }
-  static bool isCallbackId(int id) { return isBetween(id, START_CALLBACKID, END_CALLBACKID); }
   static bool isThread(int id) { return isBetween(id, START_THREADID, END_THREADID); }
 
 private:

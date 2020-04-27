@@ -2,17 +2,9 @@
 #include <optional>
 #include "squirrel.h"
 #include "SFML/Graphics.hpp"
-#include "Entities/Actor/DirectionConstants.hpp"
 #include "Entities/Entity.hpp"
 
 namespace ng {
-enum class UseDirection {
-  Front = DirectionConstants::FACE_FRONT,
-  Back = DirectionConstants::FACE_BACK,
-  Left = DirectionConstants::FACE_LEFT,
-  Right = DirectionConstants::FACE_RIGHT,
-};
-
 enum class ScreenSpace {
   Room,
   Object
@@ -67,6 +59,9 @@ public:
   Object();
   ~Object() override;
 
+  void setKey(const std::string &key);
+  const std::string &getKey() const;
+
   void setZOrder(int zorder);
   int getZOrder() const override;
 
@@ -75,9 +70,6 @@ public:
 
   bool isTouchable() const override;
   bool isInventoryObject() const override;
-
-  void setUseDirection(UseDirection direction);
-  UseDirection getUseDirection() const;
 
   void setHotspot(const sf::IntRect &hotspot);
   const sf::IntRect &getHotspot() const;
@@ -98,7 +90,7 @@ public:
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
   void playAnim(const std::string &anim, bool loop);
-  int getState();
+  int getState() const;
   void setAnimation(const std::string &name);
   std::optional<Animation *> &getAnimation();
 

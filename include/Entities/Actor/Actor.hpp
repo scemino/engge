@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <optional>
 #include "squirrel.h"
 #include "SFML/Graphics.hpp"
 #include "Costume.hpp"
@@ -75,7 +76,7 @@ public:
   bool isInventoryObject() const override;
 
   void setVolume(float volume);
-  float getVolume() const override;
+  std::optional<float> getVolume() const override;
 
   void trigSound(const std::string &name) override;
 

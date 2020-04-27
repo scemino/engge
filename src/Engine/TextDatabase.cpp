@@ -32,7 +32,18 @@ std::wstring TextDatabase::getText(int id) const {
     error("Text ID {} doest not exist", id);
     return L"";
   }
-  return it->second;
+  auto text = it->second;
+  replaceAll(text, L"\\\"", L"\"");
+  removeFirstParenthesis(text);
+  return text;
+}
+
+std::wstring TextDatabase::getText(const std::string &text) const {
+  if (!text.empty() && text[0] == '@') {
+    auto id = std::strtol(text.c_str() + 1, nullptr, 10);
+    return getText(id);
+  }
+  return towstring(text);
 }
 
 } // namespace ng

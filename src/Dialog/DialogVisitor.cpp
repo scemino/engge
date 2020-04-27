@@ -14,13 +14,51 @@ DialogVisitor::DialogVisitor(DialogManager &dialogManager)
     : _dialogManager(dialogManager) {
 }
 void DialogVisitor::visit(const Ast::Statement &node) {
+  _pStatement = &node;
   if (!acceptConditions(node))
     return;
   node.expression->accept(*this);
 }
 
-DialogVisitor::ConditionVisitor::ConditionVisitor(DialogVisitor &dialogVisitor, const Ast::Statement &statement)
-    : _dialogVisitor(dialogVisitor), _statement(statement), _isAccepted(true) {
+DialogVisitor::ConditionStateVisitor::ConditionStateVisitor(DialogManager &dialogManager, DialogSelectMode selectMode)
+    : _dialogManager(dialogManager), _selectMode(selectMode) {
+}
+
+void DialogVisitor::ConditionStateVisitor::visit(const Ast::OnceCondition &condition) {
+  if (_selectMode == DialogSelectMode::Choose) {
+    setState(condition.getLine(), DialogConditionMode::Once);
+  }
+}
+
+void DialogVisitor::ConditionStateVisitor::visit(const Ast::ShowOnceCondition &condition) {
+  if (_selectMode == DialogSelectMode::Show) {
+    setState(condition.getLine(), DialogConditionMode::ShowOnce);
+  }
+}
+
+void DialogVisitor::ConditionStateVisitor::visit(const Ast::OnceEverCondition &condition) {
+  if (_selectMode == DialogSelectMode::Choose) {
+    setState(condition.getLine(), DialogConditionMode::OnceEver);
+  }
+}
+
+void DialogVisitor::ConditionStateVisitor::visit(const Ast::TempOnceCondition &condition) {
+  if (_selectMode == DialogSelectMode::Show) {
+    setState(condition.getLine(), DialogConditionMode::TempOnce);
+  }
+}
+
+void DialogVisitor::ConditionStateVisitor::setState(int32_t line, DialogConditionMode mode) {
+  DialogConditionState state;
+  state.mode = mode;
+  state.line = line;
+  state.dialog = _dialogManager.getDialogName();
+  state.actorKey = _dialogManager.getTalkingActor()->getKey();
+  _state = state;
+}
+
+DialogVisitor::ConditionVisitor::ConditionVisitor(DialogVisitor &dialogVisitor)
+    : _dialogVisitor(dialogVisitor), _isAccepted(true) {
 }
 
 void DialogVisitor::ConditionVisitor::visit(const Ast::CodeCondition &node) {
@@ -43,39 +81,84 @@ void DialogVisitor::ConditionVisitor::visit(const Ast::CodeCondition &node) {
   _isAccepted = _dialogVisitor._pEngine->executeCondition(node.code);
 }
 
-void DialogVisitor::ConditionVisitor::visit(const Ast::OnceCondition &) {
-  _isAccepted =
-      std::find(_dialogVisitor._nodesSelected.begin(), _dialogVisitor._nodesSelected.end(), _statement.expression.get())
-          == _dialogVisitor._nodesSelected.end();
+void DialogVisitor::ConditionVisitor::visit(const Ast::OnceCondition &condition) {
+  auto it =
+      std::find_if(_dialogVisitor._dialogManager.getStates().cbegin(),
+                   _dialogVisitor._dialogManager.getStates().cend(),
+                   [this, &condition](const auto &state) {
+                     return state.mode == DialogConditionMode::Once &&
+                         state.actorKey == _dialogVisitor._dialogManager.getTalkingActor()->getKey() &&
+                         state.dialog == _dialogVisitor._dialogManager.getDialogName() &&
+                         state.line == condition.getLine();
+                   });
+  _isAccepted = it == _dialogVisitor._dialogManager.getStates().cend();
 }
 
-void DialogVisitor::ConditionVisitor::visit(const Ast::ShowOnceCondition &) {
-  _isAccepted =
-      std::find(_dialogVisitor._nodesVisited.begin(), _dialogVisitor._nodesVisited.end(), _statement.expression.get())
-          == _dialogVisitor._nodesVisited.end();
+void DialogVisitor::ConditionVisitor::visit(const Ast::ShowOnceCondition &condition) {
+  auto it =
+      std::find_if(_dialogVisitor._dialogManager.getStates().cbegin(),
+                   _dialogVisitor._dialogManager.getStates().cend(),
+                   [this, &condition](const auto &state) {
+                     return state.mode == DialogConditionMode::ShowOnce &&
+                         state.actorKey == _dialogVisitor._dialogManager.getTalkingActor()->getKey() &&
+                         state.dialog == _dialogVisitor._dialogManager.getDialogName() &&
+                         state.line == condition.getLine();
+                   });
+  _isAccepted = it == _dialogVisitor._dialogManager.getStates().cend();
 }
 
-void DialogVisitor::ConditionVisitor::visit(const Ast::OnceEverCondition &) {
-  // TODO: OnceEverCondition
-  trace("TODO: OnceEverCondition");
-  _isAccepted = true;
+void DialogVisitor::ConditionVisitor::visit(const Ast::OnceEverCondition &condition) {
+  auto it =
+      std::find_if(_dialogVisitor._dialogManager.getStates().cbegin(),
+                   _dialogVisitor._dialogManager.getStates().cend(),
+                   [this, &condition](const auto &state) {
+                     return state.mode == DialogConditionMode::OnceEver &&
+                         state.dialog == _dialogVisitor._dialogManager.getDialogName() &&
+                         state.line == condition.getLine();
+                   });
+  _isAccepted = it == _dialogVisitor._dialogManager.getStates().cend();
 }
 
-void DialogVisitor::ConditionVisitor::visit(const Ast::TempOnceCondition &) {
-  // TODO: TempOnceCondition
-  trace("TODO: TempOnceCondition");
-  _isAccepted = true;
+void DialogVisitor::ConditionVisitor::visit(const Ast::TempOnceCondition &condition) {
+  auto it =
+      std::find_if(_dialogVisitor._dialogManager.getStates().cbegin(),
+                   _dialogVisitor._dialogManager.getStates().cend(),
+                   [this, &condition](const auto &state) {
+                     return state.mode == DialogConditionMode::TempOnce &&
+                         state.actorKey == _dialogVisitor._dialogManager.getTalkingActor()->getKey() &&
+                         state.dialog == _dialogVisitor._dialogManager.getDialogName() &&
+                         state.line == condition.getLine();
+                   });
+  _isAccepted = it == _dialogVisitor._dialogManager.getStates().cend();
+}
+
+void DialogVisitor::select(const Ast::Statement &node) {
+  for (auto &condition : node.conditions) {
+    ConditionStateVisitor visitor(_dialogManager, DialogSelectMode::Choose);
+    condition->accept(visitor);
+    auto state = visitor.getState();
+    if (state.has_value()) {
+      _dialogManager.getStates().push_back(state.value());
+    }
+  }
 }
 
 bool DialogVisitor::acceptConditions(const Ast::Statement &statement) {
-  ConditionVisitor conditionVisitor(*this, statement);
+  ConditionVisitor conditionVisitor(*this);
   for (auto &condition : statement.conditions) {
     condition->accept(conditionVisitor);
     if (!conditionVisitor.isAccepted())
       break;
   }
   if (conditionVisitor.isAccepted()) {
-    _nodesVisited.push_back(statement.expression.get());
+    for (auto &condition : statement.conditions) {
+      ConditionStateVisitor visitor(_dialogManager, DialogSelectMode::Show);
+      condition->accept(visitor);
+      auto state = visitor.getState();
+      if (state.has_value()) {
+        _dialogManager.getStates().push_back(state.value());
+      }
+    }
   }
   return conditionVisitor.isAccepted();
 }
@@ -120,8 +203,8 @@ void DialogVisitor::visit(const Ast::Choice &node) {
   _dialogManager.getDialog()[node.number - 1].id = id;
   _dialogManager.getDialog()[node.number - 1].text = _pEngine->getText(id);
   _dialogManager.getDialog()[node.number - 1].label = node.gotoExp->name;
-  _dialogManager.getDialog()[node.number - 1].pChoice = &node;
-  _dialogManager.getDialog()[node.number - 1].pos = {0,0};
+  _dialogManager.getDialog()[node.number - 1].pChoice = _pStatement;
+  _dialogManager.getDialog()[node.number - 1].pos = {0, 0};
 }
 
 void DialogVisitor::visit(const Ast::Code &node) {

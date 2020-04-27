@@ -2,6 +2,7 @@
 #include "Game.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/EngineSettings.hpp"
+#include "Engine/TextDatabase.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Engine/Preferences.hpp"
@@ -14,6 +15,13 @@
 #include "Dialog/_AstDump.hpp"
 
 int main(int argc, char **argv) {
+
+  if (argc == 2) {
+    auto filename = argv[1];
+    ng::_AstDump::dump(filename);
+    return 0;
+  }
+
   try {
     auto pLogger = std::make_shared<ng::Logger>();
     ng::Locator<ng::Logger>::set(pLogger);
@@ -30,11 +38,7 @@ int main(int argc, char **argv) {
     auto pPreferences = std::make_shared<ng::Preferences>();
     ng::Locator<ng::Preferences>::set(pPreferences);
 
-    if (argc == 2) {
-      auto filename = argv[1];
-      ng::_AstDump::dump(filename);
-      return 0;
-    }
+    ng::Locator<ng::TextDatabase>::set(std::make_shared<ng::TextDatabase>());
 
     auto game = std::make_unique<ng::Game>();
     auto scriptEngine = std::make_unique<ng::ScriptEngine>();

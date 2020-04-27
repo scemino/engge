@@ -1,7 +1,8 @@
 #pragma once
-#include <unordered_map>
+#include <optional>
 #include <sstream>
 #include <set>
+#include <unordered_map>
 #include "SFML/Graphics.hpp"
 #include "BlinkState.hpp"
 #include "DirectionConstants.hpp"
@@ -34,9 +35,12 @@ public:
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
   std::string getPath() const { return _path; }
+  std::string getSheet() const { return _sheet; }
   void lockFacing(Facing left, Facing right, Facing front, Facing back);
   void unlockFacing();
   void resetLockFacing();
+  std::optional<Facing> getLockFacing() const;
+
   void setFacing(Facing facing);
   Facing getFacing() const;
   void setState(const std::string &name);

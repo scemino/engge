@@ -1,5 +1,8 @@
 #include <cstdarg>
 #include "squirrel.h"
+#include "../../extlibs/squirrel/squirrel/sqpcheader.h"
+#include "../../extlibs/squirrel/squirrel/sqvm.h"
+#include "../../extlibs/squirrel/squirrel/sqstring.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
 #include "sqstdstring.h"
@@ -7,6 +10,7 @@
 #include "Entities/Entity.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
+#include "Engine/ExCommandConstants.hpp"
 #include "Engine/ResourceManager.hpp"
 #include "Room/Room.hpp"
 #include "Scripting/ScriptEngine.hpp"
@@ -67,20 +71,17 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
   }
   sq_pop(v, 2);
 
+  return getScriptObjectFromId<TScriptObject>(id);
+}
+
+template<typename TScriptObject>
+TScriptObject *ScriptEngine::getScriptObjectFromId(int id) {
   if (ResourceManager::isActor(id)) {
-    for (auto &&actor : g_pEngine->getActors()) {
-      if (actor->getId() == id)
-        return dynamic_cast<TScriptObject *>(actor.get());
-    }
-    return nullptr;
+    return dynamic_cast<TScriptObject *>(getActorFromId(id));
   }
 
   if (ResourceManager::isRoom(id)) {
-    for (auto &&room : g_pEngine->getRooms()) {
-      if (room->getId() == id)
-        return dynamic_cast<TScriptObject *>(room.get());
-    }
-    return nullptr;
+    return dynamic_cast<TScriptObject *>(getRoomFromId(id));
   }
 
   if (ResourceManager::isLight(id)) {
@@ -94,19 +95,46 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
   }
 
   if (ResourceManager::isObject(id)) {
-    for (auto &&room : g_pEngine->getRooms()) {
-      for (auto &&obj : room->getObjects()) {
-        if (obj->getId() == id)
-          return dynamic_cast<TScriptObject *>(obj.get());
-      }
-    }
-    return nullptr;
+    return dynamic_cast<TScriptObject *>(getObjectFromId(id));
   }
 
   if (ResourceManager::isSound(id)) {
     return dynamic_cast<TScriptObject *>(getSoundFromId(id));
   }
 
+  return nullptr;
+}
+
+Actor *ScriptEngine::getActorFromId(int id) {
+  if (!ResourceManager::isActor(id))
+    return nullptr;
+
+  for (auto &&actor : g_pEngine->getActors()) {
+    if (actor->getId() == id)
+      return actor.get();
+  }
+  return nullptr;
+}
+
+Object *ScriptEngine::getObjectFromId(int id) {
+  if (!ResourceManager::isObject(id))
+    return nullptr;
+  for (auto &&room : g_pEngine->getRooms()) {
+    for (auto &&obj : room->getObjects()) {
+      if (obj->getId() == id)
+        return obj.get();
+    }
+  }
+  return nullptr;
+}
+
+Room *ScriptEngine::getRoomFromId(int id) {
+  if (!ResourceManager::isRoom(id))
+    return nullptr;
+  for (auto &&room : g_pEngine->getRooms()) {
+    if (room->getId() == id)
+      return room.get();
+  }
   return nullptr;
 }
 
@@ -293,17 +321,18 @@ ScriptEngine::ScriptEngine() {
                              {"ALIGN_RIGHT", 0x40000000},
                              {"ALIGN_TOP", 0x80000000},
                              {"ALIGN_BOTTOM", 0x1000000},
-                             {"EX_ALLOW_SAVEGAMES", 0x01},
-                             {"EX_POP_CHARACTER_SELECTION", 0x02},
-                             {"EX_CAMERA_TRACKING", 0x03},
-                             {"EX_BUTTON_HOVER_SOUND", 0x04},
-                             {"EX_RESTART", 0x06},
-                             {"EX_IDLE_TIME", 0x07},
-                             {"EX_AUTOSAVE", 0x08},
-                             {"EX_AUTOSAVE_STATE", 0x09},
-                             {"EX_DISABLE_SAVESYSTEM", 0x0A},
-                             {"EX_SHOW_OPTIONS", 0x0B},
-                             {"EX_OPTIONS_MUSIC", 0x0C},
+                             {"EX_ALLOW_SAVEGAMES", ExCommandConstants::EX_ALLOW_SAVEGAMES},
+                             {"EX_POP_CHARACTER_SELECTION", ExCommandConstants::EX_POP_CHARACTER_SELECTION},
+                             {"EX_CAMERA_TRACKING", ExCommandConstants::EX_CAMERA_TRACKING},
+                             {"EX_BUTTON_HOVER_SOUND", ExCommandConstants::EX_BUTTON_HOVER_SOUND},
+                             {"EX_RESTART", ExCommandConstants::EX_RESTART},
+                             {"EX_IDLE_TIME", ExCommandConstants::EX_IDLE_TIME},
+                             {"EX_AUTOSAVE", ExCommandConstants::EX_AUTOSAVE},
+                             {"EX_AUTOSAVE_STATE", ExCommandConstants::EX_AUTOSAVE_STATE},
+                             {"EX_DISABLE_SAVESYSTEM", ExCommandConstants::EX_DISABLE_SAVESYSTEM},
+                             {"EX_SHOW_OPTIONS", ExCommandConstants::EX_SHOW_OPTIONS},
+                             {"EX_OPTIONS_MUSIC", ExCommandConstants::EX_OPTIONS_MUSIC},
+                             {"EX_FORCE_TALKIE_TEXT", ExCommandConstants::EX_FORCE_TALKIE_TEXT},
                              {"GRASS_BACKANDFORTH", 0x00},
                              {"EFFECT_NONE", 0x00},
                              {"DOOR", 0x40},
@@ -484,7 +513,7 @@ void ScriptEngine::executeNutScript(const std::string &name) {
     Locator<EngineSettings>::get().readEntry(entryName, code);
 
     // decode bnut
-    int cursor = (code.size() - 1) & 0xff;
+    int cursor = static_cast<int>(code.size() - 1) & 0xff;
     for (char &i : code) {
       i ^= _bnutPass[cursor];
       cursor = (cursor + 1) % 4096;
@@ -555,6 +584,11 @@ bool ScriptEngine::call(const char *name) {
   }
   sq_pop(v, 1);
   return true;
+}
+
+SQObjectPtr ScriptEngine::toSquirrel(const std::string &value) {
+  SQObjectPtr string = SQString::Create(_ss(getVm()), value.c_str());
+  return string;
 }
 
 Engine *ScriptEngine::g_pEngine = nullptr;

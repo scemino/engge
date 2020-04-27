@@ -1,4 +1,5 @@
 #include "Entities/Objects/Object.hpp"
+#include "../../extlibs/squirrel/squirrel/sqobject.h"
 
 namespace ng {
 template<>
@@ -22,6 +23,14 @@ bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, const char *&result) {
   const SQChar *text = nullptr;
   auto status = SQ_SUCCEEDED(sq_getstring(v, index, &text));
   result = text;
+  return status;
+}
+
+template<>
+bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, float &result) {
+  SQFloat value = 0;
+  auto status = SQ_SUCCEEDED(sq_getfloat(v, index, &value));
+  result = value;
   return status;
 }
 
@@ -124,12 +133,36 @@ void ScriptEngine::push<Object *>(HSQUIRRELVM v, Object *pObject) {
 }
 
 template<>
+void ScriptEngine::push<ScriptObject *>(HSQUIRRELVM v, ScriptObject *pObject) {
+  if (!pObject) {
+    sq_pushnull(v);
+    return;
+  }
+  auto pEntity = dynamic_cast<Entity*>(pObject);
+  if(pEntity) {
+    sq_pushobject(v, pEntity->getTable());
+    return;
+  }
+  auto pRoom = dynamic_cast<Room*>(pObject);
+  if(pRoom) {
+    sq_pushobject(v, pRoom->getTable());
+    return;
+  }
+  throw std::logic_error("Unable to push an unknown ScriptObject type");
+}
+
+template<>
 void ScriptEngine::push<std::nullptr_t>(HSQUIRRELVM v, std::nullptr_t) {
   sq_pushnull(v);
 }
 
 template<>
 void ScriptEngine::push<HSQOBJECT>(HSQUIRRELVM v, HSQOBJECT obj) {
+  sq_pushobject(v, obj);
+}
+
+template<>
+void ScriptEngine::push<SQObjectPtr>(HSQUIRRELVM v, SQObjectPtr obj) {
   sq_pushobject(v, obj);
 }
 

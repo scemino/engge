@@ -28,12 +28,17 @@
 #include "Graphics/Text.hpp"
 #include "Scripting/VerbExecute.hpp"
 #include "../System/_DebugTools.hpp"
-#include "../System/_Util.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "System/Logger.hpp"
 #include "../Math/PathFinding/_WalkboxDrawable.hpp"
-#include <iostream>
+#include "Parsers/GGPackValue.hpp"
+#include "Parsers/SavegameManager.hpp"
 #include <cmath>
+#include <ctime>
+#include <cctype>
+#include <cwchar>
+#include <filesystem>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -55,7 +60,968 @@ enum class EngineState {
   Game, Paused, Options, StartScreen
 };
 
+static const char *const _objectKey = "_objectKey";
+static const char *const _roomKey = "_roomKey";
+static const char *const _actorKey = "_actorKey";
+static const char *const _idKey = "_id";
+
+static const char *const pseudoObjectsKey = "_pseudoObjects";
 struct Engine::Impl {
+
+  class _SaveGameSystem {
+  public:
+    explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
+
+    void saveGame(const std::string &path) {
+
+      ScriptEngine::call("preSave");
+
+      GGPackValue actorsHash;
+      saveActors(actorsHash);
+
+      GGPackValue callbacksHash;
+      saveCallbacks(callbacksHash);
+
+      GGPackValue dialogHash;
+      saveDialogs(dialogHash);
+
+      GGPackValue gameSceneHash;
+      saveGameScene(gameSceneHash);
+
+      GGPackValue globalsHash;
+      saveGlobals(globalsHash);
+
+      GGPackValue inventoryHash;
+      saveInventory(inventoryHash);
+
+      GGPackValue objectsHash;
+      saveObjects(objectsHash);
+
+      GGPackValue roomsHash;
+      saveRooms(roomsHash);
+
+      time_t now;
+      time(&now);
+
+      SQObjectPtr g;
+      _table(_pImpl->_vm->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
+      SQObjectPtr easyMode;
+      _table(g)->Get(ScriptEngine::toSquirrel("easy_mode"), easyMode);
+
+      GGPackValue saveGameHash;
+      saveGameHash.type = 2;
+      saveGameHash.hash_value = {
+          {"actors", actorsHash},
+          {"callbacks", callbacksHash},
+          {"currentRoom", GGPackValue::toGGPackValue(_pImpl->_pRoom->getName())},
+          {"dialog", dialogHash},
+          {"easy_mode", GGPackValue::toGGPackValue(static_cast<int>(_integer(easyMode)))},
+          {"gameGUID", GGPackValue::toGGPackValue(std::string())},
+          {"gameScene", gameSceneHash},
+          {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.asSeconds())},
+          {"globals", globalsHash},
+          {"inputState", GGPackValue::toGGPackValue(_pImpl->_pEngine->getInputState())},
+          {"inventory", inventoryHash},
+          {"objects", objectsHash},
+          {"rooms", roomsHash},
+          {"savebuild", GGPackValue::toGGPackValue(958)},
+          {"savetime", GGPackValue::toGGPackValue(static_cast<int>(now))},
+          {"selectedActor", GGPackValue::toGGPackValue(_pImpl->_pEngine->getCurrentActor()->getKey())},
+          {"version", GGPackValue::toGGPackValue(2)},
+      };
+
+      saveGame(saveGameHash, path);
+
+      ScriptEngine::call("postSave");
+    }
+
+    void loadGame(const std::string &path) {
+      GGPackValue hash;
+      SavegameManager::loadGame(path, hash);
+
+      std::ofstream os(path + ".json");
+      os << hash;
+      os.close();
+
+      loadGame(hash);
+    }
+
+    static std::string getSlotPath(int slot) {
+      std::ostringstream path;
+      path << "Savegame" << slot << ".save";
+      return path.str();
+    }
+
+    static void getSlot(SavegameSlot &slot) {
+      GGPackValue hash;
+      SavegameManager::loadGame(slot.path, hash);
+
+      slot.easyMode = hash["easy_mode"].getInt() != 0;
+      slot.savetime = (time_t) hash["savetime"].getInt();
+      slot.gametime = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
+    }
+
+  private:
+    static void saveGameInJson(const GGPackValue &saveGameHash, const std::string &path) {
+      std::string json(path);
+      json.append(".json");
+      std::ofstream os(json, std::ofstream::out);
+      os << saveGameHash;
+      os.close();
+    }
+
+    static void saveGame(const GGPackValue &saveGameHash, const std::string &path) {
+      SavegameManager::saveGame(path, saveGameHash);
+
+      saveGameInJson(saveGameHash, path);
+    }
+
+    static std::string getValue(const GGPackValue &property) {
+      std::ostringstream s;
+      if (property.isInteger()) {
+        s << property.int_value;
+      } else if (property.isDouble()) {
+        s << property.double_value;
+      } else if (property.isString()) {
+        s << property.string_value;
+      }
+      return s.str();
+    }
+
+    SQObjectPtr toSquirrel(const GGPackValue &value) {
+      if (value.isString()) {
+        return ScriptEngine::toSquirrel(value.getString());
+      }
+      if (value.isInteger()) {
+        return static_cast<SQInteger>(value.getInt());
+      }
+      if (value.isDouble()) {
+        return static_cast<SQFloat>(value.getDouble());
+      }
+      if (value.isArray()) {
+        auto array = SQArray::Create(_ss(_pImpl->_vm), value.array_value.size());
+        SQInteger i = 0;
+        for (auto &item : value.array_value) {
+          array->Set(i++, toSquirrel(item));
+        }
+        return array;
+      }
+      if (value.isHash()) {
+        auto itActor = value.hash_value.find(_actorKey);
+        auto itEnd = value.hash_value.cend();
+        if (itActor != itEnd) {
+          auto pActor = getActor(itActor->second.getString());
+          return pActor->getTable();
+        }
+        auto itObject = value.hash_value.find(_objectKey);
+        auto itRoom = value.hash_value.find(_roomKey);
+        if (itObject != itEnd) {
+          Object *pObject;
+          if (itRoom != itEnd) {
+            auto pRoom = getRoom(itRoom->second.getString());
+            pObject = getObject(pRoom, itObject->second.getString());
+            if (!pObject) {
+              warn("load: object {} not found", itObject->second.getString());
+              return SQObjectPtr();
+            }
+            return pObject->getTable();
+          }
+          pObject = getObject(itObject->second.getString());
+          if (!pObject) {
+            warn("load: object {} not found", itObject->second.getString());
+            return SQObjectPtr();
+          }
+          return pObject->getTable();
+        }
+
+        if (itRoom != itEnd) {
+          auto pRoom = getRoom(itRoom->second.getString());
+          return pRoom->getTable();
+        }
+
+        auto table = SQTable::Create(_ss(_pImpl->_vm), value.hash_value.size());
+        for (const auto&[key, value] : value.hash_value) {
+          table->Set(ScriptEngine::toSquirrel(key), toSquirrel(value));
+        }
+        return table;
+      }
+      if (!value.isNull()) {
+        warn("trying to convert an unknown value (type={}) to squirrel", static_cast<int >(value.type));
+      }
+      return SQObjectPtr();
+    }
+
+    void loadGameScene(const GGPackValue &hash) {
+      auto actorsSelectable = hash["actorsSelectable"].getInt();
+      auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
+      auto mode = actorsSelectable ? ActorSlotSelectableMode::On : ActorSlotSelectableMode::Off;
+      if (actorsTempUnselectable) {
+        mode |= ActorSlotSelectableMode::TemporaryUnselectable;
+      }
+      _pImpl->_pEngine->setActorSlotSelectable(mode);
+      auto forceTalkieText = hash["forceTalkieText"].getInt() != 0;
+      _pImpl->_pEngine->getPreferences().setForceTalkieText(forceTalkieText);
+      for (auto &selectableActor : hash["selectableActors"].array_value) {
+        auto pActor = getActor(selectableActor[_actorKey].getString());
+        auto selectable = selectableActor["selectable"].getInt() != 0;
+        _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
+      }
+    }
+
+    void loadDialog(const GGPackValue &hash) {
+      auto &states = _pImpl->_dialogManager.getStates();
+      states.clear();
+      for (auto &property : hash.hash_value) {
+        auto dialog = property.first;
+        // dialog format: mode dialog number actor
+        // example: #ChetAgentStreetDialog14reyes
+        // mode:
+        // ?: once
+        // #: showonce
+        // &: onceever
+        // $: showonceever
+        // ^: temponce
+        auto state = parseState(dialog);
+        states.push_back(state);
+        // TODO: what to do with this dialog value ?
+        //auto value = property.second.getInt();
+      }
+    }
+
+    [[nodiscard]] DialogConditionState parseState(const std::string &dialog) const {
+      DialogConditionState state;
+      switch (dialog[0]) {
+      case '?':state.mode = DialogConditionMode::Once;
+        break;
+      case '#':state.mode = DialogConditionMode::ShowOnce;
+        break;
+      case '&':state.mode = DialogConditionMode::OnceEver;
+        break;
+      case '$':state.mode = DialogConditionMode::ShowOnceEver;
+        break;
+      case '^':state.mode = DialogConditionMode::TempOnce;
+        break;
+      }
+      std::string dialogName;
+      int i;
+      for (i = 1; i < static_cast<int>(dialog.length()) && !isdigit(dialog[i]); i++) {
+        dialogName.append(1, dialog[i]);
+      }
+      auto &settings = Locator<EngineSettings>::get();
+      while (!settings.hasEntry(dialogName + ".byack")) {
+        dialogName.append(1, dialog.at(i++));
+      }
+      std::string num;
+      state.dialog = dialogName;
+      for (; i < static_cast<int>(dialog.length()) && isdigit(dialog[i]); i++) {
+        num.append(1, dialog[i]);
+      }
+      state.line = atol(num.data());
+      state.actorKey = dialog.substr(i);
+      return state;
+    }
+
+    void loadCallbacks(const GGPackValue &hash) {
+      _pImpl->_callbacks.clear();
+      for (auto &callBackHash : hash["callbacks"].array_value) {
+        auto name = callBackHash["function"].getString();
+        auto id = callBackHash["guid"].getInt();
+        auto time = sf::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
+        auto callback = std::make_unique<Callback>(id, time, name);
+        _pImpl->_callbacks.push_back(std::move(callback));
+      }
+      Locator<ResourceManager>::get().setCallbackId(hash["nextGuid"].getInt());
+    }
+
+    void loadActors(const GGPackValue &hash) {
+      for (auto &pActor : _pImpl->_actors) {
+        if (pActor->getKey().empty())
+          continue;
+
+        auto &actorHash = hash[pActor->getKey()];
+
+        loadActor(pActor.get(), actorHash);
+      }
+    }
+
+    void loadActor(Actor *pActor, const GGPackValue &actorHash) {
+      sf::Color color{sf::Color::White};
+      getValue(actorHash, "_color", color);
+      pActor->setColor(color);
+
+      sf::Vector2f pos;
+      getValue(actorHash, "_pos", pos);
+      pActor->setPosition(pos);
+
+      std::string costume;
+      getValue(actorHash, "_costume", costume);
+      std::string costumesheet;
+      getValue(actorHash, "_costumeSheet", costumesheet);
+      pActor->getCostume().loadCostume(costume, costumesheet);
+
+      std::string room;
+      getValue(actorHash, _roomKey, room);
+      auto *pRoom = getRoom(room.empty() ? "Void" : room);
+      pActor->setRoom(pRoom);
+
+      int dir = static_cast<int>(Facing::FACE_FRONT);
+      getValue(actorHash, "_dir", dir);
+      pActor->getCostume().setFacing(static_cast<Facing>(dir));
+
+      int useDirValue = static_cast<int>(UseDirection::Front);
+      getValue(actorHash, "_useDir", useDirValue);
+      pActor->setUseDirection(static_cast<UseDirection>(dir));
+
+      int lockFacing = 0;
+      getValue(actorHash, "_lockFacing", lockFacing);
+      if (lockFacing == 0) {
+        pActor->getCostume().unlockFacing();
+      } else {
+        pActor->getCostume().lockFacing(static_cast<Facing>(lockFacing),
+                                        static_cast<Facing>(lockFacing),
+                                        static_cast<Facing>(lockFacing),
+                                        static_cast<Facing>(lockFacing));
+      }
+      float volume = 0;
+      getValue(actorHash, "_volume", volume);
+      pActor->setVolume(volume);
+
+      sf::Vector2f usePos;
+      getValue(actorHash, "_usePos", usePos);
+      pActor->setUsePosition(usePos);
+
+      sf::Vector2f renderOffset = sf::Vector2f(0, 45);
+      getValue(actorHash, "_renderOffset", renderOffset);
+      pActor->setRenderOffset((sf::Vector2i) renderOffset);
+
+      sf::Vector2f offset;
+      getValue(actorHash, "_offset", offset);
+      pActor->setOffset(offset);
+
+      for (auto &property : actorHash.hash_value) {
+        if (property.first.empty() || property.first[0] == '_') {
+          if (property.first == "_animations") {
+            std::vector<std::string> anims;
+            for (auto &value : property.second.array_value) {
+              anims.push_back(value.getString());
+            }
+            // TODO: _animations
+            trace("load: actor {} property '{}' not loaded (type={}) size={}",
+                  pActor->getKey(),
+                  property.first,
+                  static_cast<int>(property.second.type), anims.size());
+          } else if ((property.first == "_pos") || (property.first == "_costume") || (property.first == "_costumeSheet")
+              || (property.first == _roomKey) ||
+              (property.first == "_color") || (property.first == "_dir") || (property.first == "_useDir")
+              || (property.first == "_lockFacing") || (property.first == "_volume") || (property.first == "_usePos")
+              || (property.first == "_renderOffset") || (property.first == "_offset")) {
+          } else {
+            // TODO: other types
+            auto s = getValue(property.second);
+            trace("load: actor {} property '{}' not loaded (type={}): {}",
+                  pActor->getKey(),
+                  property.first,
+                  static_cast<int>(property.second.type), s);
+          }
+          continue;
+        }
+
+        _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+      }
+    }
+
+    void loadInventory(const GGPackValue &hash) {
+      for (auto i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); ++i) {
+        auto *pActor = _pImpl->_actorsIconSlots[i].pActor;
+        auto &slot = hash["slots"].array_value.at(i);
+        pActor->clearInventory();
+        for (auto &obj : slot["objects"].array_value) {
+          auto pObj = getInventoryObject(obj.getString());
+          // TODO: why we don't find the inventory object here ?
+          if (!pObj)
+            continue;
+          pActor->pickupObject(pObj);
+        }
+        auto scroll = slot["scroll"].getInt();
+        pActor->setInventoryOffset(scroll);
+      }
+    }
+
+    void loadObjects(const GGPackValue &hash) {
+      for (auto &obj :  hash.hash_value) {
+        auto objName = obj.first;
+        auto pObj = getObject(objName);
+        // TODO: if the object does not exist creates it
+        if (!pObj) {
+          trace("load: object '{}' not loaded because it has not been found", objName);
+          continue;
+        }
+        loadObject(pObj, obj.second);
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, int &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = it->second.getInt();
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, std::string &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = it->second.getString();
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, float &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = static_cast<float>(it->second.getDouble());
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, bool &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = it->second.getInt() != 0;
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, sf::Vector2f &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = _parsePos(it->second.getString());
+      }
+    }
+
+    void getValue(const GGPackValue &hash, const std::string &key, sf::Color &value) {
+      auto it = hash.hash_value.find(key);
+      if (it != hash.hash_value.end()) {
+        value = _toColor(it->second.getInt());
+      }
+    }
+
+    void loadObject(Object *pObj, const GGPackValue &hash) {
+      int state = 0;
+      getValue(hash, "_state", state);
+      pObj->setStateAnimIndex(state);
+      bool touchable = true;
+      getValue(hash, "_touchable", touchable);
+      pObj->setTouchable(touchable);
+      sf::Vector2f offset;
+      getValue(hash, "_offset", offset);
+      pObj->setOffset(offset);
+      bool hidden = false;
+      getValue(hash, "_hidden", hidden);
+      pObj->setVisible(!hidden);
+      float rotation = 0;
+      getValue(hash, "_rotation", rotation);
+      pObj->setRotation(rotation);
+      sf::Color color{sf::Color::White};
+      getValue(hash, "_color", color);
+      pObj->setColor(color);
+
+      for (auto &property :  hash.hash_value) {
+
+        if (property.first.empty() || property.first[0] == '_') {
+          if (property.first == "_state" || property.first == "_touchable" || property.first == "_offset"
+              || property.first == "_hidden" || property.first == "_rotation" || property.first == "_color")
+            continue;
+
+          // TODO: other types
+          auto s = getValue(property.second);
+          trace("load: object {} property '{}' not loaded (type={}): {}",
+                pObj->getKey(),
+                property.first,
+                static_cast<int>(property.second.type), s);
+          continue;
+        }
+
+        _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+      }
+    }
+
+    void loadPseudoObjects(Room *pRoom, const std::map<std::string, GGPackValue> &hash) {
+      for (auto &[objName, objValue] :  hash) {
+        auto pObj = getObject(pRoom, objName);
+        if (!pObj) {
+          trace("load: room '{}' object '{}' not loaded because it has not been found", pRoom->getName(), objName);
+          continue;
+        }
+        loadObject(pObj, objValue);
+      }
+    }
+
+    void loadRooms(const GGPackValue &hash) {
+      for (auto &roomHash :  hash.hash_value) {
+        auto roomName = roomHash.first;
+        auto pRoom = getRoom(roomName);
+        if (!pRoom) {
+          trace("load: room '{}' not loaded because it has not been found", roomName);
+          continue;
+        }
+
+        for (auto &property : roomHash.second.hash_value) {
+          if (property.first.empty() || property.first[0] == '_') {
+            if (property.first == pseudoObjectsKey) {
+              loadPseudoObjects(pRoom, property.second.hash_value);
+            } else {
+              trace("load: room '{}' property '{}' (type={}) not loaded",
+                    roomName,
+                    property.first,
+                    static_cast<int>(property.second.type));
+              continue;
+            }
+          }
+
+          _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+        }
+      }
+    }
+
+    void loadGame(const GGPackValue &hash) {
+      auto version = hash["version"].getInt();
+      if (version != 2) {
+        warn("Cannot load savegame version {}", version);
+        return;
+      }
+
+      ScriptEngine::call("preLoad");
+
+      loadGameScene(hash["gameScene"]);
+      loadDialog(hash["dialog"]);
+      loadCallbacks(hash["callbacks"]);
+      loadGlobals(hash["globals"]);
+      loadActors(hash["actors"]);
+      loadObjects(hash["objects"]);
+      loadInventory(hash["inventory"]);
+      loadRooms(hash["rooms"]);
+
+      _pImpl->_time = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
+      _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
+
+      setActor(hash["selectedActor"].getString());
+      setCurrentRoom(hash["currentRoom"].getString());
+
+      ScriptEngine::set("SAVEBUILD", hash["savebuild"].getInt());
+
+      ScriptEngine::call("postLoad");
+    }
+
+    void setActor(const std::string &name) {
+      auto *pActor = getActor(name);
+      _pImpl->_pEngine->setCurrentActor(pActor, false);
+    }
+
+    Actor *getActor(const std::string &name) {
+      for (const auto &pActor : _pImpl->_pEngine->getActors()) {
+        if (pActor->getKey() == name) {
+          return pActor.get();
+        }
+      }
+      return nullptr;
+    }
+
+    Room *getRoom(const std::string &name) {
+      auto &rooms = _pImpl->_pEngine->getRooms();
+      auto it = std::find_if(rooms.begin(), rooms.end(), [&name](auto &pRoom) { return pRoom->getName() == name; });
+      if (it != rooms.end())
+        return it->get();
+      return nullptr;
+    }
+
+    Object *getInventoryObject(const std::string &name) {
+      auto v = _pImpl->_pEngine->getVm();
+      SQObjectPtr obj;
+      if(!_table(v->_roottable)->Get(ScriptEngine::toSquirrel(name), obj)){
+        return nullptr;
+      }
+      SQObjectPtr id;
+      if(!_table(obj)->Get(ScriptEngine::toSquirrel(_idKey), id)){
+        return nullptr;
+      }
+      return ScriptEngine::getObjectFromId(static_cast<int>(_integer(id)));
+    }
+
+    Object *getObject(const std::string &name) {
+      for (auto &pRoom : _pImpl->_rooms) {
+        for (auto &pObj : pRoom->getObjects()) {
+          if (pObj->getKey() == name)
+            return pObj.get();
+        }
+      }
+      return nullptr;
+    }
+
+    static Object *getObject(Room *pRoom, const std::string &name) {
+      for (auto &pObj : pRoom->getObjects()) {
+        if (pObj->getKey() == name)
+          return pObj.get();
+      }
+      return nullptr;
+    }
+
+    void setCurrentRoom(const std::string &name) {
+      _pImpl->_pEngine->setRoom(getRoom(name));
+    }
+
+    void saveActors(GGPackValue &actorsHash) {
+      actorsHash.type = 2;
+      for (auto &pActor : _pImpl->_actors) {
+        // TODO: find why this entry exists...
+        if (pActor->getKey().empty())
+          continue;
+
+        GGPackValue actorHash;
+        actorHash.type = 2;
+        auto costume = pActor->getCostume().getPath();
+        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
+        actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
+        auto lockFacing = pActor->getCostume().getLockFacing();
+        actorHash.hash_value["_lockFacing"] =
+            GGPackValue::toGGPackValue(lockFacing.has_value() ? static_cast<int>(lockFacing.value()) : 0);
+        actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
+        if (pActor->getVolume().has_value()) {
+          actorHash.hash_value["_volume"] = GGPackValue::toGGPackValue(pActor->getVolume().value());
+        }
+        auto useDir = pActor->getUseDirection();
+        if (useDir.has_value()) {
+          actorHash.hash_value["_useDir"] = GGPackValue::toGGPackValue(static_cast<int>(useDir.value()));
+        }
+        auto usePos = pActor->getUsePosition();
+        if (useDir.has_value()) {
+          actorHash.hash_value["_usePos"] = GGPackValue::toGGPackValue(toString(usePos.value()));
+        }
+        auto renderOffset = pActor->getRenderOffset();
+        if (renderOffset != sf::Vector2i(0, 45)) {
+          actorHash.hash_value["_renderOffset"] = GGPackValue::toGGPackValue(toString(renderOffset));
+        }
+        if (pActor->getColor() != sf::Color::White) {
+          actorHash.hash_value["_color"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getColor().toInteger()));
+        }
+        auto costumeSheet = pActor->getCostume().getSheet();
+        if (!costumeSheet.empty()) {
+          actorHash.hash_value["_costumeSheet"] = GGPackValue::toGGPackValue(costumeSheet);
+        }
+        if (pActor->getRoom()) {
+          actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
+        } else {
+          actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(nullptr);
+        }
+
+        auto table = pActor->getTable();
+        saveTable(table, actorHash, false);
+        actorsHash.hash_value[pActor->getKey()] = actorHash;
+      }
+    }
+
+    void saveGlobals(GGPackValue &globalsHash) {
+      globalsHash.type = 2;
+      auto v = _pImpl->_pEngine->getVm();
+      sq_pushroottable(v);
+      sq_pushstring(v, _SC("g"), -1);
+      sq_get(v, -2);
+      HSQOBJECT g;
+      sq_getstackobj(v, -1, &g);
+
+      saveTable(g, globalsHash, false);
+    }
+
+    void saveDialogs(GGPackValue &hash) {
+      hash.type = 2;
+      const auto &states = _pImpl->_dialogManager.getStates();
+      for (const auto &state : states) {
+        std::ostringstream s;
+        switch (state.mode) {
+        case DialogConditionMode::TempOnce:continue;
+        case DialogConditionMode::OnceEver:s << "&";
+          break;
+        case DialogConditionMode::ShowOnce:s << "#";
+          break;
+        case DialogConditionMode::Once:s << "?";
+          break;
+        case DialogConditionMode::ShowOnceEver:s << "$";
+          break;
+        }
+        s << state.dialog << state.line << state.actorKey;
+        // TODO: value should be 1 or another value ?
+        hash.hash_value[s.str()] = GGPackValue::toGGPackValue(state.mode == DialogConditionMode::ShowOnce ? 2 : 1);
+      }
+    }
+
+    void saveGameScene(GGPackValue &hash) const {
+      auto actorsSelectable =
+          ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
+      auto actorsTempUnselectable = ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
+          == ActorSlotSelectableMode::TemporaryUnselectable);
+
+      GGPackValue selectableActors;
+      selectableActors.type = 3;
+      for (auto &slot : _pImpl->_actorsIconSlots) {
+        GGPackValue selectableActor;
+        selectableActor.type = 2;
+        selectableActor.hash_value = {
+            {_actorKey, GGPackValue::toGGPackValue(slot.pActor->getKey())},
+            {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
+        };
+        selectableActors.array_value.push_back(selectableActor);
+      }
+
+      hash.type = 2;
+      hash.hash_value = {
+          {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
+          {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
+          {"forceTalkieText", GGPackValue::toGGPackValue(_pImpl->_pEngine->getPreferences().getForceTalkieText())},
+          {"selectableActors", selectableActors}
+      };
+    }
+
+    void saveInventory(GGPackValue &hash) const {
+      GGPackValue slots;
+      slots.type = 3;
+      for (auto &slot : _pImpl->_actorsIconSlots) {
+
+        GGPackValue objects;
+        objects.type = 3;
+        for (auto &obj : slot.pActor->getObjects()) {
+          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
+        }
+
+        GGPackValue actorSlot;
+        actorSlot.type = 2;
+        actorSlot.hash_value = {
+            {"objects", objects},
+            {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
+        };
+        slots.array_value.push_back(actorSlot);
+      }
+
+      hash.type = 2;
+      hash.hash_value = {
+          {"slots", slots},
+      };
+    }
+
+    void saveObjects(GGPackValue &hash) const {
+      hash.type = 2;
+      for (auto &room : _pImpl->_rooms) {
+        for (auto &object : room->getObjects()) {
+          if (object->getType() != ObjectType::Object)
+            continue;
+          auto pRoom = object->getRoom();
+          if (pRoom && pRoom->isPseudoRoom())
+            continue;
+          GGPackValue hashObject;
+          saveObject(object.get(), hashObject);
+          hash.hash_value[object->getKey()] = hashObject;
+        }
+      }
+    }
+
+    void savePseudoObjects(const Room *pRoom, GGPackValue &hash) const {
+      if (!pRoom->isPseudoRoom())
+        return;
+      GGPackValue hashObjects;
+      hashObjects.type = 2;
+      for (const auto &pObj : pRoom->getObjects()) {
+        GGPackValue hashObject;
+        saveObject(pObj.get(), hashObject);
+        hashObjects.hash_value[pObj->getKey()] = hashObject;
+      }
+      hash.hash_value[pseudoObjectsKey] = hashObjects;
+    }
+
+    void saveObject(const Object *pObject, GGPackValue &hashObject) const {
+      saveTable(pObject->getTable(), hashObject, false);
+      if (pObject->getState() != 0) {
+        hashObject.hash_value["_state"] = GGPackValue::toGGPackValue(pObject->getState());
+      }
+      if (!pObject->isTouchable()) {
+        hashObject.hash_value["_touchable"] = GGPackValue::toGGPackValue(pObject->isTouchable());
+      }
+      if (pObject->getOffset() != sf::Vector2f()) {
+        hashObject.hash_value["_offset"] = GGPackValue::toGGPackValue(toString(pObject->getOffset()));
+      }
+    }
+
+    void saveRooms(GGPackValue &hash) const {
+      hash.type = 2;
+      for (auto &room : _pImpl->_rooms) {
+        GGPackValue hashRoom;
+        saveTable(room->getTable(), hashRoom, false);
+        savePseudoObjects(room.get(), hashRoom);
+        hash.hash_value[room->getName()] = hashRoom;
+      }
+    }
+
+    void saveCallbacks(GGPackValue &callbacksHash) {
+      callbacksHash.type = 2;
+      GGPackValue callbacksArray;
+      callbacksArray.type = 3;
+
+      for (auto &callback : _pImpl->_callbacks) {
+        GGPackValue callbackHash;
+        callbackHash.type = 2;
+        callbackHash.hash_value = {
+            {"function", GGPackValue::toGGPackValue(callback->getMethod())},
+            {"guid", GGPackValue::toGGPackValue(callback->getId())},
+            {"time", GGPackValue::toGGPackValue(callback->getElapsed().asMilliseconds())}
+        };
+        callbacksArray.array_value.push_back(callbackHash);
+      }
+
+      auto &resourceManager = Locator<ResourceManager>::get();
+      auto id = resourceManager.getCallbackId();
+      resourceManager.setCallbackId(id);
+
+      callbacksHash.hash_value = {
+          {"callbacks", callbacksArray},
+          {"nextGuid", GGPackValue::toGGPackValue(id)},
+      };
+    }
+
+    void loadGlobals(const GGPackValue &hash) {
+      SQTable *pRootTable = _table(_pImpl->_vm->_roottable);
+      SQObjectPtr gObject;
+      pRootTable->Get(ScriptEngine::toSquirrel("g"), gObject);
+      SQTable *gTable = _table(gObject);
+      for (const auto &variable : hash.hash_value) {
+        gTable->Set(ScriptEngine::toSquirrel(variable.first), toSquirrel(variable.second));
+      }
+    }
+
+    static std::string toString(const sf::Vector2f &pos) {
+      std::ostringstream os;
+      os << "{" << static_cast<int>(pos.x) << "," << static_cast<int>(pos.y) << "}";
+      return os.str();
+    }
+
+    static std::string toString(const sf::Vector2i &pos) {
+      std::ostringstream os;
+      os << "{" << pos.x << "," << pos.y << "}";
+      return os.str();
+    }
+
+    static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = true, const std::string &tableKey = "") {
+      hash.type = 2;
+
+      int id;
+      if (checkId && ScriptEngine::get(table, _idKey, id)) {
+        hash.type = 2;
+        if (ResourceManager::isActor(id)) {
+          auto pActor = ScriptEngine::getActorFromId(id);
+          if (pActor && pActor->getKey() != tableKey) {
+            hash.hash_value[_actorKey] = GGPackValue::toGGPackValue(pActor->getKey());
+            return true;
+          }
+          return false;
+        }
+        if (ResourceManager::isObject(id)) {
+          auto pObj = ScriptEngine::getObjectFromId(id);
+          if (pObj && pObj->getKey() != tableKey) {
+            auto pRoom = pObj->getRoom();
+            if (pRoom && pRoom->isPseudoRoom()) {
+              hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
+            }
+            hash.hash_value[_objectKey] = GGPackValue::toGGPackValue(pObj->getKey());
+            return true;
+          }
+          return false;
+        }
+        if (ResourceManager::isRoom(id)) {
+          auto pRoom = ScriptEngine::getRoomFromId(id);
+          if (pRoom && pRoom->getName() != tableKey) {
+            hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
+            return true;
+          }
+          return false;
+        }
+        return false;
+      }
+
+      SQObjectPtr refpos;
+      SQObjectPtr outkey, outvar;
+      SQInteger res;
+      while ((res = table._unVal.pTable->Next(false, refpos, outkey, outvar)) != -1) {
+        std::string key = _stringval(outkey);
+        if (!key.empty() && key[0] != '_') {
+          switch (sq_type(outvar)) {
+          case OT_STRING:hash.hash_value[key] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
+            break;
+          case OT_INTEGER:
+          case OT_BOOL:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
+            break;
+          case OT_FLOAT:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
+            break;
+          case OT_NULL:hash.hash_value[key] = GGPackValue::toGGPackValue(nullptr);
+            break;
+          case OT_TABLE: {
+            GGPackValue value;
+            if (saveTable(outvar, value, true, key)) {
+              hash.hash_value[key] = value;
+            }
+            break;
+          }
+          case OT_ARRAY: {
+            GGPackValue value;
+            saveArray(outvar, value);
+            hash.hash_value[key] = value;
+            break;
+          }
+          default: break;
+          }
+        }
+        refpos._type = OT_INTEGER;
+        refpos._unVal.nInteger = res;
+      }
+      return true;
+    }
+
+    static void saveArray(HSQOBJECT array, GGPackValue &hash) {
+      hash.type = 3;
+      SQObjectPtr refpos;
+      SQObjectPtr outkey, outvar;
+      SQInteger res;
+      auto size = array._unVal.pArray->Size();
+      hash.array_value.resize(size);
+      while ((res = array._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
+        auto index = _integer(outkey);
+        switch (sq_type(outvar)) {
+        case OT_STRING:hash.array_value[index] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
+          break;
+        case OT_INTEGER:
+        case OT_BOOL:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
+          break;
+        case OT_FLOAT:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
+          break;
+        case OT_NULL:hash.array_value[index] = GGPackValue::toGGPackValue(nullptr);
+          break;
+        case OT_TABLE: {
+          GGPackValue value;
+          if (saveTable(outvar, value)) {
+            hash.array_value[index] = value;
+          }
+          break;
+        }
+        case OT_ARRAY: {
+          GGPackValue value;
+          saveArray(outvar, value);
+          hash.array_value[index] = value;
+          break;
+        }
+        default:break;
+        }
+
+        refpos._type = OT_INTEGER;
+        refpos._unVal.nInteger = res;
+      }
+    }
+
+  private:
+    Impl *_pImpl{nullptr};
+  };
+
   Engine *_pEngine{nullptr};
   std::unique_ptr<_DebugTools> _pDebugTools;
   TextureManager _textureManager;
@@ -67,7 +1033,6 @@ struct Engine::Impl {
   std::vector<std::unique_ptr<Callback>> _callbacks;
   Cutscene *_pCutscene{nullptr};
   sf::RenderWindow *_pWindow{nullptr};
-  TextDatabase _textDb;
   Actor *_pCurrentActor{nullptr};
   bool _inputHUD{false};
   bool _inputActive{false};
@@ -113,31 +1078,31 @@ struct Engine::Impl {
 
   Impl();
 
-  void drawHud(sf::RenderWindow &window) const;
-  void drawCursor(sf::RenderWindow &window) const;
+  void drawHud(sf::RenderTarget &target) const;
+  void drawCursor(sf::RenderTarget &target) const;
   void drawCursorText(sf::RenderTarget &target) const;
   void drawNoOverride(sf::RenderTarget &target) const;
   int getCurrentActorIndex() const;
   sf::IntRect getCursorRect() const;
   void appendUseFlag(std::wstring &sentence) const;
-  bool clickedAt(const sf::Vector2f &pos);
+  bool clickedAt(const sf::Vector2f &pos) const;
   void updateCutscene(const sf::Time &elapsed);
   void updateFunctions(const sf::Time &elapsed);
   void updateActorIcons(const sf::Time &elapsed);
-  void updateSentence(const sf::Time &elapsed);
+  void updateSentence(const sf::Time &elapsed) const;
   void updateMouseCursor();
   void updateHoveredEntity(bool isRightClick);
-  SQInteger enterRoom(Room *pRoom, Object *pObject);
+  SQInteger enterRoom(Room *pRoom, Object *pObject) const;
   SQInteger exitRoom(Object *pObject);
-  void updateScreenSize();
-  void updateRoomScalings();
+  void updateScreenSize() const;
+  void updateRoomScalings() const;
   void setCurrentRoom(Room *pRoom);
   int getFlags(Entity *pEntity) const;
   int getDefaultVerb(Entity *pEntity) const;
   Entity *getHoveredEntity(const sf::Vector2f &mousPos);
-  void actorEnter();
-  void actorExit();
-  void onLanguageChange(const std::string &lang);
+  void actorEnter() const;
+  void actorExit() const;
+  static void onLanguageChange(const std::string &lang);
   void drawFade(sf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
   void updateKeyboard();
@@ -148,11 +1113,12 @@ struct Engine::Impl {
   void stopThreads();
   void drawWalkboxes(sf::RenderTarget &target) const;
   const Verb *getHoveredVerb() const;
-  std::wstring getDisplayName(const std::wstring &name) const;
+  static std::wstring getDisplayName(const std::wstring &name);
   void run(bool state);
-  void stopAllTalking();
+  void stopAllTalking() const;
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
+  void captureScreen(const std::string &path) const;
 };
 
 Engine::Impl::Impl()
@@ -168,7 +1134,7 @@ Engine::Impl::Impl()
 void Engine::Impl::onLanguageChange(const std::string &lang) {
   std::stringstream ss;
   ss << "ThimbleweedText_" << lang << ".tsv";
-  _textDb.load(ss.str());
+  Locator<TextDatabase>::get().load(ss.str());
 
   ScriptEngine::call("onLanguageChange");
 }
@@ -200,8 +1166,9 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
   auto lang =
       _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
   s << "ThimbleweedText_" << lang << ".tsv";
-  _pImpl->_textDb.load(s.str());
+  Locator<TextDatabase>::get().load(s.str());
 
+  _pImpl->_optionsDialog.setSaveEnabled(true);
   _pImpl->_optionsDialog.setEngine(this);
   _pImpl->_optionsDialog.setCallback([this]() {
     showOptions(false);
@@ -211,6 +1178,10 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
     _pImpl->_state = EngineState::Game;
     _pImpl->exitRoom(nullptr);
     ScriptEngine::call("start", true);
+  });
+  _pImpl->_startScreenDialog.setSlotCallback([this](int slot) {
+    _pImpl->_state = EngineState::Game;
+    loadGame(slot);
   });
 
   _pImpl->_gameSheet.load("GameSheet");
@@ -238,18 +1209,11 @@ TextureManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 
 std::wstring Engine::getText(int id) const {
-  auto text = _pImpl->_textDb.getText(id);
-  replaceAll(text, L"\\\"", L"\"");
-  removeFirstParenthesis(text);
-  return text;
+  return Locator<TextDatabase>::get().getText(id);
 }
 
 std::wstring Engine::getText(const std::string &text) const {
-  if (!text.empty() && text[0] == '@') {
-    auto id = std::strtol(text.c_str() + 1, nullptr, 10);
-    return getText(id);
-  }
-  return towstring(text);
+  return Locator<TextDatabase>::get().getText(text);
 }
 
 void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
@@ -446,7 +1410,7 @@ int Engine::Impl::getDefaultVerb(Entity *pEntity) const {
   return VerbConstants::VERB_LOOKAT;
 }
 
-void Engine::Impl::updateScreenSize() {
+void Engine::Impl::updateScreenSize() const {
   if (!_pRoom)
     return;
 
@@ -455,7 +1419,7 @@ void Engine::Impl::updateScreenSize() {
   _pWindow->setView(view);
 }
 
-void Engine::Impl::actorEnter() {
+void Engine::Impl::actorEnter() const {
   if (!_pCurrentActor)
     return;
 
@@ -467,14 +1431,14 @@ void Engine::Impl::actorEnter() {
   ScriptEngine::rawCall(_pRoom, "actorEnter", _pCurrentActor);
 }
 
-void Engine::Impl::actorExit() {
+void Engine::Impl::actorExit() const {
   if (!_pCurrentActor || !_pRoom)
     return;
 
   ScriptEngine::rawCall(_pRoom, "actorExit", _pCurrentActor);
 }
 
-SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) {
+SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) const {
   // call enter room function
   trace("call enter room function of {}", pRoom->getName());
   auto nparams = ScriptEngine::getParameterCount(pRoom, "enter");
@@ -566,17 +1530,19 @@ SQInteger Engine::setRoom(Room *pRoom) {
 
 SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   auto dir = pDoor->getUseDirection();
-  Facing facing;
-  switch (dir) {
-  case UseDirection::Back:facing = Facing::FACE_FRONT;
-    break;
-  case UseDirection::Front:facing = Facing::FACE_BACK;
-    break;
-  case UseDirection::Left:facing = Facing::FACE_RIGHT;
-    break;
-  case UseDirection::Right:facing = Facing::FACE_LEFT;
-    break;
-  default:throw std::invalid_argument("direction is invalid");
+  Facing facing = Facing::FACE_FRONT;
+  if (dir.has_value()) {
+    switch (dir.value()) {
+    case UseDirection::Back:facing = Facing::FACE_FRONT;
+      break;
+    case UseDirection::Front:facing = Facing::FACE_BACK;
+      break;
+    case UseDirection::Left:facing = Facing::FACE_RIGHT;
+      break;
+    case UseDirection::Right:facing = Facing::FACE_LEFT;
+      break;
+    default:throw std::invalid_argument("direction is invalid");
+    }
   }
   auto pRoom = pDoor->getRoom();
   auto pOldRoom = _pImpl->_pRoom;
@@ -595,7 +1561,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   if (pRoom->getFullscreen() != 1) {
     actor->setRoom(pRoom);
     auto pos = pDoor->getRealPosition();
-    auto usePos = pDoor->getUsePosition();
+    auto usePos = pDoor->getUsePosition().value_or(sf::Vector2f());
     pos += usePos;
     actor->setPosition(pos);
     _pImpl->_camera.at(pos);
@@ -624,7 +1590,7 @@ void Engine::Impl::updateCutscene(const sf::Time &elapsed) {
   }
 }
 
-void Engine::Impl::updateSentence(const sf::Time &elapsed) {
+void Engine::Impl::updateSentence(const sf::Time &elapsed) const {
   if (!_pSentence)
     return;
   (*_pSentence)(elapsed);
@@ -644,9 +1610,18 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
   _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
                                   [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
                    _functions.end());
-  for (auto &callback : _callbacks) {
+
+  std::vector<std::unique_ptr<Callback>> callbacks;
+  std::move(_callbacks.begin(), _callbacks.end(), std::back_inserter(callbacks));
+  _callbacks.clear();
+  for (auto &callback : callbacks) {
     (*callback)(elapsed);
   }
+  callbacks.erase(std::remove_if(callbacks.begin(),
+                                 callbacks.end(),
+                                 [](auto &f) { return f->isElapsed(); }),
+                  callbacks.end());
+  std::move(callbacks.begin(), callbacks.end(), std::back_inserter(_callbacks));
 }
 
 void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {
@@ -782,7 +1757,7 @@ int Engine::Impl::getFlags(Entity *pEntity) const {
   return flags;
 }
 
-void Engine::Impl::updateRoomScalings() {
+void Engine::Impl::updateRoomScalings() const {
   auto actor = _pCurrentActor;
   if (!actor)
     return;
@@ -1007,7 +1982,7 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   }
 }
 
-void Engine::Impl::stopAllTalking() {
+void Engine::Impl::stopAllTalking() const {
   for (auto &&a : _pEngine->getActors()) {
     a->stopTalking();
   }
@@ -1077,7 +2052,7 @@ void Engine::Impl::onVerbClick(const Verb *pVerb) {
   ScriptEngine::rawCall("onVerbClick");
 }
 
-bool Engine::Impl::clickedAt(const sf::Vector2f &pos) {
+bool Engine::Impl::clickedAt(const sf::Vector2f &pos) const {
   if (!_pRoom)
     return false;
 
@@ -1086,35 +2061,35 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos) {
   return handled;
 }
 
-void Engine::draw(sf::RenderWindow &window) const {
+void Engine::draw(sf::RenderTarget &target, bool screenshot) const {
   if (_pImpl->_pRoom) {
-    _pImpl->_pRoom->draw(window, _pImpl->_camera.getAt());
-    _pImpl->drawFade(window);
+    _pImpl->_pRoom->draw(target, _pImpl->_camera.getAt());
+    _pImpl->drawFade(target);
+    _pImpl->drawWalkboxes(target);
+    target.draw(_pImpl->_talkingState);
+    target.draw(_pImpl->_dialogManager);
+    _pImpl->drawHud(target);
 
-    _pImpl->drawWalkboxes(window);
-
-    window.draw(_pImpl->_talkingState);
-
-    window.draw(_pImpl->_dialogManager);
-
-    _pImpl->drawHud(window);
-    if ((_pImpl->_pRoom->getFullscreen() != 1) && (_pImpl->_dialogManager.getState() == DialogManagerState::None)
+    if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
         && _pImpl->_inputActive) {
-      window.draw(_pImpl->_actorIcons);
+      target.draw(_pImpl->_actorIcons);
     }
 
-    _pImpl->_pRoom->drawForeground(window, _pImpl->_camera.getAt());
+    _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+
+    if (screenshot)
+      return;
 
     if (_pImpl->_state == EngineState::Options) {
-      window.draw(_pImpl->_optionsDialog);
+      target.draw(_pImpl->_optionsDialog);
     } else if (_pImpl->_state == EngineState::StartScreen) {
-      window.draw(_pImpl->_startScreenDialog);
+      target.draw(_pImpl->_startScreenDialog);
     }
-    _pImpl->drawPause(window);
 
-    _pImpl->drawCursor(window);
-    _pImpl->drawCursorText(window);
-    _pImpl->drawNoOverride(window);
+    _pImpl->drawPause(target);
+    _pImpl->drawCursor(target);
+    _pImpl->drawCursorText(target);
+    _pImpl->drawNoOverride(target);
     _pImpl->_pDebugTools->render();
   }
 }
@@ -1206,7 +2181,7 @@ void Engine::Impl::stopThreads() {
   }), _threads.end());
 }
 
-void Engine::Impl::drawCursor(sf::RenderWindow &window) const {
+void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
   if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
     return;
 
@@ -1219,7 +2194,7 @@ void Engine::Impl::drawCursor(sf::RenderWindow &window) const {
   shape.setSize(cursorSize);
   shape.setTexture(&_gameSheet.getTexture());
   shape.setTextureRect(getCursorRect());
-  window.draw(shape);
+  target.draw(shape);
 }
 
 sf::IntRect Engine::Impl::getCursorRect() const {
@@ -1252,7 +2227,7 @@ sf::IntRect Engine::Impl::getCursorRect() const {
                                                        : _gameSheet.getRect("cursor");
 }
 
-std::wstring Engine::Impl::getDisplayName(const std::wstring &name) const {
+std::wstring Engine::Impl::getDisplayName(const std::wstring &name) {
   auto len = name.length();
   if (len > 2 && name[len - 2] == '#') {
     return name.substr(0, len - 2);
@@ -1386,11 +2361,30 @@ int Engine::Impl::getCurrentActorIndex() const {
   return -1;
 }
 
-void Engine::Impl::drawHud(sf::RenderWindow &window) const {
+void Engine::Impl::drawHud(sf::RenderTarget &target) const {
   if (_state != EngineState::Game)
     return;
 
-  window.draw(_hud);
+  target.draw(_hud);
+}
+
+void Engine::Impl::captureScreen(const std::string &path) const {
+  sf::RenderTexture target;
+  target.create(static_cast<unsigned int>(Screen::Width), static_cast<unsigned int>(Screen::Height));
+  target.setView(_pEngine->getWindow().getView());
+  _pEngine->draw(target, true);
+  target.display();
+
+  sf::Sprite s(target.getTexture());
+  s.scale(1.f / 4.f, 1.f / 4.f);
+
+  sf::RenderTexture rt;
+  rt.create(320u, 180u);
+  rt.draw(s);
+  rt.display();
+
+  auto screenshot = rt.getTexture().copyToImage();
+  screenshot.saveToFile(path);
 }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node) {
@@ -1431,6 +2425,8 @@ bool Engine::isActorSelectable(Actor *pActor) const {
   }
   return false;
 }
+
+ActorSlotSelectableMode Engine::getActorSlotSelectable() const { return _pImpl->_actorIcons.getMode(); }
 
 void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { _pImpl->_actorIcons.setMode(mode); }
 
@@ -1539,5 +2535,83 @@ void Engine::run() {
 
 Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
 Hud &Engine::getHud() { return _pImpl->_hud; }
+
+void Engine::saveGame(int slot) {
+  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
+  auto path = Impl::_SaveGameSystem::getSlotPath(slot);
+  std::filesystem::path screenshotPath(path);
+  screenshotPath.replace_extension(".png");
+  _pImpl->captureScreen(screenshotPath.string());
+  saveGameSystem.saveGame(path);
+}
+
+void Engine::loadGame(int slot) {
+  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
+  saveGameSystem.loadGame(Impl::_SaveGameSystem::getSlotPath(slot));
+}
+
+void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
+  for (int i = 1; i <= 9; ++i) {
+    auto path = Impl::_SaveGameSystem::getSlotPath(i);
+
+    SavegameSlot slot;
+    slot.slot = i;
+    slot.path = path;
+
+    if (std::filesystem::exists(path)) {
+      Impl::_SaveGameSystem::getSlot(slot);
+    }
+    slots.push_back(slot);
+  }
+}
+
+std::wstring SavegameSlot::getSaveTimeString() const {
+  tm *ltm = localtime(&savetime);
+  wchar_t buffer[120];
+  // time format: "%b %d at %H:%M"
+  auto format = Locator<TextDatabase>::get().getText(99944);
+  wcsftime(buffer, 120, format.data(), ltm);
+  std::wstring s(buffer);
+  if (easyMode) {
+    s.append(1, L' ');
+    s.append(Locator<TextDatabase>::get().getText(99955));
+  }
+  return s;
+}
+
+std::wstring SavegameSlot::getGameTimeString() const {
+  wchar_t buffer[120];
+  auto min = static_cast<int>(gametime.asSeconds() / 60.0);
+  if (min < 2) {
+    // "%d minute"
+    auto format = Locator<TextDatabase>::get().getText(99945);
+    swprintf(buffer, 120, format.data(), min);
+  } else if (min < 60) {
+    // "%d minutes"
+    auto format = Locator<TextDatabase>::get().getText(99946);
+    swprintf(buffer, 120, format.data(), min);
+  } else {
+    int format;
+    int hour = min / 60;
+    min = min % 60;
+    if (hour < 2 && min < 2) {
+      // "%d hour %d minute"
+      format = 99947;
+    } else if (hour < 2 && min >= 2) {
+      // "%d hour %d minutes";
+      format = 99948;
+    } else if (hour >= 2 && min < 2) {
+      // "%d hours %d minute";
+      format = 99949;
+    } else {
+      // "%d hours %d minutes";
+      format = 99950;
+    }
+    swprintf(buffer, 120, Locator<TextDatabase>::get().getText(format).data(), hour, min);
+  }
+
+  std::wstring s(buffer);
+  return s;
+}
 
 } // namespace ng
