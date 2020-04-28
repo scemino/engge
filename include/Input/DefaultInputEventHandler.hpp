@@ -4,6 +4,8 @@
 #include "Game.hpp"
 #include "Engine/Engine.hpp"
 #include "Room/Room.hpp"
+#include "Engine/SavegameSlot.hpp"
+#include "Engine/InputConstants.hpp"
 
 namespace ng {
 class DefaultInputEventHandler : public InputEventHandler {

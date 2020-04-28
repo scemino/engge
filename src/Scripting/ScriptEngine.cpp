@@ -26,6 +26,8 @@
 #include "_DefaultScriptExecute.hpp"
 #include "_DefaultVerbExecute.hpp"
 #include "_bnutPass.hpp"
+#include "Engine/InputConstants.hpp"
+#include "Engine/InputStateConstants.hpp"
 
 #ifdef SQUNICODE
 #define scvprintf vfwprintf

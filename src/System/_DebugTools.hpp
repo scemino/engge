@@ -17,6 +17,7 @@
 #include "_Util.hpp"
 #include "imgui-SFML.h"
 #include "imgui.h"
+#include "Engine/InputStateConstants.hpp"
 
 namespace ng {
 class _DebugTools {

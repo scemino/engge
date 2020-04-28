@@ -5,6 +5,7 @@
 #include "Engine/Camera.hpp"
 #include "Engine/Cutscene.hpp"
 #include "Engine/Hud.hpp"
+#include "Engine/InputConstants.hpp"
 #include "Dialog/DialogManager.hpp"
 #include "Font/GGFont.hpp"
 #include "Math/PathFinding/Graph.hpp"
@@ -44,6 +45,15 @@
 #include <string>
 
 namespace ng {
+enum class CursorDirection : unsigned int {
+  None = 0,
+  Left = 1,
+  Right = 1u << 1u,
+  Up = 1u << 2u,
+  Down = 1u << 3u,
+  Hotspot = 1u << 4u
+};
+
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs) {
   lhs = static_cast<CursorDirection>(static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
       static_cast<std::underlying_type<CursorDirection>::type>(rhs));
