@@ -83,7 +83,6 @@ struct Engine::Impl {
     explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
 
     void saveGame(const std::string &path) {
-
       ScriptEngine::call("preSave");
 
       GGPackValue actorsHash;
@@ -533,7 +532,6 @@ struct Engine::Impl {
       pObj->setColor(color);
 
       for (auto &property :  hash.hash_value) {
-
         if (property.first.empty() || property.first[0] == '_') {
           if (property.first == "_state" || property.first == "_touchable" || property.first == "_offset"
               || property.first == "_hidden" || property.first == "_rotation" || property.first == "_color")
@@ -791,7 +789,6 @@ struct Engine::Impl {
       GGPackValue slots;
       slots.type = 3;
       for (auto &slot : _pImpl->_actorsIconSlots) {
-
         GGPackValue objects;
         objects.type = 3;
         for (auto &obj : slot.pActor->getObjects()) {

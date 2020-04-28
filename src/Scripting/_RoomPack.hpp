@@ -626,7 +626,6 @@ private:
       sq_pushobject(v, roomObject.second);
       sq_pushstring(v, _SC("icon"), -1);
       if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
-
         object->setTouchable(true);
 
         if (sq_gettype(v, -1) == OT_STRING) {

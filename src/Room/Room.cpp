@@ -258,7 +258,6 @@ struct Room::Impl {
             frame.setSourceRect(sourceRect);
             frame.setSize(size);
             anim->addFrame(std::move(frame));
-
           }
           anim->reset();
           object->getAnims().push_back(std::move(anim));

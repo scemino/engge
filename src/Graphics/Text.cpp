@@ -342,7 +342,6 @@ void Text::ensureGeometryUpdate() const {
 
     // Handle special characters
     if ((curChar == L' ') || (curChar == L'\n') || (curChar == L'\t') || (curChar == L'#')) {
-
       switch (curChar) {
       case L' ':x += whitespaceWidth;
         break;

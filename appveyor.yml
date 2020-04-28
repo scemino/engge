@@ -7,13 +7,13 @@ environment:
   SFML_DIR: C:\Libraries\SFML-2.5.1
   IMGUI_DIR: C:\Libraries\imgui-1.73
   IMGUI_SFML_DIR: C:\Libraries\imgui-sfml-2.1
-  
+
 configuration: Release
 
 init:
   - cmd: cmake --version
   - cmd: msbuild /version
-  
+
 build_script:
   - ps: echo $env:SFML_DIR
   - ps: echo $env:IMGUI_DIR
@@ -43,7 +43,7 @@ build_script:
   - ps: cmake .. -G "Visual Studio 16 2019" -A Win32 -DSFML_DIR=$env:SFML_DIR -DImGui-SFML_DIR="/lib/cmake/ImGui-SFML" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install
   - ps: cmake --build . --config Release --target package
   - ps: cd "$env:APPVEYOR_BUILD_FOLDER"
-    
+
 artifacts:
   - path: build\engge-*.zip
 

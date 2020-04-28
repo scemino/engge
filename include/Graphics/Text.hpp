@@ -9,7 +9,6 @@ namespace ng {
 // This code has been copied from SFML Text and adapted to us FntFont
 class Text : public sf::Drawable, public sf::Transformable {
 public:
-
   enum Style {
     Regular = 0,      ///< Regular characters, no style
     Bold = 1 << 0, ///< Bold characters
@@ -45,7 +44,6 @@ public:
   sf::FloatRect getGlobalBounds() const;
 
 private:
-
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
   void ensureGeometryUpdate() const;

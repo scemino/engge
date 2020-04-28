@@ -15,7 +15,6 @@
 #include "Dialog/_AstDump.hpp"
 
 int main(int argc, char **argv) {
-
   if (argc == 2) {
     auto filename = argv[1];
     ng::_AstDump::dump(filename);

@@ -17,6 +17,7 @@ private:
     On,
     FadeOut
   };
+
 public:
   Hud();
 
