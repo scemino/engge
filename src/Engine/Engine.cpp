@@ -139,7 +139,7 @@ struct Engine::Impl {
           {"version", GGPackValue::toGGPackValue(2)},
       };
 
-      saveGame(saveGameHash, path);
+      SavegameManager::saveGame(path, saveGameHash);
 
       ScriptEngine::call("postSave");
     }
@@ -171,20 +171,6 @@ struct Engine::Impl {
     }
 
   private:
-    static void saveGameInJson(const GGPackValue &saveGameHash, const std::string &path) {
-      std::string json(path);
-      json.append(".json");
-      std::ofstream os(json, std::ofstream::out);
-      os << saveGameHash;
-      os.close();
-    }
-
-    static void saveGame(const GGPackValue &saveGameHash, const std::string &path) {
-      SavegameManager::saveGame(path, saveGameHash);
-
-      saveGameInJson(saveGameHash, path);
-    }
-
     static std::string getValue(const GGPackValue &property) {
       std::ostringstream s;
       if (property.isInteger()) {
