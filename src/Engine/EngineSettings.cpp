@@ -11,7 +11,7 @@ EngineSettings::EngineSettings() {
 void EngineSettings::loadPacks() {
   auto path = fs::current_path();
   for (const auto &entry : fs::directory_iterator(path)) {
-    if (ng::startsWith(entry.path().extension(), ".ggpack")) {
+    if (ng::startsWith(entry.path().extension().string(), ".ggpack")) {
       auto pack = std::make_unique<GGPack>();
       pack->open(entry.path().string());
       _packs.push_back(std::move(pack));
