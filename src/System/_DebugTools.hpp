@@ -49,20 +49,6 @@ public:
       _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
     }
 
-    if(ImGui::Button("Save game")){
-      // TODO:
-      _engine.saveGame(1);
-    }
-
-    if(_slots.empty()) {
-      _engine.getSlotSavegames(_slots);
-    }
-    ImGui::Combo("", &_selectedSavegameSlot, savegameGetter, static_cast<void *>(&_slots), _slots.size());
-    ImGui::SameLine();
-    if(ImGui::Button("Load game")){
-      _engine.loadGame(_slots[_selectedSavegameSlot].slot);
-    }
-
     showCamera();
     showInputState();
     showPrefs();
@@ -600,15 +586,6 @@ private:
     return true;
   }
 
-  static bool savegameGetter(void *vec, int idx, const char **out_text) {
-    auto &vector = *static_cast<std::vector<SavegameSlot> *>(vec);
-    if (idx < 0 || idx >= static_cast<int>(vector.size())) {
-      return false;
-    }
-    *out_text = toUtf8(vector.at(idx).getSaveTimeString()).data();
-    return true;
-  }
-
   static bool ColorEdit4(const char *label, sf::Color &color) {
     float imColor[4] = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
     if (ImGui::ColorEdit4(label, imColor)) {
@@ -655,7 +632,6 @@ private:
 
 private:
   Engine &_engine;
-  std::vector<SavegameSlot> _slots;
   int _selectedActor{0};
   Object *_pSelectedObject{nullptr};
   int _selectedStack{0};
@@ -666,7 +642,6 @@ private:
   static const char *_langs[];
   CostumeAnimation *_pSelectedAnim{nullptr};
   ImGuiTextFilter _filterCostume;
-  int _selectedSavegameSlot{0};
 };
 const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng
