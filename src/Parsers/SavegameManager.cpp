@@ -4,11 +4,11 @@
 #include "Parsers/GGHashWriter.hpp"
 #include "Parsers/SavegameManager.hpp"
 
-namespace ng{
+namespace ng {
 static const uint8_t
     _savegameKey[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
 
-void SavegameManager::loadGame(const std::string &path, GGPackValue& hash) {
+void SavegameManager::loadGame(const std::string &path, GGPackValue &hash) {
   std::ifstream is(path, std::ifstream::binary);
   is.seekg(0, std::ios::end);
   auto size = static_cast<int32_t>(is.tellg());
@@ -20,8 +20,8 @@ void SavegameManager::loadGame(const std::string &path, GGPackValue& hash) {
   const int32_t decSize = size / -4;
   encodeDecodeSavegameData((uint32_t *) &data[0], decSize, (uint8_t *) _savegameKey);
 
-  const auto hashData = *(int32_t *) &data[size - 16];
-  const auto hashCheck = computeHash(data, size - 16);
+  const int32_t hashData = *(int32_t *) &data[size - 16];
+  const int32_t hashCheck = computeHash(data, size - 16);
 
   if (hashData != hashCheck) {
     warn("Invalid savegame: {}", path);
@@ -39,60 +39,60 @@ void SavegameManager::saveGame(const std::string &path, const GGPackValue &saveG
   writer.writeHash(saveGameHash, o);
 
   // encode data
-  const auto fullSize = 500000;
-  const auto fullSizeAndFooter = fullSize + 16;
-  const auto marker = 8 - ((fullSize + 9) % 8);
+  const int32_t fullSize = 500000;
+  const int32_t fullSizeAndFooter = fullSize + 16;
+  const int32_t marker = 8 - ((fullSize + 9) % 8);
 
   std::vector<char> buf(fullSizeAndFooter);
   o.read(buf.data(), fullSize);
 
   // write at the end 16 bytes: hashdata (4 bytes) + savetime (4 bytes) + marker (8 bytes)
-  const auto hashData = computeHash(buf, fullSize);
+  const int32_t hashData = computeHash(buf, fullSize);
   *(int32_t *) &buf[fullSize] = hashData;
   *(int32_t *) &buf[fullSize + 4] = saveGameHash["savetime"].getInt();
   memset(&buf[fullSize + 8], marker, 8);
 
   // then encode data
-  const auto decSize = fullSizeAndFooter / 4;
+  const int32_t decSize = fullSizeAndFooter / 4;
   encodeDecodeSavegameData((uint32_t *) buf.data(), decSize, (uint8_t *) _savegameKey);
 
   // write data
-  std::ofstream os(path, std::ofstream::out);
+  std::ofstream os(path, std::ofstream::binary);
   os.write((char *) buf.data(), fullSizeAndFooter);
   os.close();
 }
 
-void SavegameManager::encodeDecodeSavegameData(uint32_t *data, int size, const uint8_t *key) {
-  int v3; // ecx
+void SavegameManager::encodeDecodeSavegameData(uint32_t *data, int32_t size, const uint8_t *key) {
+  int32_t v3; // ecx
   uint32_t *v4; // edx
-  unsigned int v5; // eax
-  int v6; // esi
-  unsigned int v7; // edi
-  unsigned int v8; // ebx
-  unsigned int v9; // edx
-  int v10; // esi
-  int v11; // eax
-  unsigned int v12; // edx
-  int v13; // esi
-  int v14; // eax
+  uint32_t v5; // eax
+  int32_t v6; // esi
+  uint32_t v7; // edi
+  uint32_t v8; // ebx
+  uint32_t v9; // edx
+  int32_t v10; // esi
+  int32_t v11; // eax
+  uint32_t v12; // edx
+  int32_t v13; // esi
+  int32_t v14; // eax
   bool v15; // zf
   uint32_t *v16; // edx
-  int v17; // edi
-  int v18; // ebx
-  unsigned int v19; // eax
-  unsigned int v20; // ecx
-  int v21; // ebx
-  int v22; // esi
-  int v23; // edi
+  int32_t v17; // edi
+  int32_t v18; // ebx
+  uint32_t v19; // eax
+  uint32_t v20; // ecx
+  int32_t v21; // ebx
+  int32_t v22; // esi
+  int32_t v23; // edi
   uint32_t *v24; // [esp+Ch] [ebp-10h]
   uint32_t *v25; // [esp+Ch] [ebp-10h]
-  unsigned int v26; // [esp+10h] [ebp-Ch]
-  int i; // [esp+10h] [ebp-Ch]
-  int v28; // [esp+14h] [ebp-8h]
-  int v29; // [esp+14h] [ebp-8h]
-  int v30; // [esp+18h] [ebp-4h]
-  unsigned int v31; // [esp+28h] [ebp+Ch]
-  int v32; // [esp+28h] [ebp+Ch]
+  uint32_t v26; // [esp+10h] [ebp-Ch]
+  int32_t i; // [esp+10h] [ebp-Ch]
+  int32_t v28; // [esp+14h] [ebp-8h]
+  int32_t v29; // [esp+14h] [ebp-8h]
+  int32_t v30; // [esp+18h] [ebp-4h]
+  uint32_t v31; // [esp+28h] [ebp+Ch]
+  int32_t v32; // [esp+28h] [ebp+Ch]
 
   if (size <= 1) {
     if (size < -1) {
@@ -135,7 +135,7 @@ void SavegameManager::encodeDecodeSavegameData(uint32_t *data, int size, const u
     do {
       v7 = 0;
       v30 = v3 - 0x61C88647;
-      v8 = ((unsigned int) (v3 - 0x61C88647) >> 2) & 3;
+      v8 = ((uint32_t) (v3 - 0x61C88647) >> 2) & 3;
       if (v6) {
         do {
           v9 = v4[v7 + 1];
