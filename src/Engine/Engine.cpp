@@ -1621,7 +1621,9 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
 }
 
 void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {
-  _actorIcons.setMousePosition(_mousePos);
+  auto screenSize = _pRoom->getScreenSize();
+  auto screenMouse = toDefaultView((sf::Vector2i) _mousePos, screenSize);
+  _actorIcons.setMousePosition(screenMouse);
   _actorIcons.update(elapsed);
 }
 

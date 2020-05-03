@@ -4,6 +4,14 @@
 #include "Engine/Engine.hpp"
 
 namespace ng {
+
+static const float topMargin = 4.f;
+static const float rightMargin = 6.f;
+static const float iconsMargin = 6.f;
+static const sf::Vector2f iconSize = {48.f, 54.f};
+static const sf::Uint8 disableAlpha = 0x60;
+static const sf::Uint8 enableAlpha = 0xFF;
+
 ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, Hud &hud,
                        Actor *&pCurrentActor)
     : _actorsIconSlots(actorsIconSlots), _hud(hud), _pCurrentActor(pCurrentActor) {
@@ -26,8 +34,11 @@ void ActorIcons::update(const sf::Time &elapsed) {
       flash(false);
     }
   }
-  auto screen = _pEngine->getWindow().getView().getSize();
-  sf::FloatRect iconRect(screen.x - 16, 0, 16, 16 + (_isInside ? getIconsNum() * 15 : 0));
+  sf::FloatRect iconRect
+      (Screen::Width - iconSize.x - rightMargin,
+       topMargin,
+       iconSize.x,
+       iconSize.y + (_isInside ? getIconsNum() * (iconSize.y + iconsMargin) : 0.f));
   bool wasInside = _isInside;
   _isInside = iconRect.contains(_mousePos);
   if (wasInside != _isInside) {
@@ -50,7 +61,10 @@ void ActorIcons::update(const sf::Time &elapsed) {
       && ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
   if (_isMouseButtonPressed && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
     _isMouseButtonPressed = false;
-    iconRect = sf::FloatRect(screen.x - 16, 15, 16, 16);
+    iconRect = sf::FloatRect(Screen::Width - iconSize.x - rightMargin,
+                             topMargin + iconsMargin + iconSize.y,
+                             iconSize.x,
+                             iconSize.y);
     for (auto selectableActor : _actorsIconSlots) {
       if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
         continue;
@@ -59,7 +73,7 @@ void ActorIcons::update(const sf::Time &elapsed) {
         _pEngine->setCurrentActor(selectableActor.pActor, true);
         return;
       }
-      iconRect.top += 15;
+      iconRect.top += iconsMargin + iconSize.y;
     }
     if (iconRect.contains(_mousePos)) {
       _pEngine->showOptions(true);
@@ -70,8 +84,8 @@ void ActorIcons::update(const sf::Time &elapsed) {
 
 float ActorIcons::getOffsetY(int num) const {
   if (_isInside)
-    return (8 + 15 * num) * _position;
-  return 8 + 15 * num;
+    return (topMargin + (iconSize.y / 2.f) + (iconSize.y + iconsMargin) * num) * _position;
+  return topMargin + (iconSize.y / 2.f) + (iconSize.y + iconsMargin) * num;
 }
 
 int ActorIcons::getIconsNum() const {
@@ -87,7 +101,7 @@ int ActorIcons::getIconsNum() const {
 
 void ActorIcons::flash(bool on) {
   _time = sf::seconds(0);
-  _alpha = 0x60;
+  _alpha = disableAlpha;
   _on = on;
 }
 
@@ -101,27 +115,29 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
   if (currentActorIndex < 0)
     return;
 
-  int numIcons = 0;
-  auto screen = target.getView().getSize();
-  sf::Vector2f offset(screen.x - 8, 8);
+  const auto view = target.getView();
+  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
   sf::Uint8 alpha;
   auto isEnabled = ((_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
       && ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
   if (isEnabled) {
-    alpha = _isInside ? 0xFF : _alpha;
+    alpha = _isInside ? enableAlpha : _alpha;
   } else {
-    alpha = 0x60;
+    alpha = disableAlpha;
   }
 
   const auto &icon = _actorsIconSlots.at(currentActorIndex).pActor->getIcon();
 
-  offset.y = getOffsetY(numIcons);
+  int numIcons = 0;
+  sf::Vector2f offset(Screen::Width - (iconSize.x / 2.f) - rightMargin, getOffsetY(numIcons));
   drawActorIcon(target, icon, currentActorIndex, offset, alpha);
   numIcons++;
 
-  if (!_isInside)
+  if (!_isInside) {
+    target.setView(view);
     return;
+  }
 
   for (size_t i = 0; i < _actorsIconSlots.size(); i++) {
     const auto &selectableActor = _actorsIconSlots.at(i);
@@ -130,12 +146,14 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
     offset.y = getOffsetY(numIcons);
     const auto &icon2 = selectableActor.pActor->getIcon();
-    drawActorIcon(target, icon2, i, offset, isEnabled ? 0xFF : 0x60);
+    drawActorIcon(target, icon2, i, offset, isEnabled ? enableAlpha : disableAlpha);
     numIcons++;
   }
 
   offset.y = getOffsetY(numIcons);
-  drawActorIcon(target, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128), offset, 0xFF);
+  drawActorIcon(target, "icon_gear", sf::Color::Black, sf::Color(128, 128, 128), offset, enableAlpha);
+
+  target.setView(view);
 }
 
 void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot,
@@ -159,9 +177,9 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
   sf::Sprite s;
   sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left,
                    -backSourceSize.y / 2.f + backSpriteSourceSize.top);
-  s.scale(0.5f, 0.5f);
   sf::Color c(backColor);
   c.a = alpha;
+  s.scale(2, 2);
   s.setColor(c);
   s.setPosition(offset);
   s.setOrigin(-pos);
