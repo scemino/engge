@@ -103,9 +103,10 @@ struct Room::Impl {
     if (jWimpy["background"].isArray()) {
       for (auto &bg : jWimpy["background"].array_value) {
         auto frame = _spriteSheet.getRect(bg.string_value);
+        auto sourceSize = _spriteSheet.getSourceSize(bg.string_value);
         auto sourceRect = _spriteSheet.getSpriteSourceSize(bg.string_value);
         auto sprite = sf::Sprite();
-        auto offset = sourceRect.height - screenHeight;
+        auto offset = sourceSize.y - screenHeight;
         sprite.move(sourceRect.left + width, sourceRect.top - offset);
         sprite.setTexture(_textureManager.get(_sheet));
         sprite.setTextureRect(frame);
@@ -114,8 +115,9 @@ struct Room::Impl {
       }
     } else if (jWimpy["background"].isString()) {
       auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
+      auto sourceSize = _spriteSheet.getSourceSize(jWimpy["background"].string_value);
       auto sourceRect = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
-      auto offset = sourceRect.height - screenHeight;
+      auto offset = sourceSize.y - screenHeight;
       auto sprite = sf::Sprite();
       sprite.move(sourceRect.left, sourceRect.top - offset);
       sprite.setTexture(_textureManager.get(_sheet));
