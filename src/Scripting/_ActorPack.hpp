@@ -538,7 +538,7 @@ private:
       switch (selectable) {
       case 0:g_pEngine->setActorSlotSelectable(mode & ~ActorSlotSelectableMode::On);
         return 0;
-      case 1:g_pEngine->setActorSlotSelectable((mode & ~ActorSlotSelectableMode::On) | ActorSlotSelectableMode::On);
+      case 1:g_pEngine->setActorSlotSelectable(mode | ActorSlotSelectableMode::On);
         return 0;
       case 2:g_pEngine->setActorSlotSelectable(mode | ActorSlotSelectableMode::TemporaryUnselectable);
         return 0;

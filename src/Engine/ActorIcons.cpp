@@ -94,7 +94,7 @@ void ActorIcons::flash(bool on) {
 void ActorIcons::setMode(ActorSlotSelectableMode mode) { _mode = mode; }
 
 void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
-  if (_mode == ActorSlotSelectableMode::Off)
+  if ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) == ActorSlotSelectableMode::TemporaryUnselectable)
     return;
 
   auto currentActorIndex = getCurrentActorIndex();
