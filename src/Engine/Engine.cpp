@@ -423,6 +423,7 @@ struct Engine::Impl {
 
         _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
       }
+      ScriptEngine::call(pActor, "postLoad");
     }
 
     void loadInventory(const GGPackValue &hash) {
@@ -570,6 +571,7 @@ struct Engine::Impl {
           }
 
           _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+          ScriptEngine::call(pRoom, "postLoad");
         }
       }
     }
