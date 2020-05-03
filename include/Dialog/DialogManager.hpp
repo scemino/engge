@@ -84,6 +84,7 @@ public:
 
   void setEngine(Engine *pEngine) { _pEngine = pEngine; }
   void select(const Ast::Statement &node);
+  bool acceptConditions(const Ast::Statement &statement);
 
 private:
   void visit(const Ast::Statement &node) override;
@@ -102,7 +103,6 @@ private:
   void visit(const Ast::Limit &node) override;
 
   static int getId(const std::string &text);
-  bool acceptConditions(const Ast::Statement &statement);
 
 private:
   Engine *_pEngine{nullptr};
