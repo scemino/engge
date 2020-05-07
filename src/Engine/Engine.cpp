@@ -611,12 +611,7 @@ struct Engine::Impl {
     }
 
     Actor *getActor(const std::string &name) {
-      for (const auto &pActor : _pImpl->_pEngine->getActors()) {
-        if (pActor->getKey() == name) {
-          return pActor.get();
-        }
-      }
-      return nullptr;
+      return _pImpl->_pEngine->getActor(name);
     }
 
     Room *getRoom(const std::string &name) {
@@ -2386,7 +2381,10 @@ void Engine::Impl::captureScreen(const std::string &path) const {
 }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node) {
-  _pImpl->_dialogManager.start(dialog, node);
+  std::string actor;
+  if (_pImpl->_pCurrentActor)
+    actor = _pImpl->_pCurrentActor->getKey();
+  _pImpl->_dialogManager.start(actor, dialog, node);
 }
 
 void Engine::execute(const std::string &code) { _pImpl->_pScriptExecute->execute(code); }
@@ -2554,6 +2552,18 @@ bool Engine::getAutoSave() const { return _pImpl->_autoSave; }
 
 void Engine::allowSaveGames(bool allow) {
   _pImpl->_optionsDialog.setSaveEnabled(allow);
+}
+
+Actor *Engine::getActor(const std::string &name) {
+  if (name == "agent")
+    return _pImpl->_pCurrentActor;
+
+  for (const auto &pActor : getActors()) {
+    if (pActor->getKey() == name) {
+      return pActor.get();
+    }
+  }
+  return nullptr;
 }
 
 void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
