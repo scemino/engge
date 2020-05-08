@@ -1,3 +1,4 @@
+#include <optional>
 #include "Dialog/ConditionVisitor.hpp"
 #include "System/Logger.hpp"
 #include "Dialog/ExpressionVisitor.hpp"
