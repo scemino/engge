@@ -257,6 +257,11 @@ void DialogPlayer::run(Ast::Statement *pStatement) {
 void DialogPlayer::addChoice(const Ast::Statement *pStatement, const Ast::Choice *pChoice) {
   if (_choices[pChoice->number - 1])
     return;
+  int count = 0;
+  for (auto &_choice : _choices) {
+    if(_choice) count++;
+  }
+  if(count >= _limit) return;
   trace("Add choice {}", pChoice->text);
   _choices[pChoice->number - 1] = pStatement;
 }
