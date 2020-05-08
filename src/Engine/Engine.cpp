@@ -446,6 +446,7 @@ struct Engine::Impl {
     void loadObjects(const GGPackValue &hash) {
       for (auto &obj :  hash.hash_value) {
         auto objName = obj.first;
+        if(objName.empty()) continue;
         auto pObj = getObject(objName);
         // TODO: if the object does not exist creates it
         if (!pObj) {
