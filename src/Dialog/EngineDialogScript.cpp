@@ -8,13 +8,13 @@ namespace ng {
 EngineDialogScript::EngineDialogScript(Engine &engine) : _engine(engine) {}
 
 std::function<bool()> EngineDialogScript::pause(sf::Time time) {
-  trace("pause {}", time.asSeconds());
+  //trace("pause {}", time.asSeconds());
   auto startTime = _engine.getTime();
   return [*this, startTime, time]() -> bool { return (_engine.getTime() - startTime) >= time; };
 }
 
 std::function<bool()> EngineDialogScript::say(const std::string &actor, const std::string &text) {
-  trace("{}: {}", actor, text);
+  //trace("{}: {}", actor, text);
   auto pActor = _engine.getActor(actor);
 
   // is it an animation to play ?
@@ -36,7 +36,7 @@ std::function<bool()> EngineDialogScript::say(const std::string &actor, const st
 }
 
 void EngineDialogScript::shutup() {
-  trace("shutup");
+  //trace("shutup");
   for (auto &actor : _engine.getActors()) {
     actor->stopTalking();
   }
@@ -49,11 +49,11 @@ std::function<bool()> EngineDialogScript::waitFor(const std::string &actor) {
   };
 }
 std::function<bool()> EngineDialogScript::waitWhile(const std::string &condition) {
-  trace("waitWhile {}", condition);
+  //trace("waitWhile {}", condition);
   return [*this, condition]() -> bool { return !_engine.executeCondition(condition); };
 }
 void EngineDialogScript::execute(const std::string &code) {
-  trace("execute {}", code);
+  //trace("execute {}", code);
   _engine.execute(code);
 }
 bool EngineDialogScript::executeCondition(const std::string &condition) const {
@@ -69,7 +69,7 @@ bool EngineDialogScript::executeCondition(const std::string &condition) const {
   }
 
   auto result = _engine.executeCondition(code);
-  trace("executeCondition {} -> {}", code, result ? "yes" : "no");
+  //trace("executeCondition {} -> {}", code, result ? "yes" : "no");
   return result;
 }
 }
