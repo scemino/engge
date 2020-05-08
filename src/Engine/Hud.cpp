@@ -47,8 +47,8 @@ static const char *_verbShaderCode = "\n"
 Hud::Hud() {
   sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
   for (int i = 0; i < 9; i++) {
-    auto left = (static_cast<float>(i) / 3.f) * size.x;
-    auto top = Screen::Height - size.y * 3 + static_cast<float>(i % 3) * size.y;
+    auto left = (i / 3) * size.x;
+    auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
     _verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
   }
 
