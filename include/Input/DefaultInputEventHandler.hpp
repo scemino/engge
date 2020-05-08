@@ -5,7 +5,7 @@
 #include "Engine/Engine.hpp"
 #include "Room/Room.hpp"
 #include "Engine/SavegameSlot.hpp"
-#include "Engine/InputConstants.hpp"
+#include "Input/InputConstants.hpp"
 
 namespace ng {
 class DefaultInputEventHandler : public InputEventHandler {
@@ -43,8 +43,9 @@ public:
       break;
     case sf::Event::KeyReleased: {
       auto key = toKey(event.key.code);
-      if (key) {
-        _engine.keyUp(key);
+      auto metaKey = toMetaKeys(event);
+      if (key != InputConstants::NONE) {
+        _engine.keyUp({metaKey, key});
       }
       if (event.key.code == sf::Keyboard::Key::Space) {
         _isKeyPressed = false;
@@ -53,8 +54,9 @@ public:
       break;
     case sf::Event::KeyPressed: {
       auto key = toKey(event.key.code);
-      if (key) {
-        _engine.keyDown(key);
+      auto metaKey = toMetaKeys(event);
+      if (key != InputConstants::NONE) {
+        _engine.keyDown({metaKey, key});
       }
       if (event.key.code == sf::Keyboard::Key::Space) {
         _isKeyPressed = true;
@@ -62,15 +64,15 @@ public:
       break;
     }
     case sf::Event::JoystickButtonPressed: {
-      int key = toButtonKey(event.joystickButton);
-      if (key) {
+      auto key = toButtonKey(event.joystickButton);
+      if (key != InputConstants::NONE) {
         _engine.keyDown(key);
       }
     }
       break;
     case sf::Event::JoystickButtonReleased: {
-      int key = toButtonKey(event.joystickButton);
-      if (key) {
+      auto key = toButtonKey(event.joystickButton);
+      if (key != InputConstants::NONE) {
         _engine.keyUp(key);
       }
     }
@@ -78,8 +80,15 @@ public:
     default:break;
     }
   }
+  [[nodiscard]] MetaKeys toMetaKeys(const sf::Event &event) const {
+    auto metaKey = (event.key.alt ? MetaKeys::Alt : MetaKeys::None) |
+        (event.key.control ? MetaKeys::Control : MetaKeys::None) |
+        (event.key.shift ? MetaKeys::Shift : MetaKeys::None) |
+        (event.key.system ? MetaKeys::System : MetaKeys::None);
+    return metaKey;
+  }
 
-  static int toButtonKey(sf::Event::JoystickButtonEvent event) {
+  static InputConstants toButtonKey(sf::Event::JoystickButtonEvent event) {
     auto button = event.button;
     switch (button) {
     case 0:return InputConstants::BUTTON_A;
@@ -88,22 +97,23 @@ public:
     case 3:return InputConstants::BUTTON_Y;
     case 4:return InputConstants::BUTTON_START;
     case 5:return InputConstants::BUTTON_BACK;
-    default:return 0;
+    default:return InputConstants::NONE;
     }
   }
 
-  static int toKey(sf::Keyboard::Key key) {
+  static InputConstants toKey(sf::Keyboard::Key key) {
     if (key >= sf::Keyboard::Key::A && key <= sf::Keyboard::Key::Z) {
-      return InputConstants::KEY_A + (key - sf::Keyboard::Key::A);
+      return static_cast<InputConstants>(static_cast<int>(InputConstants::KEY_A) + (key - sf::Keyboard::Key::A));
     }
     if (key >= sf::Keyboard::Key::Num0 && key <= sf::Keyboard::Key::Num9) {
-      return InputConstants::KEY_0 + (key - sf::Keyboard::Key::Num0);
+      return static_cast<InputConstants>(static_cast<int>(InputConstants::KEY_0) + (key - sf::Keyboard::Key::Num0));
     }
     if (key >= sf::Keyboard::Key::Numpad1 && key <= sf::Keyboard::Key::Numpad9) {
-      return InputConstants::KEY_PAD1 + (key - sf::Keyboard::Key::Numpad1);
+      return static_cast<InputConstants>(static_cast<int>(InputConstants::KEY_PAD1)
+          + (key - sf::Keyboard::Key::Numpad1));
     }
     if (key >= sf::Keyboard::Key::F1 && key <= sf::Keyboard::Key::F12) {
-      return InputConstants::KEY_F1 + (key - sf::Keyboard::Key::F1);
+      return static_cast<InputConstants>(static_cast<int>(InputConstants::KEY_F1) + (key - sf::Keyboard::Key::F1));
     }
     switch (key) {
     case sf::Keyboard::Key::Space:return InputConstants::KEY_SPACE;
@@ -115,7 +125,7 @@ public:
     case sf::Keyboard::Key::Tab:return InputConstants::KEY_TAB;
     case sf::Keyboard::Key::Return:return InputConstants::KEY_RETURN;
     case sf::Keyboard::Key::Backspace:return InputConstants::KEY_BACKSPACE;
-    default:return 0;
+    default:return InputConstants::NONE;
     }
   }
 

@@ -1,9 +1,7 @@
 #include <filesystem>
 #include <memory>
-#include <Parsers/SavegameManager.hpp>
-#include <Dialog/DialogManager.hpp>
-#include <Dialog/ExpressionVisitor.hpp>
-#include <Dialog/DialogPlayer.hpp>
+#include "Input/InputMappings.hpp"
+#include "Input/CommandManager.hpp"
 #include "Game.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/EngineSettings.hpp"
@@ -19,6 +17,7 @@
 #include "Input/DefaultInputEventHandler.hpp"
 #include "Dialog/DialogScriptAbstract.hpp"
 #include "Dialog/_AstDump.hpp"
+#include "Parsers/SavegameManager.hpp"
 namespace fs = std::filesystem;
 
 int main(int argc, char **argv) {
@@ -39,6 +38,7 @@ int main(int argc, char **argv) {
   try {
     ng::Locator<ng::Logger>::create();
     ng::info("Init services");
+    ng::Locator<ng::CommandManager>::create();
     ng::Locator<ng::EngineSettings>::create().loadPacks();
     ng::Locator<ng::ResourceManager>::create();
     ng::Locator<ng::SoundManager>::create();
@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
     scriptEngine.setEngine(engine);
 
     game.getInputEventHandlers().push_back(std::make_unique<ng::DefaultInputEventHandler>(engine, game.getWindow()));
+    ng::InputMappings::registerMappings();
 
     ng::info("Start game");
     game.run();

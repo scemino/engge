@@ -26,7 +26,7 @@
 #include "_DefaultScriptExecute.hpp"
 #include "_DefaultVerbExecute.hpp"
 #include "_bnutPass.hpp"
-#include "Engine/InputConstants.hpp"
+#include "Input/InputConstants.hpp"
 #include "Engine/InputStateConstants.hpp"
 
 #ifdef SQUNICODE
@@ -388,25 +388,25 @@ ScriptEngine::ScriptEngine() {
                              {"EFFECT_VHS", RoomEffectConstants::EFFECT_VHS},
                              {"EFFECT_GHOST", RoomEffectConstants::EFFECT_GHOST},
                              {"EFFECT_BLACKANDWHITE", RoomEffectConstants::EFFECT_BLACKANDWHITE},
-                             {"KEY_UP", InputConstants::KEY_UP},
-                             {"KEY_RIGHT", InputConstants::KEY_RIGHT},
-                             {"KEY_DOWN", InputConstants::KEY_DOWN},
-                             {"KEY_LEFT", InputConstants::KEY_LEFT},
-                             {"KEY_PAD1", InputConstants::KEY_PAD1},
-                             {"KEY_PAD2", InputConstants::KEY_PAD2},
-                             {"KEY_PAD3", InputConstants::KEY_PAD3},
-                             {"KEY_PAD4", InputConstants::KEY_PAD4},
-                             {"KEY_PAD5", InputConstants::KEY_PAD5},
-                             {"KEY_PAD6", InputConstants::KEY_PAD6},
-                             {"KEY_PAD7", InputConstants::KEY_PAD7},
-                             {"KEY_PAD8", InputConstants::KEY_PAD8},
-                             {"KEY_PAD9", InputConstants::KEY_PAD9},
-                             {"BUTTON_A", InputConstants::BUTTON_A},
-                             {"BUTTON_B", InputConstants::BUTTON_B},
-                             {"BUTTON_X", InputConstants::BUTTON_X},
-                             {"BUTTON_Y", InputConstants::BUTTON_Y},
-                             {"BUTTON_START", InputConstants::BUTTON_START},
-                             {"BUTTON_BACK", InputConstants::BUTTON_BACK},
+                             {"KEY_UP", static_cast<int>(InputConstants::KEY_UP)},
+                             {"KEY_RIGHT", static_cast<int>(InputConstants::KEY_RIGHT)},
+                             {"KEY_DOWN", static_cast<int>(InputConstants::KEY_DOWN)},
+                             {"KEY_LEFT", static_cast<int>(InputConstants::KEY_LEFT)},
+                             {"KEY_PAD1", static_cast<int>(InputConstants::KEY_PAD1)},
+                             {"KEY_PAD2", static_cast<int>(InputConstants::KEY_PAD2)},
+                             {"KEY_PAD3", static_cast<int>(InputConstants::KEY_PAD3)},
+                             {"KEY_PAD4", static_cast<int>(InputConstants::KEY_PAD4)},
+                             {"KEY_PAD5", static_cast<int>(InputConstants::KEY_PAD5)},
+                             {"KEY_PAD6", static_cast<int>(InputConstants::KEY_PAD6)},
+                             {"KEY_PAD7", static_cast<int>(InputConstants::KEY_PAD7)},
+                             {"KEY_PAD8", static_cast<int>(InputConstants::KEY_PAD8)},
+                             {"KEY_PAD9", static_cast<int>(InputConstants::KEY_PAD9)},
+                             {"BUTTON_A", static_cast<int>(InputConstants::BUTTON_A)},
+                             {"BUTTON_B", static_cast<int>(InputConstants::BUTTON_B)},
+                             {"BUTTON_X", static_cast<int>(InputConstants::BUTTON_X)},
+                             {"BUTTON_Y", static_cast<int>(InputConstants::BUTTON_Y)},
+                             {"BUTTON_START", static_cast<int>(InputConstants::BUTTON_START)},
+                             {"BUTTON_BACK", static_cast<int>(InputConstants::BUTTON_BACK)},
                              {"UI_INPUT_ON", InputStateConstants::UI_INPUT_ON},
                              {"UI_INPUT_OFF", InputStateConstants::UI_INPUT_OFF},
                              {"UI_VERBS_ON", InputStateConstants::UI_VERBS_ON},

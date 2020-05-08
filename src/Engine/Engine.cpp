@@ -5,7 +5,7 @@
 #include "Engine/Camera.hpp"
 #include "Engine/Cutscene.hpp"
 #include "Engine/Hud.hpp"
-#include "Engine/InputConstants.hpp"
+#include "Input/InputConstants.hpp"
 #include "Dialog/DialogManager.hpp"
 #include "Font/GGFont.hpp"
 #include "Math/PathFinding/Graph.hpp"
@@ -43,6 +43,9 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_set>
+#include "Input/CommandManager.hpp"
+#include "Engine/EngineCommands.hpp"
 
 namespace ng {
 enum class CursorDirection : unsigned int {
@@ -283,7 +286,7 @@ struct Engine::Impl {
       }
     }
 
-    [[nodiscard]] DialogConditionState parseState(const std::string &dialog) const {
+    [[nodiscard]] static DialogConditionState parseState(const std::string &dialog) {
       DialogConditionState state;
       switch (dialog[0]) {
       case '?':state.mode = DialogConditionMode::Once;
@@ -457,42 +460,42 @@ struct Engine::Impl {
       }
     }
 
-    void getValue(const GGPackValue &hash, const std::string &key, int &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, int &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = it->second.getInt();
       }
     }
 
-    void getValue(const GGPackValue &hash, const std::string &key, std::string &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, std::string &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = it->second.getString();
       }
     }
 
-    void getValue(const GGPackValue &hash, const std::string &key, float &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, float &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = static_cast<float>(it->second.getDouble());
       }
     }
 
-    void getValue(const GGPackValue &hash, const std::string &key, bool &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, bool &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = it->second.getInt() != 0;
       }
     }
 
-    void getValue(const GGPackValue &hash, const std::string &key, sf::Vector2f &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, sf::Vector2f &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = _parsePos(it->second.getString());
       }
     }
 
-    void getValue(const GGPackValue &hash, const std::string &key, sf::Color &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, sf::Color &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = _toColor(it->second.getInt());
@@ -810,7 +813,7 @@ struct Engine::Impl {
       }
     }
 
-    void savePseudoObjects(const Room *pRoom, GGPackValue &hash) const {
+    static void savePseudoObjects(const Room *pRoom, GGPackValue &hash) {
       if (!pRoom->isPseudoRoom())
         return;
       GGPackValue hashObjects;
@@ -823,7 +826,7 @@ struct Engine::Impl {
       hash.hash_value[pseudoObjectsKey] = hashObjects;
     }
 
-    void saveObject(const Object *pObject, GGPackValue &hashObject) const {
+    static void saveObject(const Object *pObject, GGPackValue &hashObject) {
       saveTable(pObject->getTable(), hashObject, false);
       if (pObject->getState() != 0) {
         hashObject.hash_value["_state"] = GGPackValue::toGGPackValue(pObject->getState());
@@ -1056,8 +1059,8 @@ struct Engine::Impl {
   Camera _camera;
   sf::Color _fadeColor{sf::Color::Transparent};
   std::unique_ptr<Sentence> _pSentence{};
-  std::set<int> _oldKeyDowns;
-  std::set<int> _newKeyDowns;
+  std::unordered_set<Input> _oldKeyDowns;
+  std::unordered_set<Input> _newKeyDowns;
   EngineState _state{EngineState::StartScreen};
   _TalkingState _talkingState;
   int _showDrawWalkboxes{0};
@@ -1067,6 +1070,7 @@ struct Engine::Impl {
   sf::Time _noOverrideElapsed{sf::seconds(2)};
   Hud _hud;
   bool _autoSave{true};
+  bool _cursorVisible{true};
 
   Impl();
 
@@ -1098,9 +1102,9 @@ struct Engine::Impl {
   void drawFade(sf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
   void updateKeyboard();
-  bool isKeyPressed(int key);
+  bool isKeyPressed(const Input &key);
   void updateKeys();
-  static int toKey(const std::string &keyText);
+  static InputConstants toKey(const std::string &keyText);
   void drawPause(sf::RenderTarget &target) const;
   void stopThreads();
   void drawWalkboxes(sf::RenderTarget &target) const;
@@ -1111,6 +1115,13 @@ struct Engine::Impl {
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
   void captureScreen(const std::string &path) const;
+  void skipText() const;
+  void skipCutscene();
+  void pauseGame();
+  void selectActor(int index);
+  void selectPreviousActor();
+  void selectNextActor();
+  void selectChoice(int index);
 };
 
 Engine::Impl::Impl()
@@ -1121,6 +1132,110 @@ Engine::Impl::Impl()
   _saveLoadSheet.setTextureManager(&_textureManager);
   _hud.setTextureManager(&_textureManager);
   sq_resetobject(&_pDefaultObject);
+
+  Locator<CommandManager>::get().registerCommands({
+                                                      {EngineCommands::SkipText, [this]() { skipText(); }},
+                                                      {EngineCommands::SkipCutscene, [this] { skipCutscene(); }},
+                                                      {EngineCommands::PauseGame, [this] { pauseGame(); }},
+                                                      {EngineCommands::SelectActor1, [this] { selectActor(1); }},
+                                                      {EngineCommands::SelectActor2, [this] { selectActor(2); }},
+                                                      {EngineCommands::SelectActor3, [this] { selectActor(3); }},
+                                                      {EngineCommands::SelectActor4, [this] { selectActor(4); }},
+                                                      {EngineCommands::SelectActor5, [this] { selectActor(5); }},
+                                                      {EngineCommands::SelectActor6, [this] { selectActor(6); }},
+                                                      {EngineCommands::SelectPreviousActor,
+                                                       [this] { selectPreviousActor(); }},
+                                                      {EngineCommands::SelectNextActor, [this] { selectNextActor(); }},
+                                                      {EngineCommands::SelectChoice1,
+                                                       [this] { _dialogManager.choose(1); }},
+                                                      {EngineCommands::SelectChoice2,
+                                                       [this] { _dialogManager.choose(2); }},
+                                                      {EngineCommands::SelectChoice3,
+                                                       [this] { _dialogManager.choose(3); }},
+                                                      {EngineCommands::SelectChoice4,
+                                                       [this] { _dialogManager.choose(4); }},
+                                                      {EngineCommands::SelectChoice5,
+                                                       [this] { _dialogManager.choose(5); }},
+                                                      {EngineCommands::SelectChoice6,
+                                                       [this] { _dialogManager.choose(6); }},
+                                                      {EngineCommands::ShowOptions,
+                                                       [this] { _pEngine->showOptions(true); }},
+                                                      {EngineCommands::ToggleHud, [this] {
+                                                        _hud.setVisible(!_cursorVisible);
+                                                        _actorIcons.setVisible(!_cursorVisible);
+                                                        _cursorVisible = !_cursorVisible;
+                                                      }}
+                                                  });
+}
+
+void Engine::Impl::pauseGame() {
+  _state = _state == EngineState::Game ? EngineState::Paused : EngineState::Game;
+  if (_state == EngineState::Paused) {
+    _soundManager.pauseAllSounds();
+  } else {
+    _soundManager.resumeAllSounds();
+  }
+}
+
+void Engine::Impl::selectActor(int index) {
+  if (index <= 0 || index > static_cast<int>(_actorsIconSlots.size()))
+    return;
+  const auto &slot = _actorsIconSlots[index - 1];
+  if (!slot.selectable)
+    return;
+  _pEngine->setCurrentActor(slot.pActor, true);
+}
+
+void Engine::Impl::selectPreviousActor() {
+  auto currentActorIndex = getCurrentActorIndex();
+  if (currentActorIndex == -1)
+    return;
+  auto size = static_cast<int>(_actorsIconSlots.size());
+  for (auto i = 0; i < size; i++) {
+    auto index = currentActorIndex - i - 1;
+    if (index < 0)
+      index += size - 1;
+    if (index == currentActorIndex)
+      return;
+    const auto &slot = _actorsIconSlots[index];
+    if (slot.selectable) {
+      _pEngine->setCurrentActor(slot.pActor, true);
+      return;
+    }
+  }
+}
+
+void Engine::Impl::selectNextActor() {
+  auto currentActorIndex = getCurrentActorIndex();
+  if (currentActorIndex == -1)
+    return;
+  auto size = static_cast<int>(_actorsIconSlots.size());
+  for (auto i = 0; i < size; i++) {
+    auto index = (currentActorIndex + i + 1) % size;
+    if (index == currentActorIndex)
+      return;
+    const auto &slot = _actorsIconSlots[index];
+    if (slot.selectable) {
+      _pEngine->setCurrentActor(slot.pActor, true);
+      return;
+    }
+  }
+}
+
+void Engine::Impl::skipCutscene() {
+  if (_pEngine->inCutscene()) {
+    if (_pCutscene && _pCutscene->hasCutsceneOverride()) {
+      _pEngine->cutsceneOverride();
+    } else {
+      _noOverrideElapsed = sf::seconds(0);
+    }
+  }
+}
+
+void Engine::Impl::skipText() const {
+  if (_dialogManager.getState() == DialogManagerState::Active) {
+    stopAllTalking();
+  }
 }
 
 void Engine::Impl::onLanguageChange(const std::string &lang) {
@@ -1200,11 +1315,11 @@ TextureManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
 
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 
-std::wstring Engine::getText(int id) const {
+std::wstring Engine::getText(int id) {
   return Locator<TextDatabase>::get().getText(id);
 }
 
-std::wstring Engine::getText(const std::string &text) const {
+std::wstring Engine::getText(const std::string &text) {
   return Locator<TextDatabase>::get().getText(text);
 }
 
@@ -1801,21 +1916,6 @@ void Engine::update(const sf::Time &el) {
     _pImpl->_optionsDialog.update(elapsed);
   } else if (_pImpl->_state == EngineState::StartScreen) {
     _pImpl->_startScreenDialog.update(elapsed);
-  } else if (_pImpl->isKeyPressed(InputConstants::KEY_SPACE)) {
-    _pImpl->_state = _pImpl->_state == EngineState::Game ? EngineState::Paused : EngineState::Game;
-    if (_pImpl->_state == EngineState::Paused) {
-      _pImpl->_soundManager.pauseAllSounds();
-    } else {
-      _pImpl->_soundManager.resumeAllSounds();
-    }
-  } else if (_pImpl->isKeyPressed(InputConstants::KEY_ESCAPE)) {
-    if (inCutscene()) {
-      if (_pImpl->_pCutscene && _pImpl->_pCutscene->hasCutsceneOverride()) {
-        cutsceneOverride();
-      } else {
-        _pImpl->_noOverrideElapsed = sf::seconds(0);
-      }
-    }
   }
 
   if (_pImpl->_state == EngineState::Paused) {
@@ -1905,10 +2005,8 @@ void Engine::update(const sf::Time &el) {
   if (_pImpl->_dialogManager.getState() != DialogManagerState::None) {
     auto rightClickSkipsDialog = getPreferences().getUserPreference(PreferenceNames::RightClickSkipsDialog,
                                                                     PreferenceDefaultValues::RightClickSkipsDialog);
-    auto keySkip = _pImpl->toKey(getPreferences().getUserPreference(PreferenceNames::KeySkipText,
-                                                                    PreferenceDefaultValues::KeySkipText));
-    if (_pImpl->isKeyPressed(keySkip) || (rightClickSkipsDialog && isRightClick)) {
-      _pImpl->stopAllTalking();
+    if (rightClickSkipsDialog && isRightClick) {
+      _pImpl->skipText();
     }
     return;
   }
@@ -1925,6 +2023,9 @@ void Engine::update(const sf::Time &el) {
   if (!isMouseClick && !isRightClick && !_pImpl->_isMouseDown)
     return;
 
+  _pImpl->_hud.setVisible(true);
+  _pImpl->_actorIcons.setVisible(true);
+  _pImpl->_cursorVisible = true;
   stopSentence();
 
   const auto *pVerb = _pImpl->getHoveredVerb();
@@ -1983,6 +2084,17 @@ void Engine::Impl::stopAllTalking() const {
 }
 
 void Engine::Impl::updateKeys() {
+  ImGuiIO &io = ImGui::GetIO();
+  if (io.WantTextInput)
+    return;
+
+  const auto &cmdMgr = Locator<CommandManager>::get();
+  for (auto &key : _oldKeyDowns) {
+    if (isKeyPressed(key)) {
+      cmdMgr.execute(key);
+    }
+  }
+
   _oldKeyDowns.clear();
   for (auto key : _newKeyDowns) {
     _oldKeyDowns.insert(key);
@@ -1990,31 +2102,27 @@ void Engine::Impl::updateKeys() {
   _newKeyDowns.clear();
 }
 
-bool Engine::Impl::isKeyPressed(int key) {
+bool Engine::Impl::isKeyPressed(const Input &key) {
   auto wasDown = _oldKeyDowns.find(key) != _oldKeyDowns.end();
   auto isDown = _newKeyDowns.find(key) != _newKeyDowns.end();
   return wasDown && !isDown;
 }
 
-int Engine::Impl::toKey(const std::string &keyText) {
+InputConstants Engine::Impl::toKey(const std::string &keyText) {
   if (keyText.length() == 1) {
-    return keyText[0];
+    return static_cast<InputConstants>(keyText[0]);
   }
-  return 0;
+  return InputConstants::NONE;
 }
 
 void Engine::Impl::updateKeyboard() {
-  ImGuiIO &io = ImGui::GetIO();
-  if (io.WantTextInput)
-    return;
-
   if (_oldKeyDowns.empty())
     return;
 
   if (_pRoom) {
     for (auto key : _oldKeyDowns) {
       if (isKeyPressed(key)) {
-        ScriptEngine::rawCall(_pRoom, "pressedKey", key);
+        ScriptEngine::rawCall(_pRoom, "pressedKey", static_cast<int>(key.input));
       }
     }
   }
@@ -2176,6 +2284,8 @@ void Engine::Impl::stopThreads() {
 }
 
 void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
+  if (!_cursorVisible)
+    return;
   if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
     return;
 
@@ -2242,6 +2352,8 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
 }
 
 void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
+  if (!_cursorVisible)
+    return;
   if (!_showCursor || _state != EngineState::Game)
     return;
 
@@ -2482,11 +2594,11 @@ void Engine::stopSentence() {
   _pImpl->_pSentence.reset();
 }
 
-void Engine::keyDown(int key) {
+void Engine::keyDown(const Input &key) {
   _pImpl->_newKeyDowns.insert(key);
 }
 
-void Engine::keyUp(int key) {
+void Engine::keyUp(const Input &key) {
   auto it = _pImpl->_newKeyDowns.find(key);
   if (it == _pImpl->_newKeyDowns.end())
     return;

@@ -28,6 +28,14 @@ static const std::string SafeArea = "safeScale";
 static const std::string Fullscreen = "windowFullscreen";
 static const std::string RightClickSkipsDialog = "rightClickSkipsDialog";
 static const std::string KeySkipText = "keySkipText";
+static const std::string KeySelect1 = "keySelect1";
+static const std::string KeySelect2 = "keySelect2";
+static const std::string KeySelect3 = "keySelect3";
+static const std::string KeySelect4 = "keySelect4";
+static const std::string KeySelect5 = "keySelect5";
+static const std::string KeySelect6 = "keySelect6";
+static const std::string KeySelectPrev = "keySelectPrev";
+static const std::string KeySelectNext = "keySelectNext";
 static const std::string GameSpeedFactor = "gameSpeedFactor"; // engge only
 }
 
@@ -52,6 +60,14 @@ static const float SafeArea = 1.f;
 static const bool Fullscreen = true;
 static const bool RightClickSkipsDialog = false;
 static const std::string KeySkipText = ".";
+static const std::string KeySelect1 = "1";
+static const std::string KeySelect2 = "2";
+static const std::string KeySelect3 = "3";
+static const std::string KeySelect4 = "4";
+static const std::string KeySelect5 = "5";
+static const std::string KeySelect6 = "6";
+static const std::string KeySelectPrev = "9";
+static const std::string KeySelectNext = "0";
 static const float GameSpeedFactor = 1.f;
 static const bool AnnoyingInJokes = false;
 }

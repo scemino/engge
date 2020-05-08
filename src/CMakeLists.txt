@@ -15,7 +15,8 @@ set(SOURCES
         Engine/Sentence.cpp Room/_RoomTrigger.cpp Entities/Actor/BlinkState.cpp Engine/Callback.cpp Math/PathFinding/_IndexedPriorityQueue.cpp
         Math/PathFinding/GraphEdge.cpp Math/PathFinding/_Path.cpp Math/PathFinding/_AstarAlgorithm.cpp Math/PathFinding/_WalkboxDrawable.cpp
         Math/Segment.cpp UI/OptionsDialog.cpp UI/QuitDialog.cpp UI/SaveLoadDialog.cpp Entities/Objects/AnimationFrame.cpp UI/StartScreenDialog.cpp Engine/Hud.cpp
-        Parsers/GGHashReader.cpp Parsers/GGHashWriter.cpp Parsers/SavegameManager.cpp Dialog/ConditionVisitor.cpp Dialog/ExpressionVisitor.cpp Dialog/DialogPlayer.cpp Dialog/EngineDialogScript.cpp)
+        Parsers/GGHashReader.cpp Parsers/GGHashWriter.cpp Parsers/SavegameManager.cpp Dialog/ConditionVisitor.cpp Dialog/ExpressionVisitor.cpp Dialog/DialogPlayer.cpp Dialog/EngineDialogScript.cpp
+        Input/CommandManager.cpp Input/InputMappings.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

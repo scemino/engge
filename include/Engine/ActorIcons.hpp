@@ -25,6 +25,7 @@ public:
   void flash(bool on);
   void setMode(ActorSlotSelectableMode mode);
   inline ActorSlotSelectableMode getMode() const { return _mode; }
+  void setVisible(bool visible) { _visible = visible; }
 
 private:
   void drawActorIcon(sf::RenderTarget &target, const std::string &icon, int actorSlot, const sf::Vector2f &offset,
@@ -51,5 +52,6 @@ private:
   sf::Time _time;
   sf::Uint8 _alpha{0};
   ActorSlotSelectableMode _mode{ActorSlotSelectableMode::On};
+  bool _visible{true};
 };
 } // namespace ng

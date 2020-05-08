@@ -45,18 +45,18 @@ public:
   void setMousePosition(sf::Vector2f pos);
   const Verb *getHoveredVerb() const;
 
-  const Inventory &getInventory() const { return _inventory; }
   Inventory &getInventory() { return _inventory; }
 
   void update(const sf::Time &elapsed);
 
+  void setVisible(bool visible) { _isVisible = visible; }
   void setActive(bool active);
   bool getActive() const { return _active; }
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-  std::string getVerbName(const Verb &verb) const;
-  int getDefaultVerb(Entity *pEntity) const;
+  static std::string getVerbName(const Verb &verb);
+  static int getDefaultVerb(Entity *pEntity);
 
 private:
   std::array<VerbSlot, 6> _verbSlots;
@@ -73,5 +73,6 @@ private:
   bool _active{false};
   State _state{State::Off};
   float _alpha{1.f};
+  bool _isVisible{true};
 };
 }

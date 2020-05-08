@@ -20,7 +20,7 @@ engge is an **experimental** game engine, its purpose is to be able (one day) to
   * [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
   * [clipper](https://sourceforge.net/projects/polyclipping/): Polygon and line clipping and offsetting library.
 
-## Compiling
+## Building
 
 ```bash
 mkdir build
@@ -32,7 +32,25 @@ cd ..
 
 ## Running
 
-Just type `./build/engge`, don't forget the prerequisites.
+Just type `./build/src/engge`, don't forget the prerequisites.
+
+## Input mappings
+
+| Keyboard shortcut            |      Description      |
+|------------------------------|-----------------------|
+| <kbd>space</kbd>             |  Pause game           |
+| <kbd>ESC</kbd>               |  Skip cutscene        |
+| <kbd>1</kbd>                 |  Select actor 1       |
+| <kbd>2</kbd>                 |  Select actor 2       |
+| <kbd>3</kbd>                 |  Select actor 3       |
+| <kbd>4</kbd>                 |  Select actor 4       |
+| <kbd>5</kbd>                 |  Select actor 5       |
+| <kbd>6</kbd>                 |  Select actor 6       |
+| <kbd>9</kbd>                 |  Previous actor       |
+| <kbd>0</kbd>                 |  Next actor           |
+| <kbd>.</kbd>                 |  Skip text            |
+| <kbd>Ctrl</kbd> <kbd>O</kbd> |  Show options         |
+| <kbd>Ctrl</kbd> <kbd>U</kbd> |  Toggle HUD           |
 
 ## Disclaimer
 

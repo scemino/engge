@@ -47,8 +47,8 @@ static const char *_verbShaderCode = "\n"
 Hud::Hud() {
   sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
   for (int i = 0; i < 9; i++) {
-    auto left = (i / 3) * size.x;
-    auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
+    auto left = (static_cast<float>(i) / 3.f) * size.x;
+    auto top = Screen::Height - size.y * 3 + static_cast<float>(i % 3) * size.y;
     _verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
   }
 
@@ -85,6 +85,7 @@ void Hud::setVerbUiColors(int characterSlot, VerbUiColors colors) {
 }
 
 void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
+  if(!_isVisible) return;
   if (_currentActorIndex == -1 || getVerbSlot(_currentActorIndex).getVerb(0).id == 0)
     return;
 
@@ -186,7 +187,7 @@ const Verb *Hud::getVerb(int id) const {
   return nullptr;
 }
 
-std::string Hud::getVerbName(const Verb &verb) const {
+std::string Hud::getVerbName(const Verb &verb) {
   const auto &preferences = Locator<Preferences>::get();
   auto lang = preferences.getUserPreference(PreferenceNames::Language, PreferenceDefaultValues::Language);
   auto isRetro = preferences.getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
@@ -195,7 +196,7 @@ std::string Hud::getVerbName(const Verb &verb) const {
   return s;
 }
 
-int Hud::getDefaultVerb(Entity *pEntity) const {
+int Hud::getDefaultVerb(Entity *pEntity) {
   const char *dialog = nullptr;
   if (ScriptEngine::rawGet(pEntity, "dialog", dialog) && dialog)
     return VerbConstants::VERB_TALKTO;

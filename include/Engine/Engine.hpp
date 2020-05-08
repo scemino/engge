@@ -6,6 +6,7 @@
 #include "squirrel.h"
 #include "SavegameSlot.hpp"
 #include <memory>
+#include "Input/InputConstants.hpp"
 
 namespace ng {
 class Actor;
@@ -48,8 +49,8 @@ public:
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);
   SQInteger enterRoomFromDoor(Object *pDoor);
-  [[nodiscard]] std::wstring getText(int id) const;
-  [[nodiscard]] std::wstring getText(const std::string &text) const;
+  [[nodiscard]] static std::wstring getText(int id) ;
+  [[nodiscard]] static std::wstring getText(const std::string &text) ;
 
   void addActor(std::unique_ptr<Actor> actor);
   void addRoom(std::unique_ptr<Room> room);
@@ -134,8 +135,8 @@ public:
   [[nodiscard]] float getFadeAlpha() const;
   void fadeTo(float destination, sf::Time time, InterpolationMethod method);
 
-  void keyDown(int key);
-  void keyUp(int key);
+  void keyDown(const Input& key);
+  void keyUp(const Input& key);
 
   void sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string &text);
   void sayLineAt(sf::Vector2i pos, Actor &actor, const std::string &text);
@@ -151,7 +152,7 @@ public:
   void loadGame(int slot);
   static void getSlotSavegames(std::vector<SavegameSlot> &slots);
   void setAutoSave(bool autosave);
-  bool getAutoSave() const;
+  [[nodiscard]] bool getAutoSave() const;
   void allowSaveGames(bool allow);
 
 private:
