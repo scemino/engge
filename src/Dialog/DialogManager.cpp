@@ -84,7 +84,11 @@ void DialogManager::updateDialogSlots() {
   for (const auto &pStatement : _pPlayer->getChoices()) {
     if (pStatement) {
       auto pChoice = dynamic_cast<Ast::Choice *>(pStatement->expression.get());
-      std::wstring dialogText = _pEngine->getText(pChoice->text);
+      auto text = pChoice->text;
+      if (!text.empty() && text[0] == '$') {
+        text = _pEngine->executeDollar(text);
+      }
+      std::wstring dialogText = _pEngine->getText(text);
       std::wregex re(L"(\\{([^\\}]*)\\})");
       std::wsmatch matches;
       if (std::regex_search(dialogText, matches, re)) {

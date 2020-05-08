@@ -18,7 +18,7 @@ std::function<bool()> EngineDialogScript::say(const std::string &actor, const st
   auto pActor = _engine.getActor(actor);
 
   // is it an animation to play ?
-  if (text.length() > 0 && text[0] == '^') {
+  if (!text.empty() && text[0] == '^') {
     auto anim = text.substr(2, text.length() - 3);
     std::stringstream s;
     s << "actorPlayAnimation(" << pActor->getKey() << ", \"" << anim << "\", NO)";
@@ -27,7 +27,7 @@ std::function<bool()> EngineDialogScript::say(const std::string &actor, const st
   }
 
   // is it a script variable ?
-  if (text.length() > 0 && text[0] == '$') {
+  if (!text.empty() && text[0] == '$') {
     pActor->say(_engine.executeDollar(text));
   } else {
     pActor->say(text);
