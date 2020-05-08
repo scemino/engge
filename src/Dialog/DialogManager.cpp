@@ -5,88 +5,32 @@
 #include "Engine/Preferences.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Graphics/Text.hpp"
-#include "_SayFunction.hpp"
+
 #include "Graphics/Screen.hpp"
 
 namespace ng {
-DialogManager::DialogManager()
-    : _dialogVisitor(*this) {
-  for (auto &dlg : _dialog) {
-    dlg.id = 0;
-  }
-}
+
+static constexpr float SlidingSpeed = 25.f;
 
 void DialogManager::setEngine(Engine *pEngine) {
   _pEngine = pEngine;
-  _dialogVisitor.setEngine(_pEngine);
+  _pEngineDialogScript = std::make_unique<EngineDialogScript>(*pEngine);
+  _pPlayer = std::make_unique<DialogPlayer>(*_pEngineDialogScript.get());
 }
 
-void DialogManager::addFunction(std::unique_ptr<Function> function) {
-  _functions.push_back(std::move(function));
-}
+void DialogManager::start(const std::string &actor, const std::string &name, const std::string &node) {
+  _pPlayer->start(actor, name, node);
 
-void DialogManager::resetState() {
-  _actorName.clear();
-  _parrotModeEnabled = true;
-  _limit = 6;
-  _override.clear();
-  _states.erase(std::remove_if(_states.begin(), _states.end(), [](const auto &state) {
-    return state.mode == DialogConditionMode::TempOnce;
-  }), _states.end());
-}
+  auto oldState = _state;
+  _state = _pPlayer->getState();
 
-void DialogManager::start(const std::string &name, const std::string &node) {
-  _name = name;
-
-  resetState();
-
-  std::string path;
-  path.append(name).append(".byack");
-
-  trace("start dialog {} from node {}", name, node);
-
-  YackTokenReader reader;
-  reader.load(path);
-  YackParser parser(reader);
-  _pCompilationUnit = parser.parse();
-
-  selectLabel(node);
-}
-
-void DialogManager::selectLabel(const std::string &name) {
-  trace("select label {}", name);
-  _state = DialogManagerState::Active;
-  for (auto &line : _dialog) {
-    line.id = 0;
+  if (oldState != _state && _state == DialogManagerState::WaitingForChoice) {
+    updateDialogSlots();
   }
-  auto it = std::find_if(_pCompilationUnit->labels.begin(),
-                         _pCompilationUnit->labels.end(),
-                         [&name](const std::unique_ptr<Ast::Label> &label) {
-                           return label->name == name;
-                         });
-  _pLabel = it != _pCompilationUnit->labels.end() ? it->get() : nullptr;
-  if (_pLabel) {
-    _currentStatement = _pLabel->statements.begin();
-  }
-  update(sf::seconds(0));
-}
-
-Actor *DialogManager::getTalkingActor() {
-  if (_actorName.empty())
-    return _pEngine->getCurrentActor();
-  for (auto &actor : _pEngine->getActors()) {
-    if (actor->getKey() == _actorName) {
-      return actor.get();
-    }
-  }
-  return nullptr;
 }
 
 void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
-  if (getState() != DialogManagerState::WaitingForChoice)
-    return;
-
-  if (!_functions.empty())
+  if (_state != DialogManagerState::WaitingForChoice)
     return;
 
   const auto view = target.getView();
@@ -98,99 +42,78 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   auto y = 534.f;
 
-  auto dialogHighlight = _pEngine->getVerbUiColors(_actorName)->dialogHighlight;
-  auto dialogNormal = _pEngine->getVerbUiColors(_actorName)->dialogNormal;
+  auto actorName = _pPlayer->getActor();
+  auto dialogHighlight = _pEngine->getVerbUiColors(actorName)->dialogHighlight;
+  auto dialogNormal = _pEngine->getVerbUiColors(actorName)->dialogNormal;
 
   Text text;
   text.setFont(font);
-  int dialog = 0;
-  for (auto &dlg : _dialog) {
-    if (dlg.id == 0)
+  for (const auto &slot : _slots) {
+    if (!slot.pChoice)
       continue;
-
-    if ((dialog + 1) >= _limit)
-      break;
-
-    std::wstring dialogText = dlg.text;
-    std::wregex re(L"(\\{([^\\}]*)\\})");
-    std::wsmatch matches;
-    if (std::regex_search(dialogText, matches, re)) {
-      dialogText = matches.suffix();
-    }
 
     sf::String s;
     s = L"\u25CF ";
-    s += dialogText;
+    s += slot.text;
     text.setString(s);
-    text.setPosition(dlg.pos.x, y + dlg.pos.y);
+    text.setPosition(slot.pos.x, y + slot.pos.y);
     auto bounds = text.getGlobalBounds();
     text.setFillColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
     target.draw(text);
 
     y += text.getGlobalBounds().height;
-    dialog++;
   }
 
   target.setView(view);
 }
 
 void DialogManager::update(const sf::Time &elapsed) {
-  auto hasChoice = std::any_of(_dialog.cbegin(), _dialog.cend(), [](const auto &line) { return line.id != 0; });
-  if (hasChoice) {
-    _state = DialogManagerState::WaitingForChoice;
-  } else if (!_functions.empty()) {
-    _state = DialogManagerState::Active;
-  } else if (!_pLabel) {
-    _state = DialogManagerState::None;
-    return;
-  } else if (_currentStatement == _pLabel->statements.end()) {
-    // jump to next label
-    auto name = _pLabel->name;
-    auto it = std::find_if(_pCompilationUnit->labels.begin(),
-                           _pCompilationUnit->labels.end(),
-                           [&name](const std::unique_ptr<Ast::Label> &label) {
-                             return label->name == name;
-                           });
-    it++;
-    if (it != _pCompilationUnit->labels.end())
-      selectLabel(it->get()->name);
-    else
-      _state = DialogManagerState::None;
-    return;
-  } else {
-    bool isChoice;
-    _state = DialogManagerState::Active;
-    do {
-      auto pStatement = _currentStatement->get();
-      pStatement->accept(_dialogVisitor);
-      isChoice = dynamic_cast<Ast::Choice *>(pStatement->expression.get()) != nullptr;
-      auto isGoto = dynamic_cast<Ast::Goto *>(pStatement->expression.get()) != nullptr;
-      if(!_dialogVisitor.acceptConditions(*pStatement) || !isGoto) _currentStatement++;
-    } while (_functions.empty() && isChoice && _currentStatement != _pLabel->statements.end());
+  _pPlayer->update();
+  auto oldState = _state;
+  _state = _pPlayer->getState();
+
+  if (oldState != _state && _state == DialogManagerState::WaitingForChoice) {
+    updateDialogSlots();
   }
 
-  if (_state == DialogManagerState::Active) {
-    if (_functions.empty())
-      return;
-    if (_functions[0]->isElapsed())
-      _functions.erase(_functions.begin());
-    else
-      (*_functions[0])(elapsed);
-    return;
+  updateChoices(elapsed);
+}
+
+void DialogManager::updateDialogSlots() {
+  int i = 0;
+  for (const auto &pStatement : _pPlayer->getChoices()) {
+    if (pStatement) {
+      auto pChoice = dynamic_cast<Ast::Choice *>(pStatement->expression.get());
+      auto text = pChoice->text;
+      if (!text.empty() && text[0] == '$') {
+        text = _pEngine->executeDollar(text);
+      }
+      std::wstring dialogText = _pEngine->getText(text);
+      std::wregex re(L"(\\{([^\\}]*)\\})");
+      std::wsmatch matches;
+      if (std::regex_search(dialogText, matches, re)) {
+        dialogText = matches.suffix();
+      }
+      _slots[i].text = dialogText;
+      _slots[i].pos = {0, 0};
+    }
+    _slots[i].pChoice = pStatement;
+    i++;
   }
+}
+
+void DialogManager::updateChoices(const sf::Time &elapsed) {
+  if(_state != DialogManagerState::WaitingForChoice) return;
+
+  auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
+                                                                 PreferenceDefaultValues::RetroFonts);
+  const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
   int dialog = 0;
-  for (const auto &dlg : _dialog) {
-    if (dlg.id == 0)
+  for (const auto &dlg : _slots) {
+    if (dlg.pChoice == nullptr)
       continue;
-
-    if ((dialog + 1) >= _limit)
-      break;
-
-    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
-                                                                   PreferenceDefaultValues::RetroFonts);
-    const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
     // HACK: bad, bad, this code is the same as in the draw function
     sf::String s;
@@ -227,24 +150,18 @@ void DialogManager::update(const sf::Time &elapsed) {
 
   y = 534.f;
   dialog = 0;
-  for (const auto &dlg : _dialog) {
-    if (dlg.id == 0)
+
+  for (const auto &slot : _slots) {
+    if (!slot.pChoice)
       continue;
-
-    if ((dialog + 1) >= _limit)
-      break;
-
-    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
-                                                                   PreferenceDefaultValues::RetroFonts);
-    const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
     // HACK: bad, bad, this code is the same as in the draw function
     sf::String s;
     s = L"\u25CF ";
-    s += dlg.text;
+    s += slot.text;
     Text text;
     text.setFont(font);
-    text.setPosition(dlg.pos.x, dlg.pos.y + y);
+    text.setPosition(slot.pos.x, slot.pos.y + y);
     text.setString(s);
     if (text.getGlobalBounds().contains(_mousePos)) {
       choose(dialog + 1);
@@ -255,32 +172,12 @@ void DialogManager::update(const sf::Time &elapsed) {
   }
 }
 
-void DialogManager::setActorName(const std::string &actor) {
-  _actorName = actor;
-}
-
 void DialogManager::choose(int choice) {
-  if ((choice < 1) || (choice > static_cast<int>(_dialog.size())))
+  if ((choice < 1) || (choice > static_cast<int>(_slots.size())))
     return;
 
-  int i = 0;
-  for (const auto &dlg : _dialog) {
-    if (dlg.id == 0)
-      continue;
-    if ((choice - 1) == i) {
-      ScriptEngine::rawCall("onChoiceClick");
-      std::ostringstream os;
-      os << '@' << dlg.id;
-      if (_parrotModeEnabled) {
-        auto say = std::make_unique<_SayFunction>(*getTalkingActor(), os.str());
-        _functions.push_back(std::move(say));
-      }
-      _dialogVisitor.select(*dlg.pChoice);
-      selectLabel(dlg.label);
-      return;
-    }
-    i++;
-  }
+  ScriptEngine::rawCall("onChoiceClick");
+  _pPlayer->choose(choice);
 }
 
 void DialogManager::setMousePosition(sf::Vector2f pos) {

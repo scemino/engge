@@ -46,7 +46,7 @@ public:
     if (letter == 'H')
       letter = 'D';
     auto index = letter - 'A';
-    trace("lip: {} {}", _lip.getData()[_index].time.asSeconds(), _lip.getData()[_index].letter);
+//    trace("lip: {} {}", _lip.getData()[_index].time.asSeconds(), _lip.getData()[_index].letter);
     // TODO: what is the correspondance between letter and head index ?
     _pActor->getCostume().setHeadIndex(index);
   }
