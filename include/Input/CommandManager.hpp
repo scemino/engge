@@ -20,6 +20,6 @@ public:
 
 private:
   std::unordered_map<std::string, CommandHandler> _commandHandlers;
-  std::unordered_map<Input, std::string> _inputBindings;
+  std::unordered_map<Input, std::string, InputHash> _inputBindings;
 };
 }

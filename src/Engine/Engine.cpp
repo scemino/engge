@@ -1059,8 +1059,8 @@ struct Engine::Impl {
   Camera _camera;
   sf::Color _fadeColor{sf::Color::Transparent};
   std::unique_ptr<Sentence> _pSentence{};
-  std::unordered_set<Input> _oldKeyDowns;
-  std::unordered_set<Input> _newKeyDowns;
+  std::unordered_set<Input, InputHash> _oldKeyDowns;
+  std::unordered_set<Input, InputHash> _newKeyDowns;
   EngineState _state{EngineState::StartScreen};
   _TalkingState _talkingState;
   int _showDrawWalkboxes{0};

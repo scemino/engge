@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 
 namespace ng {
 
@@ -109,14 +110,12 @@ public:
   MetaKeys metaKey{MetaKeys::None};
   InputConstants input;
 };
-}
 
-namespace std {
-template<>
-struct std::hash<ng::Input> {
-  std::size_t operator()(const ng::Input &k) const {
-    return hash<int>()(static_cast<int>(k.metaKey))
-        ^ hash<int>()(static_cast<int>(k.input));
+struct InputHash {
+  std::size_t operator()(const ng::Input &k) const noexcept {
+    return std::hash<int>()(static_cast<int>(k.metaKey))
+        ^ std::hash<int>()(static_cast<int>(k.input));
   }
 };
+
 }
