@@ -31,6 +31,8 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
   // draw layer objects
   for (const Entity &entity : entities) {
+    if (entity.hasParent())
+      continue;
     target.draw(entity, states);
   }
 }

@@ -600,15 +600,15 @@ private:
   }
 
   static SQInteger objectParent(HSQUIRRELVM v) {
-    Object *objChild = ScriptEngine::getObject(v, 2);
-    if (!objChild) {
+    auto pChild = ScriptEngine::getObject(v, 2);
+    if (!pChild) {
       return sq_throwerror(v, _SC("failed to get child object"));
     }
-    Object *objParent = ScriptEngine::getObject(v, 3);
-    if (!objParent) {
+    auto pParent = ScriptEngine::getObject(v, 3);
+    if (!pParent) {
       return sq_throwerror(v, _SC("failed to get parent object"));
     }
-    objParent->addChild(objChild);
+    pChild->setParent(pParent);
     return 0;
   }
 

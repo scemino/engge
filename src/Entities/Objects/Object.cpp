@@ -39,6 +39,7 @@ struct Object::Impl {
   bool _temporary{false};
   bool _jiggle{false};
   std::string _key;
+  Object *_pParent{nullptr};
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
@@ -50,7 +51,6 @@ Object::~Object() = default;
 void Object::setKey(const std::string &key) { pImpl->_key = key; }
 
 const std::string &Object::getKey() const { return pImpl->_key; }
-
 
 void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
 
@@ -282,6 +282,7 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const {
 }
 
 void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+  sf::RenderStates initialStates = states;
   if (!isVisible())
     return;
 
@@ -299,6 +300,10 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const {
   }
 
   drawHotspot(target, states);
+
+  for(const auto& pChild : pImpl->_children) {
+    target.draw(*pChild, initialStates);
+  }
 }
 
 void Object::dependentOn(Object *parentObject, int state) {
@@ -312,7 +317,24 @@ void Object::setFps(int fps) {
   }
 }
 
-void Object::addChild(Object *child) { pImpl->_children.push_back(child); }
+void Object::setParent(Object *pParent) {
+  auto pOldParent = pImpl->_pParent;
+  if (pOldParent) {
+    pOldParent->pImpl->_children.erase(std::remove_if(pOldParent->pImpl->_children.begin(),
+                                                      pOldParent->pImpl->_children.end(),
+                                                      [this](const auto *pChild) {
+                                                        return pChild == this;
+                                                      }), pOldParent->pImpl->_children.end());
+  }
+  pImpl->_pParent = pParent;
+  if (pParent) {
+    pParent->pImpl->_children.push_back(this);
+  }
+}
+
+Object *Object::getParent() { return pImpl->_pParent; }
+
+bool Object::hasParent() const { return pImpl->_pParent != nullptr; }
 
 void Object::stopObjectMotors() {
   Entity::stopObjectMotors();

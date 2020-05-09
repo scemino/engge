@@ -109,7 +109,10 @@ public:
   void enableTrigger(bool enabled);
 
   void dependentOn(Object *parentObject, int state);
-  void addChild(Object *child);
+
+  bool hasParent() const override;
+  void setParent(Object *pParent);
+  Object* getParent();
 
   void setFps(int fps) override;
 

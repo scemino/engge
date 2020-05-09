@@ -192,7 +192,7 @@ struct Room::Impl {
           return o->getName() == parent;
         });
         if (it != _objects.end()) {
-          (*it)->addChild(object.get());
+          object->setParent((*it).get());
         }
       }
       // zsort

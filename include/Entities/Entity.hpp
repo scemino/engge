@@ -79,6 +79,8 @@ public:
   virtual HSQOBJECT &getTable() = 0;
   virtual HSQOBJECT &getTable() const = 0;
 
+  virtual bool hasParent() const { return false; }
+
   SoundTrigger *createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds);
 
   void alphaTo(float destination, sf::Time time, InterpolationMethod method);
