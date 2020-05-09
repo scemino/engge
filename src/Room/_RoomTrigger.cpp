@@ -7,6 +7,15 @@
 #include "squirrel.h"
 
 namespace ng {
+_RoomTriggerThread::_RoomTriggerThread(HSQUIRRELVM vm, const std::string &name, HSQOBJECT thread_obj)
+    : _vm(vm), _name(name), _thread_obj(thread_obj) {
+  sq_addref(_vm, &_thread_obj);
+}
+
+_RoomTriggerThread::~_RoomTriggerThread() {
+  sq_release(_vm, &_thread_obj);
+}
+
 _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQOBJECT outside)
     : _engine(engine), _object(object), _inside(inside), _outside(outside) {
   _vm = engine.getVm();
@@ -60,7 +69,8 @@ HSQUIRRELVM _RoomTrigger::createThread() {
     return {};
   }
 
-  auto pUniquethread = std::make_unique<_RoomTriggerThread>(thread_obj);
+  auto pUniquethread = std::make_unique<_RoomTriggerThread>(_vm, _name, thread_obj);
+  sq_pop(_vm ,1); // pop thread
   _id = pUniquethread->getId();
   trace("start room trigger thread: {}", _id);
   _engine.addThread(std::move(pUniquethread));

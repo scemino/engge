@@ -346,10 +346,11 @@ template<typename TResult, typename TThis, typename...T>
 bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = g_pEngine->getVm();
+  auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_FAILED(sq_get(v, -2))) {
-    sq_pop(v, 1);
+    sq_settop(v, top);
     trace("can't find {} function", name);
     return false;
   }
@@ -359,12 +360,12 @@ bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T...
   ScriptEngine::push(v, std::forward<T>(args)...);
   if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue))) {
     sqstd_printcallstack(v);
-    sq_pop(v, 1);
+    sq_settop(v, top);
     error("function {} call failed", name);
     return false;
   }
   ScriptEngine::get(v, -1, result);
-  sq_pop(v, 1);
+  sq_settop(v, top);
   return true;
 }
 
@@ -372,25 +373,25 @@ template<typename TResult, typename TThis, typename...T>
 bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = g_pEngine->getVm();
+  auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_FAILED(sq_rawget(v, -2))) {
-    sq_pop(v, 1);
+    sq_settop(v, top);
     trace("can't find {} function", name);
     return false;
   }
-  sq_remove(v, -2);
 
   ScriptEngine::push(v, pThis);
   ScriptEngine::push(v, std::forward<T>(args)...);
   if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue))) {
     sqstd_printcallstack(v);
-    sq_pop(v, 1);
+    sq_settop(v, top);
     error("function {} call failed", name);
     return false;
   }
   ScriptEngine::get(v, -1, result);
-  sq_pop(v, 1);
+  sq_settop(v, top);
   return true;
 }
 

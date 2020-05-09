@@ -3,16 +3,22 @@
 #include "Engine/ThreadBase.hpp"
 #include "Engine/Trigger.hpp"
 #include "squirrel.h"
+#include <string>
 
 namespace ng {
 class _RoomTriggerThread : public ThreadBase {
 public:
-  explicit _RoomTriggerThread(HSQOBJECT thread_obj) : _thread_obj(thread_obj) {}
-  ~_RoomTriggerThread() override = default;
+  _RoomTriggerThread(HSQUIRRELVM vm, const std::string &name, HSQOBJECT thread_obj);
+  ~_RoomTriggerThread() override;
 
+  [[nodiscard]] std::string getName() const override {
+    return _name;
+  }
   [[nodiscard]] HSQUIRRELVM getThread() const override { return _thread_obj._unVal.pThread; }
 
 private:
+  HSQUIRRELVM _vm;
+  std::string _name;
   HSQOBJECT _thread_obj;
 };
 

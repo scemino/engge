@@ -337,12 +337,8 @@ private:
   }
 
   bool useFlags(Entity *pObject) {
-    HSQOBJECT obj = pObject->getTable();
-    SQInteger flags = 0;
-    sq_pushobject(_vm, obj);
-    sq_pushstring(_vm, _SC("flags"), -1);
-    if (SQ_SUCCEEDED(sq_get(_vm, -2))) {
-      sq_getinteger(_vm, -1, &flags);
+    int flags;
+    if (ScriptEngine::get(pObject, "flags", flags)) {
       UseFlag useFlag;
       switch (flags) {
       case ObjectFlagConstants::USE_WITH:useFlag = UseFlag::UseWith;
@@ -359,14 +355,9 @@ private:
     return false;
   }
 
-  int32_t getFlags(HSQOBJECT obj) {
-    SQInteger flags = 0;
-    sq_pushobject(_vm, obj);
-    sq_pushstring(_vm, _SC("flags"), -1);
-    if (SQ_SUCCEEDED(sq_get(_vm, -2))) {
-      sq_getinteger(_vm, -1, &flags);
-    }
-    sq_pop(_vm, 2);
+  int getFlags(HSQOBJECT obj) {
+    int flags = 0;
+    ScriptEngine::rawGet(obj, "flags", flags);
     return flags;
   }
 

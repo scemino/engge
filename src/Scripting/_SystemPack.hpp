@@ -754,9 +754,13 @@ private:
     }
 
     auto pUniquethread = std::make_unique<Thread>(global, vm, thread_obj, env_obj, closureObj, args);
+    sq_pop(vm, 1);
     auto pThread = pUniquethread.get();
     trace("start thread ({}): {}", (name ? name : "anonymous"), pThread->getId());
-
+    if(name){
+      sq_pop(v, 1); // pop name
+    }
+    sq_pop(v, 1); // pop closure
     g_pEngine->addThread(std::move(pUniquethread));
 
     // call the closure in the thread

@@ -14,11 +14,19 @@ Thread::Thread(bool isGlobal,
     : _v(v), _thread_obj(thread_obj), _env_obj(env_obj), _closureObj(closureObj), _args(std::move(args)),
       _isGlobal(isGlobal) {
   sq_addref(_v, &_thread_obj);
+  sq_addref(_v, &_env_obj);
+  sq_addref(_v, &_closureObj);
   _id = Locator<ResourceManager>::get().getThreadId();
 }
 
 Thread::~Thread() {
   sq_release(_v, &_thread_obj);
+  sq_release(_v, &_env_obj);
+  sq_release(_v, &_closureObj);
+}
+
+std::string Thread::getName() const {
+  return "thread";
 }
 
 HSQUIRRELVM Thread::getThread() const { return _thread_obj._unVal.pThread; }

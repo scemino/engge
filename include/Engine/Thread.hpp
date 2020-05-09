@@ -14,6 +14,7 @@ public:
          std::vector<HSQOBJECT> args);
   ~Thread() override;
 
+  [[nodiscard]] std::string getName() const override;
   [[nodiscard]] HSQUIRRELVM getThread() const override;
   [[nodiscard]] bool isGlobal() const override { return _isGlobal; }
 

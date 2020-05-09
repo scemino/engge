@@ -224,14 +224,40 @@ private:
       }
       case OT_STRING:s << sq_objtostring(&obj);
         break;
-      case OT_TABLE:s << "table";
+      case OT_TABLE:
+        {
+          int id;
+          if(ScriptEngine::rawGet(obj, "id", id)) {
+            if(ResourceManager::isActor(id)) {
+              s << "actor";
+            } else if(ResourceManager::isRoom(id)) {
+              s << "room";
+            } else if(ResourceManager::isObject(id)) {
+              s << "object";
+            } else if(ResourceManager::isLight(id)) {
+              s << "light";
+            } else if(ResourceManager::isSound(id)) {
+              s << "sound";
+            } else if(ResourceManager::isThread(id)) {
+              s << "thread table";
+            } else {
+              s << "table";
+            }
+          } else {
+            s << "table";
+          }
+        }
         break;
       case OT_ARRAY:s << "array";
         break;
       case OT_CLOSURE: {
         s << "closure: ";
         auto pName = _closure(obj)->_function->_name;
+        auto pSourcename = _closure(obj)->_function->_sourcename;
+        auto line = _closure(obj)->_function->_nlineinfos;
         s << (pName._type != OT_NULL ? _stringval(pName) : "null");
+        s << ' ' << (pSourcename._type != OT_NULL ? _stringval(pSourcename) : "-null");
+        s << " [" << line << ']';
         break;
       }
       case OT_NATIVECLOSURE:s << "native closure";
@@ -240,8 +266,14 @@ private:
         break;
       case OT_USERDATA:s << "user data";
         break;
-      case OT_THREAD:s << "thread";
+      case OT_THREAD: {
+        s << "thread";
+        auto pThread = ScriptEngine::getThreadFromVm(_thread(obj));
+        if (pThread) {
+          s << " " << pThread->getName();
+        }
         break;
+      }
       case OT_INSTANCE:s << "instance";
         break;
       case OT_WEAKREF:s << "weak ref";

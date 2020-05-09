@@ -16,6 +16,7 @@ public:
   }
 
   [[nodiscard]] virtual HSQUIRRELVM getThread() const = 0;
+  [[nodiscard]] virtual std::string getName() const = 0;
 
   inline void setPauseable(bool value) { _isPauseable = value; }
   [[nodiscard]] inline bool isPauseable() const { return _isPauseable; }

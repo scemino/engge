@@ -37,6 +37,10 @@ HSQUIRRELVM Cutscene::getThread() const {
   return _threadCutscene._unVal.pThread;
 }
 
+std::string Cutscene::getName() const {
+  return "cutscene";
+}
+
 bool Cutscene::isElapsed() { return _state == 5; }
 
 void Cutscene::cutsceneOverride() {

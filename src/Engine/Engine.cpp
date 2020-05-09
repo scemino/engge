@@ -714,6 +714,7 @@ struct Engine::Impl {
     void saveGlobals(GGPackValue &globalsHash) {
       globalsHash.type = 2;
       auto v = _pImpl->_pEngine->getVm();
+      auto top = sq_gettop(v);
       sq_pushroottable(v);
       sq_pushstring(v, _SC("g"), -1);
       sq_get(v, -2);
@@ -721,6 +722,7 @@ struct Engine::Impl {
       sq_getstackobj(v, -1, &g);
 
       saveTable(g, globalsHash, false);
+      sq_settop(v, top);
     }
 
     void saveDialogs(GGPackValue &hash) {
@@ -1472,20 +1474,11 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
   // call exit room function
   trace("call exit room function of {}", pOldRoom->getId());
 
-  sq_pushobject(_vm, pOldRoom->getTable());
-  sq_pushstring(_vm, _SC("exit"), -1);
-  if (SQ_FAILED(sq_get(_vm, -2))) {
-    error("can't find exit function");
-    return 0;
-  }
-
-  SQInteger nparams, nfreevars;
-  sq_getclosureinfo(_vm, -1, &nparams, &nfreevars);
-  trace("enter function found with {} parameters", nparams);
+  auto nparams = ScriptEngine::getParameterCount(pOldRoom, "exit");
+  trace("exit function found with {} parameters", nparams);
 
   actorExit();
 
-  sq_remove(_vm, -2);
   if (nparams == 2) {
     ScriptEngine::rawCall(pOldRoom, "exit", pObject);
   } else {

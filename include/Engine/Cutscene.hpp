@@ -30,6 +30,7 @@ public:
   ~Cutscene() override;
 
   [[nodiscard]] HSQUIRRELVM getThread() const override;
+  [[nodiscard]] std::string getName() const override;
   [[nodiscard]] bool isGlobal() const override { return true; }
   [[nodiscard]] bool isStopped() const override;
 
