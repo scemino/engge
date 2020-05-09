@@ -583,6 +583,10 @@ private:
       g_pEngine->getPreferences().setForceTalkieText(enabled != 0);
       return 0;
     }
+    case ExCommandConstants::EX_SHOW_OPTIONS: {
+      g_pEngine->showOptions(true);
+      return 0;
+    }
     default:error("TODO: exCommand {}: not implemented", command);
       break;
     }
