@@ -227,7 +227,7 @@ private:
       case OT_TABLE:
         {
           int id;
-          if(ScriptEngine::rawGet(obj, "id", id)) {
+          if(ScriptEngine::rawGet(obj, "_id", id)) {
             if(ResourceManager::isActor(id)) {
               s << "actor";
             } else if(ResourceManager::isRoom(id)) {
