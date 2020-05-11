@@ -8,6 +8,7 @@
 #include "Room/Room.hpp"
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
+#include "Scripting/ScriptEngine.hpp"
 
 namespace ng {
 SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
@@ -70,19 +71,21 @@ void SoundId::resume() {
 
 void SoundId::updateVolume() {
   float entityVolume = 1.f;
-  if (_pEntity) {
+  Entity *pEntity = _id ? ScriptEngine::getScriptObjectFromId<Entity>(_id) : nullptr;
+
+  if (pEntity) {
     auto pRoom = _soundManager.getEngine()->getRoom();
     auto at = _soundManager.getEngine()->getCamera().getAt();
-    entityVolume = pRoom != _pEntity->getRoom() ? 0 : _pEntity->getVolume().value_or(1.f);
+    entityVolume = pRoom != pEntity->getRoom() ? 0 : pEntity->getVolume().value_or(1.f);
 
-    if (pRoom == _pEntity->getRoom()) {
+    if (pRoom == pEntity->getRoom()) {
       auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
       at.x += width / 2.f;
-      auto diff = fabs(at.x - _pEntity->getRealPosition().x);
+      auto diff = fabs(at.x - pEntity->getRealPosition().x);
       entityVolume = (1.5f - (diff / width)) / 1.5f;
       if (entityVolume < 0)
         entityVolume = 0;
-      float pan = (_pEntity->getRealPosition().x - at.x) / (width / 2);
+      float pan = (pEntity->getRealPosition().x - at.x) / (width / 2);
       if (pan > 1.f)
         pan = 1.f;
       if (pan < -1.f)
@@ -135,8 +138,8 @@ void SoundId::fadeTo(float volume, const sf::Time &duration) {
   _fade = std::move(fadeTo);
 }
 
-void SoundId::setEntity(Entity *pEntity) {
-  _pEntity = pEntity;
+void SoundId::setEntity(int id) {
+  _id = id;
 }
 
 } // namespace ng

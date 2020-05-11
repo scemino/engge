@@ -34,21 +34,21 @@ SoundDefinition *SoundManager::defineSound(const std::string &name) {
   return pSound;
 }
 
-SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity *pEntity) {
-  return play(pSoundDefinition, SoundCategory::Sound, loopTimes, pEntity);
+SoundId *SoundManager::playSound(SoundDefinition *pSoundDefinition, int loopTimes, int id) {
+  return play(pSoundDefinition, SoundCategory::Sound, loopTimes, id);
 }
 
-SoundId *SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes, Entity *pEntity) {
-  return play(pSoundDefinition, SoundCategory::Talk, loopTimes, pEntity);
+SoundId *SoundManager::playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes, int id) {
+  return play(pSoundDefinition, SoundCategory::Talk, loopTimes, id);
 }
 
 SoundId *SoundManager::playMusic(SoundDefinition *pSoundDefinition, int loopTimes) {
   return play(pSoundDefinition, SoundCategory::Music, loopTimes);
 }
 
-SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes, Entity *pEntity) {
+SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory category, int loopTimes, int id) {
   auto soundId = std::make_unique<SoundId>(*this, pSoundDefinition, category);
-  soundId->setEntity(pEntity);
+  soundId->setEntity(id);
   auto index = getSlotIndex();
   if (index == -1) {
     error("cannot play sound no more channel available");

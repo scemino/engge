@@ -23,7 +23,7 @@ public:
   [[nodiscard]] bool isPlaying() const;
   void fadeTo(float volume, const sf::Time &duration);
 
-  void setEntity(Entity *pEntity);
+  void setEntity(int id);
 
   void update(const sf::Time &elapsed);
 
@@ -38,6 +38,6 @@ private:
   SoundCategory _category;
   float _volume{1.0f};
   int _loopTimes{0};
-  Entity *_pEntity{nullptr};
+  int _id{0};
 };
 } // namespace ng

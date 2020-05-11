@@ -10,7 +10,7 @@ class SoundDefinition;
 class SoundId;
 class SoundTrigger : public Trigger {
 public:
-  SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, Entity *pEntity);
+  SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, int id);
   ~SoundTrigger() override;
 
   std::string getName() override;
@@ -20,7 +20,7 @@ private:
 
 private:
   Engine &_engine;
-  Entity *_pEntity{nullptr};
+  int _id{0};
   std::vector<SoundDefinition *> _soundsDefinitions;
   std::vector<int> _sounds;
   std::default_random_engine _generator;

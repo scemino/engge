@@ -132,7 +132,7 @@ private:
     sq_getinteger(v, 4, &loopTimes);
     SQFloat fadeInTime = 0;
     sq_getfloat(v, 5, &fadeInTime);
-    auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes, pEntity);
+    auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes, pEntity->getId());
     if (!pSoundId) {
       sq_pushnull(v);
       return 1;
@@ -240,7 +240,7 @@ private:
     sq_getfloat(v, 5, &fadeInTime);
     auto soundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
     if (soundId) {
-      soundId->setEntity(pEntity);
+      soundId->setEntity(pEntity->getId());
       soundId->fadeTo(1.f, sf::seconds(fadeInTime));
     }
     ScriptEngine::pushObject(v, soundId);

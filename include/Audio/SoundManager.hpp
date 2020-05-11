@@ -18,8 +18,8 @@ public:
   Engine *getEngine() const { return _pEngine; }
 
   SoundDefinition *defineSound(const std::string &name);
-  SoundId *playSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, Entity *pEntity = nullptr);
-  SoundId *playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, Entity *pEntity = nullptr);
+  SoundId *playSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, int id = 0);
+  SoundId *playTalkSound(SoundDefinition *pSoundDefinition, int loopTimes = 1, int id = 0);
   SoundId *playMusic(SoundDefinition *pSoundDefinition, int loopTimes = 1);
 
   void pauseAllSounds();
@@ -52,7 +52,7 @@ private:
   SoundId *play(SoundDefinition *pSoundDefinition,
                 SoundCategory category,
                 int loopTimes = 1,
-                Entity *pEntity = nullptr);
+                int id = 0);
 
 private:
   std::vector<std::unique_ptr<SoundDefinition>> _sounds;

@@ -93,7 +93,7 @@ private:
           return;
       }
 
-      auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pActor);
+      auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pActor->getId());
       if (pSound) {
           _soundId = pSound->getId();
       }
