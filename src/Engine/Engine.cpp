@@ -2325,11 +2325,15 @@ sf::IntRect Engine::Impl::getCursorRect() const {
 }
 
 std::wstring Engine::Impl::getDisplayName(const std::wstring &name) {
-  auto len = name.length();
-  if (len > 2 && name[len - 2] == '#') {
-    return name.substr(0, len - 2);
+  std::wstring displayName(name);
+  auto len = displayName.length();
+  if (len > 1 && displayName[0] == '^') {
+    displayName = name.substr(1, len - 1);
   }
-  return name;
+  if (len > 2 && displayName[len - 2] == '#') {
+    displayName = name.substr(0, len - 2);
+  }
+  return displayName;
 }
 
 const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
