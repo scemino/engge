@@ -2659,7 +2659,7 @@ void Engine::allowSaveGames(bool allow) {
 }
 
 Actor *Engine::getActor(const std::string &name) {
-  if (name == "agent")
+  if (name == "agent" || name == "player")
     return _pImpl->_pCurrentActor;
 
   for (const auto &pActor : getActors()) {
