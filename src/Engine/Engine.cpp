@@ -449,7 +449,8 @@ struct Engine::Impl {
     void loadObjects(const GGPackValue &hash) {
       for (auto &obj :  hash.hash_value) {
         auto objName = obj.first;
-        if(objName.empty()) continue;
+        if (objName.empty())
+          continue;
         auto pObj = getObject(objName);
         // TODO: if the object does not exist creates it
         if (!pObj) {
@@ -1489,7 +1490,8 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
 
   // stop all local threads
   std::for_each(_threads.begin(), _threads.end(), [](auto &pThread) {
-    if(!pThread->isGlobal()) pThread->stop();
+    if (!pThread->isGlobal())
+      pThread->stop();
   });
 
   return 0;
@@ -1655,13 +1657,13 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
 
   auto actor = getCurrentActor();
   actor->getCostume().setFacing(facing);
+  actor->setRoom(pRoom);
+  auto pos = pDoor->getRealPosition();
+  auto usePos = pDoor->getUsePosition().value_or(sf::Vector2f());
+  pos += usePos;
+  actor->setPosition(pos);
 
   if (pRoom->getFullscreen() != 1) {
-    actor->setRoom(pRoom);
-    auto pos = pDoor->getRealPosition();
-    auto usePos = pDoor->getUsePosition().value_or(sf::Vector2f());
-    pos += usePos;
-    actor->setPosition(pos);
     _pImpl->_camera.at(pos);
   }
 
