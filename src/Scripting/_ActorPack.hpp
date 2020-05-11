@@ -838,15 +838,9 @@ private:
     }
 
     // define instance
-    const char *icon = nullptr;
-    if (ScriptEngine::rawGet(pActor.get(), "icon", icon)) {
-      pActor->setIcon(icon);
-    }
-
     ScriptEngine::set(pActor.get(), "_id", pActor->getId());
 
     trace("Create actor {}", pActor->getName());
-
     g_pEngine->addActor(std::move(pActor));
 
     sq_pushobject(v, table);

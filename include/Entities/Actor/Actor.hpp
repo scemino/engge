@@ -23,8 +23,7 @@ public:
 
   std::wstring getTranslatedName() const;
 
-  void setIcon(const std::string &icon);
-  const std::string &getIcon() const;
+  std::string getIcon() const;
 
   void useWalkboxes(bool use);
 
