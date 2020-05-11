@@ -1471,13 +1471,11 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
 
   auto pOldRoom = _pRoom;
 
-  // call exit room function
-  trace("call exit room function of {}", pOldRoom->getId());
-
-  auto nparams = ScriptEngine::getParameterCount(pOldRoom, "exit");
-  trace("exit function found with {} parameters", nparams);
-
   actorExit();
+
+  // call exit room function
+  auto nparams = ScriptEngine::getParameterCount(pOldRoom, "exit");
+  trace("call exit room function of {} ({} params)", pOldRoom->getName(), nparams);
 
   if (nparams == 2) {
     ScriptEngine::rawCall(pOldRoom, "exit", pObject);
@@ -1489,10 +1487,10 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
 
   ScriptEngine::rawCall("exitedRoom", pOldRoom);
 
-  // remove all local threads
-  _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](auto &pThread) -> bool {
-    return !pThread->isGlobal();
-  }), _threads.end());
+  // stop all local threads
+  std::for_each(_threads.begin(), _threads.end(), [](auto &pThread) {
+    if(!pThread->isGlobal()) pThread->stop();
+  });
 
   return 0;
 }

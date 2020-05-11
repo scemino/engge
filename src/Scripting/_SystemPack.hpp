@@ -1,5 +1,12 @@
 #pragma once
 #include "squirrel.h"
+#include "../../extlibs/squirrel/squirrel/sqpcheader.h"
+#include "../../extlibs/squirrel/squirrel/sqvm.h"
+#include "../../extlibs/squirrel/squirrel/sqstring.h"
+#include "../../extlibs/squirrel/squirrel/sqtable.h"
+#include "../../extlibs/squirrel/squirrel/sqarray.h"
+#include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
+#include "../../extlibs/squirrel/squirrel/sqclosure.h"
 #include "Entities/Actor/Actor.hpp"
 #include "Engine/Camera.hpp"
 #include "Entities/Objects/Animation.hpp"
@@ -22,14 +29,17 @@ protected:
   Engine &_engine;
   int _threadId;
   bool _done;
+  std::string _threadName;
 
 public:
   explicit _BreakFunction(Engine &engine, int id)
       : _engine(engine), _threadId(id), _done(false) {
+    auto pThread = ScriptEngine::getThreadFromId(_threadId);
+    _threadName = pThread->getName();
   }
 
   [[nodiscard]] virtual std::string getName() const {
-    return "_BreakFunction";
+    return "_BreakFunction ";
   }
 
   void operator()(const sf::Time &) override {
@@ -757,11 +767,15 @@ private:
       sq_getstring(v, -1, &name);
     }
 
-    auto pUniquethread = std::make_unique<Thread>(global, vm, thread_obj, env_obj, closureObj, args);
+    std::string threadName = name ? name : "anonymous";
+    std::string pSource = _stringval(_closure(closureObj)->_function->_sourcename);
+    auto line = _closure(closureObj)->_function->_lineinfos->_line;
+    threadName += ' ' + pSource + '(' + std::to_string(line) + ')';
+    auto pUniquethread = std::make_unique<Thread>(threadName, global, vm, thread_obj, env_obj, closureObj, args);
     sq_pop(vm, 1);
     auto pThread = pUniquethread.get();
-    trace("start thread ({}): {}", (name ? name : "anonymous"), pThread->getId());
-    if(name){
+    trace("start thread ({}): {}", threadName, pThread->getId());
+    if (name) {
       sq_pop(v, 1); // pop name
     }
     sq_pop(v, 1); // pop closure

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 #include "squirrel.h"
 #include "ThreadBase.hpp"
@@ -6,7 +7,7 @@
 namespace ng {
 class Thread : public ThreadBase {
 public:
-  Thread(bool isGlobal,
+  Thread(const std::string& name, bool isGlobal,
          HSQUIRRELVM v,
          HSQOBJECT thread_obj,
          HSQOBJECT env_obj,
@@ -21,6 +22,7 @@ public:
   bool call();
 
 private:
+  std::string _name;
   HSQUIRRELVM _v;
   HSQOBJECT _thread_obj;
   HSQOBJECT _env_obj;
