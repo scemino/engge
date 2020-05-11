@@ -70,7 +70,14 @@ void Object::setIcon(const std::string &icon) {
   pImpl->_icons.push_back(icon);
 }
 
-std::string Object::getIcon() const { return pImpl->_icons.at(pImpl->_index); }
+std::string Object::getIcon() const {
+  if(pImpl->_icons.empty()) {
+    const char *icon = nullptr;
+    ScriptEngine::rawGet(pImpl->_pTable, "icon", icon);
+    return icon;
+  }
+  return pImpl->_icons.at(pImpl->_index);
+}
 
 void Object::setIcon(int fps, const std::vector<std::string> &icons) {
   pImpl->_icons.clear();
