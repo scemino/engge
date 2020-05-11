@@ -681,6 +681,12 @@ private:
     if (SQ_FAILED(result))
       return result;
 
+    // declare pseudo room in root table
+    sq_pushroottable(v);
+    sq_pushstring(v, pRoom->getName().data(), -1);
+    sq_pushobject(v, pRoom->getTable());
+    sq_newslot(v, -3, SQFalse);
+
     sq_pushobject(v, pRoom->getTable());
     g_pEngine->addRoom(std::move(pRoom));
     return 1;
