@@ -164,7 +164,7 @@ private:
     SQFloat fadeInTime = 0;
     sq_getfloat(v, 4, &fadeInTime);
     auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
-    if (fadeInTime != 0) {
+    if (pSoundId && fadeInTime != 0) {
       pSoundId->setVolume(0.f);
       pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
     }
