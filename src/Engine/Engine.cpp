@@ -237,9 +237,9 @@ struct Engine::Impl {
           return pRoom->getTable();
         }
 
-        auto table = SQTable::Create(_ss(ScriptEngine::getVm()), value.hash_value.size());
+        auto table = SQTable::Create(_ss(ScriptEngine::getVm()), 0);
         for (const auto&[key, value] : value.hash_value) {
-          table->Set(ScriptEngine::toSquirrel(key), toSquirrel(value));
+          table->NewSlot(ScriptEngine::toSquirrel(key), toSquirrel(value));
         }
         return table;
       }
