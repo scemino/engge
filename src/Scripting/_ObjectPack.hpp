@@ -964,7 +964,9 @@ private:
       auto &obj = g_pEngine->getRoom()->createObject();
       _createObject(v, obj);
       return 1;
-    } else if (numArgs == 2) {
+    }
+
+    if (numArgs == 2) {
       std::vector<std::string> anims;
       for (int i = 0; i < numArgs - 1; i++) {
         const SQChar *animName;
@@ -1020,6 +1022,9 @@ private:
 
   static void _createObject(HSQUIRRELVM v, Object &object) {
     ScriptEngine::pushObject(v, &object);
+    auto &table = object.getTable();
+    sq_getstackobj(v, -1, &table);
+    sq_addref(ScriptEngine::getVm(), &table);
   }
 };
 
