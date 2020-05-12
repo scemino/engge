@@ -13,24 +13,25 @@ Cutscene::Cutscene(Engine &engine,
                    HSQOBJECT envObj)
     : _engine(engine), _v(v), _threadCutscene(thread), _state(0), _closureObj(closureObj),
       _closureCutsceneOverrideObj(closureCutsceneOverrideObj), _envObj(envObj) {
-  _engineVm = engine.getVm();
+  auto engineVm = ScriptEngine::getVm();
   _hasCutsceneOverride = !sq_isnull(_closureCutsceneOverrideObj);
   _inputState = _engine.getInputState();
   trace("Cutscene with inputState {}", _inputState);
   _engine.setInputActive(false);
   _engine.setInputVerbs(false);
 
-  sq_addref(_engineVm, &_threadCutscene);
-  sq_addref(_engineVm, &_closureObj);
-  sq_addref(_engineVm, &_closureCutsceneOverrideObj);
-  sq_addref(_engineVm, &_envObj);
+  sq_addref(engineVm, &_threadCutscene);
+  sq_addref(engineVm, &_closureObj);
+  sq_addref(engineVm, &_closureCutsceneOverrideObj);
+  sq_addref(engineVm, &_envObj);
 }
 
 Cutscene::~Cutscene() {
-  sq_release(_engineVm, &_threadCutscene);
-  sq_release(_engineVm, &_closureObj);
-  sq_release(_engineVm, &_closureCutsceneOverrideObj);
-  sq_release(_engineVm, &_envObj);
+  auto engineVm = ScriptEngine::getVm();
+  sq_release(engineVm, &_threadCutscene);
+  sq_release(engineVm, &_closureObj);
+  sq_release(engineVm, &_closureCutsceneOverrideObj);
+  sq_release(engineVm, &_envObj);
 }
 
 HSQUIRRELVM Cutscene::getThread() const {

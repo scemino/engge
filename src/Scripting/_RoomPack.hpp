@@ -484,6 +484,8 @@ private:
   }
 
   static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom, bool isPseudoRoom) {
+    // oh :( this code is really ugly, I need to refactor this
+    // don't be suprised if it's full of bugs :S
     auto &roomTable = pRoom->getTable();
     if (isPseudoRoom) {
       // if this is a pseudo room, we have to clone the table
@@ -540,8 +542,6 @@ private:
     sq_pop(v, 1); //pops the null iterator
 
     for (auto &obj: pRoom->getObjects()) {
-      sq_resetobject(&obj->getTable());
-
       sq_pushobject(v, roomTable);
       sq_pushstring(v, obj->getKey().c_str(), -1);
       if (SQ_FAILED(sq_rawget(v, -2))) {
@@ -550,7 +550,9 @@ private:
         sq_pushobject(v, roomTable);
         sq_pushstring(v, obj->getKey().c_str(), -1);
         sq_rawget(v, -2);
+        sq_resetobject(&obj->getTable());
         sq_getstackobj(v, -1, &obj->getTable());
+        sq_addref(ScriptEngine::getVm(), &obj->getTable());
         if (!sq_istable(obj->getTable())) {
           return sq_throwerror(v, _SC("object should be a table entry"));
         }
@@ -559,7 +561,9 @@ private:
       }
 
       obj->setTouchable(true);
+      sq_resetobject(&obj->getTable());
       sq_getstackobj(v, -1, &obj->getTable());
+      sq_addref(ScriptEngine::getVm(), &obj->getTable());
       if (!sq_istable(obj->getTable())) {
         return sq_throwerror(v, _SC("object should be a table entry"));
       }
@@ -606,11 +610,9 @@ private:
 
       std::unique_ptr<Object> object;
       if (!ScriptEngine::rawExists(roomObject.second, "_id")) {
-        object = std::make_unique<Object>();
+        object = std::make_unique<Object>(roomObject.second);
         object->setKey(roomObject.first);
-        sq_pushobject(v, roomObject.second);
-        sq_getstackobj(v, -1, &object->getTable());
-//        trace("Room {}: Set object id {} to {}", pRoom->getName(), object->getId(), object->getKey());
+//          trace("Room {}: Set object id {} to {}", pRoom->getName(), object->getId(), object->getKey());
         ScriptEngine::set(object.get(), "_id", object->getId());
 
         if (!ScriptEngine::rawExists(object.get(), "icon")) {

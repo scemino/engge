@@ -11,7 +11,6 @@ class Cutscene : public ThreadBase, public Function {
 private:
   Engine &_engine;
   HSQUIRRELVM _v{};
-  HSQUIRRELVM _engineVm{};
   HSQOBJECT _threadCutscene{};
   int _state{0};
   HSQOBJECT _closureObj{};

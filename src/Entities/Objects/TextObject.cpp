@@ -21,6 +21,8 @@ TextObject::TextObject()
   setTemporary(true);
 }
 
+TextObject::~TextObject() = default;
+
 void TextObject::setText(const std::string &text) {
   _text = towstring(text);
 }

@@ -736,7 +736,7 @@ private:
       return sq_throwerror(v, _SC("Couldn't get environment from stack"));
     }
 
-    auto vm = g_pEngine->getVm();
+    auto vm = ScriptEngine::getVm();
     // create thread and store it on the stack
     sq_newthread(vm, 1024);
     HSQOBJECT thread_obj;

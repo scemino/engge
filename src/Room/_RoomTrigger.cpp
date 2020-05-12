@@ -18,7 +18,7 @@ _RoomTriggerThread::~_RoomTriggerThread() {
 
 _RoomTrigger::_RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQOBJECT outside)
     : _engine(engine), _object(object), _inside(inside), _outside(outside) {
-  _vm = engine.getVm();
+  _vm = ScriptEngine::getVm();
   sq_addref(_vm, &inside);
   sq_addref(_vm, &outside);
 

@@ -31,7 +31,7 @@ public:
   void setEngine(Engine &engine);
   Engine &getEngine();
 
-  static HSQUIRRELVM getVm() { return g_pEngine->getVm(); }
+  static HSQUIRRELVM getVm() { return v; }
 
   static SQObjectPtr toSquirrel(const std::string &value);
 
@@ -137,7 +137,7 @@ private:
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
 private:
-  HSQUIRRELVM v;
+  static HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
 
 private:
@@ -153,7 +153,7 @@ void ScriptEngine::push(HSQUIRRELVM v, First firstValue, Rest... rest) {
 template<typename...T>
 bool ScriptEngine::call(const char *name, T...args) {
   constexpr std::size_t n = sizeof...(T);
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   sq_pushroottable(v);
   sq_pushstring(v, _SC(name), -1);
@@ -178,7 +178,7 @@ bool ScriptEngine::call(const char *name, T...args) {
 
 template<typename TThis>
 int ScriptEngine::getParameterCount(TThis pThis, const char *name) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, name, -1);
@@ -199,7 +199,7 @@ int ScriptEngine::getParameterCount(TThis pThis, const char *name) {
 template<typename...T>
 bool ScriptEngine::rawCall(const char *name, T...args) {
   constexpr std::size_t n = sizeof...(T);
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   sq_pushroottable(v);
   sq_pushstring(v, _SC(name), -1);
@@ -224,7 +224,7 @@ bool ScriptEngine::rawCall(const char *name, T...args) {
 
 template<typename TThis>
 int ScriptEngine::rawGetParameterCount(TThis pThis, const char *name) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, name, -1);
@@ -245,7 +245,7 @@ int ScriptEngine::rawGetParameterCount(TThis pThis, const char *name) {
 template<typename TThis, typename...T>
 bool ScriptEngine::call(TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -271,7 +271,7 @@ bool ScriptEngine::call(TThis pThis, const char *name, T... args) {
 template<typename TThis, typename...T>
 bool ScriptEngine::rawCall(TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -296,7 +296,7 @@ bool ScriptEngine::rawCall(TThis pThis, const char *name, T... args) {
 
 template<typename TThis>
 bool ScriptEngine::call(TThis pThis, const char *name) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -320,7 +320,7 @@ bool ScriptEngine::call(TThis pThis, const char *name) {
 
 template<typename TThis>
 bool ScriptEngine::rawCall(TThis pThis, const char *name) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -345,7 +345,7 @@ bool ScriptEngine::rawCall(TThis pThis, const char *name) {
 template<typename TResult, typename TThis, typename...T>
 bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -372,7 +372,7 @@ bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T...
 template<typename TResult, typename TThis, typename...T>
 bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -397,12 +397,12 @@ bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T
 
 template<typename TThis, typename T>
 bool ScriptEngine::get(TThis pThis, const char *name, T &result) {
-  return ScriptEngine::get(g_pEngine->getVm(), pThis, name, result);
+  return ScriptEngine::get(ScriptEngine::getVm(), pThis, name, result);
 }
 
 template<typename TThis, typename T>
 bool ScriptEngine::rawGet(TThis pThis, const char *name, T &result) {
-  return ScriptEngine::rawGet(g_pEngine->getVm(), pThis, name, result);
+  return ScriptEngine::rawGet(ScriptEngine::getVm(), pThis, name, result);
 }
 
 template<typename TThis, typename T>
@@ -435,7 +435,7 @@ bool ScriptEngine::rawGet(HSQUIRRELVM v, TThis pThis, const char *name, T &resul
 
 template<typename TThis>
 bool ScriptEngine::exists(TThis pThis, const char *name) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -449,7 +449,7 @@ bool ScriptEngine::exists(TThis pThis, const char *name) {
 
 template<typename TThis>
 bool ScriptEngine::rawExists(TThis pThis, const char *name) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -463,7 +463,7 @@ bool ScriptEngine::rawExists(TThis pThis, const char *name) {
 
 template<typename T>
 void ScriptEngine::set(const char *name, T value) {
-  auto v = g_pEngine->getVm();
+  auto v = ScriptEngine::getVm();
   sq_pushroottable(v);
   sq_pushstring(v, _SC(name), -1);
   ScriptEngine::push(v, value);
@@ -473,7 +473,7 @@ void ScriptEngine::set(const char *name, T value) {
 
 template<typename TThis, typename T>
 void ScriptEngine::set(TThis pThis, const char *name, T value) {
-  ScriptEngine::set(g_pEngine->getVm(), pThis, name, value);
+  ScriptEngine::set(ScriptEngine::getVm(), pThis, name, value);
 }
 
 template<typename TThis, typename T>

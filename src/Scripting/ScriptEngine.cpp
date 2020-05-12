@@ -267,6 +267,8 @@ static Platform _getPlatform() {
 #endif
 }
 
+HSQUIRRELVM ScriptEngine::v{};
+
 ScriptEngine::ScriptEngine() {
   v = sq_open(1024 * 2);
   sq_setcompilererrorhandler(v, errorHandler);
@@ -419,11 +421,12 @@ ScriptEngine::ScriptEngine() {
                          });
 }
 
-ScriptEngine::~ScriptEngine() { sq_close(v); }
+ScriptEngine::~ScriptEngine() {
+  sq_close(v);
+}
 
 void ScriptEngine::setEngine(Engine &engine) {
   g_pEngine = &engine;
-  engine.setVm(v);
   auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(v, engine);
   engine.setVerbExecute(std::move(pVerbExecute));
   auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(v);
@@ -488,7 +491,6 @@ void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionNa
 }
 
 void ScriptEngine::executeScript(const std::string &name) {
-  auto v = g_pEngine->getVm();
   if (SQ_FAILED(sqstd_dofile(v, name.c_str(), SQFalse, SQTrue))) {
     error("failed to execute {}", name);
     sq_getlasterror(v);
@@ -498,7 +500,6 @@ void ScriptEngine::executeScript(const std::string &name) {
 }
 
 void ScriptEngine::executeNutScript(const std::string &name) {
-  auto v = g_pEngine->getVm();
   std::vector<char> code;
 
   std::ifstream is(name);
@@ -544,7 +545,6 @@ void ScriptEngine::executeNutScript(const std::string &name) {
 }
 
 bool ScriptEngine::rawCall(const char *name) {
-  auto v = g_pEngine->getVm();
   sq_pushroottable(v);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_FAILED(sq_rawget(v, -2))) {
@@ -566,7 +566,6 @@ bool ScriptEngine::rawCall(const char *name) {
 }
 
 bool ScriptEngine::call(const char *name) {
-  auto v = g_pEngine->getVm();
   sq_pushroottable(v);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_FAILED(sq_get(v, -2))) {

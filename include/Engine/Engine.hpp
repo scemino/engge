@@ -126,9 +126,6 @@ public:
 
   [[nodiscard]] sf::Time getTime() const;
 
-  void setVm(HSQUIRRELVM vm);
-  HSQUIRRELVM getVm();
-
   HSQOBJECT &getDefaultObject();
 
   void setFadeAlpha(float fade);

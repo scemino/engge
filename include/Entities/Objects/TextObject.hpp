@@ -18,7 +18,9 @@ enum class TextAlignment : unsigned long {
 
 class TextObject : public Object {
 public:
-  explicit TextObject();
+  TextObject();
+  ~TextObject() override;
+
   FntFont &getFont() { return _font; }
   void setText(const std::string &text);
   void setAlignment(TextAlignment alignment) { _alignment = alignment; }

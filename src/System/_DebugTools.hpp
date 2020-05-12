@@ -28,7 +28,7 @@ public:
   void render() {
     ImGui::Begin("Debug");
     std::stringstream s;
-    s << "Stack: " << sq_gettop(_engine.getVm());
+    s << "Stack: " << sq_gettop(ScriptEngine::getVm());
     std::vector<std::string> stack;
     getStack(stack);
     ImGui::Combo(s.str().c_str(), &_selectedStack, stringGetter, static_cast<void *>(&stack), stack.size());
@@ -203,10 +203,10 @@ private:
 
   void getStack(std::vector<std::string> &stack) {
     HSQOBJECT obj;
-    auto size = static_cast<int>(sq_gettop(_engine.getVm()));
+    auto size = static_cast<int>(sq_gettop(ScriptEngine::getVm()));
     for (int i = 1; i <= size; ++i) {
-      auto type = sq_gettype(_engine.getVm(), -i);
-      sq_getstackobj(_engine.getVm(), -i, &obj);
+      auto type = sq_gettype(ScriptEngine::getVm(), -i);
+      sq_getstackobj(ScriptEngine::getVm(), -i, &obj);
       std::ostringstream s;
       s << "#" << i << ": ";
       switch (type) {
@@ -254,7 +254,7 @@ private:
         s << "closure: ";
         auto pName = _closure(obj)->_function->_name;
         auto pSourcename = _closure(obj)->_function->_sourcename;
-        auto line = _closure(obj)->_function->_nlineinfos;
+        auto line = _closure(obj)->_function->_lineinfos->_line;
         s << (pName._type != OT_NULL ? _stringval(pName) : "null");
         s << ' ' << (pSourcename._type != OT_NULL ? _stringval(pSourcename) : "-null");
         s << " [" << line << ']';

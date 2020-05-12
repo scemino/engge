@@ -24,7 +24,7 @@ struct Object::Impl {
   Room *_pRoom{nullptr};
   int _state{0};
   std::optional<std::shared_ptr<Trigger>> _trigger;
-  HSQOBJECT _pTable{};
+  HSQOBJECT _table{};
   bool _hotspotVisible{false};
   bool _triggerEnabled{true};
   Object *pParentObject{nullptr};
@@ -40,9 +40,35 @@ struct Object::Impl {
   bool _jiggle{false};
   std::string _key;
   Object *_pParent{nullptr};
+
+  Impl() {
+    auto v = ScriptEngine::getVm();
+    sq_resetobject(&_table);
+    sq_newtable(v);
+    sq_getstackobj(v, -1, &_table);
+    sq_addref(v, &_table);
+    sq_pop(v, 1);
+  }
+
+  Impl(HSQOBJECT obj) {
+    auto v = ScriptEngine::getVm();
+    sq_pushobject(v, obj);
+    sq_getstackobj(v, -1, &_table);
+    sq_addref(v, &_table);
+    sq_pop(v, 1);
+  }
+
+  ~Impl() {
+    auto v = ScriptEngine::getVm();
+    sq_release(v, &_table);
+  }
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
+  _id = Locator<ResourceManager>::get().getObjectId();
+}
+
+Object::Object(HSQOBJECT obj) : pImpl(std::make_unique<Impl>(obj)) {
   _id = Locator<ResourceManager>::get().getObjectId();
 }
 
@@ -71,9 +97,9 @@ void Object::setIcon(const std::string &icon) {
 }
 
 std::string Object::getIcon() const {
-  if(pImpl->_icons.empty()) {
+  if (pImpl->_icons.empty()) {
     const char *icon = nullptr;
-    ScriptEngine::rawGet(pImpl->_pTable, "icon", icon);
+    ScriptEngine::rawGet(pImpl->_table, "icon", icon);
     return icon;
   }
   return pImpl->_icons.at(pImpl->_index);
@@ -90,8 +116,8 @@ void Object::setIcon(int fps, const std::vector<std::string> &icons) {
 void Object::setOwner(Actor *pActor) { pImpl->_owner = pActor; }
 Actor *Object::getOwner() const { return pImpl->_owner; }
 
-HSQOBJECT &Object::getTable() { return pImpl->_pTable; }
-HSQOBJECT &Object::getTable() const { return pImpl->_pTable; }
+HSQOBJECT &Object::getTable() { return pImpl->_table; }
+HSQOBJECT &Object::getTable() const { return pImpl->_table; }
 bool Object::isInventoryObject() const { return getOwner() != nullptr; }
 
 std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_anims; }
@@ -308,7 +334,7 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
   drawHotspot(target, states);
 
-  for(const auto& pChild : pImpl->_children) {
+  for (const auto &pChild : pImpl->_children) {
     target.draw(*pChild, initialStates);
   }
 }

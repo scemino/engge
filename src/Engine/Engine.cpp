@@ -116,7 +116,7 @@ struct Engine::Impl {
       time(&now);
 
       SQObjectPtr g;
-      _table(_pImpl->_vm->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
+      _table(ScriptEngine::getVm()->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
       SQObjectPtr easyMode;
       _table(g)->Get(ScriptEngine::toSquirrel("easy_mode"), easyMode);
 
@@ -197,7 +197,7 @@ struct Engine::Impl {
         return static_cast<SQFloat>(value.getDouble());
       }
       if (value.isArray()) {
-        auto array = SQArray::Create(_ss(_pImpl->_vm), value.array_value.size());
+        auto array = SQArray::Create(_ss(ScriptEngine::getVm()), value.array_value.size());
         SQInteger i = 0;
         for (auto &item : value.array_value) {
           array->Set(i++, toSquirrel(item));
@@ -237,7 +237,7 @@ struct Engine::Impl {
           return pRoom->getTable();
         }
 
-        auto table = SQTable::Create(_ss(_pImpl->_vm), value.hash_value.size());
+        auto table = SQTable::Create(_ss(ScriptEngine::getVm()), value.hash_value.size());
         for (const auto&[key, value] : value.hash_value) {
           table->Set(ScriptEngine::toSquirrel(key), toSquirrel(value));
         }
@@ -628,7 +628,7 @@ struct Engine::Impl {
     }
 
     Object *getInventoryObject(const std::string &name) {
-      auto v = _pImpl->_pEngine->getVm();
+      auto v = ScriptEngine::getVm();
       SQObjectPtr obj;
       if (!_table(v->_roottable)->Get(ScriptEngine::toSquirrel(name), obj)) {
         return nullptr;
@@ -714,7 +714,7 @@ struct Engine::Impl {
 
     void saveGlobals(GGPackValue &globalsHash) {
       globalsHash.type = 2;
-      auto v = _pImpl->_pEngine->getVm();
+      auto v = ScriptEngine::getVm();
       auto top = sq_gettop(v);
       sq_pushroottable(v);
       sq_pushstring(v, _SC("g"), -1);
@@ -879,7 +879,7 @@ struct Engine::Impl {
     }
 
     void loadGlobals(const GGPackValue &hash) {
-      SQTable *pRootTable = _table(_pImpl->_vm->_roottable);
+      SQTable *pRootTable = _table(ScriptEngine::getVm()->_roottable);
       SQObjectPtr gObject;
       pRootTable->Get(ScriptEngine::toSquirrel("g"), gObject);
       SQTable *gTable = _table(gObject);
@@ -1038,7 +1038,7 @@ struct Engine::Impl {
   SpriteSheet _gameSheet, _saveLoadSheet;
   Actor *_pFollowActor{nullptr};
   Entity *_pUseObject{nullptr};
-  Entity *_pObj1{nullptr};
+  int _objId1{0};
   Entity *_pObj2{nullptr};
   sf::Vector2f _mousePos;
   sf::Vector2f _mousePosInRoom;
@@ -1052,7 +1052,6 @@ struct Engine::Impl {
   std::array<ActorIconSlot, 6> _actorsIconSlots;
   UseFlag _useFlag{UseFlag::None};
   ActorIcons _actorIcons;
-  HSQUIRRELVM _vm{};
   sf::Time _time;
   bool _isMouseDown{false};
   sf::Time _mouseDownTime;
@@ -1096,6 +1095,7 @@ struct Engine::Impl {
   void updateScreenSize() const;
   void updateRoomScalings() const;
   void setCurrentRoom(Room *pRoom);
+  int getFlags(int id) const;
   int getFlags(Entity *pEntity) const;
   int getDefaultVerb(Entity *pEntity) const;
   Entity *getHoveredEntity(const sf::Vector2f &mousPos);
@@ -1435,7 +1435,7 @@ void Engine::setDefaultVerb() {
   _pImpl->_hud.setCurrentVerb(&verbSlot.getVerb(0));
   _pImpl->_useFlag = UseFlag::None;
   _pImpl->_pUseObject = nullptr;
-  _pImpl->_pObj1 = nullptr;
+  _pImpl->_objId1 = 0;
   _pImpl->_pObj2 = nullptr;
 }
 
@@ -1458,10 +1458,6 @@ DialogManager &Engine::getDialogManager() { return _pImpl->_dialogManager; }
 Camera &Engine::getCamera() { return _pImpl->_camera; }
 
 sf::Time Engine::getTime() const { return _pImpl->_time; }
-
-void Engine::setVm(HSQUIRRELVM vm) { _pImpl->_vm = vm; }
-
-HSQUIRRELVM Engine::getVm() { return _pImpl->_vm; }
 
 SQInteger Engine::Impl::exitRoom(Object *pObject) {
   _pEngine->setDefaultVerb();
@@ -1732,7 +1728,7 @@ void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {
 }
 
 void Engine::Impl::updateMouseCursor() {
-  auto flags = getFlags(_pObj1);
+  auto flags = getFlags(_objId1);
   auto screen = _pWindow->getView().getSize();
   _cursorDirection = CursorDirection::None;
   if ((_mousePos.x < 20) || (flags & ObjectFlagConstants::DOOR_LEFT) == ObjectFlagConstants::DOOR_LEFT)
@@ -1744,7 +1740,7 @@ void Engine::Impl::updateMouseCursor() {
     _cursorDirection |= CursorDirection::Down;
   else if ((flags & ObjectFlagConstants::DOOR_BACK) == ObjectFlagConstants::DOOR_BACK)
     _cursorDirection |= CursorDirection::Up;
-  if ((_cursorDirection == CursorDirection::None) && _pObj1)
+  if ((_cursorDirection == CursorDirection::None) && _objId1)
     _cursorDirection |= CursorDirection::Hotspot;
 }
 
@@ -1792,38 +1788,40 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   }
 
   if (_pUseObject) {
-    _pObj1 = _pUseObject;
+    _objId1 = _pUseObject ? _pUseObject->getId() : 0;
     _pObj2 = _hud.getHoveredEntity();
   } else {
-    _pObj1 = _hud.getHoveredEntity();
+    _objId1 = _hud.getHoveredEntity() ? _hud.getHoveredEntity()->getId() : 0;
     _pObj2 = nullptr;
   }
 
   // abort some invalid actions
-  if (!_pObj1 || !_hud.getCurrentVerb()) {
+  if (!_objId1 || !_hud.getCurrentVerb()) {
     return;
   }
 
-  if (_pObj2 == _pObj1) {
+  if (_pObj2 && _pObj2->getId() == _objId1) {
     _pObj2 = nullptr;
   }
 
-  if (_pObj1 && isRightClick) {
-    _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(_pObj1)));
+  if (_objId1 && isRightClick) {
+    _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1))));
   }
 
   if (_hud.getCurrentVerb()->id == VerbConstants::VERB_WALKTO) {
-    if (_pObj1 && _pObj1->isInventoryObject()) {
-      _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(_pObj1)));
+    auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+    if (pObj1 && pObj1->isInventoryObject()) {
+      _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1))));
     }
   } else if (_hud.getCurrentVerb()->id == VerbConstants::VERB_TALKTO) {
     // select actor/object only if talkable flag is set
-    auto flags = getFlags(_pObj1);
+    auto flags = getFlags(_objId1);
     if (!(flags & ObjectFlagConstants::TALKABLE))
-      _pObj1 = nullptr;
+      _objId1 = 0;
   } else if (_hud.getCurrentVerb()->id == VerbConstants::VERB_GIVE) {
-    if (!_pObj1->isInventoryObject())
-      _pObj1 = nullptr;
+    auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+    if (!pObj1->isInventoryObject())
+      _objId1 = 0;
 
     // select actor/object only if giveable flag is set
     if (_pObj2) {
@@ -1846,6 +1844,10 @@ Entity *Engine::Impl::getEntity(Entity *pEntity) const {
     return itActor->get();
   }
   return pEntity;
+}
+
+int Engine::Impl::getFlags(int id) const {
+  return getFlags(ScriptEngine::getScriptObjectFromId<Entity>(id));
 }
 
 int Engine::Impl::getFlags(Entity *pEntity) const {
@@ -2041,7 +2043,8 @@ void Engine::update(const sf::Time &el) {
       pVerbOverride = _pImpl->_hud.getCurrentVerb();
     }
     pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
-    auto pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(_pImpl->_pObj1) : _pImpl->_pObj1;
+    auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_pImpl->_objId1);
+    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(pObj1) : pObj1;
     auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->getEntity(_pImpl->_pObj2) : _pImpl->_pObj2;
     if (pObj1) {
       _pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
@@ -2141,7 +2144,7 @@ void Engine::Impl::onVerbClick(const Verb *pVerb) {
   _hud.setCurrentVerb(pVerb);
   _useFlag = UseFlag::None;
   _pUseObject = nullptr;
-  _pObj1 = nullptr;
+  _objId1 = 0;
   _pObj2 = nullptr;
 
   ScriptEngine::rawCall("onVerbClick");
@@ -2341,7 +2344,8 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
     return pVerb;
 
   const char *dialog = nullptr;
-  auto pObj1 = getEntity(_pObj1);
+  auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+  pObj1 = getEntity(pObj1);
   if (pObj1 && ScriptEngine::rawGet(pObj1, "dialog", dialog) && dialog) {
     pVerb = _hud.getVerb(VerbConstants::VERB_TALKTO);
   }
@@ -2384,8 +2388,9 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
     auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
     s.append(_pEngine->getText(id));
   }
-  if (_pObj1) {
-    s.append(L" ").append(getDisplayName(_pEngine->getText(_pObj1->getName())));
+  auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+  if (pObj1) {
+    s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
   }
   appendUseFlag(s);
   if (_pObj2) {
