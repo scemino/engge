@@ -71,7 +71,7 @@ void SoundId::resume() {
 
 void SoundId::updateVolume() {
   float entityVolume = 1.f;
-  Entity *pEntity = _id ? ScriptEngine::getScriptObjectFromId<Entity>(_id) : nullptr;
+  Entity *pEntity = _entityId ? ScriptEngine::getScriptObjectFromId<Entity>(_entityId) : nullptr;
 
   if (pEntity) {
     auto pRoom = _soundManager.getEngine()->getRoom();
@@ -139,7 +139,7 @@ void SoundId::fadeTo(float volume, const sf::Time &duration) {
 }
 
 void SoundId::setEntity(int id) {
-  _id = id;
+  _entityId = id;
 }
 
 } // namespace ng

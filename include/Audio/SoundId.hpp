@@ -38,6 +38,6 @@ private:
   SoundCategory _category;
   float _volume{1.0f};
   int _loopTimes{0};
-  int _id{0};
+  int _entityId{0};
 };
 } // namespace ng
