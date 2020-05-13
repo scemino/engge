@@ -21,6 +21,8 @@ public:
 
   SoundDefinition *getSoundDefinition();
   [[nodiscard]] bool isPlaying() const;
+  int getLoopTimes() const { return _loopTimes; }
+  SoundCategory getSoundCategory() const { return _category; }
   void fadeTo(float volume, const sf::Time &duration);
 
   void setEntity(int id);

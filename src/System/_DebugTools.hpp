@@ -57,6 +57,7 @@ public:
     showActors();
     showObjects();
     showRooms();
+    showSounds();
 
     ImGui::End();
   }
@@ -224,29 +225,28 @@ private:
       }
       case OT_STRING:s << sq_objtostring(&obj);
         break;
-      case OT_TABLE:
-        {
-          int id;
-          if(ScriptEngine::rawGet(obj, "_id", id)) {
-            if(ResourceManager::isActor(id)) {
-              s << "actor";
-            } else if(ResourceManager::isRoom(id)) {
-              s << "room";
-            } else if(ResourceManager::isObject(id)) {
-              s << "object";
-            } else if(ResourceManager::isLight(id)) {
-              s << "light";
-            } else if(ResourceManager::isSound(id)) {
-              s << "sound";
-            } else if(ResourceManager::isThread(id)) {
-              s << "thread table";
-            } else {
-              s << "table";
-            }
+      case OT_TABLE: {
+        int id;
+        if (ScriptEngine::rawGet(obj, "_id", id)) {
+          if (ResourceManager::isActor(id)) {
+            s << "actor";
+          } else if (ResourceManager::isRoom(id)) {
+            s << "room";
+          } else if (ResourceManager::isObject(id)) {
+            s << "object";
+          } else if (ResourceManager::isLight(id)) {
+            s << "light";
+          } else if (ResourceManager::isSound(id)) {
+            s << "sound";
+          } else if (ResourceManager::isThread(id)) {
+            s << "thread table";
           } else {
             s << "table";
           }
+        } else {
+          s << "table";
         }
+      }
         break;
       case OT_ARRAY:s << "array";
         break;
@@ -283,6 +283,49 @@ private:
       }
       stack.push_back(s.str());
     }
+  }
+
+  void showSounds() {
+    if (!ImGui::CollapsingHeader("Sounds"))
+      return;
+
+    ImGui::Indent();
+    auto &sounds = _engine.getSoundManager().getSounds();
+    for (auto i = 0; i < static_cast<int>(sounds.size()); i++) {
+      const auto &sound = sounds[i];
+      const auto *sd = sound ? sound->getSoundDefinition(): nullptr;
+      const auto* name = !sd ? "<free>" : sd->getPath().data();
+      auto loopTimes = sound ? sound->getLoopTimes() : 0;
+      auto volume = sound ? sound->getVolume() : 0.f;
+      std::string category;
+      ImVec4 catColor = ImVec4(sf::Color::White);
+      if(sound) {
+        switch(sound->getSoundCategory()){
+        case SoundCategory::Music:
+          catColor = ImVec4(sf::Color::Green);
+          category = "[music]";
+          break;
+        case SoundCategory::Sound:
+          catColor = ImVec4(sf::Color::Red);
+          category = "[sound]";
+          break;
+        case SoundCategory::Talk:
+          catColor = ImVec4(sf::Color::Yellow);
+          category = "[talk]";
+          break;
+        }
+      }
+      if(ImGui::SmallButton("stop") && sound){
+        sound->stop();
+      }
+      ImGui::SameLine();
+      ImGui::Text("%2d: %-48s x%2d", i, name, loopTimes);
+      ImGui::SameLine();
+      ImGui::TextColored(catColor, " %7s", category.data());
+      ImGui::SameLine();
+      ImGui::Text(" %.1f", volume);
+    }
+    ImGui::Unindent();
   }
 
   void showActors() {
