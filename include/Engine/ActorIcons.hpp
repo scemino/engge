@@ -1,7 +1,6 @@
 #pragma once
 #include "ActorIconSlot.hpp"
 #include "SFML/Graphics.hpp"
-#include "Graphics/SpriteSheet.hpp"
 #include "Verb.hpp"
 #include "Hud.hpp"
 
@@ -39,7 +38,6 @@ private:
 
 private:
   Engine *_pEngine{nullptr};
-  SpriteSheet _gameSheet;
   std::array<ActorIconSlot, 6> &_actorsIconSlots;
   Hud &_hud;
   Actor *&_pCurrentActor;

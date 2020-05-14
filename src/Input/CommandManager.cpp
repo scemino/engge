@@ -6,6 +6,10 @@ void CommandManager::registerCommand(const std::string &command, CommandHandler 
   _commandHandlers[command] = std::move(handler);
 }
 
+void CommandManager::registerPressedCommand(const std::string &command, PressedCommandHandler handler) {
+  _pressedCommandHandlers[command] = std::move(handler);
+}
+
 void CommandManager::registerCommands(std::initializer_list<std::tuple<const char *, CommandHandler>> commands) {
   for (auto&[cmd, handler] : commands) {
     registerCommand(cmd, handler);
@@ -34,6 +38,16 @@ void CommandManager::execute(const Input& input) const {
   auto it = _inputBindings.find(input);
   if (it != _inputBindings.end()) {
     execute(it->second);
+  }
+}
+
+void CommandManager::execute(const Input& input, bool keyDown) const {
+  auto it = _inputBindings.find(input);
+  if (it != _inputBindings.end()) {
+    auto it2 = _pressedCommandHandlers.find(it->second);
+    if (it2 != _pressedCommandHandlers.end()) {
+      it2->second(keyDown);
+    }
   }
 }
 }

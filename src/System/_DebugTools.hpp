@@ -560,7 +560,7 @@ private:
       }
       auto hotspotVisible = object->isHotspotVisible();
       if (ImGui::Checkbox("Show hotspot", &hotspotVisible)) {
-        object->showHotspot(hotspotVisible);
+        object->showDebugHotspot(hotspotVisible);
       }
       auto hotspot = object->getHotspot();
       if (InputInt4("Hotspot", hotspot)) {

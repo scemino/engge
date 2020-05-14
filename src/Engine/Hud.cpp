@@ -4,6 +4,7 @@
 #include "Engine/Hud.hpp"
 #include "Engine/Preferences.hpp"
 #include "Graphics/Screen.hpp"
+#include "Graphics/SpriteSheet.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "System/Locator.hpp"
 
@@ -62,10 +63,6 @@ Hud::Hud() {
 
 void Hud::setTextureManager(TextureManager *pTextureManager) {
   _inventory.setTextureManager(pTextureManager);
-  _gameSheet.setTextureManager(pTextureManager);
-  _verbSheet.setTextureManager(pTextureManager);
-  _gameSheet.load("GameSheet");
-  _verbSheet.load("VerbSheet");
 }
 
 void Hud::setVerb(int characterSlot, int verbSlot, const Verb &verb) {
@@ -109,7 +106,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
   // draw UI background
-  auto preferences = Locator<Preferences>::get();
+  const auto& preferences = Locator<Preferences>::get();
   auto hudSentence = preferences.getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
   auto uiBackingAlpha =
       preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
@@ -118,11 +115,12 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   const auto &verbUiColors = getVerbUiColors(_currentActorIndex);
   auto verbHighlight = invertVerbHighlight ? sf::Color::White : verbUiColors.verbHighlight;
   auto verbColor = invertVerbHighlight ? verbUiColors.verbHighlight : sf::Color::White;
-  auto uiBackingRect = hudSentence ? _gameSheet.getRect("ui_backing_tall") : _gameSheet.getRect("ui_backing");
+  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto uiBackingRect = hudSentence ? gameSheet.getRect("ui_backing_tall") : gameSheet.getRect("ui_backing");
   sf::Sprite uiBacking;
   uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * _alpha * 255));
   uiBacking.setPosition(0, 720.f - uiBackingRect.height);
-  uiBacking.setTexture(_gameSheet.getTexture());
+  uiBacking.setTexture(gameSheet.getTexture());
   uiBacking.setTextureRect(uiBackingRect);
   target.draw(uiBacking);
 
@@ -134,6 +132,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   sf::RenderStates verbStates;
   verbStates.shader = &_verbShader;
+  auto &verbSheet = Locator<TextureManager>::get().getSpriteSheet("VerbSheet");
   for (int i = 1; i <= 9; i++) {
     auto verb = getVerbSlot(_currentActorIndex).getVerb(i);
     auto color = verb.id == verbId ? verbHighlight : verbColor;
@@ -141,12 +140,12 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
     _verbShader.setUniform("color", sf::Glsl::Vec4(color));
 
     auto verbName = getVerbName(verb);
-    auto rect = _verbSheet.getRect(verbName);
-    auto s = _verbSheet.getSpriteSourceSize(verbName);
+    auto rect = verbSheet.getRect(verbName);
+    auto s = verbSheet.getSpriteSourceSize(verbName);
     sf::Sprite verbSprite;
     verbSprite.setColor(color);
     verbSprite.setPosition(s.left, s.top);
-    verbSprite.setTexture(_verbSheet.getTexture());
+    verbSprite.setTexture(verbSheet.getTexture());
     verbSprite.setTextureRect(rect);
     target.draw(verbSprite, verbStates);
   }
@@ -169,7 +168,8 @@ void Hud::setCurrentActor(Actor *pActor) {
 sf::Vector2f Hud::findScreenPosition(int verbId) const {
   auto pVerb = getVerb(verbId);
   auto s = getVerbName(*pVerb);
-  auto r = _verbSheet.getSpriteSourceSize(s);
+  auto &verbSheet = Locator<TextureManager>::get().getSpriteSheet("VerbSheet");
+  auto r = verbSheet.getSpriteSourceSize(s);
   return sf::Vector2f(r.left + r.width / 2.f, Screen::Height - (r.top + r.height / 2.f));
 }
 

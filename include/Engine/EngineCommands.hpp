@@ -20,4 +20,5 @@ static const char *SelectPreviousActor = "SelectPreviousActor";
 static const char *SelectNextActor = "SelectNextActor";
 static const char *ShowOptions = "ShowOptions";
 static const char *ToggleHud = "ToggleHud";
+static const char *ShowHotspots = "ShowHotspot";
 }

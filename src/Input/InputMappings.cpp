@@ -46,7 +46,8 @@ void InputMappings::registerMappings() {
           {{keySelectNext}, ng::EngineCommands::SelectNextActor},
           {{keySkip}, ng::EngineCommands::SkipText},
           {{MetaKeys::Control, ng::InputConstants::KEY_O}, ng::EngineCommands::ShowOptions},
-          {{MetaKeys::Control, ng::InputConstants::KEY_U}, ng::EngineCommands::ToggleHud}
+          {{MetaKeys::Control, ng::InputConstants::KEY_U}, ng::EngineCommands::ToggleHud},
+          {{ng::InputConstants::KEY_TAB}, ng::EngineCommands::ShowHotspots}
       });
 }
 }

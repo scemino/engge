@@ -55,6 +55,14 @@ GGPackValue Preferences::getPrivatePreferenceCore(const std::string &name, const
   return defaultValue;
 }
 
+GGPackValue Preferences::getTempPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const {
+  auto it = _tempValues.hash_value.find(name);
+  if (it != _tempValues.hash_value.end()) {
+    return it->second;
+  }
+  return defaultValue;
+}
+
 template<>
 int Preferences::fromGGPackValue<int>(const GGPackValue &value) {
   return value.int_value;

@@ -1,5 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include "System/Locator.hpp"
+#include "Graphics/SpriteSheet.hpp"
 #include "Engine/ActorIcons.hpp"
 #include "Engine/Engine.hpp"
 
@@ -19,8 +21,6 @@ ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, Hud &hud,
 
 void ActorIcons::setEngine(Engine *pEngine) {
   _pEngine = pEngine;
-  _gameSheet.setTextureManager(&_pEngine->getTextureManager());
-  _gameSheet.load("GameSheet");
 }
 
 void ActorIcons::setMousePosition(const sf::Vector2f &pos) { _mousePos = pos; }
@@ -165,14 +165,15 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
 void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, sf::Color backColor,
                                sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const {
   sf::RenderStates states;
-  const auto &texture = _gameSheet.getTexture();
-  auto backRect = _gameSheet.getRect("icon_background");
-  auto backSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_background");
-  auto backSourceSize = _gameSheet.getSourceSize("icon_background");
+  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  const auto &texture = gameSheet.getTexture();
+  auto backRect = gameSheet.getRect("icon_background");
+  auto backSpriteSourceSize = gameSheet.getSpriteSourceSize("icon_background");
+  auto backSourceSize = gameSheet.getSourceSize("icon_background");
 
-  auto frameRect = _gameSheet.getRect("icon_frame");
-  auto frameSpriteSourceSize = _gameSheet.getSpriteSourceSize("icon_frame");
-  auto frameSourceSize = _gameSheet.getSourceSize("icon_frame");
+  auto frameRect = gameSheet.getRect("icon_frame");
+  auto frameSpriteSourceSize = gameSheet.getSpriteSourceSize("icon_frame");
+  auto frameSourceSize = gameSheet.getSourceSize("icon_frame");
 
   sf::Sprite s;
   sf::Vector2f pos(-backSourceSize.x / 2.f + backSpriteSourceSize.left,
@@ -187,9 +188,9 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
   s.setTexture(texture);
   target.draw(s, states);
 
-  auto rect = _gameSheet.getRect(icon);
-  auto spriteSourceSize = _gameSheet.getSpriteSourceSize(icon);
-  auto sourceSize = _gameSheet.getSourceSize(icon);
+  auto rect = gameSheet.getRect(icon);
+  auto spriteSourceSize = gameSheet.getSpriteSourceSize(icon);
+  auto sourceSize = gameSheet.getSourceSize(icon);
   pos = sf::Vector2f(-sourceSize.x / 2.f + spriteSourceSize.left, -sourceSize.y / 2.f + spriteSourceSize.top);
   s.setOrigin(-pos);
   c = sf::Color::White;

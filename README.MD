@@ -50,6 +50,7 @@ Just type `./build/src/engge`, don't forget the prerequisites.
 | <kbd>9</kbd>                 |  Previous actor       |
 | <kbd>0</kbd>                 |  Next actor           |
 | <kbd>.</kbd>                 |  Skip text            |
+| <kbd>Tab</kbd>               |  Show hotspots        |
 | <kbd>Ctrl</kbd> <kbd>O</kbd> |  Show options         |
 | <kbd>Ctrl</kbd> <kbd>U</kbd> |  Toggle HUD           |
 

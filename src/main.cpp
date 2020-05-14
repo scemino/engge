@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
     ng::Locator<ng::SoundManager>::create();
     ng::Locator<ng::Preferences>::create();
     ng::Locator<ng::TextDatabase>::create();
+    ng::Locator<ng::TextureManager>::create();
     auto &scriptEngine = ng::Locator<ng::ScriptEngine>::create();
     auto &engine = ng::Locator<ng::Engine>::create();
     auto &game = ng::Locator<ng::Game>::create();

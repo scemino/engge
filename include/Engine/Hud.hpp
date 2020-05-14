@@ -2,9 +2,8 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Shader.hpp>
-#include <Graphics/SpriteSheet.hpp>
-#include <Entities/Entity.hpp>
-#include <Entities/Actor/Actor.hpp>
+#include "Entities/Entity.hpp"
+#include "Entities/Actor/Actor.hpp"
 #include "Verb.hpp"
 #include "Inventory.hpp"
 
@@ -63,7 +62,6 @@ private:
   std::array<VerbUiColors, 6> _verbUiColors;
   std::array<sf::IntRect, 9> _verbRects;
   int _currentActorIndex{-1};
-  SpriteSheet _verbSheet, _gameSheet;
   const Verb *_pVerb{nullptr};
   const Verb *_pVerbOverride{nullptr};
   Entity *_pHoveredEntity{nullptr};

@@ -258,7 +258,7 @@ struct Engine::Impl {
       }
       _pImpl->_pEngine->setActorSlotSelectable(mode);
       auto forceTalkieText = hash["forceTalkieText"].getInt() != 0;
-      _pImpl->_pEngine->getPreferences().setForceTalkieText(forceTalkieText);
+      _pImpl->_pEngine->getPreferences().setTempPreference(TempPreferenceNames::ForceTalkieText, forceTalkieText);
       for (auto &selectableActor : hash["selectableActors"].array_value) {
         auto pActor = getActor(selectableActor[_actorKey].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
@@ -770,7 +770,9 @@ struct Engine::Impl {
       hash.hash_value = {
           {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
           {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
-          {"forceTalkieText", GGPackValue::toGGPackValue(_pImpl->_pEngine->getPreferences().getForceTalkieText())},
+          {"forceTalkieText",
+           GGPackValue::toGGPackValue(_pImpl->_pEngine->getPreferences().getTempPreference(TempPreferenceNames::ForceTalkieText,
+                                                                                           TempPreferenceDefaultValues::ForceTalkieText))},
           {"selectableActors", selectableActors}
       };
     }
@@ -1021,7 +1023,7 @@ struct Engine::Impl {
 
   Engine *_pEngine{nullptr};
   std::unique_ptr<_DebugTools> _pDebugTools;
-  TextureManager _textureManager;
+  TextureManager &_textureManager;
   Room *_pRoom{nullptr};
   std::vector<std::unique_ptr<Actor>> _actors;
   std::vector<std::unique_ptr<Room>> _rooms;
@@ -1035,7 +1037,6 @@ struct Engine::Impl {
   bool _inputActive{false};
   bool _showCursor{true};
   bool _inputVerbsActive{false};
-  SpriteSheet _gameSheet, _saveLoadSheet;
   Actor *_pFollowActor{nullptr};
   Entity *_pUseObject{nullptr};
   int _objId1{0};
@@ -1128,47 +1129,42 @@ struct Engine::Impl {
 };
 
 Engine::Impl::Impl()
-    : _preferences(Locator<Preferences>::get()),
+    : _textureManager(Locator<TextureManager>::get()),
+      _preferences(Locator<Preferences>::get()),
       _soundManager(Locator<SoundManager>::get()),
       _actorIcons(_actorsIconSlots, _hud, _pCurrentActor) {
-  _gameSheet.setTextureManager(&_textureManager);
-  _saveLoadSheet.setTextureManager(&_textureManager);
   _hud.setTextureManager(&_textureManager);
   sq_resetobject(&_pDefaultObject);
 
-  Locator<CommandManager>::get().registerCommands({
-                                                      {EngineCommands::SkipText, [this]() { skipText(); }},
-                                                      {EngineCommands::SkipCutscene, [this] { skipCutscene(); }},
-                                                      {EngineCommands::PauseGame, [this] { pauseGame(); }},
-                                                      {EngineCommands::SelectActor1, [this] { selectActor(1); }},
-                                                      {EngineCommands::SelectActor2, [this] { selectActor(2); }},
-                                                      {EngineCommands::SelectActor3, [this] { selectActor(3); }},
-                                                      {EngineCommands::SelectActor4, [this] { selectActor(4); }},
-                                                      {EngineCommands::SelectActor5, [this] { selectActor(5); }},
-                                                      {EngineCommands::SelectActor6, [this] { selectActor(6); }},
-                                                      {EngineCommands::SelectPreviousActor,
-                                                       [this] { selectPreviousActor(); }},
-                                                      {EngineCommands::SelectNextActor, [this] { selectNextActor(); }},
-                                                      {EngineCommands::SelectChoice1,
-                                                       [this] { _dialogManager.choose(1); }},
-                                                      {EngineCommands::SelectChoice2,
-                                                       [this] { _dialogManager.choose(2); }},
-                                                      {EngineCommands::SelectChoice3,
-                                                       [this] { _dialogManager.choose(3); }},
-                                                      {EngineCommands::SelectChoice4,
-                                                       [this] { _dialogManager.choose(4); }},
-                                                      {EngineCommands::SelectChoice5,
-                                                       [this] { _dialogManager.choose(5); }},
-                                                      {EngineCommands::SelectChoice6,
-                                                       [this] { _dialogManager.choose(6); }},
-                                                      {EngineCommands::ShowOptions,
-                                                       [this] { _pEngine->showOptions(true); }},
-                                                      {EngineCommands::ToggleHud, [this] {
-                                                        _hud.setVisible(!_cursorVisible);
-                                                        _actorIcons.setVisible(!_cursorVisible);
-                                                        _cursorVisible = !_cursorVisible;
-                                                      }}
-                                                  });
+  Locator<CommandManager>::get().registerCommands(
+      {
+          {EngineCommands::SkipText, [this]() { skipText(); }},
+          {EngineCommands::SkipCutscene, [this] { skipCutscene(); }},
+          {EngineCommands::PauseGame, [this] { pauseGame(); }},
+          {EngineCommands::SelectActor1, [this] { selectActor(1); }},
+          {EngineCommands::SelectActor2, [this] { selectActor(2); }},
+          {EngineCommands::SelectActor3, [this] { selectActor(3); }},
+          {EngineCommands::SelectActor4, [this] { selectActor(4); }},
+          {EngineCommands::SelectActor5, [this] { selectActor(5); }},
+          {EngineCommands::SelectActor6, [this] { selectActor(6); }},
+          {EngineCommands::SelectPreviousActor, [this] { selectPreviousActor(); }},
+          {EngineCommands::SelectNextActor, [this] { selectNextActor(); }},
+          {EngineCommands::SelectChoice1, [this] { _dialogManager.choose(1); }},
+          {EngineCommands::SelectChoice2, [this] { _dialogManager.choose(2); }},
+          {EngineCommands::SelectChoice3, [this] { _dialogManager.choose(3); }},
+          {EngineCommands::SelectChoice4, [this] { _dialogManager.choose(4); }},
+          {EngineCommands::SelectChoice5, [this] { _dialogManager.choose(5); }},
+          {EngineCommands::SelectChoice6, [this] { _dialogManager.choose(6); }},
+          {EngineCommands::ShowOptions, [this] { _pEngine->showOptions(true); }},
+          {EngineCommands::ToggleHud, [this] {
+            _hud.setVisible(!_cursorVisible);
+            _actorIcons.setVisible(!_cursorVisible);
+            _cursorVisible = !_cursorVisible;
+          }}
+      });
+  Locator<CommandManager>::get().registerPressedCommand(EngineCommands::ShowHotspots, [this](bool down) {
+    _preferences.setTempPreference(TempPreferenceNames::ShowHotspot, down);
+  });
 }
 
 void Engine::Impl::pauseGame() {
@@ -1293,9 +1289,6 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
     _pImpl->_state = EngineState::Game;
     loadGame(slot);
   });
-
-  _pImpl->_gameSheet.load("GameSheet");
-  _pImpl->_saveLoadSheet.load("SaveLoadSheet");
 
   _pImpl->_preferences.subscribe([this](const std::string &name) {
     if (name == PreferenceNames::Language) {
@@ -2088,6 +2081,13 @@ void Engine::Impl::updateKeys() {
   for (auto &key : _oldKeyDowns) {
     if (isKeyPressed(key)) {
       cmdMgr.execute(key);
+      cmdMgr.execute(key, false);
+    }
+  }
+
+  for (auto &key : _newKeyDowns) {
+    if (_oldKeyDowns.find(key) != _oldKeyDowns.end()) {
+      cmdMgr.execute(key, true);
     }
   }
 
@@ -2095,7 +2095,6 @@ void Engine::Impl::updateKeys() {
   for (auto key : _newKeyDowns) {
     _oldKeyDowns.insert(key);
   }
-  _newKeyDowns.clear();
 }
 
 bool Engine::Impl::isKeyPressed(const Input &key) {
@@ -2240,12 +2239,13 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const {
   auto viewRect = sf::FloatRect(0, 0, 320, 176);
   target.setView(sf::View(viewRect));
 
+  auto &saveLoadSheet = Locator<TextureManager>::get().getSpriteSheet("SaveLoadSheet");
   auto viewCenter = sf::Vector2f(viewRect.width / 2, viewRect.height / 2);
-  auto rect = _saveLoadSheet.getRect("pause_dialog");
+  auto rect = saveLoadSheet.getRect("pause_dialog");
 
   sf::Sprite sprite;
   sprite.setPosition(viewCenter);
-  sprite.setTexture(_saveLoadSheet.getTexture());
+  sprite.setTexture(saveLoadSheet.getTexture());
   sprite.setOrigin(rect.width / 2.f, rect.height / 2.f);
   sprite.setTextureRect(rect);
   target.draw(sprite);
@@ -2287,44 +2287,46 @@ void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
 
   auto screen = _pWindow->getView().getSize();
   auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
+  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
 
   sf::RectangleShape shape;
   shape.setPosition(_mousePos);
   shape.setOrigin(cursorSize / 2.f);
   shape.setSize(cursorSize);
-  shape.setTexture(&_gameSheet.getTexture());
+  shape.setTexture(&gameSheet.getTexture());
   shape.setTextureRect(getCursorRect());
   target.draw(shape);
 }
 
 sf::IntRect Engine::Impl::getCursorRect() const {
+  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
   if (_state == EngineState::Paused)
-    return _gameSheet.getRect("cursor_pause");
+    return gameSheet.getRect("cursor_pause");
 
   if (_state == EngineState::Options)
-    return _gameSheet.getRect("cursor");
+    return gameSheet.getRect("cursor");
 
   if (_dialogManager.getState() != DialogManagerState::None)
-    return _gameSheet.getRect("cursor");
+    return gameSheet.getRect("cursor");
 
   if (_cursorDirection & CursorDirection::Left) {
-    return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_left")
-                                                       : _gameSheet.getRect("cursor_left");
+    return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_left")
+                                                       : gameSheet.getRect("cursor_left");
   }
   if (_cursorDirection & CursorDirection::Right) {
-    return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_right")
-                                                       : _gameSheet.getRect("cursor_right");
+    return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_right")
+                                                       : gameSheet.getRect("cursor_right");
   }
   if (_cursorDirection & CursorDirection::Up) {
-    return _cursorDirection & CursorDirection::Hotspot ? _gameSheet.getRect("hotspot_cursor_back")
-                                                       : _gameSheet.getRect("cursor_back");
+    return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_back")
+                                                       : gameSheet.getRect("cursor_back");
   }
   if (_cursorDirection & CursorDirection::Down) {
-    return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor_front")
-                                                         : _gameSheet.getRect("cursor_front");
+    return (_cursorDirection & CursorDirection::Hotspot) ? gameSheet.getRect("hotspot_cursor_front")
+                                                         : gameSheet.getRect("cursor_front");
   }
-  return (_cursorDirection & CursorDirection::Hotspot) ? _gameSheet.getRect("hotspot_cursor")
-                                                       : _gameSheet.getRect("cursor");
+  return (_cursorDirection & CursorDirection::Hotspot) ? gameSheet.getRect("hotspot_cursor")
+                                                       : gameSheet.getRect("cursor");
 }
 
 std::wstring Engine::Impl::getDisplayName(const std::wstring &name) {
@@ -2429,6 +2431,7 @@ void Engine::Impl::drawNoOverride(sf::RenderTarget &target) const {
   if (_noOverrideElapsed > sf::seconds(2))
     return;
 
+  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 
@@ -2438,8 +2441,8 @@ void Engine::Impl::drawNoOverride(sf::RenderTarget &target) const {
   spriteNo.setColor(c);
   spriteNo.setPosition(sf::Vector2f(8.f, 8.f));
   spriteNo.setScale(sf::Vector2f(2.f, 2.f));
-  spriteNo.setTexture(_gameSheet.getTexture());
-  spriteNo.setTextureRect(_gameSheet.getRect("icon_no"));
+  spriteNo.setTexture(gameSheet.getTexture());
+  spriteNo.setTextureRect(gameSheet.getRect("icon_no"));
   target.draw(spriteNo);
 
   target.setView(view);

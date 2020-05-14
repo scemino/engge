@@ -4,6 +4,7 @@
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Graphics/TextureManager.hpp"
+#include "Graphics/SpriteSheet.hpp"
 
 namespace ng {
 TextureManager::TextureManager() = default;
@@ -45,6 +46,14 @@ void TextureManager::loadFntFont(const std::string &id) {
   _fntFontMap.insert(std::make_pair(id, font));
 }
 
+void TextureManager::loadSpriteSheet(const std::string &id) {
+  info("Load SpriteSheet {}", id);
+  auto spriteSheet = std::make_shared<SpriteSheet>();
+  spriteSheet->setTextureManager(this);
+  spriteSheet->load(id);
+  _spriteSheetMap.insert(std::make_pair(id, spriteSheet));
+}
+
 const sf::Texture &TextureManager::get(const std::string &id) {
   auto found = _textureMap.find(id);
   if (found == _textureMap.end()) {
@@ -71,4 +80,14 @@ const FntFont &TextureManager::getFntFont(const std::string &id) {
   }
   return *found->second;
 }
+
+const SpriteSheet &TextureManager::getSpriteSheet(const std::string &id) {
+  auto found = _spriteSheetMap.find(id);
+  if (found == _spriteSheetMap.end()) {
+    loadSpriteSheet(id);
+    found = _spriteSheetMap.find(id);
+  }
+  return *found->second;
+}
+
 } // namespace ng

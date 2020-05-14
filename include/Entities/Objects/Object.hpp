@@ -75,7 +75,7 @@ public:
   void setHotspot(const sf::IntRect &hotspot);
   const sf::IntRect &getHotspot() const;
   sf::IntRect getRealHotspot() const;
-  void showHotspot(bool show);
+  void showDebugHotspot(bool show);
   bool isHotspotVisible() const;
 
   void setIcon(const std::string &icon);
@@ -102,7 +102,6 @@ public:
   void update(const sf::Time &elapsed) override;
 
   friend std::wostream &operator<<(std::wostream &os, const Object &obj);
-  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
   void addTrigger(const std::shared_ptr<Trigger> &trigger);
   void removeTrigger();
@@ -134,6 +133,8 @@ public:
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
+  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
 
 private:
   struct Impl;

@@ -9,6 +9,7 @@
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundTrigger.hpp"
 #include "Engine/Trigger.hpp"
+#include "Engine/Preferences.hpp"
 #include "../../System/_Util.hpp"
 #include <sstream>
 
@@ -216,7 +217,7 @@ void Object::update(const sf::Time &elapsed) {
   }
 }
 
-void Object::showHotspot(bool show) { pImpl->_hotspotVisible = show; }
+void Object::showDebugHotspot(bool show) { pImpl->_hotspotVisible = show; }
 
 bool Object::isHotspotVisible() const { return pImpl->_hotspotVisible; }
 
@@ -224,7 +225,7 @@ void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->_screenSpace = scr
 
 ScreenSpace Object::getScreenSpace() const { return pImpl->_screenSpace; }
 
-void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
+void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
   if (!pImpl->_hotspotVisible)
     return;
 
@@ -310,7 +311,16 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const {
     target.draw(*(*pImpl->_pAnim), s);
   }
 
-  drawHotspot(target, s);
+  sf::RenderStates statesHotspot;
+  transformable = getTransform();
+  transformable.setPosition(transformable.getPosition().x,
+                            target.getView().getSize().y - transformable.getPosition().y);
+  transformable.setScale(1.f, 1.f);
+  statesHotspot.transform *= transformable.getTransform();
+
+  drawHotspot(target, statesHotspot);
+  drawDebugHotspot(target, statesHotspot);
+
   target.setView(view);
 }
 
@@ -332,11 +342,19 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     target.draw(*(*pImpl->_pAnim), states);
   }
 
-  drawHotspot(target, states);
-
   for (const auto &pChild : pImpl->_children) {
     target.draw(*pChild, initialStates);
   }
+
+  sf::RenderStates statesHotspot = initialStates;
+  transformable = getTransform();
+  transformable.setPosition(transformable.getPosition().x,
+                            target.getView().getSize().y - transformable.getPosition().y);
+  transformable.setScale(1.f, 1.f);
+  statesHotspot.transform *= transformable.getTransform();
+
+  drawHotspot(target, statesHotspot);
+  drawDebugHotspot(target, statesHotspot);
 }
 
 void Object::dependentOn(Object *parentObject, int state) {
@@ -383,6 +401,24 @@ bool Object::isTemporary() const { return pImpl->_temporary; }
 void Object::setJiggle(bool enabled) { pImpl->_jiggle = enabled; }
 
 bool Object::getJiggle() const { return pImpl->_jiggle; }
+
+void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
+  if (!isTouchable())
+    return;
+
+  auto showHotspot =
+      Locator<Preferences>::get().getTempPreference(TempPreferenceNames::ShowHotspot,
+                                                    TempPreferenceDefaultValues::ShowHotspot);
+  if (!showHotspot)
+    return;
+
+  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  sf::Sprite s(gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
+  s.setColor(sf::Color(255, 165, 0));
+  s.setScale(0.25f, 0.25f);
+  s.setOrigin(15.f, 15.f);
+  target.draw(s, states);
+}
 
 std::wostream &operator<<(std::wostream &os, const Object &obj) {
   return os << towstring(obj.getName()) << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":"

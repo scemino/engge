@@ -71,14 +71,27 @@ static const std::string KeySelectNext = "0";
 static const float GameSpeedFactor = 1.f;
 static const bool AnnoyingInJokes = false;
 }
+
+namespace TempPreferenceNames {
+static const std::string ForceTalkieText = "forceTalkieText";
+static const std::string ShowHotspot = "showHotspot";
+}
+
+namespace TempPreferenceDefaultValues {
+static const bool ForceTalkieText = false;
+static const bool ShowHotspot = false;
+}
+
 class Preferences {
 public:
   Preferences();
 
   void save();
 
-  void setForceTalkieText(bool forceTalkieText) { _forceTalkieText = forceTalkieText; }
-  [[nodiscard]] bool getForceTalkieText() const { return _forceTalkieText; }
+  template<typename T>
+  void setTempPreference(const std::string &name, T value);
+  template<typename T>
+  T getTempPreference(const std::string &name, T value) const;
 
   template<typename T>
   void setUserPreference(const std::string &name, T value);
@@ -104,10 +117,12 @@ public:
 private:
   [[nodiscard]] GGPackValue getUserPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
   [[nodiscard]] GGPackValue getPrivatePreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
+  [[nodiscard]] GGPackValue getTempPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
 
 private:
   GGPackValue _values;
   GGPackValue _privateValues;
+  GGPackValue _tempValues;
   std::vector<std::function<void(const std::string &)>> _functions;
   bool _forceTalkieText{false};
 };
@@ -133,6 +148,16 @@ T Preferences::getUserPreference(const std::string &name, T value) const {
 template<typename T>
 T Preferences::getPrivatePreference(const std::string &name, T value) const {
   return Preferences::fromGGPackValue<T>(getPrivatePreferenceCore(name, Preferences::toGGPackValue<T>(value)));
+}
+
+template<typename T>
+void Preferences::setTempPreference(const std::string &name, T value) {
+  _tempValues.hash_value[name] = toGGPackValue(value);
+}
+
+template<typename T>
+T Preferences::getTempPreference(const std::string &name, T value) const {
+  return Preferences::fromGGPackValue<T>(getTempPreferenceCore(name, Preferences::toGGPackValue<T>(value)));
 }
 
 } // namespace ng

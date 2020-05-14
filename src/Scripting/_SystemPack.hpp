@@ -590,7 +590,7 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
         return sq_throwerror(v, _SC("Failed to get enabled"));
       }
-      g_pEngine->getPreferences().setForceTalkieText(enabled != 0);
+      g_pEngine->getPreferences().setTempPreference(TempPreferenceNames::ForceTalkieText, enabled != 0);
       return 0;
     }
     case ExCommandConstants::EX_SHOW_OPTIONS: {
