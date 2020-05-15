@@ -460,23 +460,40 @@ SQInteger ScriptEngine::aux_printerror(HSQUIRRELVM v) {
   return 0;
 }
 
-void ScriptEngine::errorHandler(HSQUIRRELVM, const SQChar *desc, const SQChar *source, SQInteger line,
+void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line,
                                 SQInteger column) {
-  error("{} {}({},{})", desc, source, line, column);
+  std::ostringstream os;
+  os << desc << ' ' << source << '(' << line << ',' << column << ')';
+  for(auto& callback : _errorCallbacks){
+    callback(v, os.str().data());
+  }
+  error(os.str());
 }
 
 void ScriptEngine::errorfunc(HSQUIRRELVM, const SQChar *s, ...) {
+  SQChar buf[1024];
   va_list vl;
   va_start(vl, s);
-  scvprintf(stderr, s, vl);
+  vsprintf(buf, s, vl);
   va_end(vl);
+
+  for(auto& callback : _errorCallbacks){
+    callback(v, buf);
+  }
+  error(buf);
 }
 
 void ScriptEngine::printfunc(HSQUIRRELVM, const SQChar *s, ...) {
+  SQChar buf[1024];
   va_list vl;
   va_start(vl, s);
-  scvprintf(stdout, s, vl);
+  vsprintf(buf, s, vl);
   va_end(vl);
+
+  for(auto& callback : _printCallbacks){
+    callback(v, buf);
+  }
+  trace(buf);
 }
 
 void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck,

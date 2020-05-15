@@ -25,6 +25,10 @@ public:
 };
 class ScriptEngine {
 public:
+  using ErrorCallback = std::function<void(HSQUIRRELVM, const SQChar *, const SQChar *, SQInteger, SQInteger)>;
+  using PrintCallback = std::function<void(HSQUIRRELVM v, const SQChar *s)>;
+
+public:
   explicit ScriptEngine();
   ~ScriptEngine();
 
@@ -130,6 +134,14 @@ public:
   template<typename TResult, typename TThis, typename...T>
   static bool rawCallFunc(TResult &result, TThis pThis, const char *name, T... args);
 
+  static void registerErrorCallback(PrintCallback callback) {
+    _errorCallbacks.push_back(callback);
+  }
+
+  static void registerPrintCallback(PrintCallback callback) {
+    _printCallbacks.push_back(callback);
+  }
+
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
   static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
@@ -139,6 +151,8 @@ private:
 private:
   static HSQUIRRELVM v;
   std::vector<std::unique_ptr<Pack>> _packs;
+  inline static std::vector<PrintCallback> _errorCallbacks;
+  inline static std::vector<PrintCallback> _printCallbacks;
 
 private:
   static Engine *g_pEngine;
