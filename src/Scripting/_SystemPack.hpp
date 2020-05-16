@@ -328,6 +328,8 @@ private:
     engine.registerGlobalFunction(chr, "chr");
     engine.registerGlobalFunction(cursorPosX, "cursorPosX");
     engine.registerGlobalFunction(cursorPosY, "cursorPosY");
+    engine.registerGlobalFunction(dump, "dump");
+    engine.registerGlobalFunction(dumprt, "dumprt");
     engine.registerGlobalFunction(exCommand, "exCommand");
     engine.registerGlobalFunction(gameTime, "gameTime");
     engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
@@ -555,6 +557,37 @@ private:
     auto pos = g_pEngine->getMousePositionInRoom();
     sq_pushinteger(v, static_cast<SQInteger>(pos.y));
     return 1;
+  }
+
+  static SQInteger dump(HSQUIRRELVM v) {
+    HSQOBJECT obj;
+    if(sq_gettype(v, 2) != OT_TABLE) {
+      return sq_throwerror(v, _SC("A table was expected"));
+    }
+    if (SQ_FAILED(sq_getstackobj(v, 2, &obj))) {
+      return sq_throwerror(v, _SC("Failed to get object"));
+    }
+    GGPackValue value;
+    GGPackValue::saveTable(obj, value);
+    std::ostringstream os;
+    os << value;
+    ScriptEngine::printfunc(v, "%s", os.str().data());
+    return 0;
+  }
+
+  static SQInteger dumprt(HSQUIRRELVM v) {
+    HSQOBJECT rt;
+    sq_resetobject(&rt);
+    sq_pushroottable(v);
+    if (SQ_FAILED(sq_getstackobj(v, -1, &rt))) {
+      return sq_throwerror(v, _SC("Failed to get root table from stack"));
+    }
+    GGPackValue value;
+    GGPackValue::saveTable(rt, value);
+    std::ostringstream os;
+    os << value;
+    ScriptEngine::printfunc(v, "%s", os.str().data());
+    return 0;
   }
 
   static SQInteger exCommand(HSQUIRRELVM v) {

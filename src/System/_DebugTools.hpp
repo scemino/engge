@@ -668,6 +668,8 @@ private:
       Commands.push_back("HELP");
       Commands.push_back("HISTORY");
       Commands.push_back("CLEAR");
+      Commands.push_back("actors");
+      Commands.push_back("print");
       AutoScroll = true;
       ScrollToBottom = false;
       AddLog("Welcome to the Console!");
@@ -715,9 +717,35 @@ private:
       Items.clear();
     }
 
+    void PrintVar(const char* var) {
+      std::string s("dump(");
+      s.append(var).append(")");
+      _engine.execute(s);
+    }
+
+    void DumpActors() {
+      std::ostringstream os;
+      AddLog("[%-4s] %-20s %-22s (%-4s,%-3s) %4s", "id", "name", "room", "x", "y", "scale");
+      for (const auto &actor : _engine.getActors()) {
+        std::string roomName("Void");
+        if (actor->getRoom()) {
+          roomName = actor->getRoom()->getName();
+          roomName.append("(").append(std::to_string(actor->getRoom()->getId())).append(")");
+        }
+        auto name = toUtf8(_engine.getText(actor->getName()));
+        AddLog("[%-4d] %-20s %-22s (%-4.0f,%-3.0f) %3.1f",
+               actor->getId(),
+               name.data(),
+               roomName.data(),
+               actor->getPosition().x,
+               actor->getPosition().y, actor->getScale());
+      }
+
+    }
+
     void AddLog(const char *fmt, ...) IM_FMTARGS(2) {
       // FIXME-OPT
-      char buf[1024];
+      char buf[1024 * 1024];
       va_list args;
       va_start(args, fmt);
       vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
@@ -858,7 +886,11 @@ private:
       History.push_back(Strdup(command_line));
 
       // Process command
-      if (Stricmp(command_line, "CLEAR") == 0) {
+      if (Stricmp(command_line, "actors") == 0) {
+        DumpActors();
+      } else if (Strnicmp(command_line, "print", 5) == 0) {
+        PrintVar(command_line+5);
+      } else if (Stricmp(command_line, "CLEAR") == 0) {
         ClearLog();
       } else if (Stricmp(command_line, "HELP") == 0) {
         AddLog("Commands:");

@@ -484,16 +484,16 @@ void ScriptEngine::errorfunc(HSQUIRRELVM, const SQChar *s, ...) {
 }
 
 void ScriptEngine::printfunc(HSQUIRRELVM, const SQChar *s, ...) {
-  SQChar buf[1024];
+  std::vector<SQChar> buf(1024*1024);
   va_list vl;
   va_start(vl, s);
-  vsprintf(buf, s, vl);
+  vsnprintf(buf.data(), buf.size(), s, vl);
   va_end(vl);
 
   for(auto& callback : _printCallbacks){
-    callback(v, buf);
+    callback(v, buf.data());
   }
-  trace(buf);
+  trace(buf.data());
 }
 
 void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck,

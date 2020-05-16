@@ -707,7 +707,7 @@ struct Engine::Impl {
         }
 
         auto table = pActor->getTable();
-        saveTable(table, actorHash, false);
+        GGPackValue::saveTable(table, actorHash);
         actorsHash.hash_value[pActor->getKey()] = actorHash;
       }
     }
@@ -722,7 +722,7 @@ struct Engine::Impl {
       HSQOBJECT g;
       sq_getstackobj(v, -1, &g);
 
-      saveTable(g, globalsHash, false);
+      GGPackValue::saveTable(g, globalsHash);
       sq_settop(v, top);
     }
 
@@ -832,7 +832,7 @@ struct Engine::Impl {
     }
 
     static void saveObject(const Object *pObject, GGPackValue &hashObject) {
-      saveTable(pObject->getTable(), hashObject, false);
+      GGPackValue::saveTable(pObject->getTable(), hashObject);
       if (pObject->getState() != 0) {
         hashObject.hash_value["_state"] = GGPackValue::toGGPackValue(pObject->getState());
       }
@@ -848,7 +848,7 @@ struct Engine::Impl {
       hash.type = 2;
       for (auto &room : _pImpl->_rooms) {
         GGPackValue hashRoom;
-        saveTable(room->getTable(), hashRoom, false);
+        GGPackValue::saveTable(room->getTable(), hashRoom);
         savePseudoObjects(room.get(), hashRoom);
         hash.hash_value[room->getName()] = hashRoom;
       }
@@ -900,121 +900,6 @@ struct Engine::Impl {
       std::ostringstream os;
       os << "{" << pos.x << "," << pos.y << "}";
       return os.str();
-    }
-
-    static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = true, const std::string &tableKey = "") {
-      hash.type = 2;
-
-      int id;
-      if (checkId && ScriptEngine::get(table, _idKey, id)) {
-        hash.type = 2;
-        if (ResourceManager::isActor(id)) {
-          auto pActor = ScriptEngine::getActorFromId(id);
-          if (pActor && pActor->getKey() != tableKey) {
-            hash.hash_value[_actorKey] = GGPackValue::toGGPackValue(pActor->getKey());
-            return true;
-          }
-          return false;
-        }
-        if (ResourceManager::isObject(id)) {
-          auto pObj = ScriptEngine::getObjectFromId(id);
-          if (pObj && pObj->getKey() != tableKey) {
-            auto pRoom = pObj->getRoom();
-            if (pRoom && pRoom->isPseudoRoom()) {
-              hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
-            }
-            hash.hash_value[_objectKey] = GGPackValue::toGGPackValue(pObj->getKey());
-            return true;
-          }
-          return false;
-        }
-        if (ResourceManager::isRoom(id)) {
-          auto pRoom = ScriptEngine::getRoomFromId(id);
-          if (pRoom && pRoom->getName() != tableKey) {
-            hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
-            return true;
-          }
-          return false;
-        }
-        return false;
-      }
-
-      SQObjectPtr refpos;
-      SQObjectPtr outkey, outvar;
-      SQInteger res;
-      while ((res = table._unVal.pTable->Next(false, refpos, outkey, outvar)) != -1) {
-        std::string key = _stringval(outkey);
-        if (!key.empty() && key[0] != '_') {
-          switch (sq_type(outvar)) {
-          case OT_STRING:hash.hash_value[key] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
-            break;
-          case OT_INTEGER:
-          case OT_BOOL:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
-            break;
-          case OT_FLOAT:hash.hash_value[key] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
-            break;
-          case OT_NULL:hash.hash_value[key] = GGPackValue::toGGPackValue(nullptr);
-            break;
-          case OT_TABLE: {
-            GGPackValue value;
-            if (saveTable(outvar, value, true, key)) {
-              hash.hash_value[key] = value;
-            }
-            break;
-          }
-          case OT_ARRAY: {
-            GGPackValue value;
-            saveArray(outvar, value);
-            hash.hash_value[key] = value;
-            break;
-          }
-          default: break;
-          }
-        }
-        refpos._type = OT_INTEGER;
-        refpos._unVal.nInteger = res;
-      }
-      return true;
-    }
-
-    static void saveArray(HSQOBJECT array, GGPackValue &hash) {
-      hash.type = 3;
-      SQObjectPtr refpos;
-      SQObjectPtr outkey, outvar;
-      SQInteger res;
-      auto size = array._unVal.pArray->Size();
-      hash.array_value.resize(size);
-      while ((res = array._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
-        auto index = _integer(outkey);
-        switch (sq_type(outvar)) {
-        case OT_STRING:hash.array_value[index] = GGPackValue::toGGPackValue(std::string(_stringval(outvar)));
-          break;
-        case OT_INTEGER:
-        case OT_BOOL:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<int>(_integer(outvar)));
-          break;
-        case OT_FLOAT:hash.array_value[index] = GGPackValue::toGGPackValue(static_cast<float >(_float(outvar)));
-          break;
-        case OT_NULL:hash.array_value[index] = GGPackValue::toGGPackValue(nullptr);
-          break;
-        case OT_TABLE: {
-          GGPackValue value;
-          if (saveTable(outvar, value)) {
-            hash.array_value[index] = value;
-          }
-          break;
-        }
-        case OT_ARRAY: {
-          GGPackValue value;
-          saveArray(outvar, value);
-          hash.array_value[index] = value;
-          break;
-        }
-        default:break;
-        }
-
-        refpos._type = OT_INTEGER;
-        refpos._unVal.nInteger = res;
-      }
     }
 
   private:

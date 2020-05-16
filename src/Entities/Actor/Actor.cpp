@@ -318,7 +318,9 @@ void Actor::setCostume(const std::string &name, const std::string &sheet) {
 }
 
 float Actor::getScale() const {
-  return pImpl->_pRoom->getRoomScaling().getScaling(getRealPosition().y);
+  auto pRoom = pImpl->_pRoom;
+  if(!pRoom) return 1.f;
+  return pRoom->getRoomScaling().getScaling(getRealPosition().y);
 }
 
 void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const {

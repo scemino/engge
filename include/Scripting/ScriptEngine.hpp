@@ -142,10 +142,12 @@ public:
     _printCallbacks.push_back(callback);
   }
 
+  static void printfunc(HSQUIRRELVM v, const SQChar *s, ...);
+
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
   static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
-  static void printfunc(HSQUIRRELVM v, const SQChar *s, ...);
+
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
 private:

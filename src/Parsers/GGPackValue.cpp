@@ -1,7 +1,22 @@
+#include "squirrel.h"
+#include "../../extlibs/squirrel/squirrel/sqpcheader.h"
+#include "../../extlibs/squirrel/squirrel/sqvm.h"
+#include "../../extlibs/squirrel/squirrel/sqstring.h"
+#include "../../extlibs/squirrel/squirrel/sqtable.h"
+#include "../../extlibs/squirrel/squirrel/sqarray.h"
+#include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
+#include "../../extlibs/squirrel/squirrel/sqclosure.h"
+#include "Engine/ResourceManager.hpp"
+#include "Entities/Objects/Object.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include "Parsers/GGPackValue.hpp"
 
 namespace ng {
 GGPackValue GGPackValue::nullValue;
+constexpr static const char *_objectKey = "_objectKey";
+constexpr static const char *_roomKey = "_roomKey";
+constexpr static const char *_actorKey = "_actorKey";
+constexpr static const char *_idKey = "_id";
 
 GGPackValue::GGPackValue() { type = 1; }
 GGPackValue::GGPackValue(const GGPackValue &value)
@@ -155,6 +170,109 @@ GGPackValue GGPackValue::toGGPackValue<std::nullptr_t>(std::nullptr_t) {
   GGPackValue packValue;
   packValue.type = 1;
   return packValue;
+}
+
+bool GGPackValue::canSave(HSQOBJECT obj) {
+  switch (sq_type(obj)) {
+  case OT_STRING: return true;
+  case OT_INTEGER: return true;
+  case OT_BOOL:return true;
+  case OT_FLOAT:return true;
+  case OT_NULL:return true;
+  case OT_TABLE:return true;
+  case OT_ARRAY:return true;
+  default:return false;
+  }
+}
+
+template<>
+GGPackValue GGPackValue::toGGPackValue<SQObjectPtr>(SQObjectPtr obj) {
+  switch (sq_type(obj)) {
+  case OT_STRING:return GGPackValue::toGGPackValue(std::string(_stringval(obj)));
+  case OT_INTEGER:
+  case OT_BOOL:return GGPackValue::toGGPackValue(static_cast<int>(_integer(obj)));
+  case OT_FLOAT:return GGPackValue::toGGPackValue(static_cast<float >(_float(obj)));
+  case OT_NULL:return GGPackValue::toGGPackValue(nullptr);
+  case OT_TABLE: {
+    GGPackValue value;
+    saveTable(obj, value, true);
+    return value;
+  }
+  case OT_ARRAY: {
+    GGPackValue value;
+    saveArray(obj, value);
+    return value;
+  }
+  default:assert(false);
+  }
+}
+
+void GGPackValue::saveArray(HSQOBJECT array, GGPackValue &hash) {
+  hash.type = 3;
+  auto size = array._unVal.pArray->Size();
+  hash.array_value.resize(size);
+  SQObjectPtr refpos;
+  SQObjectPtr outkey, outvar;
+  SQInteger res;
+  while ((res = array._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
+    auto index = _integer(outkey);
+    if (canSave(outvar)) {
+      hash.array_value[index] = GGPackValue::toGGPackValue(outvar);
+    }
+    refpos._type = OT_INTEGER;
+    refpos._unVal.nInteger = res;
+  }
+}
+
+bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, const std::string &tableKey) {
+  hash.type = 2;
+
+  int id;
+  if (checkId && ScriptEngine::get(table, _idKey, id)) {
+    hash.type = 2;
+    if (ResourceManager::isActor(id)) {
+      auto pActor = ScriptEngine::getActorFromId(id);
+      if (pActor && pActor->getKey() != tableKey) {
+        hash.hash_value[_actorKey] = GGPackValue::toGGPackValue(pActor->getKey());
+        return true;
+      }
+      return false;
+    }
+    if (ResourceManager::isObject(id)) {
+      auto pObj = ScriptEngine::getObjectFromId(id);
+      if (pObj && pObj->getKey() != tableKey) {
+        auto pRoom = pObj->getRoom();
+        if (pRoom && pRoom->isPseudoRoom()) {
+          hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
+        }
+        hash.hash_value[_objectKey] = GGPackValue::toGGPackValue(pObj->getKey());
+        return true;
+      }
+      return false;
+    }
+    if (ResourceManager::isRoom(id)) {
+      auto pRoom = ScriptEngine::getRoomFromId(id);
+      if (pRoom && pRoom->getName() != tableKey) {
+        hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
+        return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  SQObjectPtr refpos;
+  SQObjectPtr outkey, outvar;
+  SQInteger res;
+  while ((res = table._unVal.pTable->Next(false, refpos, outkey, outvar)) != -1) {
+    std::string key = _stringval(outkey);
+    if (!key.empty() && key[0] != '_' && canSave(outvar)) {
+        hash.hash_value[key] = GGPackValue::toGGPackValue(outvar);
+    }
+    refpos._type = OT_INTEGER;
+    refpos._unVal.nInteger = res;
+  }
+  return true;
 }
 
 static std::ostream &_dumpValue(std::ostream &os, const GGPackValue &value, int indent);

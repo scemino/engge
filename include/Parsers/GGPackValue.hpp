@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "squirrel.h"
 
 namespace ng {
 struct GGPackValue {
@@ -38,7 +39,12 @@ public:
 
   template<typename T>
   static GGPackValue toGGPackValue(T value);
+  static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = false, const std::string &tableKey = "");
 
   friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
+
+private:
+  static void saveArray(HSQOBJECT array, GGPackValue &hash);
+  static bool canSave(HSQOBJECT obj);
 };
 }
