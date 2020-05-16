@@ -40,6 +40,7 @@ class DialogScriptAbstract;
 class DialogPlayer : public DialogContextAbstract, public DialogConditionAbstract {
 private:
   DialogScriptAbstract &_script;
+
 public:
   explicit DialogPlayer(DialogScriptAbstract &script);
   ~DialogPlayer() override;

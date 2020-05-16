@@ -77,10 +77,9 @@ static const char *const _objectKey = "_objectKey";
 static const char *const _roomKey = "_roomKey";
 static const char *const _actorKey = "_actorKey";
 static const char *const _idKey = "_id";
+static const char *const _pseudoObjectsKey = "_pseudoObjects";
 
-static const char *const pseudoObjectsKey = "_pseudoObjects";
 struct Engine::Impl {
-
   class _SaveGameSystem {
   public:
     explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
@@ -564,7 +563,7 @@ struct Engine::Impl {
 
         for (auto &property : roomHash.second.hash_value) {
           if (property.first.empty() || property.first[0] == '_') {
-            if (property.first == pseudoObjectsKey) {
+            if (property.first == _pseudoObjectsKey) {
               loadPseudoObjects(pRoom, property.second.hash_value);
             } else {
               trace("load: room '{}' property '{}' (type={}) not loaded",
@@ -828,7 +827,7 @@ struct Engine::Impl {
         saveObject(pObj.get(), hashObject);
         hashObjects.hash_value[pObj->getKey()] = hashObject;
       }
-      hash.hash_value[pseudoObjectsKey] = hashObjects;
+      hash.hash_value[_pseudoObjectsKey] = hashObjects;
     }
 
     static void saveObject(const Object *pObject, GGPackValue &hashObject) {

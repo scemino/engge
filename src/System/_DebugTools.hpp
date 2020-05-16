@@ -740,7 +740,6 @@ private:
                actor->getPosition().x,
                actor->getPosition().y, actor->getScale());
       }
-
     }
 
     void AddLog(const char *fmt, ...) IM_FMTARGS(2) {

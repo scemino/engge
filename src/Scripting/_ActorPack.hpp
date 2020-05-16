@@ -160,7 +160,8 @@ private:
 
   static SQInteger actorAt(HSQUIRRELVM v) {
     auto numArgs = sq_gettop(v);
-    if (numArgs == 3) {
+    switch (numArgs) {
+    case 3: {
       auto *pActor = ScriptEngine::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
@@ -186,7 +187,9 @@ private:
       pActor->setPosition(pos);
       pActor->getCostume().setFacing(_toFacing(pObj->getUseDirection()));
       return 0;
-    } else if (numArgs == 4) {
+    }
+
+    case 4: {
       auto *pActor = ScriptEngine::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
@@ -200,7 +203,9 @@ private:
       }
       pActor->setPosition(sf::Vector2f(x, y));
       return 0;
-    } else if (numArgs >= 5) {
+    }
+    case 5: [[fallthrough]];
+    case 6: {
       auto *pActor = ScriptEngine::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
@@ -224,6 +229,7 @@ private:
       pActor->getCostume().setFacing(facing);
       pActor->setRoom(pRoom);
       return 0;
+    }
     }
 
     return sq_throwerror(v, _SC("invalid number of arguments"));
@@ -682,7 +688,7 @@ private:
     }
     auto usePos = obj->getUsePosition();
     actor->setUsePosition(usePos);
-    if(numArgs==4) {
+    if (numArgs == 4) {
       SQInteger dir;
       if (SQ_FAILED(sq_getinteger(v, 5, &dir))) {
         return sq_throwerror(v, _SC("failed to get direction"));
