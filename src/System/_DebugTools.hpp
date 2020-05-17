@@ -65,6 +65,7 @@ public:
     showObjects();
     showRooms();
     showSounds();
+    showThreads();
 
     ImGui::End();
   }
@@ -322,6 +323,47 @@ private:
       ImGui::TextColored(catColor, " %7s", category.data());
       ImGui::SameLine();
       ImGui::Text(" %.1f", volume);
+    }
+    ImGui::Unindent();
+  }
+
+  void showThreads() {
+    if (!ImGui::CollapsingHeader("Threads"))
+      return;
+
+    ImGui::Indent();
+    const auto &threads = _engine.getThreads();
+    for (const auto &thread : threads) {
+      auto name = thread->getName();
+      auto id = thread->getId();
+      auto type = thread->isGlobal() ? "global" : "local";
+      auto isPauseable = thread->isPauseable();
+      auto isSuspended = thread->isSuspended();
+      auto isStopped = thread->isStopped();
+      std::string state;
+      if (isSuspended)
+        state = "suspended";
+      else if (isStopped)
+        state = "stopped";
+      else
+        state = "playing";
+
+      if (isSuspended) {
+        if (ImGui::SmallButton("resume")) {
+          thread->resume();
+        }
+        ImGui::SameLine();
+      } else {
+        if (ImGui::SmallButton("pause") && isPauseable) {
+          thread->pause();
+        }
+        ImGui::SameLine();
+      }
+      if (ImGui::SmallButton("stop")) {
+        thread->stop();
+      }
+      ImGui::SameLine();
+      ImGui::Text("[%5d]: %-56s [%-6s] (%-9s)", id, name.data(), type, state.data());
     }
     ImGui::Unindent();
   }
@@ -717,7 +759,7 @@ private:
       Items.clear();
     }
 
-    void PrintVar(const char* var) {
+    void PrintVar(const char *var) {
       std::string s("dump(");
       s.append(var).append(")");
       _engine.execute(s);
@@ -888,7 +930,7 @@ private:
       if (Stricmp(command_line, "actors") == 0) {
         DumpActors();
       } else if (Strnicmp(command_line, "print", 5) == 0) {
-        PrintVar(command_line+5);
+        PrintVar(command_line + 5);
       } else if (Stricmp(command_line, "CLEAR") == 0) {
         ClearLog();
       } else if (Stricmp(command_line, "HELP") == 0) {
