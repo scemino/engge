@@ -668,8 +668,8 @@ struct Engine::Impl {
         if (pActor->getKey().empty())
           continue;
 
-        GGPackValue actorHash;
-        actorHash.type = 2;
+        auto table = pActor->getTable();
+        auto actorHash = GGPackValue::toGGPackValue(table);
         auto costume = pActor->getCostume().getPath();
         actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
         actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
@@ -705,14 +705,11 @@ struct Engine::Impl {
           actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(nullptr);
         }
 
-        auto table = pActor->getTable();
-        GGPackValue::saveTable(table, actorHash);
         actorsHash.hash_value[pActor->getKey()] = actorHash;
       }
     }
 
     void saveGlobals(GGPackValue &globalsHash) {
-      globalsHash.type = 2;
       auto v = ScriptEngine::getVm();
       auto top = sq_gettop(v);
       sq_pushroottable(v);
@@ -721,7 +718,7 @@ struct Engine::Impl {
       HSQOBJECT g;
       sq_getstackobj(v, -1, &g);
 
-      GGPackValue::saveTable(g, globalsHash);
+      globalsHash = GGPackValue::toGGPackValue(g);
       sq_settop(v, top);
     }
 
@@ -831,7 +828,7 @@ struct Engine::Impl {
     }
 
     static void saveObject(const Object *pObject, GGPackValue &hashObject) {
-      GGPackValue::saveTable(pObject->getTable(), hashObject);
+      hashObject = GGPackValue::toGGPackValue(pObject->getTable());
       if (pObject->getState() != 0) {
         hashObject.hash_value["_state"] = GGPackValue::toGGPackValue(pObject->getState());
       }
@@ -846,8 +843,7 @@ struct Engine::Impl {
     void saveRooms(GGPackValue &hash) const {
       hash.type = 2;
       for (auto &room : _pImpl->_rooms) {
-        GGPackValue hashRoom;
-        GGPackValue::saveTable(room->getTable(), hashRoom);
+        auto hashRoom = GGPackValue::toGGPackValue(room->getTable());
         savePseudoObjects(room.get(), hashRoom);
         hash.hash_value[room->getName()] = hashRoom;
       }

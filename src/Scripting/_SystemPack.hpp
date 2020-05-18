@@ -561,14 +561,13 @@ private:
 
   static SQInteger dump(HSQUIRRELVM v) {
     HSQOBJECT obj;
-    if(sq_gettype(v, 2) != OT_TABLE) {
+    if (sq_gettype(v, 2) != OT_TABLE) {
       return sq_throwerror(v, _SC("A table was expected"));
     }
     if (SQ_FAILED(sq_getstackobj(v, 2, &obj))) {
       return sq_throwerror(v, _SC("Failed to get object"));
     }
-    GGPackValue value;
-    GGPackValue::saveTable(obj, value);
+    auto value = GGPackValue::toGGPackValue(obj);
     std::ostringstream os;
     os << value;
     ScriptEngine::printfunc(v, "%s", os.str().data());
@@ -582,8 +581,7 @@ private:
     if (SQ_FAILED(sq_getstackobj(v, -1, &rt))) {
       return sq_throwerror(v, _SC("Failed to get root table from stack"));
     }
-    GGPackValue value;
-    GGPackValue::saveTable(rt, value);
+    auto value = GGPackValue::toGGPackValue(rt);
     std::ostringstream os;
     os << value;
     ScriptEngine::printfunc(v, "%s", os.str().data());

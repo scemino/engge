@@ -39,12 +39,13 @@ public:
 
   template<typename T>
   static GGPackValue toGGPackValue(T value);
-  static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId = false, const std::string &tableKey = "");
 
   friend std::ostream &operator<<(std::ostream &os, const GGPackValue &value);
 
 private:
+  static bool toGGPackValue(SQObject obj, GGPackValue& value, bool checkId, const std::string &tableKey = "");
   static void saveArray(HSQOBJECT array, GGPackValue &hash);
+  static bool saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, const std::string &tableKey = "");
   static bool canSave(HSQOBJECT obj);
 };
 }

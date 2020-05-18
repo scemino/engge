@@ -187,37 +187,52 @@ bool GGPackValue::canSave(HSQOBJECT obj) {
 
 template<>
 GGPackValue GGPackValue::toGGPackValue<SQObjectPtr>(SQObjectPtr obj) {
+  GGPackValue value;
+  toGGPackValue(obj, value, false);
+  return value;
+}
+
+template<>
+GGPackValue GGPackValue::toGGPackValue<HSQOBJECT>(HSQOBJECT obj) {
+  GGPackValue value;
+  toGGPackValue(obj, value, false);
+  return value;
+}
+
+bool GGPackValue::toGGPackValue(SQObject obj, GGPackValue &value, bool checkId, const std::string &tableKey) {
   switch (sq_type(obj)) {
-  case OT_STRING:return GGPackValue::toGGPackValue(std::string(_stringval(obj)));
+  case OT_STRING:value = GGPackValue::toGGPackValue(std::string(_stringval(obj)));
+    return true;
   case OT_INTEGER:
-  case OT_BOOL:return GGPackValue::toGGPackValue(static_cast<int>(_integer(obj)));
-  case OT_FLOAT:return GGPackValue::toGGPackValue(static_cast<float >(_float(obj)));
-  case OT_NULL:return GGPackValue::toGGPackValue(nullptr);
-  case OT_TABLE: {
-    GGPackValue value;
-    saveTable(obj, value, true);
-    return value;
-  }
+  case OT_BOOL:value = GGPackValue::toGGPackValue(static_cast<int>(_integer(obj)));
+    return true;
+  case OT_FLOAT:value = GGPackValue::toGGPackValue(static_cast<float >(_float(obj)));
+    return true;
+  case OT_NULL:value = GGPackValue::toGGPackValue(nullptr);
+    return true;
+  case OT_TABLE: return saveTable(obj, value, checkId, tableKey);
   case OT_ARRAY: {
-    GGPackValue value;
     saveArray(obj, value);
-    return value;
+    return true;
   }
   default:assert(false);
   }
 }
 
-void GGPackValue::saveArray(HSQOBJECT array, GGPackValue &hash) {
-  hash.type = 3;
-  auto size = array._unVal.pArray->Size();
-  hash.array_value.resize(size);
+void GGPackValue::saveArray(HSQOBJECT obj, GGPackValue &array) {
+  array.type = 3;
+  auto size = obj._unVal.pArray->Size();
+  array.array_value.resize(size);
   SQObjectPtr refpos;
   SQObjectPtr outkey, outvar;
   SQInteger res;
-  while ((res = array._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
+  while ((res = obj._unVal.pArray->Next(refpos, outkey, outvar)) != -1) {
     auto index = _integer(outkey);
     if (canSave(outvar)) {
-      hash.array_value[index] = GGPackValue::toGGPackValue(outvar);
+      GGPackValue value;
+      if(GGPackValue::toGGPackValue(outvar, value, true)) {
+        array.array_value[index] = value;
+      }
     }
     refpos._type = OT_INTEGER;
     refpos._unVal.nInteger = res;
@@ -226,7 +241,6 @@ void GGPackValue::saveArray(HSQOBJECT array, GGPackValue &hash) {
 
 bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, const std::string &tableKey) {
   hash.type = 2;
-
   int id;
   if (checkId && ScriptEngine::get(table, _idKey, id)) {
     hash.type = 2;
@@ -267,7 +281,10 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
   while ((res = table._unVal.pTable->Next(false, refpos, outkey, outvar)) != -1) {
     std::string key = _stringval(outkey);
     if (!key.empty() && key[0] != '_' && canSave(outvar)) {
-        hash.hash_value[key] = GGPackValue::toGGPackValue(outvar);
+      GGPackValue value;
+      if (toGGPackValue(outvar, value, true, key)) {
+        hash.hash_value[key] = value;
+      }
     }
     refpos._type = OT_INTEGER;
     refpos._unVal.nInteger = res;
