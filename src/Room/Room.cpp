@@ -145,11 +145,13 @@ struct Room::Impl {
         for (const auto &jName : jLayer["name"].array_value) {
           auto layerName = jName.string_value;
           auto rect = _spriteSheet.getRect(layerName);
-          auto sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
+          auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
+          auto sourceSize = _spriteSheet.getSourceSize(layerName);
+          sf::Vector2f origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
           sf::Sprite s;
           s.setTexture(_textureManager.get(_sheet));
           s.setTextureRect(rect);
-          s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
+          s.setOrigin(origin);
           s.move(sf::Vector2f(offsetX, offsetY));
           offsetX += rect.width;
           layer->getSprites().push_back(s);
@@ -157,11 +159,13 @@ struct Room::Impl {
       } else {
         auto layerName = jLayer["name"].string_value;
         auto rect = _spriteSheet.getRect(layerName);
-        auto sourceRect = _spriteSheet.getSpriteSourceSize(layerName);
+        auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
+        auto sourceSize = _spriteSheet.getSourceSize(layerName);
+        sf::Vector2f origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
         sf::Sprite s;
         s.setTexture(_textureManager.get(_sheet));
         s.setTextureRect(rect);
-        s.setOrigin(sf::Vector2f(-sourceRect.left, -sourceRect.top));
+        s.setOrigin(origin);
         s.move(sf::Vector2f(0, offsetY));
         layer->getSprites().push_back(s);
       }
@@ -755,7 +759,7 @@ sf::Vector2i Room::getScreenSize() const {
 }
 
 void Room::setPseudoRoom(bool pseudoRoom) {
-  pImpl->_pseudoRoom=pseudoRoom;
+  pImpl->_pseudoRoom = pseudoRoom;
 }
 
 bool Room::isPseudoRoom() const {
