@@ -1642,7 +1642,7 @@ Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos) {
     auto rect = pObj->getRealHotspot();
     if (!rect.contains((sf::Vector2i) mousPos))
       return;
-    if (!pCurrentObject || pObj->getZOrder() < pCurrentObject->getZOrder())
+    if (!pCurrentObject || pObj->getZOrder() <= pCurrentObject->getZOrder())
       pCurrentObject = pObj.get();
   });
 
