@@ -36,7 +36,7 @@ static const int CLOSED = 0;
 namespace ObjectFlagConstants {
 static const int USE_WITH = 2;
 static const int USE_ON = 4;
-static const int USE_IN = 8;
+static const int USE_IN = 32;
 static const int DOOR = 0x40;
 static const int DOOR_LEFT = 0x140;
 static const int DOOR_RIGHT = 0x240;
