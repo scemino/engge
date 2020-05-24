@@ -561,8 +561,32 @@ private:
 
   static SQInteger dump(HSQUIRRELVM v) {
     HSQOBJECT obj;
+    if (sq_gettype(v, 2) == OT_BOOL) {
+      SQBool value;
+      sq_getbool(v, 2, &value);
+      ScriptEngine::printfunc(v, "%s", value ? "true" : "false");
+      return 0;
+    }
+    if (sq_gettype(v, 2) == OT_INTEGER) {
+      SQInteger value;
+      sq_getinteger(v, 2, &value);
+      ScriptEngine::printfunc(v, "%ld", value);
+      return 0;
+    }
+    if (sq_gettype(v, 2) == OT_FLOAT) {
+      SQFloat value;
+      sq_getfloat(v, 2, &value);
+      ScriptEngine::printfunc(v, "%lf", value);
+      return 0;
+    }
+    if (sq_gettype(v, 2) == OT_STRING) {
+      const SQChar *value;
+      sq_getstring(v, 2, &value);
+      ScriptEngine::printfunc(v, "%s", value);
+      return 0;
+    }
     if (sq_gettype(v, 2) != OT_TABLE) {
-      return sq_throwerror(v, _SC("A table was expected"));
+      return sq_throwerror(v, _SC("A bool, int, float or table was expected"));
     }
     if (SQ_FAILED(sq_getstackobj(v, 2, &obj))) {
       return sq_throwerror(v, _SC("Failed to get object"));
