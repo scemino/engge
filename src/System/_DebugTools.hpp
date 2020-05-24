@@ -566,6 +566,8 @@ private:
         break;
       }
       ImGui::LabelText("Type", "%s", type.c_str());
+      auto pOwner = object->getOwner();
+      ImGui::LabelText("Owner", "%s", pOwner ? pOwner->getName().c_str() : "(none)");
       auto isVisible = object->isVisible();
       if (ImGui::Checkbox("Visible", &isVisible)) {
         object->setVisible(isVisible);

@@ -902,8 +902,9 @@ private:
     if (!obj2) {
       return sq_throwerror(v, _SC("failed to get object 2"));
     }
-    auto actor = obj1->getOwner();
-    actor->pickupReplacementObject(obj1, obj2);
+    auto actor = obj2->getOwner();
+    assert(actor);
+    actor->pickupReplacementObject(obj2, obj1);
     return 0;
   }
 

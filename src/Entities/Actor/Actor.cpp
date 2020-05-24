@@ -166,11 +166,8 @@ void Actor::pickupObject(Object *pObject) {
 
 void Actor::pickupReplacementObject(Object *pObject1, Object *pObject2) {
   pObject2->setOwner(this);
-  auto srcIt = std::find_if(pImpl->_objects.begin(),
-                            pImpl->_objects.end(),
-                            [&pObject1](auto &pObj) { return pObj == pObject1; });
-  pImpl->_objects.erase(srcIt);
-  pImpl->_objects.push_back(pObject2);
+  std::replace(pImpl->_objects.begin(), pImpl->_objects.end(), pObject1, pObject2);
+  pObject1->setOwner(nullptr);
 }
 
 void Actor::giveTo(Object *pObject, Actor *pActor) {
