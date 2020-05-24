@@ -209,8 +209,16 @@ private:
     return 0;
   }
 
-  static SQInteger objectBumperCycle(HSQUIRRELVM) {
-    error("TODO: objectBumperCycle: not implemented");
+  static SQInteger objectBumperCycle(HSQUIRRELVM v) {
+    auto pObj = ScriptEngine::getEntity(v, 2);
+    if (!pObj) {
+      return sq_throwerror(v, _SC("failed to get object"));
+    }
+    SQInteger enabled = 0;
+    if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
+      return sq_throwerror(v, _SC("failed to get enabled"));
+    }
+    pObj->objectBumperCycle(enabled != 0);
     return 0;
   }
 

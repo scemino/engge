@@ -38,6 +38,9 @@ public:
   void setTouchable(bool isTouchable);
   virtual bool isTouchable() const;
 
+  void objectBumperCycle(bool enabled) { _objectBumperCycle = enabled; }
+  bool objectBumperCycle() const { return _objectBumperCycle; }
+
   virtual bool isInventoryObject() const = 0;
 
   void setRenderOffset(const sf::Vector2i &offset);
@@ -108,5 +111,6 @@ private:
   std::vector<std::unique_ptr<Function>> _functions;
   sf::Color _color{sf::Color::White};
   std::string _name;
+  bool _objectBumperCycle{true};
 };
 } // namespace ng
