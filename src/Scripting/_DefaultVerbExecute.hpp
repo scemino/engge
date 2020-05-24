@@ -171,7 +171,7 @@ private:
   bool isElapsed() override { return _done; }
 
   void operator()(const sf::Time &) override {
-    if (!_pActor2 || !ScriptEngine::call(_pActor2, "verbTalkTo")) {
+    if (!_pActor2 || !ScriptEngine::objCall(_pActor2, "verbTalkTo")) {
       if (!callVerbDefault()) {
         if (!callDefaultObjectVerb()) {
           _pSentence->stop();
@@ -185,11 +185,11 @@ private:
     auto &obj = _engine.getDefaultObject();
     auto pActor = _engine.getCurrentActor();
 
-    return ScriptEngine::call(obj, "verbTalkTo", _pActor2, pActor);
+    return ScriptEngine::objCall(obj, "verbTalkTo", _pActor2, pActor);
   }
 
   bool callVerbDefault() {
-    return ScriptEngine::call(_pActor, "verbDefault");
+    return ScriptEngine::objCall(_pActor, "verbDefault");
   }
 
 private:
@@ -214,9 +214,9 @@ private:
 
     bool success;
     if (_pObject2) {
-      success = ScriptEngine::call(&_object, _pVerb->func.data(), _pObject2);
+      success = ScriptEngine::objCall(&_object, _pVerb->func.data(), _pObject2);
     } else {
-      success = ScriptEngine::call(&_object, _pVerb->func.data());
+      success = ScriptEngine::objCall(&_object, _pVerb->func.data());
     }
 
     if (success) {
@@ -251,11 +251,11 @@ private:
     auto &obj = _engine.getDefaultObject();
     auto pActor = _engine.getCurrentActor();
 
-    return ScriptEngine::call(obj, _pVerb->func.data(), pActor, &_object);
+    return ScriptEngine::objCall(obj, _pVerb->func.data(), pActor, &_object);
   }
 
   static bool callVerbDefault(Entity *pEntity) {
-    return ScriptEngine::call(pEntity, "verbDefault");
+    return ScriptEngine::objCall(pEntity, "verbDefault");
   }
 
 private:

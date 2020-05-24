@@ -235,7 +235,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
 
 void Actor::Impl::WalkingState::stop() {
   _isWalking = false;
-  ScriptEngine::call(_pActor, "postWalking");
+  ScriptEngine::objCall(_pActor, "postWalking");
 }
 
 Facing Actor::Impl::WalkingState::getFacing() {

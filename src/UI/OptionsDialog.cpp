@@ -194,6 +194,7 @@ struct OptionsDialog::Impl {
                                [this](auto value) {
                                  _isDirty = true;
                                  setUserPreference(PreferenceNames::ToiletPaperOver, value);
+                                 ScriptEngine::call("setSettingVar", "toilet_paper_over", value ? 1 : 0);
                                });
       _checkboxes.emplace_back(Ids::AnnoyingInJokes, getSlotPos(5), true,
                                getUserPreference(PreferenceNames::AnnoyingInJokes,
@@ -201,6 +202,7 @@ struct OptionsDialog::Impl {
                                [this](auto value) {
                                  _isDirty = true;
                                  setUserPreference(PreferenceNames::AnnoyingInJokes, value);
+                                 ScriptEngine::call("setSettingVar", "annoying_injokes", value ? 1 : 0);
                                });
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),

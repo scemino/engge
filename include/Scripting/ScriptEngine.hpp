@@ -103,9 +103,9 @@ public:
   static bool call(const char *name);
 
   template<typename TThis, typename...T>
-  static bool call(TThis pThis, const char *name, T... args);
+  static bool objCall(TThis pThis, const char *name, T... args);
   template<typename TThis>
-  static bool call(TThis pThis, const char *name);
+  static bool objCall(TThis pThis, const char *name);
   template<typename TThis>
   static int getParameterCount(TThis pThis, const char *name);
 
@@ -259,7 +259,7 @@ int ScriptEngine::rawGetParameterCount(TThis pThis, const char *name) {
 }
 
 template<typename TThis, typename...T>
-bool ScriptEngine::call(TThis pThis, const char *name, T... args) {
+bool ScriptEngine::objCall(TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -311,7 +311,7 @@ bool ScriptEngine::rawCall(TThis pThis, const char *name, T... args) {
 }
 
 template<typename TThis>
-bool ScriptEngine::call(TThis pThis, const char *name) {
+bool ScriptEngine::objCall(TThis pThis, const char *name) {
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   ScriptEngine::push(v, pThis);

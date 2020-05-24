@@ -425,7 +425,7 @@ struct Engine::Impl {
 
         _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
       }
-      ScriptEngine::call(pActor, "postLoad");
+      ScriptEngine::objCall(pActor, "postLoad");
     }
 
     void loadInventory(const GGPackValue &hash) {
@@ -575,7 +575,7 @@ struct Engine::Impl {
           }
 
           _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
-          ScriptEngine::call(pRoom, "postLoad");
+          ScriptEngine::objCall(pRoom, "postLoad");
         }
       }
     }
@@ -1457,7 +1457,7 @@ void Engine::Impl::run(bool state) {
   if (_run != state) {
     _run = state;
     if (_pCurrentActor) {
-      ScriptEngine::call(_pCurrentActor, "run", state);
+      ScriptEngine::objCall(_pCurrentActor, "run", state);
     }
   }
 }
