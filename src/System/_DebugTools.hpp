@@ -788,7 +788,7 @@ private:
 
     void AddLog(const char *fmt, ...) IM_FMTARGS(2) {
       // FIXME-OPT
-      char buf[1024 * 1024];
+      char buf[1024];
       va_list args;
       va_start(args, fmt);
       vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
