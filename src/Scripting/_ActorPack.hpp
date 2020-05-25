@@ -466,6 +466,7 @@ private:
     SQInteger loop = 0;
     sq_getinteger(v, 4, &loop);
     trace("Play anim {} {}{}", pActor->getName(), animation, (loop == 1 ? " (loop)" : ""));
+    pActor->stopWalking();
     pActor->getCostume().setState(animation);
     auto pAnim = pActor->getCostume().getAnimation();
     if (pAnim) {
