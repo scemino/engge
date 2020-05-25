@@ -7,7 +7,7 @@
 
 namespace ng {
 struct GGPackValue {
-  char type;
+  char type{1};
   std::string string_value;
   int int_value{0};
   double double_value{0};

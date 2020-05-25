@@ -754,11 +754,13 @@ struct Engine::Impl {
       selectableActors.type = 3;
       for (auto &slot : _pImpl->_actorsIconSlots) {
         GGPackValue selectableActor;
-        selectableActor.type = 2;
-        selectableActor.hash_value = {
-            {_actorKey, GGPackValue::toGGPackValue(slot.pActor->getKey())},
-            {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
-        };
+        if (slot.pActor) {
+          selectableActor.type = 2;
+          selectableActor.hash_value = {
+              {_actorKey, GGPackValue::toGGPackValue(slot.pActor->getKey())},
+              {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
+          };
+        }
         selectableActors.array_value.push_back(selectableActor);
       }
 
@@ -777,18 +779,20 @@ struct Engine::Impl {
       GGPackValue slots;
       slots.type = 3;
       for (auto &slot : _pImpl->_actorsIconSlots) {
-        GGPackValue objects;
-        objects.type = 3;
-        for (auto &obj : slot.pActor->getObjects()) {
-          objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
-        }
-
         GGPackValue actorSlot;
-        actorSlot.type = 2;
-        actorSlot.hash_value = {
-            {"objects", objects},
-            {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
-        };
+        if (slot.pActor) {
+          GGPackValue objects;
+          objects.type = 3;
+          for (auto &obj : slot.pActor->getObjects()) {
+            objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
+          }
+
+          actorSlot.type = 2;
+          actorSlot.hash_value = {
+              {"objects", objects},
+              {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
+          };
+        }
         slots.array_value.push_back(actorSlot);
       }
 
