@@ -46,6 +46,7 @@
 #include <unordered_set>
 #include "Input/CommandManager.hpp"
 #include "Engine/EngineCommands.hpp"
+namespace fs = std::filesystem;
 
 namespace ng {
 enum class CursorDirection : unsigned int {
@@ -672,8 +673,9 @@ struct Engine::Impl {
 
         auto table = pActor->getTable();
         auto actorHash = GGPackValue::toGGPackValue(table);
-        auto costume = pActor->getCostume().getPath();
-        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.substr(0, costume.size() - 5));
+        auto costume = fs::path(pActor->getCostume().getPath()).filename();
+        if(costume.has_extension()) costume.replace_extension();
+        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.u8string());
         actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
         auto lockFacing = pActor->getCostume().getLockFacing();
         actorHash.hash_value["_lockFacing"] =
