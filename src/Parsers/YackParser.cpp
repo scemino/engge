@@ -79,9 +79,9 @@ std::unique_ptr<Ast::Statement> YackParser::parseStatement() {
 }
 
 std::unique_ptr<Ast::Condition> YackParser::parseCondition() {
-  auto text = _reader.readText(*_it++);
+  auto text = _reader.readText(*_it);
   auto conditionText = text.substr(1, text.length() - 2);
-  auto line = _reader.getLine(*_it);
+  auto line = _reader.getLine(*_it++);
   assert(line > 0);
   if (conditionText == "once") {
     return std::make_unique<Ast::OnceCondition>(line);

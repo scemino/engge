@@ -72,7 +72,7 @@ private:
     std::cout << "condition: showonce (" << node.getLine() << ")" << std::endl;
   }
   void visit(const Ast::CodeCondition &node) override {
-    std::cout << "condition: " << node.code << std::endl;
+    std::cout << "condition: " << node.code << "(" << node.getLine() << ")" << std::endl;
   }
   void visit(const Ast::TempOnceCondition &node) override {
     std::cout << "condition: temponce (" << node.getLine() << ")" << std::endl;
