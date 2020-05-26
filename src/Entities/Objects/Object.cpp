@@ -51,7 +51,7 @@ struct Object::Impl {
     sq_pop(v, 1);
   }
 
-  Impl(HSQOBJECT obj) {
+  explicit Impl(HSQOBJECT obj) {
     auto v = ScriptEngine::getVm();
     sq_pushobject(v, obj);
     sq_getstackobj(v, -1, &_table);
@@ -67,10 +67,12 @@ struct Object::Impl {
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
   _id = Locator<ResourceManager>::get().getObjectId();
+  ScriptEngine::set(this, "_id", _id);
 }
 
 Object::Object(HSQOBJECT obj) : pImpl(std::make_unique<Impl>(obj)) {
   _id = Locator<ResourceManager>::get().getObjectId();
+  ScriptEngine::set(this, "_id", _id);
 }
 
 Object::~Object() = default;

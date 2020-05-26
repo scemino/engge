@@ -934,10 +934,12 @@ private:
         return sq_throwerror(v, _SC("failed to get alignment"));
       }
       obj.setAlignment((TextAlignment) (alignment & (int) TextAlignment::All));
-      auto maxWidth = (alignment & ~(int) TextAlignment::All);
+      int otherOptions = (alignment & ~(int) TextAlignment::All);
+      // TODO: auto lessSpacing = (otherOptions & 0x2000000);
+      auto maxWidth = (otherOptions & ~0x2000000);
       obj.setMaxWidth(maxWidth);
     }
-    _createObject(v, obj);
+    ScriptEngine::push<Object*>(v, &obj);
     return 1;
   }
 
@@ -976,7 +978,7 @@ private:
     auto numArgs = sq_gettop(v);
     if (numArgs == 1) {
       auto &obj = g_pEngine->getRoom()->createObject();
-      _createObject(v, obj);
+      ScriptEngine::push(v, &obj);
       return 1;
     }
 
@@ -988,7 +990,7 @@ private:
         anims.emplace_back(animName);
       }
       auto &obj = g_pEngine->getRoom()->createObject(anims);
-      _createObject(v, obj);
+      ScriptEngine::push(v, &obj);
       return 1;
     }
 
@@ -1008,7 +1010,7 @@ private:
       }
       sq_pop(v, 1); // pops the null iterator
       auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
-      _createObject(v, object);
+      ScriptEngine::push(v, &object);
       return 1;
     }
 
@@ -1021,24 +1023,17 @@ private:
       if (pos == std::string::npos) {
         std::vector<std::string> anims{s};
         auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
-        _createObject(v, object);
+        ScriptEngine::push(v, &object);
         return 1;
       }
 
       s = s.substr(0, pos);
       auto &object = g_pEngine->getRoom()->createObject(s);
-      _createObject(v, object);
+      ScriptEngine::push(v, &object);
       return 1;
     }
 
     return sq_throwerror(v, _SC("createObject called with invalid number of arguments"));
-  }
-
-  static void _createObject(HSQUIRRELVM v, Object &object) {
-    ScriptEngine::pushObject(v, &object);
-    auto &table = object.getTable();
-    sq_getstackobj(v, -1, &table);
-    sq_addref(ScriptEngine::getVm(), &table);
   }
 };
 

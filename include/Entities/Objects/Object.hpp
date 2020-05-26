@@ -57,7 +57,7 @@ static const int REACH_NONE = 0x40000;
 class Object : public Entity {
 public:
   Object();
-  Object(HSQOBJECT obj);
+  explicit Object(HSQOBJECT obj);
   ~Object() override;
 
   void setKey(const std::string &key);

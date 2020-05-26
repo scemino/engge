@@ -323,6 +323,7 @@ ScriptEngine::ScriptEngine() {
                              {"ALIGN_RIGHT", 0x40000000},
                              {"ALIGN_TOP", 0x80000000},
                              {"ALIGN_BOTTOM", 0x1000000},
+                             {"LESS_SPACING", 0x2000000},
                              {"EX_ALLOW_SAVEGAMES", ExCommandConstants::EX_ALLOW_SAVEGAMES},
                              {"EX_POP_CHARACTER_SELECTION", ExCommandConstants::EX_POP_CHARACTER_SELECTION},
                              {"EX_CAMERA_TRACKING", ExCommandConstants::EX_CAMERA_TRACKING},
