@@ -133,6 +133,7 @@ void DialogPlayer::update() {
   case DialogPlayerState::WaitingEndAnimation:
     if (!_pWaitAction || _pWaitAction()) {
       _pWaitAction = nullptr;
+      _currentStatement++;
       _state = DialogPlayerState::Running;
     }
     break;
@@ -178,7 +179,9 @@ void DialogPlayer::running() {
       return;
     }
     run(pCurrentStatement);
-    _currentStatement++;
+    if(_state != DialogPlayerState::WaitingEndAnimation) {
+      _currentStatement++;
+    }
   }
   if (choicesReady()) {
     _state = DialogPlayerState::WaitingForChoice;
