@@ -450,6 +450,7 @@ private:
         actor->setTouchable(isTouchable);
       }
       auto pRoom = actor->getRoom();
+      ImGui::Text("Key: %s", actor->getKey().c_str());
       ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
       ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
       ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
@@ -549,11 +550,8 @@ private:
 
     if (!objects.empty() && _pSelectedObject) {
       auto &object = _pSelectedObject;
-      static char name[1024] = "";
-      strcpy(name, object->getName().c_str());
-      if (ImGui::InputText("Name", name, IM_ARRAYSIZE(name))) {
-        object->setName(name);
-      }
+      auto name = object->getName();
+      ImGui::LabelText("Name", "%s", name.c_str());
       std::string type;
       switch (object->getType()) {
       case ObjectType::Object:type = "object";

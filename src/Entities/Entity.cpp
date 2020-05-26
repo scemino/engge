@@ -181,8 +181,16 @@ void Entity::scaleTo(float destination, sf::Time time, InterpolationMethod metho
   _functions.push_back(std::move(scalteTo));
 }
 
-void Entity::setName(const std::string &name) { _name = name; }
-const std::string &Entity::getName() const { return _name; }
+void Entity::setName(const std::string &name) {
+  ScriptEngine::set(getTable(), "name", name.c_str());
+}
+std::string Entity::getName() const {
+  const char *name = nullptr;
+  ScriptEngine::get(getTable(), "name", name);
+  if (!name)
+    return std::string();
+  return name;
+}
 
 void Entity::stopObjectMotors() {
   _functions.clear();

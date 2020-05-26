@@ -27,7 +27,7 @@ public:
   virtual int getZOrder() const = 0;
 
   void setName(const std::string &name);
-  const std::string &getName() const;
+  std::string getName() const;
 
   void setVisible(bool isVisible);
   virtual bool isVisible() const;
@@ -110,7 +110,6 @@ private:
   sf::Vector2i _renderOffset;
   std::vector<std::unique_ptr<Function>> _functions;
   sf::Color _color{sf::Color::White};
-  std::string _name;
   bool _objectBumperCycle{true};
 };
 } // namespace ng

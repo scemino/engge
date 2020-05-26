@@ -523,7 +523,6 @@ TextObject &Room::createTextObject(const std::string &fontName) {
   obj.setRoom(this);
   std::ostringstream s;
   s << "TextObject #" << pImpl->_objects.size();
-  obj.setName(s.str());
   pImpl->_objects.push_back(std::move(object));
   pImpl->_layers[0]->addEntity(obj);
   return obj;

@@ -239,8 +239,13 @@ private:
       }
     }
     if (numArgs == 2) {
-      const auto &hotspot = obj->getHotspot();
-      ScriptEngine::push(v, hotspot);
+      // this really fucked up, when seeting hotspot it's a relative rect,
+      // when getting hotspot the position is absolute
+      const auto pos = obj->getPosition();
+      const auto hotspot = obj->getHotspot();
+      sf::IntRect r = {hotspot.left + static_cast<int>(pos.x), hotspot.top + static_cast<int>(pos.y), hotspot.width,
+                       hotspot.height};
+      ScriptEngine::push(v, r);
       return 1;
     }
     if (SQ_FAILED(sq_getinteger(v, 3, &left))) {

@@ -834,11 +834,6 @@ private:
     sq_getstackobj(v, 2, &table);
     sq_addref(v, &table);
 
-    const char *name = nullptr;
-    if (ScriptEngine::rawGet(pActor.get(), "name", name)) {
-      pActor->setName(name);
-    }
-
     const char *key = nullptr;
     if (ScriptEngine::rawGet(pActor.get(), "_key", key)) {
       pActor->setKey(key);

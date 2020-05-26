@@ -230,6 +230,8 @@ void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states)
     return;
 
   auto rect = getHotspot();
+  // y-axis is inverted
+  rect.top = -rect.height - rect.top;
 
   sf::Color color;
   switch (getType()) {

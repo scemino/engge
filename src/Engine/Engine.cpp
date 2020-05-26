@@ -674,7 +674,8 @@ struct Engine::Impl {
         auto table = pActor->getTable();
         auto actorHash = GGPackValue::toGGPackValue(table);
         auto costume = fs::path(pActor->getCostume().getPath()).filename();
-        if(costume.has_extension()) costume.replace_extension();
+        if (costume.has_extension())
+          costume.replace_extension();
         actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.u8string());
         actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
         auto lockFacing = pActor->getCostume().getLockFacing();
@@ -2571,10 +2572,22 @@ Actor *Engine::getActor(const std::string &name) {
   if (name == "agent" || name == "player")
     return _pImpl->_pCurrentActor;
 
-  for (const auto &pActor : getActors()) {
-    if (pActor->getKey() == name) {
-      return pActor.get();
+  const auto &actors = getActors();
+  if (name == "vo") {
+    // HACK:
+    auto it = std::find_if(actors.cbegin(), actors.cend(), [](const auto &pActor) {
+      return pActor->getName() == "@30130";
+    });
+    if (it != actors.cend()) {
+      return it->get();
     }
+    return nullptr;
+  }
+  auto it = std::find_if(actors.cbegin(), actors.cend(), [name](const auto &pActor) {
+    return pActor->getKey() == name;
+  });
+  if (it != actors.cend()) {
+    return it->get();
   }
   return nullptr;
 }

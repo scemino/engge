@@ -576,11 +576,6 @@ private:
       if (ScriptEngine::get(v, obj.get(), "initTouchable", initTouchable)) {
         obj->setTouchable(initTouchable);
       }
-      const char *objName;
-      if (ScriptEngine::get(v, obj.get(), "name", objName)) {
-        obj->setName(objName);
-      }
-
 //      trace("Room {}: Set object id {} to {}", pRoom->getName(), obj->getId(), obj->getKey());
       ScriptEngine::set(obj.get(), "_id", obj->getId());
 
@@ -653,12 +648,6 @@ private:
           object->setIcon(fps, icons);
         } else {
           error("TODO: objectIcon with type {} not implemented", sq_gettype(v, -1));
-        }
-
-        const char *objName;
-        if (ScriptEngine::get(v, object.get(), "name", objName)) {
-          object->setName(objName);
-          trace("inventory object {} {} {}", roomObject.first, objName, object->getId());
         }
 
         sq_pushobject(v, object->getTable());
