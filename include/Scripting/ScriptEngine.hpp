@@ -35,7 +35,7 @@ public:
   void setEngine(Engine &engine);
   Engine &getEngine();
 
-  static HSQUIRRELVM getVm() { return v; }
+  static HSQUIRRELVM getVm() { return _vm; }
 
   static SQObjectPtr toSquirrel(const std::string &value);
 
@@ -151,7 +151,7 @@ private:
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
 private:
-  static HSQUIRRELVM v;
+  inline static HSQUIRRELVM _vm{};
   std::vector<std::unique_ptr<Pack>> _packs;
   inline static std::vector<PrintCallback> _errorCallbacks;
   inline static std::vector<PrintCallback> _printCallbacks;
