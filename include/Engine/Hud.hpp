@@ -43,6 +43,7 @@ public:
 
   void setMousePosition(sf::Vector2f pos);
   const Verb *getHoveredVerb() const;
+  bool isMouseOver() const;
 
   Inventory &getInventory() { return _inventory; }
 

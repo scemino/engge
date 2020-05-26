@@ -1941,6 +1941,9 @@ void Engine::update(const sf::Time &el) {
     return;
   }
 
+  if (_pImpl->_hud.isMouseOver())
+    return;
+
   _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
   setDefaultVerb();
 }

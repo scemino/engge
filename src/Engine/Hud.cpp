@@ -61,6 +61,11 @@ Hud::Hud() {
   _verbShader.setUniform("colorMap", sf::Shader::CurrentTexture);
 }
 
+bool Hud::isMouseOver() const {
+  if(!_active) return false;
+  return _mousePos.y >= _verbRects.at(0).top;
+}
+
 void Hud::setTextureManager(TextureManager *pTextureManager) {
   _inventory.setTextureManager(pTextureManager);
 }
