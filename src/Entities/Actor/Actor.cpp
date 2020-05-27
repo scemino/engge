@@ -13,9 +13,7 @@
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Audio/SoundTrigger.hpp"
-#include "Graphics/Text.hpp"
 #include "_TalkingState.hpp"
-#include "../../System/_Util.hpp"
 #include "../../Math/PathFinding/_Path.hpp"
 
 namespace ng {
@@ -77,7 +75,6 @@ struct Actor::Impl {
   Engine &_engine;
   Actor *_pActor{nullptr};
   Costume _costume;
-  std::string _icon;
   bool _useWalkboxes{true};
   Room *_pRoom{nullptr};
   sf::IntRect _hotspot;
@@ -96,7 +93,7 @@ struct Actor::Impl {
 };
 
 std::wstring Actor::getTranslatedName() const {
-  return pImpl->_engine.getText(getName());
+  return Engine::getText(getName());
 }
 
 void Actor::setKey(const std::string &key) { pImpl->_key = key; }
@@ -223,10 +220,6 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
   _path.erase(_path.begin());
   _pActor->getCostume().setFacing(getFacing());
   _pActor->getCostume().setWalkState();
-  auto pAnim = _pActor->getCostume().getAnimation();
-  if (pAnim) {
-    pAnim->play(true);
-  }
   _isWalking = true;
   _init = _pActor->getRealPosition();
   _elapsed = sf::seconds(0);
@@ -262,28 +255,26 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
   auto end = factor >= 1.f;
   auto newPos = end ? _path[0] : (_init + factor * delta);
   _pActor->setPosition(newPos);
-  if (end) {
-    _path.erase(_path.begin());
-    if (_path.empty()) {
-      stop();
-      trace("Play anim stand");
-      if (_facing.has_value()) {
-        _pActor->getCostume().setFacing(_facing.value());
-      }
-      _pActor->getCostume().setStandState();
-      ScriptEngine::rawCall(_pActor, "actorArrived");
-    } else {
-      _pActor->getCostume().setFacing(getFacing());
-      _pActor->getCostume().setWalkState();
-      auto pAnim = _pActor->getCostume().getAnimation();
-      if (pAnim) {
-        pAnim->play(true);
-      }
-      _init = newPos;
-      _elapsed = sf::seconds(0);
-      trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
-    }
+  if (!end)
+    return;
+
+  _path.erase(_path.begin());
+  if (!_path.empty()) {
+    _pActor->getCostume().setFacing(getFacing());
+    _pActor->getCostume().setWalkState();
+    _init = newPos;
+    _elapsed = sf::seconds(0);
+    trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
+    return;
   }
+
+  stop();
+  trace("Play anim stand");
+  if (_facing.has_value()) {
+    _pActor->getCostume().setFacing(_facing.value());
+  }
+  _pActor->getCostume().setStandState();
+  ScriptEngine::rawCall(_pActor, "actorArrived");
 }
 
 Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine)) {
@@ -316,7 +307,8 @@ void Actor::setCostume(const std::string &name, const std::string &sheet) {
 
 float Actor::getScale() const {
   auto pRoom = pImpl->_pRoom;
-  if(!pRoom) return 1.f;
+  if (!pRoom)
+    return 1.f;
   return pRoom->getRoomScaling().getScaling(getRealPosition().y);
 }
 

@@ -560,7 +560,6 @@ private:
         continue;
       }
 
-      obj->setTouchable(true);
       sq_resetobject(&obj->getTable());
       sq_getstackobj(v, -1, &obj->getTable());
       sq_addref(ScriptEngine::getVm(), &obj->getTable());
@@ -623,8 +622,6 @@ private:
       sq_pushobject(v, roomObject.second);
       sq_pushstring(v, _SC("icon"), -1);
       if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
-        object->setTouchable(true);
-
         if (sq_gettype(v, -1) == OT_STRING) {
           const SQChar *icon = nullptr;
           sq_getstring(v, -1, &icon);

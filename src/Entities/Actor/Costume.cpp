@@ -70,16 +70,22 @@ void Costume::unlockFacing() {
 }
 
 std::optional<Facing> Costume::getLockFacing() const {
-  if(!_lockFacing) return std::nullopt;
+  if (!_lockFacing)
+    return std::nullopt;
   auto frontFacing = _facings.find(Facing::FACE_FRONT)->second;
   auto backFacing = _facings.find(Facing::FACE_BACK)->second;
-  if(frontFacing != backFacing) return std::nullopt;
+  if (frontFacing != backFacing)
+    return std::nullopt;
   return frontFacing;
 }
 
-void Costume::setState(const std::string &name) {
+void Costume::setState(const std::string &name, bool loop) {
   _animation = name;
+  auto pOldAnim = _pCurrentAnimation;
   updateAnimation();
+  if (pOldAnim != _pCurrentAnimation) {
+    _pCurrentAnimation->play(loop);
+  }
 }
 
 void Costume::setReachState(Reaching reaching) {
@@ -188,7 +194,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
       auto layer = loadLayer(j);
       animation.getLayers().push_back(std::move(layer));
     } else {
-      for (const auto& jLayer : j["layers"].array_value) {
+      for (const auto &jLayer : j["layers"].array_value) {
         auto layer = loadLayer(jLayer);
         animation.getLayers().push_back(std::move(layer));
       }

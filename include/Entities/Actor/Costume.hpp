@@ -43,9 +43,9 @@ public:
 
   void setFacing(Facing facing);
   Facing getFacing() const;
-  void setState(const std::string &name);
+  void setState(const std::string &name, bool loop = false);
   void setStandState() { setState(_standAnimName); }
-  void setWalkState() { setState(_walkAnimName); }
+  void setWalkState() { setState(_walkAnimName, true); }
   void setReachState(Reaching reaching);
   bool setAnimation(const std::string &name);
   bool setMatchingAnimation(const std::string &animName);

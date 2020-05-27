@@ -49,6 +49,8 @@
 namespace fs = std::filesystem;
 
 namespace ng {
+static const auto _clickedAtCallback = "clickedAt";
+
 enum class CursorDirection : unsigned int {
   None = 0,
   Left = 1,
@@ -1881,6 +1883,12 @@ void Engine::update(const sf::Time &el) {
 
   _pImpl->_hud.update(elapsed);
 
+  if (_pImpl->_actorIcons.isMouseOver())
+    return;
+
+  if (isMouseClick && _pImpl->clickedAt(_pImpl->_mousePosInRoom))
+    return;
+
   if (!_pImpl->_inputActive)
     return;
 
@@ -1894,12 +1902,6 @@ void Engine::update(const sf::Time &el) {
     }
     return;
   }
-
-  if (_pImpl->_actorIcons.isMouseOver())
-    return;
-
-  if (isMouseClick && _pImpl->clickedAt(_pImpl->_mousePosInRoom))
-    return;
 
   if (!_pImpl->_pCurrentActor)
     return;
@@ -2053,7 +2055,19 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos) const {
     return false;
 
   bool handled = false;
-  ScriptEngine::rawCallFunc(handled, _pRoom, "clickedAt", pos.x, pos.y);
+  if (ScriptEngine::rawExists(_pRoom, _clickedAtCallback)) {
+    ScriptEngine::rawCallFunc(handled, _pRoom, _clickedAtCallback, pos.x, pos.y);
+    if (handled)
+      return true;
+  }
+
+  if (!_pCurrentActor)
+    return false;
+
+  if (!ScriptEngine::rawExists(_pCurrentActor, _clickedAtCallback))
+    return false;
+
+  ScriptEngine::rawCallFunc(handled, _pCurrentActor, _clickedAtCallback, pos.x, pos.y);
   return handled;
 }
 
