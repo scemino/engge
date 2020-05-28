@@ -177,11 +177,7 @@ private:
       if (!pObj) {
         return sq_throwerror(v, _SC("failed to get object or room"));
       }
-      auto pos = pObj->getRealPosition();
-      auto usePos = pObj->getUsePosition().value_or(sf::Vector2f());
-      auto hotspot = pObj->getHotspot();
-      pos.x += usePos.x + hotspot.left + hotspot.width / 2.f;
-      pos.y += usePos.y + hotspot.top + hotspot.height / 2.f;
+      auto pos = pObj->getRealPosition() + pObj->getUsePosition().value_or(sf::Vector2f());
       pRoom = pObj->getRoom();
       pActor->setRoom(pRoom);
       pActor->setPosition(pos);
