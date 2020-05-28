@@ -7,11 +7,20 @@
 
 namespace ng {
 void Entity::update(const sf::Time &elapsed) {
-  for (auto &&f : _functions) {
-    (*f)(elapsed);
+  update(_offsetTo, elapsed);
+  update(_scaleTo, elapsed);
+  update(_rotateTo, elapsed);
+  update(_moveTo, elapsed);
+  update(_alphaTo, elapsed);
+}
+
+void Entity::update(Motor &motor, const sf::Time &elapsed) {
+  if (motor.isEnabled) {
+    (*motor.function)(elapsed);
+    if (motor.isEnabled && motor.function->isElapsed()) {
+      motor.isEnabled = false;
+    }
   }
-  _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
-                                  [](std::unique_ptr<Function> &x) { return x->isElapsed(); }), _functions.end());
 }
 
 void Entity::setLit(bool isLit) {
@@ -44,6 +53,7 @@ std::optional<UseDirection> Entity::getUseDirection() const {
 
 void Entity::setPosition(const sf::Vector2f &pos) {
   _transform.setPosition(pos);
+  _moveTo.isEnabled = false;
 }
 
 sf::Vector2f Entity::getPosition() const {
@@ -56,6 +66,7 @@ sf::Vector2f Entity::getRealPosition() const {
 
 void Entity::setOffset(const sf::Vector2f &offset) {
   _offset = offset;
+  _offsetTo.isEnabled = false;
 }
 
 sf::Vector2f Entity::getOffset() const {
@@ -74,6 +85,7 @@ float Entity::getRotation() const {
 
 void Entity::setColor(const sf::Color &color) {
   _color = color;
+  _alphaTo.isEnabled = false;
 }
 
 const sf::Color &Entity::getColor() const {
@@ -82,6 +94,7 @@ const sf::Color &Entity::getColor() const {
 
 void Entity::setScale(float s) {
   _transform.setScale(s, s);
+  _scaleTo.isEnabled = false;
 }
 
 float Entity::getScale() const {
@@ -141,44 +154,47 @@ sf::Vector2i Entity::getRenderOffset() const {
 }
 
 void Entity::alphaTo(float destination, sf::Time time, InterpolationMethod method) {
-  auto getAlpha = [](const Entity &o) { return (o.getColor().a / 255.f); };
-  auto setAlpha = [](Entity &o, float a) {
-    const auto c = o.getColor();
-    return o.setColor(sf::Color(c.r, c.g, c.b, (sf::Uint8) (a * 255.f)));
+  auto getAlpha = [this] { return static_cast<float>(getColor().a) / 255.f; };
+  auto setAlpha = [this](const float &a) {
+    const auto c = getColor();
+    return setColor(sf::Color(c.r, c.g, c.b, (sf::Uint8) (a * 255.f)));
   };
-  auto getalpha = std::bind(getAlpha, std::cref(*this));
-  auto setalpha = std::bind(setAlpha, std::ref(*this), std::placeholders::_1);
-  auto alphaTo = std::make_unique<ChangeProperty<float>>(getalpha, setalpha, destination, time, method);
-  _functions.push_back(std::move(alphaTo));
+  auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
+  _alphaTo.function = std::move(alphaTo);
+  _alphaTo.isEnabled = true;
 }
 
 void Entity::offsetTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method) {
-  auto get = std::bind(&Entity::getOffset, this);
-  auto set = std::bind(&Entity::setOffset, this, std::placeholders::_1);
+  auto get = [this] { return _offset; };
+  auto set = [this](const sf::Vector2f &value) { _offset = value; };
   auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
-  _functions.push_back(std::move(offsetTo));
+  _offsetTo.function = std::move(offsetTo);
+  _offsetTo.isEnabled = true;
 }
 
 void Entity::moveTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method) {
-  auto get = std::bind(&Entity::getPosition, this);
-  auto set = std::bind(&Entity::setPosition, this, std::placeholders::_1);
-  auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
-  _functions.push_back(std::move(offsetTo));
+  auto get = [this] { return getPosition(); };
+  auto set = [this](const sf::Vector2f &value) { _transform.setPosition(value); };
+  auto moveTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
+  _moveTo.function = std::move(moveTo);
+  _moveTo.isEnabled = true;
 }
 
 void Entity::rotateTo(float destination, sf::Time time, InterpolationMethod method) {
-  auto get = std::bind(&Entity::getRotation, this);
-  auto set = std::bind(&Entity::setRotation, this, std::placeholders::_1);
+  auto get = [this] { return getRotation(); };
+  auto set = [this](const float &value) { _transform.setRotation(value); };
   auto rotateTo =
       std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  _functions.push_back(std::move(rotateTo));
+  _rotateTo.function = std::move(rotateTo);
+  _rotateTo.isEnabled = true;
 }
 
 void Entity::scaleTo(float destination, sf::Time time, InterpolationMethod method) {
-  auto get = std::bind(&Entity::getScale, this);
-  auto set = std::bind(&Entity::setScale, this, std::placeholders::_1);
+  auto get = [this] { return _transform.getScale().x; };
+  auto set = [this](const float &s) { _transform.setScale(s, s); };
   auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  _functions.push_back(std::move(scalteTo));
+  _scaleTo.function = std::move(scalteTo);
+  _scaleTo.isEnabled = true;
 }
 
 void Entity::setName(const std::string &name) {
@@ -193,7 +209,11 @@ std::string Entity::getName() const {
 }
 
 void Entity::stopObjectMotors() {
-  _functions.clear();
+  _offsetTo.isEnabled = false;
+  _scaleTo.isEnabled = false;
+  _rotateTo.isEnabled = false;
+  _moveTo.isEnabled = false;
+  _alphaTo.isEnabled = false;
 }
 
 } // namespace ng

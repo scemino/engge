@@ -33,7 +33,7 @@ public:
   ~ScriptEngine();
 
   void setEngine(Engine &engine);
-  Engine &getEngine();
+  static Engine &getEngine();
 
   static HSQUIRRELVM getVm() { return _vm; }
 
@@ -41,7 +41,7 @@ public:
 
   template<typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list);
-  void registerGlobalFunction(SQFUNCTION f,
+  static void registerGlobalFunction(SQFUNCTION f,
                               const SQChar *functionName,
                               SQInteger nparamscheck = 0,
                               const SQChar *typemask = nullptr);

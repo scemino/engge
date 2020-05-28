@@ -16,6 +16,11 @@ enum class UseDirection {
   Right = DirectionConstants::FACE_RIGHT,
 };
 
+struct Motor {
+  bool isEnabled{false};
+  std::unique_ptr<Function> function;
+};
+
 class Engine;
 class Room;
 class SoundDefinition;
@@ -94,6 +99,9 @@ public:
 
   virtual void stopObjectMotors();
 
+private:
+  static void update(Motor &motor, const sf::Time &elapsed);
+
 protected:
   sf::Transformable getTransform() const;
   sf::Transformable _transform;
@@ -108,7 +116,7 @@ private:
   bool _isVisible{true};
   bool _isTouchable{true};
   sf::Vector2i _renderOffset;
-  std::vector<std::unique_ptr<Function>> _functions;
+  Motor _offsetTo, _scaleTo, _rotateTo, _moveTo, _alphaTo;
   sf::Color _color{sf::Color::White};
   bool _objectBumperCycle{true};
 };

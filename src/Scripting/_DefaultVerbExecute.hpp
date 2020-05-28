@@ -269,7 +269,7 @@ private:
 
 class _DefaultVerbExecute : public VerbExecute {
 public:
-  _DefaultVerbExecute(HSQUIRRELVM vm, Engine &engine) : _vm(vm), _engine(engine) {}
+  explicit _DefaultVerbExecute(Engine &engine) : _engine(engine) {}
 
 private:
   void execute(const Verb *pVerb, Entity *pObject1, Entity *pObject2) override {
@@ -331,7 +331,7 @@ private:
     _engine.setSentence(std::move(sentence));
   }
 
-  bool isFarLook(HSQOBJECT obj) {
+  static bool isFarLook(HSQOBJECT obj) {
     auto flags = getFlags(obj);
     return ((flags & 0x8) == 0x8);
   }
@@ -355,7 +355,7 @@ private:
     return false;
   }
 
-  int getFlags(HSQOBJECT obj) {
+  static int getFlags(HSQOBJECT obj) {
     int flags = 0;
     ScriptEngine::rawGet(obj, "flags", flags);
     return flags;
@@ -383,24 +383,16 @@ private:
     pVerb = _engine.getHud().getVerb(verb);
   }
 
-  SQInteger getDefaultVerb(Entity *pObj) {
-    sq_pushobject(_vm, pObj->getTable());
-    sq_pushstring(_vm, _SC("defaultVerb"), -1);
-
-    if (SQ_SUCCEEDED(sq_get(_vm, -2))) {
-      SQInteger defaultVerb = 0;
-      sq_getinteger(_vm, -1, &defaultVerb);
+  static int getDefaultVerb(Entity *pObj) {
+    int defaultVerb;
+    if (ScriptEngine::get(pObj, "defaultVerb", defaultVerb)) {
       trace("defaultVerb: {}", defaultVerb);
-      sq_pop(_vm, 2);
       return defaultVerb;
     }
-    sq_pop(_vm, 1);
-
-    return 2;
+    return VerbConstants::VERB_LOOKAT;
   }
 
 private:
-  HSQUIRRELVM _vm;
   Engine &_engine;
 };
 } // namespace ng

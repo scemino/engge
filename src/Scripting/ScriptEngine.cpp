@@ -426,7 +426,7 @@ ScriptEngine::~ScriptEngine() {
 
 void ScriptEngine::setEngine(Engine &engine) {
   g_pEngine = &engine;
-  auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(_vm, engine);
+  auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(engine);
   engine.setVerbExecute(std::move(pVerbExecute));
   auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(_vm);
   engine.setScriptExecute(std::move(pScriptExecute));
