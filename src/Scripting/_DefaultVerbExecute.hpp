@@ -340,14 +340,14 @@ private:
     int flags;
     if (ScriptEngine::get(pObject, "flags", flags)) {
       UseFlag useFlag;
-      switch (flags) {
-      case ObjectFlagConstants::USE_WITH:useFlag = UseFlag::UseWith;
-        break;
-      case ObjectFlagConstants::USE_ON:useFlag = UseFlag::UseOn;
-        break;
-      case ObjectFlagConstants::USE_IN:useFlag = UseFlag::UseIn;
-        break;
-      default:return false;
+      if (flags & ObjectFlagConstants::USE_WITH) {
+        useFlag = UseFlag::UseWith;
+      } else if (flags & ObjectFlagConstants::USE_ON) {
+        useFlag = UseFlag::UseOn;
+      } else if (flags & ObjectFlagConstants::USE_IN) {
+        useFlag = UseFlag::UseIn;
+      } else {
+        return false;
       }
       _engine.setUseFlag(useFlag, pObject);
       return true;
