@@ -21,7 +21,7 @@ public:
     if (!_isTalking)
       return;
 
-    bool end = false;
+    bool end;
     _elapsed += elapsed;
     auto pSound = dynamic_cast<SoundId *>(ScriptEngine::getSoundFromId(_soundId));
     if (pSound) {
@@ -75,7 +75,7 @@ public:
     auto id = std::strtol(text.c_str() + 1, nullptr, 10);
 
     if (_isTalking) {
-      _ids.push_back(std::make_tuple(id, mumble));
+      _ids.emplace_back(id, mumble);
       return;
     }
 
@@ -100,7 +100,7 @@ private:
   }
 
   void loadId(int id, bool mumble) {
-    setText(_pEngine->getText(id));
+    setText(Engine::getText(id));
 
     const char *key = nullptr;
     if (!ScriptEngine::rawGet(_pActor, "_talkieKey", key)) {

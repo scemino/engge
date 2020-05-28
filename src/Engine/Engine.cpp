@@ -1847,6 +1847,12 @@ void Engine::update(const sf::Time &el) {
 
   auto screen = _pImpl->_pWindow->getView().getSize();
   _pImpl->_pRoom->update(elapsed);
+  for (auto &pActor : _pImpl->_actors) {
+    if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
+      continue;
+    pActor->update(elapsed);
+  }
+
   if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible() && _pImpl->_pFollowActor->getRoom() == getRoom()) {
     auto pos = _pImpl->_pFollowActor->getPosition() - sf::Vector2f(screen.x / 2, screen.y / 2);
     auto margin = screen.x / 4;
@@ -2086,6 +2092,11 @@ void Engine::draw(sf::RenderTarget &target, bool screenshot) const {
     }
 
     _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+    for (auto &pActor : _pImpl->_actors) {
+      if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
+        continue;
+      pActor->drawForeground(target, sf::RenderStates::Default);
+    }
 
     if (screenshot)
       return;

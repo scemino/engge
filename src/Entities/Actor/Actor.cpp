@@ -120,12 +120,19 @@ void Actor::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkOffset = off
 
 void Actor::say(const std::string &text, bool mumble) {
   pImpl->_talkingState.loadLip(text, this, mumble);
-  auto pos = getRealPosition();
-  auto at = pImpl->_engine.getCamera().getAt();
-  pos.x = pos.x - at.x + pImpl->_talkOffset.x;
-  pos.y = pos.y - at.y - pImpl->_talkOffset.y;
-  auto p = toDefaultView((sf::Vector2i) pos, pImpl->_engine.getRoom()->getScreenSize());
-  pImpl->_talkingState.setPosition(p);
+  sf::Vector2f pos;
+  auto screenSize = pImpl->_engine.getRoom()->getScreenSize();
+  if (getRoom() == pImpl->_engine.getRoom()) {
+    auto at = pImpl->_engine.getCamera().getAt();
+    pos = getRealPosition();
+    pos = {pos.x - at.x + pImpl->_talkOffset.x, screenSize.y - pos.y - at.y - pImpl->_talkOffset.y};
+  } else {
+    // TODO: the position in this case is wrong, don't know what to do yet
+    pos = (sf::Vector2f) pImpl->_talkOffset;
+    pos = {pos.x, screenSize.y + pos.y};
+  }
+  pos = toDefaultView((sf::Vector2i) pos, pImpl->_engine.getRoom()->getScreenSize());
+  pImpl->_talkingState.setPosition(pos);
 }
 
 void Actor::stopTalking() { pImpl->_talkingState.stop(); }
