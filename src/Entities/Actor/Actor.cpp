@@ -235,7 +235,9 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
 
 void Actor::Impl::WalkingState::stop() {
   _isWalking = false;
-  ScriptEngine::objCall(_pActor, "postWalking");
+  if (ScriptEngine::rawExists(_pActor, "postWalking")) {
+    ScriptEngine::objCall(_pActor, "postWalking");
+  }
 }
 
 Facing Actor::Impl::WalkingState::getFacing() {
@@ -379,7 +381,9 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
   }
 
   pImpl->_path = std::make_unique<_Path>(path);
-  ScriptEngine::rawCall(this, "preWalking");
+  if (ScriptEngine::rawExists(this, "preWalking")) {
+    ScriptEngine::rawCall(this, "preWalking");
+  }
   pImpl->_walkingState.setDestination(path, facing);
 }
 

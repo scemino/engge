@@ -760,7 +760,8 @@ private:
 
     SQInteger id;
     if (SQ_FAILED(sq_getinteger(v, 2, &id))) {
-      return sq_throwerror(v, _SC("Failed to get thread id"));
+      trace("Failed to stopthread: got {} instead", type);
+      return 0;
     }
 
     auto pThread = ScriptEngine::getThreadFromId(id);

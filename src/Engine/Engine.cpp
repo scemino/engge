@@ -428,7 +428,9 @@ struct Engine::Impl {
 
         _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
       }
-      ScriptEngine::objCall(pActor, "postLoad");
+      if(ScriptEngine::rawExists(pActor, "postLoad")) {
+        ScriptEngine::objCall(pActor, "postLoad");
+      }
     }
 
     void loadInventory(const GGPackValue &hash) {
@@ -580,7 +582,9 @@ struct Engine::Impl {
           }
 
           _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
-          ScriptEngine::objCall(pRoom, "postLoad");
+          if(ScriptEngine::rawExists(pRoom, "postLoad")) {
+            ScriptEngine::objCall(pRoom, "postLoad");
+          }
         }
       }
     }
@@ -1366,7 +1370,8 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
   trace("call exit room function of {} ({} params)", pOldRoom->getName(), nparams);
 
   if (nparams == 2) {
-    ScriptEngine::rawCall(pOldRoom, "exit", pObject);
+    auto pRoom = pObject ? pObject->getRoom() : nullptr;
+    ScriptEngine::rawCall(pOldRoom, "exit", pRoom);
   } else {
     ScriptEngine::rawCall(pOldRoom, "exit");
   }

@@ -213,7 +213,8 @@ private:
     _done = true;
 
     bool success;
-    if (_pObject2) {
+    auto count = ScriptEngine::getParameterCount(&_object, _pVerb->func.data());
+    if (count == 2) {
       success = ScriptEngine::objCall(&_object, _pVerb->func.data(), _pObject2);
     } else {
       success = ScriptEngine::objCall(&_object, _pVerb->func.data());
