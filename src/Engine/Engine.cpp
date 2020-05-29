@@ -428,7 +428,7 @@ struct Engine::Impl {
 
         _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
       }
-      if(ScriptEngine::rawExists(pActor, "postLoad")) {
+      if (ScriptEngine::rawExists(pActor, "postLoad")) {
         ScriptEngine::objCall(pActor, "postLoad");
       }
     }
@@ -582,7 +582,7 @@ struct Engine::Impl {
           }
 
           _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
-          if(ScriptEngine::rawExists(pRoom, "postLoad")) {
+          if (ScriptEngine::rawExists(pRoom, "postLoad")) {
             ScriptEngine::objCall(pRoom, "postLoad");
           }
         }
@@ -1415,19 +1415,24 @@ void Engine::Impl::actorEnter() const {
   if (!_pCurrentActor)
     return;
 
+  _pCurrentActor->stopWalking();
   ScriptEngine::rawCall("actorEnter", _pCurrentActor);
 
   if (!_pRoom)
     return;
 
-  ScriptEngine::rawCall(_pRoom, "actorEnter", _pCurrentActor);
+  if (ScriptEngine::rawExists(_pRoom, "actorEnter")) {
+    ScriptEngine::rawCall(_pRoom, "actorEnter", _pCurrentActor);
+  }
 }
 
 void Engine::Impl::actorExit() const {
   if (!_pCurrentActor || !_pRoom)
     return;
 
-  ScriptEngine::rawCall(_pRoom, "actorExit", _pCurrentActor);
+  if (ScriptEngine::rawExists(_pRoom, "actorExit")) {
+    ScriptEngine::rawCall(_pRoom, "actorExit", _pCurrentActor);
+  }
 }
 
 SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) const {
@@ -1466,7 +1471,7 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) const {
     if (obj->getId() == 0 || obj->isTemporary())
       continue;
 
-    if (ScriptEngine::exists(obj.get(), "enter")) {
+    if (ScriptEngine::rawExists(obj.get(), "enter")) {
       ScriptEngine::rawCall(obj.get(), "enter");
     }
   }
@@ -1974,7 +1979,9 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
   auto pRoom = pCurrentActor ? pCurrentActor->getRoom() : nullptr;
   if (pRoom) {
-    ScriptEngine::rawCall(pRoom, "onActorSelected", pCurrentActor, userSelected);
+    if (ScriptEngine::rawExists(pRoom, "onActorSelected")) {
+      ScriptEngine::rawCall(pRoom, "onActorSelected", pCurrentActor, userSelected);
+    }
   }
 }
 
@@ -2028,7 +2035,7 @@ void Engine::Impl::updateKeyboard() {
 
   if (_pRoom) {
     for (auto key : _oldKeyDowns) {
-      if (isKeyPressed(key)) {
+      if (isKeyPressed(key) && ScriptEngine::rawExists(_pRoom, "pressedKey")) {
         ScriptEngine::rawCall(_pRoom, "pressedKey", static_cast<int>(key.input));
       }
     }

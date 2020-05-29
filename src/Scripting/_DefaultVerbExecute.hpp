@@ -49,7 +49,9 @@ public:
     auto *pObj = dynamic_cast<Object *>(_pObject);
     auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
     bool handled = false;
-    ScriptEngine::callFunc(handled, _pObject, functionName, _verb, _pObject, _pObject2);
+    if (ScriptEngine::rawExists(_pObject, functionName)) {
+      ScriptEngine::callFunc(handled, _pObject, functionName, _verb, _pObject, _pObject2);
+    }
     if (handled) {
       _sentence.stop();
     }
@@ -366,7 +368,9 @@ private:
     auto *pObj = dynamic_cast<Object *>(pObj1);
     auto functionName = pObj ? "objectPreWalk" : "actorPreWalk";
     bool handled = false;
-    ScriptEngine::callFunc(handled, pObj1, functionName, verb, pObj1, pObj2);
+    if (ScriptEngine::rawExists(pObj1, functionName)) {
+      ScriptEngine::callFunc(handled, pObj1, functionName, verb, pObj1, pObj2);
+    }
     return handled;
   }
 

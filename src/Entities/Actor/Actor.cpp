@@ -235,6 +235,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
 
 void Actor::Impl::WalkingState::stop() {
   _isWalking = false;
+  _pActor->getCostume().setStandState();
   if (ScriptEngine::rawExists(_pActor, "postWalking")) {
     ScriptEngine::objCall(_pActor, "postWalking");
   }
@@ -283,7 +284,9 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
     _pActor->getCostume().setFacing(_facing.value());
   }
   _pActor->getCostume().setStandState();
-  ScriptEngine::rawCall(_pActor, "actorArrived");
+  if(ScriptEngine::rawExists(_pActor, "actorArrived")) {
+    ScriptEngine::rawCall(_pActor, "actorArrived");
+  }
 }
 
 Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine)) {
