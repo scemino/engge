@@ -371,6 +371,7 @@ private:
   }
 
   static SQInteger addCallback(HSQUIRRELVM v) {
+    auto count = sq_gettop(v);
     SQFloat duration;
     if (SQ_FAILED(sq_getfloat(v, 2, &duration))) {
       return sq_throwerror(v, _SC("failed to get duration"));
@@ -380,15 +381,27 @@ private:
     if (SQ_FAILED(sq_getstackobj(v, 3, &method)) || !sq_isclosure(method)) {
       return sq_throwerror(v, _SC("failed to get method"));
     }
+
     std::string methodName;
-    if (SQ_SUCCEEDED(sq_getclosurename(v, -1))) {
+    if (SQ_SUCCEEDED(sq_getclosurename(v, 3))) {
       const SQChar *tmpMethodName = nullptr;
       sq_getstring(v, -1, &tmpMethodName);
       methodName = tmpMethodName;
     }
 
+    auto numArgs = count - 3;
+    std::vector<HSQOBJECT> args;
+    for (auto i = 0; i < numArgs; i++) {
+      HSQOBJECT arg;
+      sq_resetobject(&arg);
+      if (SQ_FAILED(sq_getstackobj(v, 4 + i, &arg))) {
+        return sq_throwerror(v, _SC("failed to get argument"));
+      }
+      args.push_back(arg);
+    }
+
     auto id = Locator<ResourceManager>::get().getCallbackId();
-    auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName);
+    auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName, args);
     g_pEngine->addCallback(std::move(callback));
 
     sq_pushinteger(v, static_cast<SQInteger>(id));

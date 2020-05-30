@@ -18,6 +18,10 @@ Callback::Callback(int id, sf::Time duration, std::string method)
     : TimeFunction(duration), _id(id), _method(std::move(method)) {
 }
 
+Callback::Callback(int id, sf::Time duration, std::string method, std::vector<HSQOBJECT> args)
+    : TimeFunction(duration), _id(id), _method(std::move(method)), _args(std::move(args)) {
+}
+
 void Callback::onElapsed() {
   if (_callbackDone)
     return;
@@ -29,7 +33,10 @@ void Callback::onElapsed() {
 
   sq_pushobject(v, method);
   sq_pushroottable(v);
-  if (SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue))) {
+  for (auto &arg : _args) {
+    sq_pushobject(v, arg);
+  }
+  if (SQ_FAILED(sq_call(v, 1 + _args.size(), SQFalse, SQTrue))) {
     error("failed to call callback");
   }
   sq_pop(v, 1);
