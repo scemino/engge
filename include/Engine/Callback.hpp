@@ -10,15 +10,15 @@ private:
   bool _callbackDone{false};
   int _id{0};
   std::string _method{};
-  std::vector<HSQOBJECT> _args;
+  HSQOBJECT _arg;
 
 public:
-  Callback(int id, sf::Time duration, std::string method);
-  Callback(int id, sf::Time duration, std::string method, std::vector<HSQOBJECT> args);
-  ~Callback() override = default;
+  Callback(int id, sf::Time duration, std::string method, HSQOBJECT arg);
+  ~Callback() override;
 
   [[nodiscard]] int getId() const { return _id; }
   [[nodiscard]] const std::string& getMethod() const { return _method; }
+  [[nodiscard]] HSQOBJECT getArgument() const { return _arg; }
 
 private:
   void onElapsed() override;

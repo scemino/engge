@@ -14,12 +14,13 @@
 #include "Scripting/ScriptEngine.hpp"
 
 namespace ng {
-Callback::Callback(int id, sf::Time duration, std::string method)
-    : TimeFunction(duration), _id(id), _method(std::move(method)) {
+Callback::Callback(int id, sf::Time duration, std::string method, HSQOBJECT arg)
+    : TimeFunction(duration), _id(id), _method(std::move(method)), _arg(arg) {
+  sq_addref(ScriptEngine::getVm(), &_arg);
 }
 
-Callback::Callback(int id, sf::Time duration, std::string method, std::vector<HSQOBJECT> args)
-    : TimeFunction(duration), _id(id), _method(std::move(method)), _args(std::move(args)) {
+Callback::~Callback(){
+  sq_release(ScriptEngine::getVm(), &_arg);
 }
 
 void Callback::onElapsed() {
@@ -31,12 +32,14 @@ void Callback::onElapsed() {
   SQObjectPtr method;
   _table(v->_roottable)->Get(ScriptEngine::toSquirrel(_method), method);
 
+  SQInteger numArgs = 1;
   sq_pushobject(v, method);
   sq_pushroottable(v);
-  for (auto &arg : _args) {
-    sq_pushobject(v, arg);
+  if (_arg._type != OT_NULL) {
+    numArgs++;
+    sq_pushobject(v, _arg);
   }
-  if (SQ_FAILED(sq_call(v, 1 + _args.size(), SQFalse, SQTrue))) {
+  if (SQ_FAILED(sq_call(v, numArgs, SQFalse, SQTrue))) {
     error("failed to call callback");
   }
   sq_pop(v, 1);

@@ -389,19 +389,14 @@ private:
       methodName = tmpMethodName;
     }
 
-    auto numArgs = count - 3;
-    std::vector<HSQOBJECT> args;
-    for (auto i = 0; i < numArgs; i++) {
-      HSQOBJECT arg;
-      sq_resetobject(&arg);
-      if (SQ_FAILED(sq_getstackobj(v, 4 + i, &arg))) {
-        return sq_throwerror(v, _SC("failed to get argument"));
-      }
-      args.push_back(arg);
+    HSQOBJECT arg;
+    sq_resetobject(&arg);
+    if (count == 4 && SQ_FAILED(sq_getstackobj(v, 4, &arg))) {
+      return sq_throwerror(v, _SC("failed to get argument"));
     }
 
     auto id = Locator<ResourceManager>::get().getCallbackId();
-    auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName, args);
+    auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName, arg);
     g_pEngine->addCallback(std::move(callback));
 
     sq_pushinteger(v, static_cast<SQInteger>(id));

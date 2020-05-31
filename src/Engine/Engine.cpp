@@ -327,7 +327,8 @@ struct Engine::Impl {
         auto name = callBackHash["function"].getString();
         auto id = callBackHash["guid"].getInt();
         auto time = sf::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
-        auto callback = std::make_unique<Callback>(id, time, name);
+        auto arg = toSquirrel(callBackHash["param"]);
+        auto callback = std::make_unique<Callback>(id, time, name, arg);
         _pImpl->_callbacks.push_back(std::move(callback));
       }
       Locator<ResourceManager>::get().setCallbackId(hash["nextGuid"].getInt());
@@ -339,7 +340,6 @@ struct Engine::Impl {
           continue;
 
         auto &actorHash = hash[pActor->getKey()];
-
         loadActor(pActor.get(), actorHash);
       }
     }
@@ -884,6 +884,10 @@ struct Engine::Impl {
             {"guid", GGPackValue::toGGPackValue(callback->getId())},
             {"time", GGPackValue::toGGPackValue(callback->getElapsed().asMilliseconds())}
         };
+        auto arg = callback->getArgument();
+        if (arg._type != OT_NULL) {
+          callbackHash.hash_value["param"] = GGPackValue::toGGPackValue(arg);
+        }
         callbacksArray.array_value.push_back(callbackHash);
       }
 
