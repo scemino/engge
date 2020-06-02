@@ -50,6 +50,11 @@ void ScriptEngine::push<const char *>(HSQUIRRELVM v, const char *value) {
 }
 
 template<>
+void ScriptEngine::push<char *>(HSQUIRRELVM v, char *value) {
+  sq_pushstring(v, value, -1);
+}
+
+template<>
 void ScriptEngine::push<std::string>(HSQUIRRELVM v, std::string value) {
   if (!value.empty()) {
     sq_pushstring(v, value.data(), -1);

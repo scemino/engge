@@ -13,6 +13,7 @@
 #include "Graphics/SpriteSheet.hpp"
 #include "Entities/Objects/AnimationFrame.hpp"
 #include "Entities/Objects/TextObject.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include "../System/_Util.hpp"
 #include "squirrel.h"
 #include "clipper.hpp"
@@ -39,7 +40,7 @@ struct Room::Impl {
   std::string _sheet;
   std::string _name;
   int _fullscreen{0};
-  HSQOBJECT _table{};
+  HSQOBJECT _roomTable{};
   std::shared_ptr<PathFinder> _pf;
   sf::Color _ambientColor{255, 255, 255, 255};
   SpriteSheet _spriteSheet;
@@ -51,9 +52,10 @@ struct Room::Impl {
   sf::Color _overlayColor{sf::Color::Transparent};
   bool _pseudoRoom{false};
 
-  explicit Impl(TextureManager &textureManager)
-      : _textureManager(textureManager) {
-    _spriteSheet.setTextureManager(&textureManager);
+  explicit Impl(HSQOBJECT roomTable)
+      : _textureManager(Locator<TextureManager>::get()),
+        _roomTable(roomTable) {
+    _spriteSheet.setTextureManager(&_textureManager);
     for (int i = -3; i < 6; ++i) {
       _layers[i] = std::make_unique<RoomLayer>();
     }
@@ -183,11 +185,52 @@ struct Room::Impl {
     auto &texture = _textureManager.get(_sheet);
 
     for (auto jObject : jWimpy["objects"].array_value) {
-      auto object = std::make_unique<Object>();
-      object->setTouchable(false);
-      // name
+      std::unique_ptr<Object> object;
+
       auto objectName = jObject["name"].string_value;
-      object->setName(objectName);
+      auto v = ScriptEngine::getVm();
+      sq_pushobject(v, _pRoom->getTable());
+      sq_pushstring(v, objectName.c_str(), -1);
+      if (SQ_FAILED(sq_rawget(v, -2))) {
+        object = std::make_unique<Object>();
+        object->setTouchable(false);
+        object->setName(objectName);
+      } else {
+        HSQOBJECT objTable;
+        sq_resetobject(&objTable);
+        if (_pRoom->isPseudoRoom()) {
+          sq_clone(v, -1);
+          sq_getstackobj(v, -1, &objTable);
+          sq_remove(v, -2);
+        } else {
+          sq_getstackobj(v, -1, &objTable);
+        }
+        object = std::make_unique<Object>(objTable);
+
+        int initState;
+        if (ScriptEngine::get(v, object.get(), "initState", initState)) {
+          object->setStateAnimIndex(initState);
+        }
+        bool initTouchable;
+        if (ScriptEngine::get(v, object.get(), "initTouchable", initTouchable)) {
+          object->setTouchable(initTouchable);
+        }
+      }
+      if (!_pRoom->isPseudoRoom()) {
+        ScriptEngine::set(objectName.data(), object->getTable());
+      }
+      ScriptEngine::set(_pRoom, objectName.data(), object->getTable());
+
+      if (!ScriptEngine::rawExists(object.get(), "flags")) {
+        ScriptEngine::set(object.get(), "flags", 0);
+      }
+
+      sq_pushobject(v, object->getTable());
+      sq_pushobject(v, _pRoom->getTable());
+      sq_setdelegate(v, -2);
+      sq_pop(v, 1);
+
+      // name
       object->setKey(objectName);
       // parent
       if (jObject["parent"].isString()) {
@@ -281,6 +324,69 @@ struct Room::Impl {
       return a->getZOrder() > b->getZOrder();
     };
     std::sort(_objects.begin(), _objects.end(), cmpObjects);
+  }
+
+  static SQInteger createObjectsFromTable(Room *pRoom, std::unordered_map<std::string, HSQOBJECT> &roomObjects) {
+    auto v = ScriptEngine::getVm();
+    auto isPseudoRoom = pRoom->isPseudoRoom();
+    auto &roomTable = pRoom->getTable();
+
+    // iterate each table from roomTable
+    sq_pushobject(v, roomTable);
+    sq_pushnull(v);
+    while (SQ_SUCCEEDED(sq_next(v, -2))) {
+      //here -1 is the value and -2 is the key
+      auto type = sq_gettype(v, -1);
+      if (type == OT_TABLE) {
+        const SQChar *key = nullptr;
+        sq_getstring(v, -2, &key);
+        HSQOBJECT object;
+        sq_resetobject(&object);
+        sq_getstackobj(v, -1, &object);
+        if (roomObjects.find(key) == roomObjects.end()) {
+          std::unique_ptr<Object> obj;
+          if (isPseudoRoom) {
+            obj = std::make_unique<Object>();
+            sq_pushobject(v, object);
+            sq_clone(v, -1);
+            sq_getstackobj(v, -1, &obj->getTable());
+            sq_addref(v, &obj->getTable());
+            sq_pop(v, 2);
+          } else {
+            sq_addref(v, &object);
+            obj = std::make_unique<Object>(object);
+            ScriptEngine::set(key, obj->getTable());
+          }
+
+          int initState;
+          if (ScriptEngine::get(v, obj.get(), "initState", initState)) {
+            obj->setStateAnimIndex(initState);
+          }
+          bool initTouchable;
+          if (ScriptEngine::get(v, obj.get(), "initTouchable", initTouchable)) {
+            obj->setTouchable(initTouchable);
+          }
+
+          if (!ScriptEngine::rawExists(obj.get(), "flags")) {
+            ScriptEngine::set(obj.get(), "flags", 0);
+          }
+
+          sq_pushobject(v, obj->getTable());
+          sq_pushobject(v, roomTable);
+          sq_setdelegate(v, -2);
+          sq_pop(v, 1);
+
+          obj->setRoom(pRoom);
+          obj->setKey(key);
+          ScriptEngine::set(pRoom, key, obj->getTable());
+          pRoom->getObjects().push_back(std::move(obj));
+          roomObjects[key] = object;
+        }
+      }
+      sq_pop(v, 2); //pops key and val before the nex iteration
+    }
+    sq_pop(v, 2); //pops the null iterator & roomTable
+    return 0;
   }
 
   void loadScalings(GGPackValue &jWimpy) {
@@ -425,10 +531,41 @@ struct Room::Impl {
   }
 };
 
-Room::Room(TextureManager &textureManager)
-    : pImpl(std::make_unique<Impl>(textureManager)) {
+std::unique_ptr<Room> Room::define(HSQOBJECT roomTable, const char *name) {
+  auto isPseudoRoom = name != nullptr;
+  auto pRoom = std::make_unique<Room>(roomTable);
+
+  // loadRoom
+  const char *background = nullptr;
+  if (!ScriptEngine::get(pRoom.get(), "background", background)) {
+    error("Can't find background entry");
+    return nullptr;
+  }
+
+  pRoom->setName(isPseudoRoom ? name : background);
+  pRoom->setPseudoRoom(isPseudoRoom);
+  pRoom->load(background);
+
+  std::unordered_map<std::string, HSQOBJECT> roomObjects;
+  for (auto &obj: pRoom->getObjects()) {
+    roomObjects[obj->getKey()] = obj->getTable();
+  }
+  auto result = Impl::createObjectsFromTable(pRoom.get(), roomObjects);
+  if (SQ_FAILED(result)) {
+    error("Error when reading room objects");
+    return nullptr;
+  }
+
+  // declare room in root table
+  ScriptEngine::set(pRoom->getName().data(), pRoom.get());
+  return pRoom;
+}
+
+Room::Room(HSQOBJECT roomTable)
+    : pImpl(std::make_unique<Impl>(roomTable)) {
   _id = Locator<ResourceManager>::get().getRoomId();
   pImpl->setRoom(this);
+  ScriptEngine::set(this, "_id", getId());
 }
 
 Room::~Room() = default;
@@ -451,7 +588,7 @@ int32_t Room::getScreenHeight() const { return pImpl->_screenHeight; }
 
 int32_t Room::getFullscreen() const { return pImpl->_fullscreen; }
 
-HSQOBJECT &Room::getTable() { return pImpl->_table; }
+HSQOBJECT &Room::getTable() { return pImpl->_roomTable; }
 
 void Room::setAmbientLight(sf::Color color) { pImpl->_ambientColor = color; }
 

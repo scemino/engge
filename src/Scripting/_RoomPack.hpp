@@ -52,7 +52,7 @@ public:
   }
 
 private:
-  sf::Color plusColor(const sf::Color &color1, float f) {
+  [[nodiscard]] sf::Color plusColor(const sf::Color &color1, float f) const {
     auto a = static_cast<sf::Uint8>(color1.a + f * _a);
     auto r = static_cast<sf::Uint8>(color1.r + f * _r);
     auto g = static_cast<sf::Uint8>(color1.g + f * _g);
@@ -277,8 +277,8 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 2, &rotation))) {
       return sq_throwerror(v, _SC("failed to get rotation"));
     }
-    auto get = std::bind(&Room::getRotation, pRoom);
-    auto set = std::bind(&Room::setRotation, pRoom, std::placeholders::_1);
+    auto get = [pRoom] { return pRoom->getRotation(); };
+    auto set = [pRoom](float value) { pRoom->setRotation(value); };
     auto t = sf::seconds(0.200);
     auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, rotation, t);
     g_pEngine->addFunction(std::move(rotateTo));
@@ -367,6 +367,7 @@ private:
         return 1;
       }
     }
+    info("findRoom({}) -> null", name);
     sq_pushnull(v);
     return 1;
   }
@@ -474,189 +475,20 @@ private:
     return 0;
   }
 
-  static void setObjectSlot(HSQUIRRELVM v, const SQChar *name, Object &object) {
-    sq_pushstring(v, name, -1);
-    ScriptEngine::pushObject(v, &object);
-    sq_pushstring(v, _SC("name"), -1);
-    sq_pushstring(v, object.getName().c_str(), -1);
-    sq_newslot(v, -3, SQFalse);
-    sq_newslot(v, -3, SQFalse);
+  static SQInteger _defineRoom(HSQUIRRELVM v, HSQOBJECT roomTable, const char *name = nullptr) {
+    auto pRoom = Room::define(roomTable, name);
+    sq_pushobject(v, pRoom->getTable());
+    trace("Define room {}", pRoom->getName());
+    g_pEngine->addRoom(std::move(pRoom));
+    return 1;
   }
 
-  static SQInteger _defineRoom(HSQUIRRELVM v, SQInteger index, Room *pRoom, bool isPseudoRoom) {
-    // oh :( this code is really ugly, I need to refactor this
-    // don't be suprised if it's full of bugs :S
-    auto &roomTable = pRoom->getTable();
-    if (isPseudoRoom) {
-      // if this is a pseudo room, we have to clone the table
-      // to have a different instance by room
-      sq_clone(v, index);
-      sq_getstackobj(v, -1, &roomTable);
-    } else {
-      sq_getstackobj(v, index, &roomTable);
-    }
+  static SQInteger defineRoom(HSQUIRRELVM v) {
+    HSQOBJECT roomTable;
+    sq_resetobject(&roomTable);
+    sq_getstackobj(v, 2, &roomTable);
 
-    // loadRoom
-    const char *background = nullptr;
-    if (!ScriptEngine::get(pRoom, "background", background)) {
-      return sq_throwerror(v, _SC("can't find background entry"));
-    }
-
-    if (!isPseudoRoom) {
-      pRoom->setName(background);
-    }
-    pRoom->load(background);
-    pRoom->setPseudoRoom(isPseudoRoom);
-
-    // define instance
-    ScriptEngine::set(pRoom, "_id", pRoom->getId());
-
-    std::unordered_map<std::string, HSQOBJECT> roomObjects;
-
-    // define room objects
-    sq_pushobject(v, roomTable);
-    sq_pushnull(v);
-    while (SQ_SUCCEEDED(sq_next(v, -2))) {
-      //here -1 is the value and -2 is the key
-      auto type = sq_gettype(v, -1);
-      if (type == OT_TABLE) {
-        const SQChar *key = nullptr;
-        sq_getstring(v, -2, &key);
-        HSQOBJECT object;
-        sq_resetobject(&object);
-        if (isPseudoRoom) {
-          // if this is a pseudo room object, we have to clone the table
-          // to have a different instance by room object
-          sq_clone(v, -1);
-        }
-        if (SQ_SUCCEEDED(sq_getstackobj(v, -1, &object))) {
-          sq_addref(v, &object);
-          roomObjects[key] = object;
-        }
-        if (isPseudoRoom) {
-          sq_pop(v, 1);
-        }
-      }
-      sq_pop(v, 2); //pops key and val before the nex iteration
-    }
-    sq_pop(v, 1); //pops the null iterator
-
-    for (auto &obj: pRoom->getObjects()) {
-      sq_pushobject(v, roomTable);
-      sq_pushstring(v, obj->getKey().c_str(), -1);
-      if (SQ_FAILED(sq_rawget(v, -2))) {
-        setObjectSlot(v, obj->getKey().c_str(), *obj);
-
-        sq_pushobject(v, roomTable);
-        sq_pushstring(v, obj->getKey().c_str(), -1);
-        sq_rawget(v, -2);
-        sq_resetobject(&obj->getTable());
-        sq_getstackobj(v, -1, &obj->getTable());
-        sq_addref(ScriptEngine::getVm(), &obj->getTable());
-        if (!sq_istable(obj->getTable())) {
-          return sq_throwerror(v, _SC("object should be a table entry"));
-        }
-
-        continue;
-      }
-
-      obj->setTouchable(true);
-      sq_resetobject(&obj->getTable());
-      sq_getstackobj(v, -1, &obj->getTable());
-      sq_addref(ScriptEngine::getVm(), &obj->getTable());
-      if (!sq_istable(obj->getTable())) {
-        return sq_throwerror(v, _SC("object should be a table entry"));
-      }
-
-      int initState;
-      if (ScriptEngine::get(v, obj.get(), "initState", initState)) {
-        obj->setStateAnimIndex(initState);
-      }
-      bool initTouchable;
-      if (ScriptEngine::get(v, obj.get(), "initTouchable", initTouchable)) {
-        obj->setTouchable(initTouchable);
-      }
-//      trace("Room {}: Set object id {} to {}", pRoom->getName(), obj->getId(), obj->getKey());
-      ScriptEngine::set(obj.get(), "_id", obj->getId());
-
-      sq_pushobject(v, obj->getTable());
-      sq_pushstring(v, _SC("flags"), -1);
-      if (SQ_FAILED(sq_rawget(v, -2))) {
-        sq_pushstring(v, _SC("flags"), -1);
-        sq_pushinteger(v, 0);
-        sq_newslot(v, -3, SQFalse);
-      }
-
-      sq_pushobject(v, obj->getTable());
-      sq_pushobject(v, roomTable);
-      sq_setdelegate(v, -2);
-    }
-
-    // don't know if this is the best way to do this
-    // but it seems that room objects and inventory objects are accessible
-    // from the roottable
-    for (auto &roomObject: roomObjects) {
-      if (!isPseudoRoom) {
-        sq_pushroottable(v);
-        sq_pushstring(v, roomObject.first.data(), -1);
-        sq_pushobject(v, roomObject.second);
-        sq_newslot(v, -3, SQFalse);
-      }
-
-      std::unique_ptr<Object> object;
-      if (!ScriptEngine::rawExists(roomObject.second, "_id")) {
-        object = std::make_unique<Object>(roomObject.second);
-        object->setKey(roomObject.first);
-//          trace("Room {}: Set object id {} to {}", pRoom->getName(), object->getId(), object->getKey());
-        ScriptEngine::set(object.get(), "_id", object->getId());
-
-        if (!ScriptEngine::rawExists(object.get(), "icon")) {
-          sq_pushobject(v, object->getTable());
-          sq_pushobject(v, roomTable);
-          sq_setdelegate(v, -2);
-
-          pRoom->getObjects().push_back(std::move(object));
-          continue;
-        }
-      }
-
-      sq_pushobject(v, roomObject.second);
-      sq_pushstring(v, _SC("icon"), -1);
-      if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
-        object->setTouchable(true);
-        if (sq_gettype(v, -1) == OT_STRING) {
-          const SQChar *icon = nullptr;
-          sq_getstring(v, -1, &icon);
-          object->setIcon(icon);
-        } else if (sq_gettype(v, -1) == OT_ARRAY) {
-          SQInteger fps = 0;
-          const SQChar *icon = nullptr;
-          std::vector<std::string> icons;
-          sq_pushnull(v); // null iterator
-          if (SQ_SUCCEEDED(sq_next(v, -2))) {
-            sq_getinteger(v, -1, &fps);
-            sq_pop(v, 2);
-          }
-          while (SQ_SUCCEEDED(sq_next(v, -2))) {
-            sq_getstring(v, -1, &icon);
-            icons.emplace_back(icon);
-            sq_pop(v, 2);
-          }
-          sq_pop(v, 1); // pops the null iterator
-
-          object->setIcon(fps, icons);
-        } else {
-          error("TODO: objectIcon with type {} not implemented", sq_gettype(v, -1));
-        }
-
-        sq_pushobject(v, object->getTable());
-        sq_pushobject(v, roomTable);
-        sq_setdelegate(v, -2);
-
-        pRoom->getObjects().push_back(std::move(object));
-      }
-    }
-    return 0;
+    return _defineRoom(v, roomTable);
   }
 
   static SQInteger definePseudoRoom(HSQUIRRELVM v) {
@@ -664,31 +496,15 @@ private:
     if (SQ_FAILED(sq_getstring(v, 2, &name))) {
       return sq_throwerror(v, _SC("failed to get name"));
     }
-    auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
-    pRoom->setName(name);
 
-    auto result = _defineRoom(v, 3, pRoom.get(), true);
-    if (SQ_FAILED(result))
-      return result;
+    // if this is a pseudo room, we have to clone the table
+    // to have a different instance by room
+    HSQOBJECT roomTable;
+    sq_resetobject(&roomTable);
+    sq_clone(v, 3);
+    sq_getstackobj(v, -1, &roomTable);
 
-    // declare pseudo room in root table
-    sq_pushroottable(v);
-    sq_pushstring(v, pRoom->getName().data(), -1);
-    sq_pushobject(v, pRoom->getTable());
-    sq_newslot(v, -3, SQFalse);
-
-    sq_pushobject(v, pRoom->getTable());
-    g_pEngine->addRoom(std::move(pRoom));
-    return 1;
-  }
-
-  static SQInteger defineRoom(HSQUIRRELVM v) {
-    auto pRoom = std::make_unique<Room>(g_pEngine->getTextureManager());
-    auto result = _defineRoom(v, 2, pRoom.get(), false);
-    if (SQ_SUCCEEDED(result)) {
-      g_pEngine->addRoom(std::move(pRoom));
-    }
-    return result;
+    return _defineRoom(v, roomTable, name);
   }
 
   static SQInteger roomLayer(HSQUIRRELVM v) {

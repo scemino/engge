@@ -27,7 +27,9 @@ static const int EFFECT_BLACKANDWHITE = 5;
 
 class Room : public ScriptObject {
 public:
-  explicit Room(TextureManager &textureManager);
+  static std::unique_ptr<Room> define(HSQOBJECT roomTable, const char *name = nullptr);
+
+  explicit Room(HSQOBJECT roomTable);
   ~Room() override;
 
   void setName(const std::string &name);
