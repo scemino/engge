@@ -100,11 +100,38 @@ void Object::setIcon(const std::string &icon) {
 }
 
 std::string Object::getIcon() const {
-  if (pImpl->_icons.empty()) {
-    const char *icon = nullptr;
-    ScriptEngine::rawGet(pImpl->_table, "icon", icon);
-    return icon;
+  if (!pImpl->_icons.empty())
+    return pImpl->_icons.at(pImpl->_index);
+
+  auto v = ScriptEngine::getVm();
+  auto top = sq_gettop(v);
+  sq_pushobject(v, getTable());
+  sq_pushstring(v, _SC("icon"), -1);
+  if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
+    if (sq_gettype(v, -1) == OT_STRING) {
+      const SQChar *icon = nullptr;
+      sq_getstring(v, -1, &icon);
+      pImpl->_icons.emplace_back(icon);
+    } else if (sq_gettype(v, -1) == OT_ARRAY) {
+      SQInteger fps = 0;
+      pImpl->_index = 0;
+      const SQChar *icon = nullptr;
+      std::vector<std::string> icons;
+      sq_pushnull(v); // null iterator
+      if (SQ_SUCCEEDED(sq_next(v, -2))) {
+        sq_getinteger(v, -1, &fps);
+        sq_pop(v, 2);
+        pImpl->_fps = static_cast<int>(fps);
+      }
+      while (SQ_SUCCEEDED(sq_next(v, -2))) {
+        sq_getstring(v, -1, &icon);
+        pImpl->_icons.emplace_back(icon);
+        sq_pop(v, 2);
+      }
+      sq_pop(v, 1); // pops the null iterator
+    }
   }
+  sq_settop(v, top);
   return pImpl->_icons.at(pImpl->_index);
 }
 
