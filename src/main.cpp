@@ -15,7 +15,6 @@
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Input/DefaultInputEventHandler.hpp"
-#include "Dialog/DialogScriptAbstract.hpp"
 #include "Dialog/_AstDump.hpp"
 #include "Parsers/SavegameManager.hpp"
 namespace fs = std::filesystem;
@@ -39,10 +38,10 @@ int main(int argc, char **argv) {
     ng::Locator<ng::Logger>::create();
     ng::info("Init services");
     ng::Locator<ng::CommandManager>::create();
+    ng::Locator<ng::Preferences>::create();
     ng::Locator<ng::EngineSettings>::create().loadPacks();
     ng::Locator<ng::ResourceManager>::create();
     ng::Locator<ng::SoundManager>::create();
-    ng::Locator<ng::Preferences>::create();
     ng::Locator<ng::TextDatabase>::create();
     ng::Locator<ng::TextureManager>::create();
     auto &scriptEngine = ng::Locator<ng::ScriptEngine>::create();

@@ -1,15 +1,18 @@
 #include <sstream>
 #include <filesystem>
+#include "System/Locator.hpp"
+#include "Engine/Preferences.hpp"
 #include "Engine/EngineSettings.hpp"
 #include "../System/_Util.hpp"
 namespace fs = std::filesystem;
 
 namespace ng {
-EngineSettings::EngineSettings() {
-}
+EngineSettings::EngineSettings() = default;
 
 void EngineSettings::loadPacks() {
-  auto path = fs::current_path();
+  auto devPath = ng::Locator<ng::Preferences>::get().getUserPreference(PreferenceNames::DevPath,
+                                                                       PreferenceDefaultValues::DevPath);
+  auto path = devPath.empty() ? fs::current_path() : fs::path(devPath);
   for (const auto &entry : fs::directory_iterator(path)) {
     if (ng::startsWith(entry.path().extension().string(), ".ggpack")) {
       auto pack = std::make_unique<GGPack>();
