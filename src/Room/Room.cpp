@@ -207,10 +207,6 @@ struct Room::Impl {
         }
         object = std::make_unique<Object>(objTable);
 
-        int initState;
-        if (ScriptEngine::get(v, object.get(), "initState", initState)) {
-          object->setStateAnimIndex(initState);
-        }
         bool initTouchable;
         if (ScriptEngine::get(v, object.get(), "initTouchable", initTouchable)) {
           object->setTouchable(initTouchable);
@@ -312,7 +308,9 @@ struct Room::Impl {
           object->getAnims().push_back(std::move(anim));
         }
 
-        object->setStateAnimIndex(0);
+        int initState = 0;
+        ScriptEngine::get(v, object.get(), "initState", initState);
+        object->setStateAnimIndex(initState);
       }
       object->setRoom(_pRoom);
       _layers[0]->addEntity(*object);
@@ -358,10 +356,10 @@ struct Room::Impl {
             ScriptEngine::set(key, obj->getTable());
           }
 
-          int initState;
-          if (ScriptEngine::get(v, obj.get(), "initState", initState)) {
-            obj->setStateAnimIndex(initState);
-          }
+          auto initState = 0;
+          ScriptEngine::get(v, obj.get(), "initState", initState);
+          obj->setStateAnimIndex(initState);
+
           bool initTouchable;
           if (ScriptEngine::get(v, obj.get(), "initTouchable", initTouchable)) {
             obj->setTouchable(initTouchable);
