@@ -156,8 +156,7 @@ sf::Vector2i Entity::getRenderOffset() const {
 void Entity::alphaTo(float destination, sf::Time time, InterpolationMethod method) {
   auto getAlpha = [this] { return static_cast<float>(getColor().a) / 255.f; };
   auto setAlpha = [this](const float &a) {
-    const auto c = getColor();
-    return setColor(sf::Color(c.r, c.g, c.b, (sf::Uint8) (a * 255.f)));
+    _color.a = static_cast<sf::Uint8>(a * 255.f);
   };
   auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
   _alphaTo.function = std::move(alphaTo);
