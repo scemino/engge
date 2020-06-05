@@ -1806,7 +1806,7 @@ void Engine::update(const sf::Time &el) {
   const sf::Time elapsed(sf::seconds(el.asSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
   _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
-  if (_pImpl->_pRoom) {
+  if (_pImpl->_pRoom && _pImpl->_pRoom->getName() != "Void") {
     auto screenSize = _pImpl->_pRoom->getScreenSize();
     auto screenMouse = toDefaultView((sf::Vector2i) _pImpl->_mousePos, screenSize);
     _pImpl->_hud.setMousePosition(screenMouse);
@@ -1854,7 +1854,7 @@ void Engine::update(const sf::Time &el) {
   _pImpl->updateSentence(elapsed);
   _pImpl->updateKeys();
 
-  if (!_pImpl->_pRoom)
+  if (!_pImpl->_pRoom || _pImpl->_pRoom->getName() == "Void")
     return;
 
   _pImpl->updateRoomScalings();
