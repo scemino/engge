@@ -1496,9 +1496,7 @@ void Engine::Impl::run(bool state) {
 
 void Engine::Impl::setCurrentRoom(Room *pRoom) {
   if (pRoom) {
-    std::ostringstream s;
-    s << "currentRoom = " << pRoom->getName();
-    _pScriptExecute->execute(s.str());
+    ScriptEngine::set("currentRoom", pRoom);
   }
   _camera.resetBounds();
   _camera.at(sf::Vector2f(0, 0));
