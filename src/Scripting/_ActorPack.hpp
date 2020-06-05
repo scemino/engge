@@ -291,18 +291,43 @@ private:
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    auto object = ScriptEngine::getEntity(v, 3);
-    if (!object) {
-      return sq_throwerror(v, _SC("failed to get object or actor"));
-    }
     SQInteger d;
     if (SQ_FAILED(sq_getinteger(v, 4, &d))) {
       return sq_throwerror(v, _SC("failed to get distance"));
     }
-    auto pos = actor->getRealPosition() - object->getRealPosition();
-    auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
+    auto pActor2 = ScriptEngine::getActor(v, 3);
+    if (pActor2) {
+      auto dist = _distance(actor->getRealPosition(), pActor2->getRealPosition());
+      trace("actorDistanceWithin({},{},{})=>{} ({})",
+            actor->getKey(),
+            pActor2->getKey(),
+            d,
+            (dist < d) ? "YES" : "NO",
+            dist);
+      sq_pushbool(v, dist < d);
+      return 1;
+    }
+
+    auto pObject = ScriptEngine::getObject(v, 3);
+    if (!pObject) {
+      return sq_throwerror(v, _SC("failed to get object or actor"));
+    }
+
+    auto posObj = pObject->getRealPosition() + pObject->getUsePosition().value_or(sf::Vector2f());
+    auto dist = _distance(actor->getRealPosition(), posObj);
+    trace("actorDistanceWithin({},{},{})=>{} ({})",
+          actor->getKey(),
+          pObject->getName(),
+          d,
+          (dist < d) ? "YES" : "NO",
+          dist);
     sq_pushbool(v, dist < d);
     return 1;
+  }
+
+  static float _distance(sf::Vector2f p1, sf::Vector2f p2) {
+    auto pos = p1 - p2;
+    return sqrt(pos.x * pos.x + pos.y * pos.y);
   }
 
   static SQInteger actorFace(HSQUIRRELVM v) {
