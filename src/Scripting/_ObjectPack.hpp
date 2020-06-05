@@ -187,9 +187,9 @@ private:
     if (sq_gettype(v, 2) == OT_NULL)
       return 0;
 
-    Object *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = ScriptEngine::getEntity(v, 2);
     if (!obj) {
-      return sq_throwerror(v, _SC("failed to get object"));
+      return sq_throwerror(v, _SC("failed to get object/actor"));
     }
     SQFloat alpha = 0;
     if (SQ_FAILED(sq_getfloat(v, 3, &alpha))) {
@@ -939,7 +939,7 @@ private:
       auto maxWidth = (otherOptions & ~0x2000000);
       obj.setMaxWidth(maxWidth);
     }
-    ScriptEngine::push<Object*>(v, &obj);
+    ScriptEngine::push<Object *>(v, &obj);
     return 1;
   }
 
