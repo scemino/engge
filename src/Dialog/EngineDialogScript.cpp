@@ -65,7 +65,8 @@ bool EngineDialogScript::executeCondition(const std::string &condition) const {
   });
   if (it != actors.cend()) {
     // yes, so we check if the current actor is the given actor name
-    code = "currentActor==" + condition;
+    auto pCurrentActor = _engine.getCurrentActor();
+    return pCurrentActor && pCurrentActor->getKey() == (*it)->getKey();
   }
 
   auto result = _engine.executeCondition(code);
