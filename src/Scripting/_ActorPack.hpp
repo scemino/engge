@@ -918,31 +918,40 @@ private:
   }
 
   static SQInteger _sayLine(HSQUIRRELVM v, bool mumble = false) {
-    auto type = sq_gettype(v, 2);
     Actor *actor;
-    SQInteger numIds;
     SQInteger index;
-    if (type == OT_STRING) {
-      actor = g_pEngine->getCurrentActor();
-      numIds = sq_gettop(v) - 1;
-      index = 2;
-    } else {
+    if (sq_gettype(v, 2) == OT_TABLE) {
       actor = ScriptEngine::getActor(v, 2);
-      numIds = sq_gettop(v) - 2;
       index = 3;
+    } else {
+      actor = g_pEngine->getCurrentActor();
+      index = 2;
     }
 
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
 
-    for (int i = 0; i < numIds; i++) {
-      const SQChar *idText = nullptr;
-      if (SQ_FAILED(sq_getstring(v, index + i, &idText))) {
-        return sq_throwerror(v, _SC("failed to get text"));
+    if (sq_gettype(v, index) == OT_ARRAY) {
+      sq_push(v, index);
+      sq_pushnull(v);  //null iterator
+      while (SQ_SUCCEEDED(sq_next(v, -2))) {
+        //here -1 is the value and -2 is the key
+        const SQChar *idText = nullptr;
+        sq_getstring(v, -1, &idText);
+        actor->say(idText, mumble);
+        sq_pop(v, 2); //pops key and val before the nex iteration
       }
-
-      actor->say(idText, mumble);
+      sq_pop(v, 2); //pops the null iterator + array
+    } else {
+      auto numIds = sq_gettop(v) - index + 1;
+      for (int i = 0; i < numIds; i++) {
+        const SQChar *idText = nullptr;
+        if (SQ_FAILED(sq_getstring(v, index + i, &idText))) {
+          return sq_throwerror(v, _SC("failed to get text"));
+        }
+        actor->say(idText, mumble);
+      }
     }
     return 0;
   }
