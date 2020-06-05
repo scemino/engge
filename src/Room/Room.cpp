@@ -578,6 +578,16 @@ std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; 
 
 std::vector<Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
 
+const Walkbox *Room::getWalkbox(const std::string &name) const {
+  auto it = std::find_if(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(), [&name](const Walkbox &w) {
+    return w.getName() == name;
+  });
+  if (it != pImpl->_walkboxes.end()) {
+    return &(*it);
+  }
+  return nullptr;
+}
+
 std::vector<Walkbox> &Room::getGraphWalkboxes() { return pImpl->_graphWalkboxes; }
 
 sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
@@ -820,12 +830,6 @@ void Room::setWalkboxEnabled(const std::string &name, bool isEnabled) {
   }
   it->setEnabled(isEnabled);
   pImpl->_pf.reset();
-}
-
-bool Room::inWalkbox(const sf::Vector2f &pos) const {
-  auto inWalkbox = std::any_of(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(),
-                               [pos](const auto &w) { return w.inside(pos); });
-  return inWalkbox;
 }
 
 std::vector<RoomScaling> &Room::getScalings() { return pImpl->_scalings; }

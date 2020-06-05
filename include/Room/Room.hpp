@@ -45,7 +45,7 @@ public:
   void drawForeground(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const;
 
   void setWalkboxEnabled(const std::string &name, bool isEnabled);
-  [[nodiscard]] bool inWalkbox(const sf::Vector2f &pos) const;
+  [[nodiscard]] const Walkbox* getWalkbox(const std::string& name) const;
   [[nodiscard]] std::vector<sf::Vector2f> calculatePath(sf::Vector2f start, sf::Vector2f end) const;
   std::vector<Walkbox> &getWalkboxes();
   std::vector<Walkbox> &getGraphWalkboxes();

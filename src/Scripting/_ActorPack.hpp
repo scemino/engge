@@ -389,7 +389,12 @@ private:
       return sq_throwerror(v, _SC("failed to get actor"));
     }
 
-    auto inWalkbox = g_pEngine->getRoom()->inWalkbox(actor->getRealPosition());
+    const SQChar* walkboxName;
+    if (SQ_FAILED(sq_getstring(v, 3, &walkboxName))){
+      return sq_throwerror(v, _SC("failed to get walkbox"));
+    }
+    auto pWalkbox = g_pEngine->getRoom()->getWalkbox(walkboxName);
+    auto inWalkbox = pWalkbox && pWalkbox->inside(actor->getRealPosition());
     sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);
     return 1;
   }
