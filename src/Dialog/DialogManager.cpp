@@ -86,9 +86,9 @@ void DialogManager::updateDialogSlots() {
       auto pChoice = dynamic_cast<Ast::Choice *>(pStatement->expression.get());
       auto text = pChoice->text;
       if (!text.empty() && text[0] == '$') {
-        text = _pEngine->executeDollar(text);
+        text = _pEngine->executeDollar(text.substr(1));
       }
-      std::wstring dialogText = _pEngine->getText(text);
+      std::wstring dialogText = ng::Engine::getText(text);
       std::wregex re(L"(\\{([^\\}]*)\\})");
       std::wsmatch matches;
       if (std::regex_search(dialogText, matches, re)) {
@@ -103,7 +103,8 @@ void DialogManager::updateDialogSlots() {
 }
 
 void DialogManager::updateChoices(const sf::Time &elapsed) {
-  if(_state != DialogManagerState::WaitingForChoice) return;
+  if (_state != DialogManagerState::WaitingForChoice)
+    return;
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);

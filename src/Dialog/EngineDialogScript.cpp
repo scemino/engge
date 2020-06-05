@@ -28,7 +28,7 @@ std::function<bool()> EngineDialogScript::say(const std::string &actor, const st
 
   // is it a script variable ?
   if (!text.empty() && text[0] == '$') {
-    pActor->say(_engine.executeDollar(text));
+    pActor->say(_engine.executeDollar(text.substr(1)));
   } else {
     pActor->say(text);
   }
