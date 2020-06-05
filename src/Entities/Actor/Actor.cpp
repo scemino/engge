@@ -284,7 +284,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
     _pActor->getCostume().setFacing(_facing.value());
   }
   _pActor->getCostume().setStandState();
-  if(ScriptEngine::rawExists(_pActor, "actorArrived")) {
+  if (ScriptEngine::rawExists(_pActor, "actorArrived")) {
     ScriptEngine::rawCall(_pActor, "actorArrived");
   }
 }
@@ -407,6 +407,11 @@ int Actor::getFps() const {
 
 void Actor::setInventoryOffset(int offset) { pImpl->_inventoryOffset = offset; }
 
-int Actor::getInventoryOffset() const { return pImpl->_inventoryOffset; }
+int Actor::getInventoryOffset() const {
+  if (static_cast<size_t>(pImpl->_inventoryOffset * 4) > getObjects().size()) {
+    pImpl->_inventoryOffset = 0;
+  }
+  return pImpl->_inventoryOffset;
+}
 
 } // namespace ng
