@@ -74,6 +74,7 @@ public:
   const sf::Color &getColor() const;
 
   void setTrigger(int triggerNumber, Trigger *pTrigger);
+  void removeTrigger(int triggerNumber);
   void trig(int triggerNumber);
 
   virtual std::optional<float> getVolume() const { return std::nullopt; }

@@ -78,14 +78,20 @@ private:
       return 0;
     }
 
+    SQInteger tmp;
+    if (numSounds == 1 && SQ_SUCCEEDED(sq_getinteger(v, 4, &tmp)) && !tmp) {
+      pEntity->removeTrigger(triggerNumber);
+      return 0;
+    }
+
     std::vector<SoundDefinition *> sounds;
-    if (numSounds > 1 || !_getArray(v, 4, sounds)) {
+    if (numSounds >= 1 || !_getArray(v, 4, sounds)) {
       if (!_getArray(v, 4, numSounds, sounds)) {
         return sq_throwerror(v, _SC("failed to get sounds"));
       }
     }
 
-    SoundTrigger *pSound = pEntity->createSoundTrigger(*g_pEngine, sounds);
+    auto *pSound = pEntity->createSoundTrigger(*g_pEngine, sounds);
     pEntity->setTrigger(triggerNumber, pSound);
     return 0;
   }

@@ -115,6 +115,10 @@ void Entity::setTrigger(int triggerNumber, Trigger *pTrigger) {
   _triggers[triggerNumber] = pTrigger;
 }
 
+void Entity::removeTrigger(int triggerNumber) {
+  _triggers.erase(triggerNumber);
+}
+
 void Entity::trig(int triggerNumber) {
   auto it = _triggers.find(triggerNumber);
   if (it != _triggers.end()) {
