@@ -763,18 +763,23 @@ private:
 
   static SQInteger stopthread(HSQUIRRELVM v) {
     auto type = sq_gettype(v, 2);
-    if (type == OT_NULL)
-      return 0;
+    if (type == OT_NULL) {
+      sq_pushinteger(v, 0);
+      return 1;
+    }
 
     SQInteger id;
     if (SQ_FAILED(sq_getinteger(v, 2, &id))) {
       trace("Failed to stopthread: got {} instead", type);
-      return 0;
+      sq_pushinteger(v, 0);
+      return 1;
     }
 
     auto pThread = ScriptEngine::getThreadFromId(id);
-    if (!pThread)
-      return 0;
+    if (!pThread) {
+      sq_pushinteger(v, 0);
+      return 1;
+    }
 
     trace("stopthread {}", id);
     pThread->stop();
