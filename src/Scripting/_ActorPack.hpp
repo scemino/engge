@@ -389,8 +389,8 @@ private:
       return sq_throwerror(v, _SC("failed to get actor"));
     }
 
-    const SQChar* walkboxName;
-    if (SQ_FAILED(sq_getstring(v, 3, &walkboxName))){
+    const SQChar *walkboxName;
+    if (SQ_FAILED(sq_getstring(v, 3, &walkboxName))) {
       return sq_throwerror(v, _SC("failed to get walkbox"));
     }
     auto pWalkbox = g_pEngine->getRoom()->getWalkbox(walkboxName);
@@ -676,13 +676,14 @@ private:
 
   static SQInteger actorUsePos(HSQUIRRELVM v) {
     auto numArgs = sq_gettop(v);
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    auto *actor = ScriptEngine::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    Object *obj = ScriptEngine::getObject(v, 3);
+    auto *obj = ScriptEngine::getObject(v, 3);
     if (!obj) {
-      return sq_throwerror(v, _SC("failed to get object"));
+      actor->setUsePosition(sf::Vector2f());
+      return 0;
     }
     auto usePos = obj->getUsePosition();
     actor->setUsePosition(usePos);
