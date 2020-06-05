@@ -1574,6 +1574,8 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
 void Engine::setInputHUD(bool on) { _pImpl->_inputHUD = on; }
 
 void Engine::setInputActive(bool active) {
+  if (inCutscene())
+    return;
   _pImpl->_inputActive = active;
   _pImpl->_showCursor = active;
 }
