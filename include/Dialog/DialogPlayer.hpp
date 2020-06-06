@@ -49,12 +49,12 @@ public:
   void choose(int choiceId);
   void update();
 
-  DialogManagerState getState() const;
-  std::string getActor() const { return _actor; }
-  std::string getDialogName() const { return _dialogName; }
+  [[nodiscard]] DialogManagerState getState() const;
+  [[nodiscard]] std::string getActor() const { return _actor; }
+  [[nodiscard]] std::string getDialogName() const { return _dialogName; }
 
-  const std::array<const Ast::Statement *, 6> &getChoices() const { return _choices; }
-  const std::vector<DialogConditionState>& getStates() const { return _states; }
+  [[nodiscard]] const std::array<const Ast::Statement *, 9> &getChoices() const { return _choices; }
+  [[nodiscard]] const std::vector<DialogConditionState>& getStates() const { return _states; }
   std::vector<DialogConditionState>& getStates() { return _states; }
 
 private:
@@ -82,11 +82,11 @@ private:
   std::function<bool()> waitFor(const std::string &actor) override;
   std::function<bool()> waitWhile(const std::string &condition) override;
 
-  bool isOnce(int32_t line) const override;
-  bool isShowOnce(int32_t line) const override;
-  bool isOnceEver(int32_t line) const override;
-  bool isTempOnce(int32_t line) const override;
-  bool executeCondition(const std::string &condition) const override;
+  [[nodiscard]] bool isOnce(int32_t line) const override;
+  [[nodiscard]] bool isShowOnce(int32_t line) const override;
+  [[nodiscard]] bool isOnceEver(int32_t line) const override;
+  [[nodiscard]] bool isTempOnce(int32_t line) const override;
+  [[nodiscard]] bool executeCondition(const std::string &condition) const override;
 
   void running();
   bool gotoNextLabel();
@@ -95,7 +95,7 @@ private:
 private:
   std::string _dialogName;
   std::unique_ptr<Ast::CompilationUnit> _pCompilationUnit;
-  std::array<const Ast::Statement *, 6> _choices{};
+  std::array<const Ast::Statement *, 9> _choices{};
   Ast::Label *_pLabel{nullptr};
   int _currentStatement{0};
   DialogPlayerState _state{DialogPlayerState::None};

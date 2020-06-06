@@ -43,6 +43,6 @@ private:
   sf::Vector2f _mousePos;
   std::unique_ptr<EngineDialogScript> _pEngineDialogScript;
   std::unique_ptr<DialogPlayer> _pPlayer;
-  std::array<DialogSlot, 6> _slots;
+  std::array<DialogSlot, 9> _slots;
 };
 } // namespace ng

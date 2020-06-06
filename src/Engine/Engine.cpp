@@ -1256,7 +1256,7 @@ const VerbUiColors *Engine::getVerbUiColors(const std::string &name) const {
   }
   for (int i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); i++) {
     const auto &selectableActor = _pImpl->_actorsIconSlots.at(i);
-    if (selectableActor.pActor->getKey() == name) {
+    if (selectableActor.pActor && selectableActor.pActor->getKey() == name) {
       return &_pImpl->_hud.getVerbUiColors(i);
     }
   }
