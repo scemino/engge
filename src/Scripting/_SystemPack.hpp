@@ -328,7 +328,7 @@ private:
     engine.registerGlobalFunction(chr, "chr");
     engine.registerGlobalFunction(cursorPosX, "cursorPosX");
     engine.registerGlobalFunction(cursorPosY, "cursorPosY");
-    engine.registerGlobalFunction(dump, "dump");
+    engine.registerGlobalFunction(dumpvar, "dumpvar");
     engine.registerGlobalFunction(dumprt, "dumprt");
     engine.registerGlobalFunction(exCommand, "exCommand");
     engine.registerGlobalFunction(gameTime, "gameTime");
@@ -567,7 +567,7 @@ private:
     return 1;
   }
 
-  static SQInteger dump(HSQUIRRELVM v) {
+  static SQInteger dumpvar(HSQUIRRELVM v) {
     HSQOBJECT obj;
     if (sq_gettype(v, 2) == OT_BOOL) {
       SQBool value;
@@ -634,6 +634,26 @@ private:
       g_pEngine->allowSaveGames(enabled != 0);
       return 0;
     }
+    case ExCommandConstants::EX_POP_CHARACTER_SELECTION: {
+      error("TODO: exCommand EX_POP_CHARACTER_SELECTION: not implemented");
+      return 0;
+    }
+    case ExCommandConstants::EX_CAMERA_TRACKING: {
+      error("TODO: exCommand EX_CAMERA_TRACKING: not implemented");
+      return 0;
+    }
+    case ExCommandConstants::EX_BUTTON_HOVER_SOUND: {
+      error("TODO: exCommand EX_BUTTON_HOVER_SOUND: not implemented");
+      return 0;
+    }
+    case ExCommandConstants::EX_RESTART: {
+      error("TODO: exCommand EX_RESTART: not implemented");
+      return 0;
+    }
+    case ExCommandConstants::EX_IDLE_TIME: {
+      error("TODO: exCommand EX_IDLE_TIME: not implemented");
+      return 0;
+    }
     case ExCommandConstants::EX_AUTOSAVE: {
       if (g_pEngine->getAutoSave()) {
         g_pEngine->saveGame(1);
@@ -648,16 +668,24 @@ private:
       g_pEngine->setAutoSave(enabled != 0);
       return 0;
     }
+    case ExCommandConstants::EX_DISABLE_SAVESYSTEM: {
+      error("TODO: exCommand EX_DISABLE_SAVESYSTEM: not implemented");
+      return 0;
+    }
+    case ExCommandConstants::EX_SHOW_OPTIONS: {
+      g_pEngine->showOptions(true);
+      return 0;
+    }
+    case ExCommandConstants::EX_OPTIONS_MUSIC: {
+      error("TODO: exCommand EX_OPTIONS_MUSIC: not implemented");
+      return 0;
+    }
     case ExCommandConstants::EX_FORCE_TALKIE_TEXT: {
       SQInteger enabled;
       if (SQ_FAILED(sq_getinteger(v, 3, &enabled))) {
         return sq_throwerror(v, _SC("Failed to get enabled"));
       }
       g_pEngine->getPreferences().setTempPreference(TempPreferenceNames::ForceTalkieText, enabled != 0);
-      return 0;
-    }
-    case ExCommandConstants::EX_SHOW_OPTIONS: {
-      g_pEngine->showOptions(true);
       return 0;
     }
     default:error("TODO: exCommand {}: not implemented", command);
