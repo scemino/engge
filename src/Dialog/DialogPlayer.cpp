@@ -200,12 +200,12 @@ void DialogPlayer::resetState() {
 
 void DialogPlayer::selectLabel(const std::string &name) {
   trace("select label {}", name);
-  auto it = std::find_if(_pCompilationUnit->labels.begin(),
-                         _pCompilationUnit->labels.end(),
+  auto it = std::find_if(_pCompilationUnit->labels.rbegin(),
+                         _pCompilationUnit->labels.rend(),
                          [&name](const std::unique_ptr<Ast::Label> &label) {
                            return label->name == name;
                          });
-  _pLabel = it != _pCompilationUnit->labels.end() ? it->get() : nullptr;
+  _pLabel = it != _pCompilationUnit->labels.rend() ? it->get() : nullptr;
   _currentStatement = 0;
   clearChoices();
   if (_pLabel) {
