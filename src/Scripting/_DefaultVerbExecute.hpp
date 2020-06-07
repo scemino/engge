@@ -165,15 +165,14 @@ private:
 class _TalkToFunction : public Function {
 public:
   _TalkToFunction(Engine &engine, Actor *pActor, Entity *pEntity, Sentence *pSentence)
-      : _engine(engine), _pActor(pActor), _pSentence(pSentence) {
-    _pActor2 = dynamic_cast<Actor *>(pEntity);
+      : _engine(engine), _pActor(pActor), _pEntity(pEntity), _pSentence(pSentence) {
   }
 
 private:
   bool isElapsed() override { return _done; }
 
   void operator()(const sf::Time &) override {
-    if (!_pActor2 || !ScriptEngine::objCall(_pActor2, "verbTalkTo")) {
+    if (!_pEntity || !ScriptEngine::objCall(_pEntity, "verbTalkTo")) {
       if (!callVerbDefault()) {
         if (!callDefaultObjectVerb()) {
           _pSentence->stop();
@@ -187,7 +186,7 @@ private:
     auto &obj = _engine.getDefaultObject();
     auto pActor = _engine.getCurrentActor();
 
-    return ScriptEngine::objCall(obj, "verbTalkTo", _pActor2, pActor);
+    return ScriptEngine::objCall(obj, "verbTalkTo", _pEntity, pActor);
   }
 
   bool callVerbDefault() {
@@ -197,7 +196,7 @@ private:
 private:
   Engine &_engine;
   Actor *_pActor{nullptr};
-  Actor *_pActor2{nullptr};
+  Entity *_pEntity{nullptr};
   Sentence *_pSentence{nullptr};
   bool _done{false};
 };
