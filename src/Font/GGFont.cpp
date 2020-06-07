@@ -16,6 +16,8 @@ int GGFont::getLineHeight() const {
 }
 
 const sf::Glyph &GGFont::getGlyph(sf::Uint32 codePoint, unsigned int, bool, float) const {
+  if (_glyphs.find(codePoint) == _glyphs.end())
+    return _glyphs.at(0x20);
   return _glyphs.at(codePoint);
 }
 
