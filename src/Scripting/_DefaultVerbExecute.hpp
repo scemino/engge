@@ -364,10 +364,17 @@ private:
     return flags;
   }
 
-  static bool callObjectOrActorPreWalk(int verb, Entity *pObj1, Entity *pObj2) {
+  bool callObjectOrActorPreWalk(int verb, Entity *pObj1, Entity *pObj2) {
+    auto handled = false;
+    auto pActor = _engine.getCurrentActor();
+    if (ScriptEngine::rawExists(pActor, "actorPreWalk")) {
+      ScriptEngine::callFunc(handled, pActor, "actorPreWalk", verb, pObj1, pObj2);
+      if (handled)
+        return true;
+    }
+
     auto *pObj = dynamic_cast<Object *>(pObj1);
     auto functionName = pObj ? "objectPreWalk" : "actorPreWalk";
-    bool handled = false;
     if (ScriptEngine::rawExists(pObj1, functionName)) {
       ScriptEngine::callFunc(handled, pObj1, functionName, verb, pObj1, pObj2);
     }
