@@ -1160,11 +1160,6 @@ void Engine::Impl::drawFade(sf::RenderTarget &target) const {
 }
 
 Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
-  time_t t;
-  auto seed = (unsigned) time(&t);
-  info("seed: {}", seed);
-  srand(seed);
-
   _pImpl->_pEngine = this;
   _pImpl->_pDebugTools = std::make_unique<_DebugTools>(*this);
   _pImpl->_soundManager.setEngine(this);
@@ -1544,10 +1539,6 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
     }
   }
   auto pRoom = pDoor->getRoom();
-  auto pOldRoom = _pImpl->_pRoom;
-  if (pRoom == pOldRoom)
-    return 0;
-
   auto result = _pImpl->exitRoom(nullptr);
   if (SQ_FAILED(result))
     return result;
@@ -2333,6 +2324,10 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
     s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
+//    auto pObj = dynamic_cast<Object*>(pObj1);
+//    if(pObj) {
+//      s.append(L"(").append(towstring(pObj->getKey())).append(L")");
+//    }
   }
   appendUseFlag(s);
   if (_pObj2) {

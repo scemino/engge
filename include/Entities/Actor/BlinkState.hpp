@@ -8,7 +8,7 @@ class BlinkState {
 public:
   explicit BlinkState(Costume &costume);
 
-  void setRate(double min, double max);
+  void setRate(float min, float max);
   void update(sf::Time elapsed);
 
 private:

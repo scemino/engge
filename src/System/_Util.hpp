@@ -20,9 +20,6 @@ struct CaseInsensitiveCompare {
   }
 };
 
-SQInteger int_rand(SQInteger min, SQInteger max);
-float float_rand(float min, float max);
-
 void replaceAll(std::string &text, const std::string &search, const std::string &replace);
 void replaceAll(std::wstring &text, const std::wstring &search, const std::wstring &replace);
 

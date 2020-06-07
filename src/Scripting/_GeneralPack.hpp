@@ -7,6 +7,7 @@
 #include "Engine/EngineSettings.hpp"
 #include "Engine/Inventory.hpp"
 #include "System/Locator.hpp"
+#include "Util/RandomNumberGenerator.hpp"
 
 namespace ng {
 class _GeneralPack : public Pack {
@@ -74,32 +75,29 @@ private:
     return 1;
   }
 
+  static void _shuffle(SQArray &array) {
+    auto &rng = Locator<RandomNumberGenerator>::get();
+    for (long i = array.Size() - 1; i > 0; i--) {
+      auto j = rng.generateLong(0, i);
+      auto x = array._values[i];
+      array._values[i] = array._values[j];
+      array._values[j] = x;
+    }
+  }
+
   static SQInteger arrayShuffle(HSQUIRRELVM v) {
+    if (sq_gettype(v, 2) != OT_ARRAY) {
+      return sq_throwerror(v, "An array is expected");
+    }
+
     HSQOBJECT array;
     sq_resetobject(&array);
     if (SQ_FAILED(sq_getstackobj(v, 2, &array))) {
       return sq_throwerror(v, "Failed to get array");
     }
+    _shuffle(*array._unVal.pArray);
 
-    std::vector<HSQOBJECT> objs;
     sq_pushobject(v, array);
-    sq_pushnull(v); //null iterator
-    while (SQ_SUCCEEDED(sq_next(v, -2))) {
-      HSQOBJECT obj;
-      sq_getstackobj(v, -1, &obj);
-      objs.push_back(obj);
-      sq_pop(v, 2); //pops key and val before the nex iteration
-    }
-    sq_pop(v, 1); //pops the null iterator
-
-    sq_newarray(v, 0);
-    while (!objs.empty()) {
-      auto index = int_rand(0, objs.size() - 1);
-      sq_pushobject(v, objs[index]);
-      objs.erase(objs.begin() + index);
-      sq_arrayappend(v, -2);
-    }
-
     return 1;
   }
 
@@ -430,9 +428,8 @@ private:
       SQInteger max = 0;
       sq_getinteger(v, 2, &min);
       sq_getinteger(v, 3, &max);
-      auto value = int_rand(min, max);
+      auto value = Locator<RandomNumberGenerator>::get().generateLong(min, max);
       sq_pushinteger(v, value);
-
       return 1;
     }
     {
@@ -440,7 +437,7 @@ private:
       SQFloat max = 0;
       sq_getfloat(v, 2, &min);
       sq_getfloat(v, 3, &max);
-      auto value = float_rand(min, max);
+      auto value = Locator<RandomNumberGenerator>::get().generateLong(min, max);
       sq_pushfloat(v, value);
       return 1;
     }
@@ -451,13 +448,33 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 2, &value))) {
       return sq_throwerror(v, _SC("failed to get value"));
     }
-    auto rnd = float_rand(0, 1);
-    sq_pushbool(v, static_cast<SQBool>(rnd <= value));
+    auto rnd = Locator<RandomNumberGenerator>::get().generateFloat(0.f, 1.f);
+    auto result = static_cast<SQBool>(rnd <= value);
+    sq_pushbool(v, result);
     return 1;
   }
 
-  static SQInteger randomseed(HSQUIRRELVM) {
-    error("TODO: randomseed: not implemented");
+  static SQInteger randomseed(HSQUIRRELVM v) {
+    auto nArgs = sq_gettop(v);
+    if (nArgs == 1) {
+      // get seed
+      auto seed = Locator<RandomNumberGenerator>::get().getSeed();
+      sq_pushinteger(v, seed);
+      return 1;
+    }
+    if (sq_gettype(v, 2) == OT_NULL) {
+      // set seed with time
+      time_t t;
+      auto seed = static_cast<long>(time(&t));
+      Locator<RandomNumberGenerator>::get().setSeed(seed);
+      return 0;
+    }
+    SQInteger seed;
+    if (SQ_FAILED(sq_getinteger(v, 2, &seed))) {
+      return sq_throwerror(v, _SC("failed to get seed"));
+    }
+    // set seed with parameter
+    Locator<RandomNumberGenerator>::get().setSeed(static_cast<long>(seed));
     return 0;
   }
 
@@ -467,7 +484,7 @@ private:
       sq_resetobject(&obj);
 
       auto size = sq_getsize(v, 2);
-      auto index = int_rand(0, size - 1);
+      auto index = Locator<RandomNumberGenerator>::get().generateLong(0, size - 1);
 
       int i = 0;
       sq_push(v, 2);  // array
@@ -484,7 +501,7 @@ private:
       return 1;
     }
     auto size = sq_gettop(v);
-    auto index = int_rand(0, size - 2);
+    auto index = Locator<RandomNumberGenerator>::get().generateLong(0, size - 2);
     sq_push(v, 2 + index);
     return 1;
   }

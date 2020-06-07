@@ -17,6 +17,7 @@
 #include "Input/DefaultInputEventHandler.hpp"
 #include "Dialog/_AstDump.hpp"
 #include "Parsers/SavegameManager.hpp"
+#include "Util/RandomNumberGenerator.hpp"
 namespace fs = std::filesystem;
 
 int main(int argc, char **argv) {
@@ -37,6 +38,7 @@ int main(int argc, char **argv) {
   try {
     ng::Locator<ng::Logger>::create();
     ng::info("Init services");
+    ng::Locator<ng::RandomNumberGenerator>::create();
     ng::Locator<ng::CommandManager>::create();
     ng::Locator<ng::Preferences>::create();
     ng::Locator<ng::EngineSettings>::create().loadPacks();

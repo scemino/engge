@@ -1,11 +1,13 @@
 #include "Entities/Actor/BlinkState.hpp"
 #include "../../System/_Util.hpp"
+#include "System/Locator.hpp"
+#include "Util/RandomNumberGenerator.hpp"
 
 namespace ng {
 BlinkState::BlinkState(Costume &costume) : _costume(costume) {
 }
 
-void BlinkState::setRate(double min, double max) {
+void BlinkState::setRate(float min, float max) {
   _min = min;
   _max = max;
   if (min == 0 && max == 0) {
@@ -13,7 +15,7 @@ void BlinkState::setRate(double min, double max) {
     _state = -1;
   } else {
     _state = 0;
-    _value = sf::seconds(float_rand(_min, _max));
+    _value = sf::seconds(Locator<RandomNumberGenerator>::get().generateFloat(_min, _max));
   }
   _elapsed = sf::seconds(0);
   _costume.setLayerVisible("blink", false);
@@ -33,7 +35,7 @@ void BlinkState::update(sf::Time elapsed) {
     _elapsed += elapsed;
     if (_elapsed > sf::seconds(0.2)) {
       _costume.setLayerVisible("blink", false);
-      _value = sf::seconds(float_rand(_min, _max));
+      _value = sf::seconds(Locator<RandomNumberGenerator>::get().generateFloat(_min, _max));
       _elapsed = sf::seconds(0);
       _state = 0;
     }
