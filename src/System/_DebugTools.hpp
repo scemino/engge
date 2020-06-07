@@ -55,7 +55,12 @@ public:
       _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
     }
     ImGui::Checkbox("Console", &_consoleVisible);
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Globals...")) {
+      _showGlobalsTable = true;
+    }
 
+    showGlobalsTable();
     showConsole();
     showCamera();
     showInputState();
@@ -66,11 +71,106 @@ public:
     showRooms();
     showSounds();
     showThreads();
+    showRoomTable();
+    showActorTable();
 
     ImGui::End();
   }
 
 private:
+  void createTree(const char *tableKey, HSQOBJECT obj) {
+    if (ImGui::TreeNode(tableKey, "%s = {}", tableKey)) {
+      ImGui::PushID(tableKey);
+      SQObjectPtr refpos;
+      SQObjectPtr outkey, outvar;
+      SQInteger res;
+      while ((res = _table(obj)->Next(false, refpos, outkey, outvar)) != -1) {
+        auto key = _stringval(outkey);
+        ImGui::PushID(key);
+        if (outvar._type == OT_STRING) {
+          char value[32];
+          strcpy(value, _stringval(outvar));
+          ImGui::Text("%s = ", key);
+          ImGui::SameLine(300);
+          if (ImGui::InputText("", value, IM_ARRAYSIZE(value))) {
+            ScriptEngine::set(obj, key, value);
+          }
+        } else if (outvar._type == OT_INTEGER) {
+          auto value = static_cast<int>(_integer(outvar));
+          ImGui::Text("%s = ", key);
+          ImGui::SameLine(300);
+          if (ImGui::InputInt("", &value)) {
+            ScriptEngine::set(obj, key, value);
+          }
+        } else if (outvar._type == OT_BOOL) {
+          auto value = _integer(outvar) ? true : false;
+          ImGui::Text("%s = ", key);
+          ImGui::SameLine(300);
+          if (ImGui::Checkbox("", &value)) {
+            ScriptEngine::set(obj, key, value);
+          }
+        } else if (outvar._type == OT_FLOAT) {
+          auto value = _float(outvar);
+          ImGui::Text("%s = ", key);
+          ImGui::SameLine(300);
+          if (ImGui::InputFloat("", &value)) {
+            ScriptEngine::set(obj, key, value);
+          }
+        } else if (outvar._type == OT_CLOSURE || outvar._type == OT_NATIVECLOSURE) {
+          ImGui::Text("%s = code()", key);
+        } else if (outvar._type == OT_NULL) {
+          ImGui::Text("%s = (null)", key);
+        } else if (outvar._type == OT_TABLE) {
+          createTree(key, outvar);
+        } else {
+          ImGui::Text("%s = (not managed, type = %d)", key, outvar._type);
+        }
+        refpos._type = OT_INTEGER;
+        refpos._unVal.nInteger = res;
+        ImGui::PopID();
+      }
+      ImGui::PopID();
+      ImGui::TreePop();
+    }
+  }
+
+  void showRoomTable() {
+    if (!_showRoomTable)
+      return;
+
+    ImGui::Begin("Room table", &_showRoomTable);
+    auto pRoom = _engine.getRoom();
+    if (pRoom) {
+      auto table = pRoom->getTable();
+      createTree(pRoom->getName().c_str(), table);
+    }
+    ImGui::End();
+  }
+
+  void showGlobalsTable() {
+    if (!_showGlobalsTable)
+      return;
+
+    ImGui::Begin("Globals table", &_showGlobalsTable);
+    SQObjectPtr g;
+    _table(ScriptEngine::getVm()->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
+    createTree("Globals", g);
+    ImGui::End();
+  }
+
+  void showActorTable() {
+    if (!_showActorTable)
+      return;
+
+    ImGui::Begin("Actor table", &_showActorTable);
+    auto pActor = _engine.getCurrentActor();
+    if (pActor) {
+      auto table = pActor->getTable();
+      createTree(pActor->getName().c_str(), table);
+    }
+    ImGui::End();
+  }
+
   void showLayers() {
     ImGui::Columns(4, "LayersColumns", false);
     ImGui::Separator();
@@ -379,6 +479,11 @@ private:
       _actorInfos.push_back(toUtf8(actor->getTranslatedName()));
     }
     ImGui::Combo("##Actor", &_selectedActor, stringGetter, static_cast<void *>(&_actorInfos), _actorInfos.size());
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Table...")) {
+      _showActorTable = true;
+    }
+
     auto &actor = actors[_selectedActor];
 
     auto head = actor->getCostume().getHeadIndex();
@@ -636,6 +741,12 @@ private:
     if (ImGui::Combo("Room", &currentRoom, stringGetter, static_cast<void *>(&_roomInfos), rooms.size())) {
       _engine.setRoom(rooms[currentRoom].get());
     }
+
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Table...")) {
+      _showRoomTable = true;
+    }
+
     auto &room = rooms[currentRoom];
 
     auto options = _engine.getWalkboxesFlags();
@@ -760,7 +871,7 @@ private:
     }
 
     void PrintVar(const char *var) {
-      std::string s("dump(");
+      std::string s("dumpvar(");
       s.append(var).append(")");
       _engine.execute(s);
     }
@@ -1107,6 +1218,9 @@ private:
   ImGuiTextFilter _filterCostume;
   Console _console;
   bool _consoleVisible{false};
+  bool _showRoomTable{false};
+  bool _showGlobalsTable{false};
+  bool _showActorTable{false};
 };
 const char *_DebugTools::_langs[] = {"en", "fr", "de", "es", "it"};
 } // namespace ng
