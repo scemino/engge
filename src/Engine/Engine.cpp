@@ -1860,9 +1860,10 @@ void Engine::update(const sf::Time &el) {
 
   if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible() && _pImpl->_pFollowActor->getRoom() == getRoom()) {
     auto pos = _pImpl->_pFollowActor->getPosition() - sf::Vector2f(screen.x / 2, screen.y / 2);
-    auto margin = screen.x / 4;
+    auto margin = sf::Vector2f(screen.x / 4, screen.y / 4);
     auto cameraPos = _pImpl->_camera.getAt();
-    if (_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin) || (cameraPos.x < pos.x - margin)) {
+    if (_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin.x) || (cameraPos.x < pos.x - margin.x) ||
+        (cameraPos.y > pos.y + margin.y) || (cameraPos.y < pos.y - margin.y)) {
       _pImpl->_camera.panTo(pos, sf::seconds(4), InterpolationMethod::EaseOut);
     }
   }
