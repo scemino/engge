@@ -513,9 +513,13 @@ private:
   }
 
   static SQInteger cameraInRoom(HSQUIRRELVM v) {
-    Room *pRoom = ScriptEngine::getRoom(v, 2);
+    auto *pRoom = ScriptEngine::getRoom(v, 2);
     if (!pRoom) {
-      return sq_throwerror(v, _SC("failed to get room"));
+      auto pEntity = ScriptEngine::getEntity(v, 2);
+      pRoom = pEntity ? pEntity->getRoom() : nullptr;
+      if (!pRoom) {
+        return sq_throwerror(v, _SC("failed to get room"));
+      }
     }
     return g_pEngine->setRoom(pRoom);
   }
