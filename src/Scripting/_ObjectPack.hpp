@@ -82,6 +82,8 @@ private:
     auto &objects = room->getObjects();
 
     for (auto &obj : objects) {
+      if (!obj->isVisible())
+        continue;
       if (obj->getRealHotspot().contains(sf::Vector2i(x, y))) {
         sq_pushobject(v, obj->getTable());
         return 1;
