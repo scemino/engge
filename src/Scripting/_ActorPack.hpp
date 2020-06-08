@@ -272,16 +272,22 @@ private:
   }
 
   static SQInteger actorDistanceTo(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
-    if (!actor) {
+    auto pActor = ScriptEngine::getActor(v, 2);
+    if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    auto object = ScriptEngine::getObject(v, 3);
-    if (!object) {
+    auto pActor2 = ScriptEngine::getActor(v, 3);
+    if (pActor2) {
+      auto dist = _distance(pActor->getRealPosition(), pActor2->getRealPosition());
+      sq_pushinteger(v, dist);
+      return 1;
+    }
+    auto pObject = ScriptEngine::getObject(v, 3);
+    if (!pObject) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    auto pos = actor->getRealPosition() - object->getRealPosition();
-    auto dist = sqrt(pos.x * pos.x + pos.y * pos.y);
+    auto posObj = pObject->getRealPosition() + pObject->getUsePosition().value_or(sf::Vector2f());
+    auto dist = _distance(pActor->getRealPosition(), posObj);
     sq_pushinteger(v, dist);
     return 1;
   }
