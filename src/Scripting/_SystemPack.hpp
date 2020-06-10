@@ -556,14 +556,19 @@ private:
   }
 
   static SQInteger cursorPosX(HSQUIRRELVM v) {
+    auto roomSize = g_pEngine->getRoom()->getRoomSize();
     auto pos = g_pEngine->getMousePositionInRoom();
-    sq_pushinteger(v, static_cast<SQInteger>(pos.x));
+    auto x = Screen::Width * pos.x / roomSize.x;
+    sq_pushinteger(v, static_cast<SQInteger>(x));
     return 1;
   }
 
   static SQInteger cursorPosY(HSQUIRRELVM v) {
+    auto roomSize = g_pEngine->getRoom()->getRoomSize();
+
     auto pos = g_pEngine->getMousePositionInRoom();
-    sq_pushinteger(v, static_cast<SQInteger>(pos.y));
+    auto y = Screen::Height * pos.y / roomSize.y;
+    sq_pushinteger(v, static_cast<SQInteger>(y));
     return 1;
   }
 

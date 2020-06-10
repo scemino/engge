@@ -81,6 +81,11 @@ private:
     auto *room = g_pEngine->getRoom();
     auto &objects = room->getObjects();
 
+    std::sort(objects.begin(), objects.end(),
+              [](const std::unique_ptr<Object> &obj1, const std::unique_ptr<Object> &obj2) {
+                return obj1->getZOrder() < obj2->getZOrder();
+              });
+
     for (auto &obj : objects) {
       if (!obj->isVisible())
         continue;
@@ -447,11 +452,8 @@ private:
       }
       auto pos = spot->getRealPosition();
       auto usePos = spot->getUsePosition().value_or(sf::Vector2f());
-      auto hotspot = spot->getHotspot();
-      pos.x += usePos.x + hotspot.left + hotspot.width / 2;
-      pos.y += usePos.y + hotspot.top + hotspot.height / 2;
-      x = pos.x;
-      y = pos.y;
+      x = pos.x + usePos.x;
+      y = pos.y + usePos.y;
     } else {
       if (SQ_FAILED(sq_getinteger(v, 3, &x))) {
         return sq_throwerror(v, _SC("failed to get x"));
@@ -856,7 +858,7 @@ private:
     SQInteger hidden;
     Object *obj = ScriptEngine::getObject(v, 2);
     if (!obj) {
-      return sq_throwerror(v, _SC("failed to get object"));
+      return 0;
     }
     if (SQ_FAILED(sq_getinteger(v, 3, &hidden))) {
       return sq_throwerror(v, _SC("failed to get hidden"));
