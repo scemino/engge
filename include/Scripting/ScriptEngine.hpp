@@ -42,9 +42,9 @@ public:
   template<typename TConstant>
   void registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list);
   static void registerGlobalFunction(SQFUNCTION f,
-                              const SQChar *functionName,
-                              SQInteger nparamscheck = 0,
-                              const SQChar *typemask = nullptr);
+                                     const SQChar *functionName,
+                                     SQInteger nparamscheck = 0,
+                                     const SQChar *typemask = nullptr);
   static void executeScript(const std::string &name);
   static void executeNutScript(const std::string &name);
 
@@ -111,6 +111,9 @@ public:
 
   template<typename TResult, typename TThis, typename...T>
   static bool callFunc(TResult &result, TThis pThis, const char *name, T... args);
+
+  template<typename TResult, typename...T>
+  static bool callFunc(TResult &result, const char *name, T... args);
 
   template<typename TThis>
   static bool rawExists(TThis pThis, const char *name);
@@ -385,6 +388,33 @@ bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T...
   return true;
 }
 
+template<typename TResult, typename...T>
+bool ScriptEngine::callFunc(TResult &result, const char *name, T... args) {
+  constexpr std::size_t n = sizeof...(T);
+  auto v = ScriptEngine::getVm();
+  auto top = sq_gettop(v);
+  sq_pushroottable(v);
+  sq_pushstring(v, _SC(name), -1);
+  if (SQ_FAILED(sq_get(v, -2))) {
+    sq_settop(v, top);
+    trace("can't find {} function", name);
+    return false;
+  }
+  sq_remove(v, -2);
+
+  sq_pushroottable(v);
+  ScriptEngine::push(v, std::forward<T>(args)...);
+  if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue))) {
+    sqstd_printcallstack(v);
+    sq_settop(v, top);
+    error("function {} call failed", name);
+    return false;
+  }
+  ScriptEngine::get(v, -1, result);
+  sq_settop(v, top);
+  return true;
+}
+
 template<typename TResult, typename TThis, typename...T>
 bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
@@ -456,8 +486,9 @@ bool ScriptEngine::exists(TThis pThis, const char *name) {
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_SUCCEEDED(sq_get(v, -2))) {
+    auto type = sq_gettype(v, -1);
     sq_settop(v, top);
-    return true;
+    return type != OT_NULL;
   }
   sq_settop(v, top);
   return false;
@@ -470,8 +501,9 @@ bool ScriptEngine::rawExists(TThis pThis, const char *name) {
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
+    auto type = sq_gettype(v, -1);
     sq_settop(v, top);
-    return true;
+    return type != OT_NULL;
   }
   sq_settop(v, top);
   return false;
