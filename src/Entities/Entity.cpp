@@ -1,17 +1,53 @@
 #include <utility>
+#include <memory>
 #include "Entities/Entity.hpp"
 #include "Room/Room.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundTrigger.hpp"
+#include "Engine/Camera.hpp"
 #include "Engine/Trigger.hpp"
+#include "Actor/_TalkingState.hpp"
 
 namespace ng {
+struct Entity::Impl {
+  Engine &_engine;
+  std::map<int, Trigger *> _triggers;
+  std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
+  std::optional<sf::Vector2f> _usePos;
+  std::optional<UseDirection> _useDir;
+  sf::Vector2f _offset;
+  bool _isLit{true};
+  bool _isVisible{true};
+  bool _isTouchable{true};
+  sf::Vector2i _renderOffset;
+  Motor _offsetTo, _scaleTo, _rotateTo, _moveTo, _alphaTo;
+  sf::Color _color{sf::Color::White};
+  bool _objectBumperCycle{true};
+  sf::Color _talkColor;
+  sf::Vector2i _talkOffset;
+  _TalkingState _talkingState;
+
+  Impl() : _engine(ng::Locator<ng::Engine>::get()) {
+    _talkingState.setEngine(&_engine);
+  }
+};
+
+Entity::Entity() : pImpl(std::make_unique<Entity::Impl>()) {
+}
+
+Entity::~Entity() = default;
+
+void Entity::objectBumperCycle(bool enabled) { pImpl->_objectBumperCycle = enabled; }
+
+bool Entity::objectBumperCycle() const { return pImpl->_objectBumperCycle; }
+
 void Entity::update(const sf::Time &elapsed) {
-  update(_offsetTo, elapsed);
-  update(_scaleTo, elapsed);
-  update(_rotateTo, elapsed);
-  update(_moveTo, elapsed);
-  update(_alphaTo, elapsed);
+  pImpl->_talkingState.update(elapsed);
+  update(pImpl->_offsetTo, elapsed);
+  update(pImpl->_scaleTo, elapsed);
+  update(pImpl->_rotateTo, elapsed);
+  update(pImpl->_moveTo, elapsed);
+  update(pImpl->_alphaTo, elapsed);
 }
 
 void Entity::update(Motor &motor, const sf::Time &elapsed) {
@@ -24,36 +60,36 @@ void Entity::update(Motor &motor, const sf::Time &elapsed) {
 }
 
 void Entity::setLit(bool isLit) {
-  _isLit = isLit;
+  pImpl->_isLit = isLit;
 }
 
 bool Entity::isLit() const {
-  return _isLit;
+  return pImpl->_isLit;
 }
 
 void Entity::setVisible(bool isVisible) {
-  _isVisible = isVisible;
+  pImpl->_isVisible = isVisible;
 }
 
 bool Entity::isVisible() const {
-  return _isVisible;
+  return pImpl->_isVisible;
 }
 
 void Entity::setUsePosition(std::optional<sf::Vector2f> pos) {
-  _usePos = pos;
+  pImpl->_usePos = pos;
 }
 
 void Entity::setUseDirection(std::optional<UseDirection> direction) {
-  _useDir = direction;
+  pImpl->_useDir = direction;
 }
 
 std::optional<UseDirection> Entity::getUseDirection() const {
-  return _useDir;
+  return pImpl->_useDir;
 }
 
 void Entity::setPosition(const sf::Vector2f &pos) {
   _transform.setPosition(pos);
-  _moveTo.isEnabled = false;
+  pImpl->_moveTo.isEnabled = false;
 }
 
 sf::Vector2f Entity::getPosition() const {
@@ -61,16 +97,16 @@ sf::Vector2f Entity::getPosition() const {
 }
 
 sf::Vector2f Entity::getRealPosition() const {
-  return getPosition() + _offset;
+  return getPosition() + pImpl->_offset;
 }
 
 void Entity::setOffset(const sf::Vector2f &offset) {
-  _offset = offset;
-  _offsetTo.isEnabled = false;
+  pImpl->_offset = offset;
+  pImpl->_offsetTo.isEnabled = false;
 }
 
 sf::Vector2f Entity::getOffset() const {
-  return _offset;
+  return pImpl->_offset;
 }
 
 void Entity::setRotation(float angle) { _transform.setRotation(angle); }
@@ -84,17 +120,17 @@ float Entity::getRotation() const {
 }
 
 void Entity::setColor(const sf::Color &color) {
-  _color = color;
-  _alphaTo.isEnabled = false;
+  pImpl->_color = color;
+  pImpl->_alphaTo.isEnabled = false;
 }
 
 const sf::Color &Entity::getColor() const {
-  return _color;
+  return pImpl->_color;
 }
 
 void Entity::setScale(float s) {
   _transform.setScale(s, s);
-  _scaleTo.isEnabled = false;
+  pImpl->_scaleTo.isEnabled = false;
 }
 
 float Entity::getScale() const {
@@ -103,25 +139,25 @@ float Entity::getScale() const {
 
 sf::Transformable Entity::getTransform() const {
   auto transform = _transform;
-  transform.move(_offset.x, _offset.y);
+  transform.move(pImpl->_offset.x, pImpl->_offset.y);
   return transform;
 }
 
 std::optional<sf::Vector2f> Entity::getUsePosition() const {
-  return _usePos;
+  return pImpl->_usePos;
 }
 
 void Entity::setTrigger(int triggerNumber, Trigger *pTrigger) {
-  _triggers[triggerNumber] = pTrigger;
+  pImpl->_triggers[triggerNumber] = pTrigger;
 }
 
 void Entity::removeTrigger(int triggerNumber) {
-  _triggers.erase(triggerNumber);
+  pImpl->_triggers.erase(triggerNumber);
 }
 
 void Entity::trig(int triggerNumber) {
-  auto it = _triggers.find(triggerNumber);
-  if (it != _triggers.end()) {
+  auto it = pImpl->_triggers.find(triggerNumber);
+  if (it != pImpl->_triggers.end()) {
     it->second->trig();
   }
 }
@@ -129,58 +165,62 @@ void Entity::trig(int triggerNumber) {
 void Entity::trigSound(const std::string &) {
 }
 
-void Entity::drawForeground(sf::RenderTarget &, sf::RenderStates) const {
+void Entity::drawForeground(sf::RenderTarget &target, sf::RenderStates s) const {
+  if (!pImpl->_talkingState.isTalking())
+    return;
+
+  target.draw(pImpl->_talkingState, s);
 }
 
 SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds) {
   auto trigger = std::make_unique<SoundTrigger>(engine, sounds, this->getId());
   SoundTrigger *pTrigger = trigger.get();
-  _soundTriggers.push_back(std::move(trigger));
+  pImpl->_soundTriggers.push_back(std::move(trigger));
   return pTrigger;
 }
 
 void Entity::setTouchable(bool isTouchable) {
-  _isTouchable = isTouchable;
+  pImpl->_isTouchable = isTouchable;
 }
 
 bool Entity::isTouchable() const {
   if (!isVisible())
     return false;
-  return _isTouchable;
+  return pImpl->_isTouchable;
 }
 
 void Entity::setRenderOffset(const sf::Vector2i &offset) {
-  _renderOffset = offset;
+  pImpl->_renderOffset = offset;
 }
 
 sf::Vector2i Entity::getRenderOffset() const {
-  return _renderOffset;
+  return pImpl->_renderOffset;
 }
 
 void Entity::alphaTo(float destination, sf::Time time, InterpolationMethod method) {
   auto getAlpha = [this] { return static_cast<float>(getColor().a) / 255.f; };
   auto setAlpha = [this](const float &a) {
-    _color.a = static_cast<sf::Uint8>(a * 255.f);
+    pImpl->_color.a = static_cast<sf::Uint8>(a * 255.f);
   };
   auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
-  _alphaTo.function = std::move(alphaTo);
-  _alphaTo.isEnabled = true;
+  pImpl->_alphaTo.function = std::move(alphaTo);
+  pImpl->_alphaTo.isEnabled = true;
 }
 
 void Entity::offsetTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method) {
-  auto get = [this] { return _offset; };
-  auto set = [this](const sf::Vector2f &value) { _offset = value; };
+  auto get = [this] { return pImpl->_offset; };
+  auto set = [this](const sf::Vector2f &value) { pImpl->_offset = value; };
   auto offsetTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
-  _offsetTo.function = std::move(offsetTo);
-  _offsetTo.isEnabled = true;
+  pImpl->_offsetTo.function = std::move(offsetTo);
+  pImpl->_offsetTo.isEnabled = true;
 }
 
 void Entity::moveTo(sf::Vector2f destination, sf::Time time, InterpolationMethod method) {
   auto get = [this] { return getPosition(); };
   auto set = [this](const sf::Vector2f &value) { _transform.setPosition(value); };
   auto moveTo = std::make_unique<ChangeProperty<sf::Vector2f>>(get, set, destination, time, method);
-  _moveTo.function = std::move(moveTo);
-  _moveTo.isEnabled = true;
+  pImpl->_moveTo.function = std::move(moveTo);
+  pImpl->_moveTo.isEnabled = true;
 }
 
 void Entity::rotateTo(float destination, sf::Time time, InterpolationMethod method) {
@@ -188,16 +228,16 @@ void Entity::rotateTo(float destination, sf::Time time, InterpolationMethod meth
   auto set = [this](const float &value) { _transform.setRotation(value); };
   auto rotateTo =
       std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  _rotateTo.function = std::move(rotateTo);
-  _rotateTo.isEnabled = true;
+  pImpl->_rotateTo.function = std::move(rotateTo);
+  pImpl->_rotateTo.isEnabled = true;
 }
 
 void Entity::scaleTo(float destination, sf::Time time, InterpolationMethod method) {
   auto get = [this] { return _transform.getScale().x; };
   auto set = [this](const float &s) { _transform.setScale(s, s); };
   auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  _scaleTo.function = std::move(scalteTo);
-  _scaleTo.isEnabled = true;
+  pImpl->_scaleTo.function = std::move(scalteTo);
+  pImpl->_scaleTo.isEnabled = true;
 }
 
 void Entity::setName(const std::string &name) {
@@ -212,11 +252,38 @@ std::string Entity::getName() const {
 }
 
 void Entity::stopObjectMotors() {
-  _offsetTo.isEnabled = false;
-  _scaleTo.isEnabled = false;
-  _rotateTo.isEnabled = false;
-  _moveTo.isEnabled = false;
-  _alphaTo.isEnabled = false;
+  pImpl->_offsetTo.isEnabled = false;
+  pImpl->_scaleTo.isEnabled = false;
+  pImpl->_rotateTo.isEnabled = false;
+  pImpl->_moveTo.isEnabled = false;
+  pImpl->_alphaTo.isEnabled = false;
 }
+
+void Entity::setTalkColor(sf::Color color) { pImpl->_talkColor = color; }
+
+sf::Color Entity::getTalkColor() const { return pImpl->_talkColor; }
+
+void Entity::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkOffset = offset; }
+
+void Entity::say(const std::string &text, bool mumble) {
+  pImpl->_talkingState.loadLip(text, this, mumble);
+  sf::Vector2f pos;
+  auto screenSize = pImpl->_engine.getRoom()->getScreenSize();
+  if (getRoom() == pImpl->_engine.getRoom()) {
+    auto at = pImpl->_engine.getCamera().getAt();
+    pos = getRealPosition();
+    pos = {pos.x - at.x + pImpl->_talkOffset.x, screenSize.y - pos.y - at.y - pImpl->_talkOffset.y};
+  } else {
+    // TODO: the position in this case is wrong, don't know what to do yet
+    pos = (sf::Vector2f) pImpl->_talkOffset;
+    pos = {pos.x, screenSize.y + pos.y};
+  }
+  pos = toDefaultView((sf::Vector2i) pos, pImpl->_engine.getRoom()->getScreenSize());
+  pImpl->_talkingState.setPosition(pos);
+}
+
+void Entity::stopTalking() { pImpl->_talkingState.stop(); }
+
+bool Entity::isTalking() const { return pImpl->_talkingState.isTalking(); }
 
 } // namespace ng

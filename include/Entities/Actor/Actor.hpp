@@ -33,14 +33,6 @@ public:
   Costume &getCostume() const;
   Costume &getCostume();
 
-  void setTalkColor(sf::Color color);
-  sf::Color getTalkColor() const;
-
-  void setTalkOffset(const sf::Vector2i &offset);
-  void say(const std::string &text, bool mumble = false);
-  void stopTalking();
-  bool isTalking() const;
-
   Room *getRoom() override;
   const Room *getRoom() const override;
   void setRoom(Room *pRoom);

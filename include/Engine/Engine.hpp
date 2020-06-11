@@ -114,7 +114,7 @@ public:
   DialogManager &getDialogManager();
   Camera &getCamera();
 
-  Actor *getActor(const std::string &name);
+  Entity *getActor(const std::string &name);
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);
@@ -136,7 +136,9 @@ public:
   void keyUp(const Input& key);
 
   void sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string &text);
-  void sayLineAt(sf::Vector2i pos, Actor &actor, const std::string &text);
+  void sayLineAt(sf::Vector2i pos, Entity &entity, const std::string &text);
+  void stopTalking() const;
+  void stopTalkingExcept(Entity* pEntity) const;
 
   void showOptions(bool visible);
   void quit();

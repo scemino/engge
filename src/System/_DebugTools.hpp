@@ -394,6 +394,7 @@ private:
     ImGui::Indent();
     auto &sounds = _engine.getSoundManager().getSounds();
     for (auto i = 0; i < static_cast<int>(sounds.size()); i++) {
+      ImGui::PushID(i);
       const auto &sound = sounds[i];
       const auto *sd = sound ? sound->getSoundDefinition() : nullptr;
       const auto *name = !sd ? "<free>" : sd->getPath().data();
@@ -414,7 +415,7 @@ private:
           break;
         }
       }
-      if (ImGui::SmallButton("stop") && sound) {
+      if (ImGui::SmallButton("stop")) {
         sound->stop();
       }
       ImGui::SameLine();
@@ -423,6 +424,7 @@ private:
       ImGui::TextColored(catColor, " %7s", category.data());
       ImGui::SameLine();
       ImGui::Text(" %.1f", volume);
+      ImGui::PopID();
     }
     ImGui::Unindent();
   }
@@ -436,6 +438,7 @@ private:
     for (const auto &thread : threads) {
       auto name = thread->getName();
       auto id = thread->getId();
+      ImGui::PushID(id);
       auto type = thread->isGlobal() ? "global" : "local";
       auto isPauseable = thread->isPauseable();
       auto isSuspended = thread->isSuspended();
@@ -464,6 +467,7 @@ private:
       }
       ImGui::SameLine();
       ImGui::Text("[%5d]: %-56s [%-6s] (%-9s)", id, name.data(), type, state.data());
+      ImGui::PopID();
     }
     ImGui::Unindent();
   }

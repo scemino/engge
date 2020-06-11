@@ -624,7 +624,7 @@ struct Engine::Impl {
     }
 
     Actor *getActor(const std::string &name) {
-      return _pImpl->_pEngine->getActor(name);
+      return dynamic_cast<Actor *>(_pImpl->_pEngine->getActor(name));
     }
 
     Room *getRoom(const std::string &name) {
@@ -1021,7 +1021,8 @@ struct Engine::Impl {
   const Verb *getHoveredVerb() const;
   static std::wstring getDisplayName(const std::wstring &name);
   void run(bool state);
-  void stopAllTalking() const;
+  void stopTalking() const;
+  void stopTalkingExcept(Entity *pEntity) const;
   Entity *getEntity(Entity *pEntity) const;
   const Verb *overrideVerb(const Verb *pVerb) const;
   void captureScreen(const std::string &path) const;
@@ -1139,7 +1140,7 @@ void Engine::Impl::skipCutscene() {
 
 void Engine::Impl::skipText() const {
   if (_dialogManager.getState() == DialogManagerState::Active) {
-    stopAllTalking();
+    stopTalking();
   }
 }
 
@@ -1981,8 +1982,25 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   }
 }
 
-void Engine::Impl::stopAllTalking() const {
+void Engine::Impl::stopTalking() const {
   for (auto &&a : _pEngine->getActors()) {
+    a->stopTalking();
+  }
+  for (auto &&a : _pEngine->getRoom()->getObjects()) {
+    a->stopTalking();
+  }
+}
+
+void Engine::Impl::stopTalkingExcept(Entity *pEntity) const {
+  for (auto &&a : _pEngine->getActors()) {
+    if (a.get() == pEntity)
+      continue;
+    a->stopTalking();
+  }
+
+  for (auto &&a : _pEngine->getRoom()->getObjects()) {
+    if (a.get() == pEntity)
+      continue;
     a->stopTalking();
   }
 }
@@ -2554,10 +2572,10 @@ void Engine::sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, con
   _pImpl->_talkingState.setDuration(duration);
 }
 
-void Engine::sayLineAt(sf::Vector2i pos, Actor &actor, const std::string &text) {
+void Engine::sayLineAt(sf::Vector2i pos, Entity &entity, const std::string &text) {
   auto size = getRoom()->getRoomSize();
   _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
-  _pImpl->_talkingState.loadLip(text, &actor);
+  _pImpl->_talkingState.loadLip(text, &entity);
 }
 
 void Engine::showOptions(bool visible) {
@@ -2608,7 +2626,7 @@ void Engine::allowSaveGames(bool allow) {
   _pImpl->_optionsDialog.setSaveEnabled(allow);
 }
 
-Actor *Engine::getActor(const std::string &name) {
+Entity *Engine::getActor(const std::string &name) {
   if (name == "agent" || name == "player")
     return _pImpl->_pCurrentActor;
 
@@ -2629,6 +2647,13 @@ Actor *Engine::getActor(const std::string &name) {
   if (it != actors.cend()) {
     return it->get();
   }
+  const auto &objects = getRoom()->getObjects();
+  auto it2 = std::find_if(objects.cbegin(), objects.cend(), [name](const auto &pObj) {
+    return pObj->getKey() == name;
+  });
+  if (it2 != objects.cend()) {
+    return it2->get();
+  }
   return nullptr;
 }
 
@@ -2645,6 +2670,14 @@ void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
     }
     slots.push_back(slot);
   }
+}
+
+void Engine::stopTalking() const {
+  _pImpl->stopTalking();
+}
+
+void Engine::stopTalkingExcept(Entity *pEntity) const {
+  _pImpl->stopTalkingExcept(pEntity);
 }
 
 std::wstring SavegameSlot::getSaveTimeString() const {
@@ -2695,5 +2728,4 @@ std::wstring SavegameSlot::getGameTimeString() const {
   std::wstring s(buffer);
   return s;
 }
-
 } // namespace ng

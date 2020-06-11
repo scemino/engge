@@ -28,6 +28,9 @@ class SoundTrigger;
 class Trigger;
 class Entity : public ScriptObject, public sf::Drawable {
 public:
+  Entity();
+  virtual ~Entity();
+
   virtual void update(const sf::Time &elapsed);
   virtual int getZOrder() const = 0;
 
@@ -43,8 +46,8 @@ public:
   void setTouchable(bool isTouchable);
   virtual bool isTouchable() const;
 
-  void objectBumperCycle(bool enabled) { _objectBumperCycle = enabled; }
-  bool objectBumperCycle() const { return _objectBumperCycle; }
+  void objectBumperCycle(bool enabled);
+  bool objectBumperCycle() const;
 
   virtual bool isInventoryObject() const = 0;
 
@@ -73,6 +76,11 @@ public:
   void setColor(const sf::Color &color);
   const sf::Color &getColor() const;
 
+  void setTalkColor(sf::Color color);
+  sf::Color getTalkColor() const;
+
+  void setTalkOffset(const sf::Vector2i &offset);
+
   void setTrigger(int triggerNumber, Trigger *pTrigger);
   void removeTrigger(int triggerNumber);
   void trig(int triggerNumber);
@@ -100,6 +108,10 @@ public:
 
   virtual void stopObjectMotors();
 
+  void say(const std::string &text, bool mumble = false);
+  void stopTalking();
+  bool isTalking() const;
+
 private:
   static void update(Motor &motor, const sf::Time &elapsed);
 
@@ -108,17 +120,7 @@ protected:
   sf::Transformable _transform;
 
 private:
-  std::map<int, Trigger *> _triggers;
-  std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
-  std::optional<sf::Vector2f> _usePos;
-  std::optional<UseDirection> _useDir;
-  sf::Vector2f _offset;
-  bool _isLit{true};
-  bool _isVisible{true};
-  bool _isTouchable{true};
-  sf::Vector2i _renderOffset;
-  Motor _offsetTo, _scaleTo, _rotateTo, _moveTo, _alphaTo;
-  sf::Color _color{sf::Color::White};
-  bool _objectBumperCycle{true};
+  struct Impl;
+  std::unique_ptr<Impl> pImpl;
 };
 } // namespace ng

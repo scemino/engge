@@ -54,6 +54,7 @@ float SoundId::getVolume() const {
 void SoundId::stop() {
   auto path = _pSoundDefinition->getPath();
 //  trace("stopSoundId({})", path);
+  _loopTimes = 0;
   _sound.stop();
 }
 

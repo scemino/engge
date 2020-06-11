@@ -136,11 +136,11 @@ public:
 
 class _BreakWhileTalkingFunction : public _BreakFunction {
 private:
-  Actor &_actor;
+  Entity &_entity;
 
 public:
-  explicit _BreakWhileTalkingFunction(Engine &engine, int id, Actor &actor)
-      : _BreakFunction(engine, id), _actor(actor) {
+  explicit _BreakWhileTalkingFunction(Engine &engine, int id, Entity &entity)
+      : _BreakFunction(engine, id), _entity(entity) {
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -148,7 +148,7 @@ public:
   }
 
   bool isElapsed() override {
-    return !_actor.isTalking();
+    return !_entity.isTalking();
   }
 };
 
@@ -503,14 +503,14 @@ private:
 
   static SQInteger breakwhiletalking(HSQUIRRELVM v) {
     if (sq_gettop(v) == 2) {
-      auto *pActor = ScriptEngine::getActor(v, 2);
-      if (!pActor) {
-        return sq_throwerror(v, _SC("failed to get actor"));
+      auto *pEntity = ScriptEngine::getEntity(v, 2);
+      if (!pEntity) {
+        return sq_throwerror(v, _SC("failed to get actor/object"));
       }
       auto pThread = ScriptEngine::getThreadFromVm(v);
       pThread->suspend();
 
-      g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, pThread->getId(), *pActor));
+      g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, pThread->getId(), *pEntity));
       return SQ_SUSPEND_FLAG;
     }
 

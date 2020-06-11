@@ -304,12 +304,12 @@ private:
     auto pActor2 = ScriptEngine::getActor(v, 3);
     if (pActor2) {
       auto dist = _distance(actor->getRealPosition(), pActor2->getRealPosition());
-      trace("actorDistanceWithin({},{},{})=>{} ({})",
-            actor->getKey(),
-            pActor2->getKey(),
-            d,
-            (dist < d) ? "YES" : "NO",
-            dist);
+//      trace("actorDistanceWithin({},{},{})=>{} ({})",
+//            actor->getKey(),
+//            pActor2->getKey(),
+//            d,
+//            (dist < d) ? "YES" : "NO",
+//            dist);
       sq_pushbool(v, dist < d);
       return 1;
     }
@@ -321,12 +321,12 @@ private:
 
     auto posObj = pObject->getRealPosition() + pObject->getUsePosition().value_or(sf::Vector2f());
     auto dist = _distance(actor->getRealPosition(), posObj);
-    trace("actorDistanceWithin({},{},{})=>{} ({})",
-          actor->getKey(),
-          pObject->getName(),
-          d,
-          (dist < d) ? "YES" : "NO",
-          dist);
+//    trace("actorDistanceWithin({},{},{})=>{} ({})",
+//          actor->getKey(),
+//          pObject->getName(),
+//          d,
+//          (dist < d) ? "YES" : "NO",
+//          dist);
     sq_pushbool(v, dist < d);
     return 1;
   }
@@ -630,22 +630,22 @@ private:
   }
 
   static SQInteger actorTalkColors(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
-    if (!actor) {
-      return sq_throwerror(v, _SC("failed to get actor"));
+    auto pEntity = ScriptEngine::getEntity(v, 2);
+    if (!pEntity) {
+      return sq_throwerror(v, _SC("failed to get actor/object"));
     }
     SQInteger color;
     if (SQ_FAILED(sq_getinteger(v, 3, &color))) {
       return sq_throwerror(v, _SC("failed to get fps"));
     }
-    actor->setTalkColor(_fromRgb(color));
+    pEntity->setTalkColor(_fromRgb(color));
     return 0;
   }
 
   static SQInteger actorTalkOffset(HSQUIRRELVM v) {
-    Actor *actor = ScriptEngine::getActor(v, 2);
-    if (!actor) {
-      return sq_throwerror(v, _SC("failed to get actor"));
+    auto pEntity = ScriptEngine::getEntity(v, 2);
+    if (!pEntity) {
+      return sq_throwerror(v, _SC("failed to get actor/object"));
     }
     SQInteger x;
     if (SQ_FAILED(sq_getinteger(v, 3, &x))) {
@@ -655,7 +655,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 4, &y))) {
       return sq_throwerror(v, _SC("failed to get y"));
     }
-    actor->setTalkOffset(sf::Vector2i(x, y));
+    pEntity->setTalkOffset(sf::Vector2i(x, y));
     return 0;
   }
 
@@ -924,18 +924,18 @@ private:
   }
 
   static SQInteger _sayLine(HSQUIRRELVM v, bool mumble = false) {
-    Actor *actor;
+    Entity *pEntity;
     SQInteger index;
     if (sq_gettype(v, 2) == OT_TABLE) {
-      actor = ScriptEngine::getActor(v, 2);
+      pEntity = ScriptEngine::getEntity(v, 2);
       index = 3;
     } else {
-      actor = g_pEngine->getCurrentActor();
+      pEntity = g_pEngine->getCurrentActor();
       index = 2;
     }
 
-    if (!actor) {
-      return sq_throwerror(v, _SC("failed to get actor"));
+    if (!pEntity) {
+      return sq_throwerror(v, _SC("failed to get actor/object"));
     }
 
     if (sq_gettype(v, index) == OT_ARRAY) {
@@ -945,7 +945,7 @@ private:
         //here -1 is the value and -2 is the key
         const SQChar *idText = nullptr;
         sq_getstring(v, -1, &idText);
-        actor->say(idText, mumble);
+        pEntity->say(idText, mumble);
         sq_pop(v, 2); //pops key and val before the nex iteration
       }
       sq_pop(v, 2); //pops the null iterator + array
@@ -956,7 +956,7 @@ private:
         if (SQ_FAILED(sq_getstring(v, index + i, &idText))) {
           return sq_throwerror(v, _SC("failed to get text"));
         }
-        actor->say(idText, mumble);
+        pEntity->say(idText, mumble);
       }
     }
     return 0;
@@ -965,19 +965,13 @@ private:
   static SQInteger mumbleLine(HSQUIRRELVM v) { return _sayLine(v, true); }
 
   static SQInteger sayLine(HSQUIRRELVM v) {
-    auto pCurrentActor = ScriptEngine::getActor(v, 2);
-    if (!pCurrentActor) {
-      pCurrentActor = g_pEngine->getCurrentActor();
+    auto pEntity = ScriptEngine::getActor(v, 2);
+    if (!pEntity) {
+      pEntity = g_pEngine->getCurrentActor();
     }
 
     // actors should stop talking except current actor
-    auto &actors = g_pEngine->getActors();
-    for (auto &a : actors) {
-      if (a.get() == pCurrentActor)
-        continue;
-      a->stopTalking();
-    }
-
+    g_pEngine->stopTalkingExcept(pEntity);
     return _sayLine(v);
   }
 
@@ -1032,16 +1026,14 @@ private:
     auto numArgs = sq_gettop(v) - 1;
     if (numArgs == 1) {
       if (sq_gettype(v, 2) == OT_INTEGER) {
-        for (auto &&a : g_pEngine->getActors()) {
-          a->stopTalking();
-        }
+        g_pEngine->stopTalking();
         return 0;
       }
-      auto actor = ScriptEngine::getActor(v, 2);
-      if (!actor) {
-        return sq_throwerror(v, _SC("failed to get actor"));
+      auto pEntity = ScriptEngine::getEntity(v, 2);
+      if (!pEntity) {
+        return sq_throwerror(v, _SC("failed to get actor/object"));
       }
-      actor->stopTalking();
+      pEntity->stopTalking();
       return 0;
     }
 

@@ -324,7 +324,8 @@ void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states)
   }
 }
 
-void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates) const {
+void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
+  Entity::drawForeground(target,states);
   if (pImpl->_screenSpace != ScreenSpace::Object)
     return;
 

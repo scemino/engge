@@ -447,7 +447,6 @@ private:
   }
 
   static SQInteger roomOverlayColor(HSQUIRRELVM v) {
-    trace("roomOverlayColor");
     SQInteger startColor;
     auto numArgs = sq_gettop(v);
     if (SQ_FAILED(sq_getinteger(v, 2, &startColor))) {

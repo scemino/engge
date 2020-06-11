@@ -2,6 +2,7 @@
 #include "Entities/Actor/Actor.hpp"
 #include "Dialog/EngineDialogScript.hpp"
 #include "Engine/Engine.hpp"
+#include "Scripting/ScriptEngine.hpp"
 
 namespace ng {
 
@@ -15,31 +16,33 @@ std::function<bool()> EngineDialogScript::pause(sf::Time time) {
 
 std::function<bool()> EngineDialogScript::say(const std::string &actor, const std::string &text) {
   //trace("{}: {}", actor, text);
-  auto pActor = _engine.getActor(actor);
+  Entity* pEntity = nullptr;
+  ScriptEngine::get(actor.data(), pEntity);
 
   // is it an animation to play ?
   if (!text.empty() && text[0] == '^') {
-    auto anim = text.substr(2, text.length() - 3);
-    std::stringstream s;
-    s << "actorPlayAnimation(" << pActor->getKey() << ", \"" << anim << "\", NO)";
-    _engine.execute(s.str());
-    return []() { return true; };
+    auto pActor = dynamic_cast<Actor*>(pEntity);
+    if(pActor) {
+      auto anim = text.substr(2, text.length() - 3);
+      std::stringstream s;
+      s << "actorPlayAnimation(" << pActor->getKey() << ", \"" << anim << "\", NO)";
+      _engine.execute(s.str());
+      return []() { return true; };
+    }
   }
 
   // is it a script variable ?
   if (!text.empty() && text[0] == '$') {
-    pActor->say(_engine.executeDollar(text.substr(1)));
+    pEntity->say(_engine.executeDollar(text.substr(1)));
   } else {
-    pActor->say(text);
+    pEntity->say(text);
   }
-  return [pActor]() -> bool { return !pActor->isTalking(); };
+  return [pEntity]() -> bool { return !pEntity->isTalking(); };
 }
 
 void EngineDialogScript::shutup() {
   //trace("shutup");
-  for (auto &actor : _engine.getActors()) {
-    actor->stopTalking();
-  }
+  _engine.stopTalking();
 }
 
 std::function<bool()> EngineDialogScript::waitFor(const std::string &actor) {

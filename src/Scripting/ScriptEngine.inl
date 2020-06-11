@@ -35,6 +35,12 @@ bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, float &result) {
 }
 
 template<>
+bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, Entity *&result) {
+  result = getScriptObject<Entity>(v, index);
+  return result != nullptr;
+}
+
+template<>
 void ScriptEngine::push<bool>(HSQUIRRELVM v, bool value) {
   sq_pushbool(v, value ? SQTrue : SQFalse);
 }
@@ -143,13 +149,13 @@ void ScriptEngine::push<ScriptObject *>(HSQUIRRELVM v, ScriptObject *pObject) {
     sq_pushnull(v);
     return;
   }
-  auto pEntity = dynamic_cast<Entity*>(pObject);
-  if(pEntity) {
+  auto pEntity = dynamic_cast<Entity *>(pObject);
+  if (pEntity) {
     sq_pushobject(v, pEntity->getTable());
     return;
   }
-  auto pRoom = dynamic_cast<Room*>(pObject);
-  if(pRoom) {
+  auto pRoom = dynamic_cast<Room *>(pObject);
+  if (pRoom) {
     sq_pushobject(v, pRoom->getTable());
     return;
   }

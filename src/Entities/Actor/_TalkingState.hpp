@@ -7,6 +7,9 @@
 #include "Scripting/ScriptEngine.hpp"
 #include "_LipAnimation.hpp"
 #include "../../System/_Util.hpp"
+#include "Audio/SoundId.hpp"
+#include "Engine/Preferences.hpp"
+#include "Audio/SoundManager.hpp"
 
 namespace ng {
 class _TalkingState : public sf::Drawable, public sf::Transformable {
@@ -67,9 +70,9 @@ public:
 
   inline void setText(const std::wstring &text) { _sayText = text; }
 
-  void loadLip(const std::string &text, Actor *pActor, bool mumble = false) {
-    _pActor = pActor;
-    setTalkColor(pActor->getTalkColor());
+  void loadLip(const std::string &text, Entity *pEntity, bool mumble = false) {
+    _pEntity = pEntity;
+    setTalkColor(pEntity->getTalkColor());
 
     // load lip data
     auto id = std::strtol(text.c_str() + 1, nullptr, 10);
@@ -93,7 +96,7 @@ private:
       return;
     }
 
-    auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pActor->getId());
+    auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pEntity->getId());
     if (pSound) {
       _soundId = pSound->getId();
     }
@@ -103,14 +106,17 @@ private:
     setText(Engine::getText(id));
 
     const char *key = nullptr;
-    if (!ScriptEngine::rawGet(_pActor, "_talkieKey", key)) {
-      ScriptEngine::rawGet(_pActor, "_key", key);
+    if (!ScriptEngine::rawGet(_pEntity, "_talkieKey", key)) {
+      ScriptEngine::rawGet(_pEntity, "_key", key);
     }
     auto name = str_toupper(key).append("_").append(std::to_string(id));
     std::string path;
     path.append(name).append(".lip");
 
-    _lipAnim.setActor(_pActor);
+    auto pActor = dynamic_cast<Actor *>(_pEntity);
+    if (pActor) {
+      _lipAnim.setActor(pActor);
+    }
 
     // actor animation
     std::wregex re(LR"(\{([^\}]*)\})");
@@ -121,14 +127,14 @@ private:
     if (std::regex_search(_sayText, matches, re)) {
       anim = tostring(matches[1].str());
       _sayText = matches.suffix();
-      if (anim == "notalk") {
+      if (!pActor || anim == "notalk") {
         loadLipAnim = false;
       } else {
-        _pActor->getCostume().setState(anim);
+        pActor->getCostume().setState(anim);
       }
     }
 
-    if (loadLipAnim) {
+    if (pActor && loadLipAnim) {
       _lipAnim.load(path);
     } else {
       _lipAnim.clear();
@@ -157,7 +163,7 @@ private:
 
     auto sayLine = tostring(_sayText);
     const char *pAnim = anim.empty() ? nullptr : anim.data();
-    ScriptEngine::rawCall(_pActor, "sayingLine", pAnim, sayLine);
+    ScriptEngine::rawCall(_pEntity, "sayingLine", pAnim, sayLine);
 
     loadActorSpeech(name);
   }
@@ -216,7 +222,7 @@ private:
 
 private:
   Engine *_pEngine{nullptr};
-  Actor *_pActor{nullptr};
+  Entity *_pEntity{nullptr};
   bool _isTalking{false};
   std::wstring _sayText;
   sf::Color _talkColor{sf::Color::White};

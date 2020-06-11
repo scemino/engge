@@ -48,20 +48,8 @@ void ScriptEngine::registerConstants(std::initializer_list<std::tuple<const SQCh
 }
 
 template<typename TScriptObject>
-TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
-  auto type = sq_gettype(v, index);
-  // is it a table?
-  if (type != OT_TABLE) {
-    return nullptr;
-  }
-
-  HSQOBJECT object;
-  sq_resetobject(&object);
-  if (SQ_FAILED(sq_getstackobj(v, index, &object))) {
-    return nullptr;
-  }
-
-  sq_pushobject(v, object);
+TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, HSQOBJECT obj) {
+  sq_pushobject(v, obj);
   sq_pushstring(v, _SC("_id"), -1);
   if (SQ_FAILED(sq_rawget(v, -2))) {
     return nullptr;
@@ -74,6 +62,22 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
   sq_pop(v, 2);
 
   return getScriptObjectFromId<TScriptObject>(id);
+}
+
+template<typename TScriptObject>
+TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
+  auto type = sq_gettype(v, index);
+  // is it a table?
+  if (type != OT_TABLE) {
+    return nullptr;
+  }
+
+  HSQOBJECT object;
+  sq_resetobject(&object);
+  if (SQ_FAILED(sq_getstackobj(v, index, &object))) {
+    return nullptr;
+  }
+  return getScriptObject<TScriptObject>(v, object);
 }
 
 template<typename TScriptObject>

@@ -388,6 +388,9 @@ private:
   }
 
   static SQInteger playObjectState(HSQUIRRELVM v) {
+    if (sq_gettype(v, 2) == OT_NULL)
+      return 0;
+
     Object *obj = ScriptEngine::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));

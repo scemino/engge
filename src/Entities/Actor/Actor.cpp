@@ -7,13 +7,13 @@
 #include "Math/PathFinding/PathFinder.hpp"
 #include "Engine/Preferences.hpp"
 #include "Engine/ResourceManager.hpp"
+#include "Entities/Objects/Object.hpp"
 #include "Room/Room.hpp"
 #include "Room/RoomScaling.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Audio/SoundTrigger.hpp"
-#include "_TalkingState.hpp"
 #include "../../Math/PathFinding/_Path.hpp"
 
 namespace ng {
@@ -42,7 +42,6 @@ struct Actor::Impl {
 
   explicit Impl(Engine &engine)
       : _engine(engine), _costume(engine.getTextureManager()) {
-    _talkingState.setEngine(&engine);
   }
 
   void setActor(Actor *pActor) {
@@ -80,7 +79,6 @@ struct Actor::Impl {
   sf::IntRect _hotspot;
   std::vector<Object *> _objects;
   WalkingState _walkingState;
-  _TalkingState _talkingState;
   sf::Vector2i _speed{30, 15};
   std::optional<float> _volume;
   std::shared_ptr<_Path> _path;
@@ -111,33 +109,6 @@ void Actor::useWalkboxes(bool useWalkboxes) { pImpl->_useWalkboxes = useWalkboxe
 Costume &Actor::getCostume() { return pImpl->_costume; }
 
 Costume &Actor::getCostume() const { return pImpl->_costume; }
-
-void Actor::setTalkColor(sf::Color color) { pImpl->_talkingState.setTalkColor(color); }
-
-sf::Color Actor::getTalkColor() const { return pImpl->_talkingState.getTalkColor(); }
-
-void Actor::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkOffset = offset; }
-
-void Actor::say(const std::string &text, bool mumble) {
-  pImpl->_talkingState.loadLip(text, this, mumble);
-  sf::Vector2f pos;
-  auto screenSize = pImpl->_engine.getRoom()->getScreenSize();
-  if (getRoom() == pImpl->_engine.getRoom()) {
-    auto at = pImpl->_engine.getCamera().getAt();
-    pos = getRealPosition();
-    pos = {pos.x - at.x + pImpl->_talkOffset.x, screenSize.y - pos.y - at.y - pImpl->_talkOffset.y};
-  } else {
-    // TODO: the position in this case is wrong, don't know what to do yet
-    pos = (sf::Vector2f) pImpl->_talkOffset;
-    pos = {pos.x, screenSize.y + pos.y};
-  }
-  pos = toDefaultView((sf::Vector2i) pos, pImpl->_engine.getRoom()->getScreenSize());
-  pImpl->_talkingState.setPosition(pos);
-}
-
-void Actor::stopTalking() { pImpl->_talkingState.stop(); }
-
-bool Actor::isTalking() const { return pImpl->_talkingState.isTalking(); }
 
 Room *Actor::getRoom() { return pImpl->_pRoom; }
 
@@ -348,15 +319,10 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 }
 
 void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
+  Entity::drawForeground(target, states);
   if (pImpl->_path && pImpl->_pRoom && pImpl->_engine.getWalkboxesFlags()) {
     target.draw(*pImpl->_path, states);
   }
-
-  if (!pImpl->_talkingState.isTalking())
-    return;
-
-  sf::RenderStates s;
-  target.draw(pImpl->_talkingState, s);
 }
 
 void Actor::update(const sf::Time &elapsed) {
@@ -364,7 +330,6 @@ void Actor::update(const sf::Time &elapsed) {
 
   pImpl->_costume.update(elapsed);
   pImpl->_walkingState.update(elapsed);
-  pImpl->_talkingState.update(elapsed);
 }
 
 void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing) {

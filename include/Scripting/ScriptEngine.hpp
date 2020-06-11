@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 #include <string>
-#include <assert.h>
+#include <cassert>
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
 #include "sqstdio.h"
 #include "sqstdaux.h"
@@ -54,6 +54,8 @@ public:
   template<typename TScriptObject>
   static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
   template<typename TScriptObject>
+  static TScriptObject *getScriptObject(HSQUIRRELVM v, HSQOBJECT obj);
+  template<typename TScriptObject>
   static TScriptObject *getScriptObjectFromId(int id);
 
   static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
@@ -85,6 +87,8 @@ public:
 
   template<typename T>
   static bool get(HSQUIRRELVM v, SQInteger index, T &result);
+  template<typename T>
+  static bool get(const char *name, T &result);
   template<typename TThis, typename T>
   static bool get(TThis pThis, const char *name, T &result);
   template<typename TThis, typename T>
@@ -439,6 +443,16 @@ bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T
   ScriptEngine::get(v, -1, result);
   sq_settop(v, top);
   return true;
+}
+
+template<typename T>
+bool ScriptEngine::get(const char *name, T &result) {
+  auto v = getVm();
+  sq_pushroottable(v);
+  HSQOBJECT rootTable;
+  sq_getstackobj(v, -1, &rootTable);
+  sq_pop(v, 1);
+  return ScriptEngine::get(ScriptEngine::getVm(), rootTable, name, result);
 }
 
 template<typename TThis, typename T>
