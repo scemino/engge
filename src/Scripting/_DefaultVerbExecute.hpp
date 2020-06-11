@@ -222,17 +222,16 @@ private:
     }
 
     if (success) {
-      if (_pVerb->id == VerbConstants::VERB_PICKUP) {
-        onPickup();
-        return;
-      }
-      if (_pVerb->id == VerbConstants::VERB_GIVE) {
-        ScriptEngine::call("objectGive", &_object, &_actor, _pObject2);
+      onPickup();
+      return;
+    }
 
-        auto *pObject = dynamic_cast<Object *>(&_object);
-        auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
-        _actor.giveTo(pObject, pActor2);
-      }
+    if (_pVerb->id == VerbConstants::VERB_GIVE) {
+      ScriptEngine::call("objectGive", &_object, &_actor, _pObject2);
+
+      auto *pObject = dynamic_cast<Object *>(&_object);
+      auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
+      _actor.giveTo(pObject, pActor2);
       return;
     }
 
@@ -244,6 +243,9 @@ private:
   }
 
   void onPickup() {
+    if (_pVerb->id != VerbConstants::VERB_PICKUP)
+      return;
+
     ScriptEngine::call("onPickup", &_actor, &_object);
   }
 
@@ -365,7 +367,7 @@ private:
     auto handled = false;
     auto pActor = _engine.getCurrentActor();
     if (ScriptEngine::rawExists(pActor, "actorPreWalk")) {
-      ScriptEngine::rawCallFunc(handled, pActor, "actorPreWalk", verb, pObj1, pObj2);
+      ScriptEngine::callFunc(handled, pActor, "actorPreWalk", verb, pObj1, pObj2);
       if (handled)
         return true;
     }
