@@ -163,7 +163,7 @@ void DialogPlayer::running() {
   }
   _state = DialogPlayerState::Running;
   while (_currentStatement < count && _state == DialogPlayerState::Running) {
-    auto pCurrentStatement = _pLabel->statements[_currentStatement].get();
+    auto pCurrentStatement = _pLabel->statements.at(_currentStatement).get();
     if (!acceptConditions(pCurrentStatement)) {
       _currentStatement++;
       continue;
@@ -179,6 +179,7 @@ void DialogPlayer::running() {
       return;
     }
     run(pCurrentStatement);
+    count = _pLabel ? static_cast<int>(_pLabel->statements.size()) : 0;
     if(_state != DialogPlayerState::WaitingEndAnimation) {
       _currentStatement++;
     }
@@ -186,6 +187,9 @@ void DialogPlayer::running() {
   if (choicesReady()) {
     _state = DialogPlayerState::WaitingForChoice;
     return;
+  }
+  if(_state == DialogPlayerState::Running) {
+    gotoNextLabel();
   }
 }
 
