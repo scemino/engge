@@ -137,6 +137,10 @@ bool Actor::contains(const sf::Vector2f &pos) const {
 void Actor::pickupObject(Object *pObject) {
   pObject->setOwner(this);
   pImpl->_objects.push_back(pObject);
+
+  if (ScriptEngine::rawExists(pObject, "onPickup")) {
+    ScriptEngine::objCall(pObject, "onPickup", this);
+  }
 }
 
 void Actor::pickupReplacementObject(Object *pObject1, Object *pObject2) {

@@ -24,8 +24,12 @@ void DialogManager::start(const std::string &actor, const std::string &name, con
   auto oldState = _state;
   _state = _pPlayer->getState();
 
-  if (oldState != _state && _state == DialogManagerState::WaitingForChoice) {
-    updateDialogSlots();
+  if (oldState != _state) {
+    if (_state == DialogManagerState::WaitingForChoice) {
+      updateDialogSlots();
+    } else if (_state == DialogManagerState::None) {
+      onDialogEnded();
+    }
   }
 }
 
@@ -183,6 +187,10 @@ void DialogManager::choose(int choice) {
 
 void DialogManager::setMousePosition(sf::Vector2f pos) {
   _mousePos = pos;
+}
+
+void DialogManager::onDialogEnded() {
+  ScriptEngine::call("onDialogEnded");
 }
 
 } // namespace ng

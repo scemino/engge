@@ -112,6 +112,7 @@ void Cutscene::endCutscene() {
   trace("End cutscene {} with inputState {}", _id, _inputState);
   _engine.setInputState(_inputState);
   _engine.follow(_engine.getCurrentActor());
+  ScriptEngine::call("onCutsceneEnded");
   auto pThread = ScriptEngine::getThreadFromVm(_v);
   if (pThread)
     pThread->resume();

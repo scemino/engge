@@ -103,6 +103,7 @@ private:
   }
 
   void loadId(int id, bool mumble) {
+    ScriptEngine::callFunc(id, "onTalkieID", _pEntity, id);
     setText(Engine::getText(id));
 
     const char *key = nullptr;
