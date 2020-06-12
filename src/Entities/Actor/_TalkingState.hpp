@@ -59,7 +59,6 @@ public:
   inline bool isTalking() const { return _isTalking; }
 
   inline void setTalkColor(sf::Color color) { _talkColor = color; }
-  inline sf::Color getTalkColor() const { return _talkColor; }
 
   void setDuration(sf::Time duration) {
     _isTalking = true;

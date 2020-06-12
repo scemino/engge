@@ -20,7 +20,7 @@ class SoundId;
 class Thread;
 class Pack {
 public:
-  virtual void addTo(ScriptEngine &engine) const = 0;
+  virtual void registerPack() const = 0;
   virtual ~Pack() = default;
 };
 class ScriptEngine {
@@ -49,7 +49,7 @@ public:
   static void executeNutScript(const std::string &name);
 
   template<class TPack>
-  void addPack();
+  void registerPack();
 
   template<typename TScriptObject>
   static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
@@ -135,17 +135,15 @@ public:
   static bool rawCall(TThis pThis, const char *name, T... args);
   template<typename TThis>
   static bool rawCall(TThis pThis, const char *name);
-  template<typename TThis>
-  static int rawGetParameterCount(TThis pThis, const char *name);
 
   template<typename TResult, typename TThis, typename...T>
   static bool rawCallFunc(TResult &result, TThis pThis, const char *name, T... args);
 
-  static void registerErrorCallback(PrintCallback callback) {
+  static void registerErrorCallback(const PrintCallback& callback) {
     _errorCallbacks.push_back(callback);
   }
 
-  static void registerPrintCallback(PrintCallback callback) {
+  static void registerPrintCallback(const PrintCallback& callback) {
     _printCallbacks.push_back(callback);
   }
 
@@ -243,26 +241,6 @@ bool ScriptEngine::rawCall(const char *name, T...args) {
   }
   sq_settop(v, top);
   return true;
-}
-
-template<typename TThis>
-int ScriptEngine::rawGetParameterCount(TThis pThis, const char *name) {
-  auto v = ScriptEngine::getVm();
-  auto top = sq_gettop(v);
-  ScriptEngine::push(v, pThis);
-  sq_pushstring(v, name, -1);
-  if (SQ_FAILED(sq_rawget(v, -2))) {
-    sq_settop(v, top);
-    trace("can't find {} function", name);
-    return 0;
-  }
-
-  SQInteger nparams, nfreevars;
-  sq_getclosureinfo(v, -1, &nparams, &nfreevars);
-  trace("{} function found with {} parameters", name, nparams);
-  sq_settop(v, top);
-
-  return nparams;
 }
 
 template<typename TThis, typename...T>

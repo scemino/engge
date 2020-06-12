@@ -16,52 +16,52 @@ private:
   static unsigned int g_CRCTab[256];
 
 private:
-  void addTo(ScriptEngine &engine) const override {
-    g_pEngine = &engine.getEngine();
+  void registerPack() const override {
+    g_pEngine = &ScriptEngine::getEngine();
     init_crc32();
-    engine.registerGlobalFunction(activeVerb, "activeVerb");
-    engine.registerGlobalFunction(arrayShuffle, "arrayShuffle");
-    engine.registerGlobalFunction(assetExists, "assetExists");
-    engine.registerGlobalFunction(cameraAt, "cameraAt");
-    engine.registerGlobalFunction(cameraPos, "cameraPos");
-    engine.registerGlobalFunction(cameraBounds, "cameraBounds");
-    engine.registerGlobalFunction(cameraFollow, "cameraFollow");
-    engine.registerGlobalFunction(cameraInRoom, "cameraInRoom");
-    engine.registerGlobalFunction(cameraPanTo, "cameraPanTo");
-    engine.registerGlobalFunction(cutscene, "cutscene");
-    engine.registerGlobalFunction(cutsceneOverride, "cutsceneOverride");
-    engine.registerGlobalFunction(distance, "distance");
-    engine.registerGlobalFunction(findScreenPosition, "findScreenPosition");
-    engine.registerGlobalFunction(frameCounter, "frameCounter");
-    engine.registerGlobalFunction(in_array, "in_array");
-    engine.registerGlobalFunction(incutscene, "incutscene");
-    engine.registerGlobalFunction(indialog, "indialog");
-    engine.registerGlobalFunction(integer, "int");
-    engine.registerGlobalFunction(is_array, "is_array");
-    engine.registerGlobalFunction(is_function, "is_function");
-    engine.registerGlobalFunction(loadArray, "loadArray");
-    engine.registerGlobalFunction(markAchievement, "markAchievement");
-    engine.registerGlobalFunction(markProgress, "markProgress");
-    engine.registerGlobalFunction(markStat, "markStat");
-    engine.registerGlobalFunction(random, "random");
-    engine.registerGlobalFunction(randomFrom, "randomfrom");
-    engine.registerGlobalFunction(randomOdds, "randomOdds");
-    engine.registerGlobalFunction(randomOdds, "randomodds");
-    engine.registerGlobalFunction(randomseed, "randomseed");
-    engine.registerGlobalFunction(refreshUI, "refreshUI");
-    engine.registerGlobalFunction(screenSize, "screenSize");
-    engine.registerGlobalFunction(setVerb, "setVerb");
-    engine.registerGlobalFunction(startDialog, "startDialog");
-    engine.registerGlobalFunction(stopSentence, "stopSentence");
-    engine.registerGlobalFunction(strcount, "strcount");
-    engine.registerGlobalFunction(strcrc, "strcrc");
-    engine.registerGlobalFunction(strfind, "strfind");
-    engine.registerGlobalFunction(strfirst, "strfirst");
-    engine.registerGlobalFunction(strlast, "strlast");
-    engine.registerGlobalFunction(strlines, "strlines");
-    engine.registerGlobalFunction(strreplace, "strreplace");
-    engine.registerGlobalFunction(strsplit, "strsplit");
-    engine.registerGlobalFunction(translate, "translate");
+    ScriptEngine::registerGlobalFunction(activeVerb, "activeVerb");
+    ScriptEngine::registerGlobalFunction(arrayShuffle, "arrayShuffle");
+    ScriptEngine::registerGlobalFunction(assetExists, "assetExists");
+    ScriptEngine::registerGlobalFunction(cameraAt, "cameraAt");
+    ScriptEngine::registerGlobalFunction(cameraPos, "cameraPos");
+    ScriptEngine::registerGlobalFunction(cameraBounds, "cameraBounds");
+    ScriptEngine::registerGlobalFunction(cameraFollow, "cameraFollow");
+    ScriptEngine::registerGlobalFunction(cameraInRoom, "cameraInRoom");
+    ScriptEngine::registerGlobalFunction(cameraPanTo, "cameraPanTo");
+    ScriptEngine::registerGlobalFunction(cutscene, "cutscene");
+    ScriptEngine::registerGlobalFunction(cutsceneOverride, "cutsceneOverride");
+    ScriptEngine::registerGlobalFunction(distance, "distance");
+    ScriptEngine::registerGlobalFunction(findScreenPosition, "findScreenPosition");
+    ScriptEngine::registerGlobalFunction(frameCounter, "frameCounter");
+    ScriptEngine::registerGlobalFunction(in_array, "in_array");
+    ScriptEngine::registerGlobalFunction(incutscene, "incutscene");
+    ScriptEngine::registerGlobalFunction(indialog, "indialog");
+    ScriptEngine::registerGlobalFunction(integer, "int");
+    ScriptEngine::registerGlobalFunction(is_array, "is_array");
+    ScriptEngine::registerGlobalFunction(is_function, "is_function");
+    ScriptEngine::registerGlobalFunction(loadArray, "loadArray");
+    ScriptEngine::registerGlobalFunction(markAchievement, "markAchievement");
+    ScriptEngine::registerGlobalFunction(markProgress, "markProgress");
+    ScriptEngine::registerGlobalFunction(markStat, "markStat");
+    ScriptEngine::registerGlobalFunction(random, "random");
+    ScriptEngine::registerGlobalFunction(randomFrom, "randomfrom");
+    ScriptEngine::registerGlobalFunction(randomOdds, "randomOdds");
+    ScriptEngine::registerGlobalFunction(randomOdds, "randomodds");
+    ScriptEngine::registerGlobalFunction(randomseed, "randomseed");
+    ScriptEngine::registerGlobalFunction(refreshUI, "refreshUI");
+    ScriptEngine::registerGlobalFunction(screenSize, "screenSize");
+    ScriptEngine::registerGlobalFunction(setVerb, "setVerb");
+    ScriptEngine::registerGlobalFunction(startDialog, "startDialog");
+    ScriptEngine::registerGlobalFunction(stopSentence, "stopSentence");
+    ScriptEngine::registerGlobalFunction(strcount, "strcount");
+    ScriptEngine::registerGlobalFunction(strcrc, "strcrc");
+    ScriptEngine::registerGlobalFunction(strfind, "strfind");
+    ScriptEngine::registerGlobalFunction(strfirst, "strfirst");
+    ScriptEngine::registerGlobalFunction(strlast, "strlast");
+    ScriptEngine::registerGlobalFunction(strlines, "strlines");
+    ScriptEngine::registerGlobalFunction(strreplace, "strreplace");
+    ScriptEngine::registerGlobalFunction(strsplit, "strsplit");
+    ScriptEngine::registerGlobalFunction(translate, "translate");
   }
 
   static SQInteger activeVerb(HSQUIRRELVM v) {
@@ -159,8 +159,8 @@ private:
         pos = g_pEngine->getInventory().getPosition(pObject);
       } else {
         pos = entity->getRealPosition() - g_pEngine->getCamera().getAt();
-        auto screenSize = g_pEngine->getRoom()->getScreenSize();
-        pos = sf::Vector2f(Screen::Width * pos.x / screenSize.x, Screen::Height * pos.y / screenSize.y);
+        auto roomScreenSize = g_pEngine->getRoom()->getScreenSize();
+        pos = sf::Vector2f(Screen::Width * pos.x / roomScreenSize.x, Screen::Height * pos.y / roomScreenSize.y);
       }
     }
     ScriptEngine::push(v, pos);

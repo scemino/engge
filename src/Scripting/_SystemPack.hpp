@@ -29,13 +29,10 @@ protected:
   Engine &_engine;
   int _threadId;
   bool _done;
-  std::string _threadName;
 
 public:
   explicit _BreakFunction(Engine &engine, int id)
       : _engine(engine), _threadId(id), _done(false) {
-    auto pThread = ScriptEngine::getThreadFromId(_threadId);
-    _threadName = pThread->getName();
   }
 
   [[nodiscard]] virtual std::string getName() const {
@@ -305,62 +302,60 @@ public:
 class _SystemPack : public Pack {
 private:
   static Engine *g_pEngine;
-  static ScriptEngine *_pScriptEngine;
 
 private:
-  void addTo(ScriptEngine &engine) const override {
-    g_pEngine = &engine.getEngine();
-    _pScriptEngine = &engine;
-    engine.registerGlobalFunction(activeController, "activeController");
-    engine.registerGlobalFunction(addCallback, "addCallback");
-    engine.registerGlobalFunction(addFolder, "addFolder");
-    engine.registerGlobalFunction(breakhere, "breakhere");
-    engine.registerGlobalFunction(breaktime, "breaktime");
-    engine.registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
-    engine.registerGlobalFunction(breakwhilecamera, "breakwhilecamera");
-    engine.registerGlobalFunction(breakwhilecutscene, "breakwhilecutscene");
-    engine.registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
-    engine.registerGlobalFunction(breakwhileinputoff, "breakwhileinputoff");
-    engine.registerGlobalFunction(breakwhilesound, "breakwhilesound");
-    engine.registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
-    engine.registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
-    engine.registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
-    engine.registerGlobalFunction(chr, "chr");
-    engine.registerGlobalFunction(cursorPosX, "cursorPosX");
-    engine.registerGlobalFunction(cursorPosY, "cursorPosY");
-    engine.registerGlobalFunction(dumpvar, "dumpvar");
-    engine.registerGlobalFunction(dumprt, "dumprt");
-    engine.registerGlobalFunction(exCommand, "exCommand");
-    engine.registerGlobalFunction(gameTime, "gameTime");
-    engine.registerGlobalFunction(getPrivatePref, "getPrivatePref");
-    engine.registerGlobalFunction(getUserPref, "getUserPref");
-    engine.registerGlobalFunction(include, "include");
-    engine.registerGlobalFunction(inputHUD, "inputHUD");
-    engine.registerGlobalFunction(inputOff, "inputOff");
-    engine.registerGlobalFunction(inputOn, "inputOn");
-    engine.registerGlobalFunction(inputSilentOff, "inputSilentOff");
-    engine.registerGlobalFunction(inputState, "inputState");
-    engine.registerGlobalFunction(isInputOn, "isInputOn");
-    engine.registerGlobalFunction(is_string, "is_string");
-    engine.registerGlobalFunction(is_table, "is_table");
-    engine.registerGlobalFunction(ord, "ord");
-    engine.registerGlobalFunction(inputController, "inputController");
-    engine.registerGlobalFunction(inputVerbs, "inputVerbs");
-    engine.registerGlobalFunction(logEvent, "logEvent");
-    engine.registerGlobalFunction(logInfo, "logInfo");
-    engine.registerGlobalFunction(logWarning, "logWarning");
-    engine.registerGlobalFunction(microTime, "microTime");
-    engine.registerGlobalFunction(moveCursorTo, "moveCursorTo");
-    engine.registerGlobalFunction(pushSentence, "pushSentence");
-    engine.registerGlobalFunction(removeCallback, "removeCallback");
-    engine.registerGlobalFunction(setAmbientLight, "setAmbientLight");
-    engine.registerGlobalFunction(setPrivatePref, "setPrivatePref");
-    engine.registerGlobalFunction(setUserPref, "setUserPref");
-    engine.registerGlobalFunction(startglobalthread, "startglobalthread");
-    engine.registerGlobalFunction(startthread, "startthread");
-    engine.registerGlobalFunction(stopthread, "stopthread");
-    engine.registerGlobalFunction(threadid, "threadid");
-    engine.registerGlobalFunction(threadpauseable, "threadpauseable");
+  void registerPack() const override {
+    g_pEngine = &ScriptEngine::getEngine();
+    ScriptEngine::registerGlobalFunction(activeController, "activeController");
+    ScriptEngine::registerGlobalFunction(addCallback, "addCallback");
+    ScriptEngine::registerGlobalFunction(addFolder, "addFolder");
+    ScriptEngine::registerGlobalFunction(breakhere, "breakhere");
+    ScriptEngine::registerGlobalFunction(breaktime, "breaktime");
+    ScriptEngine::registerGlobalFunction(breakwhileanimating, "breakwhileanimating");
+    ScriptEngine::registerGlobalFunction(breakwhilecamera, "breakwhilecamera");
+    ScriptEngine::registerGlobalFunction(breakwhilecutscene, "breakwhilecutscene");
+    ScriptEngine::registerGlobalFunction(breakwhiledialog, "breakwhiledialog");
+    ScriptEngine::registerGlobalFunction(breakwhileinputoff, "breakwhileinputoff");
+    ScriptEngine::registerGlobalFunction(breakwhilesound, "breakwhilesound");
+    ScriptEngine::registerGlobalFunction(breakwhilerunning, "breakwhilerunning");
+    ScriptEngine::registerGlobalFunction(breakwhiletalking, "breakwhiletalking");
+    ScriptEngine::registerGlobalFunction(breakwhilewalking, "breakwhilewalking");
+    ScriptEngine::registerGlobalFunction(chr, "chr");
+    ScriptEngine::registerGlobalFunction(cursorPosX, "cursorPosX");
+    ScriptEngine::registerGlobalFunction(cursorPosY, "cursorPosY");
+    ScriptEngine::registerGlobalFunction(dumpvar, "dumpvar");
+    ScriptEngine::registerGlobalFunction(dumprt, "dumprt");
+    ScriptEngine::registerGlobalFunction(exCommand, "exCommand");
+    ScriptEngine::registerGlobalFunction(gameTime, "gameTime");
+    ScriptEngine::registerGlobalFunction(getPrivatePref, "getPrivatePref");
+    ScriptEngine::registerGlobalFunction(getUserPref, "getUserPref");
+    ScriptEngine::registerGlobalFunction(include, "include");
+    ScriptEngine::registerGlobalFunction(inputHUD, "inputHUD");
+    ScriptEngine::registerGlobalFunction(inputOff, "inputOff");
+    ScriptEngine::registerGlobalFunction(inputOn, "inputOn");
+    ScriptEngine::registerGlobalFunction(inputSilentOff, "inputSilentOff");
+    ScriptEngine::registerGlobalFunction(inputState, "inputState");
+    ScriptEngine::registerGlobalFunction(isInputOn, "isInputOn");
+    ScriptEngine::registerGlobalFunction(is_string, "is_string");
+    ScriptEngine::registerGlobalFunction(is_table, "is_table");
+    ScriptEngine::registerGlobalFunction(ord, "ord");
+    ScriptEngine::registerGlobalFunction(inputController, "inputController");
+    ScriptEngine::registerGlobalFunction(inputVerbs, "inputVerbs");
+    ScriptEngine::registerGlobalFunction(logEvent, "logEvent");
+    ScriptEngine::registerGlobalFunction(logInfo, "logInfo");
+    ScriptEngine::registerGlobalFunction(logWarning, "logWarning");
+    ScriptEngine::registerGlobalFunction(microTime, "microTime");
+    ScriptEngine::registerGlobalFunction(moveCursorTo, "moveCursorTo");
+    ScriptEngine::registerGlobalFunction(pushSentence, "pushSentence");
+    ScriptEngine::registerGlobalFunction(removeCallback, "removeCallback");
+    ScriptEngine::registerGlobalFunction(setAmbientLight, "setAmbientLight");
+    ScriptEngine::registerGlobalFunction(setPrivatePref, "setPrivatePref");
+    ScriptEngine::registerGlobalFunction(setUserPref, "setUserPref");
+    ScriptEngine::registerGlobalFunction(startglobalthread, "startglobalthread");
+    ScriptEngine::registerGlobalFunction(startthread, "startthread");
+    ScriptEngine::registerGlobalFunction(stopthread, "stopthread");
+    ScriptEngine::registerGlobalFunction(threadid, "threadid");
+    ScriptEngine::registerGlobalFunction(threadpauseable, "threadpauseable");
   }
 
   static SQInteger activeController(HSQUIRRELVM v) {
@@ -1158,6 +1153,5 @@ private:
 };
 
 Engine *_SystemPack::g_pEngine = nullptr;
-ScriptEngine *_SystemPack::_pScriptEngine = nullptr;
 
 } // namespace ng

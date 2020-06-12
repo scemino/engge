@@ -1,11 +1,8 @@
-#include "Entities/Actor/Actor.hpp"
 #include "Engine/Camera.hpp"
-#include "Engine/Engine.hpp"
 #include "Entities/Entity.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Engine/ResourceManager.hpp"
-#include "Room/Room.hpp"
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Scripting/ScriptEngine.hpp"
@@ -40,10 +37,10 @@ void SoundId::play(int loopTimes) {
 }
 
 void SoundId::setVolume(float volume) {
-  if (_pSoundDefinition) {
-    auto path = _pSoundDefinition->getPath();
+//  if (_pSoundDefinition) {
+//    auto path = _pSoundDefinition->getPath();
 //    trace("setVolume({},{})", path, volume);
-  }
+//  }
   _volume = volume;
 }
 
@@ -52,7 +49,7 @@ float SoundId::getVolume() const {
 }
 
 void SoundId::stop() {
-  auto path = _pSoundDefinition->getPath();
+//  auto path = _pSoundDefinition->getPath();
 //  trace("stopSoundId({})", path);
   _loopTimes = 0;
   _sound.stop();
@@ -115,8 +112,8 @@ void SoundId::update(const sf::Time &elapsed) {
       _loopTimes--;
       _sound.play();
     } else {
-      auto path = _pSoundDefinition->getPath();
-      //trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
+//      auto path = _pSoundDefinition->getPath();
+//      trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
       _soundManager.stopSound(this);
       return;
     }

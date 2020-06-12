@@ -116,7 +116,6 @@ std::string Object::getIcon() const {
       SQInteger fps = 0;
       pImpl->_index = 0;
       const SQChar *icon = nullptr;
-      std::vector<std::string> icons;
       sq_pushnull(v); // null iterator
       if (SQ_SUCCEEDED(sq_next(v, -2))) {
         sq_getinteger(v, -1, &fps);
@@ -414,8 +413,6 @@ void Object::setParent(Object *pParent) {
     pParent->pImpl->_children.push_back(this);
   }
 }
-
-Object *Object::getParent() { return pImpl->_pParent; }
 
 bool Object::hasParent() const { return pImpl->_pParent != nullptr; }
 

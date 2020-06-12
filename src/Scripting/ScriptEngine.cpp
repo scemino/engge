@@ -231,10 +231,10 @@ void ScriptEngine::pushObject(HSQUIRRELVM v, T *pObject) {
 }
 
 template<typename TPack>
-void ScriptEngine::addPack() {
+void ScriptEngine::registerPack() {
   auto pack = std::make_unique<TPack>();
   auto pPack = (Pack *) pack.get();
-  pPack->addTo(*this);
+  pPack->registerPack();
   _packs.push_back(std::move(pack));
 }
 
@@ -435,12 +435,12 @@ void ScriptEngine::setEngine(Engine &engine) {
   auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(_vm);
   engine.setScriptExecute(std::move(pScriptExecute));
 
-  addPack<_ActorPack>();
-  addPack<_GeneralPack>();
-  addPack<_ObjectPack>();
-  addPack<_RoomPack>();
-  addPack<_SoundPack>();
-  addPack<_SystemPack>();
+  registerPack<_ActorPack>();
+  registerPack<_GeneralPack>();
+  registerPack<_ObjectPack>();
+  registerPack<_RoomPack>();
+  registerPack<_SoundPack>();
+  registerPack<_SystemPack>();
 }
 
 Engine &ScriptEngine::getEngine() { return *g_pEngine; }

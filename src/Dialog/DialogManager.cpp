@@ -1,7 +1,6 @@
 #include <regex>
 #include "Dialog/DialogManager.hpp"
 #include "Engine/Engine.hpp"
-#include "System/Logger.hpp"
 #include "Engine/Preferences.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Graphics/Text.hpp"
@@ -15,7 +14,7 @@ static constexpr float SlidingSpeed = 25.f;
 void DialogManager::setEngine(Engine *pEngine) {
   _pEngine = pEngine;
   _pEngineDialogScript = std::make_unique<EngineDialogScript>(*pEngine);
-  _pPlayer = std::make_unique<DialogPlayer>(*_pEngineDialogScript.get());
+  _pPlayer = std::make_unique<DialogPlayer>(*_pEngineDialogScript);
 }
 
 void DialogManager::start(const std::string &actor, const std::string &name, const std::string &node) {

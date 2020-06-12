@@ -75,34 +75,34 @@ private:
   static Engine *g_pEngine;
 
 private:
-  void addTo(ScriptEngine &engine) const override {
-    g_pEngine = &engine.getEngine();
-    engine.registerGlobalFunction(addTrigger, "addTrigger");
-    engine.registerGlobalFunction(clampInWalkbox, "clampInWalkbox");
-    engine.registerGlobalFunction(createLight, "createLight");
-    engine.registerGlobalFunction(defineRoom, "defineRoom");
-    engine.registerGlobalFunction(definePseudoRoom, "definePseudoRoom");
-    engine.registerGlobalFunction(enableTrigger, "enableTrigger");
-    engine.registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
-    engine.registerGlobalFunction(findRoom, "findRoom");
-    engine.registerGlobalFunction(lightBrightness, "lightBrightness");
-    engine.registerGlobalFunction(lightConeAngle, "lightConeAngle");
-    engine.registerGlobalFunction(lightConeDirection, "lightConeDirection");
-    engine.registerGlobalFunction(lightConeFalloff, "lightConeFalloff");
-    engine.registerGlobalFunction(lightCutOffRadius, "lightCutOffRadius");
-    engine.registerGlobalFunction(lightHalfRadius, "lightHalfRadius");
-    engine.registerGlobalFunction(lightTurnOn, "lightTurnOn");
-    engine.registerGlobalFunction(lightZRange, "lightZRange");
-    engine.registerGlobalFunction(masterRoomArray, "masterRoomArray");
-    engine.registerGlobalFunction(removeTrigger, "removeTrigger");
-    engine.registerGlobalFunction(roomActors, "roomActors");
-    engine.registerGlobalFunction(roomEffect, "roomEffect");
-    engine.registerGlobalFunction(roomFade, "roomFade");
-    engine.registerGlobalFunction(roomLayer, "roomLayer");
-    engine.registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
-    engine.registerGlobalFunction(roomRotateTo, "roomRotateTo");
-    engine.registerGlobalFunction(roomSize, "roomSize");
-    engine.registerGlobalFunction(walkboxHidden, "walkboxHidden");
+  void registerPack() const override {
+    g_pEngine = &ScriptEngine::getEngine();
+    ScriptEngine::registerGlobalFunction(addTrigger, "addTrigger");
+    ScriptEngine::registerGlobalFunction(clampInWalkbox, "clampInWalkbox");
+    ScriptEngine::registerGlobalFunction(createLight, "createLight");
+    ScriptEngine::registerGlobalFunction(defineRoom, "defineRoom");
+    ScriptEngine::registerGlobalFunction(definePseudoRoom, "definePseudoRoom");
+    ScriptEngine::registerGlobalFunction(enableTrigger, "enableTrigger");
+    ScriptEngine::registerGlobalFunction(enterRoomFromDoor, "enterRoomFromDoor");
+    ScriptEngine::registerGlobalFunction(findRoom, "findRoom");
+    ScriptEngine::registerGlobalFunction(lightBrightness, "lightBrightness");
+    ScriptEngine::registerGlobalFunction(lightConeAngle, "lightConeAngle");
+    ScriptEngine::registerGlobalFunction(lightConeDirection, "lightConeDirection");
+    ScriptEngine::registerGlobalFunction(lightConeFalloff, "lightConeFalloff");
+    ScriptEngine::registerGlobalFunction(lightCutOffRadius, "lightCutOffRadius");
+    ScriptEngine::registerGlobalFunction(lightHalfRadius, "lightHalfRadius");
+    ScriptEngine::registerGlobalFunction(lightTurnOn, "lightTurnOn");
+    ScriptEngine::registerGlobalFunction(lightZRange, "lightZRange");
+    ScriptEngine::registerGlobalFunction(masterRoomArray, "masterRoomArray");
+    ScriptEngine::registerGlobalFunction(removeTrigger, "removeTrigger");
+    ScriptEngine::registerGlobalFunction(roomActors, "roomActors");
+    ScriptEngine::registerGlobalFunction(roomEffect, "roomEffect");
+    ScriptEngine::registerGlobalFunction(roomFade, "roomFade");
+    ScriptEngine::registerGlobalFunction(roomLayer, "roomLayer");
+    ScriptEngine::registerGlobalFunction(roomOverlayColor, "roomOverlayColor");
+    ScriptEngine::registerGlobalFunction(roomRotateTo, "roomRotateTo");
+    ScriptEngine::registerGlobalFunction(roomSize, "roomSize");
+    ScriptEngine::registerGlobalFunction(walkboxHidden, "walkboxHidden");
   }
 
   static void _fadeTo(float a, const sf::Time &time) {

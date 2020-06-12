@@ -10,27 +10,27 @@ private:
   static Engine *g_pEngine;
 
 private:
-  void addTo(ScriptEngine &engine) const override {
-    g_pEngine = &engine.getEngine();
-    engine.registerGlobalFunction(actorSound, "actorSound");
-    engine.registerGlobalFunction(defineSound, "defineSound");
-    engine.registerGlobalFunction(fadeOutSound, "fadeOutSound");
-    engine.registerGlobalFunction(isSoundPlaying, "isSoundPlaying");
-    engine.registerGlobalFunction(loadSound, "loadSound");
-    engine.registerGlobalFunction(loopSound, "loopSound");
-    engine.registerGlobalFunction(loopObjectSound, "loopObjectSound");
-    engine.registerGlobalFunction(loopMusic, "loopMusic");
-    engine.registerGlobalFunction(masterSoundVolume, "masterSoundVolume");
-    engine.registerGlobalFunction(playMusic, "playMusic");
-    engine.registerGlobalFunction(playSound, "playSound");
-    engine.registerGlobalFunction(playSoundVolume, "playSoundVolume");
-    engine.registerGlobalFunction(playObjectSound, "playObjectSound");
-    engine.registerGlobalFunction(soundVolume, "soundVolume");
-    engine.registerGlobalFunction(soundMixVolume, "soundMixVolume");
-    engine.registerGlobalFunction(musicMixVolume, "musicMixVolume");
-    engine.registerGlobalFunction(talkieMixVolume, "talkieMixVolume");
-    engine.registerGlobalFunction(stopAllSounds, "stopAllSounds");
-    engine.registerGlobalFunction(stopSound, "stopSound");
+  void registerPack() const override {
+    g_pEngine = &ScriptEngine::getEngine();
+    ScriptEngine::registerGlobalFunction(actorSound, "actorSound");
+    ScriptEngine::registerGlobalFunction(defineSound, "defineSound");
+    ScriptEngine::registerGlobalFunction(fadeOutSound, "fadeOutSound");
+    ScriptEngine::registerGlobalFunction(isSoundPlaying, "isSoundPlaying");
+    ScriptEngine::registerGlobalFunction(loadSound, "loadSound");
+    ScriptEngine::registerGlobalFunction(loopSound, "loopSound");
+    ScriptEngine::registerGlobalFunction(loopObjectSound, "loopObjectSound");
+    ScriptEngine::registerGlobalFunction(loopMusic, "loopMusic");
+    ScriptEngine::registerGlobalFunction(masterSoundVolume, "masterSoundVolume");
+    ScriptEngine::registerGlobalFunction(playMusic, "playMusic");
+    ScriptEngine::registerGlobalFunction(playSound, "playSound");
+    ScriptEngine::registerGlobalFunction(playSoundVolume, "playSoundVolume");
+    ScriptEngine::registerGlobalFunction(playObjectSound, "playObjectSound");
+    ScriptEngine::registerGlobalFunction(soundVolume, "soundVolume");
+    ScriptEngine::registerGlobalFunction(soundMixVolume, "soundMixVolume");
+    ScriptEngine::registerGlobalFunction(musicMixVolume, "musicMixVolume");
+    ScriptEngine::registerGlobalFunction(talkieMixVolume, "talkieMixVolume");
+    ScriptEngine::registerGlobalFunction(stopAllSounds, "stopAllSounds");
+    ScriptEngine::registerGlobalFunction(stopSound, "stopSound");
   }
 
   static bool _getArray(HSQUIRRELVM v, SQInteger index, SQInteger size, std::vector<SoundDefinition *> &array) {

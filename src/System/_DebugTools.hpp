@@ -14,6 +14,7 @@
 #include "Engine/EngineSettings.hpp"
 #include "Entities/Objects/Object.hpp"
 #include "Engine/Trigger.hpp"
+#include "Audio/SoundId.hpp"
 #include "_Util.hpp"
 #include "imgui-SFML.h"
 #include "imgui.h"

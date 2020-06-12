@@ -86,7 +86,6 @@ struct Actor::Impl {
   bool _hotspotVisible{false};
   std::string _key;
   int _inventoryOffset{0};
-  sf::Vector2i _talkOffset{0, 90};
   int _fps{10};
 };
 
@@ -153,10 +152,8 @@ void Actor::giveTo(Object *pObject, Actor *pActor) {
   if (!pObject || !pActor)
     return;
   pObject->setOwner(pActor);
-  auto srcIt = std::find_if(pImpl->_objects.begin(),
-                            pImpl->_objects.end(),
-                            [&pObject](auto &pObj) { return pObj == pObject; });
-  std::move(srcIt, srcIt + 1, std::inserter(pActor->pImpl->_objects, std::end(pActor->pImpl->_objects)));
+  auto srcIt = std::find(pImpl->_objects.begin(), pImpl->_objects.end(), pObject);
+  std::move(srcIt, srcIt + 1, std::inserter(pActor->pImpl->_objects, pActor->pImpl->_objects.end()));
   pImpl->_objects.erase(srcIt);
 }
 
@@ -164,9 +161,9 @@ void Actor::removeInventory(Object *pObject) {
   if (!pObject)
     return;
   pObject->setOwner(nullptr);
-  pImpl->_objects.erase(std::remove_if(pImpl->_objects.begin(),
+  pImpl->_objects.erase(std::remove(pImpl->_objects.begin(),
                                        pImpl->_objects.end(),
-                                       [&pObject](auto &pObj) { return pObj == pObject; }), pImpl->_objects.end());
+                                       pObject), pImpl->_objects.end());
 }
 
 void Actor::clearInventory() {

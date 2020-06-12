@@ -36,7 +36,7 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void updateChoices(const sf::Time &elapsed);
   void updateDialogSlots();
-  void onDialogEnded();
+  static void onDialogEnded();
 
 private:
   Engine *_pEngine{nullptr};

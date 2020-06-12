@@ -31,12 +31,9 @@ void CostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) c
 }
 
 bool CostumeAnimation::contains(const sf::Vector2f &pos) const {
-  for (const auto &layer : _layers) {
-    if (layer.getAnimation().contains(pos)) {
-      return true;
-    }
-  }
-  return false;
+  return std::any_of(_layers.cbegin(),
+                     _layers.cend(),
+                     [pos](const auto &layer) { return layer.getAnimation().contains(pos); });
 }
 
 } // namespace ng

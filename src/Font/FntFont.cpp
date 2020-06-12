@@ -76,7 +76,7 @@ bool FntFont::parse(const std::string &path) {
   // to be sure that they will be read as integers
 
   while (input.tell() != input.getLength()) {
-    unsigned int i = 0;
+    unsigned int i;
     std::stringstream lineStream;
     std::string tag, pair, key, value;
     std::string line;
