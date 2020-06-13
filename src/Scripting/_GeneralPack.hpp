@@ -336,9 +336,17 @@ private:
     return 0;
   }
 
-  static SQInteger cameraPanTo(HSQUIRRELVM v) {
-    SQInteger x, y, interpolation{0};
+  static void _cameraPanTo(sf::Vector2i pos, float timeInSeconds, int interpolation) {
     auto screen = g_pEngine->getWindow().getView().getSize();
+    g_pEngine->follow(nullptr);
+    g_pEngine->getCamera().panTo(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f),
+                                 sf::seconds(timeInSeconds),
+                                 toInterpolationMethod(interpolation));
+  }
+
+  static SQInteger cameraPanTo(HSQUIRRELVM v) {
+    auto numArgs = sq_gettop(v);
+    SQInteger x, y, interpolation{0};
     SQFloat t;
     if (sq_gettype(v, 2) == OT_TABLE) {
       auto *pEntity = ScriptEngine::getEntity(v, 2);
@@ -350,25 +358,38 @@ private:
       if (SQ_FAILED(sq_getfloat(v, 3, &t))) {
         return sq_throwerror(v, _SC("failed to get time"));
       }
-    } else {
+      _cameraPanTo(sf::Vector2i(x,y), t, interpolation);
+      return 0;
+    }
+
+    if (numArgs == 4) {
       if (SQ_FAILED(sq_getinteger(v, 2, &x))) {
         return sq_throwerror(v, _SC("failed to get x"));
       }
-      if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
-        return sq_throwerror(v, _SC("failed to get y"));
-      }
-      if (SQ_FAILED(sq_getfloat(v, 4, &t))) {
+      y = g_pEngine->getCamera().getAt().y;
+      if (SQ_FAILED(sq_getfloat(v, 3, &t))) {
         return sq_throwerror(v, _SC("failed to get time"));
       }
-      if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
+      if (SQ_FAILED(sq_getinteger(v, 4, &interpolation))) {
         interpolation = 0;
       }
+      _cameraPanTo(sf::Vector2i(x,y), t, interpolation);
+      return 0;
     }
 
-    g_pEngine->follow(nullptr);
-    g_pEngine->getCamera().panTo(sf::Vector2f(x - screen.x / 2.f, y - screen.y / 2.f),
-                                 sf::seconds(t),
-                                 toInterpolationMethod(interpolation));
+    if (SQ_FAILED(sq_getinteger(v, 2, &x))) {
+      return sq_throwerror(v, _SC("failed to get x"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
+      return sq_throwerror(v, _SC("failed to get y"));
+    }
+    if (SQ_FAILED(sq_getfloat(v, 4, &t))) {
+      return sq_throwerror(v, _SC("failed to get time"));
+    }
+    if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
+      interpolation = 0;
+    }
+    _cameraPanTo(sf::Vector2i(x,y), t, interpolation);
     return 0;
   }
 
@@ -796,7 +817,7 @@ private:
     std::string s(idText);
     s = s.substr(1);
     auto id = std::strtol(s.c_str(), nullptr, 10);
-    auto text = g_pEngine->getText(id);
+    auto text = Engine::getText(id);
     sq_pushstring(v, tostring(text).c_str(), -1);
     return 1;
   }
