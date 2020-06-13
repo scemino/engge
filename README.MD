@@ -5,7 +5,13 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/scemino/engge/badge)](https://www.codefactor.io/repository/github/scemino/engge)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fengge_the_game)](https://twitter.com/engge_the_game)
 
-engge is an **experimental** game engine, its purpose is to be able (one day) to run Thimbleweed park.
+engge is an adventure game engine able to run Thimbleweed Park.
+
+It's an open source remake of Thimbleweed Park's engine.
+
+The game is playable. What does it mean? Yes, it means you can play the game and you should be able to finish it. No, it doesn't mean that you won't face any bug.
+It's still a project in active development, and there are a lot of issues, don't hesitate to contribute or to fill out a [bug report](https://github.com/scemino/engge/issues/new/choose).
+
 
 [![https://i.imgur.com/En75Mzx.png](https://i.imgur.com/En75Mzx.png)](https://www.youtube.com/watch?v=09VEPoX5SZk&t=1s)
 
@@ -53,10 +59,6 @@ Just type `./build/src/engge`, don't forget the prerequisites.
 | <kbd>Tab</kbd>               |  Show hotspots        |
 | <kbd>Ctrl</kbd> <kbd>O</kbd> |  Show options         |
 | <kbd>Ctrl</kbd> <kbd>U</kbd> |  Toggle HUD           |
-
-## Disclaimer
-
-This project is experimental, you won't be able to run the full game
 
 ---
 
