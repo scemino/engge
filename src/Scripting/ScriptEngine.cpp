@@ -125,6 +125,13 @@ Actor *ScriptEngine::getActorFromId(int id) {
 Object *ScriptEngine::getObjectFromId(int id) {
   if (!ResourceManager::isObject(id))
     return nullptr;
+  auto currentRoom = g_pEngine->getRoom();
+  if(currentRoom) {
+    for (auto &&obj : currentRoom->getObjects()) {
+      if (obj->getId() == id)
+        return obj.get();
+    }
+  }
   for (auto &&room : g_pEngine->getRooms()) {
     for (auto &&obj : room->getObjects()) {
       if (obj->getId() == id)

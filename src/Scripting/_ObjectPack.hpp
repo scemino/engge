@@ -979,6 +979,18 @@ private:
     return 0;
   }
 
+  static void _getArray(HSQUIRRELVM v, SQInteger index, std::vector<std::string> &array) {
+    sq_push(v, index);
+    sq_pushnull(v); //null iterator
+    while (SQ_SUCCEEDED(sq_next(v, -2))) {
+      const SQChar *name;
+      sq_getstring(v, -1, &name);
+      array.emplace_back(name);
+      sq_pop(v, 2);
+    }
+    sq_pop(v, 1); //pops the null iterator
+  }
+
   static SQInteger createObject(HSQUIRRELVM v) {
     auto numArgs = sq_gettop(v);
     if (numArgs == 1) {
@@ -989,10 +1001,16 @@ private:
 
     if (numArgs == 2) {
       std::vector<std::string> anims;
-      for (int i = 0; i < numArgs - 1; i++) {
-        const SQChar *animName;
-        sq_getstring(v, 2 + i, &animName);
-        anims.emplace_back(animName);
+      if (sq_gettype(v, 2) == OT_ARRAY) {
+        _getArray(v, 2, anims);
+      } else if (sq_gettype(v, 2) == OT_STRING) {
+        for (int i = 0; i < numArgs - 1; i++) {
+          const SQChar *animName;
+          sq_getstring(v, 2 + i, &animName);
+          anims.emplace_back(animName);
+        }
+      } else {
+        return sq_throwerror(v, _SC("createObject called with invalid type"));
       }
       auto &obj = g_pEngine->getRoom()->createObject(anims);
       ScriptEngine::push(v, &obj);
@@ -1004,16 +1022,8 @@ private:
     sq_getstring(v, 2, &sheet);
     sq_getstackobj(v, 3, &obj);
     if (sq_isarray(obj)) {
-      const SQChar *name;
       std::vector<std::string> anims;
-      sq_push(v, 3);
-      sq_pushnull(v); // null iterator
-      while (SQ_SUCCEEDED(sq_next(v, -2))) {
-        sq_getstring(v, -1, &name);
-        anims.emplace_back(name);
-        sq_pop(v, 2);
-      }
-      sq_pop(v, 1); // pops the null iterator
+      _getArray(v, 3, anims);
       auto &object = g_pEngine->getRoom()->createObject(sheet, anims);
       ScriptEngine::push(v, &object);
       return 1;

@@ -322,7 +322,15 @@ private:
 
   static SQInteger clampInWalkbox(HSQUIRRELVM v) {
     error("TODO: clampInWalkbox: not implemented");
-    ScriptEngine::push(v, sf::Vector2i(10, 10));
+    SQInteger x = 0;
+    if (SQ_FAILED(sq_getinteger(v, 2, &x))) {
+      return sq_throwerror(v, _SC("failed to get x"));
+    }
+    SQInteger y = 0;
+    if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
+      return sq_throwerror(v, _SC("failed to get y"));
+    }
+    ScriptEngine::push(v, sf::Vector2i(x, y));
     return 1;
   }
 
