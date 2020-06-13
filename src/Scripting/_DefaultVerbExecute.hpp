@@ -213,12 +213,21 @@ private:
   void operator()(const sf::Time &) override {
     _done = true;
 
-    bool success;
+    bool success = false;
     auto count = ScriptEngine::getParameterCount(&_object, _pVerb->func.data());
-    if (count == 2) {
-      success = ScriptEngine::objCall(&_object, _pVerb->func.data(), _pObject2);
-    } else {
-      success = ScriptEngine::objCall(&_object, _pVerb->func.data());
+
+    bool executeVerb = true;
+    if (_pVerb->id == VerbConstants::VERB_GIVE && _pObject2) {
+      bool selectable = true;
+      ScriptEngine::rawGet(_pObject2, "selectable", selectable);
+      executeVerb = !selectable;
+    }
+    if (executeVerb) {
+      if (count == 2) {
+        success = ScriptEngine::objCall(&_object, _pVerb->func.data(), _pObject2);
+      } else {
+        success = ScriptEngine::objCall(&_object, _pVerb->func.data());
+      }
     }
 
     if (success) {
