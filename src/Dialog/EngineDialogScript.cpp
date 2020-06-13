@@ -16,8 +16,7 @@ std::function<bool()> EngineDialogScript::pause(sf::Time time) {
 
 std::function<bool()> EngineDialogScript::say(const std::string &actor, const std::string &text) {
   //trace("{}: {}", actor, text);
-  Entity* pEntity = nullptr;
-  ScriptEngine::get(actor.data(), pEntity);
+  auto* pEntity = _engine.getEntity(actor);
 
   // is it an animation to play ?
   if (!text.empty() && text[0] == '^') {

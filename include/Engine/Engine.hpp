@@ -114,7 +114,7 @@ public:
   DialogManager &getDialogManager();
   Camera &getCamera();
 
-  Entity *getActor(const std::string &name);
+  Entity *getEntity(const std::string &name);
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);

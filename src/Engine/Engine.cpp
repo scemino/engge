@@ -623,7 +623,7 @@ struct Engine::Impl {
     }
 
     Actor *getActor(const std::string &name) {
-      return dynamic_cast<Actor *>(_pImpl->_pEngine->getActor(name));
+      return dynamic_cast<Actor *>(_pImpl->_pEngine->getEntity(name));
     }
 
     Room *getRoom(const std::string &name) {
@@ -2625,35 +2625,13 @@ void Engine::allowSaveGames(bool allow) {
   _pImpl->_optionsDialog.setSaveEnabled(allow);
 }
 
-Entity *Engine::getActor(const std::string &name) {
+Entity *Engine::getEntity(const std::string &name) {
   if (name == "agent" || name == "player")
     return _pImpl->_pCurrentActor;
 
-  const auto &actors = getActors();
-  if (name == "vo") {
-    // HACK:
-    auto it = std::find_if(actors.cbegin(), actors.cend(), [](const auto &pActor) {
-      return pActor->getName() == "@30130";
-    });
-    if (it != actors.cend()) {
-      return it->get();
-    }
-    return nullptr;
-  }
-  auto it = std::find_if(actors.cbegin(), actors.cend(), [name](const auto &pActor) {
-    return pActor->getKey() == name;
-  });
-  if (it != actors.cend()) {
-    return it->get();
-  }
-  const auto &objects = getRoom()->getObjects();
-  auto it2 = std::find_if(objects.cbegin(), objects.cend(), [name](const auto &pObj) {
-    return pObj->getKey() == name;
-  });
-  if (it2 != objects.cend()) {
-    return it2->get();
-  }
-  return nullptr;
+  Entity* pEntity = nullptr;
+  ScriptEngine::get(name.data(), pEntity);
+  return pEntity;
 }
 
 void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {

@@ -10,7 +10,6 @@ public:
 public:
   void execute(const std::string &code) override {
     sq_resetobject(&_result);
-    _pos = 0;
     auto top = sq_gettop(_vm);
     // compile
     sq_pushroottable(_vm);
@@ -75,9 +74,7 @@ public:
   }
 
 private:
-  static int _pos;
   HSQUIRRELVM _vm{};
   HSQOBJECT _result{};
 };
-int _DefaultScriptExecute::_pos = 0;
 }
