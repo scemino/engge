@@ -46,13 +46,6 @@ class VerbSlot {
 public:
   void setVerb(int index, const Verb &verb) { _verbs.at(index) = verb; }
   [[nodiscard]] const Verb &getVerb(int index) const { return _verbs.at(index); }
-  [[nodiscard]] size_t getVerbIndex(int id) const {
-    for (size_t i = 0; i < _verbs.size(); i++) {
-      if (_verbs.at(i).id == id)
-        return i;
-    }
-    return -1;
-  }
 
 private:
   std::array<Verb, 10> _verbs;

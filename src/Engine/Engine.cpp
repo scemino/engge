@@ -1704,17 +1704,23 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
     _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1))));
   }
 
-  if (_hud.getCurrentVerb()->id == VerbConstants::VERB_WALKTO) {
+  auto verbId = _hud.getCurrentVerb()->id;
+  switch (verbId) {
+  case VerbConstants::VERB_WALKTO: {
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
     if (pObj1 && pObj1->isInventoryObject()) {
       _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1))));
     }
-  } else if (_hud.getCurrentVerb()->id == VerbConstants::VERB_TALKTO) {
+    break;
+  }
+  case VerbConstants::VERB_TALKTO: {
     // select actor/object only if talkable flag is set
     auto flags = getFlags(_objId1);
     if (!(flags & ObjectFlagConstants::TALKABLE))
       _objId1 = 0;
-  } else if (_hud.getCurrentVerb()->id == VerbConstants::VERB_GIVE) {
+    break;
+  }
+  case VerbConstants::VERB_GIVE: {
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
     if (!pObj1->isInventoryObject())
       _objId1 = 0;
@@ -1725,6 +1731,15 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
       if (!(flags & ObjectFlagConstants::GIVEABLE))
         _pObj2 = nullptr;
     }
+    break;
+  }
+  default: {
+    auto pActor = ScriptEngine::getScriptObjectFromId<Actor>(_objId1);
+    if (pActor) {
+      _objId1 = 0;
+    }
+    break;
+  }
   }
 }
 
@@ -2629,7 +2644,7 @@ Entity *Engine::getEntity(const std::string &name) {
   if (name == "agent" || name == "player")
     return _pImpl->_pCurrentActor;
 
-  Entity* pEntity = nullptr;
+  Entity *pEntity = nullptr;
   ScriptEngine::get(name.data(), pEntity);
   return pEntity;
 }
