@@ -270,7 +270,7 @@ Actor::~Actor() = default;
 
 const Room *Actor::getRoom() const { return pImpl->_pRoom; }
 
-int Actor::getZOrder() const { return static_cast<int>(getRealPosition().y); }
+int Actor::getZOrder() const { return static_cast<int>(getPosition().y); }
 
 void Actor::setRoom(Room *pRoom) {
   if (pImpl->_pRoom) {
