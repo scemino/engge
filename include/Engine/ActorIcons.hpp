@@ -35,6 +35,7 @@ private:
   int getCurrentActorIndex() const;
   int getIconsNum() const;
   float getOffsetY(int num) const;
+  static bool isSelectable(const ActorIconSlot& slot);
 
 private:
   Engine *_pEngine{nullptr};

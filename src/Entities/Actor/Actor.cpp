@@ -273,9 +273,6 @@ void Actor::setRoom(Room *pRoom) {
   }
   pImpl->_pRoom = pRoom;
   pImpl->_pRoom->setAsParallaxLayer(this, 0);
-  if (pImpl->_pRoom && pImpl->_pRoom->getName() == "Void") {
-    pImpl->_engine.actorSlotSelectable(this, false);
-  }
 }
 
 void Actor::setCostume(const std::string &name, const std::string &sheet) {

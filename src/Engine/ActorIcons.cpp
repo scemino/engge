@@ -4,6 +4,7 @@
 #include "Graphics/SpriteSheet.hpp"
 #include "Engine/ActorIcons.hpp"
 #include "Engine/Engine.hpp"
+#include "Room/Room.hpp"
 
 namespace ng {
 
@@ -66,7 +67,7 @@ void ActorIcons::update(const sf::Time &elapsed) {
                              iconSize.x,
                              iconSize.y);
     for (auto selectableActor : _actorsIconSlots) {
-      if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
+      if (!isSelectable(selectableActor) || selectableActor.pActor == _pCurrentActor)
         continue;
 
       if (isEnabled && iconRect.contains(_mousePos)) {
@@ -107,6 +108,17 @@ void ActorIcons::flash(bool on) {
 
 void ActorIcons::setMode(ActorSlotSelectableMode mode) { _mode = mode; }
 
+bool ActorIcons::isSelectable(const ActorIconSlot& slot){
+  if(!slot.selectable) return false;
+
+  // the actor is not selectable if he is in room "Void"
+  const auto *pRoom = slot.pActor ? slot.pActor->getRoom() : nullptr;
+  if (pRoom && pRoom->getName() == "Void") {
+    pRoom = nullptr;
+  }
+  return pRoom;
+}
+
 void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
   if ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) == ActorSlotSelectableMode::TemporaryUnselectable)
     return;
@@ -141,7 +153,7 @@ void ActorIcons::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   for (size_t i = 0; i < _actorsIconSlots.size(); i++) {
     const auto &selectableActor = _actorsIconSlots.at(i);
-    if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
+    if (!isSelectable(selectableActor) || selectableActor.pActor == _pCurrentActor)
       continue;
 
     offset.y = getOffsetY(numIcons);
