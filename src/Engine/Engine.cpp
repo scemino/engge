@@ -536,7 +536,7 @@ struct Engine::Impl {
 
           // TODO: other types
           auto s = getValue(property.second);
-          trace("load: object {} property '{}' not loaded (type={}): {}",
+          warn("load: object {} property '{}' not loaded (type={}): {}",
                 pObj->getKey(),
                 property.first,
                 static_cast<int>(property.second.type), s);
@@ -602,7 +602,6 @@ struct Engine::Impl {
       loadCallbacks(hash["callbacks"]);
       loadGlobals(hash["globals"]);
       loadActors(hash["actors"]);
-      loadObjects(hash["objects"]);
       loadInventory(hash["inventory"]);
       loadRooms(hash["rooms"]);
 
@@ -611,6 +610,7 @@ struct Engine::Impl {
 
       setActor(hash["selectedActor"].getString());
       setCurrentRoom(hash["currentRoom"].getString());
+      loadObjects(hash["objects"]);
 
       ScriptEngine::set("SAVEBUILD", hash["savebuild"].getInt());
 
@@ -2357,10 +2357,10 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
     s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
-//    auto pObj = dynamic_cast<Object*>(pObj1);
-//    if(pObj) {
-//      s.append(L"(").append(towstring(pObj->getKey())).append(L")");
-//    }
+    auto pObj = dynamic_cast<Object*>(pObj1);
+    if(pObj) {
+      s.append(L"(").append(towstring(pObj->getKey())).append(L")");
+    }
   }
   appendUseFlag(s);
   if (_pObj2) {
