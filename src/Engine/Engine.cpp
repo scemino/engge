@@ -45,6 +45,7 @@
 #include <unordered_set>
 #include "Input/CommandManager.hpp"
 #include "Engine/EngineCommands.hpp"
+#include "_DebugFeatures.hpp"
 namespace fs = std::filesystem;
 
 namespace ng {
@@ -2359,9 +2360,11 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
     s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
-    auto pObj = dynamic_cast<Object*>(pObj1);
-    if(pObj) {
-      s.append(L"(").append(towstring(pObj->getKey())).append(L")");
+    if(_DebugFeatures::showHoveredObject) {
+      auto pObj = dynamic_cast<Object *>(pObj1);
+      if (pObj) {
+        s.append(L"(").append(towstring(pObj->getKey())).append(L")");
+      }
     }
   }
   appendUseFlag(s);
@@ -2375,10 +2378,12 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   text.setString(s);
 
   // do display cursor position:
-  // std::wstringstream ss;
-  // std::wstring txt = text.getString();
-  // ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
-  // text.setString(ss.str());
+  if(_DebugFeatures::showCursorPosition) {
+     std::wstringstream ss;
+     std::wstring txt = text.getString();
+     ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
+     text.setString(ss.str());
+  }
 
   auto screenSize = _pRoom->getScreenSize();
   auto pos = toDefaultView((sf::Vector2i) _mousePos, screenSize);

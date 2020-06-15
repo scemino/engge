@@ -19,6 +19,7 @@
 #include "imgui-SFML.h"
 #include "imgui.h"
 #include "Engine/InputStateConstants.hpp"
+#include "../Engine/_DebugFeatures.hpp"
 
 namespace ng {
 class _DebugTools {
@@ -55,6 +56,7 @@ public:
     if (ImGui::SliderFloat("Game speed factor", &gameSpeedFactor, 0.f, 5.f)) {
       _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
     }
+    ImGui::Checkbox("Show cursor position", &_DebugFeatures::showCursorPosition);
     ImGui::Checkbox("Console", &_consoleVisible);
     ImGui::SameLine();
     if (ImGui::SmallButton("Globals...")) {
@@ -638,6 +640,8 @@ private:
   void showObjects() {
     if (!ImGui::CollapsingHeader("Objects"))
       return;
+
+    ImGui::Checkbox("Show hovered object", &_DebugFeatures::showHoveredObject);
 
     auto &objects = _engine.getRoom()->getObjects();
 
