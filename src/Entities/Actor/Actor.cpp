@@ -84,7 +84,6 @@ struct Actor::Impl {
   std::shared_ptr<_Path> _path;
   HSQOBJECT _table{};
   bool _hotspotVisible{false};
-  std::string _key;
   int _inventoryOffset{0};
   int _fps{10};
 };
@@ -92,10 +91,6 @@ struct Actor::Impl {
 std::wstring Actor::getTranslatedName() const {
   return Engine::getText(getName());
 }
-
-void Actor::setKey(const std::string &key) { pImpl->_key = key; }
-
-const std::string &Actor::getKey() const { return pImpl->_key; }
 
 std::string Actor::getIcon() const {
   const char *icon = nullptr;

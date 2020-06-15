@@ -564,6 +564,7 @@ private:
       ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
       ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
       ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
+      ImGui::Text("Z-Order: %d", actor->getZOrder());
       auto facing = facingToInt(actor->getCostume().getFacing());
       auto facings = "Front\0Back\0Left\0Right\0";
       if (ImGui::Combo("Facing", &facing, facings)) {
@@ -646,7 +647,7 @@ private:
     s << objects.size() << " Objects";
     if (ImGui::ListBoxHeader(s.str().c_str())) {
       for (const auto &object : objects) {
-        auto name = toUtf8(_engine.getText(object->getName()));
+        auto name = toUtf8(_engine.getText(object->getKey()));
         if (filter.PassFilter(name.c_str())) {
           if (ImGui::Selectable(name.c_str(), _pSelectedObject == object.get())) {
             _pSelectedObject = object.get();

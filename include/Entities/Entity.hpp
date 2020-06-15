@@ -31,6 +31,9 @@ public:
   Entity();
   virtual ~Entity();
 
+  void setKey(const std::string &key);
+  const std::string &getKey() const;
+
   virtual void update(const sf::Time &elapsed);
   virtual int getZOrder() const = 0;
 

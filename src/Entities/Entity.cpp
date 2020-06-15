@@ -25,6 +25,7 @@ struct Entity::Impl {
   sf::Color _talkColor;
   sf::Vector2i _talkOffset;
   _TalkingState _talkingState;
+  std::string _key;
 
   Impl() : _engine(ng::Locator<ng::Engine>::get()) {
     _talkingState.setEngine(&_engine);
@@ -177,6 +178,10 @@ SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<Sound
   pImpl->_soundTriggers.push_back(std::move(trigger));
   return pTrigger;
 }
+
+void Entity::setKey(const std::string &key) { pImpl->_key = key; }
+
+const std::string &Entity::getKey() const { return pImpl->_key; }
 
 void Entity::setTouchable(bool isTouchable) {
   pImpl->_isTouchable = isTouchable;

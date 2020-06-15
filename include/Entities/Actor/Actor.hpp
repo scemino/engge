@@ -18,9 +18,6 @@ public:
   explicit Actor(Engine &engine);
   ~Actor() override;
 
-  void setKey(const std::string &key);
-  const std::string &getKey() const;
-
   std::wstring getTranslatedName() const;
 
   std::string getIcon() const;

@@ -39,7 +39,6 @@ struct Object::Impl {
   std::vector<Object *> _children;
   bool _temporary{false};
   bool _jiggle{false};
-  std::string _key;
   Object *_pParent{nullptr};
 
   Impl() {
@@ -76,10 +75,6 @@ Object::Object(HSQOBJECT obj) : pImpl(std::make_unique<Impl>(obj)) {
 }
 
 Object::~Object() = default;
-
-void Object::setKey(const std::string &key) { pImpl->_key = key; }
-
-const std::string &Object::getKey() const { return pImpl->_key; }
 
 void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
 
@@ -167,8 +162,6 @@ Trigger *Object::getTrigger() { return pImpl->_trigger.has_value() ? (*pImpl->_t
 void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 
 bool Object::isTouchable() const {
-  if (!isVisible())
-    return false;
   if (getType() != ObjectType::Object)
     return false;
   return Entity::isTouchable();
