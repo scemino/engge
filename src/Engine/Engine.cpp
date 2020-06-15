@@ -509,10 +509,12 @@ struct Engine::Impl {
     }
 
     void loadObject(Object *pObj, const GGPackValue &hash) {
-      int state = 0;
+      auto state = 0;
+      ScriptEngine::rawGet(pObj, "initState", state);
       getValue(hash, "_state", state);
       pObj->setStateAnimIndex(state);
-      bool touchable = true;
+      auto touchable = true;
+      ScriptEngine::rawGet(pObj, "initTouchable", touchable);
       getValue(hash, "_touchable", touchable);
       pObj->setTouchable(touchable);
       sf::Vector2f offset;
