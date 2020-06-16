@@ -11,13 +11,13 @@ namespace ng {
 
 class _ActorWalk : public Function {
 public:
-  _ActorWalk(Actor &actor, const Entity *pEntity) : _actor(actor) {
+  _ActorWalk(Actor &actor, Entity *pEntity, Sentence *pSentence) : _actor(actor), _pEntity(pEntity), _pSentence(pSentence) {
     auto pos = pEntity->getRealPosition();
     auto usePos = pEntity->getUsePosition().value_or(sf::Vector2f());
-    pos.x += usePos.x;
-    pos.y += usePos.y;
     auto facing = getFacing(pEntity);
-    _actor.walkTo(pos, facing);
+    auto dest = pos + usePos;
+    _path = _actor.walkTo(pos + usePos, facing);
+    _isDestination = _path.back() == dest;
   }
 
 private:
@@ -31,10 +31,29 @@ private:
   }
 
 private:
-  bool isElapsed() override { return !_actor.isWalking(); }
+  bool isElapsed() override {
+    if(_done) return true;
+    auto isWalking = _actor.isWalking();
+    if(!isWalking) {
+      _done = true;
+      auto pos = _actor.getPosition();
+      if(!_isDestination){
+        _pSentence->stop();
+        if(_path.back() == pos) {
+          ScriptEngine::objCall(_pEntity, "verbCantReach");
+        }
+      }
+    }
+    return _done;
+  }
 
 private:
   Actor &_actor;
+  Entity *_pEntity;
+  Sentence *_pSentence;
+  std::vector<sf::Vector2f> _path;
+  bool _isDestination;
+  bool _done{false};
 };
 
 class _PostWalk : public Function {
@@ -307,7 +326,7 @@ private:
     auto sentence = std::make_unique<Sentence>();
     if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) &&
         !pObj->isInventoryObject()) {
-      auto walk = std::make_unique<_ActorWalk>(*pActor, pObj);
+      auto walk = std::make_unique<_ActorWalk>(*pActor, pObj, sentence.get());
       sentence->push_back(std::move(walk));
     }
     auto postWalk = std::make_unique<_PostWalk>(*sentence, pObject1, pObject2, pVerb->id);

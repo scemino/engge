@@ -325,16 +325,16 @@ void Actor::update(const sf::Time &elapsed) {
   pImpl->_walkingState.update(elapsed);
 }
 
-void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing) {
+std::vector<sf::Vector2f> Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing) {
   if (pImpl->_pRoom == nullptr)
-    return;
+    return {getRealPosition()};
 
   std::vector<sf::Vector2f> path;
   if (pImpl->_useWalkboxes) {
     path = pImpl->_pRoom->calculatePath(getRealPosition(), destination);
     if (path.size() < 2) {
       pImpl->_path = nullptr;
-      return;
+      return path;
     }
   } else {
     path.push_back(getRealPosition());
@@ -346,6 +346,7 @@ void Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing
     ScriptEngine::rawCall(this, "preWalking");
   }
   pImpl->_walkingState.setDestination(path, facing);
+  return path;
 }
 
 void Actor::trigSound(const std::string &name) {
