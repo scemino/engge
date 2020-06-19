@@ -9,7 +9,7 @@ class Object;
 
 class Inventory : public sf::Drawable {
 public:
-  void setTextureManager(TextureManager *pTextureManager);
+  void setTextureManager(ResourceManager *pTextureManager);
   bool update(const sf::Time &elapsed);
 
   void setCurrentActorIndex(int index) { _currentActorIndex = index; }

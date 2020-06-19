@@ -23,7 +23,7 @@ class ScriptExecute;
 class Sentence;
 class SoundDefinition;
 class SoundManager;
-class TextureManager;
+class ResourceManager;
 class ThreadBase;
 struct Verb;
 class VerbExecute;
@@ -44,7 +44,7 @@ public:
   void setWindow(sf::RenderWindow &window);
   [[nodiscard]] const sf::RenderWindow &getWindow() const;
 
-  TextureManager &getTextureManager();
+  ResourceManager &getTextureManager();
 
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);

@@ -1,14 +1,14 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "Parsers/JsonTokenReader.hpp"
-#include "Graphics/TextureManager.hpp"
+#include "Graphics/ResourceManager.hpp"
 #include "Font.hpp"
 
 namespace ng {
 class GGFont : public Font {
 public:
   ~GGFont() override;
-  void setTextureManager(TextureManager *textureManager);
+  void setTextureManager(ResourceManager *textureManager);
 
   void load(const std::string &path);
 
@@ -22,7 +22,7 @@ public:
 
 private:
   std::map<sf::Uint32, sf::Glyph> _glyphs;
-  TextureManager *_textureManager{nullptr};
+  ResourceManager *_textureManager{nullptr};
   std::string _path;
   std::string _jsonFilename;
   ng::GGPackValue _json;

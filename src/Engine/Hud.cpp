@@ -66,7 +66,7 @@ bool Hud::isMouseOver() const {
   return _mousePos.y >= _verbRects.at(0).top;
 }
 
-void Hud::setTextureManager(TextureManager *pTextureManager) {
+void Hud::setTextureManager(ResourceManager *pTextureManager) {
   _inventory.setTextureManager(pTextureManager);
 }
 
@@ -120,7 +120,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   const auto &verbUiColors = getVerbUiColors(_currentActorIndex);
   auto verbHighlight = invertVerbHighlight ? sf::Color::White : verbUiColors.verbHighlight;
   auto verbColor = invertVerbHighlight ? verbUiColors.verbHighlight : sf::Color::White;
-  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   auto uiBackingRect = hudSentence ? gameSheet.getRect("ui_backing_tall") : gameSheet.getRect("ui_backing");
   sf::Sprite uiBacking;
   uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * _alpha * 255));
@@ -137,7 +137,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   sf::RenderStates verbStates;
   verbStates.shader = &_verbShader;
-  auto &verbSheet = Locator<TextureManager>::get().getSpriteSheet("VerbSheet");
+  auto &verbSheet = Locator<ResourceManager>::get().getSpriteSheet("VerbSheet");
   for (int i = 1; i <= 9; i++) {
     auto verb = getVerbSlot(_currentActorIndex).getVerb(i);
     auto color = verb.id == verbId ? verbHighlight : verbColor;
@@ -173,7 +173,7 @@ void Hud::setCurrentActor(Actor *pActor) {
 sf::Vector2f Hud::findScreenPosition(int verbId) const {
   auto pVerb = getVerb(verbId);
   auto s = getVerbName(*pVerb);
-  auto &verbSheet = Locator<TextureManager>::get().getSpriteSheet("VerbSheet");
+  auto &verbSheet = Locator<ResourceManager>::get().getSpriteSheet("VerbSheet");
   auto r = verbSheet.getSpriteSourceSize(s);
   return sf::Vector2f(r.left + r.width / 2.f, Screen::Height - (r.top + r.height / 2.f));
 }

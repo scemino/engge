@@ -9,7 +9,7 @@
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Engine/Preferences.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundDefinition.hpp"
 #include "Audio/SoundId.hpp"
@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
     ng::Locator<ng::CommandManager>::create();
     ng::Locator<ng::Preferences>::create();
     ng::Locator<ng::EngineSettings>::create().loadPacks();
-    ng::Locator<ng::ResourceManager>::create();
+    ng::Locator<ng::EntityManager>::create();
     ng::Locator<ng::SoundManager>::create();
     ng::Locator<ng::TextDatabase>::create();
-    ng::Locator<ng::TextureManager>::create();
+    ng::Locator<ng::ResourceManager>::create();
     auto &scriptEngine = ng::Locator<ng::ScriptEngine>::create();
     auto &engine = ng::Locator<ng::Engine>::create();
     auto &game = ng::Locator<ng::Game>::create();

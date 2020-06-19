@@ -9,7 +9,7 @@
 
 namespace ng {
 
-void Inventory::setTextureManager(TextureManager *pTextureManager) {
+void Inventory::setTextureManager(ResourceManager *pTextureManager) {
   _gameSheet.setTextureManager(pTextureManager);
   _gameSheet.load("GameSheet");
 

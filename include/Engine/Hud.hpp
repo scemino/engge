@@ -20,7 +20,7 @@ private:
 public:
   Hud();
 
-  void setTextureManager(TextureManager *pTextureManager);
+  void setTextureManager(ResourceManager *pTextureManager);
 
   void setVerb(int characterSlot, int verbSlot, const Verb &verb);
   [[nodiscard]] const VerbSlot &getVerbSlot(int characterSlot) const;

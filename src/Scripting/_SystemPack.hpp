@@ -390,7 +390,7 @@ private:
       return sq_throwerror(v, _SC("failed to get argument"));
     }
 
-    auto id = Locator<ResourceManager>::get().getCallbackId();
+    auto id = Locator<EntityManager>::get().getCallbackId();
     auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName, arg);
     g_pEngine->addCallback(std::move(callback));
 
@@ -522,7 +522,7 @@ private:
       sq_getinteger(v, 2, &id);
     }
 
-    if (ResourceManager::isThread(id)) {
+    if (EntityManager::isThread(id)) {
       auto pCurrentThread = ScriptEngine::getThreadFromVm(v);
       if (!pCurrentThread) {
         return sq_throwerror(v, "Current thread should be created with startthread");

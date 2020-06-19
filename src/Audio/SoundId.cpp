@@ -2,7 +2,7 @@
 #include "Entities/Entity.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Scripting/ScriptEngine.hpp"
@@ -10,7 +10,7 @@
 namespace ng {
 SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
     : _soundManager(soundManager), _pSoundDefinition(pSoundDefinition), _category(category) {
-  _id = Locator<ResourceManager>::get().getSoundId();
+  _id = Locator<EntityManager>::get().getSoundId();
 }
 
 SoundId::~SoundId() {

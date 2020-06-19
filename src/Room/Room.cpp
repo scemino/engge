@@ -7,7 +7,7 @@
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Math/PathFinding/PathFinder.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Room/RoomLayer.hpp"
 #include "Room/RoomScaling.hpp"
 #include "Graphics/SpriteSheet.hpp"
@@ -28,7 +28,7 @@ struct CmpLayer {
 };
 
 struct Room::Impl {
-  TextureManager &_textureManager;
+  ResourceManager &_textureManager;
   std::vector<std::unique_ptr<Object>> _objects;
   std::vector<Walkbox> _walkboxes;
   std::vector<Walkbox> _graphWalkboxes;
@@ -53,7 +53,7 @@ struct Room::Impl {
   bool _pseudoRoom{false};
 
   explicit Impl(HSQOBJECT roomTable)
-      : _textureManager(Locator<TextureManager>::get()),
+      : _textureManager(Locator<ResourceManager>::get()),
         _roomTable(roomTable) {
     _spriteSheet.setTextureManager(&_textureManager);
     for (int i = -3; i < 6; ++i) {
@@ -561,7 +561,7 @@ std::unique_ptr<Room> Room::define(HSQOBJECT roomTable, const char *name) {
 
 Room::Room(HSQOBJECT roomTable)
     : pImpl(std::make_unique<Impl>(roomTable)) {
-  _id = Locator<ResourceManager>::get().getRoomId();
+  _id = Locator<EntityManager>::get().getRoomId();
   pImpl->setRoom(this);
   ScriptEngine::set(this, "_id", getId());
 }

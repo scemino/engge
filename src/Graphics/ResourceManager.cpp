@@ -3,14 +3,14 @@
 #include "Font/GGFont.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
-#include "Graphics/TextureManager.hpp"
+#include "Graphics/ResourceManager.hpp"
 #include "Graphics/SpriteSheet.hpp"
 
 namespace ng {
-TextureManager::TextureManager() = default;
-TextureManager::~TextureManager() = default;
+ResourceManager::ResourceManager() = default;
+ResourceManager::~ResourceManager() = default;
 
-void TextureManager::load(const std::string &id) {
+void ResourceManager::load(const std::string &id) {
   info("Load texture {}", id);
   std::string path;
   path.append(id).append(".png");
@@ -31,7 +31,7 @@ void TextureManager::load(const std::string &id) {
   _textureMap.insert(std::make_pair(id, texture));
 }
 
-void TextureManager::loadFont(const std::string &id) {
+void ResourceManager::loadFont(const std::string &id) {
   info("Load font {}", id);
   auto font = std::make_shared<GGFont>();
   font->setTextureManager(this);
@@ -39,14 +39,14 @@ void TextureManager::loadFont(const std::string &id) {
   _fontMap.insert(std::make_pair(id, font));
 }
 
-void TextureManager::loadFntFont(const std::string &id) {
+void ResourceManager::loadFntFont(const std::string &id) {
   info("Load Fnt font {}", id);
   auto font = std::make_shared<FntFont>();
   font->loadFromFile(id);
   _fntFontMap.insert(std::make_pair(id, font));
 }
 
-void TextureManager::loadSpriteSheet(const std::string &id) {
+void ResourceManager::loadSpriteSheet(const std::string &id) {
   info("Load SpriteSheet {}", id);
   auto spriteSheet = std::make_shared<SpriteSheet>();
   spriteSheet->setTextureManager(this);
@@ -54,7 +54,7 @@ void TextureManager::loadSpriteSheet(const std::string &id) {
   _spriteSheetMap.insert(std::make_pair(id, spriteSheet));
 }
 
-const sf::Texture &TextureManager::get(const std::string &id) {
+const sf::Texture &ResourceManager::get(const std::string &id) {
   auto found = _textureMap.find(id);
   if (found == _textureMap.end()) {
     load(id);
@@ -63,7 +63,7 @@ const sf::Texture &TextureManager::get(const std::string &id) {
   return *found->second;
 }
 
-const GGFont &TextureManager::getFont(const std::string &id) {
+const GGFont &ResourceManager::getFont(const std::string &id) {
   auto found = _fontMap.find(id);
   if (found == _fontMap.end()) {
     loadFont(id);
@@ -72,7 +72,7 @@ const GGFont &TextureManager::getFont(const std::string &id) {
   return *found->second;
 }
 
-const FntFont &TextureManager::getFntFont(const std::string &id) {
+const FntFont &ResourceManager::getFntFont(const std::string &id) {
   auto found = _fntFontMap.find(id);
   if (found == _fntFontMap.end()) {
     loadFntFont(id);
@@ -81,7 +81,7 @@ const FntFont &TextureManager::getFntFont(const std::string &id) {
   return *found->second;
 }
 
-const SpriteSheet &TextureManager::getSpriteSheet(const std::string &id) {
+const SpriteSheet &ResourceManager::getSpriteSheet(const std::string &id) {
   auto found = _spriteSheetMap.find(id);
   if (found == _spriteSheetMap.end()) {
     loadSpriteSheet(id);

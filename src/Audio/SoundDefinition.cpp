@@ -2,7 +2,7 @@
 #include "Engine/EngineSettings.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Audio/SoundDefinition.hpp"
 
 namespace ng {
@@ -10,7 +10,7 @@ Sound::~Sound() = default;
 
 SoundDefinition::SoundDefinition(std::string path)
     : _path(std::move(path)), _isLoaded(false) {
-  _id = Locator<ResourceManager>::get().getSoundId();
+  _id = Locator<EntityManager>::get().getSoundId();
 }
 
 SoundDefinition::~SoundDefinition() = default;

@@ -9,7 +9,7 @@
 #include "Parsers/GGPackValue.hpp"
 
 namespace ng {
-Costume::Costume(TextureManager &textureManager)
+Costume::Costume(ResourceManager &textureManager)
     : _textureManager(textureManager),
       _blinkState(*this) {
   resetLockFacing();

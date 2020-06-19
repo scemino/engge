@@ -6,7 +6,7 @@
 #include "System/Logger.hpp"
 #include "Math/PathFinding/PathFinder.hpp"
 #include "Engine/Preferences.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Entities/Objects/Object.hpp"
 #include "Room/Room.hpp"
 #include "Room/RoomScaling.hpp"
@@ -258,7 +258,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
 
 Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine)) {
   pImpl->setActor(this);
-  _id = Locator<ResourceManager>::get().getActorId();
+  _id = Locator<EntityManager>::get().getActorId();
 }
 
 Actor::~Actor() = default;

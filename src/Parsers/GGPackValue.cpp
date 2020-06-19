@@ -6,7 +6,7 @@
 #include "../../extlibs/squirrel/squirrel/sqarray.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Entities/Objects/Object.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Parsers/GGPackValue.hpp"
@@ -244,7 +244,7 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
   int id;
   if (checkId && ScriptEngine::get(table, _idKey, id)) {
     hash.type = 2;
-    if (ResourceManager::isActor(id)) {
+    if (EntityManager::isActor(id)) {
       auto pActor = ScriptEngine::getActorFromId(id);
       if (pActor && pActor->getKey() != tableKey) {
         hash.hash_value[_actorKey] = GGPackValue::toGGPackValue(pActor->getKey());
@@ -252,7 +252,7 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
       }
       return false;
     }
-    if (ResourceManager::isObject(id)) {
+    if (EntityManager::isObject(id)) {
       auto pObj = ScriptEngine::getObjectFromId(id);
       if (pObj && pObj->getKey() != tableKey) {
         auto pRoom = pObj->getRoom();
@@ -264,7 +264,7 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
       }
       return false;
     }
-    if (ResourceManager::isRoom(id)) {
+    if (EntityManager::isRoom(id)) {
       auto pRoom = ScriptEngine::getRoomFromId(id);
       if (pRoom && pRoom->getName() != tableKey) {
         hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());

@@ -1,6 +1,6 @@
 #include "squirrel.h"
 #include "System/Locator.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Engine/Thread.hpp"
 #include <sstream>
 #include <utility>
@@ -17,7 +17,7 @@ Thread::Thread(const std::string &name, bool isGlobal,
   sq_addref(_v, &_thread_obj);
   sq_addref(_v, &_env_obj);
   sq_addref(_v, &_closureObj);
-  _id = Locator<ResourceManager>::get().getThreadId();
+  _id = Locator<EntityManager>::get().getThreadId();
 }
 
 Thread::~Thread() {

@@ -8,7 +8,7 @@
 #include "DirectionConstants.hpp"
 #include "Parsers/GGPack.hpp"
 #include "Graphics/SpriteSheet.hpp"
-#include "Graphics/TextureManager.hpp"
+#include "Graphics/ResourceManager.hpp"
 #include "CostumeAnimation.hpp"
 
 namespace ng {
@@ -30,7 +30,7 @@ class Actor;
 
 class Costume : public sf::Drawable {
 public:
-  explicit Costume(TextureManager &textureManager);
+  explicit Costume(ResourceManager &textureManager);
   ~Costume() override;
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
@@ -71,7 +71,7 @@ private:
   CostumeLayer loadLayer(const GGPackValue &jLayer) const;
 
 private:
-  TextureManager &_textureManager;
+  ResourceManager &_textureManager;
   std::string _path;
   std::string _sheet;
   std::vector<CostumeAnimation> _animations;

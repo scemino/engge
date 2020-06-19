@@ -1,7 +1,7 @@
 #pragma once
 
 namespace ng {
-class ResourceManager {
+class EntityManager {
 private:
   static const int START_ACTORID = 1000;
   static const int END_ACTORID = 2000;

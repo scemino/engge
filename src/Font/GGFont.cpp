@@ -21,7 +21,7 @@ const sf::Glyph &GGFont::getGlyph(sf::Uint32 codePoint, unsigned int, bool, floa
   return _glyphs.at(codePoint);
 }
 
-void GGFont::setTextureManager(TextureManager *textureManager) {
+void GGFont::setTextureManager(ResourceManager *textureManager) {
   _textureManager = textureManager;
 }
 

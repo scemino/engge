@@ -28,7 +28,7 @@ Game::Game() {
 
 Game::~Game() { ImGui::SFML::Shutdown(); }
 
-sf::Uint32 Game::getStyle() const {
+sf::Uint32 Game::getStyle() {
   return Locator<Preferences>::get().getUserPreference(PreferenceNames::Fullscreen, PreferenceDefaultValues::Fullscreen)
          ? sf::Style::Fullscreen : sf::Style::Default;
 }

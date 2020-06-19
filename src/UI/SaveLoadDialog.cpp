@@ -198,7 +198,7 @@ struct SaveLoadDialog::Impl {
     if (!pEngine)
       return;
 
-    TextureManager &tm = pEngine->getTextureManager();
+    ResourceManager &tm = pEngine->getTextureManager();
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 

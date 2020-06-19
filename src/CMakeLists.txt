@@ -6,7 +6,7 @@ link_directories(../extlibs/squirrel/squirrel/ ../extlibs/squirrel/sqstdlib/ ../
 set(SOURCES
         Game.cpp main.cpp Entities/Actor/Actor.cpp Entities/Objects/Animation.cpp Entities/Actor/Costume.cpp Entities/Actor/CostumeAnimation.cpp
         Engine/TextDatabase.cpp Engine/Engine.cpp Font/GGFont.cpp Entities/Actor/CostumeLayer.cpp Entities/Objects/Object.cpp Room/Room.cpp
-        Scripting/ScriptEngine.cpp Graphics/TextureManager.cpp Math/PathFinding/Walkbox.cpp Entities/Objects/TextObject.cpp Room/RoomLayer.cpp Parsers/Lip.cpp
+        Scripting/ScriptEngine.cpp Graphics/ResourceManager.cpp Math/PathFinding/Walkbox.cpp Entities/Objects/TextObject.cpp Room/RoomLayer.cpp Parsers/Lip.cpp
         Audio/SoundDefinition.cpp Graphics/SpriteSheet.cpp Parsers/YackTokenReader.cpp Parsers/YackParser.cpp
         Dialog/Ast.cpp Dialog/DialogManager.cpp Font/FntFont.cpp Graphics/Text.cpp
         Audio/SoundManager.cpp Engine/ActorIcons.cpp Engine/Inventory.cpp Math/PathFinding/Graph.cpp Math/PathFinding/PathFinder.cpp Parsers/GGPack.cpp  Parsers/GGPackValue.cpp Parsers/GGPackBufferStream

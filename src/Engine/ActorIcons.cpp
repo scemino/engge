@@ -177,7 +177,7 @@ void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon
 void ActorIcons::drawActorIcon(sf::RenderTarget &target, const std::string &icon, sf::Color backColor,
                                sf::Color frameColor, const sf::Vector2f &offset, sf::Uint8 alpha) const {
   sf::RenderStates states;
-  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   const auto &texture = gameSheet.getTexture();
   auto backRect = gameSheet.getRect("icon_background");
   auto backSpriteSourceSize = gameSheet.getSpriteSourceSize("icon_background");

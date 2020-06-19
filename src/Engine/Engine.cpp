@@ -331,7 +331,7 @@ struct Engine::Impl {
         auto callback = std::make_unique<Callback>(id, time, name, arg);
         _pImpl->_callbacks.push_back(std::move(callback));
       }
-      Locator<ResourceManager>::get().setCallbackId(hash["nextGuid"].getInt());
+      Locator<EntityManager>::get().setCallbackId(hash["nextGuid"].getInt());
     }
 
     void loadActors(const GGPackValue &hash) {
@@ -893,7 +893,7 @@ struct Engine::Impl {
         callbacksArray.array_value.push_back(callbackHash);
       }
 
-      auto &resourceManager = Locator<ResourceManager>::get();
+      auto &resourceManager = Locator<EntityManager>::get();
       auto id = resourceManager.getCallbackId();
       resourceManager.setCallbackId(id);
 
@@ -931,7 +931,7 @@ struct Engine::Impl {
 
   Engine *_pEngine{nullptr};
   std::unique_ptr<_DebugTools> _pDebugTools;
-  TextureManager &_textureManager;
+  ResourceManager &_textureManager;
   Room *_pRoom{nullptr};
   std::vector<std::unique_ptr<Actor>> _actors;
   std::vector<std::unique_ptr<Room>> _rooms;
@@ -1038,7 +1038,7 @@ struct Engine::Impl {
 };
 
 Engine::Impl::Impl()
-    : _textureManager(Locator<TextureManager>::get()),
+    : _textureManager(Locator<ResourceManager>::get()),
       _preferences(Locator<Preferences>::get()),
       _soundManager(Locator<SoundManager>::get()),
       _actorIcons(_actorsIconSlots, _hud, _pCurrentActor) {
@@ -1211,7 +1211,7 @@ void Engine::setWindow(sf::RenderWindow &window) { _pImpl->_pWindow = &window; }
 
 const sf::RenderWindow &Engine::getWindow() const { return *_pImpl->_pWindow; }
 
-TextureManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
+ResourceManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
 
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 
@@ -2194,7 +2194,7 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const {
   auto viewRect = sf::FloatRect(0, 0, 320, 176);
   target.setView(sf::View(viewRect));
 
-  auto &saveLoadSheet = Locator<TextureManager>::get().getSpriteSheet("SaveLoadSheet");
+  auto &saveLoadSheet = Locator<ResourceManager>::get().getSpriteSheet("SaveLoadSheet");
   auto viewCenter = sf::Vector2f(viewRect.width / 2, viewRect.height / 2);
   auto rect = saveLoadSheet.getRect("pause_dialog");
 
@@ -2242,7 +2242,7 @@ void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
 
   auto screen = _pWindow->getView().getSize();
   auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
-  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
 
   sf::RectangleShape shape;
   shape.setPosition(_mousePos);
@@ -2254,7 +2254,7 @@ void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
 }
 
 sf::IntRect Engine::Impl::getCursorRect() const {
-  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   if (_state == EngineState::Paused)
     return gameSheet.getRect("cursor_pause");
 
@@ -2389,7 +2389,7 @@ void Engine::Impl::drawNoOverride(sf::RenderTarget &target) const {
   if (_noOverrideElapsed > sf::seconds(2))
     return;
 
-  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   const auto view = target.getView();
   target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
 

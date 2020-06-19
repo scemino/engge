@@ -11,7 +11,7 @@ class Graph;
 class Light;
 class Object;
 class RoomScaling;
-class TextureManager;
+class ResourceManager;
 class TextObject;
 class ThreadBase;
 class Walkbox;

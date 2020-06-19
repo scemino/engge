@@ -5,8 +5,8 @@
 #include "UI/OptionsDialog.hpp"
 #include "UI/SaveLoadDialog.hpp"
 #include "UI/StartScreenDialog.hpp"
+#include <utility>
 #include "UI/QuitDialog.hpp"
-#include "imgui.h"
 
 namespace ng {
 struct StartScreenDialog::Impl {
@@ -168,10 +168,10 @@ void StartScreenDialog::update(const sf::Time &elapsed) {
 }
 
 void StartScreenDialog::setNewGameCallback(Callback callback) {
-  _pImpl->_newGameCallback = callback;
+  _pImpl->_newGameCallback = std::move(callback);
 }
 
 void StartScreenDialog::setSlotCallback(SaveLoadDialog::SlotCallback callback) {
-  _pImpl->_saveload.setSlotCallback(callback);
+  _pImpl->_saveload.setSlotCallback(std::move(callback));
 }
 }

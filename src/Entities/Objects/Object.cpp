@@ -3,7 +3,7 @@
 #include "Entities/Objects/AnimationFrame.hpp"
 #include "Engine/Function.hpp"
 #include "System/Locator.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Room/Room.hpp"
 #include "Graphics/Screen.hpp"
 #include "Scripting/ScriptEngine.hpp"
@@ -64,12 +64,12 @@ struct Object::Impl {
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
-  _id = Locator<ResourceManager>::get().getObjectId();
+  _id = Locator<EntityManager>::get().getObjectId();
   ScriptEngine::set(this, "_id", _id);
 }
 
 Object::Object(HSQOBJECT obj) : pImpl(std::make_unique<Impl>(obj)) {
-  _id = Locator<ResourceManager>::get().getObjectId();
+  _id = Locator<EntityManager>::get().getObjectId();
   ScriptEngine::set(this, "_id", _id);
 }
 
@@ -435,7 +435,7 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
   if (!showHotspot)
     return;
 
-  auto &gameSheet = Locator<TextureManager>::get().getSpriteSheet("GameSheet");
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   sf::Sprite s(gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
   s.setColor(sf::Color(255, 165, 0));
   s.setScale(0.25f, 0.25f);

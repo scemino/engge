@@ -29,7 +29,7 @@ private:
   void processEvents();
   void update(const sf::Time &time);
   void render();
-  sf::Uint32 getStyle() const;
+  static sf::Uint32 getStyle() ;
 
   Engine *_pEngine{};
   sf::RenderWindow _window;

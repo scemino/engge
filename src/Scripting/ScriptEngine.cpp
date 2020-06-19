@@ -11,7 +11,7 @@
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Engine/ExCommandConstants.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Room/Room.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundDefinition.hpp"
@@ -82,15 +82,15 @@ TScriptObject *ScriptEngine::getScriptObject(HSQUIRRELVM v, SQInteger index) {
 
 template<typename TScriptObject>
 TScriptObject *ScriptEngine::getScriptObjectFromId(int id) {
-  if (ResourceManager::isActor(id)) {
+  if (EntityManager::isActor(id)) {
     return dynamic_cast<TScriptObject *>(getActorFromId(id));
   }
 
-  if (ResourceManager::isRoom(id)) {
+  if (EntityManager::isRoom(id)) {
     return dynamic_cast<TScriptObject *>(getRoomFromId(id));
   }
 
-  if (ResourceManager::isLight(id)) {
+  if (EntityManager::isLight(id)) {
     for (auto &&room : g_pEngine->getRooms()) {
       for (auto &&light : room->getLights()) {
         if (light->getId() == id)
@@ -100,11 +100,11 @@ TScriptObject *ScriptEngine::getScriptObjectFromId(int id) {
     return nullptr;
   }
 
-  if (ResourceManager::isObject(id)) {
+  if (EntityManager::isObject(id)) {
     return dynamic_cast<TScriptObject *>(getObjectFromId(id));
   }
 
-  if (ResourceManager::isSound(id)) {
+  if (EntityManager::isSound(id)) {
     return dynamic_cast<TScriptObject *>(getSoundFromId(id));
   }
 
@@ -112,7 +112,7 @@ TScriptObject *ScriptEngine::getScriptObjectFromId(int id) {
 }
 
 Actor *ScriptEngine::getActorFromId(int id) {
-  if (!ResourceManager::isActor(id))
+  if (!EntityManager::isActor(id))
     return nullptr;
 
   for (auto &&actor : g_pEngine->getActors()) {
@@ -123,7 +123,7 @@ Actor *ScriptEngine::getActorFromId(int id) {
 }
 
 Object *ScriptEngine::getObjectFromId(int id) {
-  if (!ResourceManager::isObject(id))
+  if (!EntityManager::isObject(id))
     return nullptr;
   auto currentRoom = g_pEngine->getRoom();
   if(currentRoom) {
@@ -142,7 +142,7 @@ Object *ScriptEngine::getObjectFromId(int id) {
 }
 
 Room *ScriptEngine::getRoomFromId(int id) {
-  if (!ResourceManager::isRoom(id))
+  if (!EntityManager::isRoom(id))
     return nullptr;
   for (auto &&room : g_pEngine->getRooms()) {
     if (room->getId() == id)
@@ -152,7 +152,7 @@ Room *ScriptEngine::getRoomFromId(int id) {
 }
 
 Sound *ScriptEngine::getSoundFromId(int id) {
-  if (!ResourceManager::isSound(id))
+  if (!EntityManager::isSound(id))
     return nullptr;
 
   for (auto &&sound : g_pEngine->getSoundManager().getSoundDefinitions()) {
@@ -168,7 +168,7 @@ Sound *ScriptEngine::getSoundFromId(int id) {
 }
 
 ThreadBase *ScriptEngine::getThreadFromId(int id) {
-  if (!ResourceManager::isThread(id))
+  if (!EntityManager::isThread(id))
     return nullptr;
 
   auto &threads = g_pEngine->getThreads();

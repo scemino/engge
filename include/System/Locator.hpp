@@ -3,7 +3,7 @@
 
 namespace ng {
 class Logger;
-class ResourceManager;
+class EntityManager;
 
 template<typename TService>
 struct Locator {

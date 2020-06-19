@@ -9,7 +9,7 @@ class GGFont;
 class SpriteSheet;
 
 // should be renamed to ResourceManager
-class TextureManager : public NonCopyable {
+class ResourceManager : public NonCopyable {
 private:
   std::map<std::string, std::shared_ptr<sf::Texture>> _textureMap;
   std::map<std::string, std::shared_ptr<GGFont>> _fontMap;
@@ -17,8 +17,8 @@ private:
   std::map<std::string, std::shared_ptr<SpriteSheet>> _spriteSheetMap;
 
 public:
-  TextureManager();
-  ~TextureManager();
+  ResourceManager();
+  ~ResourceManager();
 
   const sf::Texture &get(const std::string &id);
   const GGFont &getFont(const std::string &id);

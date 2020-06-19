@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <map>
-#include "Graphics/TextureManager.hpp"
+#include "Graphics/ResourceManager.hpp"
 
 namespace ng {
 class SpriteSheet {
@@ -9,7 +9,7 @@ public:
   SpriteSheet();
   ~SpriteSheet() = default;
 
-  void setTextureManager(TextureManager *pTextureManager) { _pTextureManager = pTextureManager; }
+  void setTextureManager(ResourceManager *pTextureManager) { _pTextureManager = pTextureManager; }
   void load(const std::string &name);
   const sf::Texture &getTexture() const { return _texture; }
   bool hasRect(const std::string &name) const;
@@ -18,7 +18,7 @@ public:
   sf::Vector2i getSourceSize(const std::string &name) const;
 
 private:
-  TextureManager *_pTextureManager{nullptr};
+  ResourceManager *_pTextureManager{nullptr};
   sf::Texture _texture;
   std::map<std::string, sf::IntRect> _rects;
   std::map<std::string, sf::IntRect> _spriteSourceSize;

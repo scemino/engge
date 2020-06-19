@@ -14,7 +14,6 @@
 #include "UI/SaveLoadDialog.hpp"
 #include "UI/QuitDialog.hpp"
 #include <utility>
-#include "imgui.h"
 
 namespace ng {
 struct OptionsDialog::Impl {
@@ -87,7 +86,7 @@ struct OptionsDialog::Impl {
   }
 
   void setHeading(int id) {
-    _headingText.setString(_pEngine->getText(id));
+    _headingText.setString(Engine::getText(id));
     auto textRect = _headingText.getGlobalBounds();
     _headingText.setPosition(sf::Vector2f((Screen::Width - textRect.width) / 2.f, yPosStart - textRect.height / 2));
   }
@@ -392,7 +391,7 @@ struct OptionsDialog::Impl {
     sf::Sprite sprite;
     sprite.setPosition(viewCenter);
     sprite.setTexture(_saveLoadSheet.getTexture());
-    sprite.setOrigin(static_cast<float>(rect.width / 2), static_cast<float>(rect.height / 2));
+    sprite.setOrigin(static_cast<float>(rect.width / 2.f), static_cast<float>(rect.height / 2.f));
     sprite.setTextureRect(rect);
     target.draw(sprite);
 

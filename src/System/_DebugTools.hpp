@@ -35,6 +35,27 @@ public:
 
   void render() {
     ImGui::Begin("Debug");
+
+    showGeneral();
+    showGlobalsTable();
+    showConsole();
+    showCamera();
+    showInputState();
+    showPrefs();
+
+    showActors();
+    showObjects();
+    showRooms();
+    showSounds();
+    showThreads();
+    showRoomTable();
+    showActorTable();
+
+    ImGui::End();
+  }
+
+private:
+  void showGeneral() {
     std::stringstream s;
     s << "Stack: " << sq_gettop(ScriptEngine::getVm());
     std::vector<std::string> stack;
@@ -57,30 +78,14 @@ public:
       _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
     }
     ImGui::Checkbox("Show cursor position", &_DebugFeatures::showCursorPosition);
+    ImGui::Checkbox("Show hovered object", &_DebugFeatures::showHoveredObject);
     ImGui::Checkbox("Console", &_consoleVisible);
     ImGui::SameLine();
     if (ImGui::SmallButton("Globals...")) {
       _showGlobalsTable = true;
     }
-
-    showGlobalsTable();
-    showConsole();
-    showCamera();
-    showInputState();
-    showPrefs();
-
-    showActors();
-    showObjects();
-    showRooms();
-    showSounds();
-    showThreads();
-    showRoomTable();
-    showActorTable();
-
-    ImGui::End();
   }
 
-private:
   void createTree(const char *tableKey, HSQOBJECT obj) {
     if (ImGui::TreeNode(tableKey, "%s = {}", tableKey)) {
       ImGui::PushID(tableKey);
@@ -333,17 +338,17 @@ private:
       case OT_TABLE: {
         int id;
         if (ScriptEngine::rawGet(obj, "_id", id)) {
-          if (ResourceManager::isActor(id)) {
+          if (EntityManager::isActor(id)) {
             s << "actor";
-          } else if (ResourceManager::isRoom(id)) {
+          } else if (EntityManager::isRoom(id)) {
             s << "room";
-          } else if (ResourceManager::isObject(id)) {
+          } else if (EntityManager::isObject(id)) {
             s << "object";
-          } else if (ResourceManager::isLight(id)) {
+          } else if (EntityManager::isLight(id)) {
             s << "light";
-          } else if (ResourceManager::isSound(id)) {
+          } else if (EntityManager::isSound(id)) {
             s << "sound";
-          } else if (ResourceManager::isThread(id)) {
+          } else if (EntityManager::isThread(id)) {
             s << "thread table";
           } else {
             s << "table";
@@ -640,8 +645,6 @@ private:
   void showObjects() {
     if (!ImGui::CollapsingHeader("Objects"))
       return;
-
-    ImGui::Checkbox("Show hovered object", &_DebugFeatures::showHoveredObject);
 
     auto &objects = _engine.getRoom()->getObjects();
 

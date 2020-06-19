@@ -3,12 +3,12 @@
 #include "Scripting/ScriptObject.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
-#include "Engine/ResourceManager.hpp"
+#include "Engine/EntityManager.hpp"
 
 namespace ng {
 class ThreadBase : public ScriptObject {
 protected:
-  ThreadBase() { _id = Locator<ResourceManager>::get().getThreadId(); }
+  ThreadBase() { _id = Locator<EntityManager>::get().getThreadId(); }
 
 public:
   ~ThreadBase() override {
