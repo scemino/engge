@@ -1,5 +1,6 @@
-#include <utility>
 #include <memory>
+#include <optional>
+#include <utility>
 #include "Entities/Entity.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundTrigger.hpp"
@@ -29,6 +30,31 @@ struct Entity::Impl {
 
   Impl() : _engine(ng::Locator<ng::Engine>::get()) {
     _talkingState.setEngine(&_engine);
+  }
+
+  static const Entity *getEntity(const Entity *pEntity) {
+    // if an actor has the same name then get its flags
+    const auto &actors = Locator<Engine>::get().getActors();
+    auto itActor = std::find_if(actors.cbegin(), actors.cend(), [pEntity](const auto &pActor) -> bool {
+      return pActor->getName() == pEntity->getName();
+    });
+    if (itActor != actors.cend()) {
+      return itActor->get();
+    }
+    return nullptr;
+  }
+
+  static std::optional<int> getDefaultVerb(const Entity *pEntity) {
+    if(!pEntity) return std::nullopt;
+
+    const char *dialog = nullptr;
+    if (ScriptEngine::rawGet(pEntity, "dialog", dialog))
+      return std::make_optional(VerbConstants::VERB_TALKTO);
+
+    int value = 0;
+    if(ScriptEngine::rawGet(pEntity, "defaultVerb", value))
+      return std::make_optional(value);
+    return std::nullopt;
   }
 };
 
@@ -183,6 +209,12 @@ void Entity::setKey(const std::string &key) { pImpl->_key = key; }
 
 const std::string &Entity::getKey() const { return pImpl->_key; }
 
+uint32_t Entity::getFlags() const {
+  int flags = 0;
+  ScriptEngine::rawGet(this, "flags", flags);
+  return (uint32_t) flags;
+}
+
 void Entity::setTouchable(bool isTouchable) {
   pImpl->_isTouchable = isTouchable;
 }
@@ -289,5 +321,13 @@ void Entity::say(const std::string &text, bool mumble) {
 void Entity::stopTalking() { pImpl->_talkingState.stop(); }
 
 bool Entity::isTalking() const { return pImpl->_talkingState.isTalking(); }
+
+int Entity::getDefaultVerb(int defaultVerbId) const {
+  auto result = pImpl->getDefaultVerb(this);
+  if(result.has_value()) return result.value();
+
+  result = pImpl->getDefaultVerb(pImpl->getEntity(this));
+  return result.value_or(defaultVerbId);
+}
 
 } // namespace ng

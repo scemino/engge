@@ -97,7 +97,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   }
   auto verbId = pVerb->id;
   if (_pHoveredEntity && verbId == VerbConstants::VERB_WALKTO) {
-    verbId = getDefaultVerb(_pHoveredEntity);
+    verbId = _pHoveredEntity->getDefaultVerb(VerbConstants::VERB_LOOKAT);
   } else {
     for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
       if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
@@ -199,18 +199,6 @@ std::string Hud::getVerbName(const Verb &verb) {
   std::string s;
   s.append(verb.image).append(isRetro ? "_retro" : "").append("_").append(lang);
   return s;
-}
-
-int Hud::getDefaultVerb(Entity *pEntity) {
-  const char *dialog = nullptr;
-  if (ScriptEngine::rawGet(pEntity, "dialog", dialog) && dialog)
-    return VerbConstants::VERB_TALKTO;
-
-  int value = 0;
-  if (ScriptEngine::rawGet(pEntity, "defaultVerb", value))
-    return value;
-
-  return VerbConstants::VERB_LOOKAT;
 }
 
 void Hud::setMousePosition(sf::Vector2f pos) {

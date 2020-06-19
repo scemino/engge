@@ -139,11 +139,11 @@ public:
   template<typename TResult, typename TThis, typename...T>
   static bool rawCallFunc(TResult &result, TThis pThis, const char *name, T... args);
 
-  static void registerErrorCallback(const PrintCallback& callback) {
+  static void registerErrorCallback(const PrintCallback &callback) {
     _errorCallbacks.push_back(callback);
   }
 
-  static void registerPrintCallback(const PrintCallback& callback) {
+  static void registerPrintCallback(const PrintCallback &callback) {
     _printCallbacks.push_back(callback);
   }
 
@@ -411,7 +411,9 @@ bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T
   }
 
   ScriptEngine::push(v, pThis);
-  ScriptEngine::push(v, std::forward<T>(args)...);
+  if constexpr(n > 0) {
+    ScriptEngine::push(v, std::forward<T>(args)...);
+  }
   if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue))) {
     sqstd_printcallstack(v);
     sq_settop(v, top);

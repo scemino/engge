@@ -29,7 +29,6 @@ struct OptionsDialog::Impl {
     inline static const int Back = 99904;
     inline static const int LoadGame = 99910;
     inline static const int SaveGame = 99911;
-    inline static const int NewGame = 99912;
     inline static const int Options = 99913;
     inline static const int Credits = 99914;
     inline static const int Quit = 99915;

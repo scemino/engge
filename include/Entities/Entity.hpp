@@ -29,10 +29,12 @@ class Trigger;
 class Entity : public ScriptObject, public sf::Drawable {
 public:
   Entity();
-  virtual ~Entity();
+  ~Entity() override;
 
   void setKey(const std::string &key);
-  const std::string &getKey() const;
+  [[nodiscard]] const std::string &getKey() const;
+
+  uint32_t getFlags() const;
 
   virtual void update(const sf::Time &elapsed);
   virtual int getZOrder() const = 0;
@@ -115,8 +117,11 @@ public:
   void stopTalking();
   bool isTalking() const;
 
+  int getDefaultVerb(int defaultVerbId) const;
+
 private:
   static void update(Motor &motor, const sf::Time &elapsed);
+
 
 protected:
   sf::Transformable getTransform() const;

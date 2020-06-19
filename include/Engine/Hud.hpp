@@ -56,7 +56,7 @@ public:
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   static std::string getVerbName(const Verb &verb);
-  static int getDefaultVerb(Entity *pEntity);
+  static Entity *getEntity(Entity *pEntity);
 
 private:
   std::array<VerbSlot, 6> _verbSlots;

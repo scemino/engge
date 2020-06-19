@@ -21,6 +21,7 @@ bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, int &result) {
 template<>
 bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, const char *&result) {
   const SQChar *text = nullptr;
+  if(sq_gettype(v, index) == OT_NULL) return true;
   auto status = SQ_SUCCEEDED(sq_getstring(v, index, &text));
   result = text;
   return status;
@@ -109,6 +110,15 @@ void ScriptEngine::push<sf::Vector2f>(HSQUIRRELVM v, sf::Vector2f pos) {
 
 template<>
 void ScriptEngine::push<Entity *>(HSQUIRRELVM v, Entity *pEntity) {
+  if (!pEntity) {
+    sq_pushnull(v);
+    return;
+  }
+  sq_pushobject(v, pEntity->getTable());
+}
+
+template<>
+void ScriptEngine::push<const Entity *>(HSQUIRRELVM v, const Entity *pEntity) {
   if (!pEntity) {
     sq_pushnull(v);
     return;

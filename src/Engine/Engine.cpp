@@ -38,7 +38,7 @@
 #include <cctype>
 #include <cwchar>
 #include <filesystem>
-#include <iostream>
+#include <iomanip>
 #include <memory>
 #include <set>
 #include <string>
@@ -540,9 +540,9 @@ struct Engine::Impl {
           // TODO: other types
           auto s = getValue(property.second);
           warn("load: object {} property '{}' not loaded (type={}): {}",
-                pObj->getKey(),
-                property.first,
-                static_cast<int>(property.second.type), s);
+               pObj->getKey(),
+               property.first,
+               static_cast<int>(property.second.type), s);
           continue;
         }
 
@@ -1004,9 +1004,8 @@ struct Engine::Impl {
   void updateScreenSize() const;
   void updateRoomScalings() const;
   void setCurrentRoom(Room *pRoom);
-  int getFlags(int id) const;
-  int getFlags(Entity *pEntity) const;
-  int getDefaultVerb(Entity *pEntity) const;
+  uint32_t getFlags(int id) const;
+  uint32_t getFlags(Entity *pEntity) const;
   Entity *getHoveredEntity(const sf::Vector2f &mousPos);
   void actorEnter() const;
   void actorExit() const;
@@ -1035,6 +1034,7 @@ struct Engine::Impl {
   void selectPreviousActor();
   void selectNextActor();
   void selectChoice(int index);
+  bool hasFlag(int id, uint32_t flagToTest);
 };
 
 Engine::Impl::Impl()
@@ -1391,19 +1391,6 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
   return 0;
 }
 
-int Engine::Impl::getDefaultVerb(Entity *pEntity) const {
-  pEntity = getEntity(pEntity);
-  const char *dialog = nullptr;
-  if (ScriptEngine::rawGet(pEntity, "dialog", dialog) && dialog)
-    return VerbConstants::VERB_TALKTO;
-
-  int value = 0;
-  if (ScriptEngine::rawGet(pEntity, "defaultVerb", value))
-    return value;
-
-  return VerbConstants::VERB_LOOKAT;
-}
-
 void Engine::Impl::updateScreenSize() const {
   if (!_pRoom)
     return;
@@ -1704,7 +1691,7 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   }
 
   if (_objId1 && isRightClick) {
-    _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1))));
+    _hud.setVerbOverride(_hud.getVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(VerbConstants::VERB_LOOKAT)));
   }
 
   auto verbId = _hud.getCurrentVerb()->id;
@@ -1712,28 +1699,24 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   case VerbConstants::VERB_WALKTO: {
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
     if (pObj1 && pObj1->isInventoryObject()) {
-      _hud.setVerbOverride(_hud.getVerb(getDefaultVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1))));
+      _hud.setVerbOverride(_hud.getVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(VerbConstants::VERB_LOOKAT)));
     }
     break;
   }
-  case VerbConstants::VERB_TALKTO: {
+  case VerbConstants::VERB_TALKTO:
     // select actor/object only if talkable flag is set
-    auto flags = getFlags(_objId1);
-    if (!(flags & ObjectFlagConstants::TALKABLE))
+    if (!hasFlag(_objId1, ObjectFlagConstants::TALKABLE)) {
       _objId1 = 0;
+    }
     break;
-  }
   case VerbConstants::VERB_GIVE: {
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
     if (!pObj1->isInventoryObject())
       _objId1 = 0;
 
     // select actor/object only if giveable flag is set
-    if (_pObj2) {
-      auto flags = getFlags(_pObj2);
-      if (!(flags & ObjectFlagConstants::GIVEABLE))
-        _pObj2 = nullptr;
-    }
+    if (_pObj2 && !hasFlag(_pObj2->getId(), ObjectFlagConstants::GIVEABLE))
+      _pObj2 = nullptr;
     break;
   }
   default: {
@@ -1760,19 +1743,24 @@ Entity *Engine::Impl::getEntity(Entity *pEntity) const {
   return pEntity;
 }
 
-int Engine::Impl::getFlags(int id) const {
-  return getFlags(ScriptEngine::getScriptObjectFromId<Entity>(id));
+bool Engine::Impl::hasFlag(int id, uint32_t flagToTest) {
+  auto pObj = ScriptEngine::getScriptObjectFromId<Entity>(id);
+  auto flags = getFlags(pObj);
+  if (flags & flagToTest)
+    return true;
+  auto pActor = getEntity(pObj);
+  flags = getFlags(pActor);
+  return flags & flagToTest;
 }
 
-int Engine::Impl::getFlags(Entity *pEntity) const {
-  if (!pEntity)
-    return 0;
+uint32_t Engine::Impl::getFlags(int id) const {
+  auto pEntity = ScriptEngine::getScriptObjectFromId<Entity>(id);
+  return getFlags(pEntity);
+}
 
-  pEntity = getEntity(pEntity);
-
-  int flags = 0;
-  ScriptEngine::rawGet(pEntity, "flags", flags);
-  return flags;
+uint32_t Engine::Impl::getFlags(Entity* pEntity) const {
+  if(pEntity) return pEntity->getFlags();
+  return 0;
 }
 
 void Engine::Impl::updateRoomScalings() const {
@@ -1901,7 +1889,7 @@ void Engine::update(const sf::Time &el) {
 
   _pImpl->_hud.setActive(_pImpl->_inputVerbsActive && _pImpl->_dialogManager.getState() == DialogManagerState::None
                              && _pImpl->_pRoom->getFullscreen() != 1);
-  _pImpl->_hud.setHoveredEntity(_pImpl->getEntity(_pImpl->getHoveredEntity(_pImpl->_mousePosInRoom)));
+  _pImpl->_hud.setHoveredEntity(_pImpl->getHoveredEntity(_pImpl->_mousePosInRoom));
   _pImpl->updateHoveredEntity(isRightClick);
 
   if (_pImpl->_pCurrentActor) {
@@ -1965,8 +1953,8 @@ void Engine::update(const sf::Time &el) {
     }
     pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_pImpl->_objId1);
-    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(pObj1) : pObj1;
-    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->getEntity(_pImpl->_pObj2) : _pImpl->_pObj2;
+    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? pObj1 : pObj1;
+    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->_pObj2 : _pImpl->_pObj2;
     if (pObj1) {
       _pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
     }
@@ -2312,13 +2300,9 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
   if (!pVerb || pVerb->id != VerbConstants::VERB_WALKTO)
     return pVerb;
 
-  const char *dialog = nullptr;
   auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
-  pObj1 = getEntity(pObj1);
-  if (pObj1 && ScriptEngine::rawGet(pObj1, "dialog", dialog) && dialog) {
-    pVerb = _hud.getVerb(VerbConstants::VERB_TALKTO);
-  }
-  return pVerb;
+  if(!pObj1) return pVerb;
+  return _hud.getVerb(pObj1->getDefaultVerb(VerbConstants::VERB_WALKTO));
 }
 
 void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
@@ -2360,10 +2344,9 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
     s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
-    if(_DebugFeatures::showHoveredObject) {
-      auto pObj = dynamic_cast<Object *>(pObj1);
-      if (pObj) {
-        s.append(L"(").append(towstring(pObj->getKey())).append(L")");
+    if (_DebugFeatures::showHoveredObject) {
+      if (pObj1) {
+        s.append(L"(").append(towstring(pObj1->getKey())).append(L")");
       }
     }
   }
@@ -2378,11 +2361,11 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   text.setString(s);
 
   // do display cursor position:
-  if(_DebugFeatures::showCursorPosition) {
-     std::wstringstream ss;
-     std::wstring txt = text.getString();
-     ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
-     text.setString(ss.str());
+  if (_DebugFeatures::showCursorPosition) {
+    std::wstringstream ss;
+    std::wstring txt = text.getString();
+    ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
+    text.setString(ss.str());
   }
 
   auto screenSize = _pRoom->getScreenSize();

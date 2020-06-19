@@ -11,13 +11,18 @@ namespace ng {
 
 class _ActorWalk : public Function {
 public:
-  _ActorWalk(Actor &actor, Entity *pEntity, Sentence *pSentence) : _actor(actor), _pEntity(pEntity), _pSentence(pSentence) {
-    auto pos = pEntity->getRealPosition();
+  _ActorWalk(Engine &engine, Actor &actor, Entity *pEntity, Sentence *pSentence, const Verb *pVerb)
+      : _engine(engine), _actor(actor), _pEntity(pEntity), _pSentence(pSentence), _pVerb(pVerb) {
+    auto pActor = dynamic_cast<Actor *>(pEntity);
+    auto pos = pEntity->getPosition();
     auto usePos = pEntity->getUsePosition().value_or(sf::Vector2f());
     auto facing = getFacing(pEntity);
-    auto dest = pos + usePos;
-    _path = _actor.walkTo(pos + usePos, facing);
-    _isDestination = _path.back() == dest;
+    auto destination = pActor ? pos : pos + usePos;
+    _path = _actor.walkTo(destination, facing);
+    int useDist = 0;
+    ScriptEngine::rawGet(pEntity, "useDist", useDist);
+    useDist = std::max(useDist, 4);
+    _isDestination = distance(_path.back(), destination) <= static_cast<float>(useDist);
   }
 
 private:
@@ -32,25 +37,44 @@ private:
 
 private:
   bool isElapsed() override {
-    if(_done) return true;
+    if (_done)
+      return true;
     auto isWalking = _actor.isWalking();
-    if(!isWalking) {
-      _done = true;
-      auto pos = _actor.getPosition();
-      if(!_isDestination){
-        _pSentence->stop();
-        if(_path.back() == pos) {
-          ScriptEngine::objCall(_pEntity, "verbCantReach");
-        }
-      }
+    if (isWalking)
+      return false;
+
+    _done = true;
+    auto pos = _actor.getPosition();
+    if (_isDestination)
+      return true;
+
+    // to talk to someone, there's no need to reach him
+    if (_pVerb->id == VerbConstants::VERB_TALKTO)
+      return true;
+
+    _pSentence->stop();
+    if (_path.back() != pos)
+      return true;
+
+    if (ScriptEngine::rawExists(_pEntity, "verbCantReach")) {
+      ScriptEngine::objCall(_pEntity, "verbCantReach");
+      return true;
     }
-    return _done;
+    callDefaultObjectVerb();
+    return true;
+  }
+
+  void callDefaultObjectVerb() {
+    auto &obj = _engine.getDefaultObject();
+    ScriptEngine::objCall(obj, "verbCantReach", _pEntity, nullptr);
   }
 
 private:
+  Engine &_engine;
   Actor &_actor;
   Entity *_pEntity;
   Sentence *_pSentence;
+  const Verb *_pVerb;
   std::vector<sf::Vector2f> _path;
   bool _isDestination;
   bool _done{false};
@@ -58,18 +82,18 @@ private:
 
 class _PostWalk : public Function {
 public:
-  _PostWalk(Sentence &sentence, Entity *pObject, Entity *pObject2, int verb)
-      : _sentence(sentence), _pObject(pObject), _pObject2(pObject2), _verb(verb) {
+  _PostWalk(Sentence &sentence, Entity *pObject1, Entity *pObject2, int verb)
+      : _sentence(sentence), _pObject1(pObject1), _pObject2(pObject2), _verb(verb) {
   }
 
   bool isElapsed() override { return _done; }
 
   void operator()(const sf::Time &) override {
-    auto *pObj = dynamic_cast<Object *>(_pObject);
+    auto *pObj = dynamic_cast<Object *>(_pObject1);
     auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
     bool handled = false;
-    if (ScriptEngine::rawExists(_pObject, functionName)) {
-      ScriptEngine::callFunc(handled, _pObject, functionName, _verb, _pObject, _pObject2);
+    if (ScriptEngine::rawExists(_pObject1, functionName)) {
+      ScriptEngine::callFunc(handled, _pObject1, functionName, _verb, _pObject1, _pObject2);
     }
     if (handled) {
       _sentence.stop();
@@ -79,7 +103,7 @@ public:
 
 private:
   Sentence &_sentence;
-  Entity *_pObject{nullptr};
+  Entity *_pObject1{nullptr};
   Entity *_pObject2{nullptr};
   int _verb{0};
   bool _done{false};
@@ -108,14 +132,12 @@ class _ReachAnim : public Function {
 public:
   _ReachAnim(Actor &actor, Entity *obj)
       : _actor(actor), _pObject(obj) {
-    int flags = 0;
-    ScriptEngine::get(_pObject, "flags", flags);
-
-    if ((flags & ObjectFlagConstants::REACH_HIGH) == ObjectFlagConstants::REACH_HIGH) {
+    auto flags = _pObject->getFlags();
+    if (flags & ObjectFlagConstants::REACH_HIGH) {
       _reaching = Reaching::High;
-    } else if ((flags & ObjectFlagConstants::REACH_MED) == ObjectFlagConstants::REACH_MED) {
+    } else if (flags & ObjectFlagConstants::REACH_MED) {
       _reaching = Reaching::Medium;
-    } else if ((flags & ObjectFlagConstants::REACH_LOW) == ObjectFlagConstants::REACH_LOW) {
+    } else if (flags & ObjectFlagConstants::REACH_LOW) {
       _reaching = Reaching::Low;
     } else {
       _state = 2;
@@ -157,73 +179,10 @@ private:
   sf::Time _elapsed;
 };
 
-class _GiveFunction : public Function {
-public:
-  _GiveFunction(Actor *pActor, Entity *pObject, Sentence *pSentence)
-      : _pActor(pActor), _pObject(pObject), _pSentence(pSentence) {
-  }
-
-private:
-  bool isElapsed() override { return _done; }
-
-  void operator()(const sf::Time &) override {
-    bool result = false;
-    if (ScriptEngine::callFunc(result, _pActor, "verbGive", _pObject) && result) {
-      _pSentence->stop();
-    }
-    _done = true;
-  }
-
-private:
-  Actor *_pActor{nullptr};
-  Entity *_pObject{nullptr};
-  Sentence *_pSentence{nullptr};
-  bool _done{false};
-};
-
-class _TalkToFunction : public Function {
-public:
-  _TalkToFunction(Engine &engine, Actor *pActor, Entity *pEntity, Sentence *pSentence)
-      : _engine(engine), _pActor(pActor), _pEntity(pEntity), _pSentence(pSentence) {
-  }
-
-private:
-  bool isElapsed() override { return _done; }
-
-  void operator()(const sf::Time &) override {
-    if (!_pEntity || !ScriptEngine::objCall(_pEntity, "verbTalkTo")) {
-      if (!callVerbDefault()) {
-        if (!callDefaultObjectVerb()) {
-          _pSentence->stop();
-        }
-      }
-    }
-    _done = true;
-  }
-
-  bool callDefaultObjectVerb() {
-    auto &obj = _engine.getDefaultObject();
-    auto pActor = _engine.getCurrentActor();
-
-    return ScriptEngine::objCall(obj, "verbTalkTo", _pEntity, pActor);
-  }
-
-  bool callVerbDefault() {
-    return ScriptEngine::objCall(_pActor, "verbDefault");
-  }
-
-private:
-  Engine &_engine;
-  Actor *_pActor{nullptr};
-  Entity *_pEntity{nullptr};
-  Sentence *_pSentence{nullptr};
-  bool _done{false};
-};
-
 class _VerbExecute : public Function {
 public:
-  _VerbExecute(Engine &engine, Actor &actor, Entity &object, Entity *pObject2, const Verb *pVerb)
-      : _engine(engine), _pVerb(pVerb), _object(object), _pObject2(pObject2), _actor(actor) {
+  _VerbExecute(Engine &engine, Actor &actor, Entity *pObject1, Entity *pObject2, const Verb *pVerb)
+      : _engine(engine), _pVerb(pVerb), _pObject1(pObject1), _pObject2(pObject2), _actor(actor) {
   }
 
 private:
@@ -231,57 +190,66 @@ private:
 
   void operator()(const sf::Time &) override {
     _done = true;
-
-    bool success = false;
-    auto count = ScriptEngine::getParameterCount(&_object, _pVerb->func.data());
-
-    bool executeVerb = true;
+    auto executeVerb = true;
     if (_pVerb->id == VerbConstants::VERB_GIVE && _pObject2) {
       bool selectable = true;
       ScriptEngine::rawGet(_pObject2, "selectable", selectable);
       executeVerb = !selectable;
     }
+
+    auto handled = false;
     if (executeVerb) {
-      if (count == 2) {
-        success = ScriptEngine::objCall(&_object, _pVerb->func.data(), _pObject2);
-      } else {
-        success = ScriptEngine::objCall(&_object, _pVerb->func.data());
+      if (!ScriptEngine::rawExists(&_actor, _pVerb->func.data())) {
+        handled = false;
+      } else if (_pVerb->id == VerbConstants::VERB_GIVE) {
+        handled = ScriptEngine::objCall(&_actor, _pVerb->func.data(), _pObject1);
+      } else if (_pVerb->id == VerbConstants::VERB_TALKTO) {
+        ScriptEngine::objCall(_pObject1, _pVerb->func.data());
+        handled = true;
+      }
+
+      if (!handled) {
+        auto count = ScriptEngine::getParameterCount(_pObject1, _pVerb->func.data());
+        if (!ScriptEngine::rawExists(_pObject1, _pVerb->func.data())) {
+          handled = false;
+        } else if (count == 2) {
+          handled = ScriptEngine::objCall(_pObject1, _pVerb->func.data(), _pObject2);
+        } else {
+          handled = ScriptEngine::objCall(_pObject1, _pVerb->func.data());
+        }
       }
     }
 
-    if (success) {
+    if (handled) {
       onPickup();
       return;
     }
 
     if (_pVerb->id == VerbConstants::VERB_GIVE) {
-      ScriptEngine::call("objectGive", &_object, &_actor, _pObject2);
+      ScriptEngine::call("objectGive", _pObject1, &_actor, _pObject2);
 
-      auto *pObject = dynamic_cast<Object *>(&_object);
+      auto *pObject = dynamic_cast<Object *>(_pObject1);
       auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
       _actor.giveTo(pObject, pActor2);
       return;
     }
 
-    if (callVerbDefault(&_object))
+    if (callVerbDefault(_pObject1))
       return;
 
-    if (callDefaultObjectVerb())
-      return;
+    callDefaultObjectVerb();
   }
 
   void onPickup() {
     if (_pVerb->id != VerbConstants::VERB_PICKUP)
       return;
 
-    ScriptEngine::call("onPickup", &_actor, &_object);
+    ScriptEngine::call("onPickup", &_actor, _pObject1);
   }
 
-  bool callDefaultObjectVerb() {
+  void callDefaultObjectVerb() {
     auto &obj = _engine.getDefaultObject();
-    auto pActor = _engine.getCurrentActor();
-
-    return ScriptEngine::objCall(obj, _pVerb->func.data(), pActor, &_object);
+    ScriptEngine::objCall(obj, _pVerb->func.data(), _pObject1, _pObject2);
   }
 
   static bool callVerbDefault(Entity *pEntity) {
@@ -291,7 +259,7 @@ private:
 private:
   Engine &_engine;
   const Verb *_pVerb{nullptr};
-  Entity &_object;
+  Entity *_pObject1{nullptr};
   Entity *_pObject2{nullptr};
   Actor &_actor;
   bool _done{false};
@@ -303,10 +271,14 @@ public:
 
 private:
   void execute(const Verb *pVerb, Entity *pObject1, Entity *pObject2) override {
-    auto obj = pObject1->getTable();
     getVerb(pObject1, pVerb);
     if (!pVerb)
       return;
+
+    // TODO: do it earlier
+    if(pVerb->id == VerbConstants::VERB_TALKTO) {
+      pObject2 = _engine.getCurrentActor();
+    }
 
     if (pVerb->id == VerbConstants::VERB_USE && !pObject2 && useFlags(pObject1))
       return;
@@ -322,73 +294,63 @@ private:
     auto pActor = _engine.getCurrentActor();
     if (!pActor)
       return;
-    Entity *pObj = pObject2 ? pObject2 : pObject1;
+
     auto sentence = std::make_unique<Sentence>();
-    if ((pVerb->id != VerbConstants::VERB_LOOKAT || !isFarLook(obj)) &&
-        !pObj->isInventoryObject()) {
-      auto walk = std::make_unique<_ActorWalk>(*pActor, pObj, sentence.get());
+    auto pObjToWalkTo =
+        (pVerb->id == VerbConstants::VERB_USE || pVerb->id == VerbConstants::VERB_GIVE) ? pObject2 : pObject1;
+    if (needsToWalkTo(pVerb->id, pObjToWalkTo)) {
+      auto walk = std::make_unique<_ActorWalk>(_engine, *pActor, pObjToWalkTo, sentence.get(), pVerb);
       sentence->push_back(std::move(walk));
-    }
-    auto postWalk = std::make_unique<_PostWalk>(*sentence, pObject1, pObject2, pVerb->id);
-    sentence->push_back(std::move(postWalk));
-
-    if (pVerb->id == VerbConstants::VERB_GIVE) {
-      auto pGiveActor = dynamic_cast<Actor *>(pObject2);
-      auto func = std::make_unique<_GiveFunction>(pGiveActor, pObject1, sentence.get());
-      sentence->push_back(std::move(func));
-    } else if (pVerb->id == VerbConstants::VERB_TALKTO) {
-      auto func = std::make_unique<_TalkToFunction>(_engine, pActor, pObject1, sentence.get());
-      sentence->push_back(std::move(func));
-      auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
-      sentence->push_back(std::move(setDefaultVerb));
-      _engine.setSentence(std::move(sentence));
-      return;
+      auto postWalk = std::make_unique<_PostWalk>(*sentence, pObject1, pObject2, pVerb->id);
+      sentence->push_back(std::move(postWalk));
     }
 
-    if (pVerb->id == VerbConstants::VERB_PICKUP || pVerb->id == VerbConstants::VERB_OPEN
-        || pVerb->id == VerbConstants::VERB_CLOSE ||
-        pVerb->id == VerbConstants::VERB_PUSH || pVerb->id == VerbConstants::VERB_PULL
-        || pVerb->id == VerbConstants::VERB_USE) {
+    if (needsReachAnim(pVerb->id)) {
       if (ScriptEngine::exists(pObject1, pVerb->func.data())) {
         auto reach = std::make_unique<_ReachAnim>(*pActor, pObject1);
         sentence->push_back(std::move(reach));
       }
     }
-    auto verb = std::make_unique<_VerbExecute>(_engine, *pActor, *pObject1, pObject2, pVerb);
+
+    auto verb = std::make_unique<_VerbExecute>(_engine, *pActor, pObject1, pObject2, pVerb);
     sentence->push_back(std::move(verb));
     auto setDefaultVerb = std::make_unique<_SetDefaultVerb>(_engine);
     sentence->push_back(std::move(setDefaultVerb));
     _engine.setSentence(std::move(sentence));
   }
 
-  static bool isFarLook(HSQOBJECT obj) {
-    auto flags = getFlags(obj);
-    return ((flags & 0x8) == 0x8);
+  static bool needsToWalkTo(int verbId, Entity *pObj) {
+    if (verbId == VerbConstants::VERB_LOOKAT && isFarLook(pObj))
+      return false;
+    return pObj && !pObj->isInventoryObject();
+  }
+
+  static bool needsReachAnim(int verbId) {
+    return verbId == VerbConstants::VERB_PICKUP || verbId == VerbConstants::VERB_OPEN
+        || verbId == VerbConstants::VERB_CLOSE || verbId == VerbConstants::VERB_PUSH
+        || verbId == VerbConstants::VERB_PULL
+        || verbId == VerbConstants::VERB_USE;
+  }
+
+  static bool isFarLook(const Entity *pEntity) {
+    auto flags = pEntity->getFlags();
+    return flags & 8u;
   }
 
   bool useFlags(Entity *pObject) {
-    int flags;
-    if (ScriptEngine::get(pObject, "flags", flags)) {
-      UseFlag useFlag;
-      if (flags & ObjectFlagConstants::USE_WITH) {
-        useFlag = UseFlag::UseWith;
-      } else if (flags & ObjectFlagConstants::USE_ON) {
-        useFlag = UseFlag::UseOn;
-      } else if (flags & ObjectFlagConstants::USE_IN) {
-        useFlag = UseFlag::UseIn;
-      } else {
-        return false;
-      }
-      _engine.setUseFlag(useFlag, pObject);
-      return true;
+    auto flags = pObject->getFlags();
+    UseFlag useFlag;
+    if (flags & ObjectFlagConstants::USE_WITH) {
+      useFlag = UseFlag::UseWith;
+    } else if (flags & ObjectFlagConstants::USE_ON) {
+      useFlag = UseFlag::UseOn;
+    } else if (flags & ObjectFlagConstants::USE_IN) {
+      useFlag = UseFlag::UseIn;
+    } else {
+      return false;
     }
-    return false;
-  }
-
-  static int getFlags(HSQOBJECT obj) {
-    int flags = 0;
-    ScriptEngine::rawGet(obj, "flags", flags);
-    return flags;
+    _engine.setUseFlag(useFlag, pObject);
+    return true;
   }
 
   bool callObjectOrActorPreWalk(int verb, Entity *pObj1, Entity *pObj2) {
@@ -415,20 +377,11 @@ private:
       pVerb = _engine.getHud().getVerb(verb);
       return;
     }
-    auto defaultVerb = getDefaultVerb(pObj);
+    auto defaultVerb = pObj->getDefaultVerb(VerbConstants::VERB_LOOKAT);
     if (!defaultVerb)
       return;
     verb = defaultVerb;
     pVerb = _engine.getHud().getVerb(verb);
-  }
-
-  static int getDefaultVerb(Entity *pObj) {
-    int defaultVerb;
-    if (ScriptEngine::get(pObj, "defaultVerb", defaultVerb)) {
-      trace("defaultVerb: {}", defaultVerb);
-      return defaultVerb;
-    }
-    return VerbConstants::VERB_LOOKAT;
   }
 
 private:

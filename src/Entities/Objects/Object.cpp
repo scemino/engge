@@ -20,7 +20,6 @@ struct Object::Impl {
   std::wstring _name;
   int _zorder{0};
   ObjectType _type{ObjectType::Object};
-  sf::Vector2f _usePos;
   sf::IntRect _hotspot;
   Room *_pRoom{nullptr};
   int _state{0};
@@ -273,13 +272,15 @@ void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states)
   s.setFillColor(sf::Color::Transparent);
   target.draw(s, states);
 
+  auto usePos = getUsePosition().value_or(sf::Vector2f());
+  usePos.y = -usePos.y;
   sf::RectangleShape vl(sf::Vector2f(1, 7));
-  vl.setPosition(pImpl->_usePos.x, pImpl->_usePos.y - 3);
+  vl.setPosition(usePos.x, usePos.y - 3);
   vl.setFillColor(color);
   target.draw(vl, states);
 
   sf::RectangleShape hl(sf::Vector2f(7, 1));
-  hl.setPosition(pImpl->_usePos.x - 3, pImpl->_usePos.y);
+  hl.setPosition(usePos.x - 3, usePos.y);
   hl.setFillColor(color);
   target.draw(hl, states);
 
@@ -287,28 +288,28 @@ void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states)
   switch (useDir) {
   case UseDirection::Front: {
     sf::RectangleShape dirShape(sf::Vector2f(3, 1));
-    dirShape.setPosition(pImpl->_usePos.x - 1, pImpl->_usePos.y + 2);
+    dirShape.setPosition(usePos.x - 1, usePos.y + 2);
     dirShape.setFillColor(color);
     target.draw(dirShape, states);
   }
     break;
   case UseDirection::Back: {
     sf::RectangleShape dirShape(sf::Vector2f(3, 1));
-    dirShape.setPosition(pImpl->_usePos.x - 1, pImpl->_usePos.y - 2);
+    dirShape.setPosition(usePos.x - 1, usePos.y - 2);
     dirShape.setFillColor(color);
     target.draw(dirShape, states);
   }
     break;
   case UseDirection::Left: {
     sf::RectangleShape dirShape(sf::Vector2f(1, 3));
-    dirShape.setPosition(pImpl->_usePos.x - 2, pImpl->_usePos.y - 1);
+    dirShape.setPosition(usePos.x - 2, usePos.y - 1);
     dirShape.setFillColor(color);
     target.draw(dirShape, states);
   }
     break;
   case UseDirection::Right: {
     sf::RectangleShape dirShape(sf::Vector2f(1, 3));
-    dirShape.setPosition(pImpl->_usePos.x + 2, pImpl->_usePos.y - 1);
+    dirShape.setPosition(usePos.x + 2, usePos.y - 1);
     dirShape.setFillColor(color);
     target.draw(dirShape, states);
   }
