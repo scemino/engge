@@ -192,8 +192,10 @@ private:
     _done = true;
     auto executeVerb = true;
     if (_pVerb->id == VerbConstants::VERB_GIVE && _pObject2) {
+      auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
+      if(!pActor2) pActor2 = Entity::getActor(_pObject2);
       bool selectable = true;
-      ScriptEngine::rawGet(_pObject2, "selectable", selectable);
+      ScriptEngine::rawGet(pActor2, "selectable", selectable);
       executeVerb = !selectable;
     }
 
@@ -226,10 +228,11 @@ private:
     }
 
     if (_pVerb->id == VerbConstants::VERB_GIVE) {
-      ScriptEngine::call("objectGive", _pObject1, &_actor, _pObject2);
+      auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
+      if(!pActor2) pActor2 = Entity::getActor(_pObject2);
+      ScriptEngine::call("objectGive", _pObject1, &_actor, pActor2);
 
       auto *pObject = dynamic_cast<Object *>(_pObject1);
-      auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
       _actor.giveTo(pObject, pActor2);
       return;
     }

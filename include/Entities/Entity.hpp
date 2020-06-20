@@ -21,6 +21,7 @@ struct Motor {
   std::unique_ptr<Function> function;
 };
 
+class Actor;
 class Engine;
 class Room;
 class SoundDefinition;
@@ -118,6 +119,7 @@ public:
   bool isTalking() const;
 
   int getDefaultVerb(int defaultVerbId) const;
+  static Actor *getActor(const Entity *pEntity);
 
 private:
   static void update(Motor &motor, const sf::Time &elapsed);

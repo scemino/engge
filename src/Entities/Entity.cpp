@@ -32,18 +32,6 @@ struct Entity::Impl {
     _talkingState.setEngine(&_engine);
   }
 
-  static const Entity *getEntity(const Entity *pEntity) {
-    // if an actor has the same name then get its flags
-    const auto &actors = Locator<Engine>::get().getActors();
-    auto itActor = std::find_if(actors.cbegin(), actors.cend(), [pEntity](const auto &pActor) -> bool {
-      return pActor->getName() == pEntity->getName();
-    });
-    if (itActor != actors.cend()) {
-      return itActor->get();
-    }
-    return nullptr;
-  }
-
   static std::optional<int> getDefaultVerb(const Entity *pEntity) {
     if(!pEntity) return std::nullopt;
 
@@ -326,8 +314,20 @@ int Entity::getDefaultVerb(int defaultVerbId) const {
   auto result = pImpl->getDefaultVerb(this);
   if(result.has_value()) return result.value();
 
-  result = pImpl->getDefaultVerb(pImpl->getEntity(this));
+  result = pImpl->getDefaultVerb(getActor(this));
   return result.value_or(defaultVerbId);
+}
+
+Actor *Entity::getActor(const Entity *pEntity) {
+  // if an actor has the same name then get its flags
+  auto &actors = Locator<Engine>::get().getActors();
+  auto itActor = std::find_if(actors.begin(), actors.end(), [pEntity](auto &pActor) -> bool {
+    return pActor->getName() == pEntity->getName();
+  });
+  if (itActor != actors.end()) {
+    return itActor->get();
+  }
+  return nullptr;
 }
 
 } // namespace ng
