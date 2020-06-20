@@ -1970,9 +1970,6 @@ void Engine::update(const sf::Time &el) {
 
 void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   _pImpl->_pCurrentActor = pCurrentActor;
-  if (_pImpl->_pCurrentActor) {
-    follow(_pImpl->_pCurrentActor);
-  }
 
   int currentActorIndex = _pImpl->getCurrentActorIndex();
   _pImpl->_hud.setCurrentActorIndex(currentActorIndex);
@@ -1984,6 +1981,10 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
     if (ScriptEngine::rawExists(pRoom, "onActorSelected")) {
       ScriptEngine::rawCall(pRoom, "onActorSelected", pCurrentActor, userSelected);
     }
+  }
+
+  if (_pImpl->_pCurrentActor) {
+    follow(_pImpl->_pCurrentActor);
   }
 }
 
