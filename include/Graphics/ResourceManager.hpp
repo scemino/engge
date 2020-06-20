@@ -8,10 +8,14 @@ class FntFont;
 class GGFont;
 class SpriteSheet;
 
-// should be renamed to ResourceManager
+struct TextureResource {
+  std::shared_ptr<sf::Texture> _texture;
+  size_t _size;
+};
+
 class ResourceManager : public NonCopyable {
 private:
-  std::map<std::string, std::shared_ptr<sf::Texture>> _textureMap;
+  std::map<std::string, TextureResource> _textureMap;
   std::map<std::string, std::shared_ptr<GGFont>> _fontMap;
   std::map<std::string, std::shared_ptr<FntFont>> _fntFontMap;
   std::map<std::string, std::shared_ptr<SpriteSheet>> _spriteSheetMap;
@@ -20,10 +24,12 @@ public:
   ResourceManager();
   ~ResourceManager();
 
-  const sf::Texture &get(const std::string &id);
+  std::shared_ptr<sf::Texture> getTexture(const std::string &id);
   const GGFont &getFont(const std::string &id);
   const FntFont &getFntFont(const std::string &id);
-  const SpriteSheet& getSpriteSheet(const std::string &id);
+  const SpriteSheet &getSpriteSheet(const std::string &id);
+
+  const std::map<std::string, TextureResource> &getTextureMap() const { return _textureMap; }
 
 private:
   void load(const std::string &id);

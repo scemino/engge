@@ -7,7 +7,7 @@
 namespace ng {
 GGFont::~GGFont() = default;
 
-const sf::Texture &GGFont::getTexture(unsigned int) const { return _texture; }
+const sf::Texture &GGFont::getTexture(unsigned int) const { return *_texture; }
 
 float GGFont::getKerning(sf::Uint32, sf::Uint32, unsigned int) const { return 0; }
 
@@ -22,7 +22,7 @@ const sf::Glyph &GGFont::getGlyph(sf::Uint32 codePoint, unsigned int, bool, floa
 }
 
 void GGFont::setTextureManager(ResourceManager *textureManager) {
-  _textureManager = textureManager;
+  _resourceManager = textureManager;
 }
 
 void GGFont::load(const std::string &path) {
@@ -54,6 +54,6 @@ void GGFont::load(const std::string &path) {
     _glyphs[key] = glyph;
   }
 
-  _texture = _textureManager->get(_path);
+  _texture = _resourceManager->getTexture(_path);
 }
 } // namespace ng

@@ -28,7 +28,7 @@ void ResourceManager::load(const std::string &id) {
     error("Fail to load texture {}", path);
   }
 
-  _textureMap.insert(std::make_pair(id, texture));
+  _textureMap.insert(std::make_pair(id, TextureResource{texture, data.size()}));
 }
 
 void ResourceManager::loadFont(const std::string &id) {
@@ -54,13 +54,13 @@ void ResourceManager::loadSpriteSheet(const std::string &id) {
   _spriteSheetMap.insert(std::make_pair(id, spriteSheet));
 }
 
-const sf::Texture &ResourceManager::get(const std::string &id) {
+std::shared_ptr<sf::Texture> ResourceManager::getTexture(const std::string &id) {
   auto found = _textureMap.find(id);
   if (found == _textureMap.end()) {
     load(id);
     found = _textureMap.find(id);
   }
-  return *found->second;
+  return found->second._texture;
 }
 
 const GGFont &ResourceManager::getFont(const std::string &id) {

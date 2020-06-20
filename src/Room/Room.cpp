@@ -110,7 +110,7 @@ struct Room::Impl {
         auto sprite = sf::Sprite();
         auto offset = sourceSize.y - screenHeight;
         sprite.move(sourceRect.left + width, sourceRect.top - offset);
-        sprite.setTexture(_textureManager.get(_sheet));
+        sprite.setTexture(*_textureManager.getTexture(_sheet));
         sprite.setTextureRect(frame);
         width += sprite.getTextureRect().width;
         _layers[0]->getSprites().push_back(sprite);
@@ -122,7 +122,7 @@ struct Room::Impl {
       auto offset = sourceSize.y - screenHeight;
       auto sprite = sf::Sprite();
       sprite.move(sourceRect.left, sourceRect.top - offset);
-      sprite.setTexture(_textureManager.get(_sheet));
+      sprite.setTexture(*_textureManager.getTexture(_sheet));
       sprite.setTextureRect(frame);
       _layers[0]->getSprites().push_back(sprite);
     }
@@ -151,7 +151,7 @@ struct Room::Impl {
           auto sourceSize = _spriteSheet.getSourceSize(layerName);
           sf::Vector2f origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
           sf::Sprite s;
-          s.setTexture(_textureManager.get(_sheet));
+          s.setTexture(*_textureManager.getTexture(_sheet));
           s.setTextureRect(rect);
           s.setOrigin(origin);
           s.move(sf::Vector2f(offsetX, offsetY));
@@ -165,7 +165,7 @@ struct Room::Impl {
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
         sf::Vector2f origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
         sf::Sprite s;
-        s.setTexture(_textureManager.get(_sheet));
+        s.setTexture(*_textureManager.getTexture(_sheet));
         s.setTextureRect(rect);
         s.setOrigin(origin);
         s.move(sf::Vector2f(0, offsetY));
@@ -182,7 +182,7 @@ struct Room::Impl {
   }
 
   void loadObjects(const GGPackValue &jWimpy) {
-    auto &texture = _textureManager.get(_sheet);
+    auto &texture = *_textureManager.getTexture(_sheet);
 
     for (auto jObject : jWimpy["objects"].array_value) {
       std::unique_ptr<Object> object;
@@ -678,7 +678,7 @@ void Room::deleteObject(Object &object) { pImpl->_layers[0]->removeEntity(object
 Object &Room::createObject(const std::vector<std::string> &anims) { return createObject(pImpl->_sheet, anims); }
 
 Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &anims) {
-  auto &texture = pImpl->_textureManager.get(sheet);
+  auto texture = pImpl->_textureManager.getTexture(sheet);
 
   // load json file
   std::string jsonFilename;
@@ -688,7 +688,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
   auto json = ng::Json::Parser::parse(buffer);
 
   auto object = std::make_unique<Object>();
-  auto animation = std::make_unique<Animation>(texture, "state0");
+  auto animation = std::make_unique<Animation>(*texture, "state0");
   for (auto n : anims) {
     if (json["frames"][n].isNull())
       continue;
@@ -727,11 +727,11 @@ Object &Room::createObject(const std::string &image) {
   checkLanguage(name);
 
   const std::vector<std::string> anims{name};
-  auto &texture = pImpl->_textureManager.get(name);
+  auto texture = pImpl->_textureManager.getTexture(name);
 
   auto object = std::make_unique<Object>();
-  auto animation = std::make_unique<Animation>(texture, "state0");
-  auto size = texture.getSize();
+  auto animation = std::make_unique<Animation>(*texture, "state0");
+  auto size = texture->getSize();
   sf::IntRect rect(0, 0, size.x, size.y);
   AnimationFrame animFrame(rect);
   animFrame.setSourceRect(rect);

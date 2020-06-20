@@ -8,7 +8,7 @@ namespace ng {
 SpriteSheet::SpriteSheet() = default;
 
 void SpriteSheet::load(const std::string &name) {
-  _texture = _pTextureManager->get(name);
+  _texture = _pTextureManager->getTexture(name);
 
   _rects.clear();
   _spriteSourceSize.clear();

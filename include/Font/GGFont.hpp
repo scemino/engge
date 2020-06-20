@@ -3,6 +3,7 @@
 #include "Parsers/JsonTokenReader.hpp"
 #include "Graphics/ResourceManager.hpp"
 #include "Font.hpp"
+#include <memory>
 
 namespace ng {
 class GGFont : public Font {
@@ -22,11 +23,11 @@ public:
 
 private:
   std::map<sf::Uint32, sf::Glyph> _glyphs;
-  ResourceManager *_textureManager{nullptr};
+  ResourceManager *_resourceManager{nullptr};
   std::string _path;
   std::string _jsonFilename;
   ng::GGPackValue _json;
-  sf::Texture _texture;
+  std::shared_ptr<sf::Texture> _texture;
 };
 
 } // namespace ng
