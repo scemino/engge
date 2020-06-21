@@ -36,6 +36,7 @@ public:
     if (end) {
       if (_ids.empty()) {
         _isTalking = false;
+        _lipAnim.end();
         return;
       }
       loadId(std::get<0>(_ids.front()), std::get<1>(_ids.front()));

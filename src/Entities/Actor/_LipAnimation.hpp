@@ -31,10 +31,14 @@ public:
       _index++;
     }
     if (_index == static_cast<int>(_lip.getData().size())) {
-      _pActor->getCostume().setHeadIndex(0);
+      end();
       return;
     }
     updateHead();
+  }
+
+  void end() {
+    _pActor->getCostume().setHeadIndex(0);
   }
 
   void updateHead() {

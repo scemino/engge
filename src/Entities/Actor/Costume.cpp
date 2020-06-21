@@ -282,6 +282,8 @@ void Costume::updateAnimation() {
       layer.setLeftDirection(getFacing() == Facing::FACE_LEFT);
     }
   }
+
+  setHeadIndex(_headIndex);
 }
 
 void Costume::update(const sf::Time &elapsed) {
@@ -303,7 +305,10 @@ void Costume::setHeadIndex(int index) {
     return;
   for (int i = 0; i < 6; i++) {
     std::ostringstream s;
-    s << _headAnimName << (i + 1);
+    s << _headAnimName;
+    if (i != 0) {
+      s << (i + 1);
+    }
     auto layerName = s.str();
     setLayerVisible(layerName, i == _headIndex);
   }
