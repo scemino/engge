@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "Engine/Preferences.hpp"
 #include "System/Locator.hpp"
+#include "Engine/_DebugFeatures.hpp"
 
 namespace ng {
 const sf::Time Game::TimePerFrame = sf::seconds(1.f / 60.f);
@@ -71,13 +72,17 @@ void Game::processEvents() {
 }
 
 void Game::update(const sf::Time &elapsed) {
+  sf::Clock clock;
   _pEngine->update(sf::seconds(elapsed.asSeconds()));
+  _DebugFeatures::_updateTime = clock.getElapsedTime();
 }
 
 void Game::render() {
+  sf::Clock clock;
   _window.clear();
   _pEngine->draw(_window);
   ImGui::SFML::Render(_window);
   _window.display();
+  _DebugFeatures::_renderTime = clock.getElapsedTime();
 }
 } // namespace ng

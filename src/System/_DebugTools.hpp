@@ -1,4 +1,5 @@
 #include <optional>
+#include <functional>
 #include "squirrel.h"
 #include "../../extlibs/squirrel/squirrel/sqpcheader.h"
 #include "../../extlibs/squirrel/squirrel/sqvm.h"
@@ -46,6 +47,8 @@ public:
         _generalTools(engine, _texturesTools._texturesVisible, _consoleTools._consoleVisible, _showGlobalsTable),
         _cameraTools(engine),
         _preferencesTools(engine) {
+    memset(_renderTimes._values, 0, IM_ARRAYSIZE(_renderTimes._values));
+    memset(_updateTimes._values, 0, IM_ARRAYSIZE(_updateTimes._values));
   }
 
   void render() {
@@ -66,11 +69,38 @@ public:
     _threadTools.render();
     showRoomTable();
     showActorTable();
+    showPerformance();
 
     ImGui::End();
   }
 
 private:
+  struct Plot {
+    float _values[16];
+    int _offset{0};
+  } _renderTimes, _updateTimes;
+
+  void showPerformance() {
+    if (!ImGui::CollapsingHeader("Performance"))
+      return;
+
+    renderTimes("Rendering (ms)", _renderTimes, []() { return _DebugFeatures::_renderTime; });
+    renderTimes("Update (ms)", _updateTimes, []() { return _DebugFeatures::_updateTime; });
+  }
+
+  static void renderTimes(const char *label, Plot &plot, const std::function<sf::Time()> &func) {
+    float average = 0.0f;
+    for (int n = 0; n < IM_ARRAYSIZE(plot._values); n++)
+      average += plot._values[n];
+    average /= (float) IM_ARRAYSIZE(plot._values);
+    char overlay[48];
+    sprintf(overlay, "avg %f ms", average);
+
+    plot._values[plot._offset] = func().asSeconds() * 1000.f;
+    ImGui::PlotLines(label, plot._values, IM_ARRAYSIZE(plot._values), plot._offset, overlay);
+    plot._offset = (plot._offset + 1) % IM_ARRAYSIZE(plot._values);
+  }
+
   void showRoomTable() {
     if (!_showRoomTable)
       return;
