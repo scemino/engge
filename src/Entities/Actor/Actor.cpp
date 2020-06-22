@@ -95,10 +95,14 @@ std::wstring Actor::getTranslatedName() const {
 std::string Actor::getIcon() const {
   const char *icon = nullptr;
   ScriptEngine::rawGet(pImpl->_table, "icon", icon);
+  if (!icon)
+    return "";
   return icon;
 }
 
 void Actor::useWalkboxes(bool useWalkboxes) { pImpl->_useWalkboxes = useWalkboxes; }
+
+bool Actor::useWalkboxes() const { return pImpl->_useWalkboxes; }
 
 Costume &Actor::getCostume() { return pImpl->_costume; }
 
@@ -157,8 +161,8 @@ void Actor::removeInventory(Object *pObject) {
     return;
   pObject->setOwner(nullptr);
   pImpl->_objects.erase(std::remove(pImpl->_objects.begin(),
-                                       pImpl->_objects.end(),
-                                       pObject), pImpl->_objects.end());
+                                    pImpl->_objects.end(),
+                                    pObject), pImpl->_objects.end());
 }
 
 void Actor::clearInventory() {

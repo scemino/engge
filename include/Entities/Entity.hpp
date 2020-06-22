@@ -86,6 +86,7 @@ public:
   sf::Color getTalkColor() const;
 
   void setTalkOffset(const sf::Vector2i &offset);
+  sf::Vector2i getTalkOffset() const;
 
   void setTrigger(int triggerNumber, Trigger *pTrigger);
   void removeTrigger(int triggerNumber);

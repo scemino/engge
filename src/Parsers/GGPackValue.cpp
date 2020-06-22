@@ -217,6 +217,7 @@ bool GGPackValue::toGGPackValue(SQObject obj, GGPackValue &value, bool checkId, 
   }
   default:assert(false);
   }
+  return false;
 }
 
 void GGPackValue::saveArray(HSQOBJECT obj, GGPackValue &array) {

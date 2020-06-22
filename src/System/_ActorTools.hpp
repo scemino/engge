@@ -7,7 +7,7 @@ class _ActorTools {
 public:
   bool _showActorTable{false};
 
-  _ActorTools(Engine &engine) : _engine(engine) {}
+  explicit _ActorTools(Engine &engine) : _engine(engine) {}
 
   void render() {
     if (!ImGui::CollapsingHeader("Actors"))
@@ -36,59 +36,14 @@ public:
       actor->getCostume().setHeadIndex(head);
     }
 
-    ImGui::PushID("costume");
-    _filterCostume.Draw("Filter");
-    if (ImGui::ListBoxHeader("Costume")) {
-      auto actorKey = actor->getKey();
-      std::vector <std::string> entries;
-      Locator<EngineSettings>::get().getEntries(entries);
-      for (const auto &entry : entries) {
-        if (entry.length() < 15)
-          continue;
-        auto extension = entry.substr(entry.length() - 14, 14);
-        CaseInsensitiveCompare cmp;
-        if (!cmp(extension, "Animation.json"))
-          continue;
-        auto prefix = entry.substr(0, actorKey.length());
-        if (!cmp(prefix, actorKey))
-          continue;
-        if (_filterCostume.PassFilter(entry.c_str())) {
-          if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) {
-            actor->getCostume().loadCostume(entry);
-          }
-        }
-      }
-      ImGui::ListBoxFooter();
-    }
-    ImGui::PopID();
+    showGeneral(actor.get());
+    showCostume(actor.get());
+    showAnimations(actor.get());
 
-    if (ImGui::CollapsingHeader("Animations")) {
-      ImGui::Indent();
+    ImGui::Unindent();
+  }
 
-      // actor animations
-      auto &anims = actor->getCostume().getAnimations();
-      static ImGuiTextFilter filter;
-      filter.Draw("Filter");
-      if (ImGui::ListBoxHeader("Animations")) {
-        for (auto &anim : anims) {
-          auto name = anim.getName();
-          if (filter.PassFilter(name.c_str())) {
-            if (ImGui::Selectable(name.c_str(), _pSelectedAnim == &anim)) {
-              _pSelectedAnim = &anim;
-            }
-          }
-        }
-        ImGui::ListBoxFooter();
-      }
-      if (_pSelectedAnim && ImGui::Button("Set")) {
-        actor->getCostume().setAnimation(_pSelectedAnim->getName());
-      }
-      if (_pSelectedAnim) {
-        showLayers();
-      }
-      ImGui::Unindent();
-    }
-
+  void showGeneral(Actor *actor) {
     if (ImGui::CollapsingHeader("General")) {
       ImGui::Indent();
       auto isVisible = actor->isVisible();
@@ -99,8 +54,15 @@ public:
       if (ImGui::Checkbox("Touchable", &isTouchable)) {
         actor->setTouchable(isTouchable);
       }
+      auto isLit = actor->isLit();
+      if (ImGui::Checkbox("Lit", &isLit)) {
+        actor->setLit(isLit);
+      }
       auto pRoom = actor->getRoom();
+      auto flags = getFlags(*actor);
       ImGui::Text("Key: %s", actor->getKey().c_str());
+      ImGui::Text("Flags: %s", flags.c_str());
+      ImGui::Text("Icon: %s", actor->getIcon().c_str());
       ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
       ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
       ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
@@ -121,6 +83,10 @@ public:
       auto talkColor = actor->getTalkColor();
       if (_DebugControls::ColorEdit4("Talk color", talkColor)) {
         actor->setTalkColor(talkColor);
+      }
+      auto talkOffset = actor->getTalkOffset();
+      if (_DebugControls::InputInt2("Talk offset", talkOffset)) {
+        actor->setTalkOffset(talkOffset);
       }
       auto pos = actor->getPosition();
       if (_DebugControls::InputFloat2("Position", pos)) {
@@ -150,12 +116,122 @@ public:
       if (_DebugControls::InputInt4("Hotspot", hotspot)) {
         actor->setHotspot(hotspot);
       }
+      auto useWalkboxes = actor->useWalkboxes();
+      if (ImGui::Checkbox("Use Walkboxes", &useWalkboxes)) {
+        actor->useWalkboxes(useWalkboxes);
+      }
+      auto useDirection = directionToInt(actor->getUseDirection().value_or(UseDirection::Front));
+      auto directions = "Front\0Back\0Left\0Right\0";
+      if (ImGui::Combo("Use direction", &useDirection, directions)) {
+        actor->setUseDirection(intToDirection(useDirection));
+      }
+      auto fps = actor->getFps();
+      if (ImGui::InputInt("FPS", &fps)) {
+        actor->setFps(fps);
+      }
+      auto inventoryOffset = actor->getInventoryOffset();
+      if (ImGui::InputInt("Inventory Offset", &inventoryOffset)) {
+        actor->setInventoryOffset(inventoryOffset);
+      }
+      auto volume = actor->getVolume().value_or(1.0f);
+      if (ImGui::SliderFloat("Volume", &volume, 0.f, 1.0f)) {
+        actor->setVolume(volume);
+      }
+      auto rotation = actor->getRotation();
+      if (ImGui::SliderFloat("Rotation", &rotation, 0.f, 360.0f)) {
+        actor->setRotation(rotation);
+      }
+      auto scale = actor->getScale();
+      if (ImGui::SliderFloat("scale", &scale, 0.f, 100.f)) {
+        actor->setScale(scale);
+      }
       ImGui::Unindent();
     }
-    ImGui::Unindent();
+  }
+
+  void showCostume(Actor *actor) {
+    if (ImGui::CollapsingHeader("Costume")) {
+      ImGui::Indent();
+      ImGui::PushID("costume");
+      _filterCostume.Draw("Filter");
+      if (ImGui::ListBoxHeader("Costume")) {
+        auto actorKey = actor->getKey();
+        std::vector<std::string> entries;
+        Locator<EngineSettings>::get().getEntries(entries);
+        for (const auto &entry : entries) {
+          if (entry.length() < 15)
+            continue;
+          auto extension = entry.substr(entry.length() - 14, 14);
+          CaseInsensitiveCompare cmp;
+          if (!cmp(extension, "Animation.json"))
+            continue;
+          auto prefix = entry.substr(0, actorKey.length());
+          if (!cmp(prefix, actorKey))
+            continue;
+          if (_filterCostume.PassFilter(entry.c_str())) {
+            if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) {
+              actor->getCostume().loadCostume(entry);
+            }
+          }
+        }
+        ImGui::ListBoxFooter();
+      }
+      ImGui::PopID();
+      ImGui::Unindent();
+    }
+  }
+  void showAnimations(Actor *actor) {
+    if (ImGui::CollapsingHeader("Animations")) {
+      ImGui::Indent();
+
+      // actor animations
+      auto &anims = actor->getCostume().getAnimations();
+      static ImGuiTextFilter filter;
+      filter.Draw("Filter");
+      if (ImGui::ListBoxHeader("Animations")) {
+        for (auto &anim : anims) {
+          auto name = anim.getName();
+          if (filter.PassFilter(name.c_str())) {
+            if (ImGui::Selectable(name.c_str(), _pSelectedAnim == &anim)) {
+              _pSelectedAnim = &anim;
+            }
+          }
+        }
+        ImGui::ListBoxFooter();
+      }
+      if (_pSelectedAnim && ImGui::Button("Set")) {
+        actor->getCostume().setAnimation(_pSelectedAnim->getName());
+      }
+      if (_pSelectedAnim) {
+        showLayers();
+      }
+      ImGui::Unindent();
+    }
   }
 
 private:
+  static std::string getFlags(Actor &actor) {
+    auto flags = actor.getFlags();
+    std::ostringstream os;
+    if (flags & ObjectFlagConstants::GIVEABLE) {
+      os << "GIVEABLE ";
+    }
+    if (flags & ObjectFlagConstants::TALKABLE) {
+      os << "TALKABLE ";
+    }
+    if (flags & ObjectFlagConstants::FEMALE) {
+      os << "FEMALE ";
+    }
+    if (flags & ObjectFlagConstants::MALE) {
+      os << "MALE ";
+    }
+    if (flags & ObjectFlagConstants::MALE) {
+      os << "PERSON ";
+    }
+    os << std::hex << flags;
+    return os.str();
+  }
+
   static int facingToInt(Facing facing) {
     switch (facing) {
     case Facing::FACE_FRONT:return 0;
@@ -174,6 +250,26 @@ private:
     case 3:return Facing::FACE_RIGHT;
     }
     return Facing::FACE_FRONT;
+  }
+
+  static int directionToInt(UseDirection dir) {
+    switch (dir) {
+    case UseDirection::Front:return 0;
+    case UseDirection::Back:return 1;
+    case UseDirection::Left:return 2;
+    case UseDirection::Right:return 3;
+    }
+    return 0;
+  }
+
+  static UseDirection intToDirection(int dir) {
+    switch (dir) {
+    case 0:return UseDirection::Front;
+    case 1:return UseDirection::Back;
+    case 2:return UseDirection::Left;
+    case 3:return UseDirection::Right;
+    }
+    return UseDirection::Front;
   }
 
   void showLayers() {
@@ -209,6 +305,6 @@ private:
   int _selectedActor{0};
   CostumeAnimation *_pSelectedAnim{nullptr};
   ImGuiTextFilter _filterCostume;
-  std::vector <std::string> _actorInfos;
+  std::vector<std::string> _actorInfos;
 };
 }

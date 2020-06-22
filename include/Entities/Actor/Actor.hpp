@@ -23,6 +23,7 @@ public:
   std::string getIcon() const;
 
   void useWalkboxes(bool use);
+  bool useWalkboxes() const;
 
   int getZOrder() const override;
 

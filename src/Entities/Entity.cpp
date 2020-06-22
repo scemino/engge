@@ -289,6 +289,8 @@ sf::Color Entity::getTalkColor() const { return pImpl->_talkColor; }
 
 void Entity::setTalkOffset(const sf::Vector2i &offset) { pImpl->_talkOffset = offset; }
 
+sf::Vector2i Entity::getTalkOffset() const { return pImpl->_talkOffset; }
+
 void Entity::say(const std::string &text, bool mumble) {
   pImpl->_talkingState.loadLip(text, this, mumble);
   sf::Vector2f pos;

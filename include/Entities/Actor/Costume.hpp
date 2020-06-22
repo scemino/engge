@@ -89,6 +89,5 @@ private:
   std::unordered_map<Facing, Facing> _facings;
   bool _lockFacing{false};
   SpriteSheet _costumeSheet;
-  GGPackValue _hash;
 };
 } // namespace ng

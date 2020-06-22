@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include "Entities/Actor/Actor.hpp"
 #include "Entities/Actor/BlinkState.hpp"
@@ -7,6 +8,7 @@
 #include "System/Locator.hpp"
 #include "../../System/_Util.hpp"
 #include "Parsers/GGPackValue.hpp"
+namespace fs = std::filesystem;
 
 namespace ng {
 Costume::Costume(ResourceManager &textureManager)
@@ -168,9 +170,14 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   _path = path;
   auto costumeSheet = _sheet = sheet;
 
-  Locator<EngineSettings>::get().readEntry(_path, _hash);
+  auto costumePath = fs::path(path);
+  if (!costumePath.has_extension()) {
+    costumePath.replace_extension(".json");
+  }
+  GGPackValue hash;
+  Locator<EngineSettings>::get().readEntry(costumePath.string(), hash);
   if (costumeSheet.empty()) {
-    costumeSheet = _hash["sheet"].string_value;
+    costumeSheet = hash["sheet"].getString();
   }
 
   _costumeSheet.setTextureManager(&_textureManager);
@@ -184,7 +191,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
     auto layerName = s.str();
     setLayerVisible(layerName, i == _headIndex);
   }
-  for (auto j : _hash["animations"].array_value) {
+  for (auto j : hash["animations"].array_value) {
     auto name = j["name"].string_value;
     auto flags = j["flags"].isInteger() ? j["flags"].int_value : 0;
     CostumeAnimation animation;
