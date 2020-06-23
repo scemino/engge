@@ -249,8 +249,13 @@ private:
     }
     filename = name;
     checkLanguage(filename);
+    auto& settings = Locator<EngineSettings>::get();
     std::vector<char> buffer;
-    Locator<EngineSettings>::get().readEntry(filename, buffer);
+    if(settings.hasEntry(filename)) {
+      settings.readEntry(filename, buffer);
+    } else {
+      settings.readEntry(name, buffer);
+    }
     GGPackBufferStream input(buffer);
     std::string line;
 
