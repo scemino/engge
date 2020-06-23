@@ -938,7 +938,11 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 4, &alignment))) {
         return sq_throwerror(v, _SC("failed to get alignment"));
       }
-      obj.setAlignment((TextAlignment) (alignment & (int) TextAlignment::All));
+      auto textAlignment = (TextAlignment) (alignment & (int) TextAlignment::All);
+      if (!(alignment & (int) TextAlignment::Vertical)) {
+        textAlignment |= TextAlignment::Top;
+      }
+      obj.setAlignment(textAlignment);
       int otherOptions = (alignment & ~(int) TextAlignment::All);
       // TODO: auto lessSpacing = (otherOptions & 0x2000000);
       auto maxWidth = (otherOptions & ~0x2000000);
