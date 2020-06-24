@@ -1395,7 +1395,15 @@ void Engine::Impl::updateScreenSize() const {
   if (!_pRoom)
     return;
 
-  auto screen = _pRoom->getFullscreen() == 1 ? _pRoom->getRoomSize() : _pRoom->getScreenSize();
+  sf::Vector2i screen;
+  if (_pRoom->getFullscreen() == 1) {
+    screen = _pRoom->getRoomSize();
+    if (_pRoom->getScreenHeight() != 0) {
+      screen.y = _pRoom->getScreenHeight();
+    }
+  } else {
+    screen = _pRoom->getScreenSize();
+  }
   sf::View view(sf::FloatRect(0, 0, screen.x, screen.y));
   _pWindow->setView(view);
 }
@@ -1699,7 +1707,8 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   case VerbConstants::VERB_WALKTO: {
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
     if (pObj1 && pObj1->isInventoryObject()) {
-      _hud.setVerbOverride(_hud.getVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(VerbConstants::VERB_LOOKAT)));
+      _hud.setVerbOverride(_hud.getVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(
+          VerbConstants::VERB_LOOKAT)));
     }
     break;
   }
@@ -1758,8 +1767,9 @@ uint32_t Engine::Impl::getFlags(int id) const {
   return getFlags(pEntity);
 }
 
-uint32_t Engine::Impl::getFlags(Entity* pEntity) const {
-  if(pEntity) return pEntity->getFlags();
+uint32_t Engine::Impl::getFlags(Entity *pEntity) const {
+  if (pEntity)
+    return pEntity->getFlags();
   return 0;
 }
 
@@ -2302,7 +2312,8 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
     return pVerb;
 
   auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
-  if(!pObj1) return pVerb;
+  if (!pObj1)
+    return pVerb;
   return _hud.getVerb(pObj1->getDefaultVerb(VerbConstants::VERB_WALKTO));
 }
 
