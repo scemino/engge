@@ -1,5 +1,6 @@
 include("../appInfo.cmake")
 
+include_directories(${SFML_INCLUDE_DIR})
 include_directories(../include/ ../extlibs/squirrel/include/ ../extlibs/spdlog/include/ ../extlibs/clipper/)
 link_directories(../extlibs/squirrel/squirrel/ ../extlibs/squirrel/sqstdlib/ ../extlibs/clipper/)
 
@@ -26,12 +27,6 @@ target_link_libraries(${PROJECT_NAME} squirrel_static sqstdlib_static)
 target_link_libraries(${PROJECT_NAME} clipper)
 # SFML
 target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-window sfml-system sfml-audio)
-if (SFML_FOUND)
-    include_directories(${SFML_INCLUDE_DIR})
-    target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES})
-else ()
-    message(FATAL_ERROR "Cannot find SFML")
-endif ()
 # ImGui-SFML
 target_link_libraries(${PROJECT_NAME} ImGui-SFML::ImGui-SFML)
 

@@ -1963,8 +1963,8 @@ void Engine::update(const sf::Time &el) {
     }
     pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
     auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_pImpl->_objId1);
-    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? pObj1 : pObj1;
-    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->_pObj2 : _pImpl->_pObj2;
+    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(pObj1) : pObj1;
+    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->getEntity(_pImpl->_pObj2) : _pImpl->_pObj2;
     if (pObj1) {
       _pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
     }
