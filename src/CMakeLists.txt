@@ -29,6 +29,11 @@ target_link_libraries(${PROJECT_NAME} clipper)
 target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-window sfml-system sfml-audio)
 # ImGui-SFML
 target_link_libraries(${PROJECT_NAME} ImGui-SFML::ImGui-SFML)
+# std::filesystem
+if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+    target_link_libraries(${PROJECT_NAME} stdc++fs)
+endif()
+
 
 # Install exe
 install(TARGETS engge RUNTIME DESTINATION .)
