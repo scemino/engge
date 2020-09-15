@@ -440,11 +440,14 @@ struct Engine::Impl {
           continue;
         auto &slot = hash["slots"].array_value.at(i);
         pActor->clearInventory();
+        int jiggleCount = 0;
         for (auto &obj : slot["objects"].array_value) {
           auto pObj = getInventoryObject(obj.getString());
           // TODO: why we don't find the inventory object here ?
           if (!pObj)
             continue;
+          const auto jiggle = slot["jiggle"].isArray() && slot["jiggle"].array_value[jiggleCount++].getInt() != 0;
+          pObj->setJiggle(jiggle);
           pActor->pickupObject(pObj);
         }
         auto scroll = slot["scroll"].getInt();
@@ -799,15 +802,29 @@ struct Engine::Impl {
         GGPackValue actorSlot;
         actorSlot.type = 2;
         if (slot.pActor) {
+          std::vector<int> jiggleArray(slot.pActor->getObjects().size());
           GGPackValue objects;
           objects.type = 3;
+          int jiggleCount = 0;
           for (auto &obj : slot.pActor->getObjects()) {
+            jiggleArray[jiggleCount++] = obj->getJiggle() ? 1 : 0;
             objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
           }
           actorSlot.hash_value = {
               {"objects", objects},
               {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
           };
+          const auto saveJiggle = std::any_of(jiggleArray.cbegin(),
+                                              jiggleArray.cend(), [](int value) { return value == 1; });
+          if (saveJiggle) {
+            GGPackValue jiggle;
+            jiggle.type = 3;
+            std::transform(jiggleArray.cbegin(),
+                           jiggleArray.cend(),
+                           std::back_inserter(jiggle.array_value),
+                           [](int value) { return GGPackValue::toGGPackValue(value); });
+            actorSlot.hash_value.insert({"jiggle", jiggle});
+          }
         } else {
           actorSlot.hash_value = {
               {"scroll", GGPackValue::toGGPackValue(0)},
