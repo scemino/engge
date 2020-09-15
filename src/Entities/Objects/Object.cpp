@@ -33,11 +33,13 @@ struct Object::Impl {
   int _fps{0};
   std::vector<std::string> _icons;
   sf::Time _elapsed;
+  sf::Time _popElapsed;
   int _index{0};
   ScreenSpace _screenSpace{ScreenSpace::Room};
   std::vector<Object *> _children;
   bool _temporary{false};
   bool _jiggle{false};
+  int _pop{0};
   Object *_pParent{nullptr};
 
   Impl() {
@@ -215,10 +217,17 @@ std::optional<Animation *> &Object::getAnimation() { return pImpl->_pAnim; }
 
 void Object::update(const sf::Time &elapsed) {
   if (isInventoryObject()) {
+    if (pImpl->_pop > 0) {
+      pImpl->_popElapsed += elapsed;
+      if (pImpl->_popElapsed.asSeconds() > 0.5f) {
+        pImpl->_pop--;
+        pImpl->_popElapsed -= sf::seconds(0.5);
+      }
+    }
     if (pImpl->_fps == 0)
       return;
     pImpl->_elapsed += elapsed;
-    if (pImpl->_elapsed.asSeconds() > (1.f / pImpl->_fps)) {
+    if (pImpl->_elapsed.asSeconds() > (1.f / static_cast<float>(pImpl->_fps))) {
       pImpl->_elapsed = sf::seconds(0);
       pImpl->_index = (pImpl->_index + 1) % pImpl->_icons.size();
     }
@@ -318,7 +327,7 @@ void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states)
 }
 
 void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
-  Entity::drawForeground(target,states);
+  Entity::drawForeground(target, states);
   if (pImpl->_screenSpace != ScreenSpace::Object)
     return;
 
@@ -425,11 +434,22 @@ void Object::setJiggle(bool enabled) { pImpl->_jiggle = enabled; }
 
 bool Object::getJiggle() const { return pImpl->_jiggle; }
 
+void Object::setPop(int count) {
+  pImpl->_popElapsed = sf::seconds(0);
+  pImpl->_pop = count;
+}
+
+int Object::getPop() const { return pImpl->_pop; }
+
+float Object::getPopScale() const {
+  return 0.5f + 0.5f*sinf(static_cast<float>(-M_PI_2 + pImpl->_popElapsed.asSeconds()*4*M_PI));
+}
+
 void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
   if (!isTouchable())
     return;
 
-  auto showHotspot =
+  const auto showHotspot =
       Locator<Preferences>::get().getTempPreference(TempPreferenceNames::ShowHotspot,
                                                     TempPreferenceDefaultValues::ShowHotspot);
   if (!showHotspot)

@@ -127,6 +127,10 @@ public:
   void setJiggle(bool enabled);
   bool getJiggle() const;
 
+  void setPop(int count);
+  int getPop() const;
+  float getPopScale() const;
+
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;

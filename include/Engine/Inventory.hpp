@@ -20,14 +20,14 @@ public:
 
   void setVerbUiColors(const VerbUiColors *pColors) { _pColors = pColors; }
   void setAlpha(float alpha) {_alpha = alpha;}
-  float getAlpha() const {return _alpha;}
+  [[nodiscard]] float getAlpha() const {return _alpha;}
 
 private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void drawUpArrow(sf::RenderTarget &target) const;
   void drawDownArrow(sf::RenderTarget &target) const;
-  bool hasUpArrow() const;
-  bool hasDownArrow() const;
+  [[nodiscard]] bool hasUpArrow() const;
+  [[nodiscard]] bool hasDownArrow() const;
 
 private:
   SpriteSheet _gameSheet, _inventoryItems;

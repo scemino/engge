@@ -37,15 +37,34 @@ public:
     }
 
     showGeneral(actor.get());
+    showInventory(actor.get());
     showCostume(actor.get());
     showAnimations(actor.get());
 
     ImGui::Unindent();
   }
 
+  void showInventory(Actor *actor) {
+    if (ImGui::TreeNode("Inventory")) {
+      for (const auto &obj : actor->getObjects()) {
+        if (ImGui::TreeNode(&obj, "%s", obj->getKey().c_str())) {
+          auto jiggle = obj->getJiggle();
+          if (ImGui::Checkbox("Jiggle", &jiggle)) {
+            obj->setJiggle(jiggle);
+          }
+          auto pop = obj->getPop();
+          if (ImGui::DragInt("Pop", &pop, 1, 0, 10)) {
+            obj->setPop(pop);
+          }
+          ImGui::TreePop();
+        }
+      }
+      ImGui::TreePop();
+    }
+  }
+
   void showGeneral(Actor *actor) {
-    if (ImGui::CollapsingHeader("General")) {
-      ImGui::Indent();
+    if (ImGui::TreeNode("General")) {
       auto isVisible = actor->isVisible();
       if (ImGui::Checkbox("Visible", &isVisible)) {
         actor->setVisible(isVisible);
@@ -145,13 +164,12 @@ public:
       if (ImGui::SliderFloat("scale", &scale, 0.f, 100.f)) {
         actor->setScale(scale);
       }
-      ImGui::Unindent();
+      ImGui::TreePop();
     }
   }
 
   void showCostume(Actor *actor) {
-    if (ImGui::CollapsingHeader("Costume")) {
-      ImGui::Indent();
+    if (ImGui::TreeNode("Costume")) {
       ImGui::PushID("costume");
       _filterCostume.Draw("Filter");
       if (ImGui::ListBoxHeader("Costume")) {
@@ -177,13 +195,11 @@ public:
         ImGui::ListBoxFooter();
       }
       ImGui::PopID();
-      ImGui::Unindent();
+      ImGui::TreePop();
     }
   }
   void showAnimations(Actor *actor) {
-    if (ImGui::CollapsingHeader("Animations")) {
-      ImGui::Indent();
-
+    if (ImGui::TreeNode("Animations")) {
       // actor animations
       auto &anims = actor->getCostume().getAnimations();
       static ImGuiTextFilter filter;
@@ -205,7 +221,7 @@ public:
       if (_pSelectedAnim) {
         showLayers();
       }
-      ImGui::Unindent();
+      ImGui::TreePop();
     }
   }
 

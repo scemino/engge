@@ -20,8 +20,10 @@ void Inventory::setTextureManager(ResourceManager *pTextureManager) {
   auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
   auto inventoryRect = _gameSheet.getRect("inventory_background");
 
-  _scrollUpRect = {Screen::Width - 627.f, Screen::Height - 167.f, static_cast<float>(scrollUpFrameRect.width), static_cast<float>(scrollUpFrameRect.height)};
-  _scrollDownRect = {Screen::Width - 627.f, Screen::Height - 73.f, static_cast<float>(scrollUpFrameRect.width), static_cast<float>(scrollUpFrameRect.height)};
+  _scrollUpRect = {Screen::Width - 627.f, Screen::Height - 167.f, static_cast<float>(scrollUpFrameRect.width),
+                   static_cast<float>(scrollUpFrameRect.height)};
+  _scrollDownRect = {Screen::Width - 627.f, Screen::Height - 73.f, static_cast<float>(scrollUpFrameRect.width),
+                     static_cast<float>(scrollUpFrameRect.height)};
 
   sf::Vector2f sizeBack = {static_cast<float>(inventoryRect.width), static_cast<float>(inventoryRect.height)};
   sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
@@ -54,8 +56,8 @@ bool Inventory::update(const sf::Time &elapsed) {
   auto inventoryOffset = _pCurrentActor->getInventoryOffset();
   for (size_t i = 0; i < _inventoryRects.size(); i++) {
     auto r = _inventoryRects.at(i);
-    r.left -= r.width/2.f;
-    r.top -= r.height/2.f;
+    r.left -= r.width / 2.f;
+    r.top -= r.height / 2.f;
     if (r.contains(_mousePos)) {
       auto &objects = _pCurrentActor->getObjects();
       if ((inventoryOffset * 4 + i) < objects.size()) {
@@ -166,7 +168,7 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
   inventoryShape.setTextureRect(inventoryRect);
   for (auto i = 0; i < 8; i++) {
     inventoryShape.setPosition(_inventoryRects[i].left, _inventoryRects[i].top);
-    inventoryShape.setOrigin(_inventoryRects[i].width/2.f, _inventoryRects[i].height/2.f);
+    inventoryShape.setOrigin(_inventoryRects[i].width / 2.f, _inventoryRects[i].height / 2.f);
     target.draw(inventoryShape);
   }
 
@@ -196,7 +198,12 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
     sprite.setPosition(_inventoryRects[i].left, _inventoryRects[i].top);
     sprite.setTexture(_inventoryItems.getTexture());
     sprite.setTextureRect(rect);
-    sprite.scale(4, 4);
+    if (object->getPop() > 0) {
+      const auto pop = 4.25f + object->getPopScale() * 0.25f;
+      sprite.scale(pop, pop);
+    } else {
+      sprite.scale(4, 4);
+    }
     sprite.setColor(color);
     target.draw(sprite);
   }
@@ -204,13 +211,14 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
 }
 
 sf::Vector2f Inventory::getPosition(Object *pObject) const {
-  if(!_pCurrentActor) return sf::Vector2f();
+  if (!_pCurrentActor)
+    return sf::Vector2f();
   auto inventoryOffset = _pCurrentActor->getInventoryOffset() * 4;
   const auto &objects = _pCurrentActor->getObjects();
   auto it = std::find(objects.cbegin(), objects.cend(), pObject);
   auto index = std::distance(objects.cbegin(), it);
-  if( index >= inventoryOffset && index < (inventoryOffset+8)){
-    const auto& rect = _inventoryRects.at(index - inventoryOffset);
+  if (index >= inventoryOffset && index < (inventoryOffset + 8)) {
+    const auto &rect = _inventoryRects.at(index - inventoryOffset);
     return sf::Vector2f(rect.left, rect.top);
   }
   return sf::Vector2f();

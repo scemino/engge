@@ -413,11 +413,17 @@ private:
   }
 
   static SQInteger popInventory(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = ScriptEngine::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    error("TODO: popInventory not implemented");
+    SQInteger count = 1;
+    if(sq_gettop(v)==3){
+      if (SQ_FAILED(sq_getinteger(v, 3, &count))) {
+        return sq_throwerror(v, _SC("failed to get count"));
+      }
+    }
+    obj->setPop(static_cast<int>(count));
     return 0;
   }
 
