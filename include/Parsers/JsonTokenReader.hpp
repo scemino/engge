@@ -33,7 +33,14 @@ private:
 
 class TokenReader {
 public:
-  class Iterator : public std::iterator<std::forward_iterator_tag, Token> {
+  class Iterator {
+  public:
+    using value_type = Token;
+    using difference_type = ptrdiff_t;
+    using pointer = Token *;
+    using reference = Token &;
+    using iterator_category = std::forward_iterator_tag;
+
   private:
     TokenReader &_reader;
     std::streampos _pos;
@@ -54,7 +61,7 @@ public:
     Token *operator->();
   };
 
-  typedef Iterator iterator;
+  using iterator = Iterator;
 
 public:
   TokenReader();

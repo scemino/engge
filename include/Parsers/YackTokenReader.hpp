@@ -37,7 +37,14 @@ private:
 
 class YackTokenReader {
 public:
-  class Iterator : public std::iterator<std::forward_iterator_tag, Token> {
+  class Iterator {
+  public:
+    using value_type = Token;
+    using difference_type = ptrdiff_t;
+    using pointer = Token *;
+    using reference = Token &;
+    using iterator_category = std::forward_iterator_tag;
+
   private:
     YackTokenReader &_reader;
     std::streampos _pos;
@@ -56,7 +63,7 @@ public:
     Token *operator->();
   };
 
-  typedef Iterator iterator;
+  using iterator = Iterator;
 
 public:
   YackTokenReader();
@@ -67,7 +74,7 @@ public:
   bool readToken(Token &token);
   std::string readText(std::streampos pos, std::streamsize size);
   std::string readText(const Token &token);
-  int getLine(const Token& token) const;
+  int getLine(const Token &token) const;
 
 private:
   TokenId readTokenId();
