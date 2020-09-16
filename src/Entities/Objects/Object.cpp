@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "Entities/Objects/Object.hpp"
 #include "Entities/Objects/Animation.hpp"
 #include "Entities/Objects/AnimationFrame.hpp"
@@ -209,7 +211,7 @@ void Object::setAnimation(const std::string &name) {
     return;
   }
 
-  auto &anim = *(it->get());
+  auto &anim = **it;
   pImpl->_pAnim = &anim;
 }
 
@@ -229,7 +231,7 @@ void Object::update(const sf::Time &elapsed) {
     pImpl->_elapsed += elapsed;
     if (pImpl->_elapsed.asSeconds() > (1.f / static_cast<float>(pImpl->_fps))) {
       pImpl->_elapsed = sf::seconds(0);
-      pImpl->_index = (pImpl->_index + 1) % pImpl->_icons.size();
+      pImpl->_index = static_cast<int>((pImpl->_index + 1) % pImpl->_icons.size());
     }
     return;
   }
