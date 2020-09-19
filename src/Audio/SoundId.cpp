@@ -130,8 +130,8 @@ void SoundId::update(const sf::Time &elapsed) {
 }
 
 void SoundId::fadeTo(float volume, const sf::Time &duration) {
-  auto get = std::bind(&SoundId::getVolume, this);
-  auto set = std::bind(&SoundId::setVolume, this, std::placeholders::_1);
+  const auto get = [this] { return getVolume(); };
+  const auto set = [this](float v) { setVolume(v); };
   auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, volume, duration);
   _fade = std::move(fadeTo);
 }
