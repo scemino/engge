@@ -1,14 +1,14 @@
 #pragma once
-#include <functional>
-#include <string>
-#include <cassert>
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
-#include "sqstdio.h"
-#include "sqstdaux.h"
 #include "Engine/Engine.hpp"
 #include "Engine/Interpolations.hpp"
-#include "System/Logger.hpp"
 #include "Room/Room.hpp"
+#include "System/Logger.hpp"
+#include "sqstdaux.h"
+#include "sqstdio.h"
+#include <cassert>
+#include <functional>
+#include <string>
 
 namespace ng {
 class Entity;
@@ -25,7 +25,8 @@ public:
 };
 class ScriptEngine {
 public:
-  using ErrorCallback = std::function<void(HSQUIRRELVM, const SQChar *, const SQChar *, SQInteger, SQInteger)>;
+  using ErrorCallback = std::function<void(
+      HSQUIRRELVM, const SQChar *, const SQChar *, SQInteger, SQInteger)>;
   using PrintCallback = std::function<void(HSQUIRRELVM v, const SQChar *s)>;
 
 public:
@@ -39,23 +40,22 @@ public:
 
   static SQObjectPtr toSquirrel(const std::string &value);
 
-  template<typename TConstant>
-  void registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list);
-  static void registerGlobalFunction(SQFUNCTION f,
-                                     const SQChar *functionName,
+  template <typename TConstant>
+  void registerConstants(
+      std::initializer_list<std::tuple<const SQChar *, TConstant>> list);
+  static void registerGlobalFunction(SQFUNCTION f, const SQChar *functionName,
                                      SQInteger nparamscheck = 0,
                                      const SQChar *typemask = nullptr);
   static void executeScript(const std::string &name);
   static void executeNutScript(const std::string &name);
 
-  template<class TPack>
-  void registerPack();
+  template <class TPack> void registerPack();
 
-  template<typename TScriptObject>
+  template <typename TScriptObject>
   static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
-  template<typename TScriptObject>
+  template <typename TScriptObject>
   static TScriptObject *getScriptObject(HSQUIRRELVM v, HSQOBJECT obj);
-  template<typename TScriptObject>
+  template <typename TScriptObject>
   static TScriptObject *getScriptObjectFromId(int id);
 
   static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
@@ -74,70 +74,63 @@ public:
 
   static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light);
 
-  template<class T>
-  static void pushObject(HSQUIRRELVM v, T *pObject);
+  template <class T> static void pushObject(HSQUIRRELVM v, T *pObject);
 
-  template<typename T>
-  static void push(HSQUIRRELVM v, T value);
-  template<typename First, typename... Rest>
+  template <typename T> static void push(HSQUIRRELVM v, T value);
+  template <typename First, typename... Rest>
   static void push(HSQUIRRELVM v, First firstValue, Rest... rest);
 
-  template<typename TThis>
-  static bool exists(TThis pThis, const char *name);
+  template <typename TThis> static bool exists(TThis pThis, const char *name);
 
-  template<typename T>
+  template <typename T>
   static bool get(HSQUIRRELVM v, SQInteger index, T &result);
-  template<typename T>
-  static bool get(const char *name, T &result);
-  template<typename TThis, typename T>
+  template <typename T> static bool get(const char *name, T &result);
+  template <typename TThis, typename T>
   static bool get(TThis pThis, const char *name, T &result);
-  template<typename TThis, typename T>
+  template <typename TThis, typename T>
   static bool get(HSQUIRRELVM v, TThis pThis, const char *name, T &result);
 
-  template<typename T>
-  static void set(const char *name, T value);
+  template <typename T> static void set(const char *name, T value);
 
-  template<typename TThis, typename T>
+  template <typename TThis, typename T>
   static void set(TThis pThis, const char *name, T value);
-  template<typename TThis, typename T>
+  template <typename TThis, typename T>
   static void set(HSQUIRRELVM v, TThis pThis, const char *name, T value);
 
-  template<typename...T>
-  static bool call(const char *name, T... args);
+  template <typename... T> static bool call(const char *name, T... args);
   static bool call(const char *name);
 
-  template<typename TThis, typename...T>
+  template <typename TThis, typename... T>
   static bool objCall(TThis pThis, const char *name, T... args);
-  template<typename TThis>
-  static bool objCall(TThis pThis, const char *name);
-  template<typename TThis>
+  template <typename TThis> static bool objCall(TThis pThis, const char *name);
+  template <typename TThis>
   static int getParameterCount(TThis pThis, const char *name);
 
-  template<typename TResult, typename TThis, typename...T>
-  static bool callFunc(TResult &result, TThis pThis, const char *name, T... args);
+  template <typename TResult, typename TThis, typename... T>
+  static bool callFunc(TResult &result, TThis pThis, const char *name,
+                       T... args);
 
-  template<typename TResult, typename...T>
+  template <typename TResult, typename... T>
   static bool callFunc(TResult &result, const char *name, T... args);
 
-  template<typename TThis>
+  template <typename TThis>
   static bool rawExists(TThis pThis, const char *name);
 
-  template<typename TThis, typename T>
+  template <typename TThis, typename T>
   static bool rawGet(TThis pThis, const char *name, T &result);
-  template<typename TThis, typename T>
+  template <typename TThis, typename T>
   static bool rawGet(HSQUIRRELVM v, TThis pThis, const char *name, T &result);
 
-  template<typename...T>
-  static bool rawCall(const char *name, T... args);
+  template <typename... T> static bool rawCall(const char *name, T... args);
   static bool rawCall(const char *name);
 
-  template<typename TThis, typename...T>
+  template <typename TThis, typename... T>
   static bool rawCall(TThis pThis, const char *name, T... args);
-  template<typename TThis>
-  static bool rawCall(TThis pThis, const char *name);
+  template <typename TThis> static bool rawCall(TThis pThis, const char *name);
 
-  template<typename TResult, typename TThis, typename...T>
-  static bool rawCallFunc(TResult &result, TThis pThis, const char *name, T... args);
+  template <typename TResult, typename TThis, typename... T>
+  static bool rawCallFunc(TResult &result, TThis pThis, const char *name,
+                          T... args);
 
   static void registerErrorCallback(const PrintCallback &callback) {
     _errorCallbacks.push_back(callback);
@@ -151,7 +144,9 @@ public:
 
 private:
   static SQInteger aux_printerror(HSQUIRRELVM v);
-  static void errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar *source, SQInteger line, SQInteger column);
+  static void errorHandler(HSQUIRRELVM v, const SQChar *desc,
+                           const SQChar *source, SQInteger line,
+                           SQInteger column);
 
   static void errorfunc(HSQUIRRELVM v, const SQChar *s, ...);
 
@@ -165,14 +160,13 @@ private:
   static Engine *g_pEngine;
 };
 
-template<typename First, typename... Rest>
+template <typename First, typename... Rest>
 void ScriptEngine::push(HSQUIRRELVM v, First firstValue, Rest... rest) {
   ScriptEngine::push(v, firstValue);
   ScriptEngine::push(v, rest...);
 }
 
-template<typename...T>
-bool ScriptEngine::call(const char *name, T...args) {
+template <typename... T> bool ScriptEngine::call(const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -197,7 +191,7 @@ bool ScriptEngine::call(const char *name, T...args) {
   return true;
 }
 
-template<typename TThis>
+template <typename TThis>
 int ScriptEngine::getParameterCount(TThis pThis, const char *name) {
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -217,8 +211,8 @@ int ScriptEngine::getParameterCount(TThis pThis, const char *name) {
   return nparams;
 }
 
-template<typename...T>
-bool ScriptEngine::rawCall(const char *name, T...args) {
+template <typename... T>
+bool ScriptEngine::rawCall(const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -243,7 +237,7 @@ bool ScriptEngine::rawCall(const char *name, T...args) {
   return true;
 }
 
-template<typename TThis, typename...T>
+template <typename TThis, typename... T>
 bool ScriptEngine::objCall(TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
@@ -269,7 +263,7 @@ bool ScriptEngine::objCall(TThis pThis, const char *name, T... args) {
   return true;
 }
 
-template<typename TThis, typename...T>
+template <typename TThis, typename... T>
 bool ScriptEngine::rawCall(TThis pThis, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
@@ -295,7 +289,7 @@ bool ScriptEngine::rawCall(TThis pThis, const char *name, T... args) {
   return true;
 }
 
-template<typename TThis>
+template <typename TThis>
 bool ScriptEngine::objCall(TThis pThis, const char *name) {
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -319,7 +313,7 @@ bool ScriptEngine::objCall(TThis pThis, const char *name) {
   return true;
 }
 
-template<typename TThis>
+template <typename TThis>
 bool ScriptEngine::rawCall(TThis pThis, const char *name) {
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -343,8 +337,9 @@ bool ScriptEngine::rawCall(TThis pThis, const char *name) {
   return true;
 }
 
-template<typename TResult, typename TThis, typename...T>
-bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T... args) {
+template <typename TResult, typename TThis, typename... T>
+bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name,
+                            T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -358,7 +353,9 @@ bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T...
   sq_remove(v, -2);
 
   ScriptEngine::push(v, pThis);
-  ScriptEngine::push(v, std::forward<T>(args)...);
+  if constexpr(n > 0) {
+    ScriptEngine::push(v, std::forward<T>(args)...);
+  }
   if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue))) {
     sqstd_printcallstack(v);
     sq_settop(v, top);
@@ -370,7 +367,7 @@ bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name, T...
   return true;
 }
 
-template<typename TResult, typename...T>
+template <typename TResult, typename... T>
 bool ScriptEngine::callFunc(TResult &result, const char *name, T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
@@ -397,8 +394,9 @@ bool ScriptEngine::callFunc(TResult &result, const char *name, T... args) {
   return true;
 }
 
-template<typename TResult, typename TThis, typename...T>
-bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T... args) {
+template <typename TResult, typename TThis, typename... T>
+bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name,
+                               T... args) {
   constexpr std::size_t n = sizeof...(T);
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -411,7 +409,7 @@ bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T
   }
 
   ScriptEngine::push(v, pThis);
-  if constexpr(n > 0) {
+  if constexpr (n > 0) {
     ScriptEngine::push(v, std::forward<T>(args)...);
   }
   if (SQ_FAILED(sq_call(v, n + 1, SQTrue, SQTrue))) {
@@ -425,8 +423,7 @@ bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name, T
   return true;
 }
 
-template<typename T>
-bool ScriptEngine::get(const char *name, T &result) {
+template <typename T> bool ScriptEngine::get(const char *name, T &result) {
   auto v = getVm();
   sq_pushroottable(v);
   HSQOBJECT rootTable;
@@ -435,18 +432,19 @@ bool ScriptEngine::get(const char *name, T &result) {
   return ScriptEngine::get(ScriptEngine::getVm(), rootTable, name, result);
 }
 
-template<typename TThis, typename T>
+template <typename TThis, typename T>
 bool ScriptEngine::get(TThis pThis, const char *name, T &result) {
   return ScriptEngine::get(ScriptEngine::getVm(), pThis, name, result);
 }
 
-template<typename TThis, typename T>
+template <typename TThis, typename T>
 bool ScriptEngine::rawGet(TThis pThis, const char *name, T &result) {
   return ScriptEngine::rawGet(ScriptEngine::getVm(), pThis, name, result);
 }
 
-template<typename TThis, typename T>
-bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char *name, T &result) {
+template <typename TThis, typename T>
+bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char *name,
+                       T &result) {
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -459,8 +457,9 @@ bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char *name, T &result) 
   return false;
 }
 
-template<typename TThis, typename T>
-bool ScriptEngine::rawGet(HSQUIRRELVM v, TThis pThis, const char *name, T &result) {
+template <typename TThis, typename T>
+bool ScriptEngine::rawGet(HSQUIRRELVM v, TThis pThis, const char *name,
+                          T &result) {
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
@@ -473,7 +472,7 @@ bool ScriptEngine::rawGet(HSQUIRRELVM v, TThis pThis, const char *name, T &resul
   return false;
 }
 
-template<typename TThis>
+template <typename TThis>
 bool ScriptEngine::exists(TThis pThis, const char *name) {
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -488,7 +487,7 @@ bool ScriptEngine::exists(TThis pThis, const char *name) {
   return false;
 }
 
-template<typename TThis>
+template <typename TThis>
 bool ScriptEngine::rawExists(TThis pThis, const char *name) {
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -503,8 +502,7 @@ bool ScriptEngine::rawExists(TThis pThis, const char *name) {
   return false;
 }
 
-template<typename T>
-void ScriptEngine::set(const char *name, T value) {
+template <typename T> void ScriptEngine::set(const char *name, T value) {
   auto v = ScriptEngine::getVm();
   sq_pushroottable(v);
   sq_pushstring(v, _SC(name), -1);
@@ -513,12 +511,12 @@ void ScriptEngine::set(const char *name, T value) {
   sq_pop(v, 1);
 }
 
-template<typename TThis, typename T>
+template <typename TThis, typename T>
 void ScriptEngine::set(TThis pThis, const char *name, T value) {
   ScriptEngine::set(ScriptEngine::getVm(), pThis, name, value);
 }
 
-template<typename TThis, typename T>
+template <typename TThis, typename T>
 void ScriptEngine::set(HSQUIRRELVM v, TThis pThis, const char *name, T value) {
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);

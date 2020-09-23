@@ -24,7 +24,7 @@
 #include "_RoomPack.hpp"
 #include "_SoundPack.hpp"
 #include "_DefaultScriptExecute.hpp"
-#include "_DefaultVerbExecute.hpp"
+#include "DefaultVerbExecute.hpp"
 #include "_bnutPass.hpp"
 #include "Input/InputConstants.hpp"
 #include "Engine/InputStateConstants.hpp"
@@ -437,7 +437,7 @@ ScriptEngine::~ScriptEngine() {
 
 void ScriptEngine::setEngine(Engine &engine) {
   g_pEngine = &engine;
-  auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(engine);
+  auto pVerbExecute = std::make_unique<priv::DefaultVerbExecute>(engine);
   engine.setVerbExecute(std::move(pVerbExecute));
   auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(_vm);
   engine.setScriptExecute(std::move(pScriptExecute));

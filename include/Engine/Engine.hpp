@@ -5,6 +5,7 @@
 #include "SFML/Graphics.hpp"
 #include "squirrel.h"
 #include "SavegameSlot.hpp"
+#include <functional>
 #include <memory>
 #include "Input/InputConstants.hpp"
 
@@ -56,6 +57,7 @@ public:
   void addRoom(std::unique_ptr<Room> room);
   std::vector<std::unique_ptr<Room>> &getRooms();
 
+  void addSystemCallback(const sf::Time& elapsed, const std::function<void()>& callback);
   void addCallback(std::unique_ptr<Callback> callback);
   void removeCallback(int id);
   void addFunction(std::unique_ptr<Function> function);

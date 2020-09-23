@@ -1,20 +1,20 @@
 #include "Entities/Actor/Actor.hpp"
-#include "Engine/Camera.hpp"
-#include "Engine/Engine.hpp"
-#include "Parsers/Lip.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Math/PathFinding/PathFinder.hpp"
-#include "Engine/Preferences.hpp"
-#include "Engine/EntityManager.hpp"
-#include "Entities/Objects/Object.hpp"
-#include "Room/Room.hpp"
-#include "Room/RoomScaling.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "../../Math/PathFinding/_Path.hpp"
 #include "Audio/SoundId.hpp"
 #include "Audio/SoundManager.hpp"
 #include "Audio/SoundTrigger.hpp"
-#include "../../Math/PathFinding/_Path.hpp"
+#include "Engine/Camera.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/EntityManager.hpp"
+#include "Engine/Preferences.hpp"
+#include "Entities/Objects/Object.hpp"
+#include "Math/PathFinding/PathFinder.hpp"
+#include "Parsers/Lip.hpp"
+#include "Room/Room.hpp"
+#include "Room/RoomScaling.hpp"
+#include "Scripting/ScriptEngine.hpp"
+#include "System/Locator.hpp"
+#include "System/Logger.hpp"
 
 namespace ng {
 struct Actor::Impl {
@@ -23,10 +23,14 @@ struct Actor::Impl {
     WalkingState() = default;
 
     void setActor(Actor *pActor);
-    void setDestination(const std::vector<sf::Vector2f> &path, std::optional<Facing> facing);
+    void setDestination(const std::vector<sf::Vector2f> &path,
+                        std::optional<Facing> facing);
     void update(const sf::Time &elapsed);
     void stop();
     [[nodiscard]] bool isWalking() const { return _isWalking; }
+    void setArrivedCallback(std::function<void()> callback) {
+      _callback = std::move(callback);
+    }
 
   private:
     Facing getFacing();
@@ -38,11 +42,11 @@ struct Actor::Impl {
     bool _isWalking{false};
     sf::Vector2f _init;
     sf::Time _elapsed;
+    std::function<void()> _callback;
   };
 
   explicit Impl(Engine &engine)
-      : _engine(engine), _costume(engine.getTextureManager()) {
-  }
+      : _engine(engine), _costume(engine.getTextureManager()) {}
 
   void setActor(Actor *pActor) {
     _pActor = pActor;
@@ -100,7 +104,9 @@ std::string Actor::getIcon() const {
   return icon;
 }
 
-void Actor::useWalkboxes(bool useWalkboxes) { pImpl->_useWalkboxes = useWalkboxes; }
+void Actor::useWalkboxes(bool useWalkboxes) {
+  pImpl->_useWalkboxes = useWalkboxes;
+}
 
 bool Actor::useWalkboxes() const { return pImpl->_useWalkboxes; }
 
@@ -110,7 +116,9 @@ Costume &Actor::getCostume() const { return pImpl->_costume; }
 
 Room *Actor::getRoom() { return pImpl->_pRoom; }
 
-void Actor::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
+void Actor::setHotspot(const sf::IntRect &hotspot) {
+  pImpl->_hotspot = hotspot;
+}
 
 sf::IntRect Actor::getHotspot() const { return pImpl->_hotspot; }
 
@@ -143,7 +151,8 @@ void Actor::pickupObject(Object *pObject) {
 
 void Actor::pickupReplacementObject(Object *pObject1, Object *pObject2) {
   pObject2->setOwner(this);
-  std::replace(pImpl->_objects.begin(), pImpl->_objects.end(), pObject1, pObject2);
+  std::replace(pImpl->_objects.begin(), pImpl->_objects.end(), pObject1,
+               pObject2);
   pObject1->setOwner(nullptr);
 }
 
@@ -151,8 +160,11 @@ void Actor::giveTo(Object *pObject, Actor *pActor) {
   if (!pObject || !pActor)
     return;
   pObject->setOwner(pActor);
-  auto srcIt = std::find(pImpl->_objects.begin(), pImpl->_objects.end(), pObject);
-  std::move(srcIt, srcIt + 1, std::inserter(pActor->pImpl->_objects, pActor->pImpl->_objects.end()));
+  auto srcIt =
+      std::find(pImpl->_objects.begin(), pImpl->_objects.end(), pObject);
+  std::move(
+      srcIt, srcIt + 1,
+      std::inserter(pActor->pImpl->_objects, pActor->pImpl->_objects.end()));
   pImpl->_objects.erase(srcIt);
 }
 
@@ -160,9 +172,9 @@ void Actor::removeInventory(Object *pObject) {
   if (!pObject)
     return;
   pObject->setOwner(nullptr);
-  pImpl->_objects.erase(std::remove(pImpl->_objects.begin(),
-                                    pImpl->_objects.end(),
-                                    pObject), pImpl->_objects.end());
+  pImpl->_objects.erase(
+      std::remove(pImpl->_objects.begin(), pImpl->_objects.end(), pObject),
+      pImpl->_objects.end());
 }
 
 void Actor::clearInventory() {
@@ -172,7 +184,9 @@ void Actor::clearInventory() {
   pImpl->_objects.clear();
 }
 
-const std::vector<Object *> &Actor::getObjects() const { return pImpl->_objects; }
+const std::vector<Object *> &Actor::getObjects() const {
+  return pImpl->_objects;
+}
 
 void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }
 
@@ -192,7 +206,8 @@ bool Actor::isInventoryObject() const { return false; }
 
 void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
 
-void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &path, std::optional<Facing> facing) {
+void Actor::Impl::WalkingState::setDestination(
+    const std::vector<sf::Vector2f> &path, std::optional<Facing> facing) {
   _path = path;
   _facing = facing;
   _path.erase(_path.begin());
@@ -255,6 +270,10 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
     _pActor->getCostume().setFacing(_facing.value());
   }
   _pActor->getCostume().setStandState();
+  if (_callback) {
+    _callback();
+    _callback = nullptr;
+  }
   if (ScriptEngine::rawExists(_pActor, "actorArrived")) {
     ScriptEngine::rawCall(_pActor, "actorArrived");
   }
@@ -299,9 +318,11 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     auto scale = getScale();
     auto transformable = getTransform();
     transformable.scale(scale, scale);
-    transformable.move(getRenderOffset().x * scale, getRenderOffset().y * scale);
+    transformable.move(getRenderOffset().x * scale,
+                       getRenderOffset().y * scale);
     transformable.setPosition(transformable.getPosition().x,
-                              target.getView().getSize().y - transformable.getPosition().y);
+                              target.getView().getSize().y -
+                                  transformable.getPosition().y);
     states.transform *= transformable.getTransform();
     target.draw(pImpl->_costume, states);
   }
@@ -310,12 +331,14 @@ void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const {
   auto transformable = getTransform();
   transformable.scale(scale, scale);
   transformable.setPosition(transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y);
+                            target.getView().getSize().y -
+                                transformable.getPosition().y);
   statesHotSpot.transform *= transformable.getTransform();
   pImpl->drawHotspot(target, statesHotSpot);
 }
 
-void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
+void Actor::drawForeground(sf::RenderTarget &target,
+                           sf::RenderStates states) const {
   Entity::drawForeground(target, states);
   if (pImpl->_path && pImpl->_pRoom && pImpl->_engine.getWalkboxesFlags()) {
     target.draw(*pImpl->_path, states);
@@ -329,7 +352,8 @@ void Actor::update(const sf::Time &elapsed) {
   pImpl->_walkingState.update(elapsed);
 }
 
-std::vector<sf::Vector2f> Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing) {
+std::vector<sf::Vector2f> Actor::walkTo(const sf::Vector2f &destination,
+                                        std::optional<Facing> facing) {
   if (pImpl->_pRoom == nullptr)
     return {getRealPosition()};
 
@@ -353,6 +377,10 @@ std::vector<sf::Vector2f> Actor::walkTo(const sf::Vector2f &destination, std::op
   return path;
 }
 
+void Actor::setArrivedCallback(std::function<void()> callback) {
+  pImpl->_walkingState.setArrivedCallback(callback);
+}
+
 void Actor::trigSound(const std::string &name) {
   auto soundId = pImpl->_engine.getSoundDefinition(name);
   if (!soundId)
@@ -360,13 +388,9 @@ void Actor::trigSound(const std::string &name) {
   pImpl->_engine.getSoundManager().playSound(soundId);
 }
 
-void Actor::setFps(int fps) {
-  pImpl->_fps = fps;
-}
+void Actor::setFps(int fps) { pImpl->_fps = fps; }
 
-int Actor::getFps() const {
-  return pImpl->_fps;
-}
+int Actor::getFps() const { return pImpl->_fps; }
 
 void Actor::setInventoryOffset(int offset) { pImpl->_inventoryOffset = offset; }
 

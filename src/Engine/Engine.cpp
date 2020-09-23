@@ -51,6 +51,11 @@ namespace fs = std::filesystem;
 namespace ng {
 static const auto _clickedAtCallback = "clickedAt";
 
+struct SystemCallback{
+  sf::Time remaining;
+  std::function<void()> callback;
+};
+
 enum class CursorDirection : unsigned int {
   None = 0,
   Left = 1,
@@ -955,6 +960,7 @@ struct Engine::Impl {
   std::vector<std::unique_ptr<Function>> _newFunctions;
   std::vector<std::unique_ptr<Function>> _functions;
   std::vector<std::unique_ptr<Callback>> _callbacks;
+  std::vector<SystemCallback> _sysCallbacks;
   Cutscene *_pCutscene{nullptr};
   sf::RenderWindow *_pWindow{nullptr};
   Actor *_pCurrentActor{nullptr};
@@ -1247,6 +1253,10 @@ void Engine::addRoom(std::unique_ptr<Room> room) { _pImpl->_rooms.push_back(std:
 std::vector<std::unique_ptr<Room>> &Engine::getRooms() { return _pImpl->_rooms; }
 
 void Engine::addFunction(std::unique_ptr<Function> function) { _pImpl->_newFunctions.push_back(std::move(function)); }
+
+void Engine::addSystemCallback(const sf::Time& elapsed, const std::function<void()>& callback){
+  _pImpl->_sysCallbacks.push_back({elapsed, callback});
+}
 
 void Engine::addCallback(std::unique_ptr<Callback> callback) { _pImpl->_callbacks.push_back(std::move(callback)); }
 
@@ -1629,6 +1639,17 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
                                  [](auto &f) { return f->isElapsed(); }),
                   callbacks.end());
   std::move(callbacks.begin(), callbacks.end(), std::back_inserter(_callbacks));
+
+  for(auto& sysCallback : _sysCallbacks){
+    sysCallback.remaining-=elapsed;
+    if(sysCallback.remaining<=sf::seconds(0)) {
+      sysCallback.callback();
+    }
+  }
+  _sysCallbacks.erase(std::remove_if(_sysCallbacks.begin(),
+                                 _sysCallbacks.end(),
+                                 [](auto &sysCallback) { return sysCallback.remaining<=sf::seconds(0); }),
+                  _sysCallbacks.end());
 }
 
 void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {
@@ -1983,7 +2004,7 @@ void Engine::update(const sf::Time &el) {
     pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(pObj1) : pObj1;
     auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->getEntity(_pImpl->_pObj2) : _pImpl->_pObj2;
     if (pObj1) {
-      _pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
+      _pImpl->_pVerbExecute->execute(nullptr, pVerbOverride, pObj1, pObj2);
     }
     return;
   }
@@ -2572,7 +2593,7 @@ void Engine::pushSentence(int id, Entity *pObj1, Entity *pObj2) {
   const Verb *pVerb = _pImpl->_hud.getVerb(id);
   if (!pVerb)
     return;
-  _pImpl->_pVerbExecute->execute(pVerb, pObj1, pObj2);
+  _pImpl->_pVerbExecute->execute(nullptr, pVerb, pObj1, pObj2);
 }
 
 void Engine::setSentence(std::unique_ptr<Sentence> sentence) {
