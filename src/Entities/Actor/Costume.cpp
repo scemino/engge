@@ -185,6 +185,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
 
   // load animations
   _animations.clear();
+  _pCurrentAnimation = nullptr;
   for (int i = 0; i < 6; i++) {
     std::ostringstream s;
     s << _headAnimName << (i + 1);
