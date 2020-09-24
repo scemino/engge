@@ -32,7 +32,7 @@ bool GGPackBufferStream::eof() const {
 }
 
 char GGPackBufferStream::peek() const {
-  return _input[_offset];
+  return _offset >= _input.size() ? EOF : _input.at(_offset);
 }
 
 GGPackBufferStream &GGPackBufferStream::ignore(std::streamsize n, int delim) {
