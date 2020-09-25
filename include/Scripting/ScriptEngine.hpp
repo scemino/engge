@@ -1,4 +1,7 @@
 #pragma once
+#include <cassert>
+#include <functional>
+#include <string>
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
 #include "Engine/Engine.hpp"
 #include "Engine/Interpolations.hpp"
@@ -6,9 +9,6 @@
 #include "System/Logger.hpp"
 #include "sqstdaux.h"
 #include "sqstdio.h"
-#include <cassert>
-#include <functional>
-#include <string>
 
 namespace ng {
 class Entity;
