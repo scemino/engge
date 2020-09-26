@@ -124,11 +124,11 @@ private:
       sq_pushinteger(v, d);
       return 1;
     }
-    auto obj1 = ScriptEngine::getEntity(v, 2);
+    auto obj1 = EntityManager::getEntity(v, 2);
     if (!obj1) {
       return sq_throwerror(v, "failed to get object1 or actor1");
     }
-    auto obj2 = ScriptEngine::getEntity(v, 3);
+    auto obj2 = EntityManager::getEntity(v, 3);
     if (!obj2) {
       return sq_throwerror(v, "failed to get object2 or actor2");
     }
@@ -150,7 +150,7 @@ private:
       }
       pos = g_pEngine->getHud().findScreenPosition(static_cast<int>(verb));
     } else {
-      auto entity = ScriptEngine::getEntity(v, 2);
+      auto entity = EntityManager::getEntity(v, 2);
       if (!entity) {
         return sq_throwerror(v, _SC("failed to get object or actor"));
       }
@@ -301,7 +301,7 @@ private:
       }
       pos = sf::Vector2f(x, y);
     } else {
-      auto entity = ScriptEngine::getEntity(v, 2);
+      auto entity = EntityManager::getEntity(v, 2);
       if (!entity) {
         return sq_throwerror(v, _SC("failed to get spot or actor"));
       }
@@ -336,7 +336,7 @@ private:
   }
 
   static SQInteger cameraFollow(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     g_pEngine->follow(pActor);
     return 0;
   }
@@ -354,7 +354,7 @@ private:
     SQInteger x, y, interpolation{0};
     SQFloat t;
     if (sq_gettype(v, 2) == OT_TABLE) {
-      auto *pEntity = ScriptEngine::getEntity(v, 2);
+      auto *pEntity = EntityManager::getEntity(v, 2);
       if (!pEntity) {
         return sq_throwerror(v, _SC("failed to get actor/object"));
       }
@@ -439,7 +439,7 @@ private:
     auto scene = std::make_unique<Cutscene>(*g_pEngine, v, threadObj, closureObj, closureCutsceneOverrideObj, env_obj);
     g_pEngine->cutscene(std::move(scene));
 
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
     return SQ_SUSPEND_FLAG;
   }
@@ -539,9 +539,9 @@ private:
   }
 
   static SQInteger cameraInRoom(HSQUIRRELVM v) {
-    auto *pRoom = ScriptEngine::getRoom(v, 2);
+    auto *pRoom = EntityManager::getRoom(v, 2);
     if (!pRoom) {
-      auto pEntity = ScriptEngine::getEntity(v, 2);
+      auto pEntity = EntityManager::getEntity(v, 2);
       pRoom = pEntity ? pEntity->getRoom() : nullptr;
       if (!pRoom) {
         return sq_throwerror(v, _SC("failed to get room"));

@@ -3,24 +3,25 @@
 
 namespace ng {
 template<>
-bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, bool &result) {
+bool ScriptEngine::get(SQInteger index, bool &result) {
   SQInteger integer = 0;
-  auto status = SQ_SUCCEEDED(sq_getinteger(v, index, &integer));
+  auto status = SQ_SUCCEEDED(sq_getinteger(getVm(), index, &integer));
   result = integer != 0;
   return status;
 }
 
 template<>
-bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, int &result) {
+bool ScriptEngine::get(SQInteger index, int &result) {
   SQInteger integer = 0;
-  auto status = SQ_SUCCEEDED(sq_getinteger(v, index, &integer));
+  auto status = SQ_SUCCEEDED(sq_getinteger(getVm(), index, &integer));
   result = integer;
   return status;
 }
 
 template<>
-bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, const char *&result) {
+bool ScriptEngine::get(SQInteger index, const char *&result) {
   const SQChar *text = nullptr;
+  auto v = getVm();
   if(sq_gettype(v, index) == OT_NULL) return true;
   auto status = SQ_SUCCEEDED(sq_getstring(v, index, &text));
   result = text;
@@ -28,16 +29,18 @@ bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, const char *&result) {
 }
 
 template<>
-bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, float &result) {
+bool ScriptEngine::get(SQInteger index, float &result) {
   SQFloat value = 0;
+  auto v = getVm();
   auto status = SQ_SUCCEEDED(sq_getfloat(v, index, &value));
   result = value;
   return status;
 }
 
 template<>
-bool ScriptEngine::get(HSQUIRRELVM v, SQInteger index, Entity *&result) {
-  result = getScriptObject<Entity>(v, index);
+bool ScriptEngine::get(SQInteger index, Entity *&result) {
+  auto v = getVm();
+  result = EntityManager::getScriptObject<Entity>(v, index);
   return result != nullptr;
 }
 

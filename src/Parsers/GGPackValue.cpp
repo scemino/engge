@@ -7,6 +7,7 @@
 #include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
 #include "Engine/EntityManager.hpp"
+#include "Room/Room.hpp"
 #include "Entities/Objects/Object.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Parsers/GGPackValue.hpp"
@@ -246,7 +247,7 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
   if (checkId && ScriptEngine::get(table, _idKey, id)) {
     hash.type = 2;
     if (EntityManager::isActor(id)) {
-      auto pActor = ScriptEngine::getActorFromId(id);
+      auto pActor = EntityManager::getActorFromId(id);
       if (pActor && pActor->getKey() != tableKey) {
         hash.hash_value[_actorKey] = GGPackValue::toGGPackValue(pActor->getKey());
         return true;
@@ -254,7 +255,7 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
       return false;
     }
     if (EntityManager::isObject(id)) {
-      auto pObj = ScriptEngine::getObjectFromId(id);
+      auto pObj = EntityManager::getObjectFromId(id);
       if (pObj && pObj->getKey() != tableKey) {
         auto pRoom = pObj->getRoom();
         if (pRoom && pRoom->isPseudoRoom()) {
@@ -266,7 +267,7 @@ bool GGPackValue::saveTable(HSQOBJECT table, GGPackValue &hash, bool checkId, co
       return false;
     }
     if (EntityManager::isRoom(id)) {
-      auto pRoom = ScriptEngine::getRoomFromId(id);
+      auto pRoom = EntityManager::getRoomFromId(id);
       if (pRoom && pRoom->getName() != tableKey) {
         hash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pRoom->getName());
         return true;

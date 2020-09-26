@@ -113,10 +113,10 @@ void Cutscene::endCutscene() {
   _engine.setInputState(_inputState);
   _engine.follow(_engine.getCurrentActor());
   ScriptEngine::call("onCutsceneEnded");
-  auto pThread = ScriptEngine::getThreadFromVm(_v);
+  auto pThread = EntityManager::getThreadFromVm(_v);
   if (pThread)
     pThread->resume();
-  pThread = ScriptEngine::getThreadFromId(_id);
+  pThread = EntityManager::getThreadFromId(_id);
   if (pThread)
     pThread->stop();
 }

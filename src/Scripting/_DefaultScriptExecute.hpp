@@ -68,7 +68,7 @@ public:
     sq_pushstring(_vm, name.data(), -1);
     sq_get(_vm, -2);
 
-    SoundDefinition *pSound = ScriptEngine::getSoundDefinition(_vm, -1);
+    auto *pSound = EntityManager::getSoundDefinition(_vm, -1);
     sq_settop(_vm, top);
     return pSound;
   }

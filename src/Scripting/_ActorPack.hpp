@@ -65,7 +65,7 @@ private:
   }
 
   static SQInteger actorAlpha(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -85,7 +85,7 @@ private:
     const SQChar *stand = nullptr;
     const SQChar *walk = nullptr;
     const SQChar *reach = nullptr;
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -124,7 +124,7 @@ private:
   }
 
   static SQInteger actorAnimationFlags(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -162,18 +162,18 @@ private:
     auto numArgs = sq_gettop(v);
     switch (numArgs) {
     case 3: {
-      auto *pActor = ScriptEngine::getActor(v, 2);
+      auto *pActor = EntityManager::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
       }
 
-      auto *pRoom = ScriptEngine::getRoom(v, 3);
+      auto *pRoom = EntityManager::getRoom(v, 3);
       if (pRoom) {
         pActor->setRoom(pRoom);
         return 0;
       }
 
-      auto *pObj = ScriptEngine::getObject(v, 3);
+      auto *pObj = EntityManager::getObject(v, 3);
       if (!pObj) {
         return sq_throwerror(v, _SC("failed to get object or room"));
       }
@@ -186,7 +186,7 @@ private:
     }
 
     case 4: {
-      auto *pActor = ScriptEngine::getActor(v, 2);
+      auto *pActor = EntityManager::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
       }
@@ -202,11 +202,11 @@ private:
     }
     case 5: [[fallthrough]];
     case 6: {
-      auto *pActor = ScriptEngine::getActor(v, 2);
+      auto *pActor = EntityManager::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
       }
-      auto *pRoom = ScriptEngine::getRoom(v, 3);
+      auto *pRoom = EntityManager::getRoom(v, 3);
       if (!pRoom) {
         return sq_throwerror(v, _SC("failed to get room"));
       }
@@ -241,7 +241,7 @@ private:
   }
 
   static SQInteger actorColor(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -258,7 +258,7 @@ private:
 
   static SQInteger actorCostume(HSQUIRRELVM v) {
     const SQChar *name;
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -272,17 +272,17 @@ private:
   }
 
   static SQInteger actorDistanceTo(HSQUIRRELVM v) {
-    auto pActor = ScriptEngine::getActor(v, 2);
+    auto pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    auto pActor2 = ScriptEngine::getActor(v, 3);
+    auto pActor2 = EntityManager::getActor(v, 3);
     if (pActor2) {
       auto dist = _distance(pActor->getRealPosition(), pActor2->getRealPosition());
       sq_pushinteger(v, dist);
       return 1;
     }
-    auto pObject = ScriptEngine::getObject(v, 3);
+    auto pObject = EntityManager::getObject(v, 3);
     if (!pObject) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -293,7 +293,7 @@ private:
   }
 
   static SQInteger actorDistanceWithin(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -301,7 +301,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 4, &d))) {
       return sq_throwerror(v, _SC("failed to get distance"));
     }
-    auto pActor2 = ScriptEngine::getActor(v, 3);
+    auto pActor2 = EntityManager::getActor(v, 3);
     if (pActor2) {
       auto dist = _distance(actor->getRealPosition(), pActor2->getRealPosition());
 //      trace("actorDistanceWithin({},{},{})=>{} ({})",
@@ -314,7 +314,7 @@ private:
       return 1;
     }
 
-    auto pObject = ScriptEngine::getObject(v, 3);
+    auto pObject = EntityManager::getObject(v, 3);
     if (!pObject) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -337,7 +337,7 @@ private:
   }
 
   static SQInteger actorFace(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -363,7 +363,7 @@ private:
       return 0;
     }
 
-    auto actor2 = ScriptEngine::getActor(v, 3);
+    auto actor2 = EntityManager::getActor(v, 3);
     if (!actor2) {
       return sq_throwerror(v, _SC("failed to get actor to face to"));
     }
@@ -373,7 +373,7 @@ private:
   }
 
   static SQInteger actorHidden(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -386,7 +386,7 @@ private:
   }
 
   static SQInteger actorShowHideLayer(HSQUIRRELVM v, bool isVisible) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -401,11 +401,11 @@ private:
   static SQInteger actorHideLayer(HSQUIRRELVM v) { return actorShowHideLayer(v, false); }
 
   static SQInteger actorInTrigger(HSQUIRRELVM v) {
-    auto *actor = ScriptEngine::getActor(v, 2);
+    auto *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    auto *object = ScriptEngine::getObject(v, 3);
+    auto *object = EntityManager::getObject(v, 3);
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -415,7 +415,7 @@ private:
   }
 
   static SQInteger actorInWalkbox(HSQUIRRELVM v) {
-    auto *actor = ScriptEngine::getActor(v, 2);
+    auto *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -432,7 +432,7 @@ private:
 
   static SQInteger actorLockFacing(HSQUIRRELVM v) {
     SQInteger facing;
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    Actor *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -470,7 +470,7 @@ private:
   }
 
   static SQInteger actorBlinkRate(HSQUIRRELVM v) {
-    Actor *pActor = ScriptEngine::getActor(v, 2);
+    Actor *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -487,7 +487,7 @@ private:
   }
 
   static SQInteger actorPlayAnimation(HSQUIRRELVM v) {
-    Actor *pActor = ScriptEngine::getActor(v, 2);
+    Actor *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -504,7 +504,7 @@ private:
   }
 
   static SQInteger actorPosX(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -513,7 +513,7 @@ private:
   }
 
   static SQInteger actorPosY(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -522,7 +522,7 @@ private:
   }
 
   static SQInteger actorRenderOffset(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -538,7 +538,7 @@ private:
   }
 
   static SQInteger actorRoom(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -552,7 +552,7 @@ private:
   }
 
   static SQInteger actorStand(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -596,7 +596,7 @@ private:
         g_pEngine->actorSlotSelectable(actorIndex, selectable == SQTrue);
         return 0;
       }
-      auto actor = ScriptEngine::getActor(v, 2);
+      auto actor = EntityManager::getActor(v, 2);
       if (!actor) {
         return sq_throwerror(v, _SC("failed to get actor"));
       }
@@ -609,7 +609,7 @@ private:
   static SQInteger actorTalking(HSQUIRRELVM v) {
     Actor *pActor;
     if (sq_gettop(v) == 2) {
-      pActor = ScriptEngine::getActor(v, 2);
+      pActor = EntityManager::getActor(v, 2);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get actor"));
       }
@@ -621,7 +621,7 @@ private:
   }
 
   static SQInteger actorStopWalking(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -630,7 +630,7 @@ private:
   }
 
   static SQInteger actorTalkColors(HSQUIRRELVM v) {
-    auto pEntity = ScriptEngine::getEntity(v, 2);
+    auto pEntity = EntityManager::getEntity(v, 2);
     if (!pEntity) {
       return sq_throwerror(v, _SC("failed to get actor/object"));
     }
@@ -643,7 +643,7 @@ private:
   }
 
   static SQInteger actorTalkOffset(HSQUIRRELVM v) {
-    auto pEntity = ScriptEngine::getEntity(v, 2);
+    auto pEntity = EntityManager::getEntity(v, 2);
     if (!pEntity) {
       return sq_throwerror(v, _SC("failed to get actor/object"));
     }
@@ -660,7 +660,7 @@ private:
   }
 
   static SQInteger actorTurnTo(HSQUIRRELVM v) {
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    Actor *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -674,7 +674,7 @@ private:
       return 0;
     }
 
-    Entity *entity = ScriptEngine::getEntity(v, 3);
+    Entity *entity = EntityManager::getEntity(v, 3);
     if (!entity) {
       return sq_throwerror(v, _SC("failed to get entity to face to"));
     }
@@ -707,11 +707,11 @@ private:
 
   static SQInteger actorUsePos(HSQUIRRELVM v) {
     auto numArgs = sq_gettop(v);
-    auto *actor = ScriptEngine::getActor(v, 2);
+    auto *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    auto *obj = ScriptEngine::getObject(v, 3);
+    auto *obj = EntityManager::getObject(v, 3);
     if (!obj) {
       actor->setUsePosition(sf::Vector2f());
       return 0;
@@ -729,7 +729,7 @@ private:
   }
 
   static SQInteger actorUseWalkboxes(HSQUIRRELVM v) {
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    Actor *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -741,7 +741,7 @@ private:
   }
 
   static SQInteger actorVolume(HSQUIRRELVM v) {
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    Actor *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -754,7 +754,7 @@ private:
   }
 
   static SQInteger actorWalkForward(HSQUIRRELVM v) {
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    Actor *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -783,7 +783,7 @@ private:
     if (numArgs == 0) {
       pActor = g_pEngine->getCurrentActor();
     } else if (numArgs == 1) {
-      pActor = ScriptEngine::getActor(v, 2);
+      pActor = EntityManager::getActor(v, 2);
     }
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
@@ -793,7 +793,7 @@ private:
   }
 
   static SQInteger actorWalkSpeed(HSQUIRRELVM v) {
-    auto pActor = ScriptEngine::getActor(v, 2);
+    auto pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -810,12 +810,12 @@ private:
 
   static SQInteger actorWalkTo(HSQUIRRELVM v) {
     auto numArgs = sq_gettop(v);
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
     if (numArgs == 3) {
-      auto *pObject = ScriptEngine::getObject(v, 3);
+      auto *pObject = EntityManager::getObject(v, 3);
       if (pObject) {
         auto pos = pObject->getRealPosition();
         auto usePos = pObject->getUsePosition().value_or(sf::Vector2f());
@@ -825,7 +825,7 @@ private:
         return 0;
       }
 
-      pActor = ScriptEngine::getActor(v, 3);
+      pActor = EntityManager::getActor(v, 3);
       if (!pActor) {
         return sq_throwerror(v, _SC("failed to get object or actor"));
       }
@@ -851,7 +851,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 2, &slot))) {
       return sq_throwerror(v, _SC("failed to get slot"));
     }
-    auto *pActor = ScriptEngine::getActor(v, 3);
+    auto *pActor = EntityManager::getActor(v, 3);
     g_pEngine->addSelectableActor(slot, pActor);
     return 0;
   }
@@ -879,20 +879,20 @@ private:
   }
 
   static SQInteger isActor(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     sq_pushbool(v, actor ? SQTrue : SQFalse);
     return 1;
   }
 
   static SQInteger isActorSelectable(HSQUIRRELVM v) {
-    auto actor = ScriptEngine::getActor(v, 2);
+    auto actor = EntityManager::getActor(v, 2);
     bool isSelectable = g_pEngine->isActorSelectable(actor);
     sq_pushbool(v, isSelectable ? SQTrue : SQFalse);
     return 1;
   }
 
   static SQInteger isActorOnScreen(HSQUIRRELVM v) {
-    auto entity = ScriptEngine::getEntity(v, 2);
+    auto entity = EntityManager::getEntity(v, 2);
     if (!entity) {
       return sq_throwerror(v, _SC("failed to get entity"));
     }
@@ -927,7 +927,7 @@ private:
     Entity *pEntity;
     SQInteger index;
     if (sq_gettype(v, 2) == OT_TABLE) {
-      pEntity = ScriptEngine::getEntity(v, 2);
+      pEntity = EntityManager::getEntity(v, 2);
       index = 3;
     } else {
       pEntity = g_pEngine->getCurrentActor();
@@ -965,7 +965,7 @@ private:
   static SQInteger mumbleLine(HSQUIRRELVM v) { return _sayLine(v, true); }
 
   static SQInteger sayLine(HSQUIRRELVM v) {
-    auto pEntity = ScriptEngine::getActor(v, 2);
+    auto pEntity = EntityManager::getActor(v, 2);
     if (!pEntity) {
       pEntity = g_pEngine->getCurrentActor();
     }
@@ -1001,7 +1001,7 @@ private:
       g_pEngine->sayLineAt(sf::Vector2i(x, y), color, sf::seconds(t), text);
       return 0;
     }
-    auto *actor = ScriptEngine::getActor(v, 4);
+    auto *actor = EntityManager::getActor(v, 4);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -1014,7 +1014,7 @@ private:
   }
 
   static SQInteger selectActor(HSQUIRRELVM v) {
-    auto *actor = ScriptEngine::getActor(v, 2);
+    auto *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
@@ -1029,7 +1029,7 @@ private:
         g_pEngine->stopTalking();
         return 0;
       }
-      auto pEntity = ScriptEngine::getEntity(v, 2);
+      auto pEntity = EntityManager::getEntity(v, 2);
       if (!pEntity) {
         return sq_throwerror(v, _SC("failed to get actor/object"));
       }
@@ -1042,7 +1042,7 @@ private:
   }
 
   static SQInteger triggerActors(HSQUIRRELVM v) {
-    auto *object = ScriptEngine::getObject(v, 2);
+    auto *object = EntityManager::getObject(v, 2);
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object"));
     }

@@ -69,7 +69,7 @@ void SoundId::resume() {
 
 void SoundId::updateVolume() {
   float entityVolume = 1.f;
-  Entity *pEntity = _entityId ? ScriptEngine::getScriptObjectFromId<Entity>(_entityId) : nullptr;
+  Entity *pEntity = _entityId ? EntityManager::getScriptObjectFromId<Entity>(_entityId) : nullptr;
 
   if (pEntity) {
     auto pRoom = _soundManager.getEngine()->getRoom();

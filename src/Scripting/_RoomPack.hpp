@@ -133,7 +133,7 @@ private:
 
   static SQInteger lightBrightness(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -149,7 +149,7 @@ private:
 
   static SQInteger lightConeDirection(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -165,7 +165,7 @@ private:
 
   static SQInteger lightConeAngle(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -181,7 +181,7 @@ private:
 
   static SQInteger lightConeFalloff(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -197,7 +197,7 @@ private:
 
   static SQInteger lightCutOffRadius(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -213,7 +213,7 @@ private:
 
   static SQInteger lightHalfRadius(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -229,7 +229,7 @@ private:
 
   static SQInteger lightTurnOn(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -245,7 +245,7 @@ private:
 
   static SQInteger lightZRange(HSQUIRRELVM v) {
     Light *pLight;
-    if (!ScriptEngine::tryGetLight(v, 2, pLight))
+    if (!EntityManager::tryGetLight(v, 2, pLight))
       return 0;
 
     if (!pLight)
@@ -286,7 +286,7 @@ private:
   }
 
   static SQInteger roomSize(HSQUIRRELVM v) {
-    auto pRoom = ScriptEngine::getRoom(v, 2);
+    auto pRoom = EntityManager::getRoom(v, 2);
     if (!pRoom) {
       return sq_throwerror(v, _SC("failed to get room"));
     }
@@ -297,7 +297,7 @@ private:
 
   static SQInteger addTrigger(HSQUIRRELVM v) {
     auto numArgs = sq_gettop(v);
-    auto object = ScriptEngine::getObject(v, 2);
+    auto object = EntityManager::getObject(v, 2);
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -335,7 +335,7 @@ private:
   }
 
   static SQInteger enableTrigger(HSQUIRRELVM v) {
-    auto object = ScriptEngine::getObject(v, 2);
+    auto object = EntityManager::getObject(v, 2);
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -348,7 +348,7 @@ private:
   }
 
   static SQInteger enterRoomFromDoor(HSQUIRRELVM v) {
-    auto obj = ScriptEngine::getObject(v, 2);
+    auto obj = EntityManager::getObject(v, 2);
     return g_pEngine->enterRoomFromDoor(obj);
   }
 
@@ -414,7 +414,7 @@ private:
       }
       return 0;
     }
-    auto object = ScriptEngine::getObject(v, 2);
+    auto object = EntityManager::getObject(v, 2);
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -423,7 +423,7 @@ private:
   }
 
   static SQInteger roomActors(HSQUIRRELVM v) {
-    auto pRoom = ScriptEngine::getRoom(v, 2);
+    auto pRoom = EntityManager::getRoom(v, 2);
     if (!pRoom) {
       return sq_throwerror(v, _SC("failed to get room"));
     }
@@ -515,7 +515,7 @@ private:
   }
 
   static SQInteger roomLayer(HSQUIRRELVM v) {
-    auto pRoom = ScriptEngine::getRoom(v, 2);
+    auto pRoom = EntityManager::getRoom(v, 2);
     SQInteger layer;
     if (SQ_FAILED(sq_getinteger(v, 3, &layer))) {
       return sq_throwerror(v, _SC("failed to get layer"));

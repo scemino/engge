@@ -47,7 +47,7 @@ public:
       return;
 
     _done = true;
-    auto pThread = ScriptEngine::getThreadFromId(_threadId);
+    auto pThread = EntityManager::getThreadFromId(_threadId);
     if (!pThread)
       return;
     pThread->resume();
@@ -182,7 +182,7 @@ public:
   }
 
   bool isElapsed() override {
-    auto pSoundId = dynamic_cast<SoundId *>(ScriptEngine::getSoundFromId(_soundId));
+    auto pSoundId = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(_soundId));
     return !pSoundId || !pSoundId->isPlaying();
   }
 };
@@ -201,9 +201,9 @@ public:
     if (_done)
       return;
 
-    auto pThread = ScriptEngine::getThreadFromId(_threadId);
+    auto pThread = EntityManager::getThreadFromId(_threadId);
     if (!pThread || pThread->isStopped()) {
-      auto pCurrentThread = ScriptEngine::getThreadFromId(_currentThreadId);
+      auto pCurrentThread = EntityManager::getThreadFromId(_currentThreadId);
       if (pCurrentThread) {
         pCurrentThread->resume();
       }
@@ -291,7 +291,7 @@ public:
     TimeFunction::operator()(elapsed);
     if (isElapsed()) {
       _done = true;
-      auto pThread = ScriptEngine::getThreadFromId(_threadId);
+      auto pThread = EntityManager::getThreadFromId(_threadId);
       if (!pThread)
         return;
       pThread->resume();
@@ -408,7 +408,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 2, &numFrames))) {
       return sq_throwerror(v, _SC("failed to get numFrames"));
     }
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakHereFunction>(*g_pEngine, pThread->getId(), numFrames));
@@ -416,22 +416,22 @@ private:
   }
 
   static SQInteger breakwhileanimating(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (pActor) {
       auto pAnim = pActor->getCostume().getAnimation();
       if (!pAnim)
         return 0;
 
-      auto pThread = ScriptEngine::getThreadFromVm(v);
+      auto pThread = EntityManager::getThreadFromVm(v);
       pThread->suspend();
 
       g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingFunction>(*g_pEngine, pThread->getId(), *pActor));
       return SQ_SUSPEND_FLAG;
     }
 
-    auto *pObj = ScriptEngine::getObject(v, 2);
+    auto *pObj = EntityManager::getObject(v, 2);
     if (pObj) {
-      auto pThread = ScriptEngine::getThreadFromVm(v);
+      auto pThread = EntityManager::getThreadFromVm(v);
       pThread->suspend();
 
       g_pEngine->addFunction(std::make_unique<_BreakWhileAnimatingObjectFunction>(*g_pEngine, pThread->getId(), *pObj));
@@ -441,7 +441,7 @@ private:
   }
 
   static SQInteger breakwhilecamera(HSQUIRRELVM v) {
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileCameraFunction>(*g_pEngine, pThread->getId()));
@@ -449,7 +449,7 @@ private:
   }
 
   static SQInteger breakwhilecutscene(HSQUIRRELVM v) {
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileCutsceneFunction>(*g_pEngine, pThread->getId()));
@@ -457,7 +457,7 @@ private:
   }
 
   static SQInteger breakwhileinputoff(HSQUIRRELVM v) {
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileInputOffFunction>(*g_pEngine, pThread->getId()));
@@ -465,8 +465,8 @@ private:
   }
 
   static SQInteger breakwhilesound(HSQUIRRELVM v) {
-    SoundId *pSound = ScriptEngine::getSound(v, 2);
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    SoundId *pSound = EntityManager::getSound(v, 2);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileSoundFunction>(*g_pEngine,
@@ -476,7 +476,7 @@ private:
   }
 
   static SQInteger breakwhiledialog(HSQUIRRELVM v) {
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileDialogFunction>(*g_pEngine, pThread->getId()));
@@ -484,12 +484,12 @@ private:
   }
 
   static SQInteger breakwhilewalking(HSQUIRRELVM v) {
-    auto *pActor = ScriptEngine::getActor(v, 2);
+    auto *pActor = EntityManager::getActor(v, 2);
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
 
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileWalkingFunction>(*g_pEngine, pThread->getId(), *pActor));
@@ -498,18 +498,18 @@ private:
 
   static SQInteger breakwhiletalking(HSQUIRRELVM v) {
     if (sq_gettop(v) == 2) {
-      auto *pEntity = ScriptEngine::getEntity(v, 2);
+      auto *pEntity = EntityManager::getEntity(v, 2);
       if (!pEntity) {
         return sq_throwerror(v, _SC("failed to get actor/object"));
       }
-      auto pThread = ScriptEngine::getThreadFromVm(v);
+      auto pThread = EntityManager::getThreadFromVm(v);
       pThread->suspend();
 
       g_pEngine->addFunction(std::make_unique<_BreakWhileTalkingFunction>(*g_pEngine, pThread->getId(), *pEntity));
       return SQ_SUSPEND_FLAG;
     }
 
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     pThread->suspend();
 
     g_pEngine->addFunction(std::make_unique<_BreakWhileAnyActorTalkingFunction>(*g_pEngine, pThread->getId()));
@@ -523,12 +523,12 @@ private:
     }
 
     if (EntityManager::isThread(id)) {
-      auto pCurrentThread = ScriptEngine::getThreadFromVm(v);
+      auto pCurrentThread = EntityManager::getThreadFromVm(v);
       if (!pCurrentThread) {
         return sq_throwerror(v, "Current thread should be created with startthread");
       }
 
-      auto pThread = ScriptEngine::getThreadFromId(id);
+      auto pThread = EntityManager::getThreadFromId(id);
       if (!pThread)
         return 0;
 
@@ -774,13 +774,13 @@ private:
     Entity *pObj1{nullptr};
     Entity *pObj2{nullptr};
     if (numArgs > 2) {
-      pObj1 = ScriptEngine::getEntity(v, 3);
+      pObj1 = EntityManager::getEntity(v, 3);
       if (!pObj1) {
         return sq_throwerror(v, _SC("Failed to get obj1"));
       }
     }
     if (numArgs > 3) {
-      pObj2 = ScriptEngine::getEntity(v, 4);
+      pObj2 = EntityManager::getEntity(v, 4);
       if (!pObj2) {
         return sq_throwerror(v, _SC("Failed to get obj2"));
       }
@@ -803,7 +803,7 @@ private:
       return 1;
     }
 
-    auto pThread = ScriptEngine::getThreadFromId(id);
+    auto pThread = EntityManager::getThreadFromId(id);
     if (!pThread) {
       sq_pushinteger(v, 0);
       return 1;
@@ -893,7 +893,7 @@ private:
       return sq_throwerror(v, _SC("failed to get time"));
     }
 
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     if (!pThread) {
       return sq_throwerror(v, _SC("failed to get thread"));
     }
@@ -1129,7 +1129,7 @@ private:
   }
 
   static SQInteger threadid(HSQUIRRELVM v) {
-    auto pThread = ScriptEngine::getThreadFromVm(v);
+    auto pThread = EntityManager::getThreadFromVm(v);
     sq_pushinteger(v, pThread ? pThread->getId() : 0);
     return 1;
   }
@@ -1139,7 +1139,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 2, &threadId))) {
       return sq_throwerror(v, _SC("failed to get threadId"));
     }
-    auto pThread = ScriptEngine::getThreadFromId(threadId);
+    auto pThread = EntityManager::getThreadFromId(threadId);
     if (!pThread) {
       return 0;
     }

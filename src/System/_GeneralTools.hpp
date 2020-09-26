@@ -112,7 +112,7 @@ private:
         break;
       case OT_THREAD: {
         s << "thread";
-        auto pThread = ScriptEngine::getThreadFromVm(_thread(obj));
+        auto pThread = EntityManager::getThreadFromVm(_thread(obj));
         if (pThread) {
           s << " " << pThread->getName();
         }

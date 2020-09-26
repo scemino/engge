@@ -100,7 +100,7 @@ private:
   }
 
   static SQInteger isInventoryOnScreen(HSQUIRRELVM v) {
-    auto object = ScriptEngine::getObject(v, 2);
+    auto object = EntityManager::getObject(v, 2);
     auto owner = object->getOwner();
     if (!owner) {
       sq_pushbool(v, SQFalse);
@@ -123,13 +123,13 @@ private:
   }
 
   static SQInteger isObject(HSQUIRRELVM v) {
-    auto object = ScriptEngine::getObject(v, 2);
+    auto object = EntityManager::getObject(v, 2);
     sq_pushbool(v, object ? SQTrue : SQFalse);
     return 1;
   }
 
   static SQInteger jiggleInventory(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -143,7 +143,7 @@ private:
 
   static SQInteger jiggleObject(HSQUIRRELVM v) {
     error("TODO: jiggleObject: not implemented");
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -160,7 +160,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &s))) {
       return sq_throwerror(v, _SC("failed to get scale"));
     }
-    Object *self = ScriptEngine::getObject(v, 2);
+    Object *self = EntityManager::getObject(v, 2);
     if (!self) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -172,7 +172,7 @@ private:
     if (sq_gettype(v, 2) == OT_NULL)
       return 0;
 
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -192,7 +192,7 @@ private:
     if (sq_gettype(v, 2) == OT_NULL)
       return 0;
 
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object/actor"));
     }
@@ -215,7 +215,7 @@ private:
   }
 
   static SQInteger objectBumperCycle(HSQUIRRELVM v) {
-    auto pObj = ScriptEngine::getEntity(v, 2);
+    auto pObj = EntityManager::getEntity(v, 2);
     if (!pObj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -235,10 +235,10 @@ private:
 
     auto numArgs = sq_gettop(v);
 
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     Actor *actor = nullptr;
     if (!obj) {
-      actor = ScriptEngine::getActor(v, 2);
+      actor = EntityManager::getActor(v, 2);
       if (!actor) {
         return sq_throwerror(v, _SC("failed to get object or actor"));
       }
@@ -279,7 +279,7 @@ private:
   static SQInteger objectOffset(HSQUIRRELVM v) {
     SQInteger x = 0;
     SQInteger y = 0;
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -294,7 +294,7 @@ private:
   }
 
   static SQInteger objectScreenSpace(HSQUIRRELVM v) {
-    auto obj = ScriptEngine::getObject(v, 2);
+    auto obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -303,7 +303,7 @@ private:
   }
 
   static SQInteger objectState(HSQUIRRELVM v) {
-    auto obj = ScriptEngine::getObject(v, 2);
+    auto obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -326,7 +326,7 @@ private:
     SQInteger x = 0;
     SQInteger y = 0;
     SQFloat t = 0;
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get entity"));
     }
@@ -351,7 +351,7 @@ private:
     SQInteger x = 0;
     SQInteger y = 0;
     SQFloat t = 0;
-    Entity *obj = ScriptEngine::getEntity(v, 2);
+    Entity *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -374,7 +374,7 @@ private:
 
   static SQInteger loopObjectState(HSQUIRRELVM v) {
     SQInteger index;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -389,7 +389,7 @@ private:
     if (sq_gettype(v, 2) == OT_NULL)
       return 0;
 
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -413,7 +413,7 @@ private:
   }
 
   static SQInteger popInventory(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -428,7 +428,7 @@ private:
   }
 
   static SQInteger removeInventory(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (obj) {
       auto owner = obj->getOwner();
       if (owner) {
@@ -437,7 +437,7 @@ private:
       return 0;
     }
 
-    Actor *actor = ScriptEngine::getActor(v, 2);
+    Actor *actor = EntityManager::getActor(v, 2);
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -448,12 +448,12 @@ private:
   static SQInteger objectAt(HSQUIRRELVM v) {
     SQInteger x, y;
     auto numArgs = sq_gettop(v);
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
     if (numArgs == 3) {
-      Object *spot = ScriptEngine::getObject(v, 3);
+      Object *spot = EntityManager::getObject(v, 3);
       if (!spot) {
         return sq_throwerror(v, _SC("failed to get spot"));
       }
@@ -475,7 +475,7 @@ private:
 
   static SQInteger objectScale(HSQUIRRELVM v) {
     SQFloat value;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -487,7 +487,7 @@ private:
   }
 
   static SQInteger objectScaleTo(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -508,7 +508,7 @@ private:
   }
 
   static SQInteger objectPosX(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -520,7 +520,7 @@ private:
   }
 
   static SQInteger objectPosY(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -533,7 +533,7 @@ private:
   }
 
   static SQInteger objectRenderOffset(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -550,7 +550,7 @@ private:
   }
 
   static SQInteger objectRoom(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -565,7 +565,7 @@ private:
 
   static SQInteger objectSort(HSQUIRRELVM v) {
     SQInteger zOrder;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -578,7 +578,7 @@ private:
 
   static SQInteger objectRotate(HSQUIRRELVM v) {
     SQInteger angle;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -592,7 +592,7 @@ private:
   static SQInteger objectRotateTo(HSQUIRRELVM v) {
     SQFloat value;
     SQFloat t;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -612,7 +612,7 @@ private:
 
   static SQInteger objectParallaxLayer(HSQUIRRELVM v) {
     SQInteger layer;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -624,11 +624,11 @@ private:
   }
 
   static SQInteger objectParent(HSQUIRRELVM v) {
-    auto pChild = ScriptEngine::getObject(v, 2);
+    auto pChild = EntityManager::getObject(v, 2);
     if (!pChild) {
       return sq_throwerror(v, _SC("failed to get child object"));
     }
-    auto pParent = ScriptEngine::getObject(v, 3);
+    auto pParent = EntityManager::getObject(v, 3);
     if (!pParent) {
       return sq_throwerror(v, _SC("failed to get parent object"));
     }
@@ -638,7 +638,7 @@ private:
 
   static SQInteger objectTouchable(HSQUIRRELVM v) {
     SQInteger isTouchable;
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -657,7 +657,7 @@ private:
 
   static SQInteger objectLit(HSQUIRRELVM v) {
     SQInteger isLit;
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get actor or object"));
     }
@@ -669,7 +669,7 @@ private:
   }
 
   static SQInteger objectOwner(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -685,7 +685,7 @@ private:
   }
 
   static SQInteger objectUsePos(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -705,7 +705,7 @@ private:
   }
 
   static SQInteger objectUsePosX(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -715,7 +715,7 @@ private:
   }
 
   static SQInteger objectUsePosY(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -726,13 +726,13 @@ private:
 
   static SQInteger objectCenter(HSQUIRRELVM v) {
     sf::Vector2f pos;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (obj) {
       pos = obj->getRealPosition();
       auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
       pos += usePos;
     } else {
-      auto *actor = ScriptEngine::getActor(v, 2);
+      auto *actor = EntityManager::getActor(v, 2);
       if (!actor) {
         return sq_throwerror(v, _SC("failed to get object or actor"));
       }
@@ -744,7 +744,7 @@ private:
   }
 
   static SQInteger objectColor(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -761,11 +761,11 @@ private:
   }
 
   static SQInteger objectDependentOn(HSQUIRRELVM v) {
-    Object *childObject = ScriptEngine::getObject(v, 2);
+    Object *childObject = EntityManager::getObject(v, 2);
     if (!childObject) {
       return sq_throwerror(v, _SC("failed to get childObject"));
     }
-    Object *parentObject = ScriptEngine::getObject(v, 3);
+    Object *parentObject = EntityManager::getObject(v, 3);
     if (!parentObject) {
       return sq_throwerror(v, _SC("failed to get parentObject"));
     }
@@ -778,7 +778,7 @@ private:
   }
 
   static SQInteger objectIcon(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -814,7 +814,7 @@ private:
   }
 
   static SQInteger objectFPS(HSQUIRRELVM v) {
-    auto obj = ScriptEngine::getEntity(v, 2);
+    auto obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -827,7 +827,7 @@ private:
   }
 
   static SQInteger objectValidUsePos(HSQUIRRELVM v) {
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
@@ -836,7 +836,7 @@ private:
   }
 
   static SQInteger objectValidVerb(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -863,7 +863,7 @@ private:
 
   static SQInteger objectHidden(HSQUIRRELVM v) {
     SQInteger hidden;
-    Object *obj = ScriptEngine::getObject(v, 2);
+    Object *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       return 0;
     }
@@ -875,12 +875,12 @@ private:
   }
 
   static SQInteger pickupObject(HSQUIRRELVM v) {
-    auto object = ScriptEngine::getObject(v, 2);
+    auto object = EntityManager::getObject(v, 2);
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object to pickup"));
     }
 
-    auto actor = ScriptEngine::getActor(v, 3);
+    auto actor = EntityManager::getActor(v, 3);
     if (!actor) {
       actor = g_pEngine->getCurrentActor();
     }
@@ -910,11 +910,11 @@ private:
   }
 
   static SQInteger pickupReplacementObject(HSQUIRRELVM v) {
-    auto *obj1 = ScriptEngine::getObject(v, 2);
+    auto *obj1 = EntityManager::getObject(v, 2);
     if (!obj1) {
       return sq_throwerror(v, _SC("failed to get object 1"));
     }
-    auto *obj2 = ScriptEngine::getObject(v, 3);
+    auto *obj2 = EntityManager::getObject(v, 3);
     if (!obj2) {
       return sq_throwerror(v, _SC("failed to get object 2"));
     }
@@ -971,7 +971,7 @@ private:
   }
 
   static SQInteger stopObjectMotors(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getEntity(v, 2);
+    auto *obj = EntityManager::getEntity(v, 2);
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
@@ -980,7 +980,7 @@ private:
   }
 
   static SQInteger deleteObject(HSQUIRRELVM v) {
-    auto *obj = ScriptEngine::getObject(v, 2);
+    auto *obj = EntityManager::getObject(v, 2);
     if (!obj) {
       // this function can be called with null
       return 0;

@@ -17,7 +17,7 @@ set(SOURCES
         Math/PathFinding/GraphEdge.cpp Math/PathFinding/_Path.cpp Math/PathFinding/_AstarAlgorithm.cpp Math/PathFinding/_WalkboxDrawable.cpp
         Math/Segment.cpp UI/OptionsDialog.cpp UI/QuitDialog.cpp UI/SaveLoadDialog.cpp Entities/Objects/AnimationFrame.cpp UI/StartScreenDialog.cpp Engine/Hud.cpp
         Parsers/GGHashReader.cpp Parsers/GGHashWriter.cpp Parsers/SavegameManager.cpp Dialog/ConditionVisitor.cpp Dialog/ExpressionVisitor.cpp Dialog/DialogPlayer.cpp Dialog/EngineDialogScript.cpp
-        Input/CommandManager.cpp Input/InputMappings.cpp Util/BTEACrypto.cpp Util/RandomNumberGenerator.cpp)
+        Input/CommandManager.cpp Input/InputMappings.cpp Util/BTEACrypto.cpp Util/RandomNumberGenerator.cpp Engine/EntityManager.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

@@ -6,6 +6,7 @@
 #include "Audio/SoundTrigger.hpp"
 #include "Engine/Camera.hpp"
 #include "Engine/Trigger.hpp"
+#include "Room/Room.hpp"
 #include "Actor/_TalkingState.hpp"
 
 namespace ng {

@@ -655,7 +655,7 @@ struct Engine::Impl {
       if (!_table(obj)->Get(ScriptEngine::toSquirrel(_idKey), id)) {
         return nullptr;
       }
-      return ScriptEngine::getObjectFromId(static_cast<int>(_integer(id)));
+      return EntityManager::getObjectFromId(static_cast<int>(_integer(id)));
     }
 
     Object *getObject(const std::string &name) {
@@ -1737,15 +1737,15 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   }
 
   if (_objId1 && isRightClick) {
-    _hud.setVerbOverride(_hud.getVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(VerbConstants::VERB_LOOKAT)));
+    _hud.setVerbOverride(_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(VerbConstants::VERB_LOOKAT)));
   }
 
   auto verbId = _hud.getCurrentVerb()->id;
   switch (verbId) {
   case VerbConstants::VERB_WALKTO: {
-    auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
     if (pObj1 && pObj1->isInventoryObject()) {
-      _hud.setVerbOverride(_hud.getVerb(ScriptEngine::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(
+      _hud.setVerbOverride(_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(
           VerbConstants::VERB_LOOKAT)));
     }
     break;
@@ -1757,7 +1757,7 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
     }
     break;
   case VerbConstants::VERB_GIVE: {
-    auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
     if (!pObj1->isInventoryObject())
       _objId1 = 0;
 
@@ -1767,7 +1767,7 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
     break;
   }
   default: {
-    auto pActor = ScriptEngine::getScriptObjectFromId<Actor>(_objId1);
+    auto pActor = EntityManager::getScriptObjectFromId<Actor>(_objId1);
     if (pActor) {
       _objId1 = 0;
     }
@@ -1791,7 +1791,7 @@ Entity *Engine::Impl::getEntity(Entity *pEntity) const {
 }
 
 bool Engine::Impl::hasFlag(int id, uint32_t flagToTest) {
-  auto pObj = ScriptEngine::getScriptObjectFromId<Entity>(id);
+  auto pObj = EntityManager::getScriptObjectFromId<Entity>(id);
   auto flags = getFlags(pObj);
   if (flags & flagToTest)
     return true;
@@ -1801,7 +1801,7 @@ bool Engine::Impl::hasFlag(int id, uint32_t flagToTest) {
 }
 
 uint32_t Engine::Impl::getFlags(int id) const {
-  auto pEntity = ScriptEngine::getScriptObjectFromId<Entity>(id);
+  auto pEntity = EntityManager::getScriptObjectFromId<Entity>(id);
   return getFlags(pEntity);
 }
 
@@ -2000,7 +2000,7 @@ void Engine::update(const sf::Time &el) {
       pVerbOverride = _pImpl->_hud.getCurrentVerb();
     }
     pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
-    auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_pImpl->_objId1);
+    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_pImpl->_objId1);
     pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(pObj1) : pObj1;
     auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->getEntity(_pImpl->_pObj2) : _pImpl->_pObj2;
     if (pObj1) {
@@ -2349,7 +2349,7 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
   if (!pVerb || pVerb->id != VerbConstants::VERB_WALKTO)
     return pVerb;
 
-  auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+  auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
   if (!pObj1)
     return pVerb;
   return _hud.getVerb(pObj1->getDefaultVerb(VerbConstants::VERB_WALKTO));
@@ -2391,7 +2391,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
     auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
     s.append(_pEngine->getText(id));
   }
-  auto pObj1 = ScriptEngine::getScriptObjectFromId<Entity>(_objId1);
+  auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
     s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
     if (_DebugFeatures::showHoveredObject) {

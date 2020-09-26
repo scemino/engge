@@ -1,6 +1,7 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "Engine/Engine.hpp"
+#include "Engine/EntityManager.hpp"
 #include "Font/GGFont.hpp"
 #include "Graphics/Screen.hpp"
 #include "Graphics/Text.hpp"
@@ -26,7 +27,7 @@ public:
 
     bool end;
     _elapsed += elapsed;
-    auto pSound = dynamic_cast<SoundId *>(ScriptEngine::getSoundFromId(_soundId));
+    auto pSound = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(_soundId));
     if (pSound) {
       end = !pSound->isPlaying();
     } else {
@@ -49,7 +50,7 @@ public:
     _ids.clear();
     _isTalking = false;
     if (_soundId) {
-      auto pSound = dynamic_cast<SoundId *>(ScriptEngine::getSoundFromId(_soundId));
+      auto pSound = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(_soundId));
       if (pSound) {
         pSound->stop();
       }

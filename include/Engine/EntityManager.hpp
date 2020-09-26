@@ -1,6 +1,18 @@
 #pragma once
 
+#include "squirrel.h"
+
 namespace ng {
+class Actor;
+class Entity;
+class Light;
+class Object;
+class Room;
+class Sound;
+class SoundDefinition;
+class SoundId;
+class ThreadBase;
+
 class EntityManager {
 private:
   static const int START_ACTORID = 1000;
@@ -27,6 +39,29 @@ public:
   inline int getCallbackId() { return START_CALLBACKID + _callbackId++; }
   inline void setCallbackId(int id) { _callbackId = id - START_CALLBACKID; }
   inline int getThreadId() { return START_THREADID + _threadId++; }
+
+  static Actor *getActorFromId(int id);
+  static Room *getRoomFromId(int id);
+  static Object *getObjectFromId(int id);
+  static Sound *getSoundFromId(int id);
+  static ThreadBase *getThreadFromId(int id);
+  static ThreadBase *getThreadFromVm(HSQUIRRELVM v);
+
+  template <typename TScriptObject>
+  static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
+  template <typename TScriptObject>
+  static TScriptObject *getScriptObject(HSQUIRRELVM v, HSQOBJECT obj);
+  template <typename TScriptObject>
+  static TScriptObject *getScriptObjectFromId(int id);
+
+  static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
+  static Object *getObject(HSQUIRRELVM v, SQInteger index);
+  static Room *getRoom(HSQUIRRELVM v, SQInteger index);
+  static Actor *getActor(HSQUIRRELVM v, SQInteger index);
+  static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
+  static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
+
+  static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light);
 
   static bool isActor(int id) { return isBetween(id, START_ACTORID, END_ACTORID); }
   static bool isRoom(int id) { return isBetween(id, START_ROOMID, END_ROOMID); }

@@ -5,19 +5,11 @@
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
 #include "Engine/Engine.hpp"
 #include "Engine/Interpolations.hpp"
-#include "Room/Room.hpp"
 #include "System/Logger.hpp"
 #include "sqstdaux.h"
 #include "sqstdio.h"
 
 namespace ng {
-class Entity;
-class Light;
-class Room;
-class ScriptEngine;
-class Sound;
-class SoundId;
-class Thread;
 class Pack {
 public:
   virtual void registerPack() const = 0;
@@ -51,29 +43,6 @@ public:
 
   template <class TPack> void registerPack();
 
-  template <typename TScriptObject>
-  static TScriptObject *getScriptObject(HSQUIRRELVM v, SQInteger index);
-  template <typename TScriptObject>
-  static TScriptObject *getScriptObject(HSQUIRRELVM v, HSQOBJECT obj);
-  template <typename TScriptObject>
-  static TScriptObject *getScriptObjectFromId(int id);
-
-  static Entity *getEntity(HSQUIRRELVM v, SQInteger index);
-  static Object *getObject(HSQUIRRELVM v, SQInteger index);
-  static Room *getRoom(HSQUIRRELVM v, SQInteger index);
-  static Actor *getActor(HSQUIRRELVM v, SQInteger index);
-  static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
-  static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
-
-  static Actor *getActorFromId(int id);
-  static Room *getRoomFromId(int id);
-  static Object *getObjectFromId(int id);
-  static Sound *getSoundFromId(int id);
-  static ThreadBase *getThreadFromId(int id);
-  static ThreadBase *getThreadFromVm(HSQUIRRELVM v);
-
-  static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light);
-
   template <class T> static void pushObject(HSQUIRRELVM v, T *pObject);
 
   template <typename T> static void push(HSQUIRRELVM v, T value);
@@ -83,19 +52,15 @@ public:
   template <typename TThis> static bool exists(TThis pThis, const char *name);
 
   template <typename T>
-  static bool get(HSQUIRRELVM v, SQInteger index, T &result);
+  static bool get(SQInteger index, T &result);
   template <typename T> static bool get(const char *name, T &result);
   template <typename TThis, typename T>
   static bool get(TThis pThis, const char *name, T &result);
-  template <typename TThis, typename T>
-  static bool get(HSQUIRRELVM v, TThis pThis, const char *name, T &result);
 
   template <typename T> static void set(const char *name, T value);
 
   template <typename TThis, typename T>
   static void set(TThis pThis, const char *name, T value);
-  template <typename TThis, typename T>
-  static void set(HSQUIRRELVM v, TThis pThis, const char *name, T value);
 
   template <typename... T> static bool call(const char *name, T... args);
   static bool call(const char *name);
@@ -118,8 +83,6 @@ public:
 
   template <typename TThis, typename T>
   static bool rawGet(TThis pThis, const char *name, T &result);
-  template <typename TThis, typename T>
-  static bool rawGet(HSQUIRRELVM v, TThis pThis, const char *name, T &result);
 
   template <typename... T> static bool rawCall(const char *name, T... args);
   static bool rawCall(const char *name);
@@ -362,7 +325,7 @@ bool ScriptEngine::callFunc(TResult &result, TThis pThis, const char *name,
     error("function {} call failed", name);
     return false;
   }
-  ScriptEngine::get(v, -1, result);
+  ScriptEngine::get(-1, result);
   sq_settop(v, top);
   return true;
 }
@@ -389,7 +352,7 @@ bool ScriptEngine::callFunc(TResult &result, const char *name, T... args) {
     error("function {} call failed", name);
     return false;
   }
-  ScriptEngine::get(v, -1, result);
+  ScriptEngine::get(-1, result);
   sq_settop(v, top);
   return true;
 }
@@ -418,7 +381,7 @@ bool ScriptEngine::rawCallFunc(TResult &result, TThis pThis, const char *name,
     error("function {} call failed", name);
     return false;
   }
-  ScriptEngine::get(v, -1, result);
+  ScriptEngine::get(-1, result);
   sq_settop(v, top);
   return true;
 }
@@ -429,27 +392,17 @@ template <typename T> bool ScriptEngine::get(const char *name, T &result) {
   HSQOBJECT rootTable;
   sq_getstackobj(v, -1, &rootTable);
   sq_pop(v, 1);
-  return ScriptEngine::get(ScriptEngine::getVm(), rootTable, name, result);
+  return ScriptEngine::get(rootTable, name, result);
 }
 
 template <typename TThis, typename T>
 bool ScriptEngine::get(TThis pThis, const char *name, T &result) {
-  return ScriptEngine::get(ScriptEngine::getVm(), pThis, name, result);
-}
-
-template <typename TThis, typename T>
-bool ScriptEngine::rawGet(TThis pThis, const char *name, T &result) {
-  return ScriptEngine::rawGet(ScriptEngine::getVm(), pThis, name, result);
-}
-
-template <typename TThis, typename T>
-bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char *name,
-                       T &result) {
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_SUCCEEDED(sq_get(v, -2))) {
-    auto status = ScriptEngine::get(v, -1, result);
+    auto status = ScriptEngine::get(-1, result);
     sq_settop(v, top);
     return status;
   }
@@ -458,13 +411,14 @@ bool ScriptEngine::get(HSQUIRRELVM v, TThis pThis, const char *name,
 }
 
 template <typename TThis, typename T>
-bool ScriptEngine::rawGet(HSQUIRRELVM v, TThis pThis, const char *name,
+bool ScriptEngine::rawGet(TThis pThis, const char *name,
                           T &result) {
+  auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   if (SQ_SUCCEEDED(sq_rawget(v, -2))) {
-    auto status = ScriptEngine::get(v, -1, result);
+    auto status = ScriptEngine::get(-1, result);
     sq_settop(v, top);
     return status;
   }
@@ -513,11 +467,7 @@ template <typename T> void ScriptEngine::set(const char *name, T value) {
 
 template <typename TThis, typename T>
 void ScriptEngine::set(TThis pThis, const char *name, T value) {
-  ScriptEngine::set(ScriptEngine::getVm(), pThis, name, value);
-}
-
-template <typename TThis, typename T>
-void ScriptEngine::set(HSQUIRRELVM v, TThis pThis, const char *name, T value) {
+  auto v = ScriptEngine::getVm();
   push(v, pThis);
   sq_pushstring(v, _SC(name), -1);
   ScriptEngine::push(v, value);
