@@ -40,7 +40,8 @@ public:
         _lipAnim.end();
         return;
       }
-      loadId(std::get<0>(_ids.front()), std::get<1>(_ids.front()));
+      auto[id, text, mumble] = _ids.front();
+      loadId(id, text, mumble);
       _ids.erase(_ids.begin());
     }
     _lipAnim.update(elapsed);
@@ -79,16 +80,16 @@ public:
     auto id = std::strtol(text.c_str() + 1, nullptr, 10);
 
     if (_isTalking) {
-      _ids.emplace_back(id, mumble);
+      _ids.emplace_back(id, text, mumble);
       return;
     }
 
-    loadId(id, mumble);
+    loadId(id, text, mumble);
   }
 
 private:
-  void loadActorSpeech(const std::string &name) {
-    if (!_pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice, PreferenceDefaultValues::HearVoice))
+  void loadActorSpeech(const std::string &name, bool hearVoice) {
+    if (!hearVoice)
       return;
 
     auto soundDefinition = _pEngine->getSoundManager().defineSound(name + ".ogg");
@@ -103,9 +104,10 @@ private:
     }
   }
 
-  void loadId(int id, bool mumble) {
+  void loadId(int id, const std::string &text, bool mumble) {
     ScriptEngine::callFunc(id, "onTalkieID", _pEntity, id);
-    setText(Engine::getText(id));
+    auto sayText = id != 0 ? Engine::getText(id) : towstring(text);
+    setText(sayText);
 
     const char *key = nullptr;
     if (!ScriptEngine::rawGet(_pEntity, "_talkieKey", key)) {
@@ -142,10 +144,10 @@ private:
       _lipAnim.clear();
     }
 
-    auto hearVoice = _pEngine->getPreferences().getTempPreference(TempPreferenceNames::ForceTalkieText,
-                                                                  TempPreferenceDefaultValues::ForceTalkieText) ||
-        _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice,
-                                                     PreferenceDefaultValues::HearVoice);
+    auto hearVoice = (id != 0) && (_pEngine->getPreferences().getTempPreference(TempPreferenceNames::ForceTalkieText,
+                                                                                TempPreferenceDefaultValues::ForceTalkieText)
+        || _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice,
+                                                        PreferenceDefaultValues::HearVoice));
     if (hearVoice) {
       setDuration(_lipAnim.getDuration());
     } else {
@@ -167,7 +169,7 @@ private:
     const char *pAnim = anim.empty() ? nullptr : anim.data();
     ScriptEngine::rawCall(_pEntity, "sayingLine", pAnim, sayLine);
 
-    loadActorSpeech(name);
+    loadActorSpeech(name, hearVoice);
   }
 
   void draw(sf::RenderTarget &target, sf::RenderStates) const override {
@@ -232,6 +234,6 @@ private:
   sf::Time _duration;
   _LipAnimation _lipAnim;
   int _soundId{0};
-  std::vector<std::tuple<int, bool>> _ids;
+  std::vector<std::tuple<int, std::string, bool>> _ids;
 };
 }
