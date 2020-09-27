@@ -3,7 +3,6 @@
 
 class GGPackStream {
 public:
-  virtual ~GGPackStream() = default;
   virtual void read(char *data, size_t size) = 0;
   virtual void seek(int pos) = 0;
   virtual int tell() = 0;

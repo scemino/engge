@@ -59,8 +59,6 @@ public:
   const sf::Vector2i &getWalkSpeed() const;
 
   std::vector<sf::Vector2f> walkTo(const sf::Vector2f &destination, std::optional<Facing> facing = std::nullopt);
-  void setArrivedCallback(std::function<void()> callback);
-
   void stopWalking();
   bool isWalking() const;
 
