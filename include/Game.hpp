@@ -8,12 +8,6 @@
 #include "Engine/Engine.hpp"
 
 namespace ng {
-class InputEventHandler {
-public:
-  virtual void run(sf::Event event) = 0;
-  virtual ~InputEventHandler() = default;
-};
-
 class Game : public NonCopyable {
 public:
   Game();
@@ -22,20 +16,17 @@ public:
   void run();
   void setEngine(Engine *pEngine);
 
-  sf::RenderWindow &getWindow() { return _window; }
-  std::vector<std::unique_ptr<InputEventHandler>> &getInputEventHandlers() { return _inputEventHandlers; }
-
 private:
   void processEvents();
   void update(const sf::Time &time);
   void render();
   static sf::Uint32 getStyle() ;
 
-  Engine *_pEngine{};
-  sf::RenderWindow _window;
-  std::vector<std::unique_ptr<InputEventHandler>> _inputEventHandlers;
-  static const sf::Time TimePerFrame;
-  static const sf::VideoMode VideoMode;
-  static const std::string Title;
+private:
+  Engine *_pEngine{nullptr};
+  sf::RenderWindow _window{};
+  bool _isMousePressed{false};
+  bool _isKeyPressed{false};
+  sf::Vector2i _pos = sf::Mouse::getPosition();
 };
 } // namespace ng

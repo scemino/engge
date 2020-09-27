@@ -1,7 +1,6 @@
 #include <memory>
 #include "Engine/Engine.hpp"
 #include "Game.hpp"
-#include "Input/DefaultInputEventHandler.hpp"
 #include "Input/InputMappings.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
@@ -23,9 +22,7 @@ int main(int argc, char **argv) {
     game.setEngine(&engine);
     scriptEngine.setEngine(engine);
 
-    game.getInputEventHandlers().push_back(std::make_unique<ng::DefaultInputEventHandler>(engine, game.getWindow()));
     ng::InputMappings::registerMappings();
-
     ng::info("Start game");
     game.run();
   }
