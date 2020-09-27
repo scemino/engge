@@ -1,4 +1,6 @@
+#include "Engine/EntityManager.hpp"
 #include "Entities/Objects/Object.hpp"
+#include "Entities/Entity.hpp"
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
 
 namespace ng {

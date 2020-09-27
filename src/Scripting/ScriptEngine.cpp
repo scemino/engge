@@ -11,7 +11,6 @@
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
 #include "Engine/ExCommandConstants.hpp"
-#include "Engine/EntityManager.hpp"
 #include "Room/Room.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Audio/SoundDefinition.hpp"

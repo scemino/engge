@@ -12,70 +12,6 @@
 #include "System/Locator.hpp"
 
 namespace ng {
-template<typename TScriptObject>
-TScriptObject *EntityManager::getScriptObject(HSQUIRRELVM v, HSQOBJECT obj) {
-  sq_pushobject(v, obj);
-  sq_pushstring(v, _SC("_id"), -1);
-  if (SQ_FAILED(sq_rawget(v, -2))) {
-    return nullptr;
-  }
-
-  SQInteger id = 0;
-  if (SQ_FAILED(sq_getinteger(v, -1, &id))) {
-    return nullptr;
-  }
-  sq_pop(v, 2);
-
-  return getScriptObjectFromId<TScriptObject>(id);
-}
-
-template<typename TScriptObject>
-TScriptObject *EntityManager::getScriptObject(HSQUIRRELVM v, SQInteger index) {
-  auto type = sq_gettype(v, index);
-  // is it a table?
-  if (type != OT_TABLE) {
-    return nullptr;
-  }
-
-  HSQOBJECT object;
-  sq_resetobject(&object);
-  if (SQ_FAILED(sq_getstackobj(v, index, &object))) {
-    return nullptr;
-  }
-  return getScriptObject < TScriptObject > (v, object);
-}
-
-template<typename TScriptObject>
-TScriptObject *EntityManager::getScriptObjectFromId(int id) {
-  if (EntityManager::isActor(id)) {
-    return dynamic_cast<TScriptObject *>(getActorFromId(id));
-  }
-
-  if (EntityManager::isRoom(id)) {
-    return dynamic_cast<TScriptObject *>(getRoomFromId(id));
-  }
-
-  if (EntityManager::isLight(id)) {
-    for (auto &&room : ng::Locator<ng::Engine>::get().getRooms()) {
-      for (auto &&light : room->getLights()) {
-        if (light->getId() == id)
-          return dynamic_cast<TScriptObject *>(light.get());
-      }
-    }
-    return nullptr;
-  }
-
-  if (EntityManager::isObject(id)) {
-    return dynamic_cast<TScriptObject *>(getObjectFromId(id));
-  }
-
-  if (EntityManager::isSound(id)) {
-    return dynamic_cast<TScriptObject *>(getSoundFromId(id));
-  }
-
-  return nullptr;
-}
-
 Actor *EntityManager::getActorFromId(int id) {
   if (!EntityManager::isActor(id))
     return nullptr;
@@ -172,15 +108,18 @@ Object *EntityManager::getObject(HSQUIRRELVM v, SQInteger index) {
 
 Room *EntityManager::getRoom(HSQUIRRELVM v, SQInteger index) { return EntityManager::getScriptObject<Room>(v, index); }
 
-Actor *EntityManager::getActor(HSQUIRRELVM v, SQInteger index) { return EntityManager::getScriptObject<Actor>(v, index); }
+Actor *EntityManager::getActor(HSQUIRRELVM v, SQInteger index) {
+  return EntityManager::getScriptObject<Actor>(v,
+                                               index);
+}
 
 SoundId *EntityManager::getSound(HSQUIRRELVM v, SQInteger index) {
   return EntityManager::getScriptObject<SoundId>(v,
-                                                index);
+                                                 index);
 }
 
 SoundDefinition *EntityManager::getSoundDefinition(HSQUIRRELVM v,
-                                                  SQInteger index) {
+                                                   SQInteger index) {
   return EntityManager::getScriptObject<SoundDefinition>(v, index);
 }
 
