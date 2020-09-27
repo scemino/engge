@@ -1,51 +1,22 @@
-#include <filesystem>
 #include <memory>
-#include "Input/InputMappings.hpp"
-#include "Input/CommandManager.hpp"
-#include "Game.hpp"
 #include "Engine/Engine.hpp"
-#include "Engine/EngineSettings.hpp"
-#include "Engine/TextDatabase.hpp"
+#include "Game.hpp"
+#include "Input/DefaultInputEventHandler.hpp"
+#include "Input/InputMappings.hpp"
 #include "System/Locator.hpp"
 #include "System/Logger.hpp"
-#include "Engine/Preferences.hpp"
-#include "Engine/EntityManager.hpp"
+#include "System/Services.hpp"
 #include "Scripting/ScriptEngine.hpp"
-#include "Audio/SoundDefinition.hpp"
-#include "Audio/SoundId.hpp"
-#include "Audio/SoundManager.hpp"
-#include "Input/DefaultInputEventHandler.hpp"
-#include "Dialog/_AstDump.hpp"
-#include "Parsers/SavegameManager.hpp"
-#include "Util/RandomNumberGenerator.hpp"
-namespace fs = std::filesystem;
+#include "Util/Dumper.hpp"
 
 int main(int argc, char **argv) {
-  if (argc == 2) {
-    auto filename = argv[1];
-    auto filepath = fs::path(filename);
-    auto ext = filepath.extension();
-    if (ext == ".byack") {
-      ng::_AstDump::dump(filename);
-    } else if (ext == ".save") {
-      ng::GGPackValue hash;
-      ng::SavegameManager::loadGame(filename, hash);
-      std::cout << hash;
-    }
-    return 0;
-  }
-
   try {
-    ng::Locator<ng::Logger>::create();
-    ng::info("Init services");
-    ng::Locator<ng::RandomNumberGenerator>::create();
-    ng::Locator<ng::CommandManager>::create();
-    ng::Locator<ng::Preferences>::create();
-    ng::Locator<ng::EngineSettings>::create().loadPacks();
-    ng::Locator<ng::EntityManager>::create();
-    ng::Locator<ng::SoundManager>::create();
-    ng::Locator<ng::TextDatabase>::create();
-    ng::Locator<ng::ResourceManager>::create();
+    if (argc == 2) {
+      Dumper::dump(argv[1]);
+      return 0;
+    }
+
+    ng::Services::init();
     auto &scriptEngine = ng::Locator<ng::ScriptEngine>::create();
     auto &engine = ng::Locator<ng::Engine>::create();
     auto &game = ng::Locator<ng::Game>::create();

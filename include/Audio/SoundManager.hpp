@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 #include "SoundCategory.hpp"
+#include "SoundId.hpp"
+#include "SoundDefinition.hpp"
 
 namespace ng {
 class Entity;
