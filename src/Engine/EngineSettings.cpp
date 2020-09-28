@@ -1,8 +1,8 @@
 #include <sstream>
 #include <filesystem>
-#include "System/Locator.hpp"
-#include "Engine/Preferences.hpp"
-#include "Engine/EngineSettings.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Engine/EngineSettings.hpp"
 #include "../System/_Util.hpp"
 namespace fs = std::filesystem;
 

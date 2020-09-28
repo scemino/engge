@@ -1,7 +1,7 @@
-#include "Entities/Actor/BlinkState.hpp"
+#include "engge/Entities/Actor/BlinkState.hpp"
 #include "../../System/_Util.hpp"
-#include "System/Locator.hpp"
-#include "Util/RandomNumberGenerator.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Util/RandomNumberGenerator.hpp"
 
 namespace ng {
 BlinkState::BlinkState(Costume &costume) : _costume(costume) {

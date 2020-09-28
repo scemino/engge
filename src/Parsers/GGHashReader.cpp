@@ -1,6 +1,6 @@
 #include <sstream>
-#include "Parsers/GGHashReader.hpp"
-#include "Parsers/GGPackValue.hpp"
+#include "engge/Parsers/GGHashReader.hpp"
+#include "engge/Parsers/GGPackValue.hpp"
 
 namespace ng {
 void GGHashReader::readHash(std::vector<char> &data, GGPackValue &hash) {

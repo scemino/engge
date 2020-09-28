@@ -1,8 +1,8 @@
-#include "System/Logger.hpp"
-#include "Entities/Actor/Actor.hpp"
-#include "Dialog/EngineDialogScript.hpp"
-#include "Engine/Engine.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Entities/Actor/Actor.hpp"
+#include "engge/Dialog/EngineDialogScript.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
 
 namespace ng {
 

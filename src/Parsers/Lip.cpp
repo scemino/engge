@@ -1,7 +1,7 @@
 #include <regex>
-#include "Engine/EngineSettings.hpp"
-#include "Parsers/Lip.hpp"
-#include "System/Locator.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Parsers/Lip.hpp"
+#include "engge/System/Locator.hpp"
 #include "../System/_Util.hpp"
 
 namespace ng {

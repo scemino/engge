@@ -1,6 +1,6 @@
 #pragma once
-#include "squirrel.h"
-#include "Scripting/ScriptExecute.hpp"
+#include <squirrel.h>
+#include "engge/Scripting/ScriptExecute.hpp"
 
 namespace ng {
 class _DefaultScriptExecute : public ScriptExecute {

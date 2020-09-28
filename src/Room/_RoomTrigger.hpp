@@ -1,8 +1,8 @@
 #pragma once
-#include "Engine/Engine.hpp"
-#include "Engine/ThreadBase.hpp"
-#include "Engine/Trigger.hpp"
-#include "squirrel.h"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Engine/ThreadBase.hpp"
+#include "engge/Engine/Trigger.hpp"
+#include <squirrel.h>
 #include <string>
 
 namespace ng {

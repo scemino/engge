@@ -1,13 +1,12 @@
 #include "_ControlConstants.hpp"
-#include "Engine/Engine.hpp"
-#include "Font/FntFont.hpp"
-#include "Graphics/Screen.hpp"
-#include "Graphics/SpriteSheet.hpp"
-#include "Graphics/Text.hpp"
-#include "UI/QuitDialog.hpp"
-
+#include "engge/Engine/Engine.hpp"
+#include "engge/Graphics/FntFont.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include "engge/Graphics/SpriteSheet.hpp"
+#include "engge/Graphics/Text.hpp"
+#include "engge/UI/QuitDialog.hpp"
 #include <utility>
-#include "imgui.h"
+#include <imgui.h>
 
 namespace ng {
 class _BackButton : public sf::Drawable {

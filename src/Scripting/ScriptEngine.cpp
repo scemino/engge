@@ -1,20 +1,20 @@
 #include <cstdarg>
-#include "squirrel.h"
+#include <squirrel.h>
 #include "../../extlibs/squirrel/squirrel/sqpcheader.h"
 #include "../../extlibs/squirrel/squirrel/sqvm.h"
 #include "../../extlibs/squirrel/squirrel/sqstring.h"
-#include "sqstdio.h"
-#include "sqstdaux.h"
-#include "sqstdstring.h"
-#include "sqstdmath.h"
-#include "Entities/Entity.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Engine/ExCommandConstants.hpp"
-#include "Room/Room.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Audio/SoundDefinition.hpp"
-#include "Scripting/VerbExecute.hpp"
+#include <sqstdio.h>
+#include <sqstdaux.h>
+#include <sqstdstring.h>
+#include <sqstdmath.h>
+#include "engge/Entities/Entity.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Engine/ExCommandConstants.hpp"
+#include "engge/Room/Room.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
+#include "engge/Audio/SoundDefinition.hpp"
+#include "engge/Scripting/VerbExecute.hpp"
 #include "ScriptEngine.inl"
 #include "_SystemPack.hpp"
 #include "_GeneralPack.hpp"
@@ -25,8 +25,8 @@
 #include "_DefaultScriptExecute.hpp"
 #include "_DefaultVerbExecute.hpp"
 #include "_bnutPass.hpp"
-#include "Input/InputConstants.hpp"
-#include "Engine/InputStateConstants.hpp"
+#include "engge/Input/InputConstants.hpp"
+#include "engge/Engine/InputStateConstants.hpp"
 
 #ifdef SQUNICODE
 #define scvprintf vfwprintf

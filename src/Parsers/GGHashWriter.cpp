@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <sstream>
-#include "Parsers/GGHashWriter.hpp"
+#include "engge/Parsers/GGHashWriter.hpp"
 
 namespace ng {
 void GGHashWriter::_writeHash(const GGPackValue &hash, std::ostream &os) {

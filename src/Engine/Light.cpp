@@ -1,6 +1,6 @@
-#include "Engine/Light.hpp"
-#include "System/Locator.hpp"
-#include "Engine/EntityManager.hpp"
+#include "engge/Engine/Light.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Engine/EntityManager.hpp"
 
 namespace ng {
 Light::Light(sf::Color color, sf::Vector2i pos)

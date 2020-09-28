@@ -1,11 +1,11 @@
 #include <memory>
-#include "Engine/EngineSettings.hpp"
-#include "Entities/Entity.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Audio/SoundDefinition.hpp"
-#include "Audio/SoundId.hpp"
-#include "Audio/SoundManager.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Entities/Entity.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Audio/SoundDefinition.hpp"
+#include "engge/Audio/SoundId.hpp"
+#include "engge/Audio/SoundManager.hpp"
 
 namespace ng {
 SoundManager::SoundManager() = default;

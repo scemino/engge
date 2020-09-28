@@ -1,5 +1,5 @@
-#include "Entities/Objects/TextObject.hpp"
-#include "Graphics/Text.hpp"
+#include "engge/Entities/Objects/TextObject.hpp"
+#include "engge/Graphics/Text.hpp"
 #include "../../System/_Util.hpp"
 
 namespace ng {

@@ -1,7 +1,7 @@
-#include "squirrel.h"
-#include "System/Locator.hpp"
-#include "Engine/EntityManager.hpp"
-#include "Engine/Thread.hpp"
+#include <squirrel.h>
+#include "engge/System/Locator.hpp"
+#include "engge/Engine/EntityManager.hpp"
+#include "engge/Engine/Thread.hpp"
 #include <sstream>
 #include <utility>
 

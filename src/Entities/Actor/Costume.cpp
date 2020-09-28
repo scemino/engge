@@ -1,13 +1,13 @@
 #include <filesystem>
 #include <iostream>
-#include "Entities/Actor/Actor.hpp"
-#include "Entities/Actor/BlinkState.hpp"
-#include "Entities/Actor/Costume.hpp"
-#include "Entities/Objects/AnimationFrame.hpp"
-#include "Engine/EngineSettings.hpp"
-#include "System/Locator.hpp"
+#include "engge/Entities/Actor/Actor.hpp"
+#include "engge/Entities/Actor/BlinkState.hpp"
+#include "engge/Entities/Actor/Costume.hpp"
+#include "engge/Entities/Objects/AnimationFrame.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/System/Locator.hpp"
 #include "../../System/_Util.hpp"
-#include "Parsers/GGPackValue.hpp"
+#include "engge/Parsers/GGPackValue.hpp"
 namespace fs = std::filesystem;
 
 namespace ng {

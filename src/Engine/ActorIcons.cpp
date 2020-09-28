@@ -1,10 +1,10 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "System/Locator.hpp"
-#include "Graphics/SpriteSheet.hpp"
-#include "Engine/ActorIcons.hpp"
-#include "Engine/Engine.hpp"
-#include "Room/Room.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Graphics/SpriteSheet.hpp"
+#include "engge/Engine/ActorIcons.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Room/Room.hpp"
 
 namespace ng {
 

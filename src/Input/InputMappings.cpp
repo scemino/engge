@@ -1,10 +1,10 @@
 #include <string>
-#include "Input/InputConstants.hpp"
-#include "System/Locator.hpp"
-#include "Engine/Preferences.hpp"
-#include "Input/CommandManager.hpp"
-#include "Engine/EngineCommands.hpp"
-#include "Input/InputMappings.hpp"
+#include "engge/Input/InputConstants.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Input/CommandManager.hpp"
+#include "engge/Engine/EngineCommands.hpp"
+#include "engge/Input/InputMappings.hpp"
 
 namespace ng {
 

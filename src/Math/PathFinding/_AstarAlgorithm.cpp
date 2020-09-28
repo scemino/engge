@@ -1,5 +1,5 @@
-#include "Math/PathFinding/Graph.hpp"
-#include "Math/PathFinding/GraphEdge.hpp"
+#include "engge/Math/PathFinding/Graph.hpp"
+#include "engge/Math/PathFinding/GraphEdge.hpp"
 #include "../../System/_Util.hpp"
 #include "_AstarAlgorithm.hpp"
 #include "_IndexedPriorityQueue.hpp"

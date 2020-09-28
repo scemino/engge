@@ -1,6 +1,6 @@
-#include <Parsers/YackParser.hpp>
-#include "Dialog/ConditionVisitor.hpp"
-#include "Dialog/DialogConditionAbstract.hpp"
+#include "engge/Parsers/YackParser.hpp"
+#include "engge/Dialog/ConditionVisitor.hpp"
+#include "engge/Dialog/DialogConditionAbstract.hpp"
 
 namespace ng {
 ConditionVisitor::ConditionVisitor(const DialogConditionAbstract &context) : _context(context) {

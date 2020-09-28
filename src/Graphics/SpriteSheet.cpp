@@ -1,12 +1,10 @@
-#include "Engine/EngineSettings.hpp"
-#include "Parsers/JsonTokenReader.hpp"
-#include "System/Locator.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Parsers/JsonTokenReader.hpp"
+#include "engge/System/Locator.hpp"
 #include "../System/_Util.hpp"
-#include "Graphics/SpriteSheet.hpp"
+#include "engge/Graphics/SpriteSheet.hpp"
 
 namespace ng {
-SpriteSheet::SpriteSheet() = default;
-
 void SpriteSheet::load(const std::string &name) {
   _texture = _pTextureManager->getTexture(name);
 

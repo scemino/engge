@@ -1,5 +1,5 @@
 #include <cstring>
-#include "Parsers/GGPackBufferStream.hpp"
+#include "engge/Parsers/GGPackBufferStream.hpp"
 
 GGPackBufferStream::GGPackBufferStream(std::vector<char> input) : _input(std::move(input)) {}
 

@@ -1,7 +1,7 @@
 #include <algorithm>
-#include "Engine/Camera.hpp"
-#include "Engine/Engine.hpp"
-#include "Room/Room.hpp"
+#include "engge/Engine/Camera.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Room/Room.hpp"
 
 namespace ng {
 struct Camera::Impl {

@@ -1,7 +1,7 @@
 #pragma once
-#include "SFML/Graphics.hpp"
-#include "Entities/Actor/Actor.hpp"
-#include "Parsers/Lip.hpp"
+#include <SFML/Graphics.hpp>
+#include "engge/Entities/Actor/Actor.hpp"
+#include "engge/Parsers/Lip.hpp"
 
 namespace ng {
 class _LipAnimation {

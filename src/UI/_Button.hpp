@@ -1,11 +1,11 @@
 #pragma once
-#include "SFML/Graphics.hpp"
-#include "imgui.h"
+#include <SFML/Graphics.hpp>
+#include <imgui.h>
 #include "_ControlConstants.hpp"
-#include "Engine/Engine.hpp"
-#include "Font/FntFont.hpp"
-#include "Graphics/Screen.hpp"
-#include "Graphics/Text.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Graphics/FntFont.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include "engge/Graphics/Text.hpp"
 
 namespace ng {
 class _Button : public sf::Drawable {

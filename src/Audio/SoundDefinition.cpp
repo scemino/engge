@@ -1,9 +1,9 @@
 #include <utility>
-#include "Engine/EngineSettings.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Engine/EntityManager.hpp"
-#include "Audio/SoundDefinition.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Engine/EntityManager.hpp"
+#include "engge/Audio/SoundDefinition.hpp"
 
 namespace ng {
 Sound::~Sound() = default;

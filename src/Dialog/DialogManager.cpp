@@ -1,11 +1,10 @@
 #include <regex>
-#include "Dialog/DialogManager.hpp"
-#include "Engine/Engine.hpp"
-#include "Engine/Preferences.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Graphics/Text.hpp"
-
-#include "Graphics/Screen.hpp"
+#include "engge/Dialog/DialogManager.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
+#include "engge/Graphics/Text.hpp"
+#include "engge/Graphics/Screen.hpp"
 
 namespace ng {
 

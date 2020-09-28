@@ -1,8 +1,8 @@
 #include <codecvt>
 #include "_Util.hpp"
 #include "../Math/Segment.hpp"
-#include "System/Locator.hpp"
-#include "Engine/Preferences.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Engine/Preferences.hpp"
 
 namespace ng {
 std::string str_toupper(std::string s) {

@@ -1,7 +1,7 @@
 #include <algorithm>
-#include "Engine/EngineSettings.hpp"
-#include "Parsers/YackTokenReader.hpp"
-#include "System/Logger.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Parsers/YackTokenReader.hpp"
+#include "engge/System/Logger.hpp"
 
 namespace ng {
 std::string Token::readToken() const {

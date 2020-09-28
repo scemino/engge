@@ -1,4 +1,4 @@
-#include "Math/PathFinding/GraphEdge.hpp"
+#include "engge/Math/PathFinding/GraphEdge.hpp"
 
 namespace ng {
 GraphEdge::GraphEdge() = default;

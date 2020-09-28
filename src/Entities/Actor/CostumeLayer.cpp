@@ -1,7 +1,7 @@
-#include "Entities/Actor/CostumeLayer.hpp"
-#include "Entities/Actor/Actor.hpp"
-#include "Room/Room.hpp"
-#include "SFML/Graphics.hpp"
+#include "engge/Entities/Actor/CostumeLayer.hpp"
+#include "engge/Entities/Actor/Actor.hpp"
+#include "engge/Room/Room.hpp"
+#include <SFML/Graphics.hpp>
 
 namespace ng {
 CostumeLayer::CostumeLayer(Animation &&animation)

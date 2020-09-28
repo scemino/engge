@@ -6,11 +6,11 @@
 #include "../../extlibs/squirrel/squirrel/sqarray.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
-#include "Engine/EntityManager.hpp"
-#include "Room/Room.hpp"
-#include "Entities/Objects/Object.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Parsers/GGPackValue.hpp"
+#include "engge/Engine/EntityManager.hpp"
+#include "engge/Room/Room.hpp"
+#include "engge/Entities/Objects/Object.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
+#include "engge/Parsers/GGPackValue.hpp"
 
 namespace ng {
 GGPackValue GGPackValue::nullValue;

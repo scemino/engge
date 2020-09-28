@@ -1,11 +1,11 @@
-#include "Engine/Camera.hpp"
-#include "Entities/Entity.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Engine/EntityManager.hpp"
-#include "Audio/SoundId.hpp"
-#include "Audio/SoundManager.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "engge/Engine/Camera.hpp"
+#include "engge/Entities/Entity.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Engine/EntityManager.hpp"
+#include "engge/Audio/SoundId.hpp"
+#include "engge/Audio/SoundManager.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
 
 namespace ng {
 SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)

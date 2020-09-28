@@ -1,9 +1,9 @@
 #include <sstream>
-#include <Util/BTEACrypto.hpp>
-#include "System/Logger.hpp"
-#include "Parsers/GGHashReader.hpp"
-#include "Parsers/GGHashWriter.hpp"
-#include "Parsers/SavegameManager.hpp"
+#include "engge/Util/BTEACrypto.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Parsers/GGHashReader.hpp"
+#include "engge/Parsers/GGHashWriter.hpp"
+#include "engge/Parsers/SavegameManager.hpp"
 
 namespace ng {
 static const uint8_t

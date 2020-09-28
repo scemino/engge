@@ -1,9 +1,9 @@
 #include <optional>
-#include "Dialog/ConditionVisitor.hpp"
-#include "System/Logger.hpp"
-#include "Dialog/ExpressionVisitor.hpp"
-#include "Dialog/DialogPlayer.hpp"
-#include "Dialog/DialogScriptAbstract.hpp"
+#include "engge/Dialog/ConditionVisitor.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Dialog/ExpressionVisitor.hpp"
+#include "engge/Dialog/DialogPlayer.hpp"
+#include "engge/Dialog/DialogScriptAbstract.hpp"
 
 namespace ng {
 

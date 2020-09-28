@@ -1,8 +1,8 @@
-#include "Audio/SoundTrigger.hpp"
-#include "Engine/Engine.hpp"
-#include "Audio/SoundDefinition.hpp"
-#include "Audio/SoundId.hpp"
-#include "Audio/SoundManager.hpp"
+#include "engge/Audio/SoundTrigger.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Audio/SoundDefinition.hpp"
+#include "engge/Audio/SoundId.hpp"
+#include "engge/Audio/SoundManager.hpp"
 
 namespace ng {
 SoundTrigger::SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, int id)

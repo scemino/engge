@@ -1,7 +1,7 @@
 #include <sstream>
-#include <Parsers/GGHashReader.hpp>
-#include "Parsers/GGPack.hpp"
-#include "Parsers/GGPackValue.hpp"
+#include "engge/Parsers/GGHashReader.hpp"
+#include "engge/Parsers/GGPack.hpp"
+#include "engge/Parsers/GGPackValue.hpp"
 
 namespace ng {
 static const unsigned char _magicBytes[] = {

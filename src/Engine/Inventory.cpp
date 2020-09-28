@@ -1,11 +1,11 @@
 #include <algorithm>
-#include "Engine/Engine.hpp"
-#include "Engine/Inventory.hpp"
-#include "Entities/Objects/Object.hpp"
-#include "Engine/Preferences.hpp"
-#include "Room/Room.hpp"
-#include "Graphics/Screen.hpp"
-#include "System/Locator.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Engine/Inventory.hpp"
+#include "engge/Entities/Objects/Object.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Room/Room.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include "engge/System/Locator.hpp"
 
 namespace ng {
 

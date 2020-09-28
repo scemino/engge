@@ -1,10 +1,10 @@
 #include "_RoomTrigger.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Entities/Objects/Object.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Entities/Objects/Object.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
 #include "../System/_Util.hpp"
-#include "squirrel.h"
+#include <squirrel.h>
 
 namespace ng {
 _RoomTriggerThread::_RoomTriggerThread(HSQUIRRELVM vm, const std::string &name, HSQOBJECT thread_obj)

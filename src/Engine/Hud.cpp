@@ -1,12 +1,12 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Glsl.hpp>
 #include <SFML/Graphics/View.hpp>
-#include "Engine/Hud.hpp"
-#include "Engine/Preferences.hpp"
-#include "Graphics/Screen.hpp"
-#include "Graphics/SpriteSheet.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "System/Locator.hpp"
+#include "engge/Engine/Hud.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include "engge/Graphics/SpriteSheet.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
+#include "engge/System/Locator.hpp"
 
 namespace ng {
 static const char *_verbShaderCode = "\n"

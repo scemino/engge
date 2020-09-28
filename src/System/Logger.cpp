@@ -1,8 +1,8 @@
 #include <memory>
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/sinks/basic_file_sink.h"
-#include "spdlog/sinks/dist_sink.h"
-#include "System/Logger.hpp"
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/dist_sink.h>
+#include "engge/System/Logger.hpp"
 
 namespace ng {
 Logger::Logger() {

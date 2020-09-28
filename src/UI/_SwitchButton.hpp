@@ -1,6 +1,6 @@
 #pragma once
-#include "SFML/Graphics.hpp"
-#include "imgui.h"
+#include <SFML/Graphics.hpp>
+#include <imgui.h>
 #include "_ControlConstants.hpp"
 
 namespace ng {

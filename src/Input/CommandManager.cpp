@@ -1,5 +1,5 @@
-#include "System/Logger.hpp"
-#include "Input/CommandManager.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Input/CommandManager.hpp"
 
 namespace ng {
 void CommandManager::registerCommand(const std::string &command, CommandHandler handler) {

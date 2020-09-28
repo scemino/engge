@@ -1,12 +1,13 @@
 #pragma once
 #include <optional>
 #include <regex>
-#include "Entities/Actor/Costume.hpp"
-#include "Entities/Objects/Object.hpp"
-#include "Math/PathFinding/Walkbox.hpp"
-#include "Parsers/GGPack.hpp"
+#include "engge/Parsers/GGPackBufferStream.hpp"
+#include "engge/Entities/Actor/Costume.hpp"
+#include "engge/Entities/Objects/Object.hpp"
+#include "engge/Math/PathFinding/Walkbox.hpp"
+#include "engge/Parsers/GGPack.hpp"
 #include "../Math/Vector.hpp"
-#include "Graphics/Screen.hpp"
+#include "engge/Graphics/Screen.hpp"
 
 namespace ng {
 

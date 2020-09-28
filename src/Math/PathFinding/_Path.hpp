@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "SFML/Graphics.hpp"
+#include <SFML/Graphics.hpp>
 
 namespace ng {
 class _Path : public sf::Drawable {

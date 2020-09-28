@@ -1,11 +1,11 @@
 #include <memory>
-#include "Engine/Engine.hpp"
-#include "Game.hpp"
-#include "Input/InputMappings.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "System/Services.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Game.hpp"
+#include "engge/Input/InputMappings.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/System/Services.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
 #include "Util/Dumper.hpp"
 
 int main(int argc, char **argv) {

@@ -1,7 +1,7 @@
 #include <cmath>
-#include "Graphics/Text.hpp"
-#include "SFML/Graphics/Text.hpp"
-#include "SFML/Graphics/RenderTarget.hpp"
+#include "engge/Graphics/Text.hpp"
+#include <SFML/Graphics/Text.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 #include "../System/_Util.hpp"
 
 namespace {

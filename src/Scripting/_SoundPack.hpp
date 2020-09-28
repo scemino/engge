@@ -1,8 +1,8 @@
 #pragma once
 #include <random>
-#include "squirrel.h"
-#include "Engine/Engine.hpp"
-#include "Audio/SoundTrigger.hpp"
+#include <squirrel.h>
+#include "engge/Engine/Engine.hpp"
+#include "engge/Audio/SoundTrigger.hpp"
 
 namespace ng {
 class _SoundPack : public Pack {

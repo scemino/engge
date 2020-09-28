@@ -1,8 +1,8 @@
 #include <cmath>
 #include "_AstarAlgorithm.hpp"
-#include "Math/PathFinding/Graph.hpp"
-#include "Math/PathFinding/GraphEdge.hpp"
-#include "Math/PathFinding/PathFinder.hpp"
+#include "engge/Math/PathFinding/Graph.hpp"
+#include "engge/Math/PathFinding/GraphEdge.hpp"
+#include "engge/Math/PathFinding/PathFinder.hpp"
 #include "../../System/_Util.hpp"
 
 namespace ng {

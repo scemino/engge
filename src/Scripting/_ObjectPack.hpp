@@ -1,8 +1,7 @@
 #pragma once
 #include <utility>
-
-#include "Entities/Objects/TextObject.hpp"
-#include "squirrel.h"
+#include "engge/Entities/Objects/TextObject.hpp"
+#include <squirrel.h>
 
 namespace ng {
 class _ObjectPack : public Pack {

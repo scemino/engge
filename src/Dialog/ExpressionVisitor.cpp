@@ -1,5 +1,5 @@
-#include "Dialog/DialogContextAbstract.hpp"
-#include "Dialog/ExpressionVisitor.hpp"
+#include "engge/Dialog/DialogContextAbstract.hpp"
+#include "engge/Dialog/ExpressionVisitor.hpp"
 
 namespace ng {
 ExpressionVisitor::ExpressionVisitor(DialogContextAbstract &ctx) : context(ctx) {

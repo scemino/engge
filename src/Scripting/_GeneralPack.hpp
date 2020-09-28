@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
-#include "squirrel.h"
-#include "Dialog/DialogManager.hpp"
-#include "Engine/Camera.hpp"
-#include "Engine/Cutscene.hpp"
-#include "Engine/EngineSettings.hpp"
-#include "Engine/Inventory.hpp"
-#include "System/Locator.hpp"
-#include "Util/RandomNumberGenerator.hpp"
+#include <squirrel.h>
+#include "engge/Dialog/DialogManager.hpp"
+#include "engge/Engine/Camera.hpp"
+#include "engge/Engine/Cutscene.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Engine/Inventory.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/Util/RandomNumberGenerator.hpp"
 
 namespace ng {
 class _GeneralPack : public Pack {

@@ -1,8 +1,8 @@
 #pragma once
 #include "../System/_Util.hpp"
-#include "Engine/Engine.hpp"
-#include "Parsers/Lip.hpp"
-#include "squirrel.h"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Parsers/Lip.hpp"
+#include <squirrel.h>
 
 namespace ng {
 class _ActorPack : public Pack {

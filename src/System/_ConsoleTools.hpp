@@ -1,7 +1,7 @@
-#include "imgui-SFML.h"
-#include "imgui.h"
-
 #pragma once
+#include <imgui-SFML.h>
+#include <imgui.h>
+
 namespace ng {
 class _ConsoleTools {
 public:

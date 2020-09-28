@@ -1,3 +1,4 @@
+#pragma once
 #include <optional>
 #include <functional>
 #include "squirrel.h"
@@ -12,14 +13,14 @@
 #include "../../extlibs/squirrel/squirrel/sqcompiler.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncstate.h"
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
-#include "Engine/EngineSettings.hpp"
-#include "Entities/Objects/Object.hpp"
-#include "Engine/Trigger.hpp"
-#include "Audio/SoundId.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Entities/Objects/Object.hpp"
+#include "engge/Engine/Trigger.hpp"
+#include "engge/Audio/SoundId.hpp"
 #include "_Util.hpp"
-#include "imgui-SFML.h"
-#include "imgui.h"
-#include "Engine/InputStateConstants.hpp"
+#include <imgui-SFML.h>
+#include <imgui.h>
+#include "engge/Engine/InputStateConstants.hpp"
 #include "../Engine/_DebugFeatures.hpp"
 #include "_ConsoleTools.hpp"
 #include "_TextureTools.hpp"

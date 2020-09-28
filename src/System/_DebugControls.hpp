@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
-#include "imgui-SFML.h"
-#include "imgui.h"
+#include <imgui-SFML.h>
+#include <imgui.h>
 
 namespace ng {
 class _DebugControls {

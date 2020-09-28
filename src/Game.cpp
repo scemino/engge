@@ -1,10 +1,10 @@
-#include "Game.hpp"
-#include "Graphics/Screen.hpp"
-#include "imgui-SFML.h"
-#include "imgui.h"
-#include "Engine/Preferences.hpp"
-#include "Engine/Camera.hpp"
-#include "System/Locator.hpp"
+#include "engge/Game.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include <imgui-SFML.h>
+#include <imgui.h>
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Engine/Camera.hpp"
+#include "engge/System/Locator.hpp"
 #include "Engine/_DebugFeatures.hpp"
 
 namespace ng {

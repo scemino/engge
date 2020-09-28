@@ -36,7 +36,6 @@
 .vscode/*
 build/**
 cmake-build-*/**
-engge*
 resources/**
 extlibs/squirrel/build/**
 

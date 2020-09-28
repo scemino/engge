@@ -1,10 +1,10 @@
-#include "Engine/EngineSettings.hpp"
-#include "Font/FntFont.hpp"
-#include "Font/GGFont.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Graphics/ResourceManager.hpp"
-#include "Graphics/SpriteSheet.hpp"
+#include "engge/Engine/EngineSettings.hpp"
+#include "engge/Graphics/FntFont.hpp"
+#include "engge/Graphics/GGFont.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Graphics/ResourceManager.hpp"
+#include "engge/Graphics/SpriteSheet.hpp"
 
 namespace ng {
 ResourceManager::ResourceManager() = default;

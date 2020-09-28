@@ -1,11 +1,11 @@
 #pragma once
 
 #include "../System/_Util.hpp"
-#include "Engine/Engine.hpp"
-#include "System/Logger.hpp"
-#include "Engine/Sentence.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "squirrel.h"
+#include "engge/Engine/Engine.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Engine/Sentence.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
+#include <squirrel.h>
 
 namespace ng {
 

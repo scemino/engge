@@ -1,4 +1,4 @@
-#include "squirrel.h"
+#include <squirrel.h>
 #include "../../extlibs/squirrel/squirrel/sqpcheader.h"
 #include "../../extlibs/squirrel/squirrel/sqvm.h"
 #include "../../extlibs/squirrel/squirrel/sqstring.h"
@@ -8,10 +8,10 @@
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
 #include "../../extlibs/squirrel/squirrel/squserdata.h"
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
-#include "Engine/Callback.hpp"
-#include "System/Locator.hpp"
-#include "System/Logger.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "engge/Engine/Callback.hpp"
+#include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
 
 namespace ng {
 Callback::Callback(int id, sf::Time duration, std::string method, HSQOBJECT arg)

@@ -1,16 +1,16 @@
 #pragma once
 #include "SFML/Graphics.hpp"
-#include "Engine/Engine.hpp"
-#include "Engine/EntityManager.hpp"
-#include "Font/GGFont.hpp"
-#include "Graphics/Screen.hpp"
-#include "Graphics/Text.hpp"
-#include "Scripting/ScriptEngine.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Engine/EntityManager.hpp"
+#include "engge/Graphics/GGFont.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include "engge/Graphics/Text.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
 #include "_LipAnimation.hpp"
 #include "../../System/_Util.hpp"
-#include "Audio/SoundId.hpp"
-#include "Engine/Preferences.hpp"
-#include "Audio/SoundManager.hpp"
+#include "engge/Audio/SoundId.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Audio/SoundManager.hpp"
 
 namespace ng {
 class _TalkingState : public sf::Drawable, public sf::Transformable {

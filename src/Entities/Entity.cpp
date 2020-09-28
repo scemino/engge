@@ -1,12 +1,11 @@
 #include <memory>
 #include <optional>
 #include <utility>
-#include "Entities/Entity.hpp"
-#include "Scripting/ScriptEngine.hpp"
-#include "Audio/SoundTrigger.hpp"
-#include "Engine/Camera.hpp"
-#include "Engine/Trigger.hpp"
-#include "Room/Room.hpp"
+#include "engge/Entities/Entity.hpp"
+#include "engge/Scripting/ScriptEngine.hpp"
+#include "engge/Audio/SoundTrigger.hpp"
+#include "engge/Engine/Camera.hpp"
+#include "engge/Engine/Trigger.hpp"
 #include "Actor/_TalkingState.hpp"
 
 namespace ng {

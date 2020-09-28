@@ -1,12 +1,12 @@
 #include "_Button.hpp"
-#include "Engine/Engine.hpp"
-#include "Engine/Preferences.hpp"
-#include "Graphics/Screen.hpp"
-#include "UI/OptionsDialog.hpp"
-#include "UI/SaveLoadDialog.hpp"
-#include "UI/StartScreenDialog.hpp"
+#include "engge/Engine/Engine.hpp"
+#include "engge/Engine/Preferences.hpp"
+#include "engge/Graphics/Screen.hpp"
+#include "engge/UI/OptionsDialog.hpp"
+#include "engge/UI/SaveLoadDialog.hpp"
+#include "engge/UI/StartScreenDialog.hpp"
 #include <utility>
-#include "UI/QuitDialog.hpp"
+#include "engge/UI/QuitDialog.hpp"
 
 namespace ng {
 struct StartScreenDialog::Impl {
