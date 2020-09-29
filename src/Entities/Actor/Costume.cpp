@@ -108,7 +108,7 @@ void Costume::setReachState(Reaching reaching) {
 
 CostumeLayer Costume::loadLayer(const GGPackValue &jLayer) const {
   auto name = jLayer["name"].string_value;
-  Animation animation(_costumeSheet.getTexture(), name);
+  Animation animation(_costumeSheet.getTextureName(), name);
   auto fps = jLayer["fps"].isNull() ? _pActor->getFps() : jLayer["fps"].int_value;
   animation.setFps(fps);
 

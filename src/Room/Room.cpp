@@ -107,24 +107,20 @@ struct Room::Impl {
         auto frame = _spriteSheet.getRect(bg.string_value);
         auto sourceSize = _spriteSheet.getSourceSize(bg.string_value);
         auto sourceRect = _spriteSheet.getSpriteSourceSize(bg.string_value);
-        auto sprite = sf::Sprite();
         auto offset = sourceSize.y - screenHeight;
-        sprite.move(sourceRect.left + width, sourceRect.top - offset);
-        sprite.setTexture(*_textureManager.getTexture(_sheet));
-        sprite.setTextureRect(frame);
-        width += sprite.getTextureRect().width;
-        _layers[0]->getSprites().push_back(sprite);
+        _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.left + width, sourceRect.top - offset},
+                                                             _sheet,
+                                                             frame));
+        width += sourceRect.width;
       }
     } else if (jWimpy["background"].isString()) {
       auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
       auto sourceSize = _spriteSheet.getSourceSize(jWimpy["background"].string_value);
       auto sourceRect = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
       auto offset = sourceSize.y - screenHeight;
-      auto sprite = sf::Sprite();
-      sprite.move(sourceRect.left, sourceRect.top - offset);
-      sprite.setTexture(*_textureManager.getTexture(_sheet));
-      sprite.setTextureRect(frame);
-      _layers[0]->getSprites().push_back(sprite);
+      _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.left, sourceRect.top - offset},
+                                                           _sheet,
+                                                           frame));
     }
     // room width seems to be not enough :S
     if (width > _roomSize.x) {
@@ -143,33 +139,23 @@ struct Room::Impl {
       auto &layer = _layers[zsort];
       layer->setZOrder(zsort);
       if (jLayer["name"].isArray()) {
-        float offsetX = 0;
+        auto offsetX = 0;
         for (const auto &jName : jLayer["name"].array_value) {
           auto layerName = jName.string_value;
           auto rect = _spriteSheet.getRect(layerName);
           auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
           auto sourceSize = _spriteSheet.getSourceSize(layerName);
-          sf::Vector2f origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
-          sf::Sprite s;
-          s.setTexture(*_textureManager.getTexture(_sheet));
-          s.setTextureRect(rect);
-          s.setOrigin(origin);
-          s.move(sf::Vector2f(offsetX, offsetY));
+          sf::Vector2i origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
           offsetX += rect.width;
-          layer->getSprites().push_back(s);
+          layer->getBackgrounds().push_back(Background({offsetX - origin.x, offsetY - origin.y}, _sheet, rect));
         }
       } else {
         auto layerName = jLayer["name"].string_value;
         auto rect = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
-        sf::Vector2f origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
-        sf::Sprite s;
-        s.setTexture(*_textureManager.getTexture(_sheet));
-        s.setTextureRect(rect);
-        s.setOrigin(origin);
-        s.move(sf::Vector2f(0, offsetY));
-        layer->getSprites().push_back(s);
+        sf::Vector2i origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
+        layer->getBackgrounds().push_back(Background({0 - origin.x, offsetY - origin.y}, _sheet, rect));
       }
       if (jLayer["parallax"].isString()) {
         auto parallax = _parsePos(jLayer["parallax"].string_value);
@@ -182,8 +168,6 @@ struct Room::Impl {
   }
 
   void loadObjects(const GGPackValue &jWimpy) {
-    auto &texture = *_textureManager.getTexture(_sheet);
-
     for (auto jObject : jWimpy["objects"].array_value) {
       std::unique_ptr<Object> object;
 
@@ -268,7 +252,7 @@ struct Room::Impl {
       if (jObject["animations"].isArray()) {
         for (auto jAnimation : jObject["animations"].array_value) {
           auto animName = jAnimation["name"].string_value;
-          auto anim = std::make_unique<Animation>(texture, animName);
+          auto anim = std::make_unique<Animation>(_sheet, animName);
           if (!jAnimation["fps"].isNull()) {
             anim->setFps(jAnimation["fps"].int_value);
           }
@@ -678,8 +662,6 @@ void Room::deleteObject(Object &object) { pImpl->_layers[0]->removeEntity(object
 Object &Room::createObject(const std::vector<std::string> &anims) { return createObject(pImpl->_sheet, anims); }
 
 Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &anims) {
-  auto texture = pImpl->_textureManager.getTexture(sheet);
-
   // load json file
   std::string jsonFilename;
   jsonFilename.append(sheet).append(".json");
@@ -688,7 +670,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
   auto json = ng::Json::Parser::parse(buffer);
 
   auto object = std::make_unique<Object>();
-  auto animation = std::make_unique<Animation>(*texture, "state0");
+  auto animation = std::make_unique<Animation>(sheet, "state0");
   for (auto n : anims) {
     if (json["frames"][n].isNull())
       continue;
@@ -730,7 +712,7 @@ Object &Room::createObject(const std::string &image) {
   auto texture = pImpl->_textureManager.getTexture(name);
 
   auto object = std::make_unique<Object>();
-  auto animation = std::make_unique<Animation>(*texture, "state0");
+  auto animation = std::make_unique<Animation>(name, "state0");
   auto size = texture->getSize();
   sf::IntRect rect(0, 0, size.x, size.y);
   AnimationFrame animFrame(rect);

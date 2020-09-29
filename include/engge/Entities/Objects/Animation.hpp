@@ -16,7 +16,7 @@ enum class AnimState {
 class Animation : public sf::Drawable {
 public:
   Animation();
-  explicit Animation(const sf::Texture &texture, std::string name);
+  explicit Animation(std::string texture, std::string name);
   ~Animation() override;
 
   void setName(const std::string &name) { _name = name; }
@@ -50,7 +50,7 @@ private:
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
-  const sf::Texture *_pTexture{nullptr};
+  std::string _texture;
   std::string _name;
   std::vector<AnimationFrame> _frames;
   int _fps{10};

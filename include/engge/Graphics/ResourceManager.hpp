@@ -29,7 +29,7 @@ public:
   const FntFont &getFntFont(const std::string &id);
   const SpriteSheet &getSpriteSheet(const std::string &id);
 
-  const std::map<std::string, TextureResource> &getTextureMap() const { return _textureMap; }
+  [[nodiscard]] const std::map<std::string, TextureResource> &getTextureMap() const { return _textureMap; }
 
 private:
   void load(const std::string &id);

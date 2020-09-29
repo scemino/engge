@@ -6,7 +6,7 @@
 
 namespace ng {
 void SpriteSheet::load(const std::string &name) {
-  _texture = _pTextureManager->getTexture(name);
+  _textureName = name;
 
   _rects.clear();
   _spriteSourceSize.clear();

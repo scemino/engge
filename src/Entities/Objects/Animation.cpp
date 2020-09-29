@@ -1,12 +1,14 @@
 #include <utility>
+#include "engge/Graphics/ResourceManager.hpp"
 #include "engge/Entities/Objects/Animation.hpp"
+#include "engge/System/Locator.hpp"
 
 namespace ng {
 
 Animation::Animation() = default;
 
-Animation::Animation(const sf::Texture &texture, std::string name)
-    : _pTexture(&texture), _name(std::move(name)) {
+Animation::Animation(std::string texture, std::string name)
+    : _texture(std::move(texture)), _name(std::move(name)) {
 }
 
 Animation::~Animation() = default;
@@ -65,7 +67,7 @@ void Animation::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
   sf::Sprite sprite;
   sprite.setColor(_color);
-  sprite.setTexture(*_pTexture);
+  sprite.setTexture(*Locator<ResourceManager>::get().getTexture(_texture));
   sprite.setTextureRect(rect);
   sprite.setOrigin(origin);
   sprite.move(offset);

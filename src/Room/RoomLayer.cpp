@@ -1,4 +1,6 @@
 #include "engge/Room/RoomLayer.hpp"
+#include "engge/Graphics/ResourceManager.hpp"
+#include "engge/System/Locator.hpp"
 
 namespace ng {
 RoomLayer::RoomLayer() = default;
@@ -25,8 +27,13 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const {
             });
 
   // draw layer sprites
-  for (const auto &sprite : getSprites()) {
-    target.draw(sprite, states);
+  auto &rm = Locator<ResourceManager>::get();
+  for (const auto &background : _backgrounds) {
+    sf::Sprite s;
+    s.move((sf::Vector2f) background.m_pos);
+    s.setTexture(*rm.getTexture(background.m_texture));
+    s.setTextureRect(background.m_rect);
+    target.draw(s, states);
   }
 
   // draw layer objects
