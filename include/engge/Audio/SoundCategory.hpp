@@ -1,3 +1,5 @@
+//SoundCategory.hpp
+
 #pragma once
 
 namespace ng {
