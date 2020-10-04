@@ -41,7 +41,7 @@ struct Actor::Impl {
   };
 
   explicit Impl(Engine &engine)
-      : _engine(engine), _costume(engine.getTextureManager()) {
+      : _engine(engine), _costume(engine.getResourceManager()) {
   }
 
   void setActor(Actor *pActor) {

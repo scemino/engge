@@ -20,7 +20,7 @@ public:
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
 
-    const FntFont &uiFontMedium = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
+    const FntFont &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     text.setFont(uiFontMedium);
     text.setString(_pEngine->getText(_ids[_index]));
     auto textRect = text.getLocalBounds();

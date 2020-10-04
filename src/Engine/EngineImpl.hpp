@@ -1738,7 +1738,7 @@ void Engine::Impl::drawPause(sf::RenderTarget &target) const {
 
   auto retroFonts =
       _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   Text text;
   auto screen = target.getView().getSize();
@@ -1862,7 +1862,7 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
 
   auto retroFonts =
       _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   std::wstring s;
   if (pVerb->id != VerbConstants::VERB_WALKTO || _hud.getHoveredEntity()) {

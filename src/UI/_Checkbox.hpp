@@ -16,7 +16,7 @@ public:
 
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
-    const FntFont &uiFontMedium = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
+    const FntFont &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     _text.setFont(uiFontMedium);
     _text.setString(_pEngine->getText(_id));
     auto textRect = _text.getLocalBounds();

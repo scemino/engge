@@ -87,7 +87,7 @@ void Engine::setWindow(sf::RenderWindow &window) { _pImpl->_pWindow = &window; }
 
 const sf::RenderWindow &Engine::getWindow() const { return *_pImpl->_pWindow; }
 
-ResourceManager &Engine::getTextureManager() { return _pImpl->_textureManager; }
+ResourceManager &Engine::getResourceManager() { return _pImpl->_textureManager; }
 
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 

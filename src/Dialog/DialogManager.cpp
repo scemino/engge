@@ -40,7 +40,7 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
 
@@ -110,7 +110,7 @@ void DialogManager::updateChoices(const sf::Time &elapsed) {
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
   int dialog = 0;

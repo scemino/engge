@@ -185,7 +185,7 @@ private:
 
     auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                    PreferenceDefaultValues::RetroFonts);
-    const GGFont &font = _pEngine->getTextureManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+    const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
     Text text;
     text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));

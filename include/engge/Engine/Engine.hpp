@@ -44,7 +44,7 @@ public:
   void setWindow(sf::RenderWindow &window);
   [[nodiscard]] const sf::RenderWindow &getWindow() const;
 
-  ResourceManager &getTextureManager();
+  ResourceManager &getResourceManager();
 
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);

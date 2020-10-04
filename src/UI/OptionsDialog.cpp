@@ -338,11 +338,11 @@ struct OptionsDialog::Impl {
     if (!pEngine)
       return;
 
-    auto &tm = pEngine->getTextureManager();
+    auto &tm = pEngine->getResourceManager();
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const auto &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
+    const auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
     _headingText.setFillColor(sf::Color::White);
 

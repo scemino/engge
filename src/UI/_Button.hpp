@@ -22,7 +22,7 @@ public:
     _pEngine = pEngine;
 
     const FntFont &uiFontLargeOrMedium =
-        _pEngine->getTextureManager().getFntFont(_size == Size::Large ? "UIFontLarge.fnt" : "UIFontMedium.fnt");
+        _pEngine->getResourceManager().getFntFont(_size == Size::Large ? "UIFontLarge.fnt" : "UIFontMedium.fnt");
     text.setFont(uiFontLargeOrMedium);
     text.setString(_pEngine->getText(_id));
     auto textRect = text.getLocalBounds();

@@ -21,7 +21,7 @@ public:
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
 
-    const FntFont &uiFontLarge = _pEngine->getTextureManager().getFntFont("UIFontLarge.fnt");
+    const FntFont &uiFontLarge = _pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
     text.setFont(uiFontLarge);
     text.setString(_pEngine->getText(_id));
     auto textRect = text.getLocalBounds();
@@ -108,11 +108,11 @@ struct QuitDialog::Impl {
     if (!pEngine)
       return;
 
-    ResourceManager &tm = pEngine->getTextureManager();
+    ResourceManager &tm = pEngine->getResourceManager();
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const FntFont &headingFont = _pEngine->getTextureManager().getFntFont("UIFontMedium.fnt");
+    const FntFont &headingFont = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     _headingText.setFont(headingFont);
     _headingText.setFillColor(sf::Color::White);
 

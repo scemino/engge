@@ -25,7 +25,7 @@ struct SaveLoadDialog::Impl {
     void setEngine(Engine *pEngine) {
       _pEngine = pEngine;
 
-      const FntFont &uiFontLarge = _pEngine->getTextureManager().getFntFont("UIFontLarge.fnt");
+      const FntFont &uiFontLarge = _pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
       _text.setFont(uiFontLarge);
       _text.setString(_pEngine->getText(BackId));
       auto textRect = _text.getGlobalBounds();
@@ -73,7 +73,7 @@ struct SaveLoadDialog::Impl {
       auto y = _index / 3;
       setPosition({168.f + 39.f * 4.f + 78.f * 4.f * x + 4.f * x, 92.f + 22.f * 4.f + 44.f * 4.f * y + 4.f * y});
 
-      const auto &uiFontSmallBold = engine.getTextureManager().getFntFont("UIFontSmallBold.fnt");
+      const auto &uiFontSmallBold = engine.getResourceManager().getFntFont("UIFontSmallBold.fnt");
 
       _gameTimeText.setString(slot.getGameTimeString());
       _gameTimeText.setFont(uiFontSmallBold);
@@ -198,11 +198,11 @@ struct SaveLoadDialog::Impl {
     if (!pEngine)
       return;
 
-    ResourceManager &tm = pEngine->getTextureManager();
+    ResourceManager &tm = pEngine->getResourceManager();
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const FntFont &headingFont = _pEngine->getTextureManager().getFntFont("HeadingFont.fnt");
+    const FntFont &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
     _headingText.setFillColor(sf::Color::White);
   }
