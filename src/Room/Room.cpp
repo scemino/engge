@@ -111,7 +111,7 @@ struct Room::Impl {
         _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.left + width, sourceRect.top - offset},
                                                              _sheet,
                                                              frame));
-        width += sourceRect.width;
+        width += frame.width;
       }
     } else if (jWimpy["background"].isString()) {
       auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);

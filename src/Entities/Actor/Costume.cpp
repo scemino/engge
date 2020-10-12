@@ -195,6 +195,9 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   for (auto j : hash["animations"].array_value) {
     auto name = j["name"].string_value;
     auto flags = j["flags"].isInteger() ? j["flags"].int_value : 0;
+    if(!j["sheet"].isNull()) {
+      _costumeSheet.load(j["sheet"].getString());
+    }
     CostumeAnimation animation;
     animation.setName(name);
     animation.setFlags(flags);

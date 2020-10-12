@@ -6,6 +6,9 @@
 
 namespace ng {
 void SpriteSheet::load(const std::string &name) {
+  if (_textureName == name)
+    return;
+
   _textureName = name;
 
   _rects.clear();
