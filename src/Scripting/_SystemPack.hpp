@@ -39,7 +39,7 @@ public:
     return "_BreakFunction ";
   }
 
-  void operator()(const sf::Time &) override {
+  void operator()(const ngf::TimeSpan &) override {
     if (_done)
       return;
 
@@ -197,7 +197,7 @@ public:
       : _currentThreadId(currentThreadId), _threadId(threadId), _done(false) {
   }
 
-  void operator()(const sf::Time &) override {
+  void operator()(const ngf::TimeSpan &) override {
     if (_done)
       return;
 
@@ -281,11 +281,11 @@ private:
   int _threadId;
 
 public:
-  _BreakTimeFunction(int id, const sf::Time &time)
+  _BreakTimeFunction(int id, const ngf::TimeSpan &time)
       : TimeFunction(time), _threadId(id) {
   }
 
-  void operator()(const sf::Time &elapsed) override {
+  void operator()(const ngf::TimeSpan &elapsed) override {
     if (_done)
       return;
     TimeFunction::operator()(elapsed);
@@ -391,7 +391,7 @@ private:
     }
 
     auto id = Locator<EntityManager>::get().getCallbackId();
-    auto callback = std::make_unique<Callback>(id, sf::seconds(duration), methodName, arg);
+    auto callback = std::make_unique<Callback>(id, ngf::TimeSpan::seconds(duration), methodName, arg);
     g_pEngine->addCallback(std::move(callback));
 
     sq_pushinteger(v, static_cast<SQInteger>(id));
@@ -695,7 +695,7 @@ private:
   }
 
   static SQInteger gameTime(HSQUIRRELVM v) {
-    sq_pushfloat(v, g_pEngine->getTime().asSeconds());
+    sq_pushfloat(v, g_pEngine->getTime().getTotalSeconds());
     return 1;
   }
 
@@ -730,7 +730,7 @@ private:
   }
 
   static SQInteger microTime(HSQUIRRELVM v) {
-    sq_pushfloat(v, g_pEngine->getTime().asMilliseconds());
+    sq_pushfloat(v, g_pEngine->getTime().getTotalSeconds());
     return 1;
   }
 
@@ -749,8 +749,8 @@ private:
     }
 
     // WIP need to be check
-    auto pos = g_pEngine->getWindow().mapCoordsToPixel(sf::Vector2f(x, y) - g_pEngine->getCamera().getAt());
-    sf::Mouse::setPosition(pos, g_pEngine->getWindow());
+    auto pos = g_pEngine->getApplication()->getRenderTarget()->mapCoordsToPixel(glm::vec2(x, y) - g_pEngine->getCamera().getAt());
+    // TODO: ngf::Mouse::setPosition(pos, g_pEngine->getApplication()->get);
     error("moveCursorTo not implemented");
     return 0;
   }
@@ -900,7 +900,7 @@ private:
 
     pThread->suspend();
 
-    g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(pThread->getId(), sf::seconds(time)));
+    g_pEngine->addFunction(std::make_unique<_BreakTimeFunction>(pThread->getId(), ngf::TimeSpan::seconds(time)));
     return SQ_SUSPEND_FLAG;
   }
 

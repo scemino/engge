@@ -1,13 +1,15 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include <imgui.h>
 #include "_ControlConstants.hpp"
 
 namespace ng {
-class _SwitchButton : public sf::Drawable {
+class _SwitchButton : public ngf::Drawable {
 public:
   typedef std::function<void(int)> Callback;
 
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
+    text.draw(target, states);
+  }
 public:
   _SwitchButton(std::initializer_list<int> ids,
                 float y,
@@ -20,43 +22,39 @@ public:
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
 
-    const FntFont &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
+    auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     text.setFont(uiFontMedium);
-    text.setString(_pEngine->getText(_ids[_index]));
-    auto textRect = text.getLocalBounds();
-    text.setOrigin(sf::Vector2f(textRect.width / 2.f, 0));
-    text.setPosition(sf::Vector2f(Screen::Width / 2.f, _y));
+    text.setWideString(Engine::getText(_ids[_index]));
+    text.getTransform().setPosition({Screen::Width / 2.f, _y});
+    text.setMaxWidth(600);
+    text.setAlignment(ngf::Alignment::Center);
+    text.setAnchor(ngf::Anchor::Center);
   }
 
-  void update(sf::Vector2f pos) {
-    auto textRect = text.getGlobalBounds();
+  void update(glm::vec2 pos) {
+    auto textRect = ng::getGlobalBounds(text);
 
-    sf::Color color;
+    ngf::Color color;
     if (!_isEnabled) {
       color = _ControlConstants::DisabledColor;
-    } else if (textRect.contains((sf::Vector2f) pos)) {
+    } else if (textRect.contains(pos)) {
       color = _ControlConstants::HoveColor;
-      bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+      bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
       ImGuiIO &io = ImGui::GetIO();
       if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
         _index = (_index + 1) % static_cast<int>(_ids.size());
-        text.setString(_pEngine->getText(_ids[_index]));
+        text.setWideString(Engine::getText(_ids[_index]));
         if (_callback) {
           _callback(_index);
         }
         textRect = text.getLocalBounds();
-        text.setOrigin(sf::Vector2f(textRect.width / 2.f, 0));
+        text.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
       }
       _wasMouseDown = isDown;
     } else {
       color = _ControlConstants::NormalColor;
     }
-    text.setFillColor(color);
-  }
-
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-    target.draw(text, states);
+    text.setColor(color);
   }
 
 private:
@@ -67,6 +65,6 @@ private:
   float _y{0};
   bool _wasMouseDown{false};
   Callback _callback;
-  Text text;
+  ngf::Text text;
 };
 }

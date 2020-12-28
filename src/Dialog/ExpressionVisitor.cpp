@@ -20,7 +20,7 @@ void ExpressionVisitor::visit(const Ast::Shutup &) {
   context.shutup();
 }
 void ExpressionVisitor::visit(const Ast::Pause &node) {
-  _pWaitAction = context.pause(sf::seconds(node.time));
+  _pWaitAction = context.pause(ngf::TimeSpan::seconds(node.time));
 }
 void ExpressionVisitor::visit(const Ast::WaitFor &node) {
   _pWaitAction = context.waitFor(node.actor);

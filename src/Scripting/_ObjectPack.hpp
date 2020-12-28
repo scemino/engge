@@ -88,7 +88,7 @@ private:
     for (auto &obj : objects) {
       if (!obj->isVisible())
         continue;
-      if (obj->getRealHotspot().contains(sf::Vector2i(x, y))) {
+      if (obj->getRealHotspot().contains({x, y})) {
         sq_pushobject(v, obj->getTable());
         return 1;
       }
@@ -181,9 +181,8 @@ private:
     }
     alpha = alpha > 1.f ? 1.f : alpha;
     alpha = alpha < 0.f ? 0.f : alpha;
-    auto a = (sf::Uint8) (alpha * 255);
     auto color = obj->getColor();
-    obj->setColor(sf::Color(color.r, color.g, color.b, a));
+    obj->setColor(ngf::Color(color.r, color.g, color.b, alpha));
     return 0;
   }
 
@@ -209,7 +208,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
       interpolation = 0;
     }
-    obj->alphaTo(alpha, sf::seconds(time), toInterpolationMethod(interpolation));
+    obj->alphaTo(alpha, ngf::TimeSpan::seconds(time), toInterpolationMethod(interpolation));
     return 0;
   }
 
@@ -247,8 +246,8 @@ private:
       // when getting hotspot the position is absolute
       const auto pos = obj->getPosition();
       const auto hotspot = obj->getHotspot();
-      sf::IntRect r = {hotspot.left + static_cast<int>(pos.x), hotspot.top + static_cast<int>(pos.y), hotspot.width,
-                       hotspot.height};
+      auto r = ngf::irect::fromPositionSize({hotspot.getTopLeft().x + static_cast<int>(pos.x),
+                                             hotspot.getTopLeft().y + static_cast<int>(pos.y)}, hotspot.getSize());
       ScriptEngine::push(v, r);
       return 1;
     }
@@ -266,11 +265,12 @@ private:
     }
 
     if (obj) {
-      obj->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
-                                  static_cast<int>(bottom - top)));
+      obj->setHotspot(ngf::irect::fromMinMax({static_cast<int>(left), static_cast<int>(top)}, {static_cast<int>(right),
+                                                                                               static_cast<int>(bottom)}));
     } else {
-      actor->setHotspot(sf::IntRect(static_cast<int>(left), static_cast<int>(top), static_cast<int>(right - left),
-                                    static_cast<int>(bottom - top)));
+      actor->setHotspot(ngf::irect::fromMinMax({static_cast<int>(left), static_cast<int>(top)},
+                                               {static_cast<int>(right),
+                                                static_cast<int>(bottom)}));
     }
     return 0;
   }
@@ -288,7 +288,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 4, &y))) {
       return sq_throwerror(v, _SC("failed to get y"));
     }
-    obj->setOffset(sf::Vector2f(x, y));
+    obj->setOffset(glm::vec2(x, y));
     return 0;
   }
 
@@ -342,7 +342,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 6, &interpolation))) {
       interpolation = 0;
     }
-    obj->offsetTo(sf::Vector2f(x, y), sf::seconds(t), toInterpolationMethod(interpolation));
+    obj->offsetTo({x, y}, ngf::TimeSpan::seconds(t), toInterpolationMethod(interpolation));
     return 0;
   }
 
@@ -367,7 +367,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 6, &interpolation))) {
       interpolation = 0;
     }
-    obj->moveTo(sf::Vector2f(x, y), sf::seconds(t), toInterpolationMethod(interpolation));
+    obj->moveTo({x, y}, ngf::TimeSpan::seconds(t), toInterpolationMethod(interpolation));
     return 0;
   }
 
@@ -417,7 +417,7 @@ private:
       return sq_throwerror(v, _SC("failed to get object"));
     }
     SQInteger count = 1;
-    if(sq_gettop(v)==3){
+    if (sq_gettop(v) == 3) {
       if (SQ_FAILED(sq_getinteger(v, 3, &count))) {
         return sq_throwerror(v, _SC("failed to get count"));
       }
@@ -457,7 +457,7 @@ private:
         return sq_throwerror(v, _SC("failed to get spot"));
       }
       auto pos = spot->getRealPosition();
-      auto usePos = spot->getUsePosition().value_or(sf::Vector2f());
+      auto usePos = spot->getUsePosition().value_or(glm::vec2());
       x = pos.x + usePos.x;
       y = pos.y + usePos.y;
     } else {
@@ -468,7 +468,7 @@ private:
         return sq_throwerror(v, _SC("failed to get y"));
       }
     }
-    obj->setPosition(sf::Vector2f(x, y));
+    obj->setPosition(glm::vec2(x, y));
     return 0;
   }
 
@@ -502,7 +502,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
       interpolation = 0;
     }
-    obj->scaleTo(value, sf::seconds(t), toInterpolationMethod(interpolation));
+    obj->scaleTo(value, ngf::TimeSpan::seconds(t), toInterpolationMethod(interpolation));
     return 0;
   }
 
@@ -513,8 +513,8 @@ private:
     }
     auto pos = obj->getRealPosition();
     auto hotspot = obj->getHotspot();
-    auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
-    sq_pushinteger(v, static_cast<SQInteger>(pos.x + usePos.x + hotspot.left + hotspot.width / 2));
+    auto usePos = obj->getUsePosition().value_or(glm::vec2());
+    sq_pushinteger(v, static_cast<SQInteger>(pos.x + usePos.x + hotspot.getTopLeft().x + hotspot.getWidth() / 2));
     return 1;
   }
 
@@ -525,8 +525,8 @@ private:
     }
     auto pos = obj->getRealPosition();
     auto hotspot = obj->getHotspot();
-    auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
-    pos.y += usePos.y + hotspot.top + hotspot.height / 2;
+    auto usePos = obj->getUsePosition().value_or(glm::vec2());
+    pos.y += usePos.y + hotspot.getTopLeft().y + hotspot.getHeight() / 2;
     sq_pushinteger(v, static_cast<SQInteger>(pos.y));
     return 1;
   }
@@ -605,7 +605,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
       interpolation = 0;
     }
-    obj->rotateTo(value, sf::seconds(t), toInterpolationMethod(interpolation));
+    obj->rotateTo(value, ngf::TimeSpan::seconds(t), toInterpolationMethod(interpolation));
     return 0;
   }
 
@@ -698,7 +698,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &dir))) {
       return sq_throwerror(v, _SC("failed to get direction"));
     }
-    obj->setUsePosition(sf::Vector2f(x, y));
+    obj->setUsePosition(glm::vec2(x, y));
     obj->setUseDirection(static_cast<UseDirection>(dir));
     return 0;
   }
@@ -708,7 +708,7 @@ private:
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
+    auto usePos = obj->getUsePosition().value_or(glm::vec2());
     sq_pushinteger(v, (SQInteger) usePos.x);
     return 1;
   }
@@ -719,16 +719,16 @@ private:
       return sq_throwerror(v, _SC("failed to get object"));
     }
     auto height = obj->getRoom()->getRoomSize().y;
-    sq_pushinteger(v, (SQInteger) height - obj->getUsePosition().value_or(sf::Vector2f()).y);
+    sq_pushinteger(v, (SQInteger) height - obj->getUsePosition().value_or(glm::vec2()).y);
     return 1;
   }
 
   static SQInteger objectCenter(HSQUIRRELVM v) {
-    sf::Vector2f pos;
+    glm::vec2 pos;
     Object *obj = EntityManager::getObject(v, 2);
     if (obj) {
       pos = obj->getRealPosition();
-      auto usePos = obj->getUsePosition().value_or(sf::Vector2f());
+      auto usePos = obj->getUsePosition().value_or(glm::vec2());
       pos += usePos;
     } else {
       auto *actor = EntityManager::getActor(v, 2);
@@ -755,7 +755,7 @@ private:
     r = (color & 0x00FF0000) >> 16;
     g = (color & 0x0000FF00) >> 8;
     b = (color & 0x000000FF);
-    obj->setColor(sf::Color(r, g, b));
+    obj->setColor(ngf::Color(r, g, b));
     return 0;
   }
 
@@ -830,7 +830,7 @@ private:
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    sq_pushbool(v, obj->getUsePosition() != sf::Vector2f() ? SQTrue : SQFalse);
+    sq_pushbool(v, obj->getUsePosition() != glm::vec2() ? SQTrue : SQFalse);
     return 1;
   }
 

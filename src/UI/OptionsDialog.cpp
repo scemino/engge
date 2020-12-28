@@ -7,13 +7,13 @@
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Graphics/Screen.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Graphics/Text.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
 #include "engge/System/Logger.hpp"
 #include "engge/UI/OptionsDialog.hpp"
 #include "engge/UI/SaveLoadDialog.hpp"
 #include "engge/UI/QuitDialog.hpp"
 #include <utility>
+#include <ngf/Graphics/RectangleShape.h>
 
 namespace ng {
 struct OptionsDialog::Impl {
@@ -67,7 +67,7 @@ struct OptionsDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
 
-  Text _headingText;
+  ngf::Text _headingText;
   std::vector<_Button> _buttons;
   std::vector<_SwitchButton> _switchButtons;
   std::vector<_Checkbox> _checkboxes;
@@ -86,9 +86,11 @@ struct OptionsDialog::Impl {
   }
 
   void setHeading(int id) {
-    _headingText.setString(Engine::getText(id));
-    auto textRect = _headingText.getGlobalBounds();
-    _headingText.setPosition(sf::Vector2f((Screen::Width - textRect.width) / 2.f, yPosStart - textRect.height / 2));
+    _headingText.setWideString(Engine::getText(id));
+    _headingText.getTransform().setPosition({Screen::Width / 2.f, yPosStart});
+    _headingText.setMaxWidth(1200);
+    _headingText.setAlignment(ngf::Alignment::Center);
+    _headingText.setAnchor(ngf::Anchor::Center);
   }
 
   template<typename T>
@@ -342,9 +344,9 @@ struct OptionsDialog::Impl {
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
+    auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
-    _headingText.setFillColor(sf::Color::White);
+    _headingText.setColor(ngf::Colors::White);
 
     _quit.setEngine(pEngine);
     _quit.setCallback([this](bool result) {
@@ -374,59 +376,60 @@ struct OptionsDialog::Impl {
     updateState(State::Main);
   }
 
-  void draw(sf::RenderTarget &target, sf::RenderStates states) {
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) {
     const auto view = target.getView();
-    auto viewRect = sf::FloatRect(0, 0, 320, 180);
-    target.setView(sf::View(viewRect));
+    auto viewRect = ngf::frect::fromPositionSize({0, 0}, {320, 180});
+    target.setView(ngf::View(viewRect));
 
-    sf::Color backColor{0, 0, 0, 128};
-    sf::RectangleShape fadeShape;
-    fadeShape.setSize(sf::Vector2f(viewRect.width, viewRect.height));
-    fadeShape.setFillColor(backColor);
-    target.draw(fadeShape);
+    ngf::Color backColor{0, 0, 0, 128};
+    ngf::RectangleShape fadeShape;
+    fadeShape.setSize(viewRect.getSize());
+    fadeShape.setColor(backColor);
+    fadeShape.draw(target, {});
 
     // draw background
-    auto viewCenter = sf::Vector2f(viewRect.width / 2, viewRect.height / 2);
+    auto viewCenter = glm::vec2(viewRect.getWidth() / 2, viewRect.getHeight() / 2);
     auto rect = _saveLoadSheet.getRect("options_background");
-    sf::Sprite sprite;
-    sprite.setPosition(viewCenter);
+    ngf::Sprite sprite;
+    sprite.getTransform().setPosition(viewCenter);
     sprite.setTexture(_saveLoadSheet.getTexture());
-    sprite.setOrigin(static_cast<float>(rect.width / 2.f), static_cast<float>(rect.height / 2.f));
+    sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
+                                     static_cast<float>(rect.getHeight() / 2.f)});
     sprite.setTextureRect(rect);
-    target.draw(sprite);
+    sprite.draw(target, {});
 
-    viewRect = sf::FloatRect(0, 0, Screen::Width, Screen::Height);
-    target.setView(sf::View(viewRect));
+    viewRect = ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height});
+    target.setView(ngf::View(viewRect));
 
     // heading
-    target.draw(_headingText);
+    _headingText.draw(target, {});
 
     // controls
     for (auto &button : _buttons) {
-      target.draw(button);
+      button.draw(target, {});
     }
     for (auto &switchButton : _switchButtons) {
-      target.draw(switchButton);
+      switchButton.draw(target, {});
     }
     for (auto &checkbox : _checkboxes) {
-      target.draw(checkbox);
+      checkbox.draw(target, {});
     }
     for (auto &slider : _sliders) {
-      target.draw(slider);
+      slider.draw(target, {});
     }
 
     target.setView(view);
 
     if (_showSaveLoad) {
-      target.draw(_saveload, states);
+      _saveload.draw(target, states);
     }
 
     if (_showQuit) {
-      target.draw(_quit, states);
+      _quit.draw(target, states);
     }
   }
 
-  void update(const sf::Time &elapsed) {
+  void update(const ngf::TimeSpan &elapsed) {
     if (_showSaveLoad) {
       _saveload.update(elapsed);
       return;
@@ -437,11 +440,8 @@ struct OptionsDialog::Impl {
       return;
     }
 
-    auto pos = (sf::Vector2f) _pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()),
-                                                                     sf::View(sf::FloatRect(0,
-                                                                                            0,
-                                                                                            Screen::Width,
-                                                                                            Screen::Height)));
+    auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
+      ngf::View(ngf::frect::fromPositionSize({0, 0},{Screen::Width,Screen::Height})));
     for (auto &button : _buttons) {
       button.update(pos);
     }
@@ -467,11 +467,11 @@ void OptionsDialog::setSaveEnabled(bool enabled) { _pImpl->_saveEnabled = enable
 
 void OptionsDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
 
-void OptionsDialog::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void OptionsDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   _pImpl->draw(target, states);
 }
 
-void OptionsDialog::update(const sf::Time &elapsed) {
+void OptionsDialog::update(const ngf::TimeSpan &elapsed) {
   _pImpl->update(elapsed);
 }
 

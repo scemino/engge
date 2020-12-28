@@ -1,4 +1,7 @@
 #include <algorithm>
+#include <ngf/Graphics/RectangleShape.h>
+#include <ngf/Graphics/Sprite.h>
+#include <ngf/System/Mouse.h>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Inventory.hpp"
 #include "engge/Entities/Objects/Object.hpp"
@@ -20,23 +23,25 @@ void Inventory::setTextureManager(ResourceManager *pTextureManager) {
   auto scrollUpFrameRect = _gameSheet.getRect("scroll_up");
   auto inventoryRect = _gameSheet.getRect("inventory_background");
 
-  _scrollUpRect = {Screen::Width - 627.f, Screen::Height - 167.f, static_cast<float>(scrollUpFrameRect.width),
-                   static_cast<float>(scrollUpFrameRect.height)};
-  _scrollDownRect = {Screen::Width - 627.f, Screen::Height - 73.f, static_cast<float>(scrollUpFrameRect.width),
-                     static_cast<float>(scrollUpFrameRect.height)};
+  _scrollUpRect = ngf::frect::fromPositionSize({Screen::Width - 627.f, Screen::Height - 167.f},
+                                               {static_cast<float>(scrollUpFrameRect.getWidth()),
+                                                static_cast<float>(scrollUpFrameRect.getHeight())});
+  _scrollDownRect = ngf::frect::fromPositionSize({Screen::Width - 627.f, Screen::Height - 73.f},
+                                                 {static_cast<float>(scrollUpFrameRect.getWidth()),
+                                                  static_cast<float>(scrollUpFrameRect.getHeight())});
 
-  sf::Vector2f sizeBack = {static_cast<float>(inventoryRect.width), static_cast<float>(inventoryRect.height)};
-  sf::Vector2f scrollUpSize(scrollUpFrameRect.width, scrollUpFrameRect.height);
-  sf::Vector2f scrollUpMargin(4, 7);
+  glm::vec2 sizeBack = {static_cast<float>(inventoryRect.getWidth()), static_cast<float>(inventoryRect.getHeight())};
+  glm::vec2 scrollUpSize(scrollUpFrameRect.getWidth(), scrollUpFrameRect.getHeight());
+  glm::vec2 scrollUpMargin(4, 7);
 
-  auto startX = sizeBack.x / 2.f + _scrollUpRect.left + scrollUpSize.x + scrollUpMargin.x;
-  auto startY = sizeBack.y / 2.f + _scrollUpRect.top;
+  auto startX = sizeBack.x / 2.f + _scrollUpRect.getTopLeft().x + scrollUpSize.x + scrollUpMargin.x;
+  auto startY = sizeBack.y / 2.f + _scrollUpRect.getTopLeft().y;
 
   auto x = 0, y = 0;
-  sf::Vector2f gap = {7.f, 7.f};
+  glm::vec2 gap = {7.f, 7.f};
 
   for (size_t i = 0; i < 8; i++) {
-    _inventoryRects[i] = {x + startX, y + startY, sizeBack.x, sizeBack.y};
+    _inventoryRects[i] = ngf::frect::fromPositionSize({x + startX, y + startY}, {sizeBack.x, sizeBack.y});
     if ((i % 4) == 3) {
       x = 0;
       y += sizeBack.y + gap.y;
@@ -46,8 +51,8 @@ void Inventory::setTextureManager(ResourceManager *pTextureManager) {
   }
 }
 
-bool Inventory::update(const sf::Time &elapsed) {
-  _jiggleTime += 20.f * elapsed.asSeconds();
+bool Inventory::update(const ngf::TimeSpan &elapsed) {
+  _jiggleTime += 20.f * elapsed.getTotalSeconds();
   _pCurrentInventoryObject = nullptr;
 
   if (_pCurrentActor == nullptr)
@@ -56,8 +61,8 @@ bool Inventory::update(const sf::Time &elapsed) {
   auto inventoryOffset = _pCurrentActor->getInventoryOffset();
   for (size_t i = 0; i < _inventoryRects.size(); i++) {
     auto r = _inventoryRects.at(i);
-    r.left -= r.width / 2.f;
-    r.top -= r.height / 2.f;
+    r.min.x -= r.getWidth() / 2.f;
+    r.min.y -= r.getHeight() / 2.f;
     if (r.contains(_mousePos)) {
       auto &objects = _pCurrentActor->getObjects();
       if ((inventoryOffset * 4 + i) < objects.size()) {
@@ -67,7 +72,7 @@ bool Inventory::update(const sf::Time &elapsed) {
     }
   }
 
-  auto mouseDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+  auto mouseDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
   if (!_mouseWasDown || mouseDown) {
     _mouseWasDown = mouseDown;
     return false;
@@ -91,7 +96,7 @@ bool Inventory::update(const sf::Time &elapsed) {
   return false;
 }
 
-void Inventory::drawUpArrow(sf::RenderTarget &target) const {
+void Inventory::drawUpArrow(ngf::RenderTarget &target) const {
   if (!hasUpArrow())
     return;
 
@@ -101,19 +106,19 @@ void Inventory::drawUpArrow(sf::RenderTarget &target) const {
   auto rect = _gameSheet.getRect(isRetro ? "scroll_up_retro" : "scroll_up");
 
   auto color = _pColors->verbNormal;
-  color.a = static_cast<sf::Uint8>(255.f * _alpha);
+  color.a = static_cast<uint8_t>(255.f * _alpha);
 
-  sf::Vector2f scrollUpSize(rect.width, rect.height);
-  sf::RectangleShape scrollUpShape;
-  scrollUpShape.setFillColor(color);
-  scrollUpShape.setPosition(_scrollUpRect.left, _scrollUpRect.top);
+  glm::vec2 scrollUpSize(rect.getWidth(), rect.getHeight());
+  ngf::RectangleShape scrollUpShape;
+  scrollUpShape.setColor(color);
+  scrollUpShape.getTransform().setPosition(_scrollUpRect.getTopLeft());
   scrollUpShape.setSize(scrollUpSize);
-  scrollUpShape.setTexture(&_gameSheet.getTexture());
-  scrollUpShape.setTextureRect(rect);
-  target.draw(scrollUpShape);
+  scrollUpShape.setTexture(_gameSheet.getTexture(), false);
+  scrollUpShape.setTextureRect(_gameSheet.getTexture().computeTextureCoords(rect));
+  scrollUpShape.draw(target, {});
 }
 
-void Inventory::drawDownArrow(sf::RenderTarget &target) const {
+void Inventory::drawDownArrow(ngf::RenderTarget &target) const {
   if (!hasDownArrow())
     return;
 
@@ -122,18 +127,18 @@ void Inventory::drawDownArrow(sf::RenderTarget &target) const {
       preferences.getUserPreference(PreferenceNames::RetroVerbs, PreferenceDefaultValues::RetroVerbs);
 
   auto scrollDownFrameRect = _gameSheet.getRect(isRetro ? "scroll_down_retro" : "scroll_down");
-  sf::Vector2f scrollDownSize(scrollDownFrameRect.width, scrollDownFrameRect.height);
+  glm::vec2 scrollDownSize(scrollDownFrameRect.getWidth(), scrollDownFrameRect.getHeight());
 
   auto color = _pColors->verbNormal;
-  color.a = static_cast<sf::Uint8>(255.f * _alpha);
+  color.a = static_cast<uint8_t>(255.f * _alpha);
 
-  sf::RectangleShape scrollDownShape;
-  scrollDownShape.setFillColor(color);
-  scrollDownShape.setPosition(_scrollDownRect.left, _scrollDownRect.top);
+  ngf::RectangleShape scrollDownShape;
+  scrollDownShape.setColor(color);
+  scrollDownShape.getTransform().setPosition(_scrollDownRect.getTopLeft());
   scrollDownShape.setSize(scrollDownSize);
-  scrollDownShape.setTexture(&_gameSheet.getTexture());
-  scrollDownShape.setTextureRect(scrollDownFrameRect);
-  target.draw(scrollDownShape);
+  scrollDownShape.setTexture(_gameSheet.getTexture(), false);
+  scrollDownShape.setTextureRect(_gameSheet.getTexture().computeTextureCoords(scrollDownFrameRect));
+  scrollDownShape.draw(target, {});
 }
 
 bool Inventory::hasUpArrow() const {
@@ -147,29 +152,29 @@ bool Inventory::hasDownArrow() const {
   return static_cast<int>(objects.size()) > (inventoryOffset * 4 + 8);
 }
 
-void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
+void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   if (_currentActorIndex == -1)
     return;
 
   const auto view = target.getView();
-  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
-  auto color = sf::Color::White;
-  color.a = static_cast<sf::Uint8>(_alpha * 255.f);
+  auto color = ngf::Colors::White;
+  color.a = static_cast<uint8_t>(_alpha * 255.f);
 
   // draw inventory items
-  sf::Color c(_pColors->inventoryBackground);
-  c.a = static_cast<sf::Uint8>(_alpha * 128.f);
+  ngf::Color c(_pColors->inventoryBackground);
+  c.a = static_cast<uint8_t>(_alpha * 128.f);
 
   auto inventoryRect = _gameSheet.getRect("inventory_background");
-  sf::Sprite inventoryShape;
+  ngf::Sprite inventoryShape;
   inventoryShape.setColor(c);
   inventoryShape.setTexture(_gameSheet.getTexture());
   inventoryShape.setTextureRect(inventoryRect);
   for (auto i = 0; i < 8; i++) {
-    inventoryShape.setPosition(_inventoryRects[i].left, _inventoryRects[i].top);
-    inventoryShape.setOrigin(_inventoryRects[i].width / 2.f, _inventoryRects[i].height / 2.f);
-    target.draw(inventoryShape);
+    inventoryShape.getTransform().setPosition(_inventoryRects[i].getTopLeft());
+    inventoryShape.getTransform().setOrigin({_inventoryRects[i].getWidth() / 2.f, _inventoryRects[i].getHeight() / 2.f});
+    inventoryShape.draw(target);
   }
 
   // draw inventory objects
@@ -188,40 +193,40 @@ void Inventory::draw(sf::RenderTarget &target, sf::RenderStates) const {
     auto rect = _inventoryItems.getRect(icon);
     auto spriteSourceSize = _inventoryItems.getSpriteSourceSize(icon);
     auto sourceSize = _inventoryItems.getSourceSize(icon);
-    sf::Vector2f origin(sourceSize.x / 2.f - spriteSourceSize.left, sourceSize.y / 2.f - spriteSourceSize.top);
+    glm::vec2 origin(sourceSize.x / 2.f - spriteSourceSize.getTopLeft().x, sourceSize.y / 2.f - spriteSourceSize.getTopLeft().y);
 
-    sf::Sprite sprite;
-    sprite.setOrigin(origin);
+    ngf::Sprite sprite;
+    sprite.getTransform().setOrigin(origin);
     if (object->getJiggle()) {
-      sprite.setRotation(3.f * sinf(_jiggleTime));
+      sprite.getTransform().setRotation(3.f * sinf(_jiggleTime));
     }
-    sprite.setPosition(_inventoryRects[i].left, _inventoryRects[i].top);
+    sprite.getTransform().setPosition(_inventoryRects[i].getTopLeft());
     sprite.setTexture(_inventoryItems.getTexture());
     sprite.setTextureRect(rect);
     if (object->getPop() > 0) {
       const auto pop = 4.25f + object->getPopScale() * 0.25f;
-      sprite.scale(pop, pop);
+      sprite.getTransform().setScale({pop, pop});
     } else {
-      sprite.scale(4, 4);
+      sprite.getTransform().setScale({4, 4});
     }
     sprite.setColor(color);
-    target.draw(sprite);
+    sprite.draw(target, {});
   }
   target.setView(view);
 }
 
-sf::Vector2f Inventory::getPosition(Object *pObject) const {
+glm::vec2 Inventory::getPosition(Object *pObject) const {
   if (!_pCurrentActor)
-    return sf::Vector2f();
+    return glm::vec2();
   auto inventoryOffset = _pCurrentActor->getInventoryOffset() * 4;
   const auto &objects = _pCurrentActor->getObjects();
   auto it = std::find(objects.cbegin(), objects.cend(), pObject);
   auto index = std::distance(objects.cbegin(), it);
   if (index >= inventoryOffset && index < (inventoryOffset + 8)) {
     const auto &rect = _inventoryRects.at(index - inventoryOffset);
-    return sf::Vector2f(rect.left, rect.top);
+    return rect.getTopLeft();
   }
-  return sf::Vector2f();
+  return glm::vec2();
 }
 
 } // namespace ng

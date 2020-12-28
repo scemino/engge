@@ -1,5 +1,5 @@
 #include "engge/Entities/Objects/TextObject.hpp"
-#include "engge/Graphics/Text.hpp"
+#include <ngf/Graphics/Text.h>
 #include "../../System/_Util.hpp"
 
 namespace ng {
@@ -27,47 +27,47 @@ void TextObject::setText(const std::string &text) {
   _text = towstring(text);
 }
 
-void TextObject::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!isVisible())
     return;
 
   const auto view = target.getView();
   if (getScreenSpace() == ScreenSpace::Object) {
-    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+    target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
   }
 
-  Text txt;
-  txt.setFont(_font);
-  txt.setFillColor(getColor());
-  txt.setString(_text);
+  ngf::Text txt;
+  txt.setFont(*_font);
+  txt.setColor(getColor());
+  txt.setWideString(_text);
   txt.setMaxWidth(static_cast<float>(_maxWidth));
   auto bounds = txt.getLocalBounds();
-  sf::Vector2f offset;
+  glm::vec2 offset;
   if (_alignment & TextAlignment::Center) {
-    offset.x = getScale() * -bounds.width / 2;
+    offset.x = getScale() * -bounds.getWidth() / 2;
   } else if (_alignment & TextAlignment::Right) {
-    offset.x = getScale() * bounds.width / 2;
+    offset.x = getScale() * bounds.getWidth() / 2;
   }
   if (_alignment & TextAlignment::Top) {
     offset.y = 0;
   } else if (_alignment & TextAlignment::Bottom) {
-    offset.y = getScale() * bounds.height;
+    offset.y = getScale() * bounds.getHeight();
   } else {
-    offset.y = getScale() * bounds.height / 2;
+    offset.y = getScale() * bounds.getHeight() / 2;
   }
   auto height = target.getView().getSize().y;
   auto transformable = getTransform();
-  transformable.move(offset.x, offset.y);
-  transformable.setPosition(transformable.getPosition().x, height - transformable.getPosition().y);
+  transformable.move(offset);
+  transformable.setPosition({transformable.getPosition().x, height - transformable.getPosition().y});
 
   if (getScreenSpace() == ScreenSpace::Object) {
-    sf::RenderStates s;
+    ngf::RenderStates s;
     s.transform *= transformable.getTransform();
-    target.draw(txt, s);
+    txt.draw(target, s);
     target.setView(view);
   } else {
     states.transform *= transformable.getTransform();
-    target.draw(txt, states);
+    txt.draw(target, states);
   }
 }
 

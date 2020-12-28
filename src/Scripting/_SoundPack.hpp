@@ -145,7 +145,7 @@ private:
     }
     if (fadeInTime != 0) {
       pSoundId->setVolume(0.f);
-      pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
+      pSoundId->fadeTo(1.f, ngf::TimeSpan::seconds(fadeInTime));
     }
     ScriptEngine::pushObject(v, pSoundId);
     return 1;
@@ -172,13 +172,13 @@ private:
     auto pSoundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
     if (pSoundId && fadeInTime != 0) {
       pSoundId->setVolume(0.f);
-      pSoundId->fadeTo(1.f, sf::seconds(fadeInTime));
+      pSoundId->fadeTo(1.f, ngf::TimeSpan::seconds(fadeInTime));
     }
     ScriptEngine::pushObject(v, pSoundId);
     return 1;
   }
 
-  static void _fadeOutSound(SoundId *pSound, const sf::Time &time) {
+  static void _fadeOutSound(SoundId *pSound, const ngf::TimeSpan &time) {
     pSound->fadeTo(0.f, time);
   }
 
@@ -188,7 +188,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &t))) {
       return sq_throwerror(v, _SC("failed to get fadeOut time"));
     }
-    auto time = sf::seconds(t);
+    auto time = ngf::TimeSpan::seconds(t);
     if (pSound == nullptr) {
       auto pSoundDefinition = EntityManager::getSoundDefinition(v, 2);
       if (pSoundDefinition == nullptr) {
@@ -247,7 +247,7 @@ private:
     auto soundId = g_pEngine->getSoundManager().playSound(pSound, loopTimes);
     if (soundId) {
       soundId->setEntity(pEntity->getId());
-      soundId->fadeTo(1.f, sf::seconds(fadeInTime));
+      soundId->fadeTo(1.f, ngf::TimeSpan::seconds(fadeInTime));
     }
     ScriptEngine::pushObject(v, soundId);
 

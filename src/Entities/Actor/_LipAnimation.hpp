@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include <ngf/System/TimeSpan.h>
 #include "engge/Entities/Actor/Actor.hpp"
 #include "engge/Parsers/Lip.hpp"
 
@@ -9,7 +9,7 @@ public:
   void load(const std::string &path) {
     _lip.load(path);
     _index = 0;
-    _elapsed = sf::seconds(0);
+    _elapsed = ngf::TimeSpan(0);
     updateHead();
   }
 
@@ -21,7 +21,7 @@ public:
     _pActor = pActor;
   }
 
-  void update(const sf::Time &elapsed) {
+  void update(const ngf::TimeSpan &elapsed) {
     if (_lip.getData().empty())
       return;
 
@@ -55,9 +55,9 @@ public:
     _pActor->getCostume().setHeadIndex(index);
   }
 
-  [[nodiscard]] sf::Time getDuration() const {
+  [[nodiscard]] ngf::TimeSpan getDuration() const {
     if (_lip.getData().empty())
-      return sf::seconds(0);
+      return ngf::TimeSpan(0);
     return _lip.getData().back().time;
   }
 
@@ -65,6 +65,6 @@ private:
   Lip _lip;
   Actor *_pActor{nullptr};
   int _index{0};
-  sf::Time _elapsed;
+  ngf::TimeSpan _elapsed;
 };
 }

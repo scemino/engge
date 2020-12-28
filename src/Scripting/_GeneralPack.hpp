@@ -143,7 +143,7 @@ private:
 
   static SQInteger findScreenPosition(HSQUIRRELVM v) {
     SQInteger verb;
-    sf::Vector2f pos;
+    glm::vec2 pos;
     if (sq_gettype(v, 2) == OT_INTEGER) {
       if (SQ_FAILED(sq_getinteger(v, 2, &verb))) {
         return sq_throwerror(v, _SC("failed to get verb"));
@@ -160,7 +160,7 @@ private:
       } else {
         pos = entity->getRealPosition() - g_pEngine->getCamera().getAt();
         auto roomScreenSize = g_pEngine->getRoom()->getScreenSize();
-        pos = sf::Vector2f(Screen::Width * pos.x / roomScreenSize.x, Screen::Height * pos.y / roomScreenSize.y);
+        pos = glm::vec2(Screen::Width * pos.x / roomScreenSize.x, Screen::Height * pos.y / roomScreenSize.y);
       }
     }
     ScriptEngine::push(v, pos);
@@ -249,9 +249,9 @@ private:
     }
     filename = name;
     checkLanguage(filename);
-    auto& settings = Locator<EngineSettings>::get();
+    auto &settings = Locator<EngineSettings>::get();
     std::vector<char> buffer;
-    if(settings.hasEntry(filename)) {
+    if (settings.hasEntry(filename)) {
       settings.readEntry(filename, buffer);
     } else {
       settings.readEntry(name, buffer);
@@ -289,7 +289,7 @@ private:
   }
 
   static SQInteger cameraAt(HSQUIRRELVM v) {
-    sf::Vector2f pos;
+    glm::vec2 pos;
     auto numArgs = sq_gettop(v) - 1;
     if (numArgs == 2) {
       SQInteger x, y;
@@ -299,7 +299,7 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
         return sq_throwerror(v, _SC("failed to get y"));
       }
-      pos = sf::Vector2f(x, y);
+      pos = glm::vec2(x, y);
     } else {
       auto entity = EntityManager::getEntity(v, 2);
       if (!entity) {
@@ -313,7 +313,7 @@ private:
     }
 
     auto screen = g_pEngine->getRoom()->getScreenSize();
-    g_pEngine->getCamera().at(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
+    g_pEngine->getCamera().at(glm::vec2(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
     return 0;
   }
 
@@ -331,7 +331,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &yMax))) {
       return sq_throwerror(v, _SC("failed to get yMax"));
     }
-    g_pEngine->getCamera().setBounds(sf::IntRect(xMin, yMin, xMax - xMin, yMax - yMin));
+    g_pEngine->getCamera().setBounds(ngf::irect::fromMinMax({xMin, yMin}, {xMax, yMax}));
     return 0;
   }
 
@@ -342,10 +342,10 @@ private:
   }
 
   static void _cameraPanTo(sf::Vector2i pos, float timeInSeconds, int interpolation) {
-    auto screen = g_pEngine->getWindow().getView().getSize();
+    auto screen = g_pEngine->getApplication()->getRenderTarget()->getView().getSize();
     g_pEngine->follow(nullptr);
-    g_pEngine->getCamera().panTo(sf::Vector2f(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f),
-                                 sf::seconds(timeInSeconds),
+    g_pEngine->getCamera().panTo(glm::vec2(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f),
+                                 ngf::TimeSpan::seconds(timeInSeconds),
                                  toInterpolationMethod(interpolation));
   }
 
@@ -363,7 +363,7 @@ private:
       if (SQ_FAILED(sq_getfloat(v, 3, &t))) {
         return sq_throwerror(v, _SC("failed to get time"));
       }
-      _cameraPanTo(sf::Vector2i(x,y), t, interpolation);
+      _cameraPanTo(sf::Vector2i(x, y), t, interpolation);
       return 0;
     }
 
@@ -378,7 +378,7 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 4, &interpolation))) {
         interpolation = 0;
       }
-      _cameraPanTo(sf::Vector2i(x,y), t, interpolation);
+      _cameraPanTo(sf::Vector2i(x, y), t, interpolation);
       return 0;
     }
 
@@ -394,7 +394,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
       interpolation = 0;
     }
-    _cameraPanTo(sf::Vector2i(x,y), t, interpolation);
+    _cameraPanTo(sf::Vector2i(x, y), t, interpolation);
     return 0;
   }
 
@@ -566,7 +566,7 @@ private:
   }
 
   static SQInteger screenSize(HSQUIRRELVM v) {
-    auto screen = g_pEngine->getWindow().getView().getSize();
+    auto screen = g_pEngine->getApplication()->getRenderTarget()->getView().getSize();
     ScriptEngine::push(v, screen);
     return 1;
   }

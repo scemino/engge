@@ -5,19 +5,75 @@ include_directories(../include/ ../extlibs/squirrel/include/ ../extlibs/spdlog/i
 link_directories(../extlibs/squirrel/squirrel/ ../extlibs/squirrel/sqstdlib/ ../extlibs/clipper/)
 
 set(SOURCES
-        Game.cpp main.cpp Entities/Actor/Actor.cpp Entities/Objects/Animation.cpp Entities/Actor/Costume.cpp Entities/Actor/CostumeAnimation.cpp
-        Engine/TextDatabase.cpp Engine/Engine.cpp Graphics/GGFont.cpp Entities/Actor/CostumeLayer.cpp Entities/Objects/Object.cpp Room/Room.cpp
-        Scripting/ScriptEngine.cpp Graphics/ResourceManager.cpp Math/PathFinding/Walkbox.cpp Entities/Objects/TextObject.cpp Room/RoomLayer.cpp Parsers/Lip.cpp
-        Audio/SoundDefinition.cpp Graphics/SpriteSheet.cpp Parsers/YackTokenReader.cpp Parsers/YackParser.cpp
-        Dialog/Ast.cpp Dialog/DialogManager.cpp Graphics/FntFont.cpp Graphics/Text.cpp
-        Audio/SoundManager.cpp Engine/ActorIcons.cpp Engine/Inventory.cpp Math/PathFinding/Graph.cpp Math/PathFinding/PathFinder.cpp Parsers/GGPack.cpp  Parsers/GGPackValue.cpp Parsers/GGPackBufferStream
-        Engine/Cutscene.cpp Entities/Entity.cpp Room/RoomScaling.cpp Audio/SoundTrigger.cpp Audio/SoundId.cpp Parsers/JsonTokenReader.cpp
-        Engine/Light.cpp Engine/Thread.cpp System/_Util.cpp Engine/Camera.cpp System/Logger.cpp Engine/EngineSettings.cpp Engine/Preferences.cpp
-        Engine/Sentence.cpp Room/_RoomTrigger.cpp Entities/Actor/BlinkState.cpp Engine/Callback.cpp Math/PathFinding/_IndexedPriorityQueue.cpp
-        Math/PathFinding/GraphEdge.cpp Math/PathFinding/_Path.cpp Math/PathFinding/_AstarAlgorithm.cpp Math/PathFinding/_WalkboxDrawable.cpp
-        Math/Segment.cpp UI/OptionsDialog.cpp UI/QuitDialog.cpp UI/SaveLoadDialog.cpp Entities/Objects/AnimationFrame.cpp UI/StartScreenDialog.cpp Engine/Hud.cpp
-        Parsers/GGHashReader.cpp Parsers/GGHashWriter.cpp Parsers/SavegameManager.cpp Dialog/ConditionVisitor.cpp Dialog/ExpressionVisitor.cpp Dialog/DialogPlayer.cpp Dialog/EngineDialogScript.cpp
-        Input/CommandManager.cpp Input/InputMappings.cpp Util/BTEACrypto.cpp Util/RandomNumberGenerator.cpp Engine/EntityManager.cpp)
+        Audio/SoundTrigger.cpp
+        Audio/SoundId.cpp
+        Audio/SoundDefinition.cpp
+        Audio/SoundManager.cpp
+        Dialog/Ast.cpp
+        Dialog/DialogManager.cpp
+        Dialog/ConditionVisitor.cpp
+        Dialog/ExpressionVisitor.cpp
+        Dialog/DialogPlayer.cpp
+        Dialog/EngineDialogScript.cpp
+        EnggeApplication.cpp
+        Engine/TextDatabase.cpp
+        Engine/Engine.cpp
+        Engine/ActorIcons.cpp
+        Engine/Inventory.cpp
+        Engine/Cutscene.cpp
+        Engine/Light.cpp
+        Engine/Thread.cpp
+        Engine/Camera.cpp
+        Engine/EngineSettings.cpp
+        Engine/Preferences.cpp
+        Engine/Sentence.cpp
+        Engine/Callback.cpp
+        Engine/Hud.cpp
+        Entities/Actor/Actor.cpp
+        Entities/Actor/BlinkState.cpp
+        Entities/Actor/Costume.cpp
+        Entities/Actor/CostumeAnimation.cpp
+        Entities/Actor/CostumeLayer.cpp
+        Entities/Entity.cpp
+        Engine/EntityManager.cpp
+        Entities/Objects/Object.cpp
+        Entities/Objects/TextObject.cpp
+        Entities/Objects/Animation.cpp
+        Entities/Objects/AnimationFrame.cpp
+        Graphics/GGFont.cpp
+        Graphics/ResourceManager.cpp
+        Graphics/SpriteSheet.cpp
+        Graphics/GraphDrawable.cpp
+        Graphics/_WalkboxDrawable.cpp
+        Graphics/_Path.cpp
+        Input/CommandManager.cpp
+        Input/InputMappings.cpp
+        main.cpp
+        Parsers/Lip.cpp
+        Parsers/YackTokenReader.cpp
+        Parsers/YackParser.cpp
+        Parsers/GGPack.cpp
+        Parsers/GGPackValue.cpp
+        Parsers/GGPackBufferStream
+        Parsers/JsonTokenReader.cpp
+        Parsers/GGHashReader.cpp
+        Parsers/GGHashWriter.cpp
+        Parsers/SavegameManager.cpp
+        Room/Room.cpp
+        Room/RoomLayer.cpp
+        Room/RoomScaling.cpp
+        Room/_RoomTrigger.cpp
+        Scripting/ScriptEngine.cpp
+        System/_Util.cpp
+        System/Logger.cpp
+        UI/OptionsDialog.cpp
+        UI/QuitDialog.cpp
+        UI/SaveLoadDialog.cpp
+        UI/StartScreenDialog.cpp
+        Util/BTEACrypto.cpp
+        Util/RandomNumberGenerator.cpp
+        Util/Util.cpp
+        )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
@@ -26,9 +82,8 @@ target_link_libraries(${PROJECT_NAME} squirrel_static sqstdlib_static)
 # clipper
 target_link_libraries(${PROJECT_NAME} clipper)
 # SFML
-target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-window sfml-system sfml-audio)
-# ImGui-SFML
-target_link_libraries(${PROJECT_NAME} ImGui-SFML::ImGui-SFML)
+target_link_libraries(${PROJECT_NAME} sfml-audio)
+target_link_libraries(${PROJECT_NAME} ngf)
 # std::filesystem
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     target_link_libraries(${PROJECT_NAME} stdc++fs)

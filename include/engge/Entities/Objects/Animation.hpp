@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
-#include <SFML/Graphics.hpp>
+#include <ngf/Graphics/Drawable.h>
+#include <ngf/Graphics/Color.h>
 #include "engge/System/NonCopyable.hpp"
 #include "AnimationFrame.hpp"
 
@@ -13,7 +14,7 @@ enum class AnimState {
   Play
 };
 
-class Animation : public sf::Drawable {
+class Animation : public ngf::Drawable {
 public:
   Animation();
   explicit Animation(std::string texture, std::string name);
@@ -22,8 +23,8 @@ public:
   void setName(const std::string &name) { _name = name; }
   [[nodiscard]] const std::string &getName() const { return _name; }
 
-  void setColor(const sf::Color &color) { _color = color; }
-  [[nodiscard]] sf::Color getColor() const { return _color; }
+  void setColor(const ngf::Color &color) { _color = color; }
+  [[nodiscard]] ngf::Color getColor() const { return _color; }
 
   void addFrame(AnimationFrame &&frame);
   AnimationFrame &at(size_t index);
@@ -37,28 +38,27 @@ public:
 
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
-  void update(const sf::Time &elapsed);
+  void update(const ngf::TimeSpan &elapsed);
 
   void reset();
   void play(bool loop = false);
   void pause() { _state = AnimState::Pause; }
   [[nodiscard]] bool isPlaying() const { return _state == AnimState::Play; }
 
-  [[nodiscard]] bool contains(const sf::Vector2f &pos) const;
+  [[nodiscard]] bool contains(const glm::vec2 &pos) const;
 
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
   std::string _texture;
   std::string _name;
   std::vector<AnimationFrame> _frames;
   int _fps{10};
-  sf::Time _time;
+  ngf::TimeSpan _time;
   size_t _index{0};
   AnimState _state{AnimState::Pause};
   bool _loop{false};
-  sf::Color _color{sf::Color::White};
+  ngf::Color _color{ngf::Colors::White};
   bool _leftDirection{false};
 };
 } // namespace ng

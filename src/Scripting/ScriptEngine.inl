@@ -81,7 +81,7 @@ void ScriptEngine::push<SQFloat>(HSQUIRRELVM v, SQFloat value) {
 }
 
 template<>
-void ScriptEngine::push<sf::Vector2i>(HSQUIRRELVM v, sf::Vector2i pos) {
+void ScriptEngine::push<glm::ivec2>(HSQUIRRELVM v, glm::ivec2 pos) {
   sq_newtable(v);
   sq_pushstring(v, _SC("x"), -1);
   sq_pushinteger(v, static_cast<int>(pos.x));
@@ -92,25 +92,25 @@ void ScriptEngine::push<sf::Vector2i>(HSQUIRRELVM v, sf::Vector2i pos) {
 }
 
 template<>
-void ScriptEngine::push<sf::IntRect>(HSQUIRRELVM v, sf::IntRect rect) {
+void ScriptEngine::push<ngf::irect>(HSQUIRRELVM v, ngf::irect rect) {
   sq_newtable(v);
   sq_pushstring(v, _SC("x1"), -1);
-  sq_pushinteger(v, rect.left);
+  sq_pushinteger(v, rect.getTopLeft().x);
   sq_newslot(v, -3, SQFalse);
   sq_pushstring(v, _SC("y1"), -1);
-  sq_pushinteger(v, rect.top);
+  sq_pushinteger(v, rect.getTopLeft().y);
   sq_newslot(v, -3, SQFalse);
   sq_pushstring(v, _SC("x2"), -1);
-  sq_pushinteger(v, rect.left + rect.width);
+  sq_pushinteger(v, rect.getBottomRight().x);
   sq_newslot(v, -3, SQFalse);
   sq_pushstring(v, _SC("y2"), -1);
-  sq_pushinteger(v, rect.top + rect.height);
+  sq_pushinteger(v, rect.getBottomRight().y);
   sq_newslot(v, -3, SQFalse);
 }
 
 template<>
-void ScriptEngine::push<sf::Vector2f>(HSQUIRRELVM v, sf::Vector2f pos) {
-  return ScriptEngine::push(v, (sf::Vector2i) pos);
+void ScriptEngine::push<glm::vec2>(HSQUIRRELVM v, glm::vec2 pos) {
+  return ScriptEngine::push(v, (glm::ivec2) pos);
 }
 
 template<>

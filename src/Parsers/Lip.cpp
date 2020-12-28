@@ -27,7 +27,7 @@ void Lip::load(const std::string &path) {
 
     auto t = std::strtof(matches[1].str().c_str(), nullptr);
     auto text = matches[2].str();
-    NGLipData data{sf::seconds(t), text[0]};
+    NGLipData data{ngf::TimeSpan::seconds(t), text[0]};
     _data.emplace_back(data);
   }
 }

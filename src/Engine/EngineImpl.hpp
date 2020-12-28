@@ -8,7 +8,6 @@
 #include "engge/Input/InputConstants.hpp"
 #include "engge/Dialog/DialogManager.hpp"
 #include "engge/Graphics/GGFont.hpp"
-#include "engge/Math/PathFinding/Graph.hpp"
 #include "engge/Engine/Inventory.hpp"
 #include "engge/UI/OptionsDialog.hpp"
 #include "engge/UI/StartScreenDialog.hpp"
@@ -25,12 +24,22 @@
 #include "engge/Engine/TextDatabase.hpp"
 #include "engge/Engine/Thread.hpp"
 #include "engge/Engine/Verb.hpp"
-#include "engge/Graphics/Text.hpp"
 #include "engge/Scripting/VerbExecute.hpp"
+#include "squirrel.h"
+#include "../../extlibs/squirrel/squirrel/sqpcheader.h"
+#include "../../extlibs/squirrel/squirrel/sqvm.h"
+#include "../../extlibs/squirrel/squirrel/sqstring.h"
+#include "../../extlibs/squirrel/squirrel/sqtable.h"
+#include "../../extlibs/squirrel/squirrel/sqarray.h"
+#include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
+#include "../../extlibs/squirrel/squirrel/sqclosure.h"
+#include "../../extlibs/squirrel/squirrel/squserdata.h"
+#include "../../extlibs/squirrel/squirrel/sqcompiler.h"
+#include "../../extlibs/squirrel/squirrel/sqfuncstate.h"
+#include "../../extlibs/squirrel/squirrel/sqclass.h"
 #include "../System/_DebugTools.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "engge/System/Logger.hpp"
-#include "../Math/PathFinding/_WalkboxDrawable.hpp"
 #include "engge/Parsers/GGPackValue.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 #include <cmath>
@@ -43,10 +52,27 @@
 #include <set>
 #include <string>
 #include <unordered_set>
+#include <ngf/Graphics/Sprite.h>
+#include <ngf/Graphics/RenderTexture.h>
+#include <ngf/Graphics/RectangleShape.h>
+#include <engge/Util/Util.hpp>
+#include "engge/Engine/EngineSettings.hpp"
 #include "engge/Input/CommandManager.hpp"
 #include "engge/Engine/EngineCommands.hpp"
 #include "_DebugFeatures.hpp"
+#include "../Graphics/_WalkboxDrawable.hpp"
+#include "../Graphics/GraphDrawable.hpp"
 namespace fs = std::filesystem;
+
+namespace {
+uint32_t toInteger(const ngf::Color &c) {
+  auto r = static_cast<uint32_t>(c.r * 255u);
+  auto g = static_cast<uint32_t>(c.g * 255u);
+  auto b = static_cast<uint32_t>(c.b * 255u);
+  auto a = static_cast<uint32_t>(c.a * 255u);
+  return (r << 24) | (g << 16) | (b << 8) | a;
+}
+}
 
 namespace ng {
 
@@ -132,7 +158,7 @@ struct Engine::Impl {
           {"easy_mode", GGPackValue::toGGPackValue(static_cast<int>(_integer(easyMode)))},
           {"gameGUID", GGPackValue::toGGPackValue(std::string())},
           {"gameScene", gameSceneHash},
-          {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.asSeconds())},
+          {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.getTotalSeconds())},
           {"globals", globalsHash},
           {"inputState", GGPackValue::toGGPackValue(_pImpl->_pEngine->getInputState())},
           {"inventory", inventoryHash},
@@ -172,7 +198,7 @@ struct Engine::Impl {
 
       slot.easyMode = hash["easy_mode"].getInt() != 0;
       slot.savetime = (time_t) hash["savetime"].getInt();
-      slot.gametime = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
+      slot.gametime = ngf::TimeSpan::seconds(static_cast<float>(hash["gameTime"].getDouble()));
     }
 
   private:
@@ -326,7 +352,7 @@ struct Engine::Impl {
       for (auto &callBackHash : hash["callbacks"].array_value) {
         auto name = callBackHash["function"].getString();
         auto id = callBackHash["guid"].getInt();
-        auto time = sf::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
+        auto time = ngf::TimeSpan::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
         auto arg = toSquirrel(callBackHash["param"]);
         auto callback = std::make_unique<Callback>(id, time, name, arg);
         _pImpl->_callbacks.push_back(std::move(callback));
@@ -345,11 +371,11 @@ struct Engine::Impl {
     }
 
     void loadActor(Actor *pActor, const GGPackValue &actorHash) {
-      sf::Color color{sf::Color::White};
+      ngf::Color color{ngf::Colors::White};
       getValue(actorHash, "_color", color);
       pActor->setColor(color);
 
-      sf::Vector2f pos;
+      glm::vec2 pos;
       getValue(actorHash, "_pos", pos);
       pActor->setPosition(pos);
 
@@ -386,15 +412,15 @@ struct Engine::Impl {
       getValue(actorHash, "_volume", volume);
       pActor->setVolume(volume);
 
-      sf::Vector2f usePos;
+      glm::vec2 usePos;
       getValue(actorHash, "_usePos", usePos);
       pActor->setUsePosition(usePos);
 
-      sf::Vector2f renderOffset = sf::Vector2f(0, 45);
+      glm::vec2 renderOffset = glm::vec2(0, 45);
       getValue(actorHash, "_renderOffset", renderOffset);
-      pActor->setRenderOffset((sf::Vector2i) renderOffset);
+      pActor->setRenderOffset((glm::ivec2) renderOffset);
 
-      sf::Vector2f offset;
+      glm::vec2 offset;
       getValue(actorHash, "_offset", offset);
       pActor->setOffset(offset);
 
@@ -498,14 +524,14 @@ struct Engine::Impl {
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, sf::Vector2f &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, glm::vec2 &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = _parsePos(it->second.getString());
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, sf::Color &value) {
+    static void getValue(const GGPackValue &hash, const std::string &key, ngf::Color &value) {
       auto it = hash.hash_value.find(key);
       if (it != hash.hash_value.end()) {
         value = _toColor(it->second.getInt());
@@ -521,7 +547,7 @@ struct Engine::Impl {
       ScriptEngine::rawGet(pObj, "initTouchable", touchable);
       getValue(hash, "_touchable", touchable);
       pObj->setTouchable(touchable);
-      sf::Vector2f offset;
+      glm::vec2 offset;
       getValue(hash, "_offset", offset);
       pObj->setOffset(offset);
       bool hidden = false;
@@ -530,7 +556,7 @@ struct Engine::Impl {
       float rotation = 0;
       getValue(hash, "_rotation", rotation);
       pObj->setRotation(rotation);
-      sf::Color color{sf::Color::White};
+      ngf::Color color{ngf::Colors::White};
       getValue(hash, "_color", color);
       pObj->setColor(color);
 
@@ -611,7 +637,7 @@ struct Engine::Impl {
       loadInventory(hash["inventory"]);
       loadRooms(hash["rooms"]);
 
-      _pImpl->_time = sf::seconds(static_cast<float>(hash["gameTime"].getDouble()));
+      _pImpl->_time = ngf::TimeSpan::seconds(static_cast<float>(hash["gameTime"].getDouble()));
       _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
 
       setActor(hash["selectedActor"].getString());
@@ -705,11 +731,11 @@ struct Engine::Impl {
           actorHash.hash_value["_usePos"] = GGPackValue::toGGPackValue(toString(usePos.value()));
         }
         auto renderOffset = pActor->getRenderOffset();
-        if (renderOffset != sf::Vector2i(0, 45)) {
+        if (renderOffset != glm::ivec2(0, 45)) {
           actorHash.hash_value["_renderOffset"] = GGPackValue::toGGPackValue(toString(renderOffset));
         }
-        if (pActor->getColor() != sf::Color::White) {
-          actorHash.hash_value["_color"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getColor().toInteger()));
+        if (pActor->getColor() != ngf::Colors::White) {
+          actorHash.hash_value["_color"] = GGPackValue::toGGPackValue(static_cast<int>(toInteger(pActor->getColor())));
         }
         auto costumeSheet = pActor->getCostume().getSheet();
         if (!costumeSheet.empty()) {
@@ -876,7 +902,7 @@ struct Engine::Impl {
       if (!pObject->isTouchable()) {
         hashObject.hash_value["_touchable"] = GGPackValue::toGGPackValue(pObject->isTouchable());
       }
-      if (pObject->getOffset() != sf::Vector2f()) {
+      if (pObject->getOffset() != glm::vec2()) {
         hashObject.hash_value["_offset"] = GGPackValue::toGGPackValue(toString(pObject->getOffset()));
       }
     }
@@ -901,7 +927,7 @@ struct Engine::Impl {
         callbackHash.hash_value = {
             {"function", GGPackValue::toGGPackValue(callback->getMethod())},
             {"guid", GGPackValue::toGGPackValue(callback->getId())},
-            {"time", GGPackValue::toGGPackValue(callback->getElapsed().asMilliseconds())}
+            {"time", GGPackValue::toGGPackValue(callback->getElapsed().getTotalMilliseconds())}
         };
         auto arg = callback->getArgument();
         if (arg._type != OT_NULL) {
@@ -930,13 +956,13 @@ struct Engine::Impl {
       }
     }
 
-    static std::string toString(const sf::Vector2f &pos) {
+    static std::string toString(const glm::vec2 &pos) {
       std::ostringstream os;
       os << "{" << static_cast<int>(pos.x) << "," << static_cast<int>(pos.y) << "}";
       return os.str();
     }
 
-    static std::string toString(const sf::Vector2i &pos) {
+    static std::string toString(const glm::ivec2 &pos) {
       std::ostringstream os;
       os << "{" << pos.x << "," << pos.y << "}";
       return os.str();
@@ -947,7 +973,7 @@ struct Engine::Impl {
   };
 
   Engine *_pEngine{nullptr};
-  std::unique_ptr<_DebugTools> _pDebugTools;
+  //std::unique_ptr<_DebugTools> _pDebugTools;
   ResourceManager &_textureManager;
   Room *_pRoom{nullptr};
   std::vector<std::unique_ptr<Actor>> _actors;
@@ -956,7 +982,7 @@ struct Engine::Impl {
   std::vector<std::unique_ptr<Function>> _functions;
   std::vector<std::unique_ptr<Callback>> _callbacks;
   Cutscene *_pCutscene{nullptr};
-  sf::RenderWindow *_pWindow{nullptr};
+  ngf::Application *_pApp{nullptr};
   Actor *_pCurrentActor{nullptr};
   bool _inputHUD{false};
   bool _inputActive{false};
@@ -966,8 +992,8 @@ struct Engine::Impl {
   Entity *_pUseObject{nullptr};
   int _objId1{0};
   Entity *_pObj2{nullptr};
-  sf::Vector2f _mousePos;
-  sf::Vector2f _mousePosInRoom;
+  glm::vec2 _mousePos;
+  glm::vec2 _mousePosInRoom;
   std::unique_ptr<VerbExecute> _pVerbExecute;
   std::unique_ptr<ScriptExecute> _pScriptExecute;
   std::vector<std::unique_ptr<ThreadBase>> _threads;
@@ -978,14 +1004,14 @@ struct Engine::Impl {
   std::array<ActorIconSlot, 6> _actorsIconSlots;
   UseFlag _useFlag{UseFlag::None};
   ActorIcons _actorIcons;
-  sf::Time _time;
+  ngf::TimeSpan _time;
   bool _isMouseDown{false};
-  sf::Time _mouseDownTime;
+  ngf::TimeSpan _mouseDownTime;
   bool _isMouseRightDown{false};
   int _frameCounter{0};
   HSQOBJECT _pDefaultObject{};
   Camera _camera;
-  sf::Color _fadeColor{sf::Color::Transparent};
+  ngf::Color _fadeColor{ngf::Colors::Transparent};
   std::unique_ptr<Sentence> _pSentence{};
   std::unordered_set<Input, InputHash> _oldKeyDowns;
   std::unordered_set<Input, InputHash> _newKeyDowns;
@@ -995,25 +1021,25 @@ struct Engine::Impl {
   OptionsDialog _optionsDialog;
   StartScreenDialog _startScreenDialog;
   bool _run{false};
-  sf::Time _noOverrideElapsed{sf::seconds(2)};
+  ngf::TimeSpan _noOverrideElapsed{ngf::TimeSpan::seconds(2)};
   Hud _hud;
   bool _autoSave{true};
   bool _cursorVisible{true};
 
   Impl();
 
-  void drawHud(sf::RenderTarget &target) const;
-  void drawCursor(sf::RenderTarget &target) const;
-  void drawCursorText(sf::RenderTarget &target) const;
-  void drawNoOverride(sf::RenderTarget &target) const;
+  void drawHud(ngf::RenderTarget &target) const;
+  void drawCursor(ngf::RenderTarget &target) const;
+  void drawCursorText(ngf::RenderTarget &target) const;
+  void drawNoOverride(ngf::RenderTarget &target) const;
   int getCurrentActorIndex() const;
-  sf::IntRect getCursorRect() const;
+  ngf::irect getCursorRect() const;
   void appendUseFlag(std::wstring &sentence) const;
-  bool clickedAt(const sf::Vector2f &pos) const;
-  void updateCutscene(const sf::Time &elapsed);
-  void updateFunctions(const sf::Time &elapsed);
-  void updateActorIcons(const sf::Time &elapsed);
-  void updateSentence(const sf::Time &elapsed) const;
+  bool clickedAt(const glm::vec2 &pos) const;
+  void updateCutscene(const ngf::TimeSpan &elapsed);
+  void updateFunctions(const ngf::TimeSpan &elapsed);
+  void updateActorIcons(const ngf::TimeSpan &elapsed);
+  void updateSentence(const ngf::TimeSpan &elapsed) const;
   void updateMouseCursor();
   void updateHoveredEntity(bool isRightClick);
   SQInteger enterRoom(Room *pRoom, Object *pObject) const;
@@ -1023,19 +1049,19 @@ struct Engine::Impl {
   void setCurrentRoom(Room *pRoom);
   uint32_t getFlags(int id) const;
   uint32_t getFlags(Entity *pEntity) const;
-  Entity *getHoveredEntity(const sf::Vector2f &mousPos);
+  Entity *getHoveredEntity(const glm::vec2 &mousPos);
   void actorEnter() const;
   void actorExit() const;
   static void onLanguageChange(const std::string &lang);
-  void drawFade(sf::RenderTarget &target) const;
+  void drawFade(ngf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
   void updateKeyboard();
   bool isKeyPressed(const Input &key);
   void updateKeys();
   static InputConstants toKey(const std::string &keyText);
-  void drawPause(sf::RenderTarget &target) const;
+  void drawPause(ngf::RenderTarget &target) const;
   void stopThreads();
-  void drawWalkboxes(sf::RenderTarget &target) const;
+  void drawWalkboxes(ngf::RenderTarget &target) const;
   const Verb *getHoveredVerb() const;
   static std::wstring getDisplayName(const std::wstring &name);
   void run(bool state);
@@ -1152,7 +1178,7 @@ void Engine::Impl::skipCutscene() {
     if (_pCutscene && _pCutscene->hasCutsceneOverride()) {
       _pEngine->cutsceneOverride();
     } else {
-      _noOverrideElapsed = sf::seconds(0);
+      _noOverrideElapsed = ngf::TimeSpan::seconds(0);
     }
   }
 }
@@ -1171,12 +1197,12 @@ void Engine::Impl::onLanguageChange(const std::string &lang) {
   ScriptEngine::call("onLanguageChange");
 }
 
-void Engine::Impl::drawFade(sf::RenderTarget &target) const {
-  sf::RectangleShape fadeShape;
+void Engine::Impl::drawFade(ngf::RenderTarget &target) const {
+  ngf::RectangleShape fadeShape;
   auto screen = target.getView().getSize();
-  fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
-  fadeShape.setFillColor(_fadeColor);
-  target.draw(fadeShape);
+  fadeShape.setSize(glm::vec2(screen.x, screen.y));
+  fadeShape.setColor(_fadeColor);
+  fadeShape.draw(target, {});
 }
 
 SQInteger Engine::Impl::exitRoom(Object *pObject) {
@@ -1218,7 +1244,7 @@ void Engine::Impl::updateScreenSize() const {
   if (!_pRoom)
     return;
 
-  sf::Vector2i screen;
+  glm::ivec2 screen;
   if (_pRoom->getFullscreen() == 1) {
     screen = _pRoom->getRoomSize();
     if (_pRoom->getScreenHeight() != 0) {
@@ -1227,8 +1253,8 @@ void Engine::Impl::updateScreenSize() const {
   } else {
     screen = _pRoom->getScreenSize();
   }
-  sf::View view(sf::FloatRect(0, 0, screen.x, screen.y));
-  _pWindow->setView(view);
+  ngf::View view(ngf::frect::fromPositionSize({0, 0}, {screen.x, screen.y}));
+  _pApp->getRenderTarget()->setView(view);
 }
 
 void Engine::Impl::actorEnter() const {
@@ -1315,12 +1341,12 @@ void Engine::Impl::setCurrentRoom(Room *pRoom) {
     ScriptEngine::set("currentRoom", pRoom);
   }
   _camera.resetBounds();
-  _camera.at(sf::Vector2f(0, 0));
+  _camera.at(glm::vec2(0, 0));
   _pRoom = pRoom;
   updateScreenSize();
 }
 
-void Engine::Impl::updateCutscene(const sf::Time &elapsed) {
+void Engine::Impl::updateCutscene(const ngf::TimeSpan &elapsed) {
   if (_pCutscene) {
     (*_pCutscene)(elapsed);
     if (_pCutscene->isElapsed()) {
@@ -1329,7 +1355,7 @@ void Engine::Impl::updateCutscene(const sf::Time &elapsed) {
   }
 }
 
-void Engine::Impl::updateSentence(const sf::Time &elapsed) const {
+void Engine::Impl::updateSentence(const ngf::TimeSpan &elapsed) const {
   if (!_pSentence)
     return;
   (*_pSentence)(elapsed);
@@ -1338,7 +1364,7 @@ void Engine::Impl::updateSentence(const sf::Time &elapsed) const {
   _pEngine->stopSentence();
 }
 
-void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
+void Engine::Impl::updateFunctions(const ngf::TimeSpan &elapsed) {
   for (auto &function : _newFunctions) {
     _functions.push_back(std::move(function));
   }
@@ -1363,16 +1389,16 @@ void Engine::Impl::updateFunctions(const sf::Time &elapsed) {
   std::move(callbacks.begin(), callbacks.end(), std::back_inserter(_callbacks));
 }
 
-void Engine::Impl::updateActorIcons(const sf::Time &elapsed) {
+void Engine::Impl::updateActorIcons(const ngf::TimeSpan &elapsed) {
   auto screenSize = _pRoom->getScreenSize();
-  auto screenMouse = toDefaultView((sf::Vector2i) _mousePos, screenSize);
+  auto screenMouse = toDefaultView((glm::ivec2) _mousePos, screenSize);
   _actorIcons.setMousePosition(screenMouse);
   _actorIcons.update(elapsed);
 }
 
 void Engine::Impl::updateMouseCursor() {
   auto flags = getFlags(_objId1);
-  auto screen = _pWindow->getView().getSize();
+  auto screen = _pApp->getRenderTarget()->getView().getSize();
   _cursorDirection = CursorDirection::None;
   if ((_mousePos.x < 20) || (flags & ObjectFlagConstants::DOOR_LEFT) == ObjectFlagConstants::DOOR_LEFT)
     _cursorDirection |= CursorDirection::Left;
@@ -1387,7 +1413,7 @@ void Engine::Impl::updateMouseCursor() {
     _cursorDirection |= CursorDirection::Hotspot;
 }
 
-Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos) {
+Entity *Engine::Impl::getHoveredEntity(const glm::vec2 &mousPos) {
   Entity *pCurrentObject = nullptr;
 
   // mouse on actor ?
@@ -1410,7 +1436,7 @@ Entity *Engine::Impl::getHoveredEntity(const sf::Vector2f &mousPos) {
     if (!pObj->isTouchable())
       return;
     auto rect = pObj->getRealHotspot();
-    if (!rect.contains((sf::Vector2i) mousPos))
+    if (!rect.contains((glm::ivec2) mousPos))
       return;
     if (!pCurrentObject || pObj->getZOrder() <= pCurrentObject->getZOrder())
       pCurrentObject = pObj.get();
@@ -1448,7 +1474,8 @@ void Engine::Impl::updateHoveredEntity(bool isRightClick) {
   }
 
   if (_objId1 && isRightClick) {
-    _hud.setVerbOverride(_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(VerbConstants::VERB_LOOKAT)));
+    _hud.setVerbOverride(_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(
+        VerbConstants::VERB_LOOKAT)));
   }
 
   auto verbId = _hud.getCurrentVerb()->id;
@@ -1532,7 +1559,7 @@ void Engine::Impl::updateRoomScalings() const {
   for (auto &&object : objects) {
     if (object->getType() != ObjectType::Trigger)
       continue;
-    if (object->getRealHotspot().contains((sf::Vector2i) actor->getPosition())) {
+    if (object->getRealHotspot().contains((glm::ivec2) actor->getPosition())) {
       auto it = std::find_if(scalings.begin(), scalings.end(), [&object](const auto &s) -> bool {
         return s.getName() == object->getName();
       });
@@ -1580,9 +1607,9 @@ void Engine::Impl::stopTalkingExcept(Entity *pEntity) const {
 }
 
 void Engine::Impl::updateKeys() {
-  ImGuiIO &io = ImGui::GetIO();
-  if (io.WantTextInput)
-    return;
+//  ImGuiIO &io = ImGui::GetIO();
+//  if (io.WantTextInput)
+//    return;
 
   const auto &cmdMgr = Locator<CommandManager>::get();
   for (auto &key : _oldKeyDowns) {
@@ -1656,7 +1683,7 @@ void Engine::Impl::onVerbClick(const Verb *pVerb) {
   ScriptEngine::rawCall("onVerbClick");
 }
 
-bool Engine::Impl::clickedAt(const sf::Vector2f &pos) const {
+bool Engine::Impl::clickedAt(const glm::vec2 &pos) const {
   if (!_pRoom)
     return false;
 
@@ -1677,7 +1704,7 @@ bool Engine::Impl::clickedAt(const sf::Vector2f &pos) const {
   return handled;
 }
 
-void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const {
+void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
   if (!_pRoom || _showDrawWalkboxes == 0)
     return;
 
@@ -1685,72 +1712,75 @@ void Engine::Impl::drawWalkboxes(sf::RenderTarget &target) const {
   auto w = screen.x / 2.f;
   auto h = screen.y / 2.f;
   auto at = _camera.getAt();
-  sf::Transform t;
-  t.rotate(_pRoom->getRotation(), w, h);
-  t.translate(-at);
-  sf::RenderStates states;
-  states.transform = t;
+  // TODO:
+  ngf::Transform t;
+  //t.rotate(_pRoom->getRotation(), w, h);
+  t.setPosition(-at);
+  ngf::RenderStates states;
+  states.transform = t.getTransform();
 
   if (_showDrawWalkboxes & 4) {
     for (const auto &walkbox : _pRoom->getWalkboxes()) {
       _WalkboxDrawable wd(walkbox);
-      target.draw(wd, states);
+      wd.draw(target, states);
     }
   }
 
   if (_showDrawWalkboxes & 1) {
     for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
       _WalkboxDrawable wd(walkbox);
-      target.draw(wd, states);
+      wd.draw(target, states);
     }
   }
 
   if (_showDrawWalkboxes & 2) {
     const auto *pGraph = _pRoom->getGraph();
     if (pGraph) {
-      target.draw(*pGraph, states);
+      auto height = _pRoom->getRoomSize().y;
+      ng::GraphDrawable d(*pGraph, height);
+      d.draw(target, states);
     }
   }
 }
 
-void Engine::Impl::drawPause(sf::RenderTarget &target) const {
+void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
   if (_state != EngineState::Paused)
     return;
 
   const auto view = target.getView();
-  auto viewRect = sf::FloatRect(0, 0, 320, 176);
-  target.setView(sf::View(viewRect));
+  auto viewRect = ngf::frect::fromPositionSize({0, 0}, {320, 176});
+  target.setView(ngf::View(viewRect));
 
   auto &saveLoadSheet = Locator<ResourceManager>::get().getSpriteSheet("SaveLoadSheet");
-  auto viewCenter = sf::Vector2f(viewRect.width / 2, viewRect.height / 2);
+  auto viewCenter = glm::vec2(viewRect.getWidth() / 2, viewRect.getHeight() / 2);
   auto rect = saveLoadSheet.getRect("pause_dialog");
 
-  sf::Sprite sprite;
-  sprite.setPosition(viewCenter);
+  ngf::Sprite sprite;
+  sprite.getTransform().setPosition(viewCenter);
   sprite.setTexture(saveLoadSheet.getTexture());
-  sprite.setOrigin(rect.width / 2.f, rect.height / 2.f);
+  sprite.getTransform().setOrigin({rect.getWidth() / 2.f, rect.getHeight() / 2.f});
   sprite.setTextureRect(rect);
-  target.draw(sprite);
+  sprite.draw(target, {});
 
-  viewRect = sf::FloatRect(0, 0, Screen::Width, Screen::Height);
-  viewCenter = sf::Vector2f(viewRect.width / 2, viewRect.height / 2);
-  target.setView(sf::View(viewRect));
+  viewRect = ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height});
+  viewCenter = glm::vec2(viewRect.getWidth() / 2, viewRect.getHeight() / 2);
+  target.setView(ngf::View(viewRect));
 
   auto retroFonts =
       _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  Text text;
+  ngf::Text text;
   auto screen = target.getView().getSize();
   auto scale = screen.y / 512.f;
-  text.setScale(scale, scale);
-  text.setPosition(viewCenter);
+  text.getTransform().setScale({scale, scale});
+  text.getTransform().setPosition(viewCenter);
   text.setFont(font);
-  text.setFillColor(sf::Color::White);
-  text.setString(_pEngine->getText(99951));
-  auto bounds = text.getGlobalBounds();
-  text.move(-bounds.width / 2.f, -scale * bounds.height / 2.f);
-  target.draw(text);
+  text.setColor(ngf::Colors::White);
+  text.setWideString(Engine::getText(99951));
+  auto bounds = ng::getGlobalBounds(text);
+  text.getTransform().move({-bounds.getWidth() / 2.f, -scale * bounds.getHeight() / 2.f});
+  text.draw(target, {});
 
   target.setView(view);
 }
@@ -1761,26 +1791,26 @@ void Engine::Impl::stopThreads() {
   }), _threads.end());
 }
 
-void Engine::Impl::drawCursor(sf::RenderTarget &target) const {
+void Engine::Impl::drawCursor(ngf::RenderTarget &target) const {
   if (!_cursorVisible)
     return;
   if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
     return;
 
-  auto screen = _pWindow->getView().getSize();
-  auto cursorSize = sf::Vector2f(68.f * screen.x / 1284, 68.f * screen.y / 772);
+  auto screen = _pApp->getRenderTarget()->getView().getSize();
+  auto cursorSize = glm::vec2(68.f * screen.x / 1284, 68.f * screen.y / 772);
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
 
-  sf::RectangleShape shape;
-  shape.setPosition(_mousePos);
-  shape.setOrigin(cursorSize / 2.f);
+  ngf::RectangleShape shape;
+  shape.getTransform().setPosition(_mousePos);
+  shape.getTransform().setOrigin(cursorSize / 2.f);
   shape.setSize(cursorSize);
-  shape.setTexture(&gameSheet.getTexture());
-  shape.setTextureRect(getCursorRect());
-  target.draw(shape);
+  shape.setTexture(gameSheet.getTexture(), false);
+  shape.setTextureRect(gameSheet.getTexture().computeTextureCoords(getCursorRect()));
+  shape.draw(target, {});
 }
 
-sf::IntRect Engine::Impl::getCursorRect() const {
+ngf::irect Engine::Impl::getCursorRect() const {
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   if (_state == EngineState::Paused)
     return gameSheet.getRect("cursor_pause");
@@ -1833,7 +1863,7 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
   return _hud.getVerb(pObj1->getDefaultVerb(VerbConstants::VERB_WALKTO));
 }
 
-void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
+void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   if (!_cursorVisible)
     return;
   if (!_showCursor || _state != EngineState::Game)
@@ -1858,20 +1888,20 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
                                                                       PreferenceDefaultValues::ClassicSentence);
 
   const auto view = target.getView();
-  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   auto retroFonts =
       _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   std::wstring s;
   if (pVerb->id != VerbConstants::VERB_WALKTO || _hud.getHoveredEntity()) {
     auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
-    s.append(_pEngine->getText(id));
+    s.append(ng::Engine::getText(id));
   }
   auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
-    s.append(L" ").append(getDisplayName(_pEngine->getText(pObj1->getName())));
+    s.append(L" ").append(getDisplayName(ng::Engine::getText(pObj1->getName())));
     if (_DebugFeatures::showHoveredObject) {
       if (pObj1) {
         s.append(L"(").append(towstring(pObj1->getKey())).append(L")");
@@ -1880,69 +1910,69 @@ void Engine::Impl::drawCursorText(sf::RenderTarget &target) const {
   }
   appendUseFlag(s);
   if (_pObj2) {
-    s.append(L" ").append(getDisplayName(_pEngine->getText(_pObj2->getName())));
+    s.append(L" ").append(getDisplayName(ng::Engine::getText(_pObj2->getName())));
   }
 
-  Text text;
+  ngf::Text text;
   text.setFont(font);
-  text.setFillColor(_hud.getVerbUiColors(currentActorIndex).sentence);
-  text.setString(s);
+  text.setColor(_hud.getVerbUiColors(currentActorIndex).sentence);
+  text.setWideString(s);
 
   // do display cursor position:
   if (_DebugFeatures::showCursorPosition) {
     std::wstringstream ss;
-    std::wstring txt = text.getString();
+    std::wstring txt = text.getWideString();
     ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
-    text.setString(ss.str());
+    text.setWideString(ss.str());
   }
 
   auto screenSize = _pRoom->getScreenSize();
-  auto pos = toDefaultView((sf::Vector2i) _mousePos, screenSize);
+  auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
 
-  auto bounds = text.getGlobalBounds();
+  auto bounds = ng::getGlobalBounds(text);
   if (classicSentence) {
     auto y = Screen::Height - 210.f;
-    auto x = Screen::HalfWidth - bounds.width / 2.f;
-    text.setPosition(x, y);
+    auto x = Screen::HalfWidth;
+    text.getTransform().setPosition({x, y});
   } else {
     auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 60;
-    auto x = std::clamp<float>(pos.x - bounds.width / 2.f, 20.f, Screen::Width - 20.f - bounds.width);
-    text.setPosition(x, y - bounds.height);
+    auto x = std::clamp<float>(pos.x, 20.f, Screen::Width - 20.f - bounds.getWidth());
+    text.getTransform().setPosition({x, y - bounds.getHeight()});
   }
-  target.draw(text, sf::RenderStates::Default);
+  text.draw(target, {});
   target.setView(view);
 }
 
-void Engine::Impl::drawNoOverride(sf::RenderTarget &target) const {
-  if (_noOverrideElapsed > sf::seconds(2))
+void Engine::Impl::drawNoOverride(ngf::RenderTarget &target) const {
+  if (_noOverrideElapsed > ngf::TimeSpan::seconds(2))
     return;
 
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   const auto view = target.getView();
-  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
-  sf::Color c(sf::Color::White);
-  c.a = static_cast<sf::Uint8>((2.f - _noOverrideElapsed.asSeconds() / 2.f) * 255);
-  sf::Sprite spriteNo;
+  ngf::Color c(ngf::Colors::White);
+  c.a = static_cast<sf::Uint8>((2.f - _noOverrideElapsed.getTotalSeconds() / 2.f) * 255);
+  ngf::Sprite spriteNo;
   spriteNo.setColor(c);
-  spriteNo.setPosition(sf::Vector2f(8.f, 8.f));
-  spriteNo.setScale(sf::Vector2f(2.f, 2.f));
+  spriteNo.getTransform().setPosition({8.f, 8.f});
+  spriteNo.getTransform().setScale({2.f, 2.f});
   spriteNo.setTexture(gameSheet.getTexture());
   spriteNo.setTextureRect(gameSheet.getRect("icon_no"));
-  target.draw(spriteNo);
+  spriteNo.draw(target, {});
 
   target.setView(view);
 }
 
 void Engine::Impl::appendUseFlag(std::wstring &sentence) const {
   switch (_useFlag) {
-  case UseFlag::UseWith:sentence.append(L" ").append(_pEngine->getText(10000));
+  case UseFlag::UseWith:sentence.append(L" ").append(ng::Engine::getText(10000));
     break;
-  case UseFlag::UseOn:sentence.append(L" ").append(_pEngine->getText(10001));
+  case UseFlag::UseOn:sentence.append(L" ").append(ng::Engine::getText(10001));
     break;
-  case UseFlag::UseIn:sentence.append(L" ").append(_pEngine->getText(10002));
+  case UseFlag::UseIn:sentence.append(L" ").append(ng::Engine::getText(10002));
     break;
-  case UseFlag::GiveTo:sentence.append(L" ").append(_pEngine->getText(10003));
+  case UseFlag::GiveTo:sentence.append(L" ").append(ng::Engine::getText(10003));
     break;
   case UseFlag::None:break;
   }
@@ -1958,26 +1988,24 @@ int Engine::Impl::getCurrentActorIndex() const {
   return -1;
 }
 
-void Engine::Impl::drawHud(sf::RenderTarget &target) const {
+void Engine::Impl::drawHud(ngf::RenderTarget &target) const {
   if (_state != EngineState::Game)
     return;
 
-  target.draw(_hud);
+  _hud.draw(target, {});
 }
 
 void Engine::Impl::captureScreen(const std::string &path) const {
-  sf::RenderTexture target;
-  target.create(static_cast<unsigned int>(Screen::Width), static_cast<unsigned int>(Screen::Height));
-  target.setView(_pEngine->getWindow().getView());
+  ngf::RenderTexture target({Screen::Width, Screen::Height});
+  target.setView(_pEngine->getApplication()->getRenderTarget()->getView());
   _pEngine->draw(target, true);
   target.display();
 
-  sf::Sprite s(target.getTexture());
-  s.scale(1.f / 4.f, 1.f / 4.f);
+  ngf::Sprite s(target.getTexture());
+  s.getTransform().setScale({1.f / 4.f, 1.f / 4.f});
 
-  sf::RenderTexture rt;
-  rt.create(320u, 180u);
-  rt.draw(s);
+  ngf::RenderTexture rt({320, 180});
+  s.draw(rt, {});
   rt.display();
 
   auto screenshot = rt.getTexture().copyToImage();

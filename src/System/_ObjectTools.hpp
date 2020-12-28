@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 
 namespace ng {
@@ -66,19 +66,19 @@ public:
         object->setZOrder(zorder);
       }
       auto pos = object->getPosition();
-      if (_DebugControls::InputFloat2("Position", pos)) {
+      if (ngf::ImGui::InputFloat2("Position", &pos)) {
         object->setPosition(pos);
       }
-      auto usePos = object->getUsePosition().value_or(sf::Vector2f());
-      if (_DebugControls::InputFloat2("Use Position", usePos)) {
+      auto usePos = object->getUsePosition().value_or(glm::vec2());
+      if (ngf::ImGui::InputFloat2("Use Position", &usePos)) {
         object->setUsePosition(usePos);
       }
       auto offset = object->getOffset();
-      if (_DebugControls::InputFloat2("Offset", offset)) {
+      if (ngf::ImGui::InputFloat2("Offset", &offset)) {
         object->setOffset(offset);
       }
       auto renderOffset = object->getRenderOffset();
-      if (_DebugControls::InputInt2("Render Offset", renderOffset)) {
+      if (ngf::ImGui::InputInt2("Render Offset", &renderOffset)) {
         object->setRenderOffset(renderOffset);
       }
       auto hotspotVisible = object->isHotspotVisible();
@@ -86,11 +86,11 @@ public:
         object->showDebugHotspot(hotspotVisible);
       }
       auto hotspot = object->getHotspot();
-      if (_DebugControls::InputInt4("Hotspot", hotspot)) {
+      if (ngf::ImGui::InputInt4("Hotspot", &hotspot)) {
         object->setHotspot(hotspot);
       }
       auto color = object->getColor();
-      if (_DebugControls::ColorEdit4("Color", color)) {
+      if (ngf::ImGui::ColorEdit4("Color", &color)) {
         object->setColor(color);
       }
       auto trigger = object->getTrigger();

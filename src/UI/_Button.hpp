@@ -1,18 +1,21 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include <imgui.h>
+#include <ngf/Graphics/Text.h>
+#include <engge/Util/Util.hpp>
+#include <ngf/System/Mouse.h>
 #include "_ControlConstants.hpp"
 #include "engge/Engine/Engine.hpp"
-#include "engge/Graphics/FntFont.hpp"
 #include "engge/Graphics/Screen.hpp"
-#include "engge/Graphics/Text.hpp"
 
 namespace ng {
-class _Button : public sf::Drawable {
+class _Button : public ngf::Drawable {
 public:
   typedef std::function<void()> Callback;
   enum class Size { Large, Medium };
 
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
+    text.draw(target, states);
+  }
 public:
   _Button(int id, float y, Callback callback, bool enabled = true, Size size = Size::Large)
       : _id(id), _isEnabled(enabled), _y(y), _callback(std::move(callback)), _size(size) {
@@ -21,23 +24,24 @@ public:
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
 
-    const FntFont &uiFontLargeOrMedium =
+    auto &uiFontLargeOrMedium =
         _pEngine->getResourceManager().getFntFont(_size == Size::Large ? "UIFontLarge.fnt" : "UIFontMedium.fnt");
+    text.getTransform().setPosition({Screen::Width / 2.f, _y});
     text.setFont(uiFontLargeOrMedium);
-    text.setString(_pEngine->getText(_id));
-    auto textRect = text.getLocalBounds();
-    text.setOrigin(sf::Vector2f(textRect.width / 2.f, 0));
-    text.setPosition(sf::Vector2f(Screen::Width / 2.f, _y));
+    text.setWideString(ng::Engine::getText(_id));
+    text.setAlignment(ngf::Alignment::Center);
+    text.setMaxWidth(6000);
+    text.setAnchor(ngf::Anchor::Center);
   }
 
-  void update(sf::Vector2f pos) {
-    auto textRect = text.getGlobalBounds();
-    sf::Color color;
+  void update(glm::vec2 pos) {
+    auto textRect = ng::getGlobalBounds(text);
+    ngf::Color color;
     if (!_isEnabled) {
       color = _ControlConstants::DisabledColor;
-    } else if (textRect.contains((sf::Vector2f) pos)) {
+    } else if (textRect.contains((glm::vec2) pos)) {
       color = _ControlConstants::HoveColor;
-      bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+      bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
       ImGuiIO &io = ImGui::GetIO();
       if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
         _callback();
@@ -46,12 +50,7 @@ public:
     } else {
       color = _ControlConstants::NormalColor;
     }
-    text.setFillColor(color);
-  }
-
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-    target.draw(text, states);
+    text.setColor(color);
   }
 
 private:
@@ -61,7 +60,7 @@ private:
   float _y{0};
   bool _wasMouseDown{false};
   Callback _callback;
-  Text text;
+  ngf::Text text;
   Size _size{Size::Large};
 };
 }

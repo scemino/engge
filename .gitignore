@@ -44,3 +44,5 @@ ThimbleweedPark.ggpack2
 log.txt
 imgui.ini
 .DS_Store
+
+extlibs/ngf/**

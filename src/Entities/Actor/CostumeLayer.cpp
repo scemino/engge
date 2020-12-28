@@ -1,14 +1,13 @@
 #include "engge/Entities/Actor/CostumeLayer.hpp"
 #include "engge/Entities/Actor/Actor.hpp"
 #include "engge/Room/Room.hpp"
-#include <SFML/Graphics.hpp>
 
 namespace ng {
 CostumeLayer::CostumeLayer(Animation &&animation)
     : _animation(animation) {
 }
 
-bool CostumeLayer::update(const sf::Time &elapsed) {
+bool CostumeLayer::update(const ngf::TimeSpan &elapsed) {
   _animation.update(elapsed);
   return _animation.isPlaying();
 }
@@ -17,14 +16,14 @@ void CostumeLayer::reset() {
   _animation.reset();
 }
 
-void CostumeLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void CostumeLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!getVisible())
     return;
 
   Animation anim(_animation);
   anim.setLeftDirection(_leftDirection);
   anim.setColor(_pActor->getRoom()->getAmbientLight());
-  target.draw(anim, states);
+  anim.draw(target, states);
 }
 
 } // namespace ng

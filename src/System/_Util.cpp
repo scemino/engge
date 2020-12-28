@@ -1,6 +1,5 @@
 #include <codecvt>
 #include "_Util.hpp"
-#include "../Math/Segment.hpp"
 #include "engge/System/Locator.hpp"
 #include "engge/Engine/Preferences.hpp"
 
@@ -104,18 +103,18 @@ bool getLine(GGPackBufferStream &input, std::wstring &wline) {
   } while (true);
 }
 
-float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2) {
+float distanceSquared(const glm::vec2 &vector1, const glm::vec2 &vector2) {
   float dx = vector1.x - vector2.x;
   float dy = vector1.y - vector2.y;
 
   return dx * dx + dy * dy;
 }
 
-float distance(const sf::Vector2f &v1, const sf::Vector2f &v2) {
+float distance(const glm::vec2 &v1, const glm::vec2 &v2) {
   return std::sqrt(distanceSquared(v1, v2));
 }
 
-float length(const sf::Vector2f &v) {
+float length(const glm::vec2 &v) {
   return sqrtf(v.x * v.x + v.y * v.y);
 }
 
@@ -144,34 +143,8 @@ inline bool intersect_1d(float a, float b, float c, float d) {
   return fmax(a, c) <= fmin(b, d) + EPS;
 }
 
-bool less(const sf::Vector2f &p1, const sf::Vector2f &p2) {
+bool less(const glm::vec2 &p1, const glm::vec2 &p2) {
   return p1.x < p2.x - EPS || (fabs(p1.x - p2.x) < EPS && p1.y < p2.y - EPS);
-}
-
-bool intersect(sf::Vector2f a, sf::Vector2f b, sf::Vector2f c, sf::Vector2f d) {
-  if (!intersect_1d(a.x, b.x, c.x, d.x) || !intersect_1d(a.y, b.y, c.y, d.y))
-    return false;
-  Segment m(a, b);
-  Segment n(c, d);
-  double zn = det(m.a, m.b, n.a, n.b);
-  if (abs(zn) < EPS) {
-    if (abs(m.dist(c)) > EPS || abs(n.dist(a)) > EPS)
-      return false;
-    if (less(b, a))
-      swap(a, b);
-    if (less(d, c))
-      swap(c, d);
-    return true;
-  } else {
-    auto lx = -det(m.c, m.b, n.c, n.b) / zn;
-    auto ly = -det(m.a, m.c, n.a, n.c) / zn;
-    return betw(a.x, b.x, lx) && betw(a.y, b.y, ly) &&
-        betw(c.x, d.x, lx) && betw(c.y, d.y, ly);
-  }
-}
-
-bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d) {
-  return intersect(a, b, c, d);
 }
 
 Facing _toFacing(std::optional<UseDirection> direction) {
@@ -193,17 +166,16 @@ Facing getOppositeFacing(Facing facing) {
   }
 }
 
-sf::IntRect _toRect(const ng::GGPackValue &json) {
-  sf::IntRect rect;
-  rect.left = json["x"].getInt();
-  rect.top = json["y"].getInt();
-  rect.width = json["w"].getInt();
-  rect.height = json["h"].getInt();
-  return rect;
+ngf::irect _toRect(const ng::GGPackValue &json) {
+  auto x = json["x"].getInt();
+  auto y = json["y"].getInt();
+  auto w = json["w"].getInt();
+  auto h = json["h"].getInt();
+  return ngf::irect::fromPositionSize({x, y}, {w, h});
 }
 
-sf::Vector2i _toSize(const ng::GGPackValue &json) {
-  sf::Vector2i v;
+glm::ivec2 _toSize(const ng::GGPackValue &json) {
+  glm::ivec2 v;
   v.x = json["w"].getInt();
   v.y = json["h"].getInt();
   return v;
@@ -225,14 +197,14 @@ UseDirection _toDirection(const std::string &text) {
   return UseDirection::Front;
 }
 
-sf::Vector2f _parsePos(const std::string &text) {
+glm::vec2 _parsePos(const std::string &text) {
   auto commaPos = text.find_first_of(',');
   auto x = std::strtof(text.substr(1, commaPos - 1).c_str(), nullptr);
   auto y = std::strtof(text.substr(commaPos + 1, text.length() - 1).c_str(), nullptr);
-  return sf::Vector2f(x, y);
+  return glm::vec2(x, y);
 }
 
-sf::IntRect _parseRect(const std::string &text) {
+ngf::irect _parseRect(const std::string &text) {
   auto re = std::regex(R"(\{\{(\-?\d+),(\-?\d+)\},\{(\-?\d+),(\-?\d+)\}\})");
   std::smatch matches;
   std::regex_search(text, matches, re);
@@ -240,10 +212,10 @@ sf::IntRect _parseRect(const std::string &text) {
   auto top = std::strtol(matches[2].str().c_str(), nullptr, 10);
   auto right = std::strtol(matches[3].str().c_str(), nullptr, 10);
   auto bottom = std::strtol(matches[4].str().c_str(), nullptr, 10);
-  return sf::IntRect(left, top, right - left, bottom - top);
+  return ngf::irect::fromPositionSize({left, top}, {right - left, bottom - top});
 }
 
-void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices) {
+void _parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices) {
   int i = 1;
   int endPos;
   do {
@@ -256,25 +228,25 @@ void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices)
   } while (static_cast<int>(text.length() - 1) != endPos);
 }
 
-sf::Color _toColor(const std::string &color) {
+ngf::Color _toColor(const std::string &color) {
   auto c = std::strtol(color.c_str(), nullptr, 16);
   return _fromRgb(c);
 }
 
-sf::Color _toColor(SQInteger color) {
-  auto col = static_cast<SQUnsignedInteger>(color);
-  sf::Color c((col >> 16u) & 255u, (col >> 8u) & 255u, col & 255u, (col >> 24u) & 255u);
+ngf::Color _toColor(SQInteger color) {
+  auto col = static_cast<int>(color);
+  ngf::Color c((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
   return c;
 }
 
-sf::Color _fromRgb(SQInteger color) {
-  auto col = static_cast<SQUnsignedInteger>(color);
-  sf::Color c((col >> 16u) & 255u, (col >> 8u) & 255u, col & 255u);
+ngf::Color _fromRgb(SQInteger color) {
+  auto col = static_cast<int>(color);
+  ngf::Color c((col >> 16) & 255, (col >> 8) & 255, col & 255);
   return c;
 }
 
-sf::Vector2f toDefaultView(sf::Vector2i pos, sf::Vector2i fromSize) {
-  return sf::Vector2f((Screen::Width * pos.x) / fromSize.x, (Screen::Height * pos.y) / fromSize.y);
+glm::vec2 toDefaultView(glm::ivec2 pos, glm::ivec2 fromSize) {
+  return glm::vec2((Screen::Width * pos.x) / fromSize.x, (Screen::Height * pos.y) / fromSize.y);
 }
 
 InterpolationMethod toInterpolationMethod(SQInteger interpolation) {

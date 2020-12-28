@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 #include <string>
-#include <SFML/System/Time.hpp>
+#include <ngf/System/TimeSpan.h>
 
 namespace ng{
 class DialogContextAbstract {
@@ -15,7 +15,7 @@ public:
   virtual void limit(int max) = 0;
   virtual void override(const std::string &label) = 0;
   virtual void parrot(bool enabled) = 0;
-  virtual std::function<bool()> pause(sf::Time seconds) = 0;
+  virtual std::function<bool()> pause(ngf::TimeSpan seconds) = 0;
   virtual std::function<bool()> say(const std::string& actor, const std::string &text) = 0;
   virtual void shutup() = 0;
   virtual std::function<bool()> waitFor(const std::string &actor) = 0;

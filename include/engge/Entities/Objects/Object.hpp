@@ -1,7 +1,6 @@
 #pragma once
 #include <optional>
 #include <squirrel.h>
-#include <SFML/Graphics.hpp>
 #include "engge/Entities/Entity.hpp"
 
 namespace ng {
@@ -69,9 +68,9 @@ public:
   bool isTouchable() const override;
   bool isInventoryObject() const override;
 
-  void setHotspot(const sf::IntRect &hotspot);
-  const sf::IntRect &getHotspot() const;
-  sf::IntRect getRealHotspot() const;
+  void setHotspot(const ngf::irect &hotspot);
+  const ngf::irect &getHotspot() const;
+  ngf::irect getRealHotspot() const;
   void showDebugHotspot(bool show);
   bool isHotspotVisible() const;
 
@@ -96,7 +95,7 @@ public:
   const Room *getRoom() const override;
   void setRoom(Room *pRoom);
 
-  void update(const sf::Time &elapsed) override;
+  void update(const ngf::TimeSpan &elapsed) override;
 
   friend std::wostream &operator<<(std::wostream &os, const Object &obj);
 
@@ -132,10 +131,10 @@ public:
   float getPopScale() const;
 
 private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-  void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
-  void drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
-  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void drawDebugHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const;
+  void drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const;
 
 private:
   struct Impl;

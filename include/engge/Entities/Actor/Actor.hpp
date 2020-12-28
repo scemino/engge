@@ -3,7 +3,6 @@
 #include <string>
 #include <optional>
 #include <squirrel.h>
-#include <SFML/Graphics.hpp>
 #include "Costume.hpp"
 #include "engge/Entities/Entity.hpp"
 
@@ -38,13 +37,13 @@ public:
   void setFps(int fps) override;
   int getFps() const;
 
-  void setHotspot(const sf::IntRect &hotspot);
-  sf::IntRect getHotspot() const;
+  void setHotspot(const ngf::irect &hotspot);
+  ngf::irect getHotspot() const;
   void showHotspot(bool show);
   bool isHotspotVisible() const;
-  bool contains(const sf::Vector2f &pos) const;
+  bool contains(const glm::vec2 &pos) const;
 
-  void update(const sf::Time &time) override;
+  void update(const ngf::TimeSpan &time) override;
 
   void pickupObject(Object *pObject);
   void pickupReplacementObject(Object *pObject1, Object *pObject2);
@@ -55,10 +54,10 @@ public:
   void setInventoryOffset(int offset);
   int getInventoryOffset() const;
 
-  void setWalkSpeed(const sf::Vector2i &speed);
-  const sf::Vector2i &getWalkSpeed() const;
+  void setWalkSpeed(const glm::ivec2 &speed);
+  const glm::ivec2 &getWalkSpeed() const;
 
-  std::vector<sf::Vector2f> walkTo(const sf::Vector2f &destination, std::optional<Facing> facing = std::nullopt);
+  std::vector<glm::vec2> walkTo(const glm::vec2 &destination, std::optional<Facing> facing = std::nullopt);
   void stopWalking();
   bool isWalking() const;
 
@@ -69,14 +68,14 @@ public:
 
   void trigSound(const std::string &name) override;
 
-  void drawForeground(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
   HSQOBJECT &getTable() override;
   HSQOBJECT &getTable() const override;
   float getScale() const override;
 
 private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
   struct Impl;

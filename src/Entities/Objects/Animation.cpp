@@ -1,4 +1,6 @@
 #include <utility>
+#include <ngf/Math/Transform.h>
+#include <ngf/Graphics/Sprite.h>
 #include "engge/Graphics/ResourceManager.hpp"
 #include "engge/Entities/Objects/Animation.hpp"
 #include "engge/System/Locator.hpp"
@@ -33,7 +35,7 @@ void Animation::play(bool loop) {
   _index = 0;
 }
 
-void Animation::update(const sf::Time &elapsed) {
+void Animation::update(const ngf::TimeSpan &elapsed) {
   if (_state == AnimState::Pause)
     return;
 
@@ -41,8 +43,8 @@ void Animation::update(const sf::Time &elapsed) {
     return;
 
   _time += elapsed;
-  if (_time.asSeconds() > (1.f / static_cast<float>(_fps))) {
-    _time = sf::seconds(_time.asSeconds() - (1.f / static_cast<float>(_fps)));
+  if (_time.getTotalSeconds() > (1.f / static_cast<float>(_fps))) {
+    _time = ngf::TimeSpan::seconds(_time.getTotalSeconds() - (1.f / static_cast<float>(_fps)));
     if (_loop || _index != _frames.size() - 1) {
       _index = (_index + 1) % _frames.size();
       _frames.at(_index).call();
@@ -56,37 +58,36 @@ AnimationFrame &Animation::at(size_t index) {
   return _frames.at(index);
 }
 
-void Animation::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void Animation::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (_frames.empty())
     return;
 
   const auto &frame = _frames.at(_index);
-  auto rect = frame.getRect(_leftDirection);
+  auto rect = frame.getRect();
   auto origin = frame.getOrigin(_leftDirection);
   auto offset = frame.getOffset(_leftDirection);
 
-  sf::Sprite sprite;
+  ngf::Sprite sprite(*Locator<ResourceManager>::get().getTexture(_texture), rect);
   sprite.setColor(_color);
-  sprite.setTexture(*Locator<ResourceManager>::get().getTexture(_texture));
-  sprite.setTextureRect(rect);
-  sprite.setOrigin(origin);
-  sprite.move(offset);
-  target.draw(sprite, states);
+  sprite.getTransform().setOrigin(origin);
+  sprite.getTransform().move(offset);
+  if(_leftDirection) sprite.getTransform().setScale({-1.f,1.f});
+  sprite.draw(target, states);
 }
 
-bool Animation::contains(const sf::Vector2f &pos) const {
+bool Animation::contains(const glm::vec2 &pos) const {
   if (_frames.empty())
     return false;
 
   const auto &frame = _frames.at(_index);
 
-  sf::Transformable t;
+  ngf::Transform t;
   t.setOrigin(frame.getOrigin(_leftDirection));
   t.move(frame.getOffset(_leftDirection));
 
-  auto rect = frame.getRect(_leftDirection);
-  sf::FloatRect r1(0, 0, rect.width, rect.height);
-  auto r = t.getTransform().transformRect(r1);
+  auto rect = frame.getRect();
+  ngf::frect r1 = ngf::frect::fromPositionSize({0, 0}, rect.getSize());
+  auto r = ngf::transform(t.getTransform(), r1);
   return r.contains(pos);
 }
 

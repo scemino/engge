@@ -1,13 +1,12 @@
 #pragma once
 #include <string>
 #include <optional>
-#include <SFML/Graphics.hpp>
 #include "engge/Entities/Objects/Animation.hpp"
 
 namespace ng {
 class Actor;
 
-class CostumeLayer : public sf::Drawable {
+class CostumeLayer : public ngf::Drawable {
 public:
   explicit CostumeLayer(Animation &&animation);
 
@@ -32,10 +31,9 @@ public:
 
   void setLeftDirection(bool leftDirection) { _leftDirection = leftDirection; }
 
-  bool update(const sf::Time &elapsed);
+  bool update(const ngf::TimeSpan &elapsed);
 
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
   Animation _animation;

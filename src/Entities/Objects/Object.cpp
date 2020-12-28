@@ -14,6 +14,8 @@
 #include "engge/Engine/Preferences.hpp"
 #include "../../System/_Util.hpp"
 #include <sstream>
+#include <ngf/Graphics/RectangleShape.h>
+#include <ngf/Graphics/Sprite.h>
 
 namespace ng {
 struct Object::Impl {
@@ -22,7 +24,7 @@ struct Object::Impl {
   std::wstring _name;
   int _zorder{0};
   ObjectType _type{ObjectType::Object};
-  sf::IntRect _hotspot;
+  ngf::irect _hotspot;
   Room *_pRoom{nullptr};
   int _state{0};
   std::optional<std::shared_ptr<Trigger>> _trigger;
@@ -34,8 +36,8 @@ struct Object::Impl {
   Actor *_owner{nullptr};
   int _fps{0};
   std::vector<std::string> _icons;
-  sf::Time _elapsed;
-  sf::Time _popElapsed;
+  ngf::TimeSpan _elapsed;
+  ngf::TimeSpan _popElapsed;
   int _index{0};
   ScreenSpace _screenSpace{ScreenSpace::Room};
   std::vector<Object *> _children;
@@ -86,14 +88,14 @@ int Object::getZOrder() const { return pImpl->_zorder; }
 void Object::setType(ObjectType type) { pImpl->_type = type; }
 ObjectType Object::getType() const { return pImpl->_type; }
 
-void Object::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
-const sf::IntRect &Object::getHotspot() const { return pImpl->_hotspot; }
+void Object::setHotspot(const ngf::irect &hotspot) { pImpl->_hotspot = hotspot; }
+const ngf::irect &Object::getHotspot() const { return pImpl->_hotspot; }
 
 void Object::setIcon(const std::string &icon) {
   pImpl->_icons.clear();
   pImpl->_fps = 0;
   pImpl->_index = 0;
-  pImpl->_elapsed = sf::seconds(0);
+  pImpl->_elapsed = ngf::TimeSpan::seconds(0);
   pImpl->_icons.push_back(icon);
 }
 
@@ -136,7 +138,7 @@ void Object::setIcon(int fps, const std::vector<std::string> &icons) {
   pImpl->_icons.clear();
   pImpl->_fps = fps;
   pImpl->_index = 0;
-  pImpl->_elapsed = sf::seconds(0);
+  pImpl->_elapsed = ngf::TimeSpan::seconds(0);
   std::copy(icons.begin(), icons.end(), std::back_inserter(pImpl->_icons));
 }
 
@@ -170,10 +172,12 @@ bool Object::isTouchable() const {
   return Entity::isTouchable();
 }
 
-sf::IntRect Object::getRealHotspot() const {
+ngf::irect Object::getRealHotspot() const {
   auto rect = getHotspot();
+  auto rectf = ngf::frect::fromPositionSize(rect.getPosition(), rect.getSize());
   auto transform = getTransform().getTransform();
-  return (sf::IntRect) transform.transformRect((sf::FloatRect) rect);
+  auto result = ngf::transform(transform, rectf);
+  return ngf::irect::fromPositionSize(result.getPosition(), result.getSize());
 }
 
 bool Object::isVisible() const {
@@ -217,20 +221,20 @@ void Object::setAnimation(const std::string &name) {
 
 std::optional<Animation *> &Object::getAnimation() { return pImpl->_pAnim; }
 
-void Object::update(const sf::Time &elapsed) {
+void Object::update(const ngf::TimeSpan &elapsed) {
   if (isInventoryObject()) {
     if (pImpl->_pop > 0) {
       pImpl->_popElapsed += elapsed;
-      if (pImpl->_popElapsed.asSeconds() > 0.5f) {
+      if (pImpl->_popElapsed.getTotalSeconds() > 0.5f) {
         pImpl->_pop--;
-        pImpl->_popElapsed -= sf::seconds(0.5);
+        pImpl->_popElapsed -= ngf::TimeSpan::seconds(0.5);
       }
     }
     if (pImpl->_fps == 0)
       return;
     pImpl->_elapsed += elapsed;
-    if (pImpl->_elapsed.asSeconds() > (1.f / static_cast<float>(pImpl->_fps))) {
-      pImpl->_elapsed = sf::seconds(0);
+    if (pImpl->_elapsed.getTotalSeconds() > (1.f / static_cast<float>(pImpl->_fps))) {
+      pImpl->_elapsed = ngf::TimeSpan::seconds(0);
       pImpl->_index = static_cast<int>((pImpl->_index + 1) % pImpl->_icons.size());
     }
     return;
@@ -256,102 +260,102 @@ void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->_screenSpace = scr
 
 ScreenSpace Object::getScreenSpace() const { return pImpl->_screenSpace; }
 
-void Object::drawDebugHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
+void Object::drawDebugHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!pImpl->_hotspotVisible)
     return;
 
   auto rect = getHotspot();
-  // y-axis is inverted
-  rect.top = -rect.height - rect.top;
+  // TODO: y-axis is inverted
+  //rect.top = -rect.height - rect.top;
 
-  sf::Color color;
+  ngf::Color color;
   switch (getType()) {
-  case ObjectType::Object:color = sf::Color::Red;
+  case ObjectType::Object:color = ngf::Colors::Red;
     break;
-  case ObjectType::Spot:color = sf::Color::Green;
+  case ObjectType::Spot:color = ngf::Colors::Green;
     break;
-  case ObjectType::Trigger:color = sf::Color::Magenta;
+  case ObjectType::Trigger:color = ngf::Colors::Magenta;
     break;
-  case ObjectType::Prop:color = sf::Color::Blue;
+  case ObjectType::Prop:color = ngf::Colors::Blue;
     break;
   }
 
-  sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
-  s.setPosition(rect.left, rect.top);
+  ngf::RectangleShape s(rect.getSize());
+  s.getTransform().setPosition(rect.getTopLeft());
   s.setOutlineThickness(1);
   s.setOutlineColor(color);
-  s.setFillColor(sf::Color::Transparent);
-  target.draw(s, states);
+  s.setColor(ngf::Colors::Transparent);
+  s.draw(target, states);
 
-  auto usePos = getUsePosition().value_or(sf::Vector2f());
+  auto usePos = getUsePosition().value_or(glm::vec2());
   usePos.y = -usePos.y;
-  sf::RectangleShape vl(sf::Vector2f(1, 7));
-  vl.setPosition(usePos.x, usePos.y - 3);
-  vl.setFillColor(color);
-  target.draw(vl, states);
+  ngf::RectangleShape vl(glm::vec2(1, 7));
+  vl.getTransform().setPosition({usePos.x, usePos.y - 3});
+  vl.setColor(color);
+  vl.draw(target, states);
 
-  sf::RectangleShape hl(sf::Vector2f(7, 1));
-  hl.setPosition(usePos.x - 3, usePos.y);
-  hl.setFillColor(color);
-  target.draw(hl, states);
+  ngf::RectangleShape hl(glm::vec2(7, 1));
+  hl.getTransform().setPosition({usePos.x - 3, usePos.y});
+  hl.setColor(color);
+  hl.draw(target, states);
 
   auto useDir = getUseDirection().value_or(UseDirection::Front);
   switch (useDir) {
   case UseDirection::Front: {
-    sf::RectangleShape dirShape(sf::Vector2f(3, 1));
-    dirShape.setPosition(usePos.x - 1, usePos.y + 2);
-    dirShape.setFillColor(color);
-    target.draw(dirShape, states);
+    ngf::RectangleShape dirShape(glm::vec2(3, 1));
+    dirShape.getTransform().setPosition({usePos.x - 1, usePos.y + 2});
+    dirShape.setColor(color);
+    dirShape.draw(target, states);
   }
     break;
   case UseDirection::Back: {
-    sf::RectangleShape dirShape(sf::Vector2f(3, 1));
-    dirShape.setPosition(usePos.x - 1, usePos.y - 2);
-    dirShape.setFillColor(color);
-    target.draw(dirShape, states);
+    ngf::RectangleShape dirShape(glm::vec2(3, 1));
+    dirShape.getTransform().setPosition({usePos.x - 1, usePos.y - 2});
+    dirShape.setColor(color);
+    dirShape.draw(target, states);
   }
     break;
   case UseDirection::Left: {
-    sf::RectangleShape dirShape(sf::Vector2f(1, 3));
-    dirShape.setPosition(usePos.x - 2, usePos.y - 1);
-    dirShape.setFillColor(color);
-    target.draw(dirShape, states);
+    ngf::RectangleShape dirShape(glm::vec2(1, 3));
+    dirShape.getTransform().setPosition({usePos.x - 2, usePos.y - 1});
+    dirShape.setColor(color);
+    dirShape.draw(target, states);
   }
     break;
   case UseDirection::Right: {
-    sf::RectangleShape dirShape(sf::Vector2f(1, 3));
-    dirShape.setPosition(usePos.x + 2, usePos.y - 1);
-    dirShape.setFillColor(color);
-    target.draw(dirShape, states);
+    ngf::RectangleShape dirShape(glm::vec2(1, 3));
+    dirShape.getTransform().setPosition({usePos.x + 2, usePos.y - 1});
+    dirShape.setColor(color);
+    dirShape.draw(target, states);
   }
     break;
   }
 }
 
-void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
+void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
   Entity::drawForeground(target, states);
   if (pImpl->_screenSpace != ScreenSpace::Object)
     return;
 
   const auto view = target.getView();
-  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
-  sf::RenderStates s;
+  ngf::RenderStates s;
   auto transformable = getTransform();
-  transformable.setPosition(transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y);
+  transformable.setPosition({transformable.getPosition().x,
+                            target.getView().getSize().y - transformable.getPosition().y});
   s.transform *= transformable.getTransform();
 
   if (pImpl->_pAnim) {
     (*pImpl->_pAnim)->setColor(getColor());
-    target.draw(*(*pImpl->_pAnim), s);
+    (*pImpl->_pAnim)->draw(target, s);
   }
 
-  sf::RenderStates statesHotspot;
+  ngf::RenderStates statesHotspot;
   transformable = getTransform();
-  transformable.setPosition(transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y);
-  transformable.setScale(1.f, 1.f);
+  transformable.setPosition({transformable.getPosition().x,
+                            target.getView().getSize().y - transformable.getPosition().y});
+  transformable.setScale({1.f, 1.f});
   statesHotspot.transform *= transformable.getTransform();
 
   drawHotspot(target, statesHotspot);
@@ -360,8 +364,8 @@ void Object::drawForeground(sf::RenderTarget &target, sf::RenderStates states) c
   target.setView(view);
 }
 
-void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-  sf::RenderStates initialStates = states;
+void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
+  ngf::RenderStates initialStates = states;
   if (!isVisible())
     return;
 
@@ -369,24 +373,24 @@ void Object::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     return;
 
   auto transformable = getTransform();
-  transformable.setPosition(transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y);
+  transformable.setPosition({transformable.getPosition().x,
+                            target.getView().getSize().y - transformable.getPosition().y});
   states.transform *= transformable.getTransform();
 
   if (pImpl->_pAnim) {
     (*pImpl->_pAnim)->setColor(getColor());
-    target.draw(*(*pImpl->_pAnim), states);
+    (*pImpl->_pAnim)->draw(target, states);
   }
 
   for (const auto &pChild : pImpl->_children) {
-    target.draw(*pChild, initialStates);
+    pChild->draw(target, initialStates);
   }
 
-  sf::RenderStates statesHotspot = initialStates;
+  ngf::RenderStates statesHotspot = initialStates;
   transformable = getTransform();
-  transformable.setPosition(transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y);
-  transformable.setScale(1.f, 1.f);
+  transformable.setPosition({transformable.getPosition().x,
+                            target.getView().getSize().y - transformable.getPosition().y});
+  transformable.setScale({1.f, 1.f});
   statesHotspot.transform *= transformable.getTransform();
 
   drawHotspot(target, statesHotspot);
@@ -437,17 +441,17 @@ void Object::setJiggle(bool enabled) { pImpl->_jiggle = enabled; }
 bool Object::getJiggle() const { return pImpl->_jiggle; }
 
 void Object::setPop(int count) {
-  pImpl->_popElapsed = sf::seconds(0);
+  pImpl->_popElapsed = ngf::TimeSpan::seconds(0);
   pImpl->_pop = count;
 }
 
 int Object::getPop() const { return pImpl->_pop; }
 
 float Object::getPopScale() const {
-  return 0.5f + 0.5f*sinf(static_cast<float>(-M_PI_2 + pImpl->_popElapsed.asSeconds()*4*M_PI));
+  return 0.5f + 0.5f*sinf(static_cast<float>(-M_PI_2 + pImpl->_popElapsed.getTotalSeconds()*4*M_PI));
 }
 
-void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
+void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!isTouchable())
     return;
 
@@ -458,11 +462,11 @@ void Object::drawHotspot(sf::RenderTarget &target, sf::RenderStates states) cons
     return;
 
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
-  sf::Sprite s(gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
-  s.setColor(sf::Color(255, 165, 0));
-  s.setScale(0.25f, 0.25f);
-  s.setOrigin(15.f, 15.f);
-  target.draw(s, states);
+  ngf::Sprite s(gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
+  s.setColor(ngf::Color(255, 165, 0));
+  s.getTransform().setScale({0.25f, 0.25f});
+  s.getTransform().setOrigin({15.f, 15.f});
+  s.draw(target, states);
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj) {

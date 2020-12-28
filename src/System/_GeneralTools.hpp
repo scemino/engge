@@ -1,6 +1,7 @@
 #pragma once
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
+#include "engge/Dialog/DialogManager.hpp"
 
 namespace ng {
 class _GeneralTools {

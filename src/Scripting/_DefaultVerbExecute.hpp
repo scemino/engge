@@ -15,7 +15,7 @@ public:
       : _engine(engine), _actor(actor), _pEntity(pEntity), _pSentence(pSentence), _pVerb(pVerb) {
     auto pActor = dynamic_cast<Actor *>(pEntity);
     auto pos = pEntity->getPosition();
-    auto usePos = pEntity->getUsePosition().value_or(sf::Vector2f());
+    auto usePos = pEntity->getUsePosition().value_or(glm::vec2());
     auto facing = getFacing(pEntity);
     auto destination = pActor ? pos : pos + usePos;
     _path = _actor.walkTo(destination, facing);
@@ -75,7 +75,7 @@ private:
   Entity *_pEntity;
   Sentence *_pSentence;
   const Verb *_pVerb;
-  std::vector<sf::Vector2f> _path;
+  std::vector<glm::vec2> _path;
   bool _isDestination;
   bool _done{false};
 };
@@ -88,7 +88,7 @@ public:
 
   bool isElapsed() override { return _done; }
 
-  void operator()(const sf::Time &) override {
+  void operator()(const ngf::TimeSpan &) override {
     auto *pObj = dynamic_cast<Object *>(_pObject1);
     auto functionName = pObj ? "objectPostWalk" : "actorPostWalk";
     bool handled = false;
@@ -115,7 +115,7 @@ public:
 
   bool isElapsed() override { return _done; }
 
-  void operator()(const sf::Time &) override {
+  void operator()(const ngf::TimeSpan &) override {
     if (_done)
       return;
 
@@ -155,13 +155,13 @@ private:
     }
   }
 
-  void operator()(const sf::Time &elapsed) override {
+  void operator()(const ngf::TimeSpan &elapsed) override {
     switch (_state) {
     case 0:playReachAnim();
       _state = 1;
       break;
     case 1:_elapsed += elapsed;
-      if (_elapsed.asSeconds() > 0.330)
+      if (_elapsed.getTotalSeconds() > 0.330)
         _state = 2;
       break;
     case 2:_actor.getCostume().setStandState();
@@ -176,7 +176,7 @@ private:
   Entity *_pObject;
   Reaching _reaching;
   CostumeAnimation *_pAnim{nullptr};
-  sf::Time _elapsed;
+  ngf::TimeSpan _elapsed;
 };
 
 class _VerbExecute : public Function {
@@ -188,7 +188,7 @@ public:
 private:
   bool isElapsed() override { return _done; }
 
-  void operator()(const sf::Time &) override {
+  void operator()(const ngf::TimeSpan &) override {
     _done = true;
     auto executeVerb = true;
     if (_pVerb->id == VerbConstants::VERB_GIVE && _pObject2) {

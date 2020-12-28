@@ -8,7 +8,7 @@ namespace ng {
 
 EngineDialogScript::EngineDialogScript(Engine &engine) : _engine(engine) {}
 
-std::function<bool()> EngineDialogScript::pause(sf::Time time) {
+std::function<bool()> EngineDialogScript::pause(ngf::TimeSpan time) {
   //trace("pause {}", time.asSeconds());
   auto startTime = _engine.getTime();
   return [*this, startTime, time]() -> bool { return (_engine.getTime() - startTime) >= time; };

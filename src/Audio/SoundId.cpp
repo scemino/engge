@@ -77,7 +77,7 @@ void SoundId::updateVolume() {
     entityVolume = pRoom != pEntity->getRoom() ? 0 : pEntity->getVolume().value_or(1.f);
 
     if (pRoom == pEntity->getRoom()) {
-      auto width = _soundManager.getEngine()->getWindow().getView().getSize().x;
+      auto width = _soundManager.getEngine()->getApplication()->getRenderTarget()->getView().getSize().x;
       at.x += width / 2.f;
       auto diff = fabs(at.x - pEntity->getRealPosition().x);
       entityVolume = (1.5f - (diff / width)) / 1.5f;
@@ -105,7 +105,7 @@ void SoundId::updateVolume() {
   _sound.setVolume(volume * 100.f);
 }
 
-void SoundId::update(const sf::Time &elapsed) {
+void SoundId::update(const ngf::TimeSpan &elapsed) {
   updateVolume();
   if (!isPlaying()) {
     if (_loopTimes > 1) {
@@ -129,7 +129,7 @@ void SoundId::update(const sf::Time &elapsed) {
   }
 }
 
-void SoundId::fadeTo(float volume, const sf::Time &duration) {
+void SoundId::fadeTo(float volume, const ngf::TimeSpan &duration) {
   const auto get = [this] { return getVolume(); };
   const auto set = [this](float v) { setVolume(v); };
   auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, volume, duration);

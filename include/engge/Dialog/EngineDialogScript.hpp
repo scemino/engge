@@ -12,7 +12,7 @@ public:
   ~EngineDialogScript() override = default;
 
 private:
-  std::function<bool()> pause(sf::Time time) override;
+  std::function<bool()> pause(ngf::TimeSpan time) override;
   std::function<bool()> say(const std::string &actor, const std::string &text) override;
   void shutup() override;
   std::function<bool()> waitFor(const std::string &actor) override;

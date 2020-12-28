@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 
 namespace ng {

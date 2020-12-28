@@ -1,8 +1,10 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include <SFML/Graphics.hpp>
 #include "Interpolations.hpp"
+#include <glm/vec2.hpp>
+#include <ngf/System/TimeSpan.h>
+#include <ngf/Graphics/Rect.h>
 
 namespace ng {
 class Engine;
@@ -11,19 +13,19 @@ public:
   Camera();
   virtual ~Camera();
 
-  void panTo(sf::Vector2f target, sf::Time time, InterpolationMethod interpolation);
-  void at(const sf::Vector2f &at);
-  void move(const sf::Vector2f &offset);
+  void panTo(glm::vec2 target, ngf::TimeSpan time, InterpolationMethod interpolation);
+  void at(const glm::vec2 &at);
+  void move(const glm::vec2 &offset);
   [[nodiscard]] bool isMoving() const;
 
-  void setBounds(const sf::IntRect &cameraBounds);
-  [[nodiscard]] std::optional<sf::IntRect> getBounds() const;
+  void setBounds(const ngf::irect &cameraBounds);
+  [[nodiscard]] std::optional<ngf::irect> getBounds() const;
   void resetBounds();
 
-  [[nodiscard]] sf::Vector2f getAt() const;
+  [[nodiscard]] glm::vec2 getAt() const;
 
   void setEngine(Engine *pEngine);
-  void update(const sf::Time &elapsed);
+  void update(const ngf::TimeSpan &elapsed);
 
 private:
   struct Impl;

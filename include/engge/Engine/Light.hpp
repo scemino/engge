@@ -1,16 +1,17 @@
 #pragma once
 #include <squirrel.h>
-#include <SFML/Graphics.hpp>
+#include <ngf/Graphics/Color.h>
+#include <glm/vec2.hpp>
 #include "engge/Scripting/ScriptObject.hpp"
 
 namespace ng {
 class Light : public ScriptObject {
 public:
-  Light(sf::Color color, sf::Vector2i pos);
+  Light(ngf::Color color, glm::ivec2 pos);
   ~Light() override;
 
-  [[nodiscard]] inline sf::Color getColor() const { return _color; }
-  [[nodiscard]] inline sf::Vector2i getPosition() const { return _pos; }
+  [[nodiscard]] inline ngf::Color getColor() const { return _color; }
+  [[nodiscard]] inline glm::ivec2 getPosition() const { return _pos; }
 
   inline void setOn(bool on) { _on = on; }
   [[nodiscard]] inline bool isOn() const { return _on; }
@@ -39,8 +40,8 @@ public:
 
 private:
   HSQOBJECT _table{};
-  sf::Color _color;
-  sf::Vector2i _pos;
+  ngf::Color _color;
+  glm::ivec2 _pos;
   bool _on{false};
   float _direction{0};
   float _brightness{0};

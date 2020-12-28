@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 
 namespace ng {
@@ -13,50 +13,6 @@ public:
     }
     *out_text = vector.at(idx).data();
     return true;
-  }
-
-  static bool ColorEdit4(const char *label, sf::Color &color) {
-    float imColor[4] = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
-    if (ImGui::ColorEdit4(label, imColor)) {
-      color.r = static_cast<sf::Uint8>(imColor[0] * 255.f);
-      color.g = static_cast<sf::Uint8>(imColor[1] * 255.f);
-      color.b = static_cast<sf::Uint8>(imColor[2] * 255.f);
-      color.a = static_cast<sf::Uint8>(imColor[3] * 255.f);
-      return true;
-    }
-    return false;
-  }
-
-  static bool InputInt2(const char *label, sf::Vector2i &vector) {
-    int vec[2] = {vector.x, vector.y};
-    if (ImGui::InputInt2(label, vec)) {
-      vector.x = vec[0];
-      vector.y = vec[1];
-      return true;
-    }
-    return false;
-  }
-
-  static bool InputInt4(const char *label, sf::IntRect &rect) {
-    int r[4] = {rect.left, rect.top, rect.width, rect.height};
-    if (ImGui::InputInt4(label, r)) {
-      rect.left = r[0];
-      rect.top = r[1];
-      rect.width = r[2];
-      rect.height = r[3];
-      return true;
-    }
-    return false;
-  }
-
-  static bool InputFloat2(const char *label, sf::Vector2f &vector) {
-    float vec[2] = {vector.x, vector.y};
-    if (ImGui::InputFloat2(label, vec)) {
-      vector.x = vec[0];
-      vector.y = vec[1];
-      return true;
-    }
-    return false;
   }
 
   static void createTree(const char *tableKey, HSQOBJECT obj) {

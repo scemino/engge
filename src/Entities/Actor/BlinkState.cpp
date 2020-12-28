@@ -15,28 +15,28 @@ void BlinkState::setRate(float min, float max) {
     _state = -1;
   } else {
     _state = 0;
-    _value = sf::seconds(Locator<RandomNumberGenerator>::get().generateFloat(_min, _max));
+    _value = ngf::TimeSpan::seconds(Locator<RandomNumberGenerator>::get().generateFloat(_min, _max));
   }
-  _elapsed = sf::seconds(0);
+  _elapsed = ngf::TimeSpan::seconds(0);
   _costume.setLayerVisible("blink", false);
 }
 
-void BlinkState::update(sf::Time elapsed) {
+void BlinkState::update(ngf::TimeSpan elapsed) {
   if (_state == ObjectStateConstants::CLOSED) {
     // wait to blink
     _elapsed += elapsed;
     if (_elapsed > _value) {
       _state = 1;
       _costume.setLayerVisible("blink", true);
-      _elapsed = sf::seconds(0);
+      _elapsed = ngf::TimeSpan::seconds(0);
     }
   } else if (_state == ObjectStateConstants::OPEN) {
     // wait time the eyes are closed
     _elapsed += elapsed;
-    if (_elapsed > sf::seconds(0.2)) {
+    if (_elapsed > ngf::TimeSpan::seconds(0.2)) {
       _costume.setLayerVisible("blink", false);
-      _value = sf::seconds(Locator<RandomNumberGenerator>::get().generateFloat(_min, _max));
-      _elapsed = sf::seconds(0);
+      _value = ngf::TimeSpan::seconds(Locator<RandomNumberGenerator>::get().generateFloat(_min, _max));
+      _elapsed = ngf::TimeSpan::seconds(0);
       _state = 0;
     }
   }

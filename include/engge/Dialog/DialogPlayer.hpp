@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <ngf/System/TimeSpan.h>
 #include "DialogContextAbstract.hpp"
 #include "DialogConditionAbstract.hpp"
 
@@ -76,7 +77,7 @@ private:
   void limit(int max) override;
   void override(const std::string &label) override;
   void parrot(bool enabled) override;
-  std::function<bool()> pause(sf::Time seconds) override;
+  std::function<bool()> pause(ngf::TimeSpan seconds) override;
   std::function<bool()> say(const std::string &actor, const std::string &text) override;
   void shutup() override;
   std::function<bool()> waitFor(const std::string &actor) override;

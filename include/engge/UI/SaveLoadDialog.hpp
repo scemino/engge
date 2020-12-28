@@ -1,16 +1,20 @@
 #pragma once
 #include <functional>
-#include <SFML/Graphics.hpp>
+#include <ngf/System/TimeSpan.h>
+#include <ngf/Graphics/Drawable.h>
+#include <ngf/Graphics/RenderStates.h>
+#include <ngf/Graphics/RenderTarget.h>
 
 namespace ng {
 
 class Engine;
 
-class SaveLoadDialog : public sf::Drawable {
+class SaveLoadDialog : public ngf::Drawable {
 public:
   typedef std::function<void()> Callback;
   typedef std::function<void(int slot)> SlotCallback;
 
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 public:
   SaveLoadDialog();
   ~SaveLoadDialog() override;
@@ -20,11 +24,8 @@ public:
   void setCallback(Callback callback);
   void setSlotCallback(SlotCallback callback);
   void setEngine(Engine *pEngine);
-  void update(const sf::Time &elapsed);
+  void update(const ngf::TimeSpan &elapsed);
   void updateLanguage();
-
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   struct Impl;

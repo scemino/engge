@@ -10,7 +10,7 @@ void Sentence::stop() { _stopped = true; }
 
 bool Sentence::isElapsed() { return _functions.empty(); }
 
-void Sentence::operator()(const sf::Time &elapsed) {
+void Sentence::operator()(const ngf::TimeSpan &elapsed) {
   if (_functions.empty())
     return;
   if (_stopped) {

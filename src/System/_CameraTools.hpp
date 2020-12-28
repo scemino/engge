@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 
 namespace ng {
@@ -12,16 +12,16 @@ public:
       return;
 
     ImGui::Text("Is moving: %s", _engine.getCamera().isMoving() ? "yes" : "no");
-    sf::Vector2f pos = _engine.getCamera().getAt();
-    if (_DebugControls::InputFloat2("Position", pos)) {
+    auto pos = _engine.getCamera().getAt();
+    if (ngf::ImGui::InputFloat2("Position", &pos)) {
       _engine.getCamera().at(pos);
     }
     auto optBounds = _engine.getCamera().getBounds();
-    sf::IntRect bounds;
+    ngf::irect bounds;
     if (optBounds.has_value()) {
       bounds = optBounds.value();
     }
-    if (_DebugControls::InputInt4("Bounds", bounds)) {
+    if (ngf::ImGui::InputInt4("Bounds", &bounds)) {
       _engine.getCamera().setBounds(bounds);
     }
     ImGui::SameLine();

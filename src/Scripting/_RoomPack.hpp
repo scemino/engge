@@ -13,29 +13,29 @@ namespace ng {
 class _ChangeColor : public TimeFunction {
 public:
   _ChangeColor(Room *pRoom,
-               sf::Color startColor,
-               sf::Color endColor,
-               const sf::Time &time,
+               ngf::Color startColor,
+               ngf::Color endColor,
+               const ngf::TimeSpan &time,
                std::function<float(float)> anim = Interpolations::linear,
                bool isLooping = false)
       : TimeFunction(time),
         _pRoom(pRoom),
         _isLooping(isLooping),
         _anim(std::move(anim)),
-        _a(static_cast<sf::Int16>(endColor.a - startColor.a)),
-        _r(static_cast<sf::Int16>(endColor.r - startColor.r)),
-        _g(static_cast<sf::Int16>(endColor.g - startColor.g)),
-        _b(static_cast<sf::Int16>(endColor.b - startColor.b)),
+        _a(endColor.a - startColor.a),
+        _r(endColor.r - startColor.r),
+        _g(endColor.g - startColor.g),
+        _b(endColor.b - startColor.b),
         _startColor(startColor),
         _endColor(endColor),
         _current(startColor) {
   }
 
-  void operator()(const sf::Time &elapsed) override {
+  void operator()(const ngf::TimeSpan &elapsed) override {
     TimeFunction::operator()(elapsed);
     _pRoom->setOverlayColor(_current);
     if (!isElapsed()) {
-      auto t = _elapsed.asSeconds() / _time.asSeconds();
+      auto t = _elapsed.getTotalSeconds() / _time.getTotalSeconds();
       auto f = _anim(t);
       _current = plusColor(_startColor, f);
     }
@@ -52,22 +52,22 @@ public:
   }
 
 private:
-  [[nodiscard]] sf::Color plusColor(const sf::Color &color1, float f) const {
-    auto a = static_cast<sf::Uint8>(color1.a + f * _a);
-    auto r = static_cast<sf::Uint8>(color1.r + f * _r);
-    auto g = static_cast<sf::Uint8>(color1.g + f * _g);
-    auto b = static_cast<sf::Uint8>(color1.b + f * _b);
-    return sf::Color(r, g, b, a);
+  [[nodiscard]] ngf::Color plusColor(const ngf::Color &color1, float f) const {
+    auto a = color1.a + f * _a;
+    auto r = color1.r + f * _r;
+    auto g = color1.g + f * _g;
+    auto b = color1.b + f * _b;
+    return ngf::Color(r, g, b, a);
   }
 
 private:
   Room *_pRoom{nullptr};
   bool _isLooping;
   std::function<float(float)> _anim;
-  sf::Int16 _a, _r, _g, _b;
-  sf::Color _startColor;
-  sf::Color _endColor;
-  sf::Color _current;
+  float _a, _r, _g, _b;
+  ngf::Color _startColor;
+  ngf::Color _endColor;
+  ngf::Color _current;
 };
 
 class _RoomPack : public Pack {
@@ -105,7 +105,7 @@ private:
     ScriptEngine::registerGlobalFunction(walkboxHidden, "walkboxHidden");
   }
 
-  static void _fadeTo(float a, const sf::Time &time) {
+  static void _fadeTo(float a, const ngf::TimeSpan &time) {
     g_pEngine->fadeTo(a, time, InterpolationMethod::Linear);
   }
 
@@ -123,7 +123,7 @@ private:
       return sq_throwerror(v, _SC("failed to get y"));
     }
     auto pRoom = g_pEngine->getRoom();
-    auto pLight = pRoom->createLight(_toColor(color), sf::Vector2i(x, y));
+    auto pLight = pRoom->createLight(_toColor(color), {x, y});
 
     ScriptEngine::pushObject(v, pLight);
     sq_getstackobj(v, -1, &pLight->getTable());
@@ -279,7 +279,7 @@ private:
     }
     auto get = [pRoom] { return pRoom->getRotation(); };
     auto set = [pRoom](float value) { pRoom->setRotation(value); };
-    auto t = sf::seconds(0.200);
+    auto t = ngf::TimeSpan::seconds(0.200);
     auto rotateTo = std::make_unique<ChangeProperty<float>>(get, set, rotation, t);
     g_pEngine->addFunction(std::move(rotateTo));
     return 0;
@@ -330,7 +330,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
       return sq_throwerror(v, _SC("failed to get y"));
     }
-    ScriptEngine::push(v, sf::Vector2i(x, y));
+    ScriptEngine::push(v, glm::ivec2(x, y));
     return 1;
   }
 
@@ -447,7 +447,7 @@ private:
       return sq_throwerror(v, _SC("failed to get time"));
     }
     if (type < 2) {
-      _fadeTo(type == 0 ? 0.f : 1.f, sf::seconds(t));
+      _fadeTo(type == 0 ? 0.f : 1.f, ngf::TimeSpan::seconds(t));
     } else {
       error("roomFade not implemented");
     }
@@ -474,7 +474,7 @@ private:
       auto fadeTo = std::make_unique<_ChangeColor>(pRoom,
                                                    _toColor(startColor),
                                                    _toColor(endColor),
-                                                   sf::seconds(duration),
+                                                   ngf::TimeSpan::seconds(duration),
                                                    Interpolations::linear,
                                                    false);
       g_pEngine->addFunction(std::move(fadeTo));

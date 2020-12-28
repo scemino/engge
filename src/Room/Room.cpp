@@ -1,12 +1,10 @@
 #include "engge/Room/Room.hpp"
 #include "engge/Entities/Objects/Animation.hpp"
 #include "engge/Engine/EngineSettings.hpp"
-#include "engge/Math/PathFinding/Graph.hpp"
 #include "engge/Parsers/JsonTokenReader.hpp"
 #include "engge/Engine/Light.hpp"
 #include "engge/System/Locator.hpp"
 #include "engge/System/Logger.hpp"
-#include "engge/Math/PathFinding/PathFinder.hpp"
 #include "engge/Engine/EntityManager.hpp"
 #include "engge/Room/RoomLayer.hpp"
 #include "engge/Room/RoomScaling.hpp"
@@ -21,6 +19,9 @@
 #include <iostream>
 #include <cmath>
 #include <memory>
+#include <ngf/Math/PathFinding/PathFinder.h>
+#include <ngf/Math/PathFinding/Walkbox.h>
+#include <ngf/Graphics/RectangleShape.h>
 
 namespace ng {
 struct CmpLayer {
@@ -30,26 +31,26 @@ struct CmpLayer {
 struct Room::Impl {
   ResourceManager &_textureManager;
   std::vector<std::unique_ptr<Object>> _objects;
-  std::vector<Walkbox> _walkboxes;
-  std::vector<Walkbox> _graphWalkboxes;
+  std::vector<ngf::Walkbox> _walkboxes;
+  std::vector<ngf::Walkbox> _graphWalkboxes;
   std::map<int, std::unique_ptr<RoomLayer>, CmpLayer> _layers;
   std::vector<RoomScaling> _scalings;
   RoomScaling _scaling;
-  sf::Vector2i _roomSize;
+  glm::ivec2 _roomSize;
   int32_t _screenHeight{0};
   std::string _sheet;
   std::string _name;
   int _fullscreen{0};
   HSQOBJECT _roomTable{};
-  std::shared_ptr<PathFinder> _pf;
-  sf::Color _ambientColor{255, 255, 255, 255};
+  std::shared_ptr<ngf::PathFinder> _pf;
+  ngf::Color _ambientColor{255, 255, 255, 255};
   SpriteSheet _spriteSheet;
   Room *_pRoom{nullptr};
   std::vector<std::unique_ptr<Light>> _lights;
   float _rotation{0};
-  sf::Shader _shader{};
+  //ngf::Shader _shader{};
   int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
-  sf::Color _overlayColor{sf::Color::Transparent};
+  ngf::Color _overlayColor{ngf::Colors::Transparent};
   bool _pseudoRoom{false};
 
   explicit Impl(HSQOBJECT roomTable)
@@ -60,35 +61,31 @@ struct Room::Impl {
       _layers[i] = std::make_unique<RoomLayer>();
     }
 
-    const std::string vertexShader = "void main()"
-                                     "{"
-                                     "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-                                     "    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
-                                     "    gl_FrontColor = gl_Color;"
-                                     "}";
+    const char *vertexShader = "void main()"
+                               "{"
+                               "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+                               "    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
+                               "    gl_FrontColor = gl_Color;"
+                               "}";
 
     // load vertex shader
-    if (!_shader.loadFromMemory(vertexShader, sf::Shader::Type::Vertex)) {
-      std::cerr << "Error loading shaders" << std::endl;
-      return;
-    }
+    //_shader.load(vertexShader, nullptr);
   }
 
   void setEffect(int effect) {
     if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE) {
       _selectedEffect = effect;
-      const std::string fragmentShader = "uniform sampler2D texture;\n"
-                                         "void main()\n"
-                                         "{\n"
-                                         "vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n"
-                                         "vec4 col = gl_Color * texColor;\n"
-                                         "float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));\n"
-                                         "gl_FragColor = vec4(gray, gray, gray, col.a);\n"
-                                         "}";
-      if (!_shader.loadFromMemory(fragmentShader, sf::Shader::Type::Fragment)) {
-        std::cerr << "Error loading shaders" << std::endl;
-      }
-      _shader.setUniform("texture", sf::Shader::CurrentTexture);
+      const char *fragmentShader = "uniform sampler2D texture;\n"
+                                   "void main()\n"
+                                   "{\n"
+                                   "vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n"
+                                   "vec4 col = gl_Color * texColor;\n"
+                                   "float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));\n"
+                                   "gl_FragColor = vec4(gray, gray, gray, col.a);\n"
+                                   "}";
+      //_shader.load(fragmentShader, nullptr);
+      // TODO:
+      //_shader.setUniform("texture", sf::Shader::CurrentTexture);
       return;
     }
     _selectedEffect = RoomEffectConstants::EFFECT_NONE;
@@ -108,17 +105,19 @@ struct Room::Impl {
         auto sourceSize = _spriteSheet.getSourceSize(bg.string_value);
         auto sourceRect = _spriteSheet.getSpriteSourceSize(bg.string_value);
         auto offset = sourceSize.y - screenHeight;
-        _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.left + width, sourceRect.top - offset},
+        _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.getTopLeft().x + width,
+                                                              sourceRect.getTopLeft().y - offset},
                                                              _sheet,
                                                              frame));
-        width += frame.width;
+        width += frame.getWidth();
       }
     } else if (jWimpy["background"].isString()) {
       auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
       auto sourceSize = _spriteSheet.getSourceSize(jWimpy["background"].string_value);
       auto sourceRect = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
       auto offset = sourceSize.y - screenHeight;
-      _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.left, sourceRect.top - offset},
+      _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.getTopLeft().x,
+                                                            sourceRect.getTopLeft().y - offset},
                                                            _sheet,
                                                            frame));
     }
@@ -145,8 +144,9 @@ struct Room::Impl {
           auto rect = _spriteSheet.getRect(layerName);
           auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
           auto sourceSize = _spriteSheet.getSourceSize(layerName);
-          sf::Vector2i origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
-          offsetX += rect.width;
+          glm::ivec2
+              origin(-spriteSourceSize.getTopLeft().x, sourceSize.y - _roomSize.y - spriteSourceSize.getTopLeft().y);
+          offsetX += rect.getWidth();
           layer->getBackgrounds().push_back(Background({offsetX - origin.x, offsetY - origin.y}, _sheet, rect));
         }
       } else {
@@ -154,7 +154,8 @@ struct Room::Impl {
         auto rect = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
-        sf::Vector2i origin(-spriteSourceSize.left, sourceSize.y - _roomSize.y - spriteSourceSize.top);
+        glm::ivec2
+            origin(-spriteSourceSize.getTopLeft().x, sourceSize.y - _roomSize.y - spriteSourceSize.getTopLeft().y);
         layer->getBackgrounds().push_back(Background({0 - origin.x, offsetY - origin.y}, _sheet, rect));
       }
       if (jLayer["parallax"].isString()) {
@@ -162,7 +163,7 @@ struct Room::Impl {
         layer->setParallax(parallax);
       } else {
         auto parallax = jLayer["parallax"].double_value;
-        layer->setParallax(sf::Vector2f(parallax, 1));
+        layer->setParallax({parallax, 1});
       }
     }
   }
@@ -231,7 +232,7 @@ struct Room::Impl {
       object->setUseDirection(useDir);
       // hotspot
       auto hotspot = _parseRect(jObject["hotspot"].string_value);
-      object->setHotspot(sf::IntRect(hotspot.left, hotspot.top, hotspot.width, hotspot.height));
+      object->setHotspot(ngf::irect::fromPositionSize(hotspot.getTopLeft(), hotspot.getSize()));
       // prop
       bool isProp = jObject["prop"].isInteger() && jObject["prop"].int_value == 1;
       if (isProp)
@@ -428,10 +429,11 @@ struct Room::Impl {
 
   void loadWalkboxes(const GGPackValue &jWimpy) {
     for (auto jWalkbox : jWimpy["walkboxes"].array_value) {
-      std::vector<sf::Vector2i> vertices;
+      std::vector<glm::ivec2> vertices;
       auto polygon = jWalkbox["polygon"].string_value;
       _parsePolygon(polygon, vertices);
-      Walkbox walkbox(vertices);
+      ngf::Walkbox walkbox(vertices);
+      walkbox.setYAxisDirection(ngf::YAxisDirection::Up);
       if (jWalkbox["name"].isString()) {
         auto walkboxName = jWalkbox["name"].string_value;
         walkbox.setName(walkboxName);
@@ -441,17 +443,13 @@ struct Room::Impl {
     _pf.reset();
   }
 
-  static void toPath(const Walkbox &walkbox, ClipperLib::Path &path) {
+  static void toPath(const ngf::Walkbox &walkbox, ClipperLib::Path &path) {
     const auto &vertices = walkbox.getVertices();
-    std::transform(vertices.rbegin(),
-                   vertices.rend(),
-                   std::back_inserter(path),
-                   [](const auto &p) -> ClipperLib::IntPoint {
-                     return {p.x, p.y};
-                   });
+    std::transform(vertices.begin(), vertices.end(), std::back_inserter(path),
+                   [](const auto &p) { return ClipperLib::IntPoint{p.x, p.y}; });
   }
 
-  bool updateGraph(const sf::Vector2f &start) {
+  bool updateGraph(const glm::vec2 &start) {
     _graphWalkboxes.clear();
     if (!_walkboxes.empty()) {
       mergeWalkboxes();
@@ -479,37 +477,37 @@ struct Room::Impl {
     }
 
     for (auto &sol:solutions) {
-      std::vector<sf::Vector2i> sPoints;
-      std::transform(sol.begin(), sol.end(), std::back_inserter(sPoints), [](auto &p) -> sf::Vector2i {
-        return sf::Vector2i(p.X, p.Y);
+      std::vector<glm::ivec2> sPoints;
+      std::transform(sol.begin(), sol.end(), std::back_inserter(sPoints), [](auto &p) -> glm::ivec2 {
+        return glm::ivec2(p.X, p.Y);
       });
       bool isEnabled = ClipperLib::Orientation(sol);
       if (!isEnabled) {
         std::reverse(sPoints.begin(), sPoints.end());
       }
-      Walkbox walkbox(sPoints);
+      ngf::Walkbox walkbox(sPoints);
       walkbox.setEnabled(isEnabled);
       _graphWalkboxes.push_back(walkbox);
     }
   }
 
-  bool sortWalkboxes(const sf::Vector2f &start) {
+  bool sortWalkboxes(const glm::vec2 &start) {
     auto it = std::find_if(_graphWalkboxes.begin(), _graphWalkboxes.end(), [start](auto &w) {
       return w.inside(start);
     });
     if (it != _graphWalkboxes.end()) {
       std::iter_swap(_graphWalkboxes.begin(), it);
     }
-    _pf = std::make_shared<PathFinder>(_graphWalkboxes);
+    _pf = std::make_shared<ngf::PathFinder>(_graphWalkboxes);
     return true;
   }
 
-  void drawFade(sf::RenderTarget &target) const {
-    sf::RectangleShape fadeShape;
+  void drawFade(ngf::RenderTarget &target) const {
+    ngf::RectangleShape fadeShape;
     auto screen = target.getView().getSize();
-    fadeShape.setSize(sf::Vector2f(screen.x, screen.y));
-    fadeShape.setFillColor(_overlayColor);
-    target.draw(fadeShape);
+    fadeShape.setSize(glm::vec2(screen.x, screen.y));
+    fadeShape.setColor(_overlayColor);
+    fadeShape.draw(target, {});
   }
 };
 
@@ -560,10 +558,10 @@ const std::vector<std::unique_ptr<Object>> &Room::getObjects() const { return pI
 
 std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
 
-std::vector<Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
+std::vector<ngf::Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
 
-const Walkbox *Room::getWalkbox(const std::string &name) const {
-  auto it = std::find_if(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(), [&name](const Walkbox &w) {
+const ngf::Walkbox *Room::getWalkbox(const std::string &name) const {
+  auto it = std::find_if(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(), [&name](const auto &w) {
     return w.getName() == name;
   });
   if (it != pImpl->_walkboxes.end()) {
@@ -572,9 +570,9 @@ const Walkbox *Room::getWalkbox(const std::string &name) const {
   return nullptr;
 }
 
-std::vector<Walkbox> &Room::getGraphWalkboxes() { return pImpl->_graphWalkboxes; }
+std::vector<ngf::Walkbox> &Room::getGraphWalkboxes() { return pImpl->_graphWalkboxes; }
 
-sf::Vector2i Room::getRoomSize() const { return pImpl->_roomSize; }
+glm::ivec2 Room::getRoomSize() const { return pImpl->_roomSize; }
 
 int32_t Room::getScreenHeight() const { return pImpl->_screenHeight; }
 
@@ -582,9 +580,9 @@ int32_t Room::getFullscreen() const { return pImpl->_fullscreen; }
 
 HSQOBJECT &Room::getTable() { return pImpl->_roomTable; }
 
-void Room::setAmbientLight(sf::Color color) { pImpl->_ambientColor = color; }
+void Room::setAmbientLight(ngf::Color color) { pImpl->_ambientColor = color; }
 
-sf::Color Room::getAmbientLight() const { return pImpl->_ambientColor; }
+ngf::Color Room::getAmbientLight() const { return pImpl->_ambientColor; }
 
 void Room::setAsParallaxLayer(Entity *pEntity, int layerNum) {
   for (auto &layer : pImpl->_layers) {
@@ -625,7 +623,7 @@ void Room::load(const char *name) {
 
   pImpl->_sheet = hash["sheet"].string_value;
   pImpl->_screenHeight = hash["height"].int_value;
-  pImpl->_roomSize = (sf::Vector2i) _parsePos(hash["roomsize"].string_value);
+  pImpl->_roomSize = (glm::ivec2) _parsePos(hash["roomsize"].string_value);
 
   // load json file
   pImpl->_spriteSheet.load(pImpl->_sheet);
@@ -646,7 +644,8 @@ TextObject &Room::createTextObject(const std::string &fontName) {
     path.append(fontName).append("Font.fnt");
   }
 
-  object->getFont().loadFromFile(path);
+  auto &font = pImpl->_textureManager.getFntFont(path);
+  object->setFont(&font);
   auto &obj = *object;
   obj.setVisible(true);
   obj.setRoom(this);
@@ -714,10 +713,10 @@ Object &Room::createObject(const std::string &image) {
   auto object = std::make_unique<Object>();
   auto animation = std::make_unique<Animation>(name, "state0");
   auto size = texture->getSize();
-  sf::IntRect rect(0, 0, size.x, size.y);
+  ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
   AnimationFrame animFrame(rect);
   animFrame.setSourceRect(rect);
-  animFrame.setSize(sf::Vector2i(size.x, size.y));
+  animFrame.setSize(glm::ivec2(size.x, size.y));
   animation->addFrame(std::move(animFrame));
   animation->reset();
   object->getAnims().push_back(std::move(animation));
@@ -744,57 +743,59 @@ Object &Room::createObject() {
   return obj;
 }
 
-const Graph *Room::getGraph() const {
+const ngf::Graph *Room::getGraph() const {
   if (pImpl->_pf) {
     return pImpl->_pf->getGraph().get();
   }
   return nullptr;
 }
 
-void Room::update(const sf::Time &elapsed) {
+void Room::update(const ngf::TimeSpan &elapsed) {
   for (auto &&layer : pImpl->_layers) {
     layer.second->update(elapsed);
   }
 }
 
-void Room::draw(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const {
-  sf::RenderStates states;
+void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
+  ngf::RenderStates states;
   if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE) {
-    states.shader = &pImpl->_shader;
+    //states.shader = &pImpl->_shader;
   }
 
   auto screen = target.getView().getSize();
-  auto halfScreen = sf::Vector2f(screen.x / 2.f, screen.y / 2.f);
+  auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
 
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
 
-    sf::Transform t;
-    t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
-    t.translate(-cameraPos.x * parallax.x, cameraPos.y * parallax.y);
-    states.transform = t;
+    ngf::Transform t;
+    // TODO:
+    //t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
+    t.setPosition({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
+    states.transform = t.getTransform();
     layer.second->draw(target, states);
   }
 }
 
-void Room::drawForeground(sf::RenderTarget &target, const sf::Vector2f &cameraPos) const {
-  sf::RenderStates states;
+void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
+  ngf::RenderStates states;
   if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE) {
-    states.shader = &pImpl->_shader;
+    //states.shader = &pImpl->_shader;
   }
 
   auto screen = target.getView().getSize();
-  auto halfScreen = sf::Vector2f(screen.x / 2.f, screen.y / 2.f);
+  auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
 
   pImpl->drawFade(target);
 
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
 
-    sf::Transform t;
-    t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
-    t.translate(-cameraPos.x * parallax.x, cameraPos.y * parallax.y);
-    states.transform = t;
+    ngf::Transform t;
+    // TODO:
+    //t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
+    t.setPosition({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
+    states.transform = t.getTransform();
     layer.second->drawForeground(target, states);
   }
 }
@@ -805,7 +806,7 @@ void Room::setRoomScaling(const RoomScaling &scaling) { pImpl->_scaling = scalin
 
 void Room::setWalkboxEnabled(const std::string &name, bool isEnabled) {
   auto it = std::find_if(pImpl->_walkboxes.begin(), pImpl->_walkboxes.end(),
-                         [&name](const Walkbox &walkbox) { return walkbox.getName() == name; });
+                         [&name](const auto &walkbox) { return walkbox.getName() == name; });
   if (it == pImpl->_walkboxes.end()) {
     error("walkbox {} has not been found", name);
     return;
@@ -816,14 +817,14 @@ void Room::setWalkboxEnabled(const std::string &name, bool isEnabled) {
 
 std::vector<RoomScaling> &Room::getScalings() { return pImpl->_scalings; }
 
-std::vector<sf::Vector2f> Room::calculatePath(sf::Vector2f start, sf::Vector2f end) const {
+std::vector<glm::vec2> Room::calculatePath(glm::vec2 start, glm::vec2 end) const {
   if (!pImpl->_pf) {
     if (!pImpl->updateGraph(start)) {
-      return std::vector<sf::Vector2f>();
+      return std::vector<glm::vec2>();
     }
   } else if (!pImpl->_graphWalkboxes.empty() && !pImpl->_graphWalkboxes[0].inside(start)) {
     if (!pImpl->sortWalkboxes(start)) {
-      return std::vector<sf::Vector2f>();
+      return std::vector<glm::vec2>();
     }
   }
   return pImpl->_pf->calculatePath(start, end);
@@ -833,7 +834,7 @@ float Room::getRotation() const { return pImpl->_rotation; }
 
 void Room::setRotation(float angle) { pImpl->_rotation = angle; }
 
-Light *Room::createLight(sf::Color color, sf::Vector2i pos) {
+Light *Room::createLight(ngf::Color color, glm::ivec2 pos) {
   auto light = std::make_unique<Light>(color, pos);
   Light *pLight = light.get();
   pImpl->_lights.emplace_back(std::move(light));
@@ -857,23 +858,23 @@ void Room::setEffect(int effect) { pImpl->setEffect(effect); }
 
 int Room::getEffect() const { return pImpl->_selectedEffect; }
 
-void Room::setOverlayColor(sf::Color color) { pImpl->_overlayColor = color; }
+void Room::setOverlayColor(ngf::Color color) { pImpl->_overlayColor = color; }
 
-sf::Color Room::getOverlayColor() const { return pImpl->_overlayColor; }
+ngf::Color Room::getOverlayColor() const { return pImpl->_overlayColor; }
 
 const SpriteSheet &Room::getSpriteSheet() const { return pImpl->_spriteSheet; }
 
-sf::Vector2i Room::getScreenSize() const {
+glm::ivec2 Room::getScreenSize() const {
   auto height = getScreenHeight();
   switch (height) {
   case 0:return getRoomSize();
-  case 128:return sf::Vector2i(320, 180);
-  case 172:return sf::Vector2i(428, 240);
-  case 256:return sf::Vector2i(640, 360);
+  case 128:return glm::ivec2(320, 180);
+  case 172:return glm::ivec2(428, 240);
+  case 256:return glm::ivec2(640, 360);
   default: {
     height = 180.f * height / 128.f;
     auto ratio = 320.f / 180.f;
-    return sf::Vector2i(ratio * height, height);
+    return glm::ivec2(ratio * height, height);
   }
   }
 }

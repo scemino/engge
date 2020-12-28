@@ -6,6 +6,7 @@
 #include "engge/UI/SaveLoadDialog.hpp"
 #include "engge/UI/StartScreenDialog.hpp"
 #include <utility>
+#include <ngf/System/Mouse.h>
 #include "engge/UI/QuitDialog.hpp"
 
 namespace ng {
@@ -41,7 +42,7 @@ struct StartScreenDialog::Impl {
     _state = state;
     _buttons.clear();
     switch (state) {
-    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {_showSaveLoad = true;});
+    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() { _showSaveLoad = true; });
       _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
         _saveload.updateLanguage();
         _saveload.setSaveMode(false);
@@ -93,36 +94,36 @@ struct StartScreenDialog::Impl {
     updateState(State::Main);
   }
 
-  void draw(sf::RenderTarget &target, sf::RenderStates states) {
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) {
     switch (_state) {
     case State::Main: {
       const auto view = target.getView();
-      auto viewRect = sf::FloatRect(0, 0, Screen::Width, Screen::Height);
-      target.setView(sf::View(viewRect));
+      auto viewRect = ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height});
+      target.setView(ngf::View(viewRect));
 
       // controls
       for (auto &button : _buttons) {
-        target.draw(button);
+        button.draw(target, {});
       }
 
       target.setView(view);
 
       if (_showSaveLoad) {
-        target.draw(_saveload, states);
+        _saveload.draw(target, states);
       }
       break;
     }
 
     case State::Options:
-    case State::Help:target.draw(_options, states);
+    case State::Help:_options.draw(target, states);
       break;
 
-    case State::Quit:target.draw(_quit, states);
+    case State::Quit:_quit.draw(target, states);
       break;
     }
   }
 
-  void update(const sf::Time &elapsed) {
+  void update(const ngf::TimeSpan &elapsed) {
     switch (_state) {
     case State::Quit:_quit.update(elapsed);
       break;
@@ -137,11 +138,12 @@ struct StartScreenDialog::Impl {
         return;
       }
 
-      auto pos = (sf::Vector2f) _pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()),
-                                                                       sf::View(sf::FloatRect(0,
-                                                                                              0,
-                                                                                              Screen::Width,
-                                                                                              Screen::Height)));
+      auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
+                                                                                 ngf::View(ngf::frect::fromPositionSize(
+                                                                                     {0,
+                                                                                      0},
+                                                                                     {Screen::Width,
+                                                                                      Screen::Height})));
       for (auto &button : _buttons) {
         button.update(pos);
       }
@@ -159,11 +161,11 @@ StartScreenDialog::~StartScreenDialog() = default;
 
 void StartScreenDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
 
-void StartScreenDialog::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void StartScreenDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   _pImpl->draw(target, states);
 }
 
-void StartScreenDialog::update(const sf::Time &elapsed) {
+void StartScreenDialog::update(const ngf::TimeSpan &elapsed) {
   _pImpl->update(elapsed);
 }
 

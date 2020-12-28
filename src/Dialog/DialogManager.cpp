@@ -3,7 +3,9 @@
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/Graphics/Text.hpp"
+#include <ngf/Graphics/Text.h>
+#include <engge/Util/Util.hpp>
+#include <ngf/System/Mouse.h>
 #include "engge/Graphics/Screen.hpp"
 
 namespace ng {
@@ -31,16 +33,16 @@ void DialogManager::start(const std::string &actor, const std::string &name, con
   }
 }
 
-void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
+void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   if (_state != DialogManagerState::WaitingForChoice)
     return;
 
   const auto view = target.getView();
-  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
 
@@ -48,28 +50,28 @@ void DialogManager::draw(sf::RenderTarget &target, sf::RenderStates) const {
   auto dialogHighlight = _pEngine->getVerbUiColors(actorName)->dialogHighlight;
   auto dialogNormal = _pEngine->getVerbUiColors(actorName)->dialogNormal;
 
-  Text text;
+  ngf::Text text;
   text.setFont(font);
   for (const auto &slot : _slots) {
     if (!slot.pChoice)
       continue;
 
-    sf::String s;
+    std::wstring s;
     s = L"\u25CF ";
     s += slot.text;
-    text.setString(s);
-    text.setPosition(slot.pos.x, y + slot.pos.y);
-    auto bounds = text.getGlobalBounds();
-    text.setFillColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
-    target.draw(text);
+    text.setWideString(s);
+    text.getTransform().setPosition({slot.pos.x, y + slot.pos.y});
+    auto bounds = ng::getGlobalBounds(text);
+    text.setColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
+    text.draw(target, {});
 
-    y += text.getGlobalBounds().height;
+    y += ng::getGlobalBounds(text).getHeight();
   }
 
   target.setView(view);
 }
 
-void DialogManager::update(const sf::Time &elapsed) {
+void DialogManager::update(const ngf::TimeSpan &elapsed) {
   _pPlayer->update();
   auto oldState = _state;
   _state = _pPlayer->getState();
@@ -104,13 +106,13 @@ void DialogManager::updateDialogSlots() {
   }
 }
 
-void DialogManager::updateChoices(const sf::Time &elapsed) {
+void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
   if (_state != DialogManagerState::WaitingForChoice)
     return;
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
-  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
   int dialog = 0;
@@ -119,36 +121,36 @@ void DialogManager::updateChoices(const sf::Time &elapsed) {
       continue;
 
     // HACK: bad, bad, this code is the same as in the draw function
-    sf::String s;
+    std::wstring s;
     s = L"\u25CF ";
     s += dlg.text;
-    Text text;
+    ngf::Text text;
     text.setFont(font);
-    text.setPosition(dlg.pos.x, dlg.pos.y + y);
-    text.setString(s);
-    auto bounds = text.getGlobalBounds();
-    if (bounds.width > Screen::Width) {
+    text.getTransform().setPosition({dlg.pos.x, dlg.pos.y + y});
+    text.setWideString(s);
+    auto bounds = ng::getGlobalBounds(text);
+    if (bounds.getWidth() > Screen::Width) {
       if (bounds.contains(_mousePos)) {
-        if ((bounds.width + dlg.pos.x) > Screen::Width) {
-          dlg.pos.x -= SlidingSpeed * elapsed.asSeconds();
-          if ((bounds.width + dlg.pos.x) < Screen::Width) {
-            dlg.pos.x = Screen::Width - bounds.width;
+        if ((bounds.getWidth() + dlg.pos.x) > Screen::Width) {
+          dlg.pos.x -= SlidingSpeed * elapsed.getTotalSeconds();
+          if ((bounds.getWidth() + dlg.pos.x) < Screen::Width) {
+            dlg.pos.x = Screen::Width - bounds.getWidth();
           }
         }
       } else {
         if (dlg.pos.x < 0) {
-          dlg.pos.x += SlidingSpeed * elapsed.asSeconds();
+          dlg.pos.x += SlidingSpeed * elapsed.getTotalSeconds();
           if (dlg.pos.x > 0) {
             dlg.pos.x = 0;
           }
         }
       }
     }
-    y += bounds.height;
+    y += bounds.getHeight();
     dialog++;
   }
 
-  if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+  if (!ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left))
     return;
 
   y = 534.f;
@@ -159,18 +161,18 @@ void DialogManager::updateChoices(const sf::Time &elapsed) {
       continue;
 
     // HACK: bad, bad, this code is the same as in the draw function
-    sf::String s;
+    std::wstring s;
     s = L"\u25CF ";
     s += slot.text;
-    Text text;
+    ngf::Text text;
     text.setFont(font);
-    text.setPosition(slot.pos.x, slot.pos.y + y);
-    text.setString(s);
-    if (text.getGlobalBounds().contains(_mousePos)) {
+    text.getTransform().setPosition({slot.pos.x, slot.pos.y + y});
+    text.setWideString(s);
+    if (ng::getGlobalBounds(text).contains(_mousePos)) {
       choose(dialog + 1);
       break;
     }
-    y += text.getGlobalBounds().height;
+    y += ng::getGlobalBounds(text).getHeight();
     dialog++;
   }
 }
@@ -183,7 +185,7 @@ void DialogManager::choose(int choice) {
   _pPlayer->choose(choice);
 }
 
-void DialogManager::setMousePosition(sf::Vector2f pos) {
+void DialogManager::setMousePosition(glm::vec2 pos) {
   _mousePos = pos;
 }
 

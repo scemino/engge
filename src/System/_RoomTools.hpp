@@ -1,5 +1,6 @@
 #pragma once
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
+#include <ngf/Math/PathFinding/Walkbox.h>
 #include <imgui.h>
 
 namespace ng {
@@ -61,11 +62,11 @@ public:
       room->setRotation(rotation);
     }
     auto overlay = room->getOverlayColor();
-    if (_DebugControls::ColorEdit4("Overlay", overlay)) {
+    if (ngf::ImGui::ColorEdit4("Overlay", &overlay)) {
       room->setOverlayColor(overlay);
     }
     auto ambient = room->getAmbientLight();
-    if (_DebugControls::ColorEdit4("ambient", ambient)) {
+    if (ngf::ImGui::ColorEdit4("ambient", &ambient)) {
       room->setAmbientLight(ambient);
     }
     auto effect = room->getEffect();

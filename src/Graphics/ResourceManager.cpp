@@ -1,10 +1,11 @@
 #include "engge/Engine/EngineSettings.hpp"
-#include "engge/Graphics/FntFont.hpp"
 #include "engge/Graphics/GGFont.hpp"
 #include "engge/System/Locator.hpp"
 #include "engge/System/Logger.hpp"
 #include "engge/Graphics/ResourceManager.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
+#include <ngf/Graphics/FntFont.h>
+#include <ngf/IO/MemoryStream.h>
 
 namespace ng {
 ResourceManager::ResourceManager() = default;
@@ -14,7 +15,6 @@ void ResourceManager::load(const std::string &id) {
   info("Load texture {}", id);
   std::string path;
   path.append(id).append(".png");
-  auto texture = std::make_shared<sf::Texture>();
   std::vector<char> data;
   Locator<EngineSettings>::get().readEntry(path, data);
 
@@ -24,10 +24,12 @@ void ResourceManager::load(const std::string &id) {
   os.close();
 #endif
 
-  if (!texture->loadFromMemory(data.data(), data.size())) {
+  ngf::Image img;
+  if (!img.loadFromMemory(data.data(), data.size())) {
     error("Fail to load texture {}", path);
   }
 
+  auto texture = std::make_shared<ngf::Texture>(img);
   _textureMap.insert(std::make_pair(id, TextureResource{texture, data.size()}));
 }
 
@@ -41,8 +43,21 @@ void ResourceManager::loadFont(const std::string &id) {
 
 void ResourceManager::loadFntFont(const std::string &id) {
   info("Load Fnt font {}", id);
-  auto font = std::make_shared<FntFont>();
-  font->loadFromFile(id);
+  auto font = std::make_shared<ngf::FntFont>();
+
+  std::filesystem::path path = id;
+  path = path.replace_extension(".png").u8string();
+
+  std::vector<char> data;
+  Locator<EngineSettings>::get().readEntry(path, data);
+  ngf::Image img;
+  img.loadFromMemory(data.data(), data.size());
+  font->setTexture(img);
+
+  Locator<EngineSettings>::get().readEntry(id, data);
+  ngf::MemoryStream ms(data.data(), data.data() + data.size());
+  font->load(id, ms);
+
   _fntFontMap.insert(std::make_pair(id, font));
 }
 
@@ -54,7 +69,7 @@ void ResourceManager::loadSpriteSheet(const std::string &id) {
   _spriteSheetMap.insert(std::make_pair(id, spriteSheet));
 }
 
-std::shared_ptr<sf::Texture> ResourceManager::getTexture(const std::string &id) {
+std::shared_ptr<ngf::Texture> ResourceManager::getTexture(const std::string &id) {
   auto found = _textureMap.find(id);
   if (found == _textureMap.end()) {
     load(id);
@@ -63,7 +78,7 @@ std::shared_ptr<sf::Texture> ResourceManager::getTexture(const std::string &id) 
   return found->second._texture;
 }
 
-const GGFont &ResourceManager::getFont(const std::string &id) {
+GGFont &ResourceManager::getFont(const std::string &id) {
   auto found = _fontMap.find(id);
   if (found == _fontMap.end()) {
     loadFont(id);
@@ -72,7 +87,7 @@ const GGFont &ResourceManager::getFont(const std::string &id) {
   return *found->second;
 }
 
-const FntFont &ResourceManager::getFntFont(const std::string &id) {
+ngf::FntFont &ResourceManager::getFntFont(const std::string &id) {
   auto found = _fntFontMap.find(id);
   if (found == _fntFontMap.end()) {
     loadFntFont(id);

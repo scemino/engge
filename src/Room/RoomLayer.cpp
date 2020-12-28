@@ -1,3 +1,4 @@
+#include <ngf/Graphics/Sprite.h>
 #include "engge/Room/RoomLayer.hpp"
 #include "engge/Graphics/ResourceManager.hpp"
 #include "engge/System/Locator.hpp"
@@ -13,7 +14,7 @@ void RoomLayer::removeEntity(Entity &entity) {
                   _entities.end());
 }
 
-void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!_enabled)
     return;
 
@@ -29,27 +30,27 @@ void RoomLayer::draw(sf::RenderTarget &target, sf::RenderStates states) const {
   // draw layer sprites
   auto &rm = Locator<ResourceManager>::get();
   for (const auto &background : _backgrounds) {
-    sf::Sprite s;
-    s.move((sf::Vector2f) background.m_pos);
+    ngf::Sprite s;
+    s.getTransform().move(background.m_pos);
     s.setTexture(*rm.getTexture(background.m_texture));
     s.setTextureRect(background.m_rect);
-    target.draw(s, states);
+    s.draw(target, states);
   }
 
   // draw layer objects
   for (const Entity &entity : entities) {
     if (entity.hasParent())
       continue;
-    target.draw(entity, states);
+    entity.draw(target, states);
   }
 }
 
-void RoomLayer::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
+void RoomLayer::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
   std::for_each(_entities.begin(), _entities.end(),
                 [&target, &states](const Entity &entity) { entity.drawForeground(target, states); });
 }
 
-void RoomLayer::update(const sf::Time &elapsed) {
+void RoomLayer::update(const ngf::TimeSpan &elapsed) {
   std::for_each(std::begin(_entities), std::end(_entities), [elapsed](Entity &obj) { obj.update(elapsed); });
 }
 

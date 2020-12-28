@@ -35,7 +35,7 @@ public:
 
 public:
   bool isElapsed() override;
-  void operator()(const sf::Time &elapsed) override;
+  void operator()(const ngf::TimeSpan &elapsed) override;
   void cutsceneOverride();
   [[nodiscard]] bool hasCutsceneOverride() const { return _hasCutsceneOverride; }
 

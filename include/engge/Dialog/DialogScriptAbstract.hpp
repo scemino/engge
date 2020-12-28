@@ -1,12 +1,11 @@
 #pragma once
 #include <functional>
-#include <SFML/System/Time.hpp>
 
 namespace ng {
 class DialogScriptAbstract {
 public:
   virtual ~DialogScriptAbstract() = default;
-  virtual std::function<bool()> pause(sf::Time seconds) = 0;
+  virtual std::function<bool()> pause(ngf::TimeSpan seconds) = 0;
   virtual std::function<bool()> say(const std::string &actor, const std::string &text) = 0;
   virtual void shutup() = 0;
   virtual std::function<bool()> waitFor(const std::string &actor) = 0;

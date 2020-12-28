@@ -1,6 +1,6 @@
 #pragma once
-#include <imgui-SFML.h>
 #include <imgui.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 
 namespace ng {
 class _ActorTools {
@@ -96,35 +96,35 @@ public:
         ImGui::Text("Scale: %.3f", scale);
       }
       auto color = actor->getColor();
-      if (_DebugControls::ColorEdit4("Color", color)) {
+      if (ngf::ImGui::ColorEdit4("Color", &color)) {
         actor->setColor(color);
       }
       auto talkColor = actor->getTalkColor();
-      if (_DebugControls::ColorEdit4("Talk color", talkColor)) {
+      if (ngf::ImGui::ColorEdit4("Talk color", &talkColor)) {
         actor->setTalkColor(talkColor);
       }
       auto talkOffset = actor->getTalkOffset();
-      if (_DebugControls::InputInt2("Talk offset", talkOffset)) {
+      if (ngf::ImGui::InputInt2("Talk offset", &talkOffset)) {
         actor->setTalkOffset(talkOffset);
       }
       auto pos = actor->getPosition();
-      if (_DebugControls::InputFloat2("Position", pos)) {
+      if (ngf::ImGui::InputFloat2("Position", &pos)) {
         actor->setPosition(pos);
       }
-      auto usePos = actor->getUsePosition().value_or(sf::Vector2f());
-      if (_DebugControls::InputFloat2("Use Position", usePos)) {
+      auto usePos = actor->getUsePosition().value_or(glm::vec2());
+      if (ngf::ImGui::InputFloat2("Use Position", &usePos)) {
         actor->setUsePosition(usePos);
       }
       auto offset = actor->getOffset();
-      if (_DebugControls::InputFloat2("Offset", offset)) {
+      if (ngf::ImGui::InputFloat2("Offset", &offset)) {
         actor->setOffset(offset);
       }
       auto renderOffset = actor->getRenderOffset();
-      if (_DebugControls::InputInt2("Render Offset", renderOffset)) {
+      if (ngf::ImGui::InputInt2("Render Offset", &renderOffset)) {
         actor->setRenderOffset(renderOffset);
       }
       auto walkSpeed = actor->getWalkSpeed();
-      if (_DebugControls::InputInt2("Walk speed", walkSpeed)) {
+      if (ngf::ImGui::InputInt2("Walk speed", &walkSpeed)) {
         actor->setWalkSpeed(walkSpeed);
       }
       auto hotspotVisible = actor->isHotspotVisible();
@@ -132,7 +132,7 @@ public:
         actor->showHotspot(hotspotVisible);
       }
       auto hotspot = actor->getHotspot();
-      if (_DebugControls::InputInt4("Hotspot", hotspot)) {
+      if (ngf::ImGui::InputInt4("Hotspot", &hotspot)) {
         actor->setHotspot(hotspot);
       }
       auto useWalkboxes = actor->useWalkboxes();

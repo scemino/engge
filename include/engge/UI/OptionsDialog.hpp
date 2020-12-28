@@ -1,11 +1,12 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include <ngf/Graphics/Drawable.h>
 
 namespace ng {
-class OptionsDialog : public sf::Drawable {
+class OptionsDialog : public ngf::Drawable {
 public:
   typedef std::function<void()> Callback;
 
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 public:
   OptionsDialog();
   ~OptionsDialog() override;
@@ -13,12 +14,9 @@ public:
   void setCallback(Callback callback);
   void setSaveEnabled(bool enabled);
   void setEngine(Engine *pEngine);
-  void update(const sf::Time &elapsed);
+  void update(const ngf::TimeSpan &elapsed);
 
   void showHelp();
-
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 private:
   struct Impl;

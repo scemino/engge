@@ -23,7 +23,6 @@
 #include "../System/_DebugTools.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "engge/System/Logger.hpp"
-#include "../Math/PathFinding/_WalkboxDrawable.hpp"
 #include <cmath>
 #include <ctime>
 #include <cwchar>
@@ -33,14 +32,18 @@
 #include <set>
 #include <string>
 #include <unordered_set>
+#include <ngf/Application.h>
+#include <ngf/Graphics/Colors.h>
+#include "engge/Engine/InputStateConstants.hpp"
 #include "EngineImpl.hpp"
+#include <ngf/System/Mouse.h>
+
 namespace fs = std::filesystem;
 
 namespace ng {
 
 Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
   _pImpl->_pEngine = this;
-  _pImpl->_pDebugTools = std::make_unique<_DebugTools>(*this);
   _pImpl->_soundManager.setEngine(this);
   _pImpl->_dialogManager.setEngine(this);
   _pImpl->_actorIcons.setEngine(this);
@@ -83,9 +86,9 @@ Engine::~Engine() = default;
 
 int Engine::getFrameCounter() const { return _pImpl->_frameCounter; }
 
-void Engine::setWindow(sf::RenderWindow &window) { _pImpl->_pWindow = &window; }
+void Engine::setApplication(ngf::Application *app) { _pImpl->_pApp = app; }
 
-const sf::RenderWindow &Engine::getWindow() const { return *_pImpl->_pWindow; }
+const ngf::Application *Engine::getApplication() const { return _pImpl->_pApp; }
 
 ResourceManager &Engine::getResourceManager() { return _pImpl->_textureManager; }
 
@@ -184,14 +187,14 @@ void Engine::follow(Actor *pActor) {
     return;
 
   auto pos = pActor->getRealPosition();
-  auto screen = _pImpl->_pWindow->getView().getSize();
+  auto screen = _pImpl->_pApp->getRenderTarget()->getView().getSize();
   setRoom(pActor->getRoom());
   if (panCamera) {
-    _pImpl->_camera.panTo(pos - sf::Vector2f(screen.x / 2, screen.y / 2), sf::seconds(4),
+    _pImpl->_camera.panTo(pos - glm::vec2(screen.x / 2, screen.y / 2), ngf::TimeSpan::seconds(4),
                           InterpolationMethod::EaseOut);
     return;
   }
-  _pImpl->_camera.at(pos - sf::Vector2f(screen.x / 2, screen.y / 2));
+  _pImpl->_camera.at(pos - glm::vec2(screen.x / 2, screen.y / 2));
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) {
@@ -220,7 +223,7 @@ void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.pu
 
 std::vector<std::unique_ptr<ThreadBase>> &Engine::getThreads() { return _pImpl->_threads; }
 
-sf::Vector2f Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
+glm::vec2 Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
 
 Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
 
@@ -230,13 +233,13 @@ DialogManager &Engine::getDialogManager() { return _pImpl->_dialogManager; }
 
 Camera &Engine::getCamera() { return _pImpl->_camera; }
 
-sf::Time Engine::getTime() const { return _pImpl->_time; }
+ngf::TimeSpan Engine::getTime() const { return _pImpl->_time; }
 
 SQInteger Engine::setRoom(Room *pRoom) {
   if (!pRoom)
     return 0;
 
-  _pImpl->_fadeColor = sf::Color::Transparent;
+  _pImpl->_fadeColor = ngf::Colors::Transparent;
 
   auto pOldRoom = _pImpl->_pRoom;
   if (pRoom == pOldRoom)
@@ -282,7 +285,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   actor->getCostume().setFacing(facing);
   actor->setRoom(pRoom);
   auto pos = pDoor->getRealPosition();
-  auto usePos = pDoor->getUsePosition().value_or(sf::Vector2f());
+  auto usePos = pDoor->getUsePosition().value_or(glm::vec2());
   pos += usePos;
   actor->setPosition(pos);
 
@@ -306,15 +309,15 @@ void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
 
 void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
-void Engine::update(const sf::Time &el) {
+void Engine::update(const ngf::TimeSpan &el) {
   auto gameSpeedFactor =
       getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor, PreferenceDefaultValues::GameSpeedFactor);
-  const sf::Time elapsed(sf::seconds(el.asSeconds() * gameSpeedFactor));
+  const ngf::TimeSpan elapsed(ngf::TimeSpan::seconds(el.getTotalSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
-  _pImpl->_mousePos = _pImpl->_pWindow->mapPixelToCoords(sf::Mouse::getPosition(*_pImpl->_pWindow));
+  _pImpl->_mousePos = _pImpl->_pApp->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition());
   if (_pImpl->_pRoom && _pImpl->_pRoom->getName() != "Void") {
     auto screenSize = _pImpl->_pRoom->getScreenSize();
-    auto screenMouse = toDefaultView((sf::Vector2i) _pImpl->_mousePos, screenSize);
+    auto screenMouse = toDefaultView((glm::ivec2) _pImpl->_mousePos, screenSize);
     _pImpl->_hud.setMousePosition(screenMouse);
     _pImpl->_dialogManager.setMousePosition(screenMouse);
   }
@@ -331,22 +334,21 @@ void Engine::update(const sf::Time &el) {
 
   _pImpl->_talkingState.update(elapsed);
 
-  ImGuiIO &io = ImGui::GetIO();
   _pImpl->_frameCounter++;
-  auto wasMouseDown = !io.WantCaptureMouse && _pImpl->_isMouseDown;
-  auto wasMouseRightDown = !io.WantCaptureMouse && _pImpl->_isMouseRightDown;
+  auto wasMouseDown = _pImpl->_isMouseDown;
+  auto wasMouseRightDown = _pImpl->_isMouseRightDown;
   _pImpl->_isMouseDown =
-      !io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && _pImpl->_pWindow->hasFocus();
+      ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
   if (!wasMouseDown || !_pImpl->_isMouseDown) {
-    _pImpl->_mouseDownTime = sf::seconds(0);
+    _pImpl->_mouseDownTime = ngf::TimeSpan::seconds(0);
     _pImpl->run(false);
   } else {
     _pImpl->_mouseDownTime += elapsed;
-    if (_pImpl->_mouseDownTime > sf::seconds(0.5f)) {
+    if (_pImpl->_mouseDownTime > ngf::TimeSpan::seconds(0.5f)) {
       _pImpl->run(true);
     }
   }
-  _pImpl->_isMouseRightDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && _pImpl->_pWindow->hasFocus();
+  _pImpl->_isMouseRightDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Right);
   bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
   auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
 
@@ -365,7 +367,7 @@ void Engine::update(const sf::Time &el) {
 
   _pImpl->updateRoomScalings();
 
-  auto screen = _pImpl->_pWindow->getView().getSize();
+  auto screen = _pImpl->_pApp->getRenderTarget()->getView().getSize();
   _pImpl->_pRoom->update(elapsed);
   for (auto &pActor : _pImpl->_actors) {
     if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
@@ -374,12 +376,12 @@ void Engine::update(const sf::Time &el) {
   }
 
   if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible() && _pImpl->_pFollowActor->getRoom() == getRoom()) {
-    auto pos = _pImpl->_pFollowActor->getPosition() - sf::Vector2f(screen.x / 2, screen.y / 2);
-    auto margin = sf::Vector2f(screen.x / 4, screen.y / 4);
+    auto pos = _pImpl->_pFollowActor->getPosition() - glm::vec2(screen.x / 2, screen.y / 2);
+    auto margin = glm::vec2(screen.x / 4, screen.y / 4);
     auto cameraPos = _pImpl->_camera.getAt();
     if (_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin.x) || (cameraPos.x < pos.x - margin.x) ||
         (cameraPos.y > pos.y + margin.y) || (cameraPos.y < pos.y - margin.y)) {
-      _pImpl->_camera.panTo(pos, sf::seconds(4), InterpolationMethod::EaseOut);
+      _pImpl->_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
     }
   }
 
@@ -391,7 +393,8 @@ void Engine::update(const sf::Time &el) {
   _pImpl->_cursorDirection = CursorDirection::None;
   _pImpl->updateMouseCursor();
 
-  auto mousePos = sf::Vector2f(_pImpl->_mousePos.x, _pImpl->_pWindow->getView().getSize().y - _pImpl->_mousePos.y);
+  auto mousePos =
+      glm::vec2(_pImpl->_mousePos.x, _pImpl->_pApp->getRenderTarget()->getView().getSize().y - _pImpl->_mousePos.y);
   _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getAt();
 
   _pImpl->_dialogManager.update(elapsed);
@@ -497,41 +500,41 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
   }
 }
 
-void Engine::draw(sf::RenderTarget &target, bool screenshot) const {
+void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   if (_pImpl->_pRoom) {
     _pImpl->_pRoom->draw(target, _pImpl->_camera.getAt());
     _pImpl->drawFade(target);
     _pImpl->drawWalkboxes(target);
-    target.draw(_pImpl->_talkingState);
-    target.draw(_pImpl->_dialogManager);
+    _pImpl->_talkingState.draw(target, {});
+    _pImpl->_dialogManager.draw(target, {});
     _pImpl->drawHud(target);
 
     if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
         && _pImpl->_inputActive) {
-      target.draw(_pImpl->_actorIcons);
+      _pImpl->_actorIcons.draw(target, {});
     }
 
     _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
     for (auto &pActor : _pImpl->_actors) {
       if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
         continue;
-      pActor->drawForeground(target, sf::RenderStates::Default);
+      pActor->drawForeground(target, {});
     }
 
     if (screenshot)
       return;
 
     if (_pImpl->_state == EngineState::Options) {
-      target.draw(_pImpl->_optionsDialog);
+      _pImpl->_optionsDialog.draw(target, {});
     } else if (_pImpl->_state == EngineState::StartScreen) {
-      target.draw(_pImpl->_startScreenDialog);
+      _pImpl->_startScreenDialog.draw(target, {});
     }
 
     _pImpl->drawPause(target);
     _pImpl->drawCursor(target);
     _pImpl->drawCursorText(target);
     _pImpl->drawNoOverride(target);
-    _pImpl->_pDebugTools->render();
+    //_pImpl->_pDebugTools->render();
   }
 }
 
@@ -611,11 +614,11 @@ void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
 const Verb *Engine::getActiveVerb() const { return _pImpl->_hud.getCurrentVerb(); }
 
-void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = static_cast<uint8_t>(fade * 255); }
+void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = fade; }
 
-float Engine::getFadeAlpha() const { return static_cast<float>(_pImpl->_fadeColor.a) / 255.f; }
+float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a; }
 
-void Engine::fadeTo(float destination, sf::Time time, InterpolationMethod method) {
+void Engine::fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
   auto get = [this]() -> float { return getFadeAlpha(); };
   auto set = [this](const float &a) { setFadeAlpha(a); };
   auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
@@ -651,7 +654,7 @@ void Engine::keyUp(const Input &key) {
   _pImpl->_newKeyDowns.erase(it);
 }
 
-void Engine::sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string &text) {
+void Engine::sayLineAt(glm::ivec2 pos, ngf::Color color, ngf::TimeSpan duration, const std::string &text) {
   _pImpl->_talkingState.setTalkColor(color);
   auto size = getRoom()->getRoomSize();
   _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
@@ -659,7 +662,7 @@ void Engine::sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, con
   _pImpl->_talkingState.setDuration(duration);
 }
 
-void Engine::sayLineAt(sf::Vector2i pos, Entity &entity, const std::string &text) {
+void Engine::sayLineAt(glm::ivec2 pos, Entity &entity, const std::string &text) {
   auto size = getRoom()->getRoomSize();
   _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
   _pImpl->_talkingState.loadLip(text, &entity);
@@ -670,7 +673,7 @@ void Engine::showOptions(bool visible) {
 }
 
 void Engine::quit() {
-  _pImpl->_pWindow->close();
+  _pImpl->_pApp->quit();
 }
 
 void Engine::run() {
@@ -761,7 +764,7 @@ std::wstring SavegameSlot::getSaveTimeString() const {
 
 std::wstring SavegameSlot::getGameTimeString() const {
   wchar_t buffer[120];
-  auto min = static_cast<int>(gametime.asSeconds() / 60.0);
+  auto min = static_cast<int>(gametime.getTotalSeconds() / 60.0);
   if (min < 2) {
     // "%d minute"
     auto format = Locator<TextDatabase>::get().getText(99945);

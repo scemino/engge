@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 
 namespace ng {
@@ -21,16 +21,16 @@ public:
       auto loopTimes = sound ? sound->getLoopTimes() : 0;
       auto volume = sound ? sound->getVolume() : 0.f;
       std::string category;
-      ImVec4 catColor = ImVec4(sf::Color::White);
+      auto catColor = ngf::Colors::White;
       if (sound) {
         switch (sound->getSoundCategory()) {
-        case SoundCategory::Music:catColor = ImVec4(sf::Color::Green);
+        case SoundCategory::Music:catColor = ngf::Colors::Green;
           category = "[music]";
           break;
-        case SoundCategory::Sound:catColor = ImVec4(sf::Color::Red);
+        case SoundCategory::Sound:catColor = ngf::Colors::Red;
           category = "[sound]";
           break;
-        case SoundCategory::Talk:catColor = ImVec4(sf::Color::Yellow);
+        case SoundCategory::Talk:catColor = ngf::Colors::Yellow;
           category = "[talk]";
           break;
         }
@@ -41,7 +41,7 @@ public:
       ImGui::SameLine();
       ImGui::Text("%2d: %-48s x%2d", i, name, loopTimes);
       ImGui::SameLine();
-      ImGui::TextColored(catColor, " %7s", category.data());
+      ImGui::TextColored(ngf::ImGui::ImVec4(catColor), " %7s", category.data());
       ImGui::SameLine();
       ImGui::Text(" %.1f", volume);
       ImGui::PopID();

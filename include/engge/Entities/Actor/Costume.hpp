@@ -3,7 +3,6 @@
 #include <sstream>
 #include <set>
 #include <unordered_map>
-#include <SFML/Graphics.hpp>
 #include "BlinkState.hpp"
 #include "DirectionConstants.hpp"
 #include "engge/Parsers/GGPack.hpp"
@@ -28,21 +27,21 @@ enum class Reaching {
 
 class Actor;
 
-class Costume : public sf::Drawable {
+class Costume : public ngf::Drawable {
 public:
   explicit Costume(ResourceManager &textureManager);
   ~Costume() override;
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
-  std::string getPath() const { return _path; }
-  std::string getSheet() const { return _sheet; }
+  [[nodiscard]] std::string getPath() const { return _path; }
+  [[nodiscard]] std::string getSheet() const { return _sheet; }
   void lockFacing(Facing left, Facing right, Facing front, Facing back);
   void unlockFacing();
   void resetLockFacing();
-  std::optional<Facing> getLockFacing() const;
+  [[nodiscard]] std::optional<Facing> getLockFacing() const;
 
   void setFacing(Facing facing);
-  Facing getFacing() const;
+  [[nodiscard]] Facing getFacing() const;
   void setState(const std::string &name, bool loop = false);
   void setStandState() { setState(_standAnimName); }
   void setWalkState() { setState(_walkAnimName, true); }
@@ -53,7 +52,7 @@ public:
   std::vector<CostumeAnimation> &getAnimations() { return _animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
-  int getHeadIndex() const;
+  [[nodiscard]] int getHeadIndex() const;
 
   void setAnimationNames(const std::string &headAnim,
                          const std::string &standAnim,
@@ -63,12 +62,12 @@ public:
 
   void setBlinkRate(double min, double max);
 
-  void update(const sf::Time &elapsed);
+  void update(const ngf::TimeSpan &elapsed);
 
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
   void updateAnimation();
-  CostumeLayer loadLayer(const GGPackValue &jLayer) const;
+  [[nodiscard]] CostumeLayer loadLayer(const GGPackValue &jLayer) const;
 
 private:
   ResourceManager &_textureManager;

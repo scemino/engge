@@ -47,7 +47,7 @@ public:
 
   [[nodiscard]] size_t getSize() const { return _soundIds.size(); }
 
-  void update(const sf::Time &elapsed);
+  void update(const ngf::TimeSpan &elapsed);
 
 private:
   int getSlotIndex();

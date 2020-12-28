@@ -18,7 +18,7 @@
 #include "engge/Engine/Trigger.hpp"
 #include "engge/Audio/SoundId.hpp"
 #include "_Util.hpp"
-#include <imgui-SFML.h>
+#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 #include "engge/Engine/InputStateConstants.hpp"
 #include "../Engine/_DebugFeatures.hpp"
@@ -89,7 +89,7 @@ private:
     renderTimes("Update (ms)", _updateTimes, []() { return _DebugFeatures::_updateTime; });
   }
 
-  static void renderTimes(const char *label, Plot &plot, const std::function<sf::Time()> &func) {
+  static void renderTimes(const char *label, Plot &plot, const std::function<ngf::TimeSpan()> &func) {
     float average = 0.0f;
     for (int n = 0; n < IM_ARRAYSIZE(plot._values); n++)
       average += plot._values[n];
@@ -97,7 +97,7 @@ private:
     char overlay[48];
     sprintf(overlay, "avg %f ms", average);
 
-    plot._values[plot._offset] = func().asSeconds() * 1000.f;
+    plot._values[plot._offset] = func().getTotalSeconds() * 1000.f;
     ImGui::PlotLines(label, plot._values, IM_ARRAYSIZE(plot._values), plot._offset, overlay);
     plot._offset = (plot._offset + 1) % IM_ARRAYSIZE(plot._values);
   }

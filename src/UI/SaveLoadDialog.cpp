@@ -1,22 +1,29 @@
 #include <filesystem>
+#include <string>
 #include "engge/UI/SaveLoadDialog.hpp"
 #include "_ControlConstants.hpp"
 #include "engge/Engine/Engine.hpp"
-#include "engge/Graphics/FntFont.hpp"
 #include "engge/Graphics/Screen.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Graphics/Text.hpp"
+#include "engge/Util/Util.hpp"
+#include "_Button.hpp"
 #include <imgui.h>
+#include <ngf/Graphics/Text.h>
+#include <ngf/Graphics/Sprite.h>
+#include <ngf/Graphics/RectangleShape.h>
 
 namespace ng {
 struct SaveLoadDialog::Impl {
-  class _BackButton final : public sf::Drawable {
+  class _BackButton final : public ngf::Drawable {
   private:
     inline static const int BackId = 99904;
 
   public:
     typedef std::function<void()> Callback;
 
+    void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
+      _text.draw(target, states);
+    }
   public:
     void setCallback(Callback callback) {
       _callback = std::move(callback);
@@ -25,20 +32,20 @@ struct SaveLoadDialog::Impl {
     void setEngine(Engine *pEngine) {
       _pEngine = pEngine;
 
-      const FntFont &uiFontLarge = _pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
+      auto &uiFontLarge = _pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
       _text.setFont(uiFontLarge);
-      _text.setString(_pEngine->getText(BackId));
-      auto textRect = _text.getGlobalBounds();
-      _text.setOrigin(sf::Vector2f(textRect.width / 2.f, textRect.height / 2.f));
-      _text.setPosition(sf::Vector2f(Screen::Width / 2.0f, 650.f));
+      _text.setWideString(Engine::getText(BackId));
+      auto textRect = ng::getGlobalBounds(_text);
+      _text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
+      _text.getTransform().setPosition({Screen::Width / 2.0f, 650.f});
     }
 
-    void update(sf::Vector2f pos) {
-      auto textRect = _text.getGlobalBounds();
-      sf::Color color;
-      if (textRect.contains((sf::Vector2f) pos)) {
+    void update(glm::vec2 pos) {
+      auto textRect = ng::getGlobalBounds(_text);
+      ngf::Color color;
+      if (textRect.contains(pos)) {
         color = _ControlConstants::HoveColor;
-        bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+        bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
         ImGuiIO &io = ImGui::GetIO();
         if (!io.WantCaptureMouse && _wasMouseDown && !isDown && _callback) {
           _callback();
@@ -47,60 +54,55 @@ struct SaveLoadDialog::Impl {
       } else {
         color = _ControlConstants::NormalColor;
       }
-      _text.setFillColor(color);
-    }
-
-  private:
-    void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-      target.draw(_text, states);
+      _text.setColor(color);
     }
 
   private:
     Engine *_pEngine{nullptr};
     bool _wasMouseDown{false};
     Callback _callback{nullptr};
-    Text _text;
+    ngf::Text _text;
   };
 
-  class _Slot final : public sf::Drawable, public sf::Transformable {
+  class _Slot final : public ngf::Drawable {
   private:
     inline static const int AutosaveId = 99901;
 
   public:
-    void init(SavegameSlot& slot, SpriteSheet &spriteSheet, Engine& engine) {
+    void init(SavegameSlot &slot, SpriteSheet &spriteSheet, Engine &engine) {
       _index = slot.slot - 1;
       auto x = _index % 3;
       auto y = _index / 3;
-      setPosition({168.f + 39.f * 4.f + 78.f * 4.f * x + 4.f * x, 92.f + 22.f * 4.f + 44.f * 4.f * y + 4.f * y});
+      _transform.setPosition({168.f + 39.f * 4.f + 78.f * 4.f * x + 4.f * x,
+                              92.f + 22.f * 4.f + 44.f * 4.f * y + 4.f * y});
 
-      const auto &uiFontSmallBold = engine.getResourceManager().getFntFont("UIFontSmallBold.fnt");
+      auto &uiFontSmallBold = engine.getResourceManager().getFntFont("UIFontSmallBold.fnt");
 
-      _gameTimeText.setString(slot.getGameTimeString());
+      _gameTimeText.setWideString(slot.getGameTimeString());
       _gameTimeText.setFont(uiFontSmallBold);
-      _gameTimeText.setFillColor(sf::Color::White);
-      _gameTimeText.setPosition(0.f, -64.f);
+      _gameTimeText.setColor(ngf::Colors::White);
+      _gameTimeText.getTransform().setPosition({0.f, -64.f});
+      _gameTimeText.setAlignment(ngf::Alignment::Center);
+      _gameTimeText.setAnchor(ngf::Anchor::Center);
 
-      auto gameTimeSize = _gameTimeText.getGlobalBounds();
-      _gameTimeText.setOrigin(static_cast<float>(gameTimeSize.width / 2), static_cast<float>(gameTimeSize.height / 2));
-
-      sf::String saveTimeText;
-      if(slot.slot == 1) {
-        saveTimeText = engine.getText(AutosaveId);
+      std::wstring saveTimeText;
+      if (slot.slot == 1) {
+        saveTimeText = ng::Engine::getText(AutosaveId);
       } else {
         saveTimeText = slot.getSaveTimeString();
       }
-      _saveTimeText.setString(saveTimeText);
+      _saveTimeText.setWideString(saveTimeText);
       _saveTimeText.setFont(uiFontSmallBold);
-      _saveTimeText.setFillColor(sf::Color::White);
-      _saveTimeText.setPosition(0.f, 64.f);
-
-      auto saveTimeSize = _saveTimeText.getGlobalBounds();
-      _saveTimeText.setOrigin(static_cast<float>(saveTimeSize.width / 2), static_cast<float>(saveTimeSize.height / 2));
+      _saveTimeText.setColor(ngf::Colors::White);
+      _saveTimeText.getTransform().setPosition({0.f, 64.f});
+      _saveTimeText.setAlignment(ngf::Alignment::Center);
+      _saveTimeText.setAnchor(ngf::Anchor::Center);
 
       auto rect = spriteSheet.getRect("saveload_slot_frame");
       _sprite.setTexture(spriteSheet.getTexture());
-      _sprite.setOrigin(static_cast<float>(rect.width / 2.f), static_cast<float>(rect.height / 2.f));
-      _sprite.setScale(4, 4);
+      _sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
+                                        static_cast<float>(rect.getHeight() / 2.f)});
+      _sprite.getTransform().setScale({4, 4});
       _sprite.setTextureRect(rect);
 
       std::ostringstream s;
@@ -108,50 +110,51 @@ struct SaveLoadDialog::Impl {
 
       _isEmpty = !std::filesystem::exists(s.str());
       if (!_isEmpty) {
-        _texture.loadFromFile(s.str());
+        _texture.load(s.str());
         _spriteImg.setTexture(_texture, true);
-        _spriteImg.setOrigin(160.f, 90.f);
+        _spriteImg.getTransform().setOrigin({160.f, 90.f});
         auto size = _texture.getSize();
-        _spriteImg.setScale((rect.width * 4.f) / size.x, (rect.height * 4.f) / size.y);
+        _spriteImg.getTransform().setScale({(rect.getWidth() * 4.f) / size.x, (rect.getHeight() * 4.f) / size.y});
         return;
       }
 
       auto saveslotRect = spriteSheet.getRect("saveload_slot");
-      _spriteImg.setTextureRect(saveslotRect);
       _spriteImg.setTexture(spriteSheet.getTexture());
-      _spriteImg.setOrigin(static_cast<float>(saveslotRect.width / 2.f), static_cast<float>(saveslotRect.height / 2.f));
-      _spriteImg.setScale(4.f, 4.f);
+      _spriteImg.setTextureRect(saveslotRect);
+      _spriteImg.getTransform().setOrigin({static_cast<float>(saveslotRect.getWidth() / 2.f),
+                                           static_cast<float>(saveslotRect.getHeight() / 2.f)});
+      _spriteImg.getTransform().setScale({4.f, 4.f});
     }
 
-    bool contains(const sf::Vector2f &pos) const {
-      auto trsf = getTransform();
-      trsf.translate(-156.f, -88.f);
-      return trsf.transformRect(_rect).contains(pos);
+    bool contains(const glm::vec2 &pos) const {
+      auto trsf = _transform;
+      trsf.move({-156.f, -88.f});
+      return ngf::transform(trsf.getTransform(), _rect).contains(pos);
     }
 
     inline bool isEmpty() const {
       return _isEmpty;
     }
 
-  private:
-    void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-      states.transform *= getTransform();
-      target.draw(_spriteImg, states);
-      target.draw(_sprite, states);
-      if(!_isEmpty) {
-        target.draw(_gameTimeText, states);
-        target.draw(_saveTimeText, states);
+    void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
+      states.transform *= _transform.getTransform();
+      _spriteImg.draw(target, states);
+      _sprite.draw(target, states);
+      if (!_isEmpty) {
+        _gameTimeText.draw(target, states);
+        _saveTimeText.draw(target, states);
       }
     }
 
   private:
     int _index{0};
     bool _isEmpty{true};
-    sf::Texture _texture;
-    sf::Sprite _sprite, _spriteImg;
-    Text _gameTimeText;
-    Text _saveTimeText;
-    sf::FloatRect _rect{0, 0, 78 * 4, 44 * 4};
+    ngf::Texture _texture;
+    ngf::Sprite _sprite, _spriteImg;
+    ngf::Text _gameTimeText;
+    ngf::Text _saveTimeText;
+    ngf::Transform _transform;
+    ngf::frect _rect = ngf::frect::fromPositionSize({0, 0}, {78 * 4, 44 * 4});
   };
 
   inline static const int LoadGameId = 99910;
@@ -159,7 +162,7 @@ struct SaveLoadDialog::Impl {
 
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
-  Text _headingText;
+  ngf::Text _headingText;
   SaveLoadDialog::Impl::_BackButton _backButton;
   Callback _callback{nullptr};
   SlotCallback _slotCallback{nullptr};
@@ -168,10 +171,12 @@ struct SaveLoadDialog::Impl {
   bool _saveMode{false};
 
   void setHeading(bool saveMode) {
-    _headingText.setString(_pEngine->getText(saveMode?SaveGameId : LoadGameId));
-    auto textRect = _headingText.getGlobalBounds();
-    _headingText.setOrigin(sf::Vector2f(textRect.width / 2.f, textRect.height / 2.f));
-    _headingText.setPosition(sf::Vector2f(Screen::Width / 2.f, 54.f));
+    _headingText.setWideString(Engine::getText(saveMode ? SaveGameId : LoadGameId));
+    auto textRect = ng::getGlobalBounds(_headingText);
+    _headingText.getTransform().setPosition({Screen::Width / 2.f, 54.f});
+    _headingText.setMaxWidth(600);
+    _headingText.setAlignment(ngf::Alignment::Center);
+    _headingText.setAnchor(ngf::Anchor::Center);
   }
 
   void updateState() {
@@ -202,62 +207,60 @@ struct SaveLoadDialog::Impl {
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    const FntFont &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
+    auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
-    _headingText.setFillColor(sf::Color::White);
+    _headingText.setColor(ngf::Colors::White);
   }
 
-  void draw(sf::RenderTarget &target, sf::RenderStates) {
+  void draw(ngf::RenderTarget &target, ngf::RenderStates) {
     const auto view = target.getView();
-    auto viewRect = sf::FloatRect(0, 0, 320, 180);
-    target.setView(sf::View(viewRect));
+    auto viewRect = ngf::frect::fromPositionSize({0, 0}, {320, 180});
+    target.setView(ngf::View(viewRect));
 
-    sf::Color backColor{0, 0, 0, 128};
-    sf::RectangleShape fadeShape;
-    fadeShape.setSize(sf::Vector2f(viewRect.width, viewRect.height));
-    fadeShape.setFillColor(backColor);
-    target.draw(fadeShape);
+    ngf::Color backColor{0, 0, 0, 128};
+    ngf::RectangleShape fadeShape;
+    fadeShape.setSize(viewRect.getSize());
+    fadeShape.setColor(backColor);
+    fadeShape.draw(target, {});
 
     // draw background
-    auto viewCenter = sf::Vector2f(viewRect.width / 2, viewRect.height / 2);
+    auto viewCenter = glm::vec2(viewRect.getWidth() / 2, viewRect.getHeight() / 2);
     auto rect = _saveLoadSheet.getRect("saveload");
-    sf::Sprite sprite;
-    sprite.setPosition(viewCenter);
+    ngf::Sprite sprite;
+    sprite.getTransform().setPosition(viewCenter);
     sprite.setTexture(_saveLoadSheet.getTexture());
-    sprite.setOrigin(static_cast<float>(rect.width / 2.f), static_cast<float>(rect.height / 2.f));
+    sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
+                                     static_cast<float>(rect.getHeight() / 2.f)});
     sprite.setTextureRect(rect);
-    target.draw(sprite);
+    sprite.draw(target, {});
 
-    viewRect = sf::FloatRect(0, 0, Screen::Width, Screen::Height);
-    target.setView(sf::View(viewRect));
+    viewRect = ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height});
+    target.setView(ngf::View(viewRect));
 
     // heading
-    target.draw(_headingText);
+    _headingText.draw(target);
 
     // slots
     for (auto &slot : _slots) {
-      target.draw(slot);
+      slot.draw(target, {});
     }
 
     // back button
-    target.draw(_backButton);
+    _backButton.draw(target, {});
 
     target.setView(view);
   }
 
-  void update(const sf::Time &) {
-    auto pos = (sf::Vector2f) _pEngine->getWindow().mapPixelToCoords(sf::Mouse::getPosition(_pEngine->getWindow()),
-                                                                     sf::View(sf::FloatRect(0,
-                                                                                            0,
-                                                                                            Screen::Width,
-                                                                                            Screen::Height)));
+  void update(const ngf::TimeSpan &) {
+    auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
+      ngf::View(ngf::frect::fromPositionSize({0,0},{Screen::Width,Screen::Height})));
     _backButton.update(pos);
 
-    bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+    bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
     const ImGuiIO &io = ImGui::GetIO();
     if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
       int i = 0;
-      for (auto &slot : _slots) {
+      for (const auto &slot : _slots) {
         if (slot.contains(pos)) {
           if ((_saveMode || !slot.isEmpty()) && _slotCallback) {
             _slotCallback(i + 1);
@@ -279,11 +282,11 @@ SaveLoadDialog::~SaveLoadDialog() = default;
 
 void SaveLoadDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
 
-void SaveLoadDialog::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void SaveLoadDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   _pImpl->draw(target, states);
 }
 
-void SaveLoadDialog::update(const sf::Time &elapsed) {
+void SaveLoadDialog::update(const ngf::TimeSpan &elapsed) {
   _pImpl->update(elapsed);
 }
 
@@ -304,5 +307,5 @@ void SaveLoadDialog::setSaveMode(bool saveMode) {
   _pImpl->setHeading(saveMode);
 }
 
-bool SaveLoadDialog::getSaveMode() const { return _pImpl->_saveMode;}
+bool SaveLoadDialog::getSaveMode() const { return _pImpl->_saveMode; }
 }

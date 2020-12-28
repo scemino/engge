@@ -15,6 +15,7 @@ find_package (ImGui-SFML REQUIRED)
 add_subdirectory(src)
 add_subdirectory(extlibs/squirrel)
 add_subdirectory(extlibs/clipper)
+add_subdirectory(extlibs/ngf/)
 
 # Install misc. files
 install(FILES LICENSE DESTINATION .)
@@ -25,26 +26,14 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     install(FILES "${ImGui-SFML_DIR}/../../libImGui-SFML.so" DESTINATION .)
     install(DIRECTORY "${SFML_DIR}/../../" DESTINATION . FILES_MATCHING PATTERN "libsfml*")
 
-    install(CODE "execute_process(COMMAND patchelf --remove-needed libImGui-SFML.so ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --add-needed ./libImGui-SFML.so ./src/engge)")
     install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-audio.so.2.5 ./src/engge)")
     install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-audio.so.2.5 ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-system.so.2.5 ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-system.so.2.5 ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-window.so.2.5 ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-window.so.2.5 ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-graphics.so.2.5 ./src/engge)")
-    install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-graphics.so.2.5 ./src/engge)")
 
 # Install libraries on Windows
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 
-    install(FILES "${ImGui-SFML_DIR}/../../../bin/ImGui-SFML.dll" DESTINATION .)
     install(FILES "${SFML_DIR}/../../../bin/openal32.dll" DESTINATION .)
     install(FILES "${SFML_DIR}/../../../bin/sfml-audio-2.dll" DESTINATION .)
-    install(FILES "${SFML_DIR}/../../../bin/sfml-graphics-2.dll" DESTINATION .)
-    install(FILES "${SFML_DIR}/../../../bin/sfml-system-2.dll" DESTINATION .)
-    install(FILES "${SFML_DIR}/../../../bin/sfml-window-2.dll" DESTINATION .)
 
 endif()
 

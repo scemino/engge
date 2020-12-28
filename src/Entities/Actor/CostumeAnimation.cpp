@@ -12,7 +12,7 @@ void CostumeAnimation::play(bool loop) {
   }
 }
 
-void CostumeAnimation::update(const sf::Time &elapsed) {
+void CostumeAnimation::update(const ngf::TimeSpan &elapsed) {
   if (!isPlaying())
     return;
   auto loop = _loop;
@@ -24,13 +24,13 @@ void CostumeAnimation::update(const sf::Time &elapsed) {
   }
 }
 
-void CostumeAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void CostumeAnimation::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   for (const auto &layer : _layers) {
-    target.draw(layer, states);
+    layer.draw(target, states);
   }
 }
 
-bool CostumeAnimation::contains(const sf::Vector2f &pos) const {
+bool CostumeAnimation::contains(const glm::vec2 &pos) const {
   return std::any_of(_layers.cbegin(),
                      _layers.cend(),
                      [pos](const auto &layer) { return layer.getAnimation().contains(pos); });

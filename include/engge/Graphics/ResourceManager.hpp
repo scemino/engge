@@ -1,15 +1,19 @@
 #pragma once
+#include <map>
 #include <memory>
-#include <SFML/Graphics.hpp>
 #include "engge/System/NonCopyable.hpp"
+#include <ngf/Graphics/Texture.h>
+
+namespace ngf {
+class FntFont;
+}
 
 namespace ng {
-class FntFont;
 class GGFont;
 class SpriteSheet;
 
 struct TextureResource {
-  std::shared_ptr<sf::Texture> _texture;
+  std::shared_ptr<ngf::Texture> _texture;
   size_t _size;
 };
 
@@ -17,16 +21,16 @@ class ResourceManager : public NonCopyable {
 private:
   std::map<std::string, TextureResource> _textureMap;
   std::map<std::string, std::shared_ptr<GGFont>> _fontMap;
-  std::map<std::string, std::shared_ptr<FntFont>> _fntFontMap;
+  std::map<std::string, std::shared_ptr<ngf::FntFont>> _fntFontMap;
   std::map<std::string, std::shared_ptr<SpriteSheet>> _spriteSheetMap;
 
 public:
   ResourceManager();
   ~ResourceManager();
 
-  std::shared_ptr<sf::Texture> getTexture(const std::string &id);
-  const GGFont &getFont(const std::string &id);
-  const FntFont &getFntFont(const std::string &id);
+  std::shared_ptr<ngf::Texture> getTexture(const std::string &id);
+  GGFont &getFont(const std::string &id);
+  ngf::FntFont &getFntFont(const std::string &id);
   const SpriteSheet &getSpriteSheet(const std::string &id);
 
   [[nodiscard]] const std::map<std::string, TextureResource> &getTextureMap() const { return _textureMap; }

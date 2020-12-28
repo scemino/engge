@@ -1,10 +1,9 @@
 #pragma once
-#include "SFML/Graphics.hpp"
+#include <ngf/Graphics/Text.h>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/EntityManager.hpp"
 #include "engge/Graphics/GGFont.hpp"
 #include "engge/Graphics/Screen.hpp"
-#include "engge/Graphics/Text.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
 #include "_LipAnimation.hpp"
 #include "../../System/_Util.hpp"
@@ -13,15 +12,19 @@
 #include "engge/Audio/SoundManager.hpp"
 
 namespace ng {
-class _TalkingState : public sf::Drawable, public sf::Transformable {
+class _TalkingState : public ngf::Drawable {
 public:
   _TalkingState() = default;
+
+  void setPosition(glm::vec2 pos) {
+    m_transform.setPosition(pos);
+  }
 
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
   }
 
-  void update(const sf::Time &elapsed) {
+  void update(const ngf::TimeSpan &elapsed) {
     if (!_isTalking)
       return;
 
@@ -61,13 +64,13 @@ public:
 
   inline bool isTalking() const { return _isTalking; }
 
-  inline void setTalkColor(sf::Color color) { _talkColor = color; }
+  inline void setTalkColor(ngf::Color color) { _talkColor = color; }
 
-  void setDuration(sf::Time duration) {
+  void setDuration(ngf::TimeSpan duration) {
     _isTalking = true;
     _duration = duration;
-    trace("Talk duration: {}", _duration.asSeconds());
-    _elapsed = sf::seconds(0);
+    trace("Talk duration: {}", _duration.getTotalSeconds());
+    _elapsed = ngf::TimeSpan::seconds(0);
   }
 
   inline void setText(const std::wstring &text) { _sayText = text; }
@@ -85,6 +88,58 @@ public:
     }
 
     loadId(id, text, mumble);
+  }
+
+  void draw(ngf::RenderTarget &target, ngf::RenderStates) const override {
+    if (!_isTalking)
+      return;
+
+    if (!_pEngine->getPreferences().getUserPreference(PreferenceNames::DisplayText,
+                                                      PreferenceDefaultValues::DisplayText))
+      return;
+
+    auto view = target.getView();
+    target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
+
+    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
+                                                                   PreferenceDefaultValues::RetroFonts);
+    auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+
+    ngf::Text text;
+    text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));
+    text.setFont(font);
+    text.setColor(_talkColor);
+    text.setWideString(_sayText);
+
+    auto bounds = text.getLocalBounds();
+    auto pos = m_transform.getPosition();
+
+    if ((pos.x + bounds.getWidth() / 2) > (Screen::Width - 20)) {
+      pos.x = Screen::Width - bounds.getWidth() - 20;
+    } else if ((pos.x - bounds.getWidth() / 2) < 20) {
+      pos.x = 20;
+    } else {
+      pos.x = pos.x - bounds.getWidth() / 2;
+    }
+    if ((pos.y + bounds.getHeight()) > (Screen::Height - 20)) {
+      pos.y = Screen::Height - 20 - bounds.getHeight();
+    } else if ((pos.y - bounds.getHeight()) < 20) {
+      pos.y = 20 + bounds.getHeight();
+    } else {
+      pos.y = pos.y - bounds.getHeight();
+    }
+    text.getTransform().setPosition(pos);
+    text.draw(target);
+
+    // sf::RectangleShape shape;
+    // shape.setFillColor(sf::Color::Transparent);
+    // shape.setOutlineColor(sf::Color::White);
+    // shape.setOutlineThickness(1.f);
+    // shape.setSize(sf::Vector2f(bounds.width, bounds.height));
+    // shape.setPosition(pos);
+    // target.draw(shape);
+
+    target.setView(view);
   }
 
 private:
@@ -162,7 +217,7 @@ private:
       auto speed = (sayLineBaseTime + sayLineCharTime * _sayText.length()) / (0.2f + sayLineSpeed);
       if (speed < sayLineMinTime)
         speed = sayLineMinTime;
-      setDuration(sf::seconds(speed));
+      setDuration(ngf::TimeSpan::seconds(speed));
     }
 
     auto sayLine = tostring(_sayText);
@@ -172,68 +227,17 @@ private:
     loadActorSpeech(name, hearVoice);
   }
 
-  void draw(sf::RenderTarget &target, sf::RenderStates) const override {
-    if (!_isTalking)
-      return;
-
-    if (!_pEngine->getPreferences().getUserPreference(PreferenceNames::DisplayText,
-                                                      PreferenceDefaultValues::DisplayText))
-      return;
-
-    auto view = target.getView();
-    target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
-
-    auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
-                                                                   PreferenceDefaultValues::RetroFonts);
-    const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
-
-    Text text;
-    text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));
-    text.setFont(font);
-    text.setFillColor(_talkColor);
-    text.setString(_sayText);
-
-    auto bounds = text.getLocalBounds();
-    auto pos = getPosition();
-
-    if ((pos.x + bounds.width / 2) > (Screen::Width - 20)) {
-      pos.x = Screen::Width - bounds.width - 20;
-    } else if ((pos.x - bounds.width / 2) < 20) {
-      pos.x = 20;
-    } else {
-      pos.x = pos.x - bounds.width / 2;
-    }
-    if ((pos.y + bounds.height) > (Screen::Height - 20)) {
-      pos.y = Screen::Height - 20 - bounds.height;
-    } else if ((pos.y - bounds.height) < 20) {
-      pos.y = 20 + bounds.height;
-    } else {
-      pos.y = pos.y - bounds.height;
-    }
-    text.setPosition(pos);
-    target.draw(text);
-
-    // sf::RectangleShape shape;
-    // shape.setFillColor(sf::Color::Transparent);
-    // shape.setOutlineColor(sf::Color::White);
-    // shape.setOutlineThickness(1.f);
-    // shape.setSize(sf::Vector2f(bounds.width, bounds.height));
-    // shape.setPosition(pos);
-    // target.draw(shape);
-
-    target.setView(view);
-  }
-
 private:
   Engine *_pEngine{nullptr};
   Entity *_pEntity{nullptr};
   bool _isTalking{false};
   std::wstring _sayText;
-  sf::Color _talkColor{sf::Color::White};
-  sf::Time _elapsed;
-  sf::Time _duration;
+  ngf::Color _talkColor{ngf::Colors::White};
+  ngf::TimeSpan _elapsed;
+  ngf::TimeSpan _duration;
   _LipAnimation _lipAnim;
   int _soundId{0};
   std::vector<std::tuple<int, std::string, bool>> _ids;
+  ngf::Transform m_transform;
 };
 }

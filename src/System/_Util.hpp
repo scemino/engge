@@ -4,9 +4,7 @@
 #include "engge/Parsers/GGPackBufferStream.hpp"
 #include "engge/Entities/Actor/Costume.hpp"
 #include "engge/Entities/Objects/Object.hpp"
-#include "engge/Math/PathFinding/Walkbox.hpp"
 #include "engge/Parsers/GGPack.hpp"
-#include "../Math/Vector.hpp"
 #include "engge/Graphics/Screen.hpp"
 
 namespace ng {
@@ -38,29 +36,27 @@ std::string str_toupper(std::string s);
 
 bool getLine(GGPackBufferStream &input, std::wstring &wline);
 
-float distanceSquared(const sf::Vector2f &vector1, const sf::Vector2f &vector2);
-float distance(const sf::Vector2f &v1, const sf::Vector2f &v2);
+float distanceSquared(const glm::vec2 &vector1, const glm::vec2 &vector2);
+float distance(const glm::vec2 &v1, const glm::vec2 &v2);
 
-bool lineSegmentsCross(const sf::Vector2f &a, const sf::Vector2f &b, const sf::Vector2f &c, const sf::Vector2f &d);
-
-float length(const sf::Vector2f &v);
+float length(const glm::vec2 &v);
 
 Facing _toFacing(std::optional<UseDirection> direction);
 UseDirection _toDirection(const std::string &text);
 Facing getOppositeFacing(Facing facing);
 
-sf::IntRect _toRect(const GGPackValue &json);
-sf::Vector2i _toSize(const ng::GGPackValue &json);
+ngf::irect _toRect(const GGPackValue &json);
+glm::ivec2 _toSize(const ng::GGPackValue &json);
 
-sf::Vector2f _parsePos(const std::string &text);
-sf::IntRect _parseRect(const std::string &text);
-void _parsePolygon(const std::string &text, std::vector<sf::Vector2i> &vertices);
+glm::vec2 _parsePos(const std::string &text);
+ngf::irect _parseRect(const std::string &text);
+void _parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices);
 
-sf::Color _toColor(const std::string &color);
-sf::Color _toColor(SQInteger color);
-sf::Color _fromRgb(SQInteger color);
+ngf::Color _toColor(const std::string &color);
+ngf::Color _toColor(SQInteger color);
+ngf::Color _fromRgb(SQInteger color);
 
-sf::Vector2f toDefaultView(sf::Vector2i pos, sf::Vector2i fromSize);
+glm::vec2 toDefaultView(glm::ivec2 pos, glm::ivec2 fromSize);
 
 InterpolationMethod toInterpolationMethod(SQInteger interpolation);
 

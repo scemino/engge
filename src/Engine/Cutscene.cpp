@@ -49,7 +49,7 @@ void Cutscene::cutsceneOverride() {
     _state = 2;
 }
 
-void Cutscene::operator()(const sf::Time &) {
+void Cutscene::operator()(const ngf::TimeSpan &) {
   switch (_state) {
   case 0:trace("startCutscene");
     startCutscene();

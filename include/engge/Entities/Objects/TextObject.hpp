@@ -1,7 +1,6 @@
 #pragma once
 #include "Object.hpp"
-#include "engge/Graphics/FntFont.hpp"
-#include <SFML/Graphics.hpp>
+#include <ngf/Graphics/FntFont.h>
 
 namespace ng {
 enum class TextAlignment : unsigned long {
@@ -21,16 +20,17 @@ public:
   TextObject();
   ~TextObject() override;
 
-  FntFont &getFont() { return _font; }
+  ngf::FntFont *getFont() { return _font; }
+  void setFont(ngf::FntFont* font) { _font = font; }
   void setText(const std::string &text);
   void setAlignment(TextAlignment alignment) { _alignment = alignment; }
   void setMaxWidth(int maxWidth) { _maxWidth = maxWidth; }
 
 private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
-  FntFont _font;
+  mutable ngf::FntFont *_font{nullptr};
   std::wstring _text;
   TextAlignment _alignment;
   int _maxWidth{0};

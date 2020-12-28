@@ -14,7 +14,7 @@
 #include "engge/Scripting/ScriptEngine.hpp"
 
 namespace ng {
-Callback::Callback(int id, sf::Time duration, std::string method, HSQOBJECT arg)
+Callback::Callback(int id, ngf::TimeSpan duration, std::string method, HSQOBJECT arg)
     : TimeFunction(duration), _id(id), _method(std::move(method)), _arg(arg) {
   sq_addref(ScriptEngine::getVm(), &_arg);
 }

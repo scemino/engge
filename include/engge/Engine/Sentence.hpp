@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <SFML/System/Time.hpp>
+#include <ngf/System/TimeSpan.h>
 #include "Function.hpp"
 
 namespace ng {
@@ -9,7 +9,7 @@ public:
   Sentence &push_back(std::unique_ptr<Function> func);
   void stop();
   bool isElapsed() override;
-  void operator()(const sf::Time &elapsed) override;
+  void operator()(const ngf::TimeSpan &elapsed) override;
 
 private:
   std::vector<std::unique_ptr<Function>> _functions;

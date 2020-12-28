@@ -2,10 +2,11 @@
 #include "ActorIcons.hpp"
 #include "Callback.hpp"
 #include "engge/System/NonCopyable.hpp"
-#include <SFML/Graphics.hpp>
 #include <squirrel.h>
 #include "SavegameSlot.hpp"
 #include <memory>
+#include <ngf/Graphics/RenderWindow.h>
+#include <ngf/Application.h>
 #include "engge/Input/InputConstants.hpp"
 
 namespace ng {
@@ -41,8 +42,8 @@ public:
   Engine();
   ~Engine();
 
-  void setWindow(sf::RenderWindow &window);
-  [[nodiscard]] const sf::RenderWindow &getWindow() const;
+  void setApplication(ngf::Application *app);
+  [[nodiscard]] const ngf::Application *getApplication() const;
 
   ResourceManager &getResourceManager();
 
@@ -69,8 +70,8 @@ public:
 
   std::vector<std::unique_ptr<Actor>> &getActors();
 
-  void update(const sf::Time &elapsed);
-  void draw(sf::RenderTarget &target, bool screenshot = false) const;
+  void update(const ngf::TimeSpan &elapsed);
+  void draw(ngf::RenderTarget &target, bool screenshot = false) const;
   [[nodiscard]] int getFrameCounter() const;
 
   void setCurrentActor(Actor *pCurrentActor, bool userSelected);
@@ -107,7 +108,7 @@ public:
   bool executeCondition(const std::string &code);
   std::string executeDollar(const std::string &code);
 
-  [[nodiscard]] sf::Vector2f getMousePositionInRoom() const;
+  [[nodiscard]] glm::vec2 getMousePositionInRoom() const;
 
   Preferences &getPreferences();
   SoundManager &getSoundManager();
@@ -124,19 +125,19 @@ public:
   void setUseFlag(UseFlag flag, Entity *object);
   void flashSelectableActor(bool on);
 
-  [[nodiscard]] sf::Time getTime() const;
+  [[nodiscard]] ngf::TimeSpan getTime() const;
 
   HSQOBJECT &getDefaultObject();
 
   void setFadeAlpha(float fade);
   [[nodiscard]] float getFadeAlpha() const;
-  void fadeTo(float destination, sf::Time time, InterpolationMethod method);
+  void fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
 
   void keyDown(const Input& key);
   void keyUp(const Input& key);
 
-  void sayLineAt(sf::Vector2i pos, sf::Color color, sf::Time duration, const std::string &text);
-  void sayLineAt(sf::Vector2i pos, Entity &entity, const std::string &text);
+  void sayLineAt(glm::ivec2 pos, ngf::Color color, ngf::TimeSpan duration, const std::string &text);
+  void sayLineAt(glm::ivec2 pos, Entity &entity, const std::string &text);
   void stopTalking() const;
   void stopTalkingExcept(Entity* pEntity) const;
 

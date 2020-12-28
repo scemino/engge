@@ -313,7 +313,7 @@ void DialogPlayer::gotoLabel(const std::string &label) { selectLabel(label); }
 void DialogPlayer::limit(int max) { _limit = max; }
 void DialogPlayer::override(const std::string &label) { _overrideLabel = label; }
 void DialogPlayer::parrot(bool enabled) { _parrot = enabled; }
-std::function<bool()> DialogPlayer::pause(sf::Time seconds) { return _script.pause(seconds); }
+std::function<bool()> DialogPlayer::pause(ngf::TimeSpan seconds) { return _script.pause(seconds); }
 std::function<bool()> DialogPlayer::say(const std::string &actor, const std::string &text) {
   return _script.say(actor, text);
 }

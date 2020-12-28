@@ -49,17 +49,17 @@ bool SpriteSheet::hasRect(const std::string &name) const {
   return it != _rects.end();
 }
 
-sf::IntRect SpriteSheet::getRect(const std::string &name) const {
+ngf::irect SpriteSheet::getRect(const std::string &name) const {
   const auto it = _rects.find(name);
   return it->second;
 }
 
-sf::IntRect SpriteSheet::getSpriteSourceSize(const std::string &name) const {
+ngf::irect SpriteSheet::getSpriteSourceSize(const std::string &name) const {
   const auto it = _spriteSourceSize.find(name);
   return it->second;
 }
 
-sf::Vector2i SpriteSheet::getSourceSize(const std::string &name) const {
+glm::ivec2 SpriteSheet::getSourceSize(const std::string &name) const {
   const auto it = _sourceSize.find(name);
   return it->second;
 }

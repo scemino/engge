@@ -1,10 +1,12 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include <imgui.h>
+#include <ngf/Graphics/Drawable.h>
+#include <ngf/Graphics/Text.h>
+#include <ngf/Graphics/Sprite.h>
 #include "_ControlConstants.hpp"
 
 namespace ng {
-class _Slider : public sf::Drawable {
+class _Slider : public ngf::Drawable {
 public:
   typedef std::function<void(float)> Callback;
 
@@ -17,38 +19,40 @@ public:
   }
 
   void setSpriteSheet(SpriteSheet *pSpriteSheet) {
-    const FntFont &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
+    auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     _text.setFont(uiFontMedium);
-    _text.setString(_pEngine->getText(_id));
-    auto textRect = _text.getLocalBounds();
-    _text.setPosition(Screen::Width / 2.f - textRect.width / 2.f, _y);
+    _text.setWideString(Engine::getText(_id));
+    _text.getTransform().setPosition({Screen::Width / 2.f, _y});
+    _text.setAlignment(ngf::Alignment::Center);
+    _text.setMaxWidth(600);
+    _text.setAnchor(ngf::Anchor::Center);
 
     auto sliderRect = pSpriteSheet->getRect("slider");
     auto handleRect = pSpriteSheet->getRect("slider_handle");
-    sf::Vector2f scale(Screen::Width / 320.f, Screen::Height / 180.f);
-    _sprite.setPosition(Screen::Width / 2.f, _y + textRect.height);
-    _sprite.setScale(scale);
-    _sprite.setOrigin(sliderRect.width / 2.f, 0);
+    glm::vec2 scale(Screen::Width / 320.f, Screen::Height / 180.f);
+    _sprite.getTransform().setPosition({Screen::Width / 2.f, _y});
+    _sprite.getTransform().setScale(scale);
+    _sprite.getTransform().setOrigin({sliderRect.getWidth() / 2.f, 0});
     _sprite.setTexture(pSpriteSheet->getTexture());
     _sprite.setTextureRect(sliderRect);
 
-    _min = Screen::Width / 2.f - (sliderRect.width * scale.x / 2.f);
-    _max = Screen::Width / 2.f + (sliderRect.width * scale.x / 2.f);
+    _min = Screen::Width / 2.f - (sliderRect.getWidth() * scale.x / 2.f);
+    _max = Screen::Width / 2.f + (sliderRect.getWidth() * scale.x / 2.f);
     auto x = _min + _value * (_max - _min);
-    _spriteHandle.setPosition(x, _y + textRect.height);
-    _spriteHandle.setScale(scale);
-    _spriteHandle.setOrigin(handleRect.width / 2.f, 0);
+    _spriteHandle.getTransform().setPosition({x, _y});
+    _spriteHandle.getTransform().setScale(scale);
+    _spriteHandle.getTransform().setOrigin({handleRect.getWidth() / 2.f, 0});
     _spriteHandle.setTexture(pSpriteSheet->getTexture());
     _spriteHandle.setTextureRect(handleRect);
   }
 
-  void update(sf::Vector2f pos) {
-    auto textRect = _sprite.getGlobalBounds();
-    bool isDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+  void update(glm::vec2 pos) {
+    auto textRect = ng::getGlobalBounds(_sprite);
+    bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
     if (!isDown) {
       _isDragging = false;
     }
-    sf::Color color;
+    ngf::Color color;
     if (!_isEnabled) {
       color = _ControlConstants::DisabledColor;
     } else if (textRect.contains(pos)) {
@@ -61,7 +65,7 @@ public:
       color = _ControlConstants::NormalColor;
     }
     _sprite.setColor(color);
-    _text.setFillColor(color);
+    _text.setColor(color);
 
     if (_isDragging) {
       auto x = std::clamp(pos.x, _min, _max);
@@ -72,15 +76,14 @@ public:
           onValueChanged.value()(value);
         }
       }
-      _spriteHandle.setPosition(x, _spriteHandle.getPosition().y);
+      _spriteHandle.getTransform().setPosition({x, _spriteHandle.getTransform().getPosition().y});
     }
   }
 
-private:
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-    target.draw(_text, states);
-    target.draw(_sprite, states);
-    target.draw(_spriteHandle, states);
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
+    _text.draw(target, states);
+    _sprite.draw(target, states);
+    _spriteHandle.draw(target, states);
   }
 
 private:
@@ -90,9 +93,9 @@ private:
   float _y{0};
   float _min{0}, _max{0}, _value{0};
   bool _isDragging{false};
-  sf::Sprite _sprite;
-  sf::Sprite _spriteHandle;
-  Text _text;
+  ngf::Sprite _sprite;
+  ngf::Sprite _spriteHandle;
+  ngf::Text _text;
   std::optional<Callback> onValueChanged;
 };
 }

@@ -115,7 +115,7 @@ CostumeLayer Costume::loadLayer(const GGPackValue &jLayer) const {
   for (const auto &jFrame : jLayer["frames"].array_value) {
     auto frameName = jFrame.string_value;
     if (frameName == "null") {
-      animation.addFrame(AnimationFrame(sf::IntRect()));
+      animation.addFrame(AnimationFrame(ngf::irect()));
     } else {
       auto rect = _costumeSheet.getRect(frameName);
       auto size = _costumeSheet.getSourceSize(frameName);
@@ -297,17 +297,17 @@ void Costume::updateAnimation() {
   setHeadIndex(_headIndex);
 }
 
-void Costume::update(const sf::Time &elapsed) {
+void Costume::update(const ngf::TimeSpan &elapsed) {
   if (!_pCurrentAnimation)
     return;
   _pCurrentAnimation->update(elapsed);
   _blinkState.update(elapsed);
 }
 
-void Costume::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void Costume::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!_pCurrentAnimation)
     return;
-  target.draw(*_pCurrentAnimation, states);
+  _pCurrentAnimation->draw(target, states);
 }
 
 void Costume::setHeadIndex(int index) {

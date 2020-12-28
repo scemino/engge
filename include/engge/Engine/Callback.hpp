@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <squirrel.h>
+#include <ngf/System/TimeSpan.h>
 #include "Function.hpp"
 
 namespace ng {
@@ -13,7 +14,7 @@ private:
   HSQOBJECT _arg;
 
 public:
-  Callback(int id, sf::Time duration, std::string method, HSQOBJECT arg);
+  Callback(int id, ngf::TimeSpan duration, std::string method, HSQOBJECT arg);
   ~Callback() override;
 
   [[nodiscard]] int getId() const { return _id; }

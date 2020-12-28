@@ -110,7 +110,7 @@ void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume) {
   }
 }
 
-void SoundManager::update(const sf::Time &elapsed) {
+void SoundManager::update(const ngf::TimeSpan &elapsed) {
   for (auto &&soundId : _soundIds) {
     if (soundId) {
       soundId->update(elapsed);

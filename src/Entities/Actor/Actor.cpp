@@ -4,7 +4,6 @@
 #include "engge/Parsers/Lip.hpp"
 #include "engge/System/Locator.hpp"
 #include "engge/System/Logger.hpp"
-#include "engge/Math/PathFinding/PathFinder.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Engine/EntityManager.hpp"
 #include "engge/Entities/Objects/Object.hpp"
@@ -14,7 +13,9 @@
 #include "engge/Audio/SoundId.hpp"
 #include "engge/Audio/SoundManager.hpp"
 #include "engge/Audio/SoundTrigger.hpp"
-#include "../../Math/PathFinding/_Path.hpp"
+#include <glm/vec2.hpp>
+#include <ngf/Graphics/RectangleShape.h>
+#include "../../src/Graphics/_Path.hpp"
 
 namespace ng {
 struct Actor::Impl {
@@ -23,8 +24,8 @@ struct Actor::Impl {
     WalkingState() = default;
 
     void setActor(Actor *pActor);
-    void setDestination(const std::vector<sf::Vector2f> &path, std::optional<Facing> facing);
-    void update(const sf::Time &elapsed);
+    void setDestination(const std::vector<glm::vec2> &path, std::optional<Facing> facing);
+    void update(const ngf::TimeSpan &elapsed);
     void stop();
     [[nodiscard]] bool isWalking() const { return _isWalking; }
 
@@ -33,11 +34,11 @@ struct Actor::Impl {
 
   private:
     Actor *_pActor{nullptr};
-    std::vector<sf::Vector2f> _path;
+    std::vector<glm::vec2> _path;
     std::optional<Facing> _facing{Facing::FACE_FRONT};
     bool _isWalking{false};
-    sf::Vector2f _init;
-    sf::Time _elapsed;
+    glm::vec2 _init{0, 0};
+    ngf::TimeSpan _elapsed;
   };
 
   explicit Impl(Engine &engine)
@@ -50,25 +51,25 @@ struct Actor::Impl {
     _costume.setActor(pActor);
   }
 
-  void drawHotspot(sf::RenderTarget &target, sf::RenderStates states) const {
+  void drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
     if (!_hotspotVisible)
       return;
 
     auto rect = _pActor->getHotspot();
 
-    sf::RectangleShape s(sf::Vector2f(rect.width, rect.height));
-    s.setPosition(rect.left, rect.top);
+    ngf::RectangleShape s(rect.getSize());
+    s.getTransform().setPosition(rect.getTopLeft());
     s.setOutlineThickness(1);
-    s.setOutlineColor(sf::Color::Red);
-    s.setFillColor(sf::Color::Transparent);
-    target.draw(s, states);
+    s.setOutlineColor(ngf::Colors::Red);
+    s.setColor(ngf::Colors::Transparent);
+    s.draw(target, states);
 
     // draw actor position
-    sf::RectangleShape rectangle;
-    rectangle.setFillColor(sf::Color::Red);
-    rectangle.setSize(sf::Vector2f(2, 2));
-    rectangle.setOrigin(sf::Vector2f(1, 1));
-    target.draw(rectangle, states);
+    ngf::RectangleShape rectangle;
+    rectangle.setColor(ngf::Colors::Red);
+    rectangle.setSize(glm::vec2(2, 2));
+    rectangle.getTransform().setOrigin(glm::vec2(1, 1));
+    rectangle.draw(target, states);
   }
 
   Engine &_engine;
@@ -76,10 +77,10 @@ struct Actor::Impl {
   Costume _costume;
   bool _useWalkboxes{true};
   Room *_pRoom{nullptr};
-  sf::IntRect _hotspot;
+  ngf::irect _hotspot{};
   std::vector<Object *> _objects;
   WalkingState _walkingState;
-  sf::Vector2i _speed{30, 15};
+  glm::ivec2 _speed{30, 15};
   std::optional<float> _volume;
   std::shared_ptr<_Path> _path;
   HSQOBJECT _table{};
@@ -110,25 +111,25 @@ Costume &Actor::getCostume() const { return pImpl->_costume; }
 
 Room *Actor::getRoom() { return pImpl->_pRoom; }
 
-void Actor::setHotspot(const sf::IntRect &hotspot) { pImpl->_hotspot = hotspot; }
+void Actor::setHotspot(const ngf::irect &hotspot) { pImpl->_hotspot = hotspot; }
 
-sf::IntRect Actor::getHotspot() const { return pImpl->_hotspot; }
+ngf::irect Actor::getHotspot() const { return pImpl->_hotspot; }
 
 void Actor::showHotspot(bool show) { pImpl->_hotspotVisible = show; }
 
 bool Actor::isHotspotVisible() const { return pImpl->_hotspotVisible; }
 
-bool Actor::contains(const sf::Vector2f &pos) const {
+bool Actor::contains(const glm::vec2 &pos) const {
   auto pAnim = pImpl->_costume.getAnimation();
   if (!pAnim)
     return false;
 
   auto scale = getScale();
   auto transformable = getTransform();
-  transformable.scale(scale, scale);
-  transformable.move(getRenderOffset().x * scale, getRenderOffset().y * scale);
-  auto t = transformable.getInverseTransform();
-  auto pos2 = t.transformPoint(pos);
+  transformable.setScale({scale, scale});
+  transformable.move({getRenderOffset().x * scale, getRenderOffset().y * scale});
+  auto t = glm::inverse(transformable.getTransform());
+  auto pos2 = t * glm::vec3(pos, 0);
   return pAnim->contains(pos2);
 }
 
@@ -174,9 +175,9 @@ void Actor::clearInventory() {
 
 const std::vector<Object *> &Actor::getObjects() const { return pImpl->_objects; }
 
-void Actor::setWalkSpeed(const sf::Vector2i &speed) { pImpl->_speed = speed; }
+void Actor::setWalkSpeed(const glm::ivec2 &speed) { pImpl->_speed = speed; }
 
-const sf::Vector2i &Actor::getWalkSpeed() const { return pImpl->_speed; }
+const glm::ivec2 &Actor::getWalkSpeed() const { return pImpl->_speed; }
 
 void Actor::stopWalking() { pImpl->_walkingState.stop(); }
 
@@ -192,7 +193,7 @@ bool Actor::isInventoryObject() const { return false; }
 
 void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
 
-void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &path, std::optional<Facing> facing) {
+void Actor::Impl::WalkingState::setDestination(const std::vector<glm::vec2> &path, std::optional<Facing> facing) {
   _path = path;
   _facing = facing;
   _path.erase(_path.begin());
@@ -200,7 +201,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<sf::Vector2f> &
   _pActor->getCostume().setWalkState();
   _isWalking = true;
   _init = _pActor->getRealPosition();
-  _elapsed = sf::seconds(0);
+  _elapsed = ngf::TimeSpan::seconds(0);
   trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
 
@@ -221,18 +222,18 @@ Facing Actor::Impl::WalkingState::getFacing() {
   return (dy < 0) ? Facing::FACE_FRONT : Facing::FACE_BACK;
 }
 
-void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
+void Actor::Impl::WalkingState::update(const ngf::TimeSpan &elapsed) {
   if (!_isWalking)
     return;
 
   _elapsed += elapsed;
   auto delta = (_path[0] - _init);
   auto vSpeed = _pActor->getWalkSpeed();
-  sf::Vector2f vDuration;
+  glm::vec2 vDuration;
   vDuration.x = std::abs(delta.x) / vSpeed.x;
   vDuration.y = std::abs(delta.y) / vSpeed.y;
   auto maxDuration = std::max(vDuration.x, vDuration.y);
-  auto factor = (2.f * _elapsed.asSeconds()) / maxDuration;
+  auto factor = (2.f * _elapsed.getTotalSeconds()) / maxDuration;
   auto end = factor >= 1.f;
   auto newPos = end ? _path[0] : (_init + factor * delta);
   _pActor->setPosition(newPos);
@@ -244,7 +245,7 @@ void Actor::Impl::WalkingState::update(const sf::Time &elapsed) {
     _pActor->getCostume().setFacing(getFacing());
     _pActor->getCostume().setWalkState();
     _init = newPos;
-    _elapsed = sf::seconds(0);
+    _elapsed = ngf::TimeSpan::seconds(0);
     trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
     return;
   }
@@ -292,48 +293,48 @@ float Actor::getScale() const {
   return pRoom->getRoomScaling().getScaling(getRealPosition().y);
 }
 
-void Actor::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   auto statesHotSpot = states;
 
   if (isVisible()) {
     auto scale = getScale();
     auto transformable = getTransform();
-    transformable.scale(scale, scale);
-    transformable.move(getRenderOffset().x * scale, getRenderOffset().y * scale);
-    transformable.setPosition(transformable.getPosition().x,
-                              target.getView().getSize().y - transformable.getPosition().y);
+    transformable.setScale({scale, scale});
+    transformable.move({getRenderOffset().x * scale, getRenderOffset().y * scale});
+    transformable.setPosition({transformable.getPosition().x,
+                               target.getView().getSize().y - transformable.getPosition().y});
     states.transform *= transformable.getTransform();
-    target.draw(pImpl->_costume, states);
+    pImpl->_costume.draw(target, states);
   }
 
   auto scale = getScale();
   auto transformable = getTransform();
-  transformable.scale(scale, scale);
-  transformable.setPosition(transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y);
+  transformable.setScale({scale, scale});
+  transformable.setPosition({transformable.getPosition().x,
+                             target.getView().getSize().y - transformable.getPosition().y});
   statesHotSpot.transform *= transformable.getTransform();
   pImpl->drawHotspot(target, statesHotSpot);
 }
 
-void Actor::drawForeground(sf::RenderTarget &target, sf::RenderStates states) const {
+void Actor::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
   Entity::drawForeground(target, states);
   if (pImpl->_path && pImpl->_pRoom && pImpl->_engine.getWalkboxesFlags()) {
-    target.draw(*pImpl->_path, states);
+    pImpl->_path->draw(target, states);
   }
 }
 
-void Actor::update(const sf::Time &elapsed) {
+void Actor::update(const ngf::TimeSpan &elapsed) {
   Entity::update(elapsed);
 
   pImpl->_costume.update(elapsed);
   pImpl->_walkingState.update(elapsed);
 }
 
-std::vector<sf::Vector2f> Actor::walkTo(const sf::Vector2f &destination, std::optional<Facing> facing) {
+std::vector<glm::vec2> Actor::walkTo(const glm::vec2 &destination, std::optional<Facing> facing) {
   if (pImpl->_pRoom == nullptr)
     return {getRealPosition()};
 
-  std::vector<sf::Vector2f> path;
+  std::vector<glm::vec2> path;
   if (pImpl->_useWalkboxes) {
     path = pImpl->_pRoom->calculatePath(getRealPosition(), destination);
     if (path.size() < 2) {
@@ -371,7 +372,7 @@ int Actor::getFps() const {
 void Actor::setInventoryOffset(int offset) { pImpl->_inventoryOffset = offset; }
 
 int Actor::getInventoryOffset() const {
-  if (static_cast<size_t>(pImpl->_inventoryOffset * 4) > getObjects().size()) {
+  if ((pImpl->_inventoryOffset * 4) > static_cast<int>(getObjects().size())) {
     pImpl->_inventoryOffset = 0;
   }
   return pImpl->_inventoryOffset;

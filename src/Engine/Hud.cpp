@@ -1,6 +1,4 @@
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Glsl.hpp>
-#include <SFML/Graphics/View.hpp>
+#include <ngf/Graphics/Sprite.h>
 #include "engge/Engine/Hud.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Graphics/Screen.hpp"
@@ -46,24 +44,23 @@ static const char *_verbShaderCode = "\n"
                                      "}\n";
 
 Hud::Hud() {
-  sf::Vector2f size(Screen::Width / 6.f, Screen::Height / 14.f);
+  glm::vec2 size(Screen::Width / 6.f, Screen::Height / 14.f);
   for (int i = 0; i < 9; i++) {
     auto left = (i / 3) * size.x;
     auto top = Screen::Height - size.y * 3 + (i % 3) * size.y;
-    _verbRects.at(i) = sf::IntRect(left, top, size.x, size.y);
+    _verbRects.at(i) = ngf::irect::fromPositionSize({left, top}, {size.x, size.y});
   }
 
-  // load verb shader
-  if (!_verbShader.loadFromMemory(_verbShaderCode, sf::Shader::Type::Fragment)) {
-    std::cerr << "Error loading shaders" << std::endl;
-    return;
-  }
-  _verbShader.setUniform("colorMap", sf::Shader::CurrentTexture);
+  // TODO: load verb shader
+  //_verbShader.load(_verbShaderCode, nullptr);
+  // TODO:
+  //_verbShader.setUniform("colorMap", sf::Shader::CurrentTexture);
 }
 
 bool Hud::isMouseOver() const {
-  if(!_active) return false;
-  return _mousePos.y >= _verbRects.at(0).top;
+  if (!_active)
+    return false;
+  return _mousePos.y >= _verbRects.at(0).getTopLeft().y;
 }
 
 void Hud::setTextureManager(ResourceManager *pTextureManager) {
@@ -86,8 +83,9 @@ void Hud::setVerbUiColors(int characterSlot, VerbUiColors colors) {
   return _verbUiColors.at(characterSlot);
 }
 
-void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
-  if(!_isVisible) return;
+void Hud::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
+  if (!_isVisible)
+    return;
   if (_currentActorIndex == -1 || getVerbSlot(_currentActorIndex).getVerb(0).id == 0)
     return;
 
@@ -100,7 +98,7 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
     verbId = _pHoveredEntity->getDefaultVerb(VerbConstants::VERB_LOOKAT);
   } else {
     for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
-      if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
+      if (_verbRects.at(i).contains((glm::ivec2) _mousePos)) {
         verbId = _verbSlots.at(_currentActorIndex).getVerb(1 + i).id;
         break;
       }
@@ -108,56 +106,56 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates) const {
   }
 
   const auto view = target.getView();
-  target.setView(sf::View(sf::FloatRect(0, 0, Screen::Width, Screen::Height)));
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   // draw UI background
-  const auto& preferences = Locator<Preferences>::get();
+  const auto &preferences = Locator<Preferences>::get();
   auto hudSentence = preferences.getUserPreference(PreferenceNames::HudSentence, PreferenceDefaultValues::HudSentence);
   auto uiBackingAlpha =
       preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
   auto invertVerbHighlight = preferences.getUserPreference(PreferenceNames::InvertVerbHighlight,
                                                            PreferenceDefaultValues::InvertVerbHighlight);
   const auto &verbUiColors = getVerbUiColors(_currentActorIndex);
-  auto verbHighlight = invertVerbHighlight ? sf::Color::White : verbUiColors.verbHighlight;
-  auto verbColor = invertVerbHighlight ? verbUiColors.verbHighlight : sf::Color::White;
+  auto verbHighlight = invertVerbHighlight ? ngf::Colors::White : verbUiColors.verbHighlight;
+  auto verbColor = invertVerbHighlight ? verbUiColors.verbHighlight : ngf::Colors::White;
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   auto uiBackingRect = hudSentence ? gameSheet.getRect("ui_backing_tall") : gameSheet.getRect("ui_backing");
-  sf::Sprite uiBacking;
-  uiBacking.setColor(sf::Color(0, 0, 0, uiBackingAlpha * _alpha * 255));
-  uiBacking.setPosition(0, 720.f - uiBackingRect.height);
+  ngf::Sprite uiBacking;
+  uiBacking.setColor(ngf::Color(0.f, 0.f, 0.f, uiBackingAlpha * _alpha));
+  uiBacking.getTransform().setPosition({0, 720.f - uiBackingRect.getHeight()});
   uiBacking.setTexture(gameSheet.getTexture());
   uiBacking.setTextureRect(uiBackingRect);
-  target.draw(uiBacking);
+  uiBacking.draw(target, {});
 
-  // draw verbs
-  _verbShader.setUniform("ranges", sf::Vector2f(0.8f, 0.8f));
-  _verbShader.setUniform("shadowColor", sf::Glsl::Vec4(verbUiColors.verbNormalTint));
-  _verbShader.setUniform("normalColor", sf::Glsl::Vec4(verbUiColors.verbHighlight));
-  _verbShader.setUniform("highlightColor", sf::Glsl::Vec4(verbUiColors.verbHighlightTint));
+  // TODO: draw verbs
+//  _verbShader.setUniform("ranges", glm::vec2(0.8f, 0.8f));
+//  _verbShader.setUniform4("shadowColor", verbUiColors.verbNormalTint);
+//  _verbShader.setUniform4("normalColor", verbUiColors.verbHighlight);
+//  _verbShader.setUniform4("highlightColor", verbUiColors.verbHighlightTint);
 
-  sf::RenderStates verbStates;
-  verbStates.shader = &_verbShader;
+  ngf::RenderStates verbStates;
+  //TODO: verbStates.shader = &_verbShader;
   auto &verbSheet = Locator<ResourceManager>::get().getSpriteSheet("VerbSheet");
   for (int i = 1; i <= 9; i++) {
     auto verb = getVerbSlot(_currentActorIndex).getVerb(i);
     auto color = verb.id == verbId ? verbHighlight : verbColor;
-    color.a = static_cast<sf::Uint8>(_alpha * 255.f);
-    _verbShader.setUniform("color", sf::Glsl::Vec4(color));
+    color.a = _alpha;
+    //_verbShader.setUniform4("color", color);
 
     auto verbName = getVerbName(verb);
     auto rect = verbSheet.getRect(verbName);
     auto s = verbSheet.getSpriteSourceSize(verbName);
-    sf::Sprite verbSprite;
+    ngf::Sprite verbSprite;
     verbSprite.setColor(color);
-    verbSprite.setPosition(s.left, s.top);
+    verbSprite.getTransform().setPosition(s.getTopLeft());
     verbSprite.setTexture(verbSheet.getTexture());
     verbSprite.setTextureRect(rect);
-    target.draw(verbSprite, verbStates);
+    verbSprite.draw(target, verbStates);
   }
 
   target.setView(view);
 
-  target.draw(_inventory);
+  _inventory.draw(target, {});
 }
 
 void Hud::setCurrentActorIndex(int index) {
@@ -170,12 +168,12 @@ void Hud::setCurrentActor(Actor *pActor) {
   _inventory.setCurrentActor(pActor);
 }
 
-sf::Vector2f Hud::findScreenPosition(int verbId) const {
+glm::vec2 Hud::findScreenPosition(int verbId) const {
   auto pVerb = getVerb(verbId);
   auto s = getVerbName(*pVerb);
   auto &verbSheet = Locator<ResourceManager>::get().getSpriteSheet("VerbSheet");
   auto r = verbSheet.getSpriteSourceSize(s);
-  return sf::Vector2f(r.left + r.width / 2.f, Screen::Height - (r.top + r.height / 2.f));
+  return glm::vec2(r.getTopLeft().x + r.getWidth() / 2.f, Screen::Height - (r.getTopLeft().y + r.getHeight() / 2.f));
 }
 
 const Verb *Hud::getVerb(int id) const {
@@ -201,7 +199,7 @@ std::string Hud::getVerbName(const Verb &verb) {
   return s;
 }
 
-void Hud::setMousePosition(sf::Vector2f pos) {
+void Hud::setMousePosition(glm::vec2 pos) {
   _mousePos = pos;
   _inventory.setMousePosition(pos);
 }
@@ -211,7 +209,7 @@ const Verb *Hud::getHoveredVerb() const {
     return nullptr;
 
   for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
-    if (_verbRects.at(i).contains((sf::Vector2i) _mousePos)) {
+    if (_verbRects.at(i).contains((glm::ivec2) _mousePos)) {
       auto verbId = getVerbSlot(_currentActorIndex).getVerb(1 + i).id;
       return getVerb(verbId);
     }
@@ -219,15 +217,15 @@ const Verb *Hud::getHoveredVerb() const {
   return nullptr;
 }
 
-void Hud::update(const sf::Time &elapsed) {
+void Hud::update(const ngf::TimeSpan &elapsed) {
   if (_state == State::FadeIn) {
-    _alpha += elapsed.asSeconds();
+    _alpha += elapsed.getTotalSeconds();
     if (_alpha >= 1.f) {
       _state = State::On;
       _alpha = 1.f;
     }
   } else if (_state == State::FadeOut) {
-    _alpha -= elapsed.asSeconds();
+    _alpha -= elapsed.getTotalSeconds();
     if (_alpha <= 0.f) {
       _state = State::Off;
       _alpha = 0.f;

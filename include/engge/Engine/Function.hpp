@@ -1,36 +1,36 @@
 #pragma once
 #include <string>
 #include <functional>
-#include <SFML/System.hpp>
 #include "engge/System/NonCopyable.hpp"
 #include "Interpolations.hpp"
+#include <ngf/System/TimeSpan.h>
 
 namespace ng {
 class Function : public NonCopyable {
 public:
   virtual bool isElapsed() { return true; }
-  virtual void operator()(const sf::Time &) {}
+  virtual void operator()(const ngf::TimeSpan &) {}
   virtual ~Function() = default;
 };
 
 class TimeFunction : public Function {
 protected:
-  sf::Time _elapsed;
-  sf::Time _time;
+  ngf::TimeSpan _elapsed;
+  ngf::TimeSpan _time;
   bool _done{false};
 
 public:
-  explicit TimeFunction(const sf::Time &time)
+  explicit TimeFunction(const ngf::TimeSpan &time)
       : _time(time) {
   }
 
   ~TimeFunction() override = default;
 
-  void operator()(const sf::Time &elapsed) override {
+  void operator()(const ngf::TimeSpan &elapsed) override {
     _elapsed += elapsed;
   }
 
-  sf::Time getElapsed() const { return _elapsed; }
+  [[nodiscard]] ngf::TimeSpan getElapsed() const { return _elapsed; }
 
   bool isElapsed() override {
     auto isElapsed = _elapsed > _time;
@@ -51,7 +51,7 @@ public:
   ChangeProperty(std::function<Value()> get,
                  std::function<void(const Value &)> set,
                  Value destination,
-                 const sf::Time &time,
+                 const ngf::TimeSpan &time,
                  InterpolationMethod method = InterpolationMethod::Linear)
       : TimeFunction(time),
         _get(get),
@@ -66,15 +66,15 @@ public:
     _isSwing = (method & InterpolationMethod::Swing) != InterpolationMethod::None;
   }
 
-  void operator()(const sf::Time &elapsed) override {
+  void operator()(const ngf::TimeSpan &elapsed) override {
     TimeFunction::operator()(elapsed);
     _set(_current);
     if (!isElapsed()) {
-      auto t = _elapsed.asSeconds() / _time.asSeconds();
+      auto t = _elapsed.getTotalSeconds() / _time.getTotalSeconds();
       auto f = _dirForward ? _anim(t) : 1.f - _anim(t);
       _current = _init + f * _delta;
       if (_elapsed >= _time && _isLooping) {
-        _elapsed = sf::seconds(_elapsed.asSeconds() - _time.asSeconds());
+        _elapsed = ngf::TimeSpan::seconds(_elapsed.getTotalSeconds() - _time.getTotalSeconds());
         _dirForward = !_dirForward;
       }
     }
