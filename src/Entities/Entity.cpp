@@ -224,10 +224,8 @@ glm::ivec2 Entity::getRenderOffset() const {
 }
 
 void Entity::alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto getAlpha = [this] { return static_cast<float>(getColor().a) / 255.f; };
-  auto setAlpha = [this](const float &a) {
-    pImpl->_color.a = static_cast<sf::Uint8>(a * 255.f);
-  };
+  auto getAlpha = [this] { return getColor().a; };
+  auto setAlpha = [this](const float &a) { pImpl->_color.a = a; };
   auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
   pImpl->_alphaTo.function = std::move(alphaTo);
   pImpl->_alphaTo.isEnabled = true;

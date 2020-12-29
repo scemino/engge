@@ -179,8 +179,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &alpha))) {
       return sq_throwerror(v, _SC("failed to get alpha"));
     }
-    alpha = alpha > 1.f ? 1.f : alpha;
-    alpha = alpha < 0.f ? 0.f : alpha;
+    alpha = std::clamp(alpha, 0.f, 1.f);
     auto color = obj->getColor();
     obj->setColor(ngf::Color(color.r, color.g, color.b, alpha));
     return 0;
