@@ -375,7 +375,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
                             target.getView().getSize().y - transformable.getPosition().y});
-  states.transform *= transformable.getTransform();
+  states.transform = transformable.getTransform() * states.transform;
 
   if (pImpl->_pAnim) {
     (*pImpl->_pAnim)->setColor(getColor());

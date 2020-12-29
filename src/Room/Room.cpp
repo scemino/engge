@@ -36,7 +36,7 @@ struct Room::Impl {
   std::map<int, std::unique_ptr<RoomLayer>, CmpLayer> _layers;
   std::vector<RoomScaling> _scalings;
   RoomScaling _scaling;
-  glm::ivec2 _roomSize{0,0};
+  glm::ivec2 _roomSize{0, 0};
   int32_t _screenHeight{0};
   std::string _sheet;
   std::string _name;
@@ -767,12 +767,15 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
 
-    ngf::Transform t;
-    // TODO:
-    //t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
+    ngf::Transform tRot;
+    tRot.setOrigin(halfScreen);
+    tRot.setPosition(halfScreen);
+    tRot.setRotation(pImpl->_rotation);
+
     ngf::RenderStates states;
-    t.setPosition({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
-    states.transform = t.getTransform();
+    ngf::Transform t;
+    t.move({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
+    states.transform = t.getTransform() * tRot.getTransform();
     layer.second->draw(target, states);
   }
 }

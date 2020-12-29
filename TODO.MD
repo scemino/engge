@@ -8,8 +8,8 @@ TODO list:
 - [ ] load/save game is not drawn correctly
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
-- [ ] room rotation
 - [ ] more ?
+- [x] room rotation
 - [x] inventory does not fade
 - [x] actors are not drawn correctly when walking left
 - [x] walkboxes are incorrects
