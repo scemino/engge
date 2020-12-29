@@ -108,7 +108,7 @@ void Inventory::drawUpArrow(ngf::RenderTarget &target) const {
   auto rect = _gameSheet.getRect(isRetro ? "scroll_up_retro" : "scroll_up");
 
   auto color = _pColors->verbNormal;
-  color.a = static_cast<uint8_t>(255.f * _alpha);
+  color.a = _alpha;
 
   glm::vec2 scrollUpSize(rect.getWidth(), rect.getHeight());
   ngf::RectangleShape scrollUpShape;
@@ -132,7 +132,7 @@ void Inventory::drawDownArrow(ngf::RenderTarget &target) const {
   glm::vec2 scrollDownSize(scrollDownFrameRect.getWidth(), scrollDownFrameRect.getHeight());
 
   auto color = _pColors->verbNormal;
-  color.a = static_cast<uint8_t>(255.f * _alpha);
+  color.a = _alpha;
 
   ngf::RectangleShape scrollDownShape;
   scrollDownShape.setColor(color);
@@ -162,11 +162,11 @@ void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   auto color = ngf::Colors::White;
-  color.a = static_cast<uint8_t>(_alpha * 255.f);
+  color.a = _alpha;
 
   // draw inventory items
   ngf::Color c(_pColors->inventoryBackground);
-  c.a = static_cast<uint8_t>(_alpha * 128.f);
+  c.a = _alpha * 0.5f;
 
   auto inventoryRect = _gameSheet.getRect("inventory_background");
   ngf::Sprite inventoryShape;

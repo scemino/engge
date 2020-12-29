@@ -9,8 +9,8 @@ TODO list:
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
 - [ ] room rotation
-- [ ] inventory does not fade
 - [ ] more ?
+- [x] inventory does not fade
 - [x] actors are not drawn correctly when walking left
 - [x] walkboxes are incorrects
 - [x] actor scale is wrong
