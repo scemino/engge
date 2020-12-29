@@ -71,7 +71,11 @@ void Animation::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   sprite.setColor(_color);
   sprite.getTransform().setOrigin(origin);
   sprite.getTransform().move(offset);
-  if(_leftDirection) sprite.getTransform().setScale({-1.f,1.f});
+
+  ngf::Transform t;
+  if(_leftDirection) t.setScale({-1, 1});
+  states.transform = t.getTransform() * states.transform;
+
   sprite.draw(target, states);
 }
 

@@ -34,7 +34,7 @@ glm::vec2 AnimationFrame::getOffset(bool leftDirection) const {
 glm::vec2 AnimationFrame::getOrigin(bool leftDirection) const {
   auto y = static_cast<int>((_size.y + 1) / 2 - _sourceRect.getTopLeft().y);
   auto x =
-      static_cast<int>(leftDirection ? _sourceRect.getTopLeft().x + _size.x / 2.f + _sourceRect.getWidth() - _size.x : _size.x / 2.f
+      static_cast<int>(leftDirection ? _sourceRect.getTopLeft().x + _size.x / 2.f : _size.x / 2.f
           - _sourceRect.getTopLeft().x);
   return glm::vec2(static_cast<float>(x), static_cast<float>(y));
 }
