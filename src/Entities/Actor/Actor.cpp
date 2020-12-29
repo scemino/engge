@@ -300,10 +300,10 @@ void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     auto scale = getScale();
     auto transformable = getTransform();
     transformable.setScale({scale, scale});
-    transformable.move({getRenderOffset().x * scale, getRenderOffset().y * scale});
-    transformable.setPosition({transformable.getPosition().x,
-                               target.getView().getSize().y - transformable.getPosition().y});
-    states.transform *= transformable.getTransform();
+    transformable.setPosition({transformable.getPosition().x + scale * getRenderOffset().x,
+                               target.getView().getSize().y - transformable.getPosition().y
+                                   - scale * getRenderOffset().y});
+    states.transform = transformable.getTransform() * states.transform;
     pImpl->_costume.draw(target, states);
   }
 

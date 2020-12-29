@@ -30,10 +30,8 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   // draw layer sprites
   auto &rm = Locator<ResourceManager>::get();
   for (const auto &background : _backgrounds) {
-    ngf::Sprite s;
-    s.getTransform().move(background.m_pos);
-    s.setTexture(*rm.getTexture(background.m_texture));
-    s.setTextureRect(background.m_rect);
+    ngf::Sprite s(*rm.getTexture(background.m_texture), background.m_rect);
+    s.getTransform().setPosition(background.m_pos);
     s.draw(target, states);
   }
 

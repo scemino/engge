@@ -34,7 +34,7 @@ private:
   ngf::frect _scrollUpRect;
   ngf::frect _scrollDownRect;
   Object *_pCurrentInventoryObject{nullptr};
-  glm::vec2 _mousePos;
+  glm::vec2 _mousePos{0,0};
   float _jiggleTime{0};
   Actor* _pCurrentActor{nullptr};
   int _currentActorIndex{0};

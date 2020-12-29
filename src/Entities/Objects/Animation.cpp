@@ -64,18 +64,20 @@ void Animation::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
 
   const auto &frame = _frames.at(_index);
   auto rect = frame.getRect();
-  auto origin = frame.getOrigin(_leftDirection);
+  auto origin = frame.getOrigin();
+  auto pos = frame.getPosition(_leftDirection);
   auto offset = frame.getOffset(_leftDirection);
+
+  ngf::Transform tFlipX;
+  tFlipX.setScale({_leftDirection ? -1 : 1, 1});
+  ngf::Transform t;
+  t.setOrigin(origin);
+  t.setPosition(pos);
+  t.move(offset);
+  states.transform = tFlipX.getTransform() * t.getTransform() * states.transform;
 
   ngf::Sprite sprite(*Locator<ResourceManager>::get().getTexture(_texture), rect);
   sprite.setColor(_color);
-  sprite.getTransform().setOrigin(origin);
-  sprite.getTransform().move(offset);
-
-  ngf::Transform t;
-  if(_leftDirection) t.setScale({-1, 1});
-  states.transform = t.getTransform() * states.transform;
-
   sprite.draw(target, states);
 }
 
@@ -86,7 +88,8 @@ bool Animation::contains(const glm::vec2 &pos) const {
   const auto &frame = _frames.at(_index);
 
   ngf::Transform t;
-  t.setOrigin(frame.getOrigin(_leftDirection));
+  t.setOrigin(frame.getOrigin());
+  t.setPosition(frame.getPosition(_leftDirection));
   t.move(frame.getOffset(_leftDirection));
 
   auto rect = frame.getRect();

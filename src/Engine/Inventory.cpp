@@ -63,6 +63,8 @@ bool Inventory::update(const ngf::TimeSpan &elapsed) {
     auto r = _inventoryRects.at(i);
     r.min.x -= r.getWidth() / 2.f;
     r.min.y -= r.getHeight() / 2.f;
+    r.max.x -= r.getWidth() / 2.f;
+    r.max.y -= r.getHeight() / 2.f;
     if (r.contains(_mousePos)) {
       auto &objects = _pCurrentActor->getObjects();
       if ((inventoryOffset * 4 + i) < objects.size()) {

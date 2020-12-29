@@ -31,11 +31,13 @@ glm::vec2 AnimationFrame::getOffset(bool leftDirection) const {
   return offset;
 }
 
-glm::vec2 AnimationFrame::getOrigin(bool leftDirection) const {
-  auto y = static_cast<int>((_size.y + 1) / 2 - _sourceRect.getTopLeft().y);
-  auto x =
-      static_cast<int>(leftDirection ? _sourceRect.getTopLeft().x + _size.x / 2.f : _size.x / 2.f
-          - _sourceRect.getTopLeft().x);
+glm::vec2 AnimationFrame::getOrigin() const {
+  return glm::vec2(static_cast<float>(_size.x / 2.f), static_cast<float>(_size.y / 2.f));
+}
+
+glm::vec2 AnimationFrame::getPosition(bool leftDirection) const {
+  auto y = static_cast<int>(_sourceRect.getTopLeft().y);
+  auto x = static_cast<int>(leftDirection ? _size.x - _sourceRect.getTopLeft().x : _sourceRect.getTopLeft().x);
   return glm::vec2(static_cast<float>(x), static_cast<float>(y));
 }
 

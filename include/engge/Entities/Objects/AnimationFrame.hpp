@@ -18,13 +18,15 @@ public:
 
   void setRect(ngf::irect rect);
   [[nodiscard]] ngf::irect getRect() const;
-  [[nodiscard]] glm::vec2 getOrigin(bool leftDirection) const;
+  [[nodiscard]] glm::vec2 getOrigin() const;
 
   void setSourceRect(ngf::irect rect) { _sourceRect = rect; }
   [[nodiscard]] ngf::irect getSourceRect() const { return _sourceRect; }
 
   void setOffset(glm::vec2 offset) { _offset = offset; }
   [[nodiscard]] glm::vec2 getOffset(bool leftDirection) const;
+
+  [[nodiscard]] glm::vec2 getPosition(bool leftDirection) const;
 
   void setSize(glm::ivec2 size) { _size = size; }
   [[nodiscard]] glm::ivec2 getSize() const { return _size; }
