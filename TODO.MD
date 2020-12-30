@@ -5,10 +5,11 @@ This branch is still experimental, it's a merge with **Engge Framework**.
 TODO list:
 - [ ] texts word wrap is wrong
 - [ ] texts color not implemented
-- [ ] load/save game is not drawn correctly
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
+- [ ] objects are not positioned correctly in the Bridge room
 - [ ] more ?
+- [x] load/save game is not drawn correctly
 - [x] room rotation
 - [x] inventory does not fade
 - [x] actors are not drawn correctly when walking left
