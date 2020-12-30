@@ -28,6 +28,65 @@ struct CmpLayer {
   bool operator()(int a, int b) const { return a > b; }
 };
 
+namespace {
+
+bool toBool(const GGPackValue &gValue) {
+  return !gValue.isNull() && gValue.getInt() == 1;
+}
+
+static glm::ivec2 parseIVec2(std::string_view value) {
+  char *ptr;
+  auto x = std::strtol(value.data() + 1, &ptr, 10);
+  auto y = std::strtol(ptr + 1, &ptr, 10);
+  return glm::ivec2{x, y};
+}
+
+ObjectAnimation parseObjectAnimation(const GGPackValue &gAnimation, const SpriteSheet &spriteSheet) {
+  ObjectAnimation anim;
+  anim.name = gAnimation["name"].getString();
+  anim.loop = toBool(gAnimation["loop"]);
+  anim.fps = gAnimation["fps"].isNull() ? 0.f : gAnimation["fps"].getDouble();
+  anim.flags = gAnimation["flags"].isNull() ? 0 : gAnimation["flags"].getInt();
+  if (!gAnimation["frames"].isNull()) {
+    for (const auto &gFrame : gAnimation["frames"].array_value) {
+      auto name = gFrame.getString();
+      anim.frames.push_back(spriteSheet.getItem(name));
+    }
+  }
+
+  if (!gAnimation["layers"].isNull()) {
+    for (const auto &gLayer : gAnimation["layers"].array_value) {
+      auto layer = parseObjectAnimation(gLayer, spriteSheet);
+      anim.layers.push_back(layer);
+    }
+  }
+  if (!gAnimation["offsets"].isNull()) {
+    for (const auto &gOffset : gAnimation["offsets"].array_value) {
+      auto offset = parseIVec2(gOffset.getString());
+      anim.offsets.push_back(offset);
+    }
+  }
+  if (!gAnimation["triggers"].isNull()) {
+    for (const auto &gTriggers : gAnimation["triggers"].array_value) {
+      anim.triggers.push_back(gTriggers.getString());
+    }
+  }
+  return anim;
+}
+
+std::vector<ObjectAnimation> parseObjectAnimations(const GGPackValue &gAnimations, const SpriteSheet &spriteSheet) {
+  std::vector<ObjectAnimation> anims;
+  if (gAnimations.isNull())
+    return anims;
+  for (const auto &gAnimation : gAnimations.array_value) {
+    if (gAnimation.isNull())
+      continue;
+    anims.push_back(parseObjectAnimation(gAnimation, spriteSheet));
+  }
+  return anims;
+}
+}
+
 struct Room::Impl {
   ResourceManager &_textureManager;
   std::vector<std::unique_ptr<Object>> _objects;
@@ -227,48 +286,11 @@ struct Room::Impl {
       object->setUsePosition(usePos);
 
       // animations
+      object->setTexture(&_spriteSheet.getTexture());
       if (jObject["animations"].isArray()) {
-        for (auto jAnimation : jObject["animations"].array_value) {
-          auto animName = jAnimation["name"].string_value;
-          auto anim = std::make_unique<Animation>(_sheet, animName);
-          if (!jAnimation["fps"].isNull()) {
-            anim->setFps(jAnimation["fps"].int_value);
-          }
-          std::vector<std::optional<int>> triggers;
-          if (!jAnimation["triggers"].isNull()) {
-            for (const auto &jtrigger : jAnimation["triggers"].array_value) {
-              if (!jtrigger.isNull()) {
-                auto name = jtrigger.string_value;
-                auto trigger = std::strtol(name.data() + 1, nullptr, 10);
-                triggers.emplace_back(trigger);
-              } else {
-                triggers.emplace_back(std::nullopt);
-              }
-            }
-          }
-          for (size_t i = 0; i < jAnimation["frames"].array_value.size(); i++) {
-            const auto &jFrame = jAnimation["frames"].array_value.at(i);
-            auto name = jFrame.string_value;
-            if (!_spriteSheet.hasRect(name))
-              continue;
-            auto rect = _spriteSheet.getRect(name);
-            auto size = _spriteSheet.getSourceSize(name);
-            auto sourceRect = _spriteSheet.getSpriteSourceSize(name);
-            std::optional<int> trigger = !triggers.empty() ? triggers.at(i) : std::nullopt;
-            std::function<void()> callback = nullptr;
-            if (trigger.has_value()) {
-              auto pObj = object.get();
-              callback = [trigger, pObj]() { pObj->trig(trigger.value()); };
-            }
-            AnimationFrame frame(rect, callback);
-            frame.setName(name);
-            frame.setSourceRect(sourceRect);
-            frame.setSize(size);
-            anim->addFrame(std::move(frame));
-          }
-          anim->reset();
-          object->getAnims().push_back(std::move(anim));
-        }
+        auto anims = parseObjectAnimations(jObject["animations"], _spriteSheet);
+        auto &objAnims = object->getAnims();
+        std::copy(anims.begin(), anims.end(), std::back_inserter(objAnims));
 
         int initState = 0;
         ScriptEngine::get(object.get(), "initState", initState);
@@ -295,7 +317,7 @@ struct Room::Impl {
     sq_pushobject(v, roomTable);
     sq_pushnull(v);
     while (SQ_SUCCEEDED(sq_next(v, -2))) {
-      //here -1 is the value and -2 is the key
+//here -1 is the value and -2 is the key
       auto type = sq_gettype(v, -1);
       if (type == OT_TABLE) {
         const SQChar *key = nullptr;
@@ -647,30 +669,31 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
 
   auto object = std::make_unique<Object>();
   auto animation = std::make_unique<Animation>(sheet, "state0");
-  for (auto n : anims) {
-    if (json["frames"][n].isNull())
-      continue;
-
-    checkLanguage(n);
-
-    auto frame = json["frames"][n]["frame"];
-    auto rect = _toRect(frame);
-    auto size = _toSize(json["frames"][n]["sourceSize"]);
-    auto sourceRect = _toRect(json["frames"][n]["spriteSourceSize"]);
-    AnimationFrame animFrame(rect);
-    animFrame.setSourceRect(sourceRect);
-    animFrame.setSize(size);
-    animation->addFrame(std::move(animFrame));
-  }
-  animation->reset();
-  object->getAnims().push_back(std::move(animation));
-
-  for (auto &anim : object->getAnims()) {
-    if (!anim->empty()) {
-      object->setAnimation(anim->getName());
-      break;
-    }
-  }
+  // TODO:
+//  for (auto n : anims) {
+//    if (json["frames"][n].isNull())
+//      continue;
+//
+//    checkLanguage(n);
+//
+//    auto frame = json["frames"][n]["frame"];
+//    auto rect = _toRect(frame);
+//    auto size = _toSize(json["frames"][n]["sourceSize"]);
+//    auto sourceRect = _toRect(json["frames"][n]["spriteSourceSize"]);
+//    AnimationFrame animFrame(rect);
+//    animFrame.setSourceRect(sourceRect);
+//    animFrame.setSize(size);
+//    animation->addFrame(std::move(animFrame));
+//  }
+//  animation->reset();
+//  object->getAnims().push_back(animation);
+//
+//  for (auto &anim : object->getAnims()) {
+//    if (!anim->empty()) {
+//      object->setAnimation(anim->getName());
+//      break;
+//    }
+//  }
   auto &obj = *object;
   obj.setTemporary(true);
   obj.setRoom(this);
@@ -688,15 +711,12 @@ Object &Room::createObject(const std::string &image) {
   auto texture = pImpl->_textureManager.getTexture(name);
 
   auto object = std::make_unique<Object>();
-  auto animation = std::make_unique<Animation>(name, "state0");
+
+  ObjectAnimation anim;
   auto size = texture->getSize();
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
-  AnimationFrame animFrame(rect);
-  animFrame.setSourceRect(rect);
-  animFrame.setSize(glm::ivec2(size.x, size.y));
-  animation->addFrame(std::move(animFrame));
-  animation->reset();
-  object->getAnims().push_back(std::move(animation));
+  anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size});
+  object->getAnims().push_back(anim);
 
   object->setAnimation("state0");
   auto &obj = *object;

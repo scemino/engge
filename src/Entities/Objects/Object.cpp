@@ -1,7 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "engge/Entities/Objects/Object.hpp"
-#include "engge/Entities/Objects/Animation.hpp"
 #include "engge/Entities/Objects/AnimationFrame.hpp"
 #include "engge/Engine/Function.hpp"
 #include "engge/System/Locator.hpp"
@@ -18,9 +17,10 @@
 #include <ngf/Graphics/Sprite.h>
 
 namespace ng {
+
 struct Object::Impl {
-  std::vector<std::unique_ptr<Animation>> _anims;
-  std::optional<Animation *> _pAnim{std::nullopt};
+  std::vector<ObjectAnimation> _anims;
+  ObjectAnimation *_pAnim{nullptr};
   std::wstring _name;
   int _zorder{0};
   ObjectType _type{ObjectType::Object};
@@ -45,6 +45,7 @@ struct Object::Impl {
   bool _jiggle{false};
   int _pop{0};
   Object *_pParent{nullptr};
+  const ngf::Texture *_texture{nullptr};
 
   Impl() {
     auto v = ScriptEngine::getVm();
@@ -66,6 +67,79 @@ struct Object::Impl {
   ~Impl() {
     auto v = ScriptEngine::getVm();
     sq_release(v, &_table);
+  }
+
+  void draw(const ObjectAnimation &anim, ngf::RenderTarget &target, ngf::RenderStates states) const {
+    if (!anim.visible)
+      return;
+    if (anim.frames.empty())
+      return;
+
+    glm::ivec2 offset{0, 0};
+    if (!anim.offsets.empty()) {
+      offset = anim.offsets[anim.frameIndex];
+    }
+    const auto frame = anim.frames[anim.frameIndex];
+    glm::vec2 origin = {frame.sourceSize.x / 2.f, frame.sourceSize.y / 2.f};
+    glm::vec2 pos = {
+        frame.spriteSourceSize.min.x + offset.x,
+        frame.spriteSourceSize.min.y - offset.y};
+
+    ngf::Transform tFlipX;
+    tFlipX.setScale({1, 1});
+    ngf::Transform t;
+    t.setOrigin(origin);
+    t.setPosition(pos);
+    states.shader = nullptr;
+    states.transform = tFlipX.getTransform() * t.getTransform() * states.transform;
+
+    //  auto pShader = (LightingShader *) states.shader;
+//  auto texSize = texture->getSize();
+//  pShader->setTexture(*texture);
+//  pShader->setContentSize(frame.sourceSize);
+//  pShader->setSpriteOffset({-frame.frame.getWidth() / 2.f + pos.x, -frame.frame.getHeight() / 2.f - pos.y});
+//  pShader->setSpritePosInSheet({static_cast<float>(frame.frame.min.x) / texSize.x,
+//                                static_cast<float>(frame.frame.min.y) / texSize.y});
+//  pShader->setSpriteSizeRelToSheet({static_cast<float>(frame.sourceSize.x) / texSize.x,
+//                                    static_cast<float>(frame.sourceSize.y) / texSize.y});
+
+
+    ngf::Sprite sprite(*_texture, frame.frame);
+    sprite.draw(target, states);
+  }
+
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
+    if (!_pAnim)
+      return;
+    if (_pAnim->frames.empty() && _pAnim->layers.empty())
+      return;
+
+    draw(*_pAnim, target, states);
+
+    for (const auto &layer : _pAnim->layers) {
+      draw(layer, target, states);
+    }
+  }
+
+  static void update(const ngf::TimeSpan &e, ObjectAnimation &animation) {
+    if (animation.frameIndex == -1) {
+      animation.frameIndex = static_cast<int>(animation.frames.size()) - 1;
+    }
+
+    if (animation.frameIndex > static_cast<int>(animation.frames.size())) {
+      animation.frameIndex = 0;
+      return;
+    }
+
+    animation.elapsed += e;
+    auto fps = animation.fps;
+    if (fps == 0)
+      fps = 10;
+    const auto frameTime = 1.f / static_cast<float>(fps);
+    if (animation.elapsed.getTotalSeconds() > frameTime) {
+      animation.elapsed = ngf::TimeSpan::seconds(animation.elapsed.getTotalSeconds() - frameTime);
+      animation.frameIndex = (animation.frameIndex + 1) % static_cast<int>(animation.frames.size());
+    }
   }
 };
 
@@ -149,7 +223,11 @@ HSQOBJECT &Object::getTable() { return pImpl->_table; }
 HSQOBJECT &Object::getTable() const { return pImpl->_table; }
 bool Object::isInventoryObject() const { return getOwner() != nullptr; }
 
-std::vector<std::unique_ptr<Animation>> &Object::getAnims() { return pImpl->_anims; }
+void Object::setTexture(const ngf::Texture *texture) {
+  pImpl->_texture = texture;
+}
+
+std::vector<ObjectAnimation> &Object::getAnims() { return pImpl->_anims; }
 
 Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
@@ -197,29 +275,31 @@ void Object::setStateAnimIndex(int animIndex) {
 
 void Object::playAnim(const std::string &anim, bool loop) {
   setAnimation(anim);
-  (*pImpl->_pAnim)->play(loop);
+  // TODO:
+  //pImpl->_pAnim->play(loop);
 }
 
 void Object::playAnim(int animIndex, bool loop) {
   setStateAnimIndex(animIndex);
-  (*pImpl->_pAnim)->play(loop);
+  // TODO:
+  //pImpl->_pAnim->play(loop);
 }
 
 int Object::getState() const { return pImpl->_state; }
 
 void Object::setAnimation(const std::string &name) {
   auto it = std::find_if(pImpl->_anims.begin(), pImpl->_anims.end(),
-                         [name](std::unique_ptr<Animation> &animation) { return animation->getName() == name; });
+                         [name](auto &animation) { return animation.name == name; });
   if (it == pImpl->_anims.end()) {
-    pImpl->_pAnim = std::nullopt;
+    pImpl->_pAnim = nullptr;
     return;
   }
 
-  auto &anim = **it;
+  auto &anim = *it;
   pImpl->_pAnim = &anim;
 }
 
-std::optional<Animation *> &Object::getAnimation() { return pImpl->_pAnim; }
+ObjectAnimation *&Object::getAnimation() { return pImpl->_pAnim; }
 
 void Object::update(const ngf::TimeSpan &elapsed) {
   if (isInventoryObject()) {
@@ -245,7 +325,7 @@ void Object::update(const ngf::TimeSpan &elapsed) {
     setVisible(pImpl->pParentObject->getState() == pImpl->dependentState);
   }
   if (pImpl->_pAnim) {
-    (*pImpl->_pAnim)->update(elapsed);
+    pImpl->update(elapsed, *pImpl->_pAnim);
   }
   if (pImpl->_triggerEnabled && pImpl->_trigger.has_value()) {
     (*pImpl->_trigger)->trig();
@@ -343,18 +423,17 @@ void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states)
   ngf::RenderStates s;
   auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y});
+                             target.getView().getSize().y - transformable.getPosition().y});
   s.transform *= transformable.getTransform();
 
   if (pImpl->_pAnim) {
-    (*pImpl->_pAnim)->setColor(getColor());
-    (*pImpl->_pAnim)->draw(target, s);
+    draw(target, s);
   }
 
   ngf::RenderStates statesHotspot;
   transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y});
+                             target.getView().getSize().y - transformable.getPosition().y});
   transformable.setScale({1.f, 1.f});
   statesHotspot.transform *= transformable.getTransform();
 
@@ -374,12 +453,11 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
 
   auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y});
+                             target.getView().getSize().y - transformable.getPosition().y});
   states.transform = transformable.getTransform() * states.transform;
 
   if (pImpl->_pAnim) {
-    (*pImpl->_pAnim)->setColor(getColor());
-    (*pImpl->_pAnim)->draw(target, states);
+    pImpl->draw(target, states);
   }
 
   for (const auto &pChild : pImpl->_children) {
@@ -389,7 +467,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   ngf::RenderStates statesHotspot = initialStates;
   transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
-                            target.getView().getSize().y - transformable.getPosition().y});
+                             target.getView().getSize().y - transformable.getPosition().y});
   transformable.setScale({1.f, 1.f});
   statesHotspot.transform *= transformable.getTransform();
 
@@ -403,8 +481,8 @@ void Object::dependentOn(Object *parentObject, int state) {
 }
 
 void Object::setFps(int fps) {
-  if (pImpl->_pAnim.has_value()) {
-    (*pImpl->_pAnim)->setFps(fps);
+  if (pImpl->_pAnim) {
+    pImpl->_pAnim->fps = fps;
   }
 }
 
@@ -448,7 +526,7 @@ void Object::setPop(int count) {
 int Object::getPop() const { return pImpl->_pop; }
 
 float Object::getPopScale() const {
-  return 0.5f + 0.5f*sinf(static_cast<float>(-M_PI_2 + pImpl->_popElapsed.getTotalSeconds()*4*M_PI));
+  return 0.5f + 0.5f * sinf(static_cast<float>(-M_PI_2 + pImpl->_popElapsed.getTotalSeconds() * 4 * M_PI));
 }
 
 void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {

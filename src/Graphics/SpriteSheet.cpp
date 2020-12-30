@@ -64,4 +64,8 @@ glm::ivec2 SpriteSheet::getSourceSize(const std::string &name) const {
   return it->second;
 }
 
+[[nodiscard]] SpriteSheetItem SpriteSheet::getItem(const std::string &name) const {
+  return SpriteSheetItem{name, getRect(name), getSpriteSourceSize(name), getSourceSize(name)};
+}
+
 } // namespace ng

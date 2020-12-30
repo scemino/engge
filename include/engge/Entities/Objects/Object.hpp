@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <squirrel.h>
+#include <engge/Graphics/SpriteSheetItem.h>
 #include "engge/Entities/Entity.hpp"
 
 namespace ng {
@@ -19,6 +20,20 @@ enum class ObjectType {
 class Actor;
 class Animation;
 class Room;
+
+struct ObjectAnimation {
+  std::string name;
+  std::vector<SpriteSheetItem> frames;
+  std::vector<ObjectAnimation> layers;
+  std::vector<glm::ivec2> offsets;
+  std::vector<std::string> triggers;
+  bool loop{false};
+  int fps{0};
+  int flags{0};
+  int frameIndex{0};
+  ngf::TimeSpan elapsed;
+  bool visible{true};
+};
 
 namespace ObjectStateConstants {
 static const int ALL = 1;
@@ -81,7 +96,8 @@ public:
   HSQOBJECT &getTable() override;
   HSQOBJECT &getTable() const override;
 
-  std::vector<std::unique_ptr<Animation>> &getAnims();
+  void setTexture(const ngf::Texture* texture);
+  std::vector<ObjectAnimation> &getAnims();
 
   bool isVisible() const override;
   void setStateAnimIndex(int animIndex);
@@ -89,7 +105,7 @@ public:
   void playAnim(const std::string &anim, bool loop);
   int getState() const;
   void setAnimation(const std::string &name);
-  std::optional<Animation *> &getAnimation();
+  ObjectAnimation * &getAnimation();
 
   Room *getRoom() override;
   const Room *getRoom() const override;

@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include "ResourceManager.hpp"
+#include "SpriteSheetItem.h"
 
 namespace ng {
 class SpriteSheet {
@@ -15,6 +16,7 @@ public:
   [[nodiscard]] ngf::irect getRect(const std::string &name) const;
   [[nodiscard]] ngf::irect getSpriteSourceSize(const std::string &name) const;
   [[nodiscard]] glm::ivec2 getSourceSize(const std::string &name) const;
+  [[nodiscard]] SpriteSheetItem getItem(const std::string &name) const;
 
 private:
   ResourceManager *_pResourceManager{nullptr};
