@@ -844,6 +844,8 @@ Light *Room::createLight(ngf::Color color, glm::ivec2 pos) {
   return &light;
 }
 
+int Room::getNumberLights() const { return pImpl->_numLights; }
+
 void Room::exit() {
   pImpl->_numLights = 0;
   for (auto &obj : pImpl->_objects) {

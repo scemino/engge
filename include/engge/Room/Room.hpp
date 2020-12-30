@@ -44,7 +44,8 @@ public:
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
   [[nodiscard]] const std::vector<std::unique_ptr<Object>> &getObjects() const;
-  std::array<Light, 50> &getLights();
+  [[nodiscard]] std::array<Light, 50> &getLights();
+  [[nodiscard]] int getNumberLights() const;
 
   void update(const ngf::TimeSpan &elapsed);
   void draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const;

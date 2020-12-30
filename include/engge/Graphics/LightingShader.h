@@ -136,6 +136,8 @@ public:
     m_numberLights = numberLights;
   }
 
+  int getNumberLights() const { return m_numberLights; }
+
   void setLights(const std::array<Light, 50> &lights) {
     std::array<glm::vec3, 50> u_lightPos;
     std::array<glm::vec2, 50> u_coneDirection;

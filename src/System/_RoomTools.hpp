@@ -69,6 +69,29 @@ public:
     if (ngf::ImGui::ColorEdit4("ambient", &ambient)) {
       room->setAmbientLight(ambient);
     }
+    for (i = 0; i < static_cast<int>(room->getLights().size()); ++i) {
+      if (i >= room->getNumberLights())
+        break;
+
+      std::ostringstream ss;
+      ss << "Light " << (i + 1);
+
+      if (ImGui::TreeNode(ss.str().c_str())) {
+        auto &light = room->getLights()[i];
+        ImGui::DragInt2("Position", &light.pos.x);
+        ngf::ImGui::ColorEdit4("Color", &light.color);
+        ImGui::DragFloat("Direction angle", &light.coneDirection,
+                         1.0f, 0.0f, 360.f);
+        ImGui::DragFloat("Angle", &light.coneAngle, 1.0f, 0.0f, 360.f);
+        ImGui::DragFloat("Cutoff", &light.cutOffRadius, 1.0f);
+        ImGui::DragFloat("Falloff", &light.coneFalloff, 0.1f, 0.f, 1.0f);
+        ImGui::DragFloat(
+            "Brightness", &light.brightness, 1.0f, 1.0f, 100.f);
+        ImGui::DragFloat(
+            "Half Radius", &light.halfRadius, 1.0f, 0.01f, 0.99f);
+        ImGui::TreePop();
+      }
+    }
     auto effect = room->getEffect();
     auto effects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0";
     if (ImGui::Combo("Shader", &effect, effects)) {

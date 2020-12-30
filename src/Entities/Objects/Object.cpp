@@ -69,7 +69,10 @@ struct Object::Impl {
     sq_release(v, &_table);
   }
 
-  void draw(const ObjectAnimation &anim, ngf::RenderTarget &target, ngf::RenderStates states) const {
+  void draw(const ngf::Transform &transform,
+            const ObjectAnimation &anim,
+            ngf::RenderTarget &target,
+            ngf::RenderStates states) const {
     if (!anim.visible)
       return;
     if (anim.frames.empty())
@@ -80,44 +83,43 @@ struct Object::Impl {
       offset = anim.offsets[anim.frameIndex];
     }
     const auto frame = anim.frames[anim.frameIndex];
-    glm::vec2 origin = {frame.sourceSize.x / 2.f, frame.sourceSize.y / 2.f};
-    glm::vec2 pos = {
-        frame.spriteSourceSize.min.x + offset.x,
-        frame.spriteSourceSize.min.y - offset.y};
+
+    auto pos = transform.getPosition();
+    ngf::Transform t;
+    t.setPosition({pos.x, _pRoom->getRoomSize().y - pos.y});
 
     ngf::Transform tFlipX;
     tFlipX.setScale({1, 1});
-    ngf::Transform t;
-    t.setOrigin(origin);
-    t.setPosition(pos);
-    states.shader = nullptr;
-    states.transform = tFlipX.getTransform() * t.getTransform() * states.transform;
+    states.transform = tFlipX.getTransform() * states.transform * t.getTransform();
 
-    //  auto pShader = (LightingShader *) states.shader;
-//  auto texSize = texture->getSize();
-//  pShader->setTexture(*texture);
-//  pShader->setContentSize(frame.sourceSize);
-//  pShader->setSpriteOffset({-frame.frame.getWidth() / 2.f + pos.x, -frame.frame.getHeight() / 2.f - pos.y});
-//  pShader->setSpritePosInSheet({static_cast<float>(frame.frame.min.x) / texSize.x,
-//                                static_cast<float>(frame.frame.min.y) / texSize.y});
-//  pShader->setSpriteSizeRelToSheet({static_cast<float>(frame.sourceSize.x) / texSize.x,
-//                                    static_cast<float>(frame.sourceSize.y) / texSize.y});
+    auto pShader = (LightingShader *) states.shader;
+    auto texSize = _texture->getSize();
+    pShader->setTexture(*_texture);
+    pShader->setContentSize(frame.sourceSize);
+    pShader->setSpriteOffset({-frame.frame.getWidth() / 2.f + pos.x, -frame.frame.getHeight() / 2.f - pos.y});
+    pShader->setSpritePosInSheet({static_cast<float>(frame.frame.min.x) / texSize.x,
+                                  static_cast<float>(frame.frame.min.y) / texSize.y});
+    pShader->setSpriteSizeRelToSheet({static_cast<float>(frame.sourceSize.x) / texSize.x,
+                                      static_cast<float>(frame.sourceSize.y) / texSize.y});
 
-
+    glm::vec2 off = {
+        frame.spriteSourceSize.min.x + offset.x - frame.sourceSize.x / 2.f,
+        frame.spriteSourceSize.min.y - offset.y - frame.sourceSize.y / 2.f};
     ngf::Sprite sprite(*_texture, frame.frame);
+    sprite.getTransform().setPosition(off);
     sprite.draw(target, states);
   }
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
+  void draw(const ngf::Transform &transform, ngf::RenderTarget &target, ngf::RenderStates states) const {
     if (!_pAnim)
       return;
     if (_pAnim->frames.empty() && _pAnim->layers.empty())
       return;
 
-    draw(*_pAnim, target, states);
+    draw(transform, *_pAnim, target, states);
 
     for (const auto &layer : _pAnim->layers) {
-      draw(layer, target, states);
+      draw(transform, layer, target, states);
     }
   }
 
@@ -451,13 +453,8 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (pImpl->_screenSpace == ScreenSpace::Object)
     return;
 
-  auto transformable = getTransform();
-  transformable.setPosition({transformable.getPosition().x,
-                             target.getView().getSize().y - transformable.getPosition().y});
-  states.transform = transformable.getTransform() * states.transform;
-
   if (pImpl->_pAnim) {
-    pImpl->draw(target, states);
+    pImpl->draw(getTransform(), target, states);
   }
 
   for (const auto &pChild : pImpl->_children) {
@@ -465,7 +462,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   }
 
   ngf::RenderStates statesHotspot = initialStates;
-  transformable = getTransform();
+  auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
                              target.getView().getSize().y - transformable.getPosition().y});
   transformable.setScale({1.f, 1.f});
