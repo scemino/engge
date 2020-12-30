@@ -1,27 +1,21 @@
 #pragma once
 #include <vector>
-#include "engge/Entities/Entity.hpp"
+#include <ngf/Graphics/Texture.h>
+#include <engge/Entities/Entity.hpp>
+#include <engge/Graphics/SpriteSheetItem.h>
 
 namespace ng {
-
-struct Background {
-public:
-  Background(const glm::ivec2 &pos, std::string texture, const ngf::irect &rect)
-      : m_pos(pos), m_texture(std::move(texture)), m_rect(rect) {
-  }
-
-public:
-  glm::ivec2 m_pos;
-  std::string m_texture;
-  ngf::irect m_rect;
-};
 
 class RoomLayer {
 public:
   RoomLayer();
   ~RoomLayer() = default;
 
-  std::vector<Background> &getBackgrounds() { return _backgrounds; }
+  void setTexture(const ngf::Texture *texture);
+  void setRoomSizeY(int roomSizeY) { _roomSizeY = roomSizeY; }
+  void setOffsetY(int offsetY) { _offsetY = offsetY; }
+
+  std::vector<SpriteSheetItem> &getBackgrounds() { return _backgrounds; }
 
   void setParallax(const glm::vec2 &parallax) { _parallax = parallax; }
   [[nodiscard]] const glm::vec2 &getParallax() const { return _parallax; }
@@ -40,10 +34,13 @@ public:
   void update(const ngf::TimeSpan &elapsed);
 
 private:
-  std::vector<Background> _backgrounds;
+  const ngf::Texture *_texture{nullptr};
+  std::vector<SpriteSheetItem> _backgrounds;
   std::vector<std::reference_wrapper<Entity>> _entities;
   glm::vec2 _parallax{1, 1};
   int _zsort{0};
   bool _enabled{true};
+  int _offsetY{0};
+  int _roomSizeY{0};
 };
 } // namespace ng

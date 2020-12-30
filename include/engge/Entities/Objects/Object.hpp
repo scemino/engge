@@ -108,7 +108,6 @@ public:
 
   bool hasParent() const override;
   void setParent(Object *pParent);
-  Object* getParent();
 
   void setFps(int fps) override;
 

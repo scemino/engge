@@ -1,6 +1,7 @@
 #include <utility>
 #include <ngf/Math/Transform.h>
 #include <ngf/Graphics/Sprite.h>
+#include <engge/Graphics/LightingShader.h>
 #include "engge/Graphics/ResourceManager.hpp"
 #include "engge/Entities/Objects/Animation.hpp"
 #include "engge/System/Locator.hpp"
@@ -75,6 +76,18 @@ void Animation::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   t.setPosition(pos);
   t.move(offset);
   states.transform = tFlipX.getTransform() * t.getTransform() * states.transform;
+
+//  auto texture = Locator<ResourceManager>::get().getTexture(_texture);
+//
+//  auto pShader = (LightingShader *) states.shader;
+//  auto texSize = texture->getSize();
+//  pShader->setTexture(*texture);
+//  pShader->setContentSize(frame.sourceSize);
+//  pShader->setSpriteOffset({-frame.frame.getWidth() / 2.f + pos.x, -frame.frame.getHeight() / 2.f - pos.y});
+//  pShader->setSpritePosInSheet({static_cast<float>(frame.frame.min.x) / texSize.x,
+//                                static_cast<float>(frame.frame.min.y) / texSize.y});
+//  pShader->setSpriteSizeRelToSheet({static_cast<float>(frame.sourceSize.x) / texSize.x,
+//                                    static_cast<float>(frame.sourceSize.y) / texSize.y});
 
   ngf::Sprite sprite(*Locator<ResourceManager>::get().getTexture(_texture), rect);
   sprite.setColor(_color);

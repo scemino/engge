@@ -1,11 +1,12 @@
 #pragma once
 #include <vector>
-#include "engge/Graphics/SpriteSheet.hpp"
+#include <engge/Graphics/SpriteSheet.hpp>
 #include <squirrel.h>
 #include <ngf/System/TimeSpan.h>
 #include <ngf/Graphics/RenderTarget.h>
 #include <ngf/Graphics/Color.h>
-#include "engge/Scripting/ScriptObject.hpp"
+#include <engge/Scripting/ScriptObject.hpp>
+#include <engge/Graphics/LightingShader.h>
 
 namespace ngf {
 class Walkbox;
@@ -43,7 +44,7 @@ public:
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
   [[nodiscard]] const std::vector<std::unique_ptr<Object>> &getObjects() const;
-  std::vector<std::unique_ptr<Light>> &getLights();
+  std::array<Light, 50> &getLights();
 
   void update(const ngf::TimeSpan &elapsed);
   void draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const;

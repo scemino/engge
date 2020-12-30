@@ -46,9 +46,11 @@ struct Room::Impl {
   ngf::Color _ambientColor{255, 255, 255, 255};
   SpriteSheet _spriteSheet;
   Room *_pRoom{nullptr};
-  std::vector<std::unique_ptr<Light>> _lights;
+  std::array<Light, 50> _lights;
+  int _numLights{0};
   float _rotation{0};
   //ngf::Shader _shader{};
+  LightingShader _lightingShader;
   int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
   ngf::Color _overlayColor{ngf::Colors::Transparent};
   bool _pseudoRoom{false};
@@ -60,32 +62,12 @@ struct Room::Impl {
     for (int i = -3; i < 6; ++i) {
       _layers[i] = std::make_unique<RoomLayer>();
     }
-
-    const char *vertexShader = "void main()"
-                               "{"
-                               "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
-                               "    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
-                               "    gl_FrontColor = gl_Color;"
-                               "}";
-
-    // load vertex shader
-    //_shader.load(vertexShader, nullptr);
   }
 
   void setEffect(int effect) {
     if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE) {
       _selectedEffect = effect;
-      const char *fragmentShader = "uniform sampler2D texture;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);\n"
-                                   "vec4 col = gl_Color * texColor;\n"
-                                   "float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));\n"
-                                   "gl_FragColor = vec4(gray, gray, gray, col.a);\n"
-                                   "}";
-      //_shader.load(fragmentShader, nullptr);
       // TODO:
-      //_shader.setUniform("texture", sf::Shader::CurrentTexture);
       return;
     }
     _selectedEffect = RoomEffectConstants::EFFECT_NONE;
@@ -98,28 +80,26 @@ struct Room::Impl {
     if (!jWimpy["fullscreen"].isNull()) {
       _fullscreen = jWimpy["fullscreen"].int_value;
     }
+    _layers[0]->setTexture(&_spriteSheet.getTexture());
     auto screenHeight = _pRoom->getScreenSize().y;
+    auto offsetY = screenHeight - _pRoom->getRoomSize().y;
     if (jWimpy["background"].isArray()) {
       for (auto &bg : jWimpy["background"].array_value) {
         auto frame = _spriteSheet.getRect(bg.string_value);
         auto sourceSize = _spriteSheet.getSourceSize(bg.string_value);
-        auto sourceRect = _spriteSheet.getSpriteSourceSize(bg.string_value);
-        auto offset = sourceSize.y - screenHeight;
-        _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.getTopLeft().x + width,
-                                                              sourceRect.getTopLeft().y - offset},
-                                                             _sheet,
-                                                             frame));
+        auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(bg.string_value);
+        _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
+        _layers[0]->setOffsetY(offsetY);
+        _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize});
         width += frame.getWidth();
       }
     } else if (jWimpy["background"].isString()) {
       auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
       auto sourceSize = _spriteSheet.getSourceSize(jWimpy["background"].string_value);
-      auto sourceRect = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
-      auto offset = sourceSize.y - screenHeight;
-      _layers[0]->getBackgrounds().emplace_back(Background({sourceRect.getTopLeft().x,
-                                                            sourceRect.getTopLeft().y - offset},
-                                                           _sheet,
-                                                           frame));
+      auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
+      _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
+      _layers[0]->setOffsetY(offsetY);
+      _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize});
     }
     // room width seems to be not enough :S
     if (width > _roomSize.x) {
@@ -136,27 +116,24 @@ struct Room::Impl {
     for (auto jLayer : jWimpy["layers"].array_value) {
       auto zsort = jLayer["zsort"].int_value;
       auto &layer = _layers[zsort];
+      layer->setRoomSizeY(_pRoom->getRoomSize().y);
+      layer->setOffsetY(offsetY);
+      layer->setTexture(&_spriteSheet.getTexture());
       layer->setZOrder(zsort);
       if (jLayer["name"].isArray()) {
-        auto offsetX = 0;
         for (const auto &jName : jLayer["name"].array_value) {
           auto layerName = jName.string_value;
-          auto rect = _spriteSheet.getRect(layerName);
+          auto frame = _spriteSheet.getRect(layerName);
           auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
           auto sourceSize = _spriteSheet.getSourceSize(layerName);
-          glm::ivec2
-              origin(-spriteSourceSize.getTopLeft().x, sourceSize.y - _roomSize.y - spriteSourceSize.getTopLeft().y);
-          offsetX += rect.getWidth();
-          layer->getBackgrounds().push_back(Background({offsetX - origin.x, offsetY - origin.y}, _sheet, rect));
+          layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize});
         }
       } else {
         auto layerName = jLayer["name"].string_value;
-        auto rect = _spriteSheet.getRect(layerName);
+        auto frame = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
-        glm::ivec2
-            origin(-spriteSourceSize.getTopLeft().x, sourceSize.y - _roomSize.y - spriteSourceSize.getTopLeft().y);
-        layer->getBackgrounds().push_back(Background({0 - origin.x, offsetY - origin.y}, _sheet, rect));
+        layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize});
       }
       if (jLayer["parallax"].isString()) {
         auto parallax = _parsePos(jLayer["parallax"].string_value);
@@ -556,7 +533,7 @@ std::string Room::getName() const { return pImpl->_name; }
 std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_objects; }
 const std::vector<std::unique_ptr<Object>> &Room::getObjects() const { return pImpl->_objects; }
 
-std::vector<std::unique_ptr<Light>> &Room::getLights() { return pImpl->_lights; }
+std::array<Light, 50> &Room::getLights() { return pImpl->_lights; }
 
 std::vector<ngf::Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
 
@@ -757,9 +734,12 @@ void Room::update(const ngf::TimeSpan &elapsed) {
 }
 
 void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
-  if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE) {
-    //states.shader = &pImpl->_shader;
-  }
+
+  // update lighting
+  auto nLights = pImpl->_numLights;
+  pImpl->_lightingShader.setAmbientColor(pImpl->_ambientColor);
+  pImpl->_lightingShader.setNumberLights(nLights);
+  pImpl->_lightingShader.setLights(pImpl->_lights);
 
   auto screen = target.getView().getSize();
   auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
@@ -774,6 +754,7 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
 
     ngf::RenderStates states;
     ngf::Transform t;
+    states.shader = &pImpl->_lightingShader;
     t.move({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
     states.transform = t.getTransform() * tRot.getTransform();
     layer.second->draw(target, states);
@@ -781,11 +762,6 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
 }
 
 void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
-  ngf::RenderStates states;
-  if (pImpl->_selectedEffect != RoomEffectConstants::EFFECT_NONE) {
-    //states.shader = &pImpl->_shader;
-  }
-
   auto screen = target.getView().getSize();
   auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
 
@@ -794,11 +770,15 @@ void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos)
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
 
+    ngf::Transform tRot;
+    tRot.setOrigin(halfScreen);
+    tRot.setPosition(halfScreen);
+    tRot.setRotation(pImpl->_rotation);
+
+    ngf::RenderStates states;
     ngf::Transform t;
-    // TODO:
-    //t.rotate(pImpl->_rotation, halfScreen.x, halfScreen.y);
     t.setPosition({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
-    states.transform = t.getTransform();
+    states.transform = t.getTransform() * tRot.getTransform();
     layer.second->drawForeground(target, states);
   }
 }
@@ -838,13 +818,14 @@ float Room::getRotation() const { return pImpl->_rotation; }
 void Room::setRotation(float angle) { pImpl->_rotation = angle; }
 
 Light *Room::createLight(ngf::Color color, glm::ivec2 pos) {
-  auto light = std::make_unique<Light>(color, pos);
-  Light *pLight = light.get();
-  pImpl->_lights.emplace_back(std::move(light));
-  return pLight;
+  auto &light = pImpl->_lights[pImpl->_numLights++];
+  light.color = color;
+  light.pos = pos;
+  return &light;
 }
 
 void Room::exit() {
+  pImpl->_numLights = 0;
   for (auto &obj : pImpl->_objects) {
     if (!obj->isTemporary())
       continue;

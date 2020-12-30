@@ -126,8 +126,8 @@ private:
     auto pLight = pRoom->createLight(_toColor(color), {x, y});
 
     ScriptEngine::pushObject(v, pLight);
-    sq_getstackobj(v, -1, &pLight->getTable());
-    sq_addref(v, &pLight->getTable());
+    sq_getstackobj(v, -1, &pLight->table);
+    sq_addref(v, &pLight->table);
     return 1;
   }
 
@@ -143,7 +143,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &brightness)))
       return sq_throwerror(v, _SC("failed to get brightness"));
 
-    pLight->setBrightness(brightness);
+    pLight->brightness = brightness;
     return 0;
   }
 
@@ -159,7 +159,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &direction))) {
       return sq_throwerror(v, _SC("failed to get direction"));
     }
-    pLight->setConeDirection(direction);
+    pLight->coneDirection = direction;
     return 0;
   }
 
@@ -175,7 +175,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &angle))) {
       return sq_throwerror(v, _SC("failed to get angle"));
     }
-    pLight->setConeAngle(angle);
+    pLight->coneAngle = angle;
     return 0;
   }
 
@@ -191,7 +191,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &falloff))) {
       return sq_throwerror(v, _SC("failed to get falloff"));
     }
-    pLight->setConeFalloff(falloff);
+    pLight->coneFalloff = falloff;
     return 0;
   }
 
@@ -207,7 +207,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &cutOffRadius))) {
       return sq_throwerror(v, _SC("failed to get cutOffRadius"));
     }
-    pLight->setCutOffRadius(cutOffRadius);
+    pLight->cutOffRadius = cutOffRadius;
     return 0;
   }
 
@@ -223,7 +223,7 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &halfRadius))) {
       return sq_throwerror(v, _SC("failed to get halfRadius"));
     }
-    pLight->setHalfRadius(halfRadius);
+    pLight->halfRadius = halfRadius;
     return 0;
   }
 
@@ -239,7 +239,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 3, &on))) {
       return sq_throwerror(v, _SC("failed to get on"));
     }
-    pLight->setOn(on != 0);
+    pLight->on = (on != 0);
     return 0;
   }
 
@@ -258,7 +258,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 4, &farY))) {
       return sq_throwerror(v, _SC("failed to get farY"));
     }
-    pLight->setZRange(nearY, farY);
+    // TODO: ZRange ??
     return 0;
   }
 

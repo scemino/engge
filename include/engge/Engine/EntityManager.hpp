@@ -129,9 +129,9 @@ TScriptObject *EntityManager::getScriptObjectFromId(int id) {
 
   if (EntityManager::isLight(id)) {
     for (auto &&room : ng::Locator<ng::Engine>::get().getRooms()) {
-      for (auto &&light : room->getLights()) {
-        if (light->getId() == id)
-          return dynamic_cast<TScriptObject *>(light.get());
+      for (auto &light : room->getLights()) {
+        if (light.getId() == id)
+          return dynamic_cast<TScriptObject *>(&light);
       }
     }
     return nullptr;

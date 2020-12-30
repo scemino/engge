@@ -3,9 +3,8 @@
 #include "engge/Engine/EntityManager.hpp"
 
 namespace ng {
-Light::Light(ngf::Color color, glm::ivec2 pos)
-    : _color(color), _pos(pos) {
-  sq_resetobject(&_table);
+Light::Light() {
+  sq_resetobject(&table);
   _id = Locator<EntityManager>::get().getLightId();
 }
 
