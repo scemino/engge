@@ -1,7 +1,6 @@
 #pragma once
 #include <optional>
 #include <squirrel.h>
-#include "engge/Entities/Objects/Animation.hpp"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/Engine/Function.hpp"

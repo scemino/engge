@@ -666,7 +666,7 @@ struct Engine::Impl {
       return nullptr;
     }
 
-    Object *getInventoryObject(const std::string &name) {
+    static Object *getInventoryObject(const std::string &name) {
       auto v = ScriptEngine::getVm();
       SQObjectPtr obj;
       if (!_table(v->_roottable)->Get(ScriptEngine::toSquirrel(name), obj)) {
@@ -751,7 +751,7 @@ struct Engine::Impl {
       }
     }
 
-    void saveGlobals(GGPackValue &globalsHash) {
+    static void saveGlobals(GGPackValue &globalsHash) {
       auto v = ScriptEngine::getVm();
       auto top = sq_gettop(v);
       sq_pushroottable(v);
@@ -973,7 +973,6 @@ struct Engine::Impl {
   };
 
   Engine *_pEngine{nullptr};
-  //std::unique_ptr<_DebugTools> _pDebugTools;
   ResourceManager &_textureManager;
   Room *_pRoom{nullptr};
   std::vector<std::unique_ptr<Actor>> _actors;
@@ -992,8 +991,8 @@ struct Engine::Impl {
   Entity *_pUseObject{nullptr};
   int _objId1{0};
   Entity *_pObj2{nullptr};
-  glm::vec2 _mousePos;
-  glm::vec2 _mousePosInRoom;
+  glm::vec2 _mousePos{0,0};
+  glm::vec2 _mousePosInRoom{0,0};
   std::unique_ptr<VerbExecute> _pVerbExecute;
   std::unique_ptr<ScriptExecute> _pScriptExecute;
   std::vector<std::unique_ptr<ThreadBase>> _threads;
@@ -1076,8 +1075,7 @@ struct Engine::Impl {
   void selectActor(int index);
   void selectPreviousActor();
   void selectNextActor();
-  void selectChoice(int index);
-  bool hasFlag(int id, uint32_t flagToTest);
+  bool hasFlag(int id, uint32_t flagToTest) const;
 };
 
 Engine::Impl::Impl()
@@ -1297,31 +1295,25 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) const {
                                                                          PreferenceDefaultValues::Language);
   const auto &spriteSheet = pRoom->getSpriteSheet();
   auto &objects = pRoom->getObjects();
-  // TODO:
-//  for (auto &obj : objects) {
-//    for (auto &anim : obj->getAnims()) {
-//      for (size_t i = 0; i < anim->size(); ++i) {
-//        auto &frame = anim->at(i);
-//        auto name = frame.getName();
-//        if (!endsWith(name, "_en"))
-//          continue;
-//
-//        checkLanguage(name);
-//        auto rect = spriteSheet.getRect(name);
-//        auto sourceRect = spriteSheet.getSpriteSourceSize(name);
-//        auto size = spriteSheet.getSourceSize(name);
-//        frame.setRect(rect);
-//        frame.setSourceRect(sourceRect);
-//        frame.setSize(size);
-//      }
-//    }
-//    if (obj->getId() == 0 || obj->isTemporary())
-//      continue;
-//
-//    if (ScriptEngine::rawExists(obj.get(), "enter")) {
-//      ScriptEngine::rawCall(obj.get(), "enter");
-//    }
-//  }
+  for (auto &obj : objects) {
+    for (auto &anim : obj->getAnims()) {
+      for (size_t i = 0; i < anim.frames.size(); ++i) {
+        auto &frame = anim.frames.at(i);
+        auto name = frame.name;
+        if (!endsWith(name, "_en"))
+          continue;
+
+        checkLanguage(name);
+        anim.frames[i] = spriteSheet.getItem(name);
+      }
+    }
+    if (obj->getId() == 0 || obj->isTemporary())
+      continue;
+
+    if (ScriptEngine::rawExists(obj.get(), "enter")) {
+      ScriptEngine::rawCall(obj.get(), "enter");
+    }
+  }
 
   ScriptEngine::rawCall("enteredRoom", pRoom);
 
@@ -1529,7 +1521,7 @@ Entity *Engine::Impl::getEntity(Entity *pEntity) const {
   return pEntity;
 }
 
-bool Engine::Impl::hasFlag(int id, uint32_t flagToTest) {
+bool Engine::Impl::hasFlag(int id, uint32_t flagToTest) const {
   auto pObj = EntityManager::getScriptObjectFromId<Entity>(id);
   auto flags = getFlags(pObj);
   if (flags & flagToTest)
@@ -1667,7 +1659,7 @@ void Engine::Impl::updateKeyboard() {
     if (verb.key.length() == 0)
       continue;
     auto id = std::strtol(verb.key.substr(1, verb.key.length() - 1).c_str(), nullptr, 10);
-    auto key = toKey(tostring(_pEngine->getText(id)));
+    auto key = toKey(tostring(ng::Engine::getText(id)));
     if (isKeyPressed(key)) {
       onVerbClick(&verb);
     }

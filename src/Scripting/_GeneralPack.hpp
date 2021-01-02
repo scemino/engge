@@ -464,7 +464,7 @@ private:
       SQFloat max = 0;
       sq_getfloat(v, 2, &min);
       sq_getfloat(v, 3, &max);
-      auto value = Locator<RandomNumberGenerator>::get().generateLong(min, max);
+      auto value = Locator<RandomNumberGenerator>::get().generateFloat(min, max);
       sq_pushfloat(v, value);
       return 1;
     }

@@ -32,14 +32,10 @@ set(SOURCES
         Entities/Actor/Actor.cpp
         Entities/Actor/BlinkState.cpp
         Entities/Actor/Costume.cpp
-        Entities/Actor/CostumeAnimation.cpp
-        Entities/Actor/CostumeLayer.cpp
         Entities/Entity.cpp
         Engine/EntityManager.cpp
         Entities/Objects/Object.cpp
         Entities/Objects/TextObject.cpp
-        Entities/Objects/Animation.cpp
-        Entities/Objects/AnimationFrame.cpp
         Graphics/GGFont.cpp
         Graphics/ResourceManager.cpp
         Graphics/SpriteSheet.cpp

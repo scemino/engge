@@ -16,9 +16,9 @@ public:
   [[nodiscard]] const ngf::Glyph &getGlyph(unsigned int codePoint,
                                            unsigned int characterSize,
                                            float outlineThickness) override;
-  [[nodiscard]] float getKerning(unsigned int first,
-                                 unsigned int second, unsigned int characterSize) override { return 0.f; }
-  float getLineSpacing(unsigned int characterSize) override { return 16.f; }
+  [[nodiscard]] float getKerning(unsigned int,
+                                 unsigned int, unsigned int) override { return 0.f; }
+  float getLineSpacing(unsigned int) override { return 16.f; }
 
 private:
   std::map<unsigned int, ngf::Glyph> _glyphs;

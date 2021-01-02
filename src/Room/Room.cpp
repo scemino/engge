@@ -1,17 +1,16 @@
-#include "engge/Room/Room.hpp"
-#include "engge/Entities/Objects/Animation.hpp"
-#include "engge/Engine/EngineSettings.hpp"
-#include "engge/Parsers/JsonTokenReader.hpp"
-#include "engge/Engine/Light.hpp"
-#include "engge/System/Locator.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/Engine/EntityManager.hpp"
-#include "engge/Room/RoomLayer.hpp"
-#include "engge/Room/RoomScaling.hpp"
-#include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Entities/Objects/AnimationFrame.hpp"
-#include "engge/Entities/Objects/TextObject.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
+#include <engge/Room/Room.hpp>
+#include <engge/Engine/EngineSettings.hpp>
+#include <engge/Parsers/JsonTokenReader.hpp>
+#include <engge/Engine/Light.hpp>
+#include <engge/System/Locator.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/Engine/EntityManager.hpp>
+#include <engge/Room/RoomLayer.hpp>
+#include <engge/Room/RoomScaling.hpp>
+#include <engge/Graphics/SpriteSheet.hpp>
+#include <engge/Entities/Objects/TextObject.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Entities/AnimationLoader.hpp>
 #include "../System/_Util.hpp"
 #include <squirrel.h>
 #include <clipper.hpp>
@@ -24,68 +23,10 @@
 #include <ngf/Graphics/RectangleShape.h>
 
 namespace ng {
+
 struct CmpLayer {
   bool operator()(int a, int b) const { return a > b; }
 };
-
-namespace {
-
-bool toBool(const GGPackValue &gValue) {
-  return !gValue.isNull() && gValue.getInt() == 1;
-}
-
-static glm::ivec2 parseIVec2(std::string_view value) {
-  char *ptr;
-  auto x = std::strtol(value.data() + 1, &ptr, 10);
-  auto y = std::strtol(ptr + 1, &ptr, 10);
-  return glm::ivec2{x, y};
-}
-
-ObjectAnimation parseObjectAnimation(const GGPackValue &gAnimation, const SpriteSheet &spriteSheet) {
-  ObjectAnimation anim;
-  anim.name = gAnimation["name"].getString();
-  anim.loop = toBool(gAnimation["loop"]);
-  anim.fps = gAnimation["fps"].isNull() ? 0.f : gAnimation["fps"].getDouble();
-  anim.flags = gAnimation["flags"].isNull() ? 0 : gAnimation["flags"].getInt();
-  if (!gAnimation["frames"].isNull()) {
-    for (const auto &gFrame : gAnimation["frames"].array_value) {
-      auto name = gFrame.getString();
-      anim.frames.push_back(spriteSheet.getItem(name));
-    }
-  }
-
-  if (!gAnimation["layers"].isNull()) {
-    for (const auto &gLayer : gAnimation["layers"].array_value) {
-      auto layer = parseObjectAnimation(gLayer, spriteSheet);
-      anim.layers.push_back(layer);
-    }
-  }
-  if (!gAnimation["offsets"].isNull()) {
-    for (const auto &gOffset : gAnimation["offsets"].array_value) {
-      auto offset = parseIVec2(gOffset.getString());
-      anim.offsets.push_back(offset);
-    }
-  }
-  if (!gAnimation["triggers"].isNull()) {
-    for (const auto &gTriggers : gAnimation["triggers"].array_value) {
-      anim.triggers.push_back(gTriggers.getString());
-    }
-  }
-  return anim;
-}
-
-std::vector<ObjectAnimation> parseObjectAnimations(const GGPackValue &gAnimations, const SpriteSheet &spriteSheet) {
-  std::vector<ObjectAnimation> anims;
-  if (gAnimations.isNull())
-    return anims;
-  for (const auto &gAnimation : gAnimations.array_value) {
-    if (gAnimation.isNull())
-      continue;
-    anims.push_back(parseObjectAnimation(gAnimation, spriteSheet));
-  }
-  return anims;
-}
-}
 
 struct Room::Impl {
   ResourceManager &_textureManager;
@@ -105,7 +46,7 @@ struct Room::Impl {
   ngf::Color _ambientColor{255, 255, 255, 255};
   SpriteSheet _spriteSheet;
   Room *_pRoom{nullptr};
-  std::array<Light, 50> _lights;
+  std::array<Light, LightingShader::MaxLights> _lights;
   int _numLights{0};
   float _rotation{0};
   //ngf::Shader _shader{};
@@ -288,7 +229,7 @@ struct Room::Impl {
       // animations
       object->setTexture(&_spriteSheet.getTexture());
       if (jObject["animations"].isArray()) {
-        auto anims = parseObjectAnimations(jObject["animations"], _spriteSheet);
+        auto anims = AnimationLoader::parseObjectAnimations(jObject["animations"], _spriteSheet);
         auto &objAnims = object->getAnims();
         std::copy(anims.begin(), anims.end(), std::back_inserter(objAnims));
 
@@ -555,7 +496,7 @@ std::string Room::getName() const { return pImpl->_name; }
 std::vector<std::unique_ptr<Object>> &Room::getObjects() { return pImpl->_objects; }
 const std::vector<std::unique_ptr<Object>> &Room::getObjects() const { return pImpl->_objects; }
 
-std::array<Light, 50> &Room::getLights() { return pImpl->_lights; }
+std::array<Light, LightingShader::MaxLights> &Room::getLights() { return pImpl->_lights; }
 
 std::vector<ngf::Walkbox> &Room::getWalkboxes() { return pImpl->_walkboxes; }
 
@@ -659,45 +600,24 @@ void Room::deleteObject(Object &object) { pImpl->_layers[0]->removeEntity(object
 
 Object &Room::createObject(const std::vector<std::string> &anims) { return createObject(pImpl->_sheet, anims); }
 
-Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &anims) {
-  // load json file
-  std::string jsonFilename;
-  jsonFilename.append(sheet).append(".json");
-  std::vector<char> buffer;
-  Locator<EngineSettings>::get().readEntry(jsonFilename, buffer);
-  auto json = ng::Json::Parser::parse(buffer);
-
+Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &frames) {
   auto object = std::make_unique<Object>();
-  auto animation = std::make_unique<Animation>(sheet, "state0");
-  // TODO:
-//  for (auto n : anims) {
-//    if (json["frames"][n].isNull())
-//      continue;
-//
-//    checkLanguage(n);
-//
-//    auto frame = json["frames"][n]["frame"];
-//    auto rect = _toRect(frame);
-//    auto size = _toSize(json["frames"][n]["sourceSize"]);
-//    auto sourceRect = _toRect(json["frames"][n]["spriteSourceSize"]);
-//    AnimationFrame animFrame(rect);
-//    animFrame.setSourceRect(sourceRect);
-//    animFrame.setSize(size);
-//    animation->addFrame(std::move(animFrame));
-//  }
-//  animation->reset();
-//  object->getAnims().push_back(animation);
-//
-//  for (auto &anim : object->getAnims()) {
-//    if (!anim->empty()) {
-//      object->setAnimation(anim->getName());
-//      break;
-//    }
-//  }
+  auto spriteSheet = pImpl->_textureManager.getSpriteSheet(sheet);
+  object->setTexture(&spriteSheet.getTexture());
+
+  ObjectAnimation anim;
+  anim.name = "state0";
+
+  for (auto frame :frames) {
+    checkLanguage(frame);
+    anim.frames.push_back(spriteSheet.getItem(frame));
+  }
+  object->getAnims().push_back(anim);
+  object->setStateAnimIndex(0);
+  object->setTemporary(true);
+  object->setRoom(this);
+  object->setZOrder(1);
   auto &obj = *object;
-  obj.setTemporary(true);
-  obj.setRoom(this);
-  obj.setZOrder(1);
   pImpl->_layers[0]->addEntity(obj);
   pImpl->_objects.push_back(std::move(object));
   return obj;

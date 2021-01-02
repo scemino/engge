@@ -27,7 +27,9 @@ void main(void) {
 })";
 
 constexpr const char *fragmentShaderCode = R"(#version 330 core
+#ifdef GL_ES
 precision highp float;
+#endif
 
 in vec2 v_texCoords;
 in vec4 v_color;
@@ -37,7 +39,6 @@ uniform sampler2D u_texture;
 
 uniform vec2  u_contentSize;
 uniform vec3  u_ambientColor;
-
 uniform vec2 u_spritePosInSheet;
 uniform vec2 u_spriteSizeRelToSheet;
 uniform vec2 u_spriteOffset;
@@ -90,18 +91,19 @@ void main(void)
                 coneFalloff = 1.0-((conePos-halfConeRange)/(coneRange-halfConeRange));
             }
 
-            diffuse += ltdiffuse*coneFalloff;
+            diffuse += ltdiffuse*coneFalloff;;
         }
     }
-    // Clamp "diffuse+ambientcolor" to 1
-    vec3 finalLight = (diffuse);
     vec4 finalCol = texColor * v_color;
-    finalCol.rgb = finalCol.rgb * u_ambientColor;
-    FragColor = vec4(finalCol.rgb + diffuse, finalCol.a);
-}
-)";
+    vec3 finalLight = (diffuse+u_ambientColor);
+    finalLight = min( finalLight, vec3(1,1,1) );
+    FragColor = vec4(finalCol.rgb*finalLight, finalCol.a);
+})";
 
 class LightingShader : public ngf::Shader {
+public:
+  static constexpr int MaxLights = 50;
+
 public:
   LightingShader() {
     load(vertexShaderCode, fragmentShaderCode);
@@ -125,7 +127,10 @@ public:
 
   void setAmbientColor(ngf::Color color) {
     setUniform3("u_ambientColor", color);
+    m_ambient = color;
   }
+
+  [[nodiscard]] ngf::Color getAmbientColor() const {return m_ambient; }
 
   void setTexture(const ngf::Texture &texture) {
     setUniform("u_texture", texture);
@@ -133,44 +138,49 @@ public:
 
   void setNumberLights(int numberLights) {
     setUniform("u_numberLights", numberLights);
-    m_numberLights = numberLights;
+    m_numberLights = std::min(numberLights, LightingShader::MaxLights);
   }
 
-  int getNumberLights() const { return m_numberLights; }
+  [[nodiscard]] int getNumberLights() const { return m_numberLights; }
 
-  void setLights(const std::array<Light, 50> &lights) {
-    std::array<glm::vec3, 50> u_lightPos;
-    std::array<glm::vec2, 50> u_coneDirection;
-    std::array<float, 50> u_coneCosineHalfConeAngle;
-    std::array<float, 50> u_coneFalloff;
-    std::array<ngf::Color, 50> u_lightColor;
-    std::array<float, 50> u_brightness;
-    std::array<float, 50> u_cutoffRadius;
-    std::array<float, 50> u_halfRadius;
+  void setLights(const std::array<Light, MaxLights> &lights) {
+    std::array<glm::vec3, MaxLights> u_lightPos{};
+    std::array<glm::vec2, MaxLights> u_coneDirection{};
+    std::array<float, MaxLights> u_coneCosineHalfConeAngle{};
+    std::array<float, MaxLights> u_coneFalloff{};
+    std::array<ngf::Color, MaxLights> u_lightColor;
+    std::array<float, MaxLights> u_brightness{};
+    std::array<float, MaxLights> u_cutoffRadius{};
+    std::array<float, MaxLights> u_halfRadius{};
 
-    for (size_t i = 0; i < lights.size(); ++i) {
+    int numLights = 0;
+    for (int i = 0; i < m_numberLights; ++i) {
       auto &light = lights[i];
+      if(!light.on) continue;
       auto direction = light.coneDirection - 90.f;
-      u_coneDirection[i] = glm::vec2(std::cos(glm::radians(direction)), std::sin(glm::radians(direction)));
-      u_coneCosineHalfConeAngle[i] = cos(glm::radians(light.coneAngle / 2.f));
-      u_coneFalloff[i] = light.coneFalloff;
-      u_lightColor[i] = light.color;
-      u_lightPos[i] = glm::vec3(light.pos, 1.f);
-      u_brightness[i] = light.brightness;
-      u_cutoffRadius[i] = std::max(1.0f, light.cutOffRadius);
-      u_halfRadius[i] = std::max(0.01f, std::min(0.99f, light.halfRadius));
+      u_coneDirection[numLights] = glm::vec2(std::cos(glm::radians(direction)), std::sin(glm::radians(direction)));
+      u_coneCosineHalfConeAngle[numLights] = cos(glm::radians(light.coneAngle / 2.f));
+      u_coneFalloff[numLights] = light.coneFalloff;
+      u_lightColor[numLights] = light.color;
+      u_lightPos[numLights] = glm::vec3(light.pos, 1.f);
+      u_brightness[numLights] = light.brightness;
+      u_cutoffRadius[numLights] = std::max(1.0f, light.cutOffRadius);
+      u_halfRadius[numLights] = std::max(0.01f, std::min(0.99f, light.halfRadius));
+      numLights++;
     }
-    setUniformArray("u_lightPos", u_lightPos.data(), 50);
-    setUniformArray("u_coneDirection", u_coneDirection.data(), 50);
-    setUniformArray("u_coneCosineHalfConeAngle", u_coneCosineHalfConeAngle.data(), 50);
-    setUniformArray("u_coneFalloff", u_coneFalloff.data(), 50);
-    setUniformArray3("u_lightColor", u_lightColor.data(), 50);
-    setUniformArray("u_brightness", u_brightness.data(), 50);
-    setUniformArray("u_cutoffRadius", u_cutoffRadius.data(), 50);
-    setUniformArray("u_halfRadius", u_halfRadius.data(), 50);
+    m_numberLights = numLights;
+    setUniformArray("u_lightPos", u_lightPos.data(), MaxLights);
+    setUniformArray("u_coneDirection", u_coneDirection.data(), MaxLights);
+    setUniformArray("u_coneCosineHalfConeAngle", u_coneCosineHalfConeAngle.data(), MaxLights);
+    setUniformArray("u_coneFalloff", u_coneFalloff.data(), MaxLights);
+    setUniformArray3("u_lightColor", u_lightColor.data(), MaxLights);
+    setUniformArray("u_brightness", u_brightness.data(), MaxLights);
+    setUniformArray("u_cutoffRadius", u_cutoffRadius.data(), MaxLights);
+    setUniformArray("u_halfRadius", u_halfRadius.data(), MaxLights);
   }
 
 private:
   int m_numberLights{0};
+  ngf::Color m_ambient{ngf::Colors::White};
 };
 }

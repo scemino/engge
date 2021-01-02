@@ -17,7 +17,7 @@ struct Entity::Impl {
   std::optional<glm::vec2> _usePos;
   std::optional<UseDirection> _useDir;
   glm::vec2 _offset{0, 0};
-  bool _isLit{true};
+  bool _isLit{false};
   bool _isVisible{true};
   bool _isTouchable{true};
   glm::ivec2 _renderOffset{0, 0};

@@ -130,7 +130,8 @@ bool Actor::contains(const glm::vec2 &pos) const {
   transformable.move({getRenderOffset().x * scale, getRenderOffset().y * scale});
   auto t = glm::inverse(transformable.getTransform());
   auto pos2 = t * glm::vec3(pos, 0);
-  return pAnim->contains(pos2);
+  // TODO:
+  return false;
 }
 
 void Actor::pickupObject(Object *pObject) {

@@ -7,7 +7,7 @@
 namespace ng {
 RoomLayer::RoomLayer() = default;
 
-void RoomLayer::setTexture(const ngf::Texture* texture) {
+void RoomLayer::setTexture(const ngf::Texture *texture) {
   _texture = texture;
 }
 
@@ -24,6 +24,10 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
     return;
 
   auto pShader = (LightingShader *) states.shader;
+  auto count = pShader->getNumberLights();
+  auto ambient = pShader->getAmbientColor();
+  pShader->setAmbientColor(ngf::Colors::White);
+  pShader->setNumberLights(0);
 
   std::vector<std::reference_wrapper<Entity>> entities;
   std::copy(_entities.begin(), _entities.end(), std::back_inserter(entities));
@@ -57,8 +61,14 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   for (const Entity &entity : entities) {
     if (entity.hasParent())
       continue;
+    // indicates whether or not the entity needs lighting
+    pShader->setAmbientColor(entity.isLit() ? ambient : ngf::Colors::White);
+    pShader->setNumberLights(entity.isLit() ? count : 0);
     entity.draw(target, states);
   }
+
+  pShader->setAmbientColor(ambient);
+  pShader->setNumberLights(count);
 }
 
 void RoomLayer::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {

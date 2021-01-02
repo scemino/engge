@@ -70,11 +70,10 @@ private:
     if (!actor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    SQFloat transparency;
-    if (SQ_FAILED(sq_getfloat(v, 3, &transparency))) {
-      return sq_throwerror(v, _SC("failed to get transparency"));
+    SQFloat alpha;
+    if (SQ_FAILED(sq_getfloat(v, 3, &alpha))) {
+      return sq_throwerror(v, _SC("failed to get alpha"));
     }
-    auto alpha = static_cast<sf::Uint8>(transparency * 255);
     auto color = actor->getColor();
     color.a = alpha;
     actor->setColor(color);
@@ -134,8 +133,7 @@ private:
       sq_pushinteger(v, 0);
       return 1;
     }
-    auto flags = pAnim->getFlags();
-    sq_pushinteger(v, flags);
+    sq_pushinteger(v, pAnim->flags);
     return 1;
   }
 

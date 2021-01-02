@@ -9,7 +9,6 @@
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
 #include "engge/Entities/Actor/Actor.hpp"
 #include "engge/Engine/Camera.hpp"
-#include "engge/Entities/Objects/Animation.hpp"
 #include "engge/Dialog/DialogManager.hpp"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Function.hpp"
@@ -77,12 +76,12 @@ class _BreakWhileAnimatingFunction : public _BreakFunction {
 private:
   std::string _name;
   Actor &_actor;
-  CostumeAnimation *_pAnimation;
+  ObjectAnimation *_pAnimation;
 
 public:
   _BreakWhileAnimatingFunction(Engine &engine, int id, Actor &actor)
       : _BreakFunction(engine, id), _actor(actor), _pAnimation(actor.getCostume().getAnimation()) {
-    _name = _pAnimation->getName();
+    _name = _pAnimation->name;
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -90,18 +89,19 @@ public:
   }
 
   bool isElapsed() override {
-    auto pAnim = _actor.getCostume().getAnimation();
-    return pAnim != _pAnimation || !_pAnimation->isPlaying();
+    auto animControl = _actor.getCostume().getAnimControl();
+    return animControl.getAnimation() != _pAnimation || animControl.getState() != AnimState::Play;
   }
 };
 
 class _BreakWhileAnimatingObjectFunction : public _BreakFunction {
 private:
+  Object& _object;
   std::optional<ObjectAnimation *> _animation;
 
 public:
   _BreakWhileAnimatingObjectFunction(Engine &engine, int id, Object &object)
-      : _BreakFunction(engine, id), _animation(object.getAnimation()) {
+      : _BreakFunction(engine, id), _object(object), _animation(object.getAnimation()) {
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -109,9 +109,7 @@ public:
   }
 
   bool isElapsed() override {
-    // TODO: isPlaying
-    //return !_animation.has_value() || !_animation.value()->isPlaying();
-    return !_animation.has_value() || false;
+    return !_animation.has_value() || _object.getAnimControl().getState() != AnimState::Play;
   }
 };
 

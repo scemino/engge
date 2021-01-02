@@ -53,6 +53,10 @@ public:
       if (ImGui::Checkbox("Visible", &isVisible)) {
         object->setVisible(isVisible);
       }
+      auto isLit = object->isLit();
+      if (ImGui::Checkbox("Is lit", &isLit)) {
+        object->setLit(isLit);
+      }
       auto state = object->getState();
       if (ImGui::InputInt("State", &state)) {
         object->setStateAnimIndex(state);

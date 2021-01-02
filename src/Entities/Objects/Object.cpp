@@ -1,20 +1,20 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Entities/Objects/AnimationFrame.hpp"
-#include "engge/Engine/Function.hpp"
-#include "engge/System/Locator.hpp"
-#include "engge/Engine/EntityManager.hpp"
-#include "engge/Room/Room.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/Audio/SoundTrigger.hpp"
-#include "engge/Engine/Trigger.hpp"
-#include "engge/Engine/Preferences.hpp"
+#include <engge/Entities/Objects/Object.hpp>
+#include <engge/Engine/Function.hpp>
+#include <engge/System/Locator.hpp>
+#include <engge/Engine/EntityManager.hpp>
+#include <engge/Room/Room.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Audio/SoundTrigger.hpp>
+#include <engge/Engine/Trigger.hpp>
+#include <engge/Engine/Preferences.hpp>
 #include "../../System/_Util.hpp"
 #include <sstream>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
+#include <engge/Entities/Objects/AnimDrawable.hpp>
 
 namespace ng {
 
@@ -46,6 +46,7 @@ struct Object::Impl {
   int _pop{0};
   Object *_pParent{nullptr};
   const ngf::Texture *_texture{nullptr};
+  AnimControl _animControl;
 
   Impl() {
     auto v = ScriptEngine::getVm();
@@ -67,81 +68,6 @@ struct Object::Impl {
   ~Impl() {
     auto v = ScriptEngine::getVm();
     sq_release(v, &_table);
-  }
-
-  void draw(const ngf::Transform &transform,
-            const ObjectAnimation &anim,
-            ngf::RenderTarget &target,
-            ngf::RenderStates states) const {
-    if (!anim.visible)
-      return;
-    if (anim.frames.empty())
-      return;
-
-    glm::ivec2 offset{0, 0};
-    if (!anim.offsets.empty()) {
-      offset = anim.offsets[anim.frameIndex];
-    }
-    const auto frame = anim.frames[anim.frameIndex];
-
-    auto pos = transform.getPosition();
-    ngf::Transform t;
-    t.setPosition({pos.x, _pRoom->getRoomSize().y - pos.y});
-
-    ngf::Transform tFlipX;
-    tFlipX.setScale({1, 1});
-    states.transform = tFlipX.getTransform() * states.transform * t.getTransform();
-
-    auto pShader = (LightingShader *) states.shader;
-    auto texSize = _texture->getSize();
-    pShader->setTexture(*_texture);
-    pShader->setContentSize(frame.sourceSize);
-    pShader->setSpriteOffset({-frame.frame.getWidth() / 2.f + pos.x, -frame.frame.getHeight() / 2.f - pos.y});
-    pShader->setSpritePosInSheet({static_cast<float>(frame.frame.min.x) / texSize.x,
-                                  static_cast<float>(frame.frame.min.y) / texSize.y});
-    pShader->setSpriteSizeRelToSheet({static_cast<float>(frame.sourceSize.x) / texSize.x,
-                                      static_cast<float>(frame.sourceSize.y) / texSize.y});
-
-    glm::vec2 off = {
-        frame.spriteSourceSize.min.x + offset.x - frame.sourceSize.x / 2.f,
-        frame.spriteSourceSize.min.y - offset.y - frame.sourceSize.y / 2.f};
-    ngf::Sprite sprite(*_texture, frame.frame);
-    sprite.getTransform().setPosition(off);
-    sprite.draw(target, states);
-  }
-
-  void draw(const ngf::Transform &transform, ngf::RenderTarget &target, ngf::RenderStates states) const {
-    if (!_pAnim)
-      return;
-    if (_pAnim->frames.empty() && _pAnim->layers.empty())
-      return;
-
-    draw(transform, *_pAnim, target, states);
-
-    for (const auto &layer : _pAnim->layers) {
-      draw(transform, layer, target, states);
-    }
-  }
-
-  static void update(const ngf::TimeSpan &e, ObjectAnimation &animation) {
-    if (animation.frameIndex == -1) {
-      animation.frameIndex = static_cast<int>(animation.frames.size()) - 1;
-    }
-
-    if (animation.frameIndex > static_cast<int>(animation.frames.size())) {
-      animation.frameIndex = 0;
-      return;
-    }
-
-    animation.elapsed += e;
-    auto fps = animation.fps;
-    if (fps == 0)
-      fps = 10;
-    const auto frameTime = 1.f / static_cast<float>(fps);
-    if (animation.elapsed.getTotalSeconds() > frameTime) {
-      animation.elapsed = ngf::TimeSpan::seconds(animation.elapsed.getTotalSeconds() - frameTime);
-      animation.frameIndex = (animation.frameIndex + 1) % static_cast<int>(animation.frames.size());
-    }
   }
 };
 
@@ -277,14 +203,12 @@ void Object::setStateAnimIndex(int animIndex) {
 
 void Object::playAnim(const std::string &anim, bool loop) {
   setAnimation(anim);
-  // TODO:
-  //pImpl->_pAnim->play(loop);
+  pImpl->_animControl.play(loop);
 }
 
 void Object::playAnim(int animIndex, bool loop) {
   setStateAnimIndex(animIndex);
-  // TODO:
-  //pImpl->_pAnim->play(loop);
+  pImpl->_animControl.play(loop);
 }
 
 int Object::getState() const { return pImpl->_state; }
@@ -294,14 +218,18 @@ void Object::setAnimation(const std::string &name) {
                          [name](auto &animation) { return animation.name == name; });
   if (it == pImpl->_anims.end()) {
     pImpl->_pAnim = nullptr;
+    pImpl->_animControl.setAnimation(nullptr);
     return;
   }
 
   auto &anim = *it;
   pImpl->_pAnim = &anim;
+  pImpl->_animControl.setAnimation(&anim);
 }
 
 ObjectAnimation *&Object::getAnimation() { return pImpl->_pAnim; }
+
+AnimControl& Object::getAnimControl() { return pImpl->_animControl; }
 
 void Object::update(const ngf::TimeSpan &elapsed) {
   if (isInventoryObject()) {
@@ -326,9 +254,7 @@ void Object::update(const ngf::TimeSpan &elapsed) {
   if (pImpl->pParentObject) {
     setVisible(pImpl->pParentObject->getState() == pImpl->dependentState);
   }
-  if (pImpl->_pAnim) {
-    pImpl->update(elapsed, *pImpl->_pAnim);
-  }
+  pImpl->_animControl.update(elapsed);
   if (pImpl->_triggerEnabled && pImpl->_trigger.has_value()) {
     (*pImpl->_trigger)->trig();
   }
@@ -454,7 +380,16 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     return;
 
   if (pImpl->_pAnim) {
-    pImpl->draw(getTransform(), target, states);
+    ngf::Transform t = getTransform();
+    auto pos = t.getPosition();
+    t.setPosition({pos.x, pImpl->_pRoom->getScreenSize().y - pos.y});
+    states.transform *= t.getTransform();
+
+    AnimDrawable animDrawable;
+    animDrawable.setAnim(pImpl->_pAnim);
+    animDrawable.setColor(getColor());
+    animDrawable.setTexture(*pImpl->_texture);
+    animDrawable.draw(pos, target, states);
   }
 
   for (const auto &pChild : pImpl->_children) {

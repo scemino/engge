@@ -39,7 +39,6 @@ public:
     showGeneral(actor.get());
     showInventory(actor.get());
     showCostume(actor.get());
-    showAnimations(actor.get());
 
     ImGui::Unindent();
   }
@@ -198,32 +197,6 @@ public:
       ImGui::TreePop();
     }
   }
-  void showAnimations(Actor *actor) {
-    if (ImGui::TreeNode("Animations")) {
-      // actor animations
-      auto &anims = actor->getCostume().getAnimations();
-      static ImGuiTextFilter filter;
-      filter.Draw("Filter");
-      if (ImGui::ListBoxHeader("Animations")) {
-        for (auto &anim : anims) {
-          auto name = anim.getName();
-          if (filter.PassFilter(name.c_str())) {
-            if (ImGui::Selectable(name.c_str(), _pSelectedAnim == &anim)) {
-              _pSelectedAnim = &anim;
-            }
-          }
-        }
-        ImGui::ListBoxFooter();
-      }
-      if (_pSelectedAnim && ImGui::Button("Set")) {
-        actor->getCostume().setAnimation(_pSelectedAnim->getName());
-      }
-      if (_pSelectedAnim) {
-        showLayers();
-      }
-      ImGui::TreePop();
-    }
-  }
 
 private:
   static std::string getFlags(Actor &actor) {
@@ -288,38 +261,9 @@ private:
     return UseDirection::Front;
   }
 
-  void showLayers() {
-    ImGui::Columns(4, "LayersColumns", false);
-    ImGui::Separator();
-    for (auto &layer : _pSelectedAnim->getLayers()) {
-      ImGui::Text("Layer %s", layer.getName().c_str());
-      ImGui::NextColumn();
-      auto &anim = layer.getAnimation();
-      auto animIndex = static_cast<int>(anim.getIndex());
-      auto animSize = static_cast<int>(anim.size() - 1);
-      if (ImGui::SliderInt("Index", &animIndex, 0, animSize)) {
-        anim.setIndex(animIndex);
-      }
-      ImGui::NextColumn();
-      auto layerVisible = layer.getVisible();
-      if (ImGui::Checkbox("Visible", &layerVisible)) {
-        layer.setVisible(layerVisible);
-      }
-      ImGui::NextColumn();
-      auto layerLoop = layer.getLoop();
-      if (ImGui::Checkbox("Loop", &layerLoop)) {
-        layer.setLoop(layerLoop);
-      }
-      ImGui::NextColumn();
-    }
-    ImGui::Columns(1);
-    ImGui::Separator();
-  }
-
 private:
   Engine &_engine;
   int _selectedActor{0};
-  CostumeAnimation *_pSelectedAnim{nullptr};
   ImGuiTextFilter _filterCostume;
   std::vector<std::string> _actorInfos;
 };

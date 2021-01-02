@@ -5,10 +5,14 @@
 #include <unordered_map>
 #include "BlinkState.hpp"
 #include "DirectionConstants.hpp"
-#include "engge/Parsers/GGPack.hpp"
-#include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Graphics/ResourceManager.hpp"
-#include "CostumeAnimation.hpp"
+#include <ngf/Graphics/Drawable.h>
+#include <ngf/Graphics/RenderStates.h>
+#include <ngf/Graphics/RenderTarget.h>
+#include <engge/Parsers/GGPack.hpp>
+#include <engge/Graphics/SpriteSheet.hpp>
+#include <engge/Graphics/ResourceManager.hpp>
+#include <engge/Entities/Objects/ObjectAnimation.hpp>
+#include <engge/Entities/Objects/AnimControl.hpp>
 
 namespace ng {
 
@@ -48,8 +52,9 @@ public:
   void setReachState(Reaching reaching);
   bool setAnimation(const std::string &name);
   bool setMatchingAnimation(const std::string &animName);
-  CostumeAnimation *getAnimation() { return _pCurrentAnimation; }
-  std::vector<CostumeAnimation> &getAnimations() { return _animations; }
+  ObjectAnimation *getAnimation() { return _pCurrentAnimation; }
+  AnimControl& getAnimControl() { return _animControl; }
+  std::vector<ObjectAnimation> &getAnimations() { return _animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
   [[nodiscard]] int getHeadIndex() const;
@@ -67,14 +72,13 @@ public:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 private:
   void updateAnimation();
-  [[nodiscard]] CostumeLayer loadLayer(const GGPackValue &jLayer) const;
 
 private:
   ResourceManager &_textureManager;
   std::string _path;
   std::string _sheet;
-  std::vector<CostumeAnimation> _animations;
-  CostumeAnimation *_pCurrentAnimation{nullptr};
+  std::vector<ObjectAnimation> _animations;
+  ObjectAnimation *_pCurrentAnimation{nullptr};
   Facing _facing{Facing::FACE_FRONT};
   std::set<std::string> _hiddenLayers;
   std::string _animation{"stand"};
@@ -88,5 +92,6 @@ private:
   std::unordered_map<Facing, Facing> _facings;
   bool _lockFacing{false};
   SpriteSheet _costumeSheet;
+  AnimControl _animControl;
 };
 } // namespace ng

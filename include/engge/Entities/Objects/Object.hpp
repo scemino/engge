@@ -1,8 +1,9 @@
 #pragma once
 #include <optional>
 #include <squirrel.h>
-#include <engge/Graphics/SpriteSheetItem.h>
-#include "engge/Entities/Entity.hpp"
+#include <engge/Entities/Entity.hpp>
+#include <engge/Entities/Objects/ObjectAnimation.hpp>
+#include <engge/Entities/Objects/AnimControl.hpp>
 
 namespace ng {
 enum class ScreenSpace {
@@ -18,22 +19,7 @@ enum class ObjectType {
 };
 
 class Actor;
-class Animation;
 class Room;
-
-struct ObjectAnimation {
-  std::string name;
-  std::vector<SpriteSheetItem> frames;
-  std::vector<ObjectAnimation> layers;
-  std::vector<glm::ivec2> offsets;
-  std::vector<std::string> triggers;
-  bool loop{false};
-  int fps{0};
-  int flags{0};
-  int frameIndex{0};
-  ngf::TimeSpan elapsed;
-  bool visible{true};
-};
 
 namespace ObjectStateConstants {
 static const int ALL = 1;
@@ -106,6 +92,7 @@ public:
   int getState() const;
   void setAnimation(const std::string &name);
   ObjectAnimation * &getAnimation();
+  AnimControl& getAnimControl();
 
   Room *getRoom() override;
   const Room *getRoom() const override;

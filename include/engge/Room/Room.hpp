@@ -44,7 +44,7 @@ public:
   void load(const char *name);
   std::vector<std::unique_ptr<Object>> &getObjects();
   [[nodiscard]] const std::vector<std::unique_ptr<Object>> &getObjects() const;
-  [[nodiscard]] std::array<Light, 50> &getLights();
+  [[nodiscard]] std::array<Light, LightingShader::MaxLights> &getLights();
   [[nodiscard]] int getNumberLights() const;
 
   void update(const ngf::TimeSpan &elapsed);

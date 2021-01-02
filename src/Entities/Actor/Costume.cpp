@@ -1,13 +1,16 @@
 #include <filesystem>
 #include <iostream>
-#include "engge/Entities/Actor/Actor.hpp"
-#include "engge/Entities/Actor/BlinkState.hpp"
-#include "engge/Entities/Actor/Costume.hpp"
-#include "engge/Entities/Objects/AnimationFrame.hpp"
-#include "engge/Engine/EngineSettings.hpp"
-#include "engge/System/Locator.hpp"
+#include <engge/Entities/Objects/AnimDrawable.hpp>
+#include <engge/Entities/Actor/Actor.hpp>
+#include <engge/Entities/Actor/BlinkState.hpp>
+#include <engge/Entities/Actor/Costume.hpp>
+#include <engge/Engine/EngineSettings.hpp>
+#include <engge/System/Locator.hpp>
+#include <engge/Parsers/GGPackValue.hpp>
+#include <engge/Entities/AnimationLoader.hpp>
+#include <engge/Room/Room.hpp>
 #include "../../System/_Util.hpp"
-#include "engge/Parsers/GGPackValue.hpp"
+
 namespace fs = std::filesystem;
 
 namespace ng {
@@ -27,14 +30,14 @@ void Costume::setLayerVisible(const std::string &name, bool isVisible) {
   }
   if (_pCurrentAnimation == nullptr)
     return;
-  if (_pCurrentAnimation->getLayers().empty())
+  if (_pCurrentAnimation->layers.empty())
     return;
   auto it =
-      std::find_if(_pCurrentAnimation->getLayers().begin(), _pCurrentAnimation->getLayers().end(), [name](auto &layer) {
-        return layer.getName() == name;
+      std::find_if(_pCurrentAnimation->layers.begin(), _pCurrentAnimation->layers.end(), [name](auto &layer) {
+        return layer.name == name;
       });
-  if (it != _pCurrentAnimation->getLayers().end()) {
-    it->setVisible(isVisible);
+  if (it != _pCurrentAnimation->layers.end()) {
+    it->visible = isVisible;
   }
 }
 
@@ -86,7 +89,7 @@ void Costume::setState(const std::string &name, bool loop) {
   auto pOldAnim = _pCurrentAnimation;
   updateAnimation();
   if (pOldAnim != _pCurrentAnimation) {
-    _pCurrentAnimation->play(loop);
+    _animControl.play(loop);
   }
 }
 
@@ -104,66 +107,6 @@ void Costume::setReachState(Reaching reaching) {
   if (!_pCurrentAnimation) {
     setState(_reachAnimName);
   }
-}
-
-CostumeLayer Costume::loadLayer(const GGPackValue &jLayer) const {
-  auto name = jLayer["name"].string_value;
-  Animation animation(_costumeSheet.getTextureName(), name);
-  auto fps = jLayer["fps"].isNull() ? _pActor->getFps() : jLayer["fps"].int_value;
-  animation.setFps(fps);
-
-  for (const auto &jFrame : jLayer["frames"].array_value) {
-    auto frameName = jFrame.string_value;
-    if (frameName == "null") {
-      animation.addFrame(AnimationFrame(ngf::irect()));
-    } else {
-      auto rect = _costumeSheet.getRect(frameName);
-      auto size = _costumeSheet.getSourceSize(frameName);
-      auto sourceRect = _costumeSheet.getSpriteSourceSize(frameName);
-      AnimationFrame frame(rect);
-      frame.setSourceRect(sourceRect);
-      frame.setSize(size);
-      animation.addFrame(std::move(frame));
-    }
-  }
-  if (!jLayer["triggers"].isNull()) {
-    size_t i = 0;
-    for (const auto &jTrigger : jLayer["triggers"].array_value) {
-      if (!jTrigger.isNull()) {
-        auto triggerName = jTrigger.string_value;
-        char *end;
-        auto trigger = std::strtol(triggerName.data() + 1, &end, 10);
-        if (end == triggerName.data() + 1) {
-          animation.at(i).setCallback([triggerName, this]() {
-            _pActor->trigSound(triggerName.data() + 1);
-          });
-        } else {
-          animation.at(i).setCallback([trigger, this]() {
-            _pActor->trig(trigger);
-          });
-        }
-      }
-      ++i;
-    }
-  }
-  size_t i = 0;
-  for (const auto &jOffset : jLayer["offsets"].array_value) {
-    auto offset = _parsePos(jOffset.string_value);
-    auto &frame = animation.at(i);
-    frame.setOffset(offset);
-    ++i;
-  }
-
-  CostumeLayer layer(std::move(animation));
-  layer.setName(name);
-  if (!jLayer["flags"].isNull()) {
-    layer.setFlags(jLayer["flags"].int_value);
-  }
-  if (!jLayer["loop"].isNull() && jLayer["loop"].int_value == 1) {
-    layer.setLoop(true);
-  }
-  layer.setActor(_pActor);
-  return layer;
 }
 
 void Costume::loadCostume(const std::string &path, const std::string &sheet) {
@@ -192,44 +135,27 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
     auto layerName = s.str();
     setLayerVisible(layerName, i == _headIndex);
   }
-  for (auto j : hash["animations"].array_value) {
-    auto name = j["name"].string_value;
-    auto flags = j["flags"].isInteger() ? j["flags"].int_value : 0;
-    if(!j["sheet"].isNull()) {
-      _costumeSheet.load(j["sheet"].getString());
-    }
-    CostumeAnimation animation;
-    animation.setName(name);
-    animation.setFlags(flags);
-    if (j["layers"].isNull()) {
-      auto layer = loadLayer(j);
-      animation.getLayers().push_back(std::move(layer));
-    } else {
-      for (const auto &jLayer : j["layers"].array_value) {
-        auto layer = loadLayer(jLayer);
-        animation.getLayers().push_back(std::move(layer));
-      }
-    }
-    _animations.push_back(std::move(animation));
-  }
+
+  _animations = AnimationLoader::parseObjectAnimations(hash["animations"], _costumeSheet);
 
   // don't know if it's necessary, reyes has no costume in the intro
   setStandState();
 }
 
 bool Costume::setAnimation(const std::string &animName) {
-  if (_pCurrentAnimation && _pCurrentAnimation->getName() == animName)
+  if (_pCurrentAnimation && _pCurrentAnimation->name == animName)
     return true;
 
   for (auto &anim : _animations) {
-    if (anim.getName() == animName) {
+    if (anim.name == animName) {
       _pCurrentAnimation = &anim;
-      for (auto &layer : _pCurrentAnimation->getLayers()) {
-        auto layerName = layer.getName();
-        layer.setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
+      _animControl.setAnimation(_pCurrentAnimation);
+      for (auto &layer : _pCurrentAnimation->layers) {
+        auto layerName = layer.name;
+        layer.visible = _hiddenLayers.find(layerName) == _hiddenLayers.end();
       }
 
-      _pCurrentAnimation->play();
+      _animControl.play();
       return true;
     }
   }
@@ -238,18 +164,19 @@ bool Costume::setAnimation(const std::string &animName) {
 }
 
 bool Costume::setMatchingAnimation(const std::string &animName) {
-  if (_pCurrentAnimation && startsWith(_pCurrentAnimation->getName(), animName))
+  if (_pCurrentAnimation && startsWith(_pCurrentAnimation->name, animName))
     return true;
 
   for (auto &anim : _animations) {
-    if (startsWith(anim.getName(), animName)) {
+    if (startsWith(anim.name, animName)) {
       _pCurrentAnimation = &anim;
-      for (auto &layer : _pCurrentAnimation->getLayers()) {
-        auto layerName = layer.getName();
-        layer.setVisible(_hiddenLayers.find(layerName) == _hiddenLayers.end());
+      _animControl.setAnimation(_pCurrentAnimation);
+      for (auto &layer : _pCurrentAnimation->layers) {
+        auto layerName = layer.name;
+        layer.visible = _hiddenLayers.find(layerName) == _hiddenLayers.end();
       }
 
-      _pCurrentAnimation->play();
+      _animControl.play();
       return true;
     }
   }
@@ -260,11 +187,11 @@ bool Costume::setMatchingAnimation(const std::string &animName) {
 void Costume::updateAnimation() {
   // special case for eyes... bof
   if (_pCurrentAnimation && startsWith(_animation, "eyes_")) {
-    auto &layers = _pCurrentAnimation->getLayers();
+    auto &layers = _pCurrentAnimation->layers;
     for (auto &&layer : layers) {
-      if (!startsWith(layer.getName(), "eyes_"))
+      if (!startsWith(layer.name, "eyes_"))
         continue;
-      setLayerVisible(layer.getName(), false);
+      setLayerVisible(layer.name, false);
     }
     setLayerVisible(_animation, true);
     return;
@@ -287,27 +214,27 @@ void Costume::updateAnimation() {
     }
   }
 
-  if (_pCurrentAnimation) {
-    auto &layers = _pCurrentAnimation->getLayers();
-    for (auto &&layer : layers) {
-      layer.setLeftDirection(getFacing() == Facing::FACE_LEFT);
-    }
-  }
-
   setHeadIndex(_headIndex);
 }
 
 void Costume::update(const ngf::TimeSpan &elapsed) {
   if (!_pCurrentAnimation)
     return;
-  _pCurrentAnimation->update(elapsed);
+  _animControl.update(elapsed);
   _blinkState.update(elapsed);
 }
 
 void Costume::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!_pCurrentAnimation)
     return;
-  _pCurrentAnimation->draw(target, states);
+  AnimDrawable animDrawable;
+  animDrawable.setAnim(_pCurrentAnimation);
+  const auto &texture = _costumeSheet.getTextureName().empty() ? this->_pActor->getRoom()->getSpriteSheet().getTexture() : _costumeSheet.getTexture();
+  animDrawable.setColor(_pActor->getColor());
+  animDrawable.setTexture(texture);
+  if (getFacing() == Facing::FACE_LEFT)
+    animDrawable.setFlipX(true);
+  animDrawable.draw(_pActor->getPosition(), target, states);
 }
 
 void Costume::setHeadIndex(int index) {

@@ -149,10 +149,7 @@ private:
 
   void playReachAnim() {
     _actor.getCostume().setReachState(_reaching);
-    _pAnim = _actor.getCostume().getAnimation();
-    if (_pAnim) {
-      _pAnim->play(false);
-    }
+    _actor.getCostume().getAnimControl().play(false);
   }
 
   void operator()(const ngf::TimeSpan &elapsed) override {
@@ -175,7 +172,6 @@ private:
   Actor &_actor;
   Entity *_pObject;
   Reaching _reaching;
-  CostumeAnimation *_pAnim{nullptr};
   ngf::TimeSpan _elapsed;
 };
 
@@ -193,7 +189,8 @@ private:
     auto executeVerb = true;
     if (_pVerb->id == VerbConstants::VERB_GIVE && _pObject2) {
       auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
-      if(!pActor2) pActor2 = Entity::getActor(_pObject2);
+      if (!pActor2)
+        pActor2 = Entity::getActor(_pObject2);
       bool selectable = true;
       ScriptEngine::rawGet(pActor2, "selectable", selectable);
       executeVerb = !selectable;
@@ -229,7 +226,8 @@ private:
 
     if (_pVerb->id == VerbConstants::VERB_GIVE) {
       auto *pActor2 = dynamic_cast<Actor *>(_pObject2);
-      if(!pActor2) pActor2 = Entity::getActor(_pObject2);
+      if (!pActor2)
+        pActor2 = Entity::getActor(_pObject2);
       ScriptEngine::call("objectGive", _pObject1, &_actor, pActor2);
 
       auto *pObject = dynamic_cast<Object *>(_pObject1);
@@ -279,7 +277,7 @@ private:
       return;
 
     // TODO: do it earlier
-    if(pVerb->id == VerbConstants::VERB_TALKTO) {
+    if (pVerb->id == VerbConstants::VERB_TALKTO) {
       pObject2 = _engine.getCurrentActor();
     }
 
