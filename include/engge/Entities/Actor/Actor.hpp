@@ -66,8 +66,6 @@ public:
   void setVolume(float volume);
   std::optional<float> getVolume() const override;
 
-  void trigSound(const std::string &name) override;
-
   void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
   HSQOBJECT &getTable() override;

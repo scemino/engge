@@ -94,11 +94,13 @@ private:
     // loop if requested
     if (m_loop || animation.loop) {
       animation.frameIndex = 0;
+      trig(animation);
       return;
     }
 
     // or stay at the last frame
     animation.frameIndex = animation.frameIndex - 1;
+    trig(animation);
     if (depth == 1)
       m_state = AnimState::Stopped;
   }
@@ -107,6 +109,13 @@ private:
     if (animation.fps <= 0)
       return 10;
     return animation.fps;
+  }
+
+private:
+  static void trig(const ObjectAnimation &animation) {
+    if (!animation.callbacks.empty()) {
+      animation.callbacks[animation.frameIndex]();
+    }
   }
 
 private:

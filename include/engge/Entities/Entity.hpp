@@ -95,10 +95,9 @@ public:
 
   void setTrigger(int triggerNumber, Trigger *pTrigger);
   void removeTrigger(int triggerNumber);
-  void trig(int triggerNumber);
+  void trig(const std::string &name);
 
   virtual std::optional<float> getVolume() const { return std::nullopt; }
-  virtual void trigSound(const std::string &name);
   virtual void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const;
 
   virtual Room *getRoom() = 0;

@@ -171,14 +171,22 @@ void Entity::removeTrigger(int triggerNumber) {
   pImpl->_triggers.erase(triggerNumber);
 }
 
-void Entity::trig(int triggerNumber) {
-  auto it = pImpl->_triggers.find(triggerNumber);
-  if (it != pImpl->_triggers.end()) {
-    it->second->trig();
+void Entity::trig(const std::string &name) {
+  char *end;
+  auto id = std::strtol(name.data() + 1, &end, 10);
+  if (end == name.data() + 1) {
+    // trig sound
+    auto soundId = pImpl->_engine.getSoundDefinition(name);
+    if (!soundId)
+      return;
+    pImpl->_engine.getSoundManager().playSound(soundId);
+  } else {
+    // find a corresponding trigger
+    auto it = pImpl->_triggers.find(id);
+    if (it != pImpl->_triggers.end()) {
+      it->second->trig();
+    }
   }
-}
-
-void Entity::trigSound(const std::string &) {
 }
 
 void Entity::drawForeground(ngf::RenderTarget &target, ngf::RenderStates s) const {

@@ -355,13 +355,6 @@ std::vector<glm::vec2> Actor::walkTo(const glm::vec2 &destination, std::optional
   return path;
 }
 
-void Actor::trigSound(const std::string &name) {
-  auto soundId = pImpl->_engine.getSoundDefinition(name);
-  if (!soundId)
-    return;
-  pImpl->_engine.getSoundManager().playSound(soundId);
-}
-
 void Actor::setFps(int fps) {
   pImpl->_fps = fps;
 }

@@ -5,7 +5,6 @@ This branch is still experimental, it's a merge with **Engge Framework**.
 TODO list:
 - [ ] actor scale wrong again
 - [ ] actor not positioned correctly in left direction
-- [ ] trigs anim triggers
 - [ ] pathfinding is buggy
 - [ ] new savegames are corrupted 
 - [ ] texts word wrap is wrong
@@ -13,6 +12,7 @@ TODO list:
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
 - [ ] more ?
+- [x] trigs anim triggers
 - [x] fix bug with random float numbers
 - [x] fix wrong actor alpha
 - [x] objects are not positioned correctly in the Bridge room in CityHall

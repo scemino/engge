@@ -11,6 +11,7 @@ struct ObjectAnimation {
   std::vector <ObjectAnimation> layers;
   std::vector <glm::ivec2> offsets;
   std::vector <std::string> triggers;
+  std::vector <std::function<void()>> callbacks;
   bool loop{false};
   int fps{0};
   int flags{0};

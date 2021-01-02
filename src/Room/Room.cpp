@@ -1,6 +1,5 @@
 #include <engge/Room/Room.hpp>
 #include <engge/Engine/EngineSettings.hpp>
-#include <engge/Parsers/JsonTokenReader.hpp>
 #include <engge/Engine/Light.hpp>
 #include <engge/System/Locator.hpp>
 #include <engge/System/Logger.hpp>
@@ -229,7 +228,7 @@ struct Room::Impl {
       // animations
       object->setTexture(&_spriteSheet.getTexture());
       if (jObject["animations"].isArray()) {
-        auto anims = AnimationLoader::parseObjectAnimations(jObject["animations"], _spriteSheet);
+        auto anims = AnimationLoader::parseObjectAnimations(*object, jObject["animations"], _spriteSheet);
         auto &objAnims = object->getAnims();
         std::copy(anims.begin(), anims.end(), std::back_inserter(objAnims));
 
