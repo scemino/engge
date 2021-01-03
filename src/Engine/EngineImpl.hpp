@@ -1,4 +1,5 @@
 #include <squirrel.h>
+#include <glm/gtc/epsilon.hpp>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/ActorIconSlot.hpp"
 #include "engge/Engine/ActorIcons.hpp"
@@ -109,9 +110,9 @@ enum class EngineState {
 };
 
 struct Engine::Impl {
-  class _SaveGameSystem {
+  class SaveGameSystem {
   public:
-    explicit _SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
+    explicit SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
 
     void saveGame(const std::string &path) {
       ScriptEngine::call("preSave");
@@ -902,7 +903,8 @@ struct Engine::Impl {
       if (!pObject->isTouchable()) {
         hashObject.hash_value["_touchable"] = GGPackValue::toGGPackValue(pObject->isTouchable());
       }
-      if (pObject->getOffset() != glm::vec2()) {
+      // this is the way to compare 2 vectors... not so simple
+      if (glm::any(glm::epsilonNotEqual(pObject->getOffset(), glm::vec2(0, 0), 1e-6f))) {
         hashObject.hash_value["_offset"] = GGPackValue::toGGPackValue(toString(pObject->getOffset()));
       }
     }
@@ -991,8 +993,8 @@ struct Engine::Impl {
   Entity *_pUseObject{nullptr};
   int _objId1{0};
   Entity *_pObj2{nullptr};
-  glm::vec2 _mousePos{0,0};
-  glm::vec2 _mousePosInRoom{0,0};
+  glm::vec2 _mousePos{0, 0};
+  glm::vec2 _mousePosInRoom{0, 0};
   std::unique_ptr<VerbExecute> _pVerbExecute;
   std::unique_ptr<ScriptExecute> _pScriptExecute;
   std::vector<std::unique_ptr<ThreadBase>> _threads;
@@ -1600,9 +1602,9 @@ void Engine::Impl::stopTalkingExcept(Entity *pEntity) const {
 }
 
 void Engine::Impl::updateKeys() {
-//  ImGuiIO &io = ImGui::GetIO();
-//  if (io.WantTextInput)
-//    return;
+  ImGuiIO &io = ImGui::GetIO();
+  if (io.WantTextInput)
+    return;
 
   const auto &cmdMgr = Locator<CommandManager>::get();
   for (auto &key : _oldKeyDowns) {

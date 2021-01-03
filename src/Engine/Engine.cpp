@@ -695,8 +695,8 @@ Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
 Hud &Engine::getHud() { return _pImpl->_hud; }
 
 void Engine::saveGame(int slot) {
-  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
-  auto path = Impl::_SaveGameSystem::getSlotPath(slot);
+  Impl::SaveGameSystem saveGameSystem(_pImpl.get());
+  auto path = Impl::SaveGameSystem::getSlotPath(slot);
   std::filesystem::path screenshotPath(path);
   screenshotPath.replace_extension(".png");
   _pImpl->captureScreen(screenshotPath.string());
@@ -704,8 +704,8 @@ void Engine::saveGame(int slot) {
 }
 
 void Engine::loadGame(int slot) {
-  Impl::_SaveGameSystem saveGameSystem(_pImpl.get());
-  saveGameSystem.loadGame(Impl::_SaveGameSystem::getSlotPath(slot));
+  Impl::SaveGameSystem saveGameSystem(_pImpl.get());
+  saveGameSystem.loadGame(Impl::SaveGameSystem::getSlotPath(slot));
 }
 
 void Engine::setAutoSave(bool autoSave) { _pImpl->_autoSave = autoSave; }
@@ -727,14 +727,14 @@ Entity *Engine::getEntity(const std::string &name) {
 
 void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
   for (int i = 1; i <= 9; ++i) {
-    auto path = Impl::_SaveGameSystem::getSlotPath(i);
+    auto path = Impl::SaveGameSystem::getSlotPath(i);
 
     SavegameSlot slot;
     slot.slot = i;
     slot.path = path;
 
     if (std::filesystem::exists(path)) {
-      Impl::_SaveGameSystem::getSlot(slot);
+      Impl::SaveGameSystem::getSlot(slot);
     }
     slots.push_back(slot);
   }
