@@ -46,12 +46,14 @@ private:
       offset = anim.offsets[anim.frameIndex];
     }
     const auto frame = anim.frames[anim.frameIndex];
+    glm::vec2 origin = {frame.sourceSize.x / 2.f, frame.sourceSize.y / 2.f};
 
     glm::vec2 off = {m_flipX ? frame.sourceSize.x - frame.spriteSourceSize.min.x - offset.x :
-                     frame.spriteSourceSize.min.x + offset.x - frame.sourceSize.x / 2.f,
-                     frame.spriteSourceSize.min.y - offset.y - frame.sourceSize.y / 2.f};
+                     frame.spriteSourceSize.min.x + offset.x,
+                     frame.spriteSourceSize.min.y - offset.y};
     ngf::Transform t;
     t.setPosition(off);
+    t.setOrigin(origin);
 
     // flip X if actor goes left
     ngf::Transform tFlipX;

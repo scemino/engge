@@ -3,13 +3,13 @@
 This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
-- [ ] actor not positioned correctly in left direction
 - [ ] image for savegame is incorrect 
 - [ ] texts word wrap is wrong
 - [ ] texts color not implemented
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
 - [ ] more ?
+- [x] actor not positioned correctly in left direction
 - [x] new savegames are corrupted
 - [x] pathfinding is buggy
 - [x] actor scale wrong again
