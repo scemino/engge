@@ -48,7 +48,6 @@ struct Room::Impl {
   std::array<Light, LightingShader::MaxLights> _lights;
   int _numLights{0};
   float _rotation{0};
-  //ngf::Shader _shader{};
   LightingShader _lightingShader;
   int _selectedEffect{RoomEffectConstants::EFFECT_NONE};
   ngf::Color _overlayColor{ngf::Colors::Transparent};
@@ -372,7 +371,7 @@ struct Room::Impl {
       auto polygon = jWalkbox["polygon"].string_value;
       _parsePolygon(polygon, vertices);
       ngf::Walkbox walkbox(vertices);
-      walkbox.setYAxisDirection(ngf::YAxisDirection::Up);
+      walkbox.setYAxisDirection(ngf::YAxisDirection::Down);
       if (jWalkbox["name"].isString()) {
         auto walkboxName = jWalkbox["name"].string_value;
         walkbox.setName(walkboxName);
@@ -425,6 +424,7 @@ struct Room::Impl {
         std::reverse(sPoints.begin(), sPoints.end());
       }
       ngf::Walkbox walkbox(sPoints);
+      walkbox.setYAxisDirection(ngf::YAxisDirection::Down);
       walkbox.setEnabled(isEnabled);
       _graphWalkboxes.push_back(walkbox);
     }

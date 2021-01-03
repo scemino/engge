@@ -3,15 +3,15 @@
 This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
-- [ ] actor scale wrong again
 - [ ] actor not positioned correctly in left direction
-- [ ] pathfinding is buggy
 - [ ] new savegames are corrupted 
 - [ ] texts word wrap is wrong
 - [ ] texts color not implemented
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
 - [ ] more ?
+- [x] pathfinding is buggy
+- [x] actor scale wrong again
 - [x] trigs anim triggers
 - [x] fix bug with random float numbers
 - [x] fix wrong actor alpha
