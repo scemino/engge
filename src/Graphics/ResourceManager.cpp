@@ -4,7 +4,7 @@
 #include "engge/System/Logger.hpp"
 #include "engge/Graphics/ResourceManager.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
-#include <ngf/Graphics/FntFont.h>
+#include <engge/Graphics/FntFont.h>
 #include <ngf/IO/MemoryStream.h>
 
 namespace ng {
@@ -43,17 +43,9 @@ void ResourceManager::loadFont(const std::string &id) {
 
 void ResourceManager::loadFntFont(const std::string &id) {
   info("Load Fnt font {}", id);
-  auto font = std::make_shared<ngf::FntFont>();
-
-  std::filesystem::path path = id;
-  path = path.replace_extension(".png").u8string();
+  auto font = std::make_shared<FntFont>();
 
   std::vector<char> data;
-  Locator<EngineSettings>::get().readEntry(path, data);
-  ngf::Image img;
-  img.loadFromMemory(data.data(), data.size());
-  font->setTexture(img);
-
   Locator<EngineSettings>::get().readEntry(id, data);
   ngf::MemoryStream ms(data.data(), data.data() + data.size());
   font->load(id, ms);
@@ -87,7 +79,7 @@ GGFont &ResourceManager::getFont(const std::string &id) {
   return *found->second;
 }
 
-ngf::FntFont &ResourceManager::getFntFont(const std::string &id) {
+FntFont &ResourceManager::getFntFont(const std::string &id) {
   auto found = _fntFontMap.find(id);
   if (found == _fntFontMap.end()) {
     loadFntFont(id);

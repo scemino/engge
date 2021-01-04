@@ -1,14 +1,19 @@
 #include <regex>
+#include <ngf/System/Mouse.h>
 #include "engge/Dialog/DialogManager.hpp"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
-#include <ngf/Graphics/Text.h>
-#include <engge/Util/Util.hpp>
-#include <ngf/System/Mouse.h>
+#include "engge/Graphics/Text.hpp"
 #include "engge/Graphics/Screen.hpp"
 
 namespace ng {
+
+namespace {
+ngf::frect getGlobalBounds(const ng::Text &text) {
+  return ngf::transform(text.getTransform().getTransform(), text.getLocalBounds());
+}
+}
 
 static constexpr float SlidingSpeed = 25.f;
 
@@ -42,7 +47,7 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
-  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
 
@@ -50,7 +55,7 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   auto dialogHighlight = _pEngine->getVerbUiColors(actorName)->dialogHighlight;
   auto dialogNormal = _pEngine->getVerbUiColors(actorName)->dialogNormal;
 
-  ngf::Text text;
+  Text text;
   text.setFont(font);
   for (const auto &slot : _slots) {
     if (!slot.pChoice)
@@ -61,11 +66,11 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
     s += slot.text;
     text.setWideString(s);
     text.getTransform().setPosition({slot.pos.x, y + slot.pos.y});
-    auto bounds = ng::getGlobalBounds(text);
+    auto bounds = getGlobalBounds(text);
     text.setColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
-    text.draw(target, {});
+    text.draw(target,{});
 
-    y += ng::getGlobalBounds(text).getHeight();
+    y += getGlobalBounds(text).getHeight();
   }
 
   target.setView(view);
@@ -112,7 +117,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
 
   auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
-  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   auto y = 534.f;
   int dialog = 0;
@@ -124,11 +129,11 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
     std::wstring s;
     s = L"\u25CF ";
     s += dlg.text;
-    ngf::Text text;
+    Text text;
     text.setFont(font);
     text.getTransform().setPosition({dlg.pos.x, dlg.pos.y + y});
     text.setWideString(s);
-    auto bounds = ng::getGlobalBounds(text);
+    auto bounds = getGlobalBounds(text);
     if (bounds.getWidth() > Screen::Width) {
       if (bounds.contains(_mousePos)) {
         if ((bounds.getWidth() + dlg.pos.x) > Screen::Width) {
@@ -164,15 +169,15 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
     std::wstring s;
     s = L"\u25CF ";
     s += slot.text;
-    ngf::Text text;
+    Text text;
     text.setFont(font);
     text.getTransform().setPosition({slot.pos.x, slot.pos.y + y});
     text.setWideString(s);
-    if (ng::getGlobalBounds(text).contains(_mousePos)) {
+    if (getGlobalBounds(text).contains(_mousePos)) {
       choose(dialog + 1);
       break;
     }
-    y += ng::getGlobalBounds(text).getHeight();
+    y += getGlobalBounds(text).getHeight();
     dialog++;
   }
 }

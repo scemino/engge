@@ -1,6 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include "_ControlConstants.hpp"
+#include <engge/Graphics/FntFont.h>
 
 namespace ng {
 class _SwitchButton : public ngf::Drawable {
@@ -25,10 +26,9 @@ public:
     auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     text.setFont(uiFontMedium);
     text.setWideString(Engine::getText(_ids[_index]));
+    auto textRect = text.getLocalBounds();
+    text.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
     text.getTransform().setPosition({Screen::Width / 2.f, _y});
-    text.setMaxWidth(600);
-    text.setAlignment(ngf::Alignment::Center);
-    text.setAnchor(ngf::Anchor::Center);
   }
 
   void update(glm::vec2 pos) {
@@ -65,6 +65,6 @@ private:
   float _y{0};
   bool _wasMouseDown{false};
   Callback _callback;
-  ngf::Text text;
+  ng::Text text;
 };
 }

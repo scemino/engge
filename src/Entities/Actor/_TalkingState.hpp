@@ -1,5 +1,6 @@
 #pragma once
 #include <ngf/Graphics/Text.h>
+#include <engge/Graphics/Text.hpp>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/EntityManager.hpp"
 #include "engge/Graphics/GGFont.hpp"
@@ -105,7 +106,7 @@ public:
                                                                    PreferenceDefaultValues::RetroFonts);
     auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-    ngf::Text text;
+    Text text;
     text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));
     text.setFont(font);
     text.setColor(_talkColor);

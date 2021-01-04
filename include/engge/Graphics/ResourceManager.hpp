@@ -1,15 +1,12 @@
 #pragma once
 #include <map>
 #include <memory>
-#include "engge/System/NonCopyable.hpp"
+#include <engge/System/NonCopyable.hpp>
 #include <ngf/Graphics/Texture.h>
-
-namespace ngf {
-class FntFont;
-}
 
 namespace ng {
 class GGFont;
+class FntFont;
 class SpriteSheet;
 
 struct TextureResource {
@@ -21,7 +18,7 @@ class ResourceManager : public NonCopyable {
 private:
   std::map<std::string, TextureResource> _textureMap;
   std::map<std::string, std::shared_ptr<GGFont>> _fontMap;
-  std::map<std::string, std::shared_ptr<ngf::FntFont>> _fntFontMap;
+  std::map<std::string, std::shared_ptr<FntFont>> _fntFontMap;
   std::map<std::string, std::shared_ptr<SpriteSheet>> _spriteSheetMap;
 
 public:
@@ -30,7 +27,7 @@ public:
 
   std::shared_ptr<ngf::Texture> getTexture(const std::string &id);
   GGFont &getFont(const std::string &id);
-  ngf::FntFont &getFntFont(const std::string &id);
+  FntFont &getFntFont(const std::string &id);
   const SpriteSheet &getSpriteSheet(const std::string &id);
 
   [[nodiscard]] const std::map<std::string, TextureResource> &getTextureMap() const { return _textureMap; }

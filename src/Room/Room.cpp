@@ -7,6 +7,7 @@
 #include <engge/Room/RoomLayer.hpp>
 #include <engge/Room/RoomScaling.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
+#include <engge/Graphics/FntFont.h>
 #include <engge/Entities/Objects/TextObject.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
@@ -583,7 +584,7 @@ TextObject &Room::createTextObject(const std::string &fontName) {
     path.append(fontName).append("Font.fnt");
   }
 
-  auto &font = pImpl->_textureManager.getFntFont(path);
+  const auto &font = pImpl->_textureManager.getFntFont(path);
   object->setFont(&font);
   auto &obj = *object;
   obj.setVisible(true);

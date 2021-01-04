@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
-#include <ngf/Graphics/Text.h>
 #include <engge/Util/Util.hpp>
+#include <engge/Graphics/FntFont.h>
 #include <ngf/System/Mouse.h>
 #include "_ControlConstants.hpp"
 #include "engge/Engine/Engine.hpp"
@@ -24,14 +24,13 @@ public:
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
 
-    auto &uiFontLargeOrMedium =
+    const auto &uiFontLargeOrMedium =
         _pEngine->getResourceManager().getFntFont(_size == Size::Large ? "UIFontLarge.fnt" : "UIFontMedium.fnt");
-    text.getTransform().setPosition({Screen::Width / 2.f, _y});
     text.setFont(uiFontLargeOrMedium);
     text.setWideString(ng::Engine::getText(_id));
-    text.setAlignment(ngf::Alignment::Center);
-    text.setMaxWidth(6000);
-    text.setAnchor(ngf::Anchor::Center);
+    auto textRect = text.getLocalBounds();
+    text.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
+    text.getTransform().setPosition({Screen::Width / 2.f, _y});
   }
 
   void update(glm::vec2 pos) {
@@ -60,7 +59,7 @@ private:
   float _y{0};
   bool _wasMouseDown{false};
   Callback _callback;
-  ngf::Text text;
+  ng::Text text;
   Size _size{Size::Large};
 };
 }

@@ -4,6 +4,7 @@
 #include "_ControlConstants.hpp"
 #include <ngf/Graphics/Drawable.h>
 #include <ngf/Graphics/Sprite.h>
+#include <engge/Graphics/FntFont.h>
 
 namespace ng {
 class _Checkbox : public ngf::Drawable {
@@ -21,15 +22,12 @@ public:
 
   void setEngine(Engine *pEngine) {
     _pEngine = pEngine;
-    auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
+    const auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     _text.setFont(uiFontMedium);
-    _text.setWideString(_pEngine->getText(_id));
+    _text.setWideString(ng::Engine::getText(_id));
     auto textRect = _text.getLocalBounds();
-    _text.getTransform().setOrigin(glm::vec2(0, textRect.getHeight()));
+    _text.getTransform().setOrigin(glm::vec2(0, textRect.getHeight() / 2.f));
     _text.getTransform().setPosition({420.f, _y});
-    _text.setAlignment(ngf::Alignment::Left);
-    _text.setMaxWidth(600);
-    _text.setAnchor(ngf::Anchor::CenterLeft);
   }
 
   void setSpriteSheet(SpriteSheet *pSpriteSheet) {
@@ -85,7 +83,7 @@ private:
   bool _isChecked{false};
   bool _wasMouseDown{false};
   Callback _callback;
-  ngf::Text _text;
+  ng::Text _text;
   ngf::Sprite _sprite;
   SpriteSheet *_pSpriteSheet{nullptr};
 };

@@ -36,12 +36,14 @@ set(SOURCES
         Engine/EntityManager.cpp
         Entities/Objects/Object.cpp
         Entities/Objects/TextObject.cpp
+        Graphics/FntFont.cpp
         Graphics/GGFont.cpp
         Graphics/ResourceManager.cpp
         Graphics/SpriteSheet.cpp
         Graphics/GraphDrawable.cpp
         Graphics/_WalkboxDrawable.cpp
         Graphics/_Path.cpp
+        Graphics/Text.cpp
         Input/CommandManager.cpp
         Input/InputMappings.cpp
         main.cpp

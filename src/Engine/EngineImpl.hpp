@@ -57,6 +57,7 @@
 #include <ngf/Graphics/RenderTexture.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <engge/Util/Util.hpp>
+#include <engge/Graphics/Text.hpp>
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/Input/CommandManager.hpp"
 #include "engge/Engine/EngineCommands.hpp"
@@ -64,6 +65,8 @@
 #include "../Graphics/_WalkboxDrawable.hpp"
 #include "../Graphics/GraphDrawable.hpp"
 namespace fs = std::filesystem;
+
+namespace ng {
 
 namespace {
 uint32_t toInteger(const ngf::Color &c) {
@@ -74,8 +77,6 @@ uint32_t toInteger(const ngf::Color &c) {
   return (r << 24) | (g << 16) | (b << 8) | a;
 }
 }
-
-namespace ng {
 
 static const char *const _objectKey = "_objectKey";
 static const char *const _roomKey = "_roomKey";
@@ -1765,7 +1766,7 @@ void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
       _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
   auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  ngf::Text text;
+  Text text;
   auto screen = target.getView().getSize();
   auto scale = screen.y / 512.f;
   text.getTransform().setScale({scale, scale});
@@ -1773,7 +1774,7 @@ void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
   text.setFont(font);
   text.setColor(ngf::Colors::White);
   text.setWideString(Engine::getText(99951));
-  auto bounds = ng::getGlobalBounds(text);
+  auto bounds = getGlobalBounds(text);
   text.getTransform().move({-bounds.getWidth() / 2.f, -scale * bounds.getHeight() / 2.f});
   text.draw(target, {});
 
@@ -1908,7 +1909,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
     s.append(L" ").append(getDisplayName(ng::Engine::getText(_pObj2->getName())));
   }
 
-  ngf::Text text;
+  Text text;
   text.setFont(font);
   text.setColor(_hud.getVerbUiColors(currentActorIndex).sentence);
   text.setWideString(s);
@@ -1924,14 +1925,14 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   auto screenSize = _pRoom->getScreenSize();
   auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
 
-  auto bounds = ng::getGlobalBounds(text);
+  auto bounds = getGlobalBounds(text);
   if (classicSentence) {
     auto y = Screen::Height - 210.f;
-    auto x = Screen::HalfWidth;
+    auto x = Screen::HalfWidth - bounds.getWidth() / 2.f;
     text.getTransform().setPosition({x, y});
   } else {
     auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 60;
-    auto x = std::clamp<float>(pos.x, 20.f, Screen::Width - 20.f - bounds.getWidth());
+    auto x = std::clamp<float>(pos.x - bounds.getWidth() / 2.f, 20.f, Screen::Width - 20.f - bounds.getWidth());
     text.getTransform().setPosition({x, y - bounds.getHeight()});
   }
   text.draw(target, {});

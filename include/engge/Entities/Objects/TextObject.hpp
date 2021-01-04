@@ -1,6 +1,5 @@
 #pragma once
 #include "Object.hpp"
-#include <ngf/Graphics/FntFont.h>
 
 namespace ng {
 enum class TextAlignment : unsigned long {
@@ -15,13 +14,15 @@ enum class TextAlignment : unsigned long {
   All = Horizontal | Vertical
 };
 
+class Font;
+
 class TextObject : public Object {
 public:
   TextObject();
   ~TextObject() override;
 
-  ngf::FntFont *getFont() { return _font; }
-  void setFont(ngf::FntFont* font) { _font = font; }
+  const Font *getFont() { return _font; }
+  void setFont(const Font* font) { _font = font; }
   void setText(const std::string &text);
   void setAlignment(TextAlignment alignment) { _alignment = alignment; }
   void setMaxWidth(int maxWidth) { _maxWidth = maxWidth; }
@@ -30,7 +31,7 @@ private:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
-  mutable ngf::FntFont *_font{nullptr};
+  mutable const Font *_font{nullptr};
   std::wstring _text;
   TextAlignment _alignment;
   int _maxWidth{0};

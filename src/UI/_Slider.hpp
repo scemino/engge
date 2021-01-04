@@ -1,8 +1,8 @@
 #pragma once
 #include <imgui.h>
 #include <ngf/Graphics/Drawable.h>
-#include <ngf/Graphics/Text.h>
 #include <ngf/Graphics/Sprite.h>
+#include <engge/Graphics/Text.hpp>
 #include "_ControlConstants.hpp"
 
 namespace ng {
@@ -19,13 +19,12 @@ public:
   }
 
   void setSpriteSheet(SpriteSheet *pSpriteSheet) {
-    auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
+    const auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
     _text.setFont(uiFontMedium);
     _text.setWideString(Engine::getText(_id));
+    auto textRect = _text.getLocalBounds();
+    _text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
     _text.getTransform().setPosition({Screen::Width / 2.f, _y});
-    _text.setAlignment(ngf::Alignment::Center);
-    _text.setMaxWidth(600);
-    _text.setAnchor(ngf::Anchor::Center);
 
     auto sliderRect = pSpriteSheet->getRect("slider");
     auto handleRect = pSpriteSheet->getRect("slider_handle");
@@ -95,7 +94,7 @@ private:
   bool _isDragging{false};
   ngf::Sprite _sprite;
   ngf::Sprite _spriteHandle;
-  ngf::Text _text;
+  ng::Text _text;
   std::optional<Callback> onValueChanged;
 };
 }

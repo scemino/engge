@@ -67,7 +67,7 @@ struct OptionsDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
 
-  ngf::Text _headingText;
+  ng::Text _headingText;
   std::vector<_Button> _buttons;
   std::vector<_SwitchButton> _switchButtons;
   std::vector<_Checkbox> _checkboxes;
@@ -87,10 +87,8 @@ struct OptionsDialog::Impl {
 
   void setHeading(int id) {
     _headingText.setWideString(Engine::getText(id));
-    _headingText.getTransform().setPosition({Screen::Width / 2.f, yPosStart});
-    _headingText.setMaxWidth(1200);
-    _headingText.setAlignment(ngf::Alignment::Center);
-    _headingText.setAnchor(ngf::Anchor::Center);
+    auto textRect = _headingText.getLocalBounds();
+    _headingText.getTransform().setPosition({(Screen::Width - textRect.getWidth()) / 2.f, yPosStart - textRect.getHeight() / 2});
   }
 
   template<typename T>
@@ -344,7 +342,7 @@ struct OptionsDialog::Impl {
     _saveLoadSheet.setTextureManager(&tm);
     _saveLoadSheet.load("SaveLoadSheet");
 
-    auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
+    const auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
     _headingText.setFont(headingFont);
     _headingText.setColor(ngf::Colors::White);
 

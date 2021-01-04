@@ -8,9 +8,10 @@
 #include "engge/Util/Util.hpp"
 #include "_Button.hpp"
 #include <imgui.h>
-#include <ngf/Graphics/Text.h>
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/Graphics/RectangleShape.h>
+#include <engge/Graphics/Text.hpp>
+#include <engge/Graphics/FntFont.h>
 
 namespace ng {
 struct SaveLoadDialog::Impl {
@@ -24,6 +25,7 @@ struct SaveLoadDialog::Impl {
     void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
       _text.draw(target, states);
     }
+
   public:
     void setCallback(Callback callback) {
       _callback = std::move(callback);
@@ -37,7 +39,7 @@ struct SaveLoadDialog::Impl {
       _text.setWideString(Engine::getText(BackId));
       auto textRect = ng::getGlobalBounds(_text);
       _text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
-      _text.getTransform().setPosition({Screen::Width / 2.0f, 650.f});
+      _text.getTransform().setPosition({Screen::Width / 2.0f, 660.f});
     }
 
     void update(glm::vec2 pos) {
@@ -61,7 +63,7 @@ struct SaveLoadDialog::Impl {
     Engine *_pEngine{nullptr};
     bool _wasMouseDown{false};
     Callback _callback{nullptr};
-    ngf::Text _text;
+    ng::Text _text;
   };
 
   class _Slot final : public ngf::Drawable {
@@ -78,16 +80,15 @@ struct SaveLoadDialog::Impl {
 
       _transform.setPosition(pos);
 
-      auto &uiFontSmallBold = engine.getResourceManager().getFntFont("UIFontSmallBold.fnt");
+      const auto &uiFontSmallBold = engine.getResourceManager().getFntFont("UIFontSmallBold.fnt");
 
       // prepare the text for the game time
       _gameTimeText.setWideString(slot.getGameTimeString());
       _gameTimeText.setFont(uiFontSmallBold);
       _gameTimeText.setColor(ngf::Colors::White);
-      _gameTimeText.setMaxWidth(600);
-      _gameTimeText.setAlignment(ngf::Alignment::Center);
-      _gameTimeText.setAnchor(ngf::Anchor::Center);
-      _gameTimeText.getTransform().setPosition({pos.x, pos.y - 64.f});
+      auto gameTimeSize = _gameTimeText.getLocalBounds();
+      _gameTimeText.getTransform().setOrigin({static_cast<float>(gameTimeSize.getWidth() / 2), 0});
+      _gameTimeText.getTransform().setPosition({pos.x, pos.y - 88.f});
 
       // prepare the text for the time when the game has been saved
       std::wstring saveTimeText;
@@ -99,10 +100,9 @@ struct SaveLoadDialog::Impl {
       _saveTimeText.setWideString(saveTimeText);
       _saveTimeText.setFont(uiFontSmallBold);
       _saveTimeText.setColor(ngf::Colors::White);
-      _saveTimeText.setMaxWidth(600);
-      _saveTimeText.setAlignment(ngf::Alignment::Center);
-      _saveTimeText.setAnchor(ngf::Anchor::Center);
-      _saveTimeText.getTransform().setPosition({pos.x, pos.y + 64.f});
+      auto saveTimeSize = _saveTimeText.getLocalBounds();
+      _saveTimeText.getTransform().setOrigin({static_cast<float>(saveTimeSize.getWidth() / 2), 0});
+      _saveTimeText.getTransform().setPosition({pos.x, pos.y + 48.f});
 
       // prepare the sprite for the frame
       auto rect = spriteSheet.getRect("saveload_slot_frame");
@@ -163,8 +163,8 @@ struct SaveLoadDialog::Impl {
     bool _isEmpty{true};
     ngf::Texture _texture;
     ngf::Sprite _sprite, _spriteImg;
-    ngf::Text _gameTimeText;
-    ngf::Text _saveTimeText;
+    ng::Text _gameTimeText;
+    ng::Text _saveTimeText;
     ngf::Transform _transform;
     ngf::frect _rect = ngf::frect::fromPositionSize({0, 0}, {78 * 4, 44 * 4});
   };
@@ -174,7 +174,7 @@ struct SaveLoadDialog::Impl {
 
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
-  ngf::Text _headingText;
+  ng::Text _headingText;
   SaveLoadDialog::Impl::_BackButton _backButton;
   Callback _callback{nullptr};
   SlotCallback _slotCallback{nullptr};
@@ -184,10 +184,9 @@ struct SaveLoadDialog::Impl {
 
   void setHeading(bool saveMode) {
     _headingText.setWideString(Engine::getText(saveMode ? SaveGameId : LoadGameId));
-    _headingText.getTransform().setPosition({Screen::Width / 2.f, 54.f});
-    _headingText.setMaxWidth(600);
-    _headingText.setAlignment(ngf::Alignment::Center);
-    _headingText.setAnchor(ngf::Anchor::Center);
+    auto textRect = _headingText.getLocalBounds();
+    _headingText.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
+    _headingText.getTransform().setPosition({Screen::Width / 2.f, 32.f});
   }
 
   void updateState() {

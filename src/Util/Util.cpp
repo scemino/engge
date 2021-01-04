@@ -1,7 +1,7 @@
 #include "engge/Util/Util.hpp"
 
 namespace ng {
-ngf::frect getGlobalBounds(const ngf::Text &text) {
+ngf::frect getGlobalBounds(const ng::Text &text) {
   return ngf::transform(text.getTransform().getTransform(), text.getLocalBounds());
 }
 

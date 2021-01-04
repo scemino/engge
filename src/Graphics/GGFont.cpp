@@ -7,9 +7,11 @@
 namespace ng {
 GGFont::~GGFont() = default;
 
-const ngf::Texture *GGFont::getTexture(unsigned int) { return _texture.get(); }
+const ngf::Texture &GGFont::getTexture(unsigned int) const { return *_texture; }
 
-const ngf::Glyph &GGFont::getGlyph(unsigned int codePoint, unsigned int, float) {
+float GGFont::getKerning(unsigned int, unsigned int, unsigned int) const { return 0; }
+
+const Glyph &GGFont::getGlyph(unsigned int codePoint) const {
   if (_glyphs.find(codePoint) == _glyphs.end())
     return _glyphs.at(0x20);
   return _glyphs.at(codePoint);
@@ -43,11 +45,12 @@ void GGFont::load(const std::string &path) {
     auto frame = _toRect(_json["frames"][sValue]["frame"]);
     auto spriteSourceSize = _toRect(_json["frames"][sValue]["spriteSourceSize"]);
     auto sourceSize = _toSize(_json["frames"][sValue]["sourceSize"]);
-    ngf::Glyph glyph;
+    Glyph glyph;
     glyph.advance = std::max(sourceSize.x - spriteSourceSize.getTopLeft().x - 4, 0);
-    glyph.bounds = ngf::frect::fromPositionSize(spriteSourceSize.getPosition(), spriteSourceSize.getSize());
-    glyph.textureRect = _texture->computeTextureCoords(frame);
+    glyph.bounds = spriteSourceSize;
+    glyph.textureRect = frame;
     _glyphs[key] = glyph;
   }
+
 }
 } // namespace ng

@@ -1,5 +1,5 @@
 #include "_ControlConstants.hpp"
-#include <ngf/Graphics/FntFont.h>
+#include <engge/Graphics/FntFont.h>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Graphics/Screen.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
@@ -8,7 +8,6 @@
 #include <utility>
 #include <imgui.h>
 #include <ngf/Graphics/RectangleShape.h>
-#include <ngf/Graphics/Text.h>
 #include <ngf/Graphics/Sprite.h>
 
 namespace ng {
@@ -63,7 +62,7 @@ private:
   bool _value{false};
   bool _wasMouseDown{false};
   Callback _callback;
-  ngf::Text text;
+  ng::Text text;
 };
 
 struct QuitDialog::Impl {
@@ -75,16 +74,14 @@ struct QuitDialog::Impl {
 
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
-  ngf::Text _headingText;
+  ng::Text _headingText;
   std::vector<_BackButton> _buttons;
   Callback _callback{nullptr};
 
   void setHeading(int id) {
     _headingText.setWideString(Engine::getText(id));
-    _headingText.getTransform().setPosition({Screen::Width / 2.f, 300.f});
-    _headingText.setMaxWidth(600);
-    _headingText.setAlignment(ngf::Alignment::Center);
-    _headingText.setAnchor(ngf::Anchor::Center);
+    auto textRect = _headingText.getLocalBounds();
+    _headingText.getTransform().setPosition({(Screen::Width - textRect.getWidth()) / 2.f, 260.f});
   }
 
   void updateState() {
