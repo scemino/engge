@@ -1,11 +1,10 @@
-#include <memory>
-#include "engge/System/Logger.hpp"
 #include "engge/EnggeApplication.hpp"
 
 int main(int, char **) {
   try {
     ng::EnggeApplication app;
     app.run();
+    ng::Locator<ng::Engine>::reset();
   }
   catch (std::exception &e) {
     ng::error("Sorry, an error occurred: {}", e.what());
