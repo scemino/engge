@@ -388,7 +388,6 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     AnimDrawable animDrawable;
     animDrawable.setAnim(pImpl->_pAnim);
     animDrawable.setColor(getColor());
-    animDrawable.setTexture(*pImpl->_texture);
     animDrawable.draw(pos, target, states);
   }
 

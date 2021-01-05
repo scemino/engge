@@ -231,7 +231,6 @@ void Costume::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   animDrawable.setAnim(_pCurrentAnimation);
   const auto &texture = _costumeSheet.getTextureName().empty() ? this->_pActor->getRoom()->getSpriteSheet().getTexture() : _costumeSheet.getTexture();
   animDrawable.setColor(_pActor->getColor());
-  animDrawable.setTexture(texture);
   if (getFacing() == Facing::FACE_LEFT)
     animDrawable.setFlipX(true);
   animDrawable.draw(_pActor->getPosition(), target, states);

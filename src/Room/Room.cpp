@@ -372,7 +372,7 @@ struct Room::Impl {
       auto polygon = jWalkbox["polygon"].string_value;
       _parsePolygon(polygon, vertices);
       ngf::Walkbox walkbox(vertices);
-      walkbox.setYAxisDirection(ngf::YAxisDirection::Down);
+      walkbox.setYAxisDirection(ngf::YAxisDirection::Up);
       if (jWalkbox["name"].isString()) {
         auto walkboxName = jWalkbox["name"].string_value;
         walkbox.setName(walkboxName);

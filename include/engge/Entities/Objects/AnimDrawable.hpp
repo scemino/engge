@@ -13,7 +13,6 @@ namespace ng {
 class AnimDrawable {
 public:
   void setAnim(ObjectAnimation *anim) { m_anim = anim; }
-  void setTexture(const ngf::Texture &texture) { m_texture = &texture; }
   void setFlipX(bool flipX) { m_flipX = flipX; }
   void setColor(const ngf::Color color) { m_color = color; }
 
@@ -61,8 +60,12 @@ private:
     states.transform = tFlipX.getTransform() * t.getTransform() * states.transform;
 
     auto pShader = (LightingShader *) states.shader;
-    auto texSize = m_texture->getSize();
-    pShader->setTexture(*m_texture);
+    auto texture = anim.texture;
+    if(!texture)
+      return;
+
+    auto texSize = texture->getSize();
+    pShader->setTexture(*texture);
     pShader->setContentSize(frame.sourceSize);
     pShader->setSpriteOffset({-frame.frame.getWidth() / 2.f + pos.x, -frame.frame.getHeight() / 2.f - pos.y});
     pShader->setSpritePosInSheet({static_cast<float>(frame.frame.min.x) / texSize.x,
@@ -70,14 +73,13 @@ private:
     pShader->setSpriteSizeRelToSheet({static_cast<float>(frame.sourceSize.x) / texSize.x,
                                       static_cast<float>(frame.sourceSize.y) / texSize.y});
 
-    ngf::Sprite sprite(*m_texture, frame.frame);
+    ngf::Sprite sprite(*texture, frame.frame);
     sprite.setColor(m_color);
     sprite.draw(target, states);
   }
 
 private:
   ObjectAnimation *m_anim{nullptr};
-  const ngf::Texture *m_texture;
   bool m_flipX{false};
   ngf::Color m_color{ngf::Colors::White};
 };

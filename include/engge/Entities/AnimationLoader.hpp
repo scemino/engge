@@ -38,8 +38,13 @@ private:
 
   static ObjectAnimation parseObjectAnimation(Entity &entity,
                                               const GGPackValue &gAnimation,
-                                              const SpriteSheet &spriteSheet) {
+                                              const SpriteSheet &defaultSpriteSheet) {
+    const SpriteSheet *spriteSheet = &defaultSpriteSheet;
     ObjectAnimation anim;
+    if (gAnimation["sheet"].isString()) {
+      spriteSheet = &Locator<ResourceManager>::get().getSpriteSheet(gAnimation["sheet"].getString());
+    }
+    anim.texture = &spriteSheet->getTexture();
     anim.name = gAnimation["name"].getString();
     anim.loop = toBool(gAnimation["loop"]);
     anim.fps = gAnimation["fps"].isNull() ? 0 : gAnimation["fps"].getInt();
@@ -47,13 +52,13 @@ private:
     if (!gAnimation["frames"].isNull()) {
       for (const auto &gFrame : gAnimation["frames"].array_value) {
         auto name = gFrame.getString();
-        anim.frames.push_back(spriteSheet.getItem(name));
+        anim.frames.push_back(spriteSheet->getItem(name));
       }
     }
 
     if (!gAnimation["layers"].isNull()) {
       for (const auto &gLayer : gAnimation["layers"].array_value) {
-        auto layer = parseObjectAnimation(entity, gLayer, spriteSheet);
+        auto layer = parseObjectAnimation(entity, gLayer, *spriteSheet);
         anim.layers.push_back(layer);
       }
     }

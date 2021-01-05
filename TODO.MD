@@ -3,11 +3,11 @@
 This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
-- [ ] when looking a map, we don't see the actor
 - [ ] image for savegame is upside down 
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
 - [ ] more ?
+- [x] when looking a map, we don't see the actor
 - [x] notebooks are empty
 - [x] texts word wrap is wrong
 - [x] texts color not implemented
