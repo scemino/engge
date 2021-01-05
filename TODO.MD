@@ -3,8 +3,8 @@
 This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
-- [ ] map does not work
-- [ ] image for savegame is incorrect 
+- [ ] when looking a map, we don't see the actor
+- [ ] image for savegame is upside down 
 - [ ] the game crash when I quit
 - [ ] shaders not implemented
 - [ ] more ?

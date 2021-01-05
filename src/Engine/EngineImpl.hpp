@@ -1993,6 +1993,7 @@ void Engine::Impl::drawHud(ngf::RenderTarget &target) const {
 
 void Engine::Impl::captureScreen(const std::string &path) const {
   ngf::RenderTexture target({Screen::Width, Screen::Height});
+  target.activate();
   target.setView(_pEngine->getApplication()->getRenderTarget()->getView());
   _pEngine->draw(target, true);
   target.display();
@@ -2001,10 +2002,12 @@ void Engine::Impl::captureScreen(const std::string &path) const {
   s.getTransform().setScale({1.f / 4.f, 1.f / 4.f});
 
   ngf::RenderTexture rt({320, 180});
+  rt.activate();
+  rt.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {320, 180})));
   s.draw(rt, {});
   rt.display();
 
-  auto screenshot = rt.getTexture().copyToImage();
+  auto screenshot = rt.capture();
   screenshot.saveToFile(path);
 }
 
