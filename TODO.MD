@@ -3,9 +3,10 @@
 This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
-- [ ] image for savegame is upside down 
 - [ ] shaders not implemented
+- [ ] Actor::contains not implemented
 - [ ] more ?
+- [x] image for savegame is upside down
 - [x] the game crash when I quit
 - [x] when looking a map, we don't see the actor
 - [x] notebooks are empty

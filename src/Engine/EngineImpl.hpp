@@ -2004,6 +2004,7 @@ void Engine::Impl::captureScreen(const std::string &path) const {
   ngf::RenderTexture rt({320, 180});
   rt.activate();
   rt.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {320, 180})));
+  s.flipVertically();
   s.draw(rt, {});
   rt.display();
 
