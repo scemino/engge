@@ -51,9 +51,9 @@ public:
   [[nodiscard]] bool getActive() const { return _active; }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+
 private:
   static std::string getVerbName(const Verb &verb);
-  static Entity *getEntity(Entity *pEntity);
 
 private:
   std::array<VerbSlot, 6> _verbSlots;
@@ -63,8 +63,8 @@ private:
   const Verb *_pVerb{nullptr};
   const Verb *_pVerbOverride{nullptr};
   Entity *_pHoveredEntity{nullptr};
-  //mutable ngf::Shader _verbShader{};
-  glm::vec2 _mousePos;
+  mutable ngf::Shader _verbShader{};
+  glm::vec2 _mousePos{0,0};
   Inventory _inventory;
   bool _active{false};
   State _state{State::Off};
