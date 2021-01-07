@@ -586,6 +586,7 @@ TextObject &Room::createTextObject(const std::string &fontName) {
 
   const auto &font = pImpl->_textureManager.getFntFont(path);
   object->setFont(&font);
+  object->setTexture(&getSpriteSheet().getTexture());
   auto &obj = *object;
   obj.setVisible(true);
   obj.setRoom(this);
@@ -607,6 +608,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
 
   ObjectAnimation anim;
   anim.name = "state0";
+  anim.texture = &spriteSheet.getTexture();
 
   for (auto frame :frames) {
     checkLanguage(frame);
@@ -631,10 +633,12 @@ Object &Room::createObject(const std::string &image) {
   auto texture = pImpl->_textureManager.getTexture(name);
 
   auto object = std::make_unique<Object>();
+  object->setTexture(texture.get());
 
   ObjectAnimation anim;
   auto size = texture->getSize();
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
+  anim.texture = texture.get();
   anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size});
   object->getAnims().push_back(anim);
 
