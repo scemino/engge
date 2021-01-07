@@ -18,6 +18,30 @@
 #include "../../src/Graphics/_Path.hpp"
 
 namespace ng {
+
+namespace {
+bool frameContains(const SpriteSheetItem &frame, const glm::vec2 &pos) {
+  ngf::Transform t;
+  t.setOrigin(frame.sourceSize / 2);
+  t.setPosition(frame.spriteSourceSize.getTopLeft());
+
+  auto rect = ngf::frect::fromPositionSize({0, 0}, frame.frame.getSize());
+  auto r = ngf::transform(t.getTransform(), rect);
+  return r.contains(pos);
+}
+
+bool animContains(const ObjectAnimation &anim, const glm::vec2 &pos) {
+  if (!anim.frames.empty() && frameContains(anim.frames[anim.frameIndex], pos))
+    return true;
+
+  return std::any_of(anim.layers.cbegin(), anim.layers.cend(), [pos](const auto &layer) {
+    if (!layer.visible)
+      return false;
+    return animContains(layer, pos);
+  });
+}
+}
+
 struct Actor::Impl {
   class WalkingState {
   public:
@@ -129,9 +153,8 @@ bool Actor::contains(const glm::vec2 &pos) const {
   transformable.setScale({scale, scale});
   transformable.move({getRenderOffset().x * scale, getRenderOffset().y * scale});
   auto t = glm::inverse(transformable.getTransform());
-  auto pos2 = t * glm::vec3(pos, 0);
-  // TODO:
-  return false;
+  auto pos2 = ngf::transform(t, pos);
+  return animContains(*pAnim, pos2);
 }
 
 void Actor::pickupObject(Object *pObject) {

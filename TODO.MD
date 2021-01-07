@@ -4,8 +4,8 @@ This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
 - [ ] shaders not implemented
-- [ ] Actor::contains not implemented
 - [ ] more ?
+- [x] Actor::contains not implemented
 - [x] object position is not pixel-aligned
 - [x] object not visible
 - [x] image for savegame is upside down
