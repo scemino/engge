@@ -348,18 +348,8 @@ void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states)
   const auto view = target.getView();
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
-  ngf::RenderStates s;
-  auto transformable = getTransform();
-  transformable.setPosition({transformable.getPosition().x,
-                             target.getView().getSize().y - transformable.getPosition().y});
-  s.transform *= transformable.getTransform();
-
-  if (pImpl->_pAnim) {
-    draw(target, s);
-  }
-
   ngf::RenderStates statesHotspot;
-  transformable = getTransform();
+  auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
                              target.getView().getSize().y - transformable.getPosition().y});
   transformable.setScale({1.f, 1.f});
@@ -383,7 +373,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     ngf::Transform t = getTransform();
     auto pos = t.getPosition();
     t.setPosition({pos.x, pImpl->_pRoom->getScreenSize().y - pos.y});
-    states.transform *= t.getTransform();
+    states.transform = t.getTransform() * states.transform;
 
     AnimDrawable animDrawable;
     animDrawable.setAnim(pImpl->_pAnim);
@@ -398,7 +388,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   ngf::RenderStates statesHotspot = initialStates;
   auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
-                             target.getView().getSize().y - transformable.getPosition().y});
+                             Screen::Height - transformable.getPosition().y});
   transformable.setScale({1.f, 1.f});
   statesHotspot.transform *= transformable.getTransform();
 
