@@ -180,8 +180,10 @@ void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   }
 
   // draw inventory objects
-  if (!_pCurrentActor)
+  if (!_pCurrentActor) {
+    target.setView(view);
     return;
+  }
 
   auto &objects = _pCurrentActor->getObjects();
   drawUpArrow(target);

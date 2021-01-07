@@ -534,7 +534,6 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
     _pImpl->drawCursor(target);
     _pImpl->drawCursorText(target);
     _pImpl->drawNoOverride(target);
-    //_pImpl->_pDebugTools->render();
   }
 }
 
