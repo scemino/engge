@@ -6,6 +6,7 @@ TODO list:
 - [ ] shaders not implemented
 - [ ] Actor::contains not implemented
 - [ ] more ?
+- [x] object position is not pixel-aligned
 - [x] object not visible
 - [x] image for savegame is upside down
 - [x] the game crash when I quit

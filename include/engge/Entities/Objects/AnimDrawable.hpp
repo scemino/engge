@@ -45,7 +45,7 @@ private:
       offset = anim.offsets[anim.frameIndex];
     }
     const auto frame = anim.frames[anim.frameIndex];
-    glm::vec2 origin = {frame.sourceSize.x / 2.f, frame.sourceSize.y / 2.f};
+    glm::vec2 origin = {static_cast<int>(frame.sourceSize.x / 2.f), static_cast<int>((frame.sourceSize.y + 1) / 2.f)};
 
     glm::vec2 off = {m_flipX ? frame.sourceSize.x - frame.spriteSourceSize.min.x - offset.x :
                      frame.spriteSourceSize.min.x + offset.x,
@@ -61,7 +61,7 @@ private:
 
     auto pShader = (LightingShader *) states.shader;
     auto texture = anim.texture;
-    if(!texture)
+    if (!texture)
       return;
 
     auto texSize = texture->getSize();
