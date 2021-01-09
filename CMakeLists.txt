@@ -8,8 +8,7 @@ project("${appName}" LANGUAGES CXX)
 set (SQ_DISABLE_INSTALLER ON)
 
 # Dependencies
-find_package (SFML REQUIRED COMPONENTS system window graphics audio)
-find_package (ImGui-SFML REQUIRED)
+find_package (SFML REQUIRED COMPONENTS audio)
 
 # Sources
 add_subdirectory(src)
@@ -23,7 +22,6 @@ install(FILES LICENSE DESTINATION .)
 # Install libraries on Linux
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 
-    install(FILES "${ImGui-SFML_DIR}/../../libImGui-SFML.so" DESTINATION .)
     install(DIRECTORY "${SFML_DIR}/../../" DESTINATION . FILES_MATCHING PATTERN "libsfml*")
 
     install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-audio.so.2.5 ./src/engge)")
