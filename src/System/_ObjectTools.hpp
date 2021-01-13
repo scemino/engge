@@ -59,7 +59,7 @@ public:
       }
       auto state = object->getState();
       if (ImGui::InputInt("State", &state)) {
-        object->setStateAnimIndex(state);
+        object->playAnim(state, false);
       }
       auto isTouchable = object->isTouchable();
       if (ImGui::Checkbox("Touchable", &isTouchable)) {

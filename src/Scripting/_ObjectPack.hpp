@@ -315,7 +315,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 3, &state))) {
       return sq_throwerror(v, _SC("failed to get state"));
     }
-    obj->setStateAnimIndex(state);
+    obj->playAnim(state, false);
 
     return 0;
   }
