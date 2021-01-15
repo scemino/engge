@@ -625,6 +625,7 @@ Object &Room::createObject(const std::string &image) {
   ObjectAnimation anim;
   auto size = texture->getSize();
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
+  anim.name = "state0";
   anim.texture = texture.get();
   anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size});
   object->getAnims().push_back(anim);
