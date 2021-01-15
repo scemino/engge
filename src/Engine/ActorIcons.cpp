@@ -177,7 +177,7 @@ void ActorIcons::drawActorIcon(ngf::RenderTarget &target, const std::string &ico
 }
 
 void ActorIcons::drawActorIcon(ngf::RenderTarget &target, const std::string &icon, ngf::Color backColor,
-                               ngf::Color frameColor, const glm::vec2 &offset, float alpha) const {
+                               ngf::Color frameColor, const glm::vec2 &offset, float alpha) {
   ngf::RenderStates states;
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   const auto &texture = gameSheet.getTexture();

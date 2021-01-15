@@ -22,6 +22,10 @@ class ResourceManager;
 class TextObject;
 class ThreadBase;
 
+/// @brief Room effect used by roomEffect method
+///
+/// Only None, Ghost and BlackAndWhite are explicitly used.
+/// The others can be used with flashbackEffect settings.
 namespace RoomEffectConstants {
 static const int EFFECT_NONE = 0;
 static const int EFFECT_SEPIA = 1;

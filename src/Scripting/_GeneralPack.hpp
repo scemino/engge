@@ -342,7 +342,7 @@ private:
   }
 
   static void _cameraPanTo(sf::Vector2i pos, float timeInSeconds, int interpolation) {
-    auto screen = g_pEngine->getApplication()->getRenderTarget()->getView().getSize();
+    auto screen = g_pEngine->getRoom()->getScreenSize();
     g_pEngine->follow(nullptr);
     g_pEngine->getCamera().panTo(glm::vec2(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f),
                                  ngf::TimeSpan::seconds(timeInSeconds),
@@ -566,7 +566,7 @@ private:
   }
 
   static SQInteger screenSize(HSQUIRRELVM v) {
-    auto screen = g_pEngine->getApplication()->getRenderTarget()->getView().getSize();
+    auto screen = g_pEngine->getRoom()->getScreenSize();
     ScriptEngine::push(v, screen);
     return 1;
   }

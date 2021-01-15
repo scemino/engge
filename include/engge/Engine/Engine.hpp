@@ -129,8 +129,8 @@ public:
 
   HSQOBJECT &getDefaultObject();
 
-  void setFadeAlpha(float fade);
-  [[nodiscard]] float getFadeAlpha() const;
+  void setFade(float fade);
+  [[nodiscard]] float getFade() const;
   void fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
 
   void keyDown(const Input& key);

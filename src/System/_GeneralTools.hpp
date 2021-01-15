@@ -27,9 +27,9 @@ public:
                  ? "yes"
                  : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
 
-    auto fade = _engine.getFadeAlpha();
-    if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f, "%.1f", 0.1f)) {
-      _engine.setFadeAlpha(fade);
+    auto fade = _engine.getFade();
+    if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f)) {
+      _engine.setFade(fade);
     }
     auto gameSpeedFactor = _engine.getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor,
                                                                       PreferenceDefaultValues::GameSpeedFactor);

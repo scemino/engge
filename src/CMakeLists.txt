@@ -1,7 +1,7 @@
 include("../appInfo.cmake")
 
 include_directories(${SFML_INCLUDE_DIR})
-include_directories(../include/ ../extlibs/squirrel/include/ ../extlibs/spdlog/include/ ../extlibs/clipper/)
+include_directories(../include/ ../extlibs/squirrel/include/ ../extlibs/spdlog/include/ ../extlibs/clipper/ ./)
 link_directories(../extlibs/squirrel/squirrel/ ../extlibs/squirrel/sqstdlib/ ../extlibs/clipper/)
 
 set(SOURCES

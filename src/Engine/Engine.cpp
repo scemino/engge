@@ -187,7 +187,7 @@ void Engine::follow(Actor *pActor) {
     return;
 
   auto pos = pActor->getRealPosition();
-  auto screen = _pImpl->_pApp->getRenderTarget()->getView().getSize();
+  auto screen = _pImpl->_pRoom->getScreenSize();
   setRoom(pActor->getRoom());
   if (panCamera) {
     _pImpl->_camera.panTo(pos - glm::vec2(screen.x / 2, screen.y / 2), ngf::TimeSpan::seconds(4),
@@ -239,7 +239,7 @@ SQInteger Engine::setRoom(Room *pRoom) {
   if (!pRoom)
     return 0;
 
-  _pImpl->_fadeColor = ngf::Colors::Transparent;
+  _pImpl->_fade = 0.f;
 
   auto pOldRoom = _pImpl->_pRoom;
   if (pRoom == pOldRoom)
@@ -314,7 +314,8 @@ void Engine::update(const ngf::TimeSpan &el) {
       getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor, PreferenceDefaultValues::GameSpeedFactor);
   const ngf::TimeSpan elapsed(ngf::TimeSpan::seconds(el.getTotalSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
-  _pImpl->_mousePos = _pImpl->_pApp->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition());
+  auto view = ngf::View{ngf::frect::fromPositionSize({0, 0}, _pImpl->_pRoom->getScreenSize())};
+  _pImpl->_mousePos = _pImpl->_pApp->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(), view);
   if (_pImpl->_pRoom && _pImpl->_pRoom->getName() != "Void") {
     auto screenSize = _pImpl->_pRoom->getScreenSize();
     auto screenMouse = toDefaultView((glm::ivec2) _pImpl->_mousePos, screenSize);
@@ -367,7 +368,7 @@ void Engine::update(const ngf::TimeSpan &el) {
 
   _pImpl->updateRoomScalings();
 
-  auto screen = _pImpl->_pApp->getRenderTarget()->getView().getSize();
+  auto screen = _pImpl->_pRoom->getScreenSize();
   _pImpl->_pRoom->update(elapsed);
   for (auto &pActor : _pImpl->_actors) {
     if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
@@ -394,7 +395,7 @@ void Engine::update(const ngf::TimeSpan &el) {
   _pImpl->updateMouseCursor();
 
   auto mousePos =
-      glm::vec2(_pImpl->_mousePos.x, _pImpl->_pApp->getRenderTarget()->getView().getSize().y - _pImpl->_mousePos.y);
+      glm::vec2(_pImpl->_mousePos.x, _pImpl->_pRoom->getScreenSize().y - _pImpl->_mousePos.y);
   _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getAt();
 
   _pImpl->_dialogManager.update(elapsed);
@@ -501,40 +502,96 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
 }
 
 void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
-  if (_pImpl->_pRoom) {
-    _pImpl->_pRoom->draw(target, _pImpl->_camera.getAt());
-    _pImpl->drawFade(target);
-    _pImpl->drawWalkboxes(target);
-    _pImpl->_talkingState.draw(target, {});
-    _pImpl->_dialogManager.draw(target, {});
-    _pImpl->drawHud(target);
+  if (!_pImpl->_pRoom)
+    return;
 
-    if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
-        && _pImpl->_inputActive) {
-      _pImpl->_actorIcons.draw(target, {});
+  // update room shader if necessary
+  ngf::RenderStates states;
+  auto effect = _pImpl->_pRoom->getEffect();
+  if (_pImpl->_roomEffect != effect) {
+    if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE) {
+      _pImpl->_roomShader.load(_vertexShader, _bwFragmentShader);
+    } else if (effect == RoomEffectConstants::EFFECT_EGA) {
+      _pImpl->_roomShader.load(_vertexShader, _egaFragmenShader);
     }
-
-    _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
-    for (auto &pActor : _pImpl->_actors) {
-      if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
-        continue;
-      pActor->drawForeground(target, {});
-    }
-
-    if (screenshot)
-      return;
-
-    if (_pImpl->_state == EngineState::Options) {
-      _pImpl->_optionsDialog.draw(target, {});
-    } else if (_pImpl->_state == EngineState::StartScreen) {
-      _pImpl->_startScreenDialog.draw(target, {});
-    }
-
-    _pImpl->drawPause(target);
-    _pImpl->drawCursor(target);
-    _pImpl->drawCursorText(target);
-    _pImpl->drawNoOverride(target);
   }
+  states.shader = &_pImpl->_roomShader;
+  if (effect != RoomEffectConstants::EFFECT_BLACKANDWHITE &&
+      effect != RoomEffectConstants::EFFECT_EGA) {
+    states.shader = nullptr;
+  }
+
+  // render the room to a texture, this allows to create a post process effect: room effect
+  ngf::RenderTexture roomTexture(target.getSize());
+  roomTexture.clear();
+
+  // get screen size
+  auto screen = _pImpl->_pRoom->getScreenSize();
+  ngf::View view(ngf::frect::fromPositionSize({0, 0}, {screen.x, screen.y}));
+  roomTexture.setView(view);
+
+  _pImpl->_pRoom->draw(roomTexture, _pImpl->_camera.getAt());
+  roomTexture.display();
+
+  // then render a sprite with this texture and apply the room effect
+  ngf::RenderTexture roomWithEffectTexture(target.getSize());
+  roomWithEffectTexture.clear();
+  ngf::Sprite sprite(roomTexture.getTexture());
+  sprite.draw(roomWithEffectTexture, states);
+  // and render overlay
+  ngf::RectangleShape fadeShape;
+  fadeShape.setSize(roomWithEffectTexture.getSize());
+  fadeShape.setColor(_pImpl->_pRoom->getOverlayColor());
+  fadeShape.draw(roomWithEffectTexture, {});
+  roomWithEffectTexture.display();
+
+  // apply the room rotation
+  ngf::Sprite fadeSprite(roomWithEffectTexture.getTexture());
+  auto pos = target.getView().getSize() / 2.f;
+  fadeSprite.getTransform().setOrigin(pos);
+  fadeSprite.getTransform().setPosition(pos);
+  fadeSprite.getTransform().setRotation(_pImpl->_pRoom->getRotation());
+
+  // render fade
+  _pImpl->_fadeShader.setUniform("u_texture2", _pImpl->_blackTexture); // TODO: change this to fade to new room
+  _pImpl->_fadeShader.setUniform("u_fade", _pImpl->_fade); // fade value between [0.f,1.f]
+  _pImpl->_fadeShader.setUniform("u_fadeToSep", 0);  // 1 to fade to sepia
+  _pImpl->_fadeShader.setUniform("u_movement", 0.f); // change this for wobble effect
+  _pImpl->_fadeShader.setUniform("u_timer", _pImpl->_time.getTotalSeconds());
+  states.shader = &_pImpl->_fadeShader;
+  fadeSprite.draw(target, states);
+
+  // draw walkboxes, actor texts
+  _pImpl->drawWalkboxes(target);
+  _pImpl->_talkingState.draw(target, {});
+  _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+
+  // if we take a screenshot (for savegame) then stop drawing
+  if (screenshot)
+    return;
+
+  // draw dialogs, hud
+  _pImpl->_dialogManager.draw(target, {});
+  _pImpl->drawHud(target);
+
+  // draw actor icons
+  if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
+      && _pImpl->_inputActive) {
+    _pImpl->_actorIcons.draw(target, {});
+  }
+
+  // draw options or startscreen if necessary
+  if (_pImpl->_state == EngineState::Options) {
+    _pImpl->_optionsDialog.draw(target, {});
+  } else if (_pImpl->_state == EngineState::StartScreen) {
+    _pImpl->_startScreenDialog.draw(target, {});
+  }
+
+  // draw pause, cursor and no override icon
+  _pImpl->drawPause(target);
+  _pImpl->drawCursor(target);
+  _pImpl->drawCursorText(target);
+  _pImpl->drawNoOverride(target);
 }
 
 void Engine::setWalkboxesFlags(int show) { _pImpl->_showDrawWalkboxes = show; }
@@ -613,13 +670,13 @@ void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
 const Verb *Engine::getActiveVerb() const { return _pImpl->_hud.getCurrentVerb(); }
 
-void Engine::setFadeAlpha(float fade) { _pImpl->_fadeColor.a = fade; }
+void Engine::setFade(float fade) { _pImpl->_fade = fade; }
 
-float Engine::getFadeAlpha() const { return _pImpl->_fadeColor.a; }
+float Engine::getFade() const { return _pImpl->_fade; }
 
 void Engine::fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this]() -> float { return getFadeAlpha(); };
-  auto set = [this](const float &a) { setFadeAlpha(a); };
+  auto get = [this]() -> float { return getFade(); };
+  auto set = [this](const float &a) { setFade(a); };
   auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
   addFunction(std::move(f));
 }

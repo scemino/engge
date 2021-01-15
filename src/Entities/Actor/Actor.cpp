@@ -318,26 +318,17 @@ float Actor::getScale() const {
 }
 
 void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  auto statesHotSpot = states;
-
-  if (isVisible()) {
-    auto scale = getScale();
-    auto transformable = getTransform();
-    transformable.setScale({scale, scale});
-    transformable.setPosition({transformable.getPosition().x + scale * getRenderOffset().x,
-                               target.getView().getSize().y - transformable.getPosition().y
-                                   - scale * getRenderOffset().y});
-    states.transform = transformable.getTransform() * states.transform;
-    pImpl->_costume.draw(target, states);
-  }
+  if (!isVisible())
+    return;
 
   auto scale = getScale();
   auto transformable = getTransform();
   transformable.setScale({scale, scale});
-  transformable.setPosition({transformable.getPosition().x,
-                             target.getView().getSize().y - transformable.getPosition().y});
-  statesHotSpot.transform *= transformable.getTransform();
-  pImpl->drawHotspot(target, statesHotSpot);
+  transformable.setPosition({transformable.getPosition().x + scale * getRenderOffset().x,
+                             pImpl->_pRoom->getScreenSize().y - transformable.getPosition().y
+                                 - scale * getRenderOffset().y});
+  states.transform = transformable.getTransform() * states.transform;
+  pImpl->_costume.draw(target, states);
 }
 
 void Actor::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
@@ -345,6 +336,14 @@ void Actor::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) 
   if (pImpl->_path && pImpl->_pRoom && pImpl->_engine.getWalkboxesFlags()) {
     pImpl->_path->draw(target, states);
   }
+
+  auto scale = getScale();
+  auto transformable = getTransform();
+  transformable.setScale({scale, scale});
+  transformable.setPosition({transformable.getPosition().x,
+                             pImpl->_pRoom->getScreenSize().y - transformable.getPosition().y});
+  states.transform = transformable.getTransform() * states.transform;
+  pImpl->drawHotspot(target, states);
 }
 
 void Actor::update(const ngf::TimeSpan &elapsed) {

@@ -69,6 +69,189 @@ namespace fs = std::filesystem;
 namespace ng {
 
 namespace {
+static const char *_vertexShader =
+    R"(#version 330 core
+precision mediump float;
+layout (location = 0) in vec2 a_position;
+layout (location = 1) in vec4 a_color;
+layout (location = 2) in vec2 a_texCoords;
+
+uniform mat3 u_transform;
+out vec2 v_texCoords;
+out vec4 v_color;
+
+void main(void) {
+  v_color = a_color;
+  v_texCoords = a_texCoords;
+
+  vec3 worldPosition = vec3(a_position, 1);
+  vec3 normalizedPosition = worldPosition * u_transform;
+  gl_Position = vec4(normalizedPosition.xy, 0, 1);
+})";
+
+static const char *_bwFragmentShader =
+    R"(#version 330 core
+precision mediump float;
+out vec4 FragColor;
+in vec2 v_texCoords;
+in vec4 v_color;
+uniform sampler2D u_texture;
+void main()
+{
+  vec4 texColor = texture(u_texture, v_texCoords);
+  vec4 col = v_color * texColor;
+  float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));
+  FragColor = vec4(gray, gray, gray, col.a);
+})";
+
+static const char *_egaFragmenShader =
+    R"(#version 330 core
+#ifdef GL_ES
+precision highp float;
+#endif
+
+out vec4 FragColor;
+in vec2 v_texCoords;
+in vec4 v_color;
+uniform sampler2D u_texture;
+
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+float dist_sq(vec3 a, vec3 b)
+{
+    vec3 delta = a - b;
+    return dot(delta, delta);
+}
+
+vec3 nearest_rgbi (vec3 orig)
+{
+    vec3 original = rgb2hsv(orig);
+    float min_dst = 4.0;
+    vec3 ret = vec3(1,1,1);
+
+    vec3 pal = vec3(0, 0, 0);
+    float dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.0,     0.0); }
+
+    pal = vec3(0.66667, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.0,     0.66667); }
+
+    pal = vec3(0.33333, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.66667, 0.0); }
+
+    pal = vec3(0.5, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.66667, 0.66667); }
+
+    pal = vec3(0, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.0,     0.0); }
+
+    pal = vec3(0.83333, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.0,     0.66667); }
+
+    pal = vec3(0.083333, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.33333, 0.0); }
+
+    pal = vec3(0, 0, 0.666667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.66667, 0.66667); }
+
+    pal = vec3(0, 0, 0.333333);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 0.33333, 0.33333); }
+
+    pal = vec3(0.66667, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 0.33333, 1.0); }
+
+    pal = vec3(0.33333, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 1.0,     0.33333); }
+
+    pal = vec3(0.5, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 1.0,     1.0); }
+
+    pal = vec3(0, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(1.0,     0.33333, 0.33333); }
+
+    pal = vec3(0.83333, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(1.0,     0.33333, 1.0); }
+
+    pal = vec3(0.16666, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(1.0,     1.0,     0.33333); }
+
+    return ret;
+}
+
+void main()
+{
+   vec4 texColor = texture( u_texture, v_texCoords );
+   vec4 srcCol = v_color * texColor;
+   vec3 newCol = nearest_rgbi(srcCol.rgb);
+   FragColor = vec4(newCol, srcCol.a);
+})";
+
+static const char *_fadeFragmentShader =
+    R"(#version 330 core
+#ifdef GL_ES
+precision highp float;
+#endif
+
+out vec4 FragColor;
+in vec2 v_texCoords;
+in vec4 v_color;
+uniform sampler2D u_texture;
+uniform sampler2D u_texture2;
+
+uniform float u_timer;
+uniform float u_fade;
+uniform int u_fadeToSep;
+uniform float u_movement;
+
+void main()
+{
+   const float RADIUS = 0.75;
+   const float SOFTNESS = 0.45;
+   const float ScratchValue = 0.3;
+   vec2 uv = v_texCoords;
+   float pi2 = (3.142*2.0);
+   float intervals = 4.0;
+   uv.x += sin((u_timer+uv.y)*(pi2*intervals))*u_movement;
+   vec4 texColor1 = v_color * texture( u_texture, uv);
+   vec4 texColor2 = v_color * texture( u_texture2, uv);
+   if (u_fadeToSep!=0) {
+       float gray = dot(texColor2.rgb, vec3(0.299, 0.587, 0.114));
+       vec2 dist = vec2(uv.x - 0.5, uv.y - 0.5);
+       vec3 sepiaColor = vec3(gray,gray,gray) * vec3(0.9, 0.8, 0.6);
+       float len = dot(dist,dist);
+       float vignette = smoothstep(RADIUS, RADIUS-SOFTNESS, len);
+       vec3 sep = mix(texColor2.rgb, sepiaColor, 0.80) * vignette;
+       FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (sep*u_fade);
+   }
+   else {
+       FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (texColor2.rgb*u_fade);
+   }
+   FragColor.a = 1.0;
+})";
+
 uint32_t toInteger(const ngf::Color &c) {
   auto r = static_cast<uint32_t>(c.r * 255u);
   auto g = static_cast<uint32_t>(c.g * 255u);
@@ -978,6 +1161,11 @@ struct Engine::Impl {
   Engine *_pEngine{nullptr};
   ResourceManager &_textureManager;
   Room *_pRoom{nullptr};
+  int _roomEffect{0};
+  ngf::Shader _roomShader;
+  ngf::Shader _fadeShader;
+  ngf::Texture _blackTexture;
+  std::unique_ptr<ngf::RenderTexture> _roomTexture;
   std::vector<std::unique_ptr<Actor>> _actors;
   std::vector<std::unique_ptr<Room>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
@@ -1013,7 +1201,7 @@ struct Engine::Impl {
   int _frameCounter{0};
   HSQOBJECT _pDefaultObject{};
   Camera _camera;
-  ngf::Color _fadeColor{ngf::Colors::Transparent};
+  float _fade{0.f};
   std::unique_ptr<Sentence> _pSentence{};
   std::unordered_set<Input, InputHash> _oldKeyDowns;
   std::unordered_set<Input, InputHash> _newKeyDowns;
@@ -1046,7 +1234,6 @@ struct Engine::Impl {
   void updateHoveredEntity(bool isRightClick);
   SQInteger enterRoom(Room *pRoom, Object *pObject) const;
   SQInteger exitRoom(Object *pObject);
-  void updateScreenSize() const;
   void updateRoomScalings() const;
   void setCurrentRoom(Room *pRoom);
   uint32_t getFlags(int id) const;
@@ -1055,7 +1242,6 @@ struct Engine::Impl {
   void actorEnter() const;
   void actorExit() const;
   static void onLanguageChange(const std::string &lang);
-  void drawFade(ngf::RenderTarget &target) const;
   void onVerbClick(const Verb *pVerb);
   void updateKeyboard();
   bool isKeyPressed(const Input &key);
@@ -1079,6 +1265,7 @@ struct Engine::Impl {
   void selectPreviousActor();
   void selectNextActor();
   bool hasFlag(int id, uint32_t flagToTest) const;
+  glm::ivec2 getScreenSize() const;
 };
 
 Engine::Impl::Impl()
@@ -1118,6 +1305,11 @@ Engine::Impl::Impl()
   Locator<CommandManager>::get().registerPressedCommand(EngineCommands::ShowHotspots, [this](bool down) {
     _preferences.setTempPreference(TempPreferenceNames::ShowHotspot, down);
   });
+
+  _fadeShader.load(_vertexShader, _fadeFragmentShader);
+  uint32_t pixels[4]{0x000000FF, 0x000000FF, 0x000000FF, 0x000000FF};
+  _blackTexture.loadFromMemory({2, 2}, pixels);
+  _roomTexture = std::make_unique<ngf::RenderTexture>(glm::ivec2{Screen::Width, Screen::Height});
 }
 
 void Engine::Impl::pauseGame() {
@@ -1198,14 +1390,6 @@ void Engine::Impl::onLanguageChange(const std::string &lang) {
   ScriptEngine::call("onLanguageChange");
 }
 
-void Engine::Impl::drawFade(ngf::RenderTarget &target) const {
-  ngf::RectangleShape fadeShape;
-  auto screen = target.getView().getSize();
-  fadeShape.setSize(glm::vec2(screen.x, screen.y));
-  fadeShape.setColor(_fadeColor);
-  fadeShape.draw(target, {});
-}
-
 SQInteger Engine::Impl::exitRoom(Object *pObject) {
   _pEngine->setDefaultVerb();
   _talkingState.stop();
@@ -1239,23 +1423,6 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
   });
 
   return 0;
-}
-
-void Engine::Impl::updateScreenSize() const {
-  if (!_pRoom)
-    return;
-
-  glm::ivec2 screen;
-  if (_pRoom->getFullscreen() == 1) {
-    screen = _pRoom->getRoomSize();
-    if (_pRoom->getScreenHeight() != 0) {
-      screen.y = _pRoom->getScreenHeight();
-    }
-  } else {
-    screen = _pRoom->getScreenSize();
-  }
-  ngf::View view(ngf::frect::fromPositionSize({0, 0}, {screen.x, screen.y}));
-  _pApp->getRenderTarget()->setView(view);
 }
 
 void Engine::Impl::actorEnter() const {
@@ -1339,7 +1506,6 @@ void Engine::Impl::setCurrentRoom(Room *pRoom) {
   _camera.resetBounds();
   _camera.at(glm::vec2(0, 0));
   _pRoom = pRoom;
-  updateScreenSize();
 }
 
 void Engine::Impl::updateCutscene(const ngf::TimeSpan &elapsed) {
@@ -1704,13 +1870,8 @@ void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
   if (!_pRoom || _showDrawWalkboxes == 0)
     return;
 
-  auto screen = target.getView().getSize();
-  auto w = screen.x / 2.f;
-  auto h = screen.y / 2.f;
   auto at = _camera.getAt();
-  // TODO:
   ngf::Transform t;
-  //t.rotate(_pRoom->getRotation(), w, h);
   t.setPosition(-at);
   ngf::RenderStates states;
   states.transform = t.getTransform();
@@ -1793,17 +1954,24 @@ void Engine::Impl::drawCursor(ngf::RenderTarget &target) const {
   if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
     return;
 
-  auto screen = _pApp->getRenderTarget()->getView().getSize();
-  auto cursorSize = glm::vec2(68.f * screen.x / 1284, 68.f * screen.y / 772);
-  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
+  auto cursorSize = glm::vec2(68.f, 68.f);
+  const auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
+
+  const auto view = target.getView();
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
+
+  auto screenSize = _pRoom->getScreenSize();
+  auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
 
   ngf::RectangleShape shape;
-  shape.getTransform().setPosition(_mousePos);
+  shape.getTransform().setPosition(pos);
   shape.getTransform().setOrigin(cursorSize / 2.f);
   shape.setSize(cursorSize);
   shape.setTexture(gameSheet.getTexture(), false);
-  shape.setTextureRect(gameSheet.getTexture().computeTextureCoords(getCursorRect()));
+  shape.setTextureRect(getCursorRect());
   shape.draw(target, {});
+
+  target.setView(view);
 }
 
 ngf::irect Engine::Impl::getCursorRect() const {
@@ -1931,7 +2099,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
     auto x = Screen::HalfWidth - bounds.getWidth() / 2.f;
     text.getTransform().setPosition({x, y});
   } else {
-    auto y = pos.y - 30 < 60 ? pos.y + 60 : pos.y - 60;
+    auto y = pos.y - 20 < 40 ? pos.y + 80 : pos.y - 40;
     auto x = std::clamp<float>(pos.x - bounds.getWidth() / 2.f, 20.f, Screen::Width - 20.f - bounds.getWidth());
     text.getTransform().setPosition({x, y - bounds.getHeight()});
   }

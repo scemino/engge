@@ -38,6 +38,7 @@ public:
   }
 
   void end() {
+    if(!_pActor) return;
     _pActor->getCostume().setHeadIndex(0);
   }
 

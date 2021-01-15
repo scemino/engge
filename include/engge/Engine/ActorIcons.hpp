@@ -30,19 +30,23 @@ public:
 private:
   void drawActorIcon(ngf::RenderTarget &target, const std::string &icon, int actorSlot, const glm::vec2 &offset,
                      float alpha) const;
-  void drawActorIcon(ngf::RenderTarget &target, const std::string &icon, ngf::Color backColor, ngf::Color frameColor,
-                     const glm::vec2 &offset, float alpha) const;
+  static void drawActorIcon(ngf::RenderTarget &target,
+                            const std::string &icon,
+                            ngf::Color backColor,
+                            ngf::Color frameColor,
+                            const glm::vec2 &offset,
+                            float alpha);
   [[nodiscard]] int getCurrentActorIndex() const;
   [[nodiscard]] int getIconsNum() const;
   [[nodiscard]] float getOffsetY(int num) const;
-  static bool isSelectable(const ActorIconSlot& slot);
+  static bool isSelectable(const ActorIconSlot &slot);
 
 private:
   Engine *_pEngine{nullptr};
   std::array<ActorIconSlot, 6> &_actorsIconSlots;
   Hud &_hud;
   Actor *&_pCurrentActor;
-  glm::vec2 _mousePos;
+  glm::vec2 _mousePos{0, 0};
   ngf::StopWatch _clock;
   bool _isInside{false};
   bool _on{true};

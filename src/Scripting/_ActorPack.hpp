@@ -903,7 +903,7 @@ private:
       return 1;
     }
 
-    auto screen = g_pEngine->getApplication()->getRenderTarget()->getView().getSize();
+    auto screen = g_pEngine->getRoom()->getScreenSize();
     auto pos = (glm::ivec2) entity->getRealPosition();
     auto camera = g_pEngine->getCamera().getAt();
     ngf::irect rect = ngf::irect::fromPositionSize({camera.x, camera.y}, {screen.x, screen.y});

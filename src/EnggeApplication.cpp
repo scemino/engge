@@ -116,7 +116,7 @@ void EnggeApplication::onEvent(ngf::Event &event) {
 
 void EnggeApplication::onRender(ngf::RenderTarget &target) {
   ngf::StopWatch clock;
-  target.clear(ngf::Colors::Black);
+  target.clear();
   if (m_engine)
     m_engine->draw(target);
   Application::onRender(target);

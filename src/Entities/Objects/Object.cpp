@@ -10,7 +10,7 @@
 #include <engge/Audio/SoundTrigger.hpp>
 #include <engge/Engine/Trigger.hpp>
 #include <engge/Engine/Preferences.hpp>
-#include "../../System/_Util.hpp"
+#include <System/_Util.hpp>
 #include <sstream>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
@@ -229,7 +229,7 @@ void Object::setAnimation(const std::string &name) {
 
 ObjectAnimation *&Object::getAnimation() { return pImpl->_pAnim; }
 
-AnimControl& Object::getAnimControl() { return pImpl->_animControl; }
+AnimControl &Object::getAnimControl() { return pImpl->_animControl; }
 
 void Object::update(const ngf::TimeSpan &elapsed) {
   if (isInventoryObject()) {
@@ -351,7 +351,7 @@ void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states)
   ngf::RenderStates statesHotspot;
   auto transformable = getTransform();
   transformable.setPosition({transformable.getPosition().x,
-                             target.getView().getSize().y - transformable.getPosition().y});
+                             Screen::Height - transformable.getPosition().y});
   transformable.setScale({1.f, 1.f});
   statesHotspot.transform *= transformable.getTransform();
 
@@ -362,15 +362,16 @@ void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states)
 }
 
 void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  ngf::RenderStates initialStates = states;
   if (!isVisible())
     return;
 
   if (pImpl->_screenSpace == ScreenSpace::Object)
     return;
 
+  ngf::RenderStates initialStates = states;
+  ngf::Transform t = getTransform();
+
   if (pImpl->_pAnim) {
-    ngf::Transform t = getTransform();
     auto pos = t.getPosition();
     t.setPosition({pos.x, pImpl->_pRoom->getScreenSize().y - pos.y});
     states.transform = t.getTransform() * states.transform;
@@ -381,19 +382,11 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     animDrawable.draw(pos, target, states);
   }
 
-  for (const auto &pChild : pImpl->_children) {
+  initialStates.transform *= t.getTransform();
+
+  for (const auto *pChild : pImpl->_children) {
     pChild->draw(target, initialStates);
   }
-
-  ngf::RenderStates statesHotspot = initialStates;
-  auto transformable = getTransform();
-  transformable.setPosition({transformable.getPosition().x,
-                             Screen::Height - transformable.getPosition().y});
-  transformable.setScale({1.f, 1.f});
-  statesHotspot.transform *= transformable.getTransform();
-
-  drawHotspot(target, statesHotspot);
-  drawDebugHotspot(target, statesHotspot);
 }
 
 void Object::dependentOn(Object *parentObject, int state) {

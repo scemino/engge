@@ -11,7 +11,7 @@
 #include <engge/Entities/Objects/TextObject.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
-#include "../System/_Util.hpp"
+#include <System/_Util.hpp>
 #include <squirrel.h>
 #include <clipper.hpp>
 #include <algorithm>
@@ -64,12 +64,7 @@ struct Room::Impl {
   }
 
   void setEffect(int effect) {
-    if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE) {
-      _selectedEffect = effect;
-      // TODO:
-      return;
-    }
-    _selectedEffect = RoomEffectConstants::EFFECT_NONE;
+    _selectedEffect = effect;
   }
 
   void setRoom(Room *pRoom) { _pRoom = pRoom; }
@@ -441,14 +436,6 @@ struct Room::Impl {
     _pf = std::make_shared<ngf::PathFinder>(_graphWalkboxes);
     return true;
   }
-
-  void drawFade(ngf::RenderTarget &target) const {
-    ngf::RectangleShape fadeShape;
-    auto screen = target.getView().getSize();
-    fadeShape.setSize(glm::vec2(screen.x, screen.y));
-    fadeShape.setColor(_overlayColor);
-    fadeShape.draw(target, {});
-  }
 };
 
 std::unique_ptr<Room> Room::define(HSQOBJECT roomTable, const char *name) {
@@ -685,44 +672,29 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
   pImpl->_lightingShader.setNumberLights(nLights);
   pImpl->_lightingShader.setLights(pImpl->_lights);
 
-  auto screen = target.getView().getSize();
-  auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
-
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
-
-    ngf::Transform tRot;
-    tRot.setOrigin(halfScreen);
-    tRot.setPosition(halfScreen);
-    tRot.setRotation(pImpl->_rotation);
+    ngf::Transform t;
+    t.move({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
 
     ngf::RenderStates states;
-    ngf::Transform t;
     states.shader = &pImpl->_lightingShader;
-    t.move({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
-    states.transform = t.getTransform() * tRot.getTransform();
+    states.transform = t.getTransform();
     layer.second->draw(target, states);
   }
 }
 
 void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
-  auto screen = target.getView().getSize();
+  auto screen = getScreenSize();
   auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
-
-  pImpl->drawFade(target);
 
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
-
-    ngf::Transform tRot;
-    tRot.setOrigin(halfScreen);
-    tRot.setPosition(halfScreen);
-    tRot.setRotation(pImpl->_rotation);
-
-    ngf::RenderStates states;
     ngf::Transform t;
     t.setPosition({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
-    states.transform = t.getTransform() * tRot.getTransform();
+
+    ngf::RenderStates states;
+    states.transform = t.getTransform();
     layer.second->drawForeground(target, states);
   }
 }
@@ -795,18 +767,27 @@ ngf::Color Room::getOverlayColor() const { return pImpl->_overlayColor; }
 const SpriteSheet &Room::getSpriteSheet() const { return pImpl->_spriteSheet; }
 
 glm::ivec2 Room::getScreenSize() const {
-  auto height = getScreenHeight();
-  switch (height) {
-  case 0:return getRoomSize();
-  case 128:return glm::ivec2(320, 180);
-  case 172:return glm::ivec2(428, 240);
-  case 256:return glm::ivec2(640, 360);
-  default: {
-    height = 180.f * height / 128.f;
-    auto ratio = 320.f / 180.f;
-    return glm::ivec2(ratio * height, height);
+  glm::ivec2 screen;
+  if (getFullscreen() == 1) {
+    screen = getRoomSize();
+    if (getScreenHeight() != 0) {
+      screen.y = getScreenHeight();
+    }
+  } else {
+    auto height = getScreenHeight();
+    switch (height) {
+    case 0:return getRoomSize();
+    case 128:return glm::ivec2(320, 180);
+    case 172:return glm::ivec2(428, 240);
+    case 256:return glm::ivec2(640, 360);
+    default: {
+      height = 180.f * height / 128.f;
+      auto ratio = 320.f / 180.f;
+      return glm::ivec2(ratio * height, height);
+    }
+    }
   }
-  }
+  return screen;
 }
 
 void Room::setPseudoRoom(bool pseudoRoom) {
