@@ -1,14 +1,8 @@
 #pragma once
 #include <engge/Entities/Objects/ObjectAnimation.hpp>
+#include <engge/Entities/Objects/AnimState.hpp>
 
 namespace ng {
-
-enum class AnimState {
-  Stopped,
-  Play,
-  Pause
-};
-
 class AnimControl {
 public:
   void setAnimation(ObjectAnimation *anim) {
@@ -21,25 +15,26 @@ public:
     m_loop = loop;
     if (!m_anim)
       return;
-    m_state = AnimState::Play;
+    m_anim->state = AnimState::Play;
     rewind(*m_anim);
   }
 
   void stop() {
     if (!m_anim)
       return;
-    m_state = AnimState::Stopped;
+    m_anim->state = AnimState::Stopped;
     resetAnim(*m_anim);
   }
 
-  void pause() { m_state = AnimState::Pause; }
+  void pause() { m_anim->state = AnimState::Pause; }
 
-  [[nodiscard]] AnimState getState() const { return m_state; }
+  [[nodiscard]] AnimState getState() const { return m_anim->state; }
 
   void update(const ngf::TimeSpan &e) {
-    if (m_state != AnimState::Play)
-      return;
     if (!m_anim)
+      return;
+
+    if (m_anim->state != AnimState::Play)
       return;
 
     if (m_anim->frames.empty() && m_anim->layers.empty())
@@ -50,14 +45,18 @@ public:
       return;
     }
 
+    bool isOver = true;
     for (auto &layer : m_anim->layers) {
       update(e, layer, 2);
+      isOver &= layer.state == ng::AnimState::Stopped;
     }
+    if(isOver) m_anim->state = ng::AnimState::Stopped;
   }
 
 private:
   static void resetAnim(ObjectAnimation &anim) {
     if (!anim.frames.empty()) {
+      anim.state = ng::AnimState::Stopped;
       anim.frameIndex = static_cast<int>(anim.frames.size()) - 1;
     }
     if (!anim.layers.empty()) {
@@ -68,13 +67,14 @@ private:
   static void rewind(ObjectAnimation &anim) {
     if (!anim.frames.empty()) {
       anim.frameIndex = 0;
+      anim.state = ng::AnimState::Play;
     }
     if (!anim.layers.empty()) {
       std::for_each(anim.layers.begin(), anim.layers.end(), rewind);
     }
   }
 
-  void update(const ngf::TimeSpan &e, ObjectAnimation &animation, int depth) {
+  void update(const ngf::TimeSpan &e, ObjectAnimation &animation, int depth) const {
     animation.elapsed += e;
     auto fps = getFps(animation);
     assert(fps > 0);
@@ -101,8 +101,7 @@ private:
     // or stay at the last frame
     animation.frameIndex = animation.frameIndex - 1;
     trig(animation);
-    if (depth == 1)
-      m_state = AnimState::Stopped;
+    animation.state = AnimState::Stopped;
   }
 
   [[nodiscard]] static int getFps(const ObjectAnimation &animation) {
@@ -120,7 +119,6 @@ private:
 
 private:
   ObjectAnimation *m_anim{nullptr};
-  AnimState m_state{AnimState::Pause};
   bool m_loop{false};
 };
 }

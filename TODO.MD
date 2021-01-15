@@ -4,7 +4,7 @@ This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
 - [ ] more ?
-- [ ] In bridge, the cutscene is frozen
+- [x] In bridge, the cutscene is frozen
 - [x] In helpscreen there is no image displayed :(
 - [x] when the window is resized, the room is not resized
 - [x] shaders not implemented: black & white, EGA
