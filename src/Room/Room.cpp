@@ -124,6 +124,9 @@ struct Room::Impl {
         }
       } else {
         auto layerName = jLayer["name"].string_value;
+        if (layerName == "foreground_plants") {
+          int tmp = 42;
+        }
         auto frame = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
@@ -133,7 +136,7 @@ struct Room::Impl {
         auto parallax = _parsePos(jLayer["parallax"].string_value);
         layer->setParallax(parallax);
       } else {
-        auto parallax = jLayer["parallax"].double_value;
+        auto parallax = jLayer["parallax"].getDouble();
         layer->setParallax({parallax, 1});
       }
     }
