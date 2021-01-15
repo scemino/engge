@@ -1165,7 +1165,6 @@ struct Engine::Impl {
   ngf::Shader _roomShader;
   ngf::Shader _fadeShader;
   ngf::Texture _blackTexture;
-  std::unique_ptr<ngf::RenderTexture> _roomTexture;
   std::vector<std::unique_ptr<Actor>> _actors;
   std::vector<std::unique_ptr<Room>> _rooms;
   std::vector<std::unique_ptr<Function>> _newFunctions;
@@ -1309,7 +1308,6 @@ Engine::Impl::Impl()
   _fadeShader.load(_vertexShader, _fadeFragmentShader);
   uint32_t pixels[4]{0x000000FF, 0x000000FF, 0x000000FF, 0x000000FF};
   _blackTexture.loadFromMemory({2, 2}, pixels);
-  _roomTexture = std::make_unique<ngf::RenderTexture>(glm::ivec2{Screen::Width, Screen::Height});
 }
 
 void Engine::Impl::pauseGame() {
@@ -1878,14 +1876,14 @@ void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
 
   if (_showDrawWalkboxes & 4) {
     for (const auto &walkbox : _pRoom->getWalkboxes()) {
-      _WalkboxDrawable wd(walkbox);
+      _WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
 
   if (_showDrawWalkboxes & 1) {
     for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
-      _WalkboxDrawable wd(walkbox);
+      _WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }

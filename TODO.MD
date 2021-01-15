@@ -3,8 +3,9 @@
 This branch is still experimental, it's a merge with **Engge Framework**.
 
 TODO list:
-- [ ] when the window is resize, the room is not resized
+- [ ] In helpscreen there is no image displayed :(
 - [ ] more ?
+- [x] when the window is resized, the room is not resized
 - [x] shaders not implemented: black & white, EGA
 - [x] some objects position are wrong
 - [x] Actor::contains not implemented

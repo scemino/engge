@@ -523,13 +523,9 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
 
   // render the room to a texture, this allows to create a post process effect: room effect
   ngf::RenderTexture roomTexture(target.getSize());
-  roomTexture.clear();
-
-  // get screen size
-  auto screen = _pImpl->_pRoom->getScreenSize();
-  ngf::View view(ngf::frect::fromPositionSize({0, 0}, {screen.x, screen.y}));
+  ngf::View view(ngf::frect::fromPositionSize({0, 0}, _pImpl->_pRoom->getScreenSize()));
   roomTexture.setView(view);
-
+  roomTexture.clear();
   _pImpl->_pRoom->draw(roomTexture, _pImpl->_camera.getAt());
   roomTexture.display();
 
@@ -562,9 +558,12 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   fadeSprite.draw(target, states);
 
   // draw walkboxes, actor texts
+  auto orgView = target.getView();
+  target.setView(view);
   _pImpl->drawWalkboxes(target);
   _pImpl->_talkingState.draw(target, {});
   _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+  target.setView(orgView);
 
   // if we take a screenshot (for savegame) then stop drawing
   if (screenshot)

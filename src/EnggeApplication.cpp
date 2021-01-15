@@ -66,6 +66,10 @@ void EnggeApplication::onInit() {
 
 void EnggeApplication::onEvent(ngf::Event &event) {
   switch (event.type) {
+  case ngf::EventType::WindowResized:
+    getRenderTarget()->setView(ngf::View{
+        ngf::frect::fromPositionSize({0, 0}, glm::vec2(event.resize.size) * ngf::Window::getDpiScale())});
+    break;
   case ngf::EventType::MouseButtonPressed:
     if (event.mouseButton.button == 0) {
       m_isMousePressed = true;
