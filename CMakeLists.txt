@@ -6,6 +6,10 @@ project("${appName}" LANGUAGES CXX)
 
 # Compiler flags
 set (SQ_DISABLE_INSTALLER ON)
+set (NGF_BUILD_DEMOS OFF)
+set (NGF_BUILD_EXAMPLES OFF)
+set (NGF_BUILD_TESTS OFF)
+set (NGF_BUILD_DOCUMENTATION OFF)
 
 # Dependencies
 find_package (SFML REQUIRED COMPONENTS audio)

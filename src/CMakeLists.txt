@@ -89,4 +89,4 @@ endif()
 
 
 # Install exe
-install(TARGETS engge RUNTIME DESTINATION .)
+install(TARGETS engge RUNTIME DESTINATION "bin")
