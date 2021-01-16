@@ -1,0 +1,120 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  linux:
+    runs-on: ubuntu-20.04
+    name: 🐧 Ubuntu 20.04
+    steps:
+      - name: 🧰 Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: ⬇️ Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential       \
+            libsfml-dev           \
+            libxmu-dev            \
+            libxi-dev             \
+            libgl-dev             \
+            libglew-dev           \
+            libsdl2-dev           \
+            libglm-dev
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: |
+          cmake --build . --config $BUILD_TYPE --target package
+
+      - name: 📦 Upload Ubuntu package
+        uses: actions/upload-artifact@v2
+        with:
+          name: Ubuntu package
+          path: ${{runner.workspace}}/build/*.zip
+
+  win:
+    runs-on: windows-latest
+    name: 🟦 Windows x64
+    steps:
+
+      - name: 🧰 Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: ⬇️ Install dependencies
+        run: vcpkg install sfml:x64-windows freetype:x64-windows glew:x64-windows sdl2:x64-windows glm:x64-windows
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake Windows
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: |
+          cmake --build . --config $BUILD_TYPE --target package
+
+      - name: 📦 Upload Portable ZIP
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows package
+          path: ${{runner.workspace}}/build/*.zip
+
+  macos-build:
+    runs-on: macos-11.0
+    name: 🍎 macOS 11.0
+    steps:
+
+      - name: 🧰 Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: ⬇️ Install dependencies
+        run: brew install glew sdl2 glm sfml
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: |
+          cmake --build . --config $BUILD_TYPE --target package
+
+      - name: 📦 Upload Portable ZIP
+        uses: actions/upload-artifact@v2
+        with:
+          name: macOS package
+          path: ${{runner.workspace}}/build/*.zip

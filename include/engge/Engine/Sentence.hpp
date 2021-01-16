@@ -1,7 +1,8 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <ngf/System/TimeSpan.h>
-#include "Function.hpp"
+#include <engge/Engine/Function.hpp>
 
 namespace ng {
 class Sentence : public Function {

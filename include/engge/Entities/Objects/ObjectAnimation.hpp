@@ -1,19 +1,22 @@
 #pragma once
 #include <string>
+#include <functional>
+#include <vector>
 #include <glm/vec2.hpp>
-#include <engge/Graphics/SpriteSheetItem.h>
+#include <ngf/Graphics/Texture.h>
 #include <ngf/System/TimeSpan.h>
-#include "AnimState.hpp"
+#include <engge/Graphics/SpriteSheetItem.h>
+#include <engge/Entities/Objects/AnimState.hpp>
 
 namespace ng {
 struct ObjectAnimation {
   std::string name;
-  const ngf::Texture* texture{nullptr};
-  std::vector <SpriteSheetItem> frames;
-  std::vector <ObjectAnimation> layers;
-  std::vector <glm::ivec2> offsets;
-  std::vector <std::string> triggers;
-  std::vector <std::function<void()>> callbacks;
+  const ngf::Texture *texture{nullptr};
+  std::vector<SpriteSheetItem> frames;
+  std::vector<ObjectAnimation> layers;
+  std::vector<glm::ivec2> offsets;
+  std::vector<std::string> triggers;
+  std::vector<std::function<void()>> callbacks;
   bool loop{false};
   int fps{0};
   int flags{0};

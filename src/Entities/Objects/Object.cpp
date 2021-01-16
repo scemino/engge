@@ -382,7 +382,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     animDrawable.draw(pos, target, states);
   }
 
-  initialStates.transform *= t.getTransform();
+  initialStates.transform = t.getTransform() * initialStates.transform;
 
   for (const auto *pChild : pImpl->_children) {
     pChild->draw(target, initialStates);

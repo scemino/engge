@@ -1,6 +1,6 @@
 #include "engge/EnggeApplication.hpp"
 
-int main(int, char **) {
+int main(int argc, char* argv[]) {
   try {
     ng::EnggeApplication app;
     app.run();

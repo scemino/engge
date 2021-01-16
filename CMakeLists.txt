@@ -13,6 +13,7 @@ set (NGF_BUILD_DOCUMENTATION OFF)
 
 # Dependencies
 find_package (SFML REQUIRED COMPONENTS audio)
+find_package(SDL2 CONFIG REQUIRED)
 
 # Sources
 add_subdirectory(src)
@@ -31,12 +32,6 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-audio.so.2.5 ./src/engge)")
     install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-audio.so.2.5 ./src/engge)")
 
-# Install libraries on Windows
-elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-
-    install(FILES "${SFML_DIR}/../../../bin/openal32.dll" DESTINATION .)
-    install(FILES "${SFML_DIR}/../../../bin/sfml-audio-2.dll" DESTINATION .)
-
 endif()
 
 target_compile_features("${appName}" PRIVATE cxx_std_17)
@@ -48,7 +43,8 @@ if (MSVC)
 else()
     # lots of warnings and all warnings as errors
     # TODO: treat warnings as errors: -Werror
-    target_compile_options("${appName}" PRIVATE -Wall -Wextra -pedantic-errors)
+    # -pedantic-errors reports error library {fmt}
+    target_compile_options("${appName}" PRIVATE -Wall -Wextra)
 endif()
 
 # Configure CPack

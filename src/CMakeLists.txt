@@ -81,7 +81,12 @@ target_link_libraries(${PROJECT_NAME} squirrel_static sqstdlib_static)
 target_link_libraries(${PROJECT_NAME} clipper)
 # SFML
 target_link_libraries(${PROJECT_NAME} sfml-audio)
+# ngf
 target_link_libraries(${PROJECT_NAME} ngf)
+# SDL2
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} SDL2::SDL2main)
+endif()
 # std::filesystem
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     target_link_libraries(${PROJECT_NAME} stdc++fs)

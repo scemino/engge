@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <engge/Entities/Objects/ObjectAnimation.hpp>
 #include <engge/Entities/Objects/AnimState.hpp>
 

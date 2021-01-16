@@ -124,9 +124,6 @@ struct Room::Impl {
         }
       } else {
         auto layerName = jLayer["name"].string_value;
-        if (layerName == "foreground_plants") {
-          int tmp = 42;
-        }
         auto frame = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
