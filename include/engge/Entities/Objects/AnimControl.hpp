@@ -41,17 +41,20 @@ public:
       return;
 
     if (!m_anim->frames.empty()) {
-      update(e, *m_anim, 1);
+      update(e, *m_anim);
       return;
     }
 
     bool isOver = true;
     for (auto &layer : m_anim->layers) {
-      update(e, layer, 2);
+      update(e, layer);
       isOver &= layer.state == ng::AnimState::Stopped;
     }
-    if(isOver) m_anim->state = ng::AnimState::Stopped;
+    if (isOver)
+      m_anim->state = ng::AnimState::Stopped;
   }
+
+  [[nodiscard]] bool getLoop() const { return m_loop; }
 
 private:
   static void resetAnim(ObjectAnimation &anim) {
@@ -74,7 +77,7 @@ private:
     }
   }
 
-  void update(const ngf::TimeSpan &e, ObjectAnimation &animation, int depth) const {
+  void update(const ngf::TimeSpan &e, ObjectAnimation &animation) const {
     animation.elapsed += e;
     auto fps = getFps(animation);
     assert(fps > 0);

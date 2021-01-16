@@ -185,20 +185,31 @@ bool Costume::setMatchingAnimation(const std::string &animName) {
 }
 
 void Costume::updateAnimation() {
+  std::string animName = _animation;
+  if (animName == "stand") {
+    animName = _standAnimName;
+  } else if (animName == "head") {
+    animName = _headAnimName;
+  } else if (animName == "walk") {
+    animName = _walkAnimName;
+  } else if (animName == "reach") {
+    animName = _reachAnimName;
+  }
+
   // special case for eyes... bof
-  if (_pCurrentAnimation && startsWith(_animation, "eyes_")) {
+  if (_pCurrentAnimation && startsWith(animName, "eyes_")) {
     auto &layers = _pCurrentAnimation->layers;
     for (auto &&layer : layers) {
       if (!startsWith(layer.name, "eyes_"))
         continue;
       setLayerVisible(layer.name, false);
     }
-    setLayerVisible(_animation, true);
+    setLayerVisible(animName, true);
     return;
   }
 
-  if (!setAnimation(_animation)) {
-    std::string name(_animation);
+  if (!setAnimation(animName)) {
+    std::string name(animName);
     name.append("_");
     switch (getFacing()) {
     case Facing::FACE_BACK:name.append("back");
@@ -267,6 +278,11 @@ void Costume::setAnimationNames(const std::string &headAnim,
   }
   if (!reachAnim.empty()) {
     _reachAnimName = reachAnim;
+  }
+  // update animation if necessary
+  if (_pCurrentAnimation) {
+    _pCurrentAnimation = nullptr;
+    setState(_animation, _animControl.getLoop());
   }
 }
 
