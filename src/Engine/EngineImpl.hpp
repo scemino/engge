@@ -2158,21 +2158,11 @@ void Engine::Impl::drawHud(ngf::RenderTarget &target) const {
 }
 
 void Engine::Impl::captureScreen(const std::string &path) const {
-  ngf::RenderTexture target({Screen::Width, Screen::Height});
-  target.setView(_pEngine->getApplication()->getRenderTarget()->getView());
+  ngf::RenderTexture target({320, 180});
   _pEngine->draw(target, true);
   target.display();
 
-  ngf::Sprite s(target.getTexture());
-  s.getTransform().setScale({1.f / 4.f, 1.f / 4.f});
-
-  ngf::RenderTexture rt({320, 180});
-  rt.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {320, 180})));
-  s.flipVertically();
-  s.draw(rt, {});
-  rt.display();
-
-  auto screenshot = rt.capture();
+  auto screenshot = target.capture();
   screenshot.saveToFile(path);
 }
 
