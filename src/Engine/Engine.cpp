@@ -186,7 +186,7 @@ void Engine::follow(Actor *pActor) {
   if (!pActor)
     return;
 
-  auto pos = pActor->getRealPosition();
+  auto pos = pActor->getPosition();
   auto screen = _pImpl->_pRoom->getScreenSize();
   setRoom(pActor->getRoom());
   if (panCamera) {
@@ -284,7 +284,7 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   auto actor = getCurrentActor();
   actor->getCostume().setFacing(facing);
   actor->setRoom(pRoom);
-  auto pos = pDoor->getRealPosition();
+  auto pos = pDoor->getPosition();
   auto usePos = pDoor->getUsePosition().value_or(glm::vec2());
   pos += usePos;
   actor->setPosition(pos);

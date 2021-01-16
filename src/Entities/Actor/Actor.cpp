@@ -224,7 +224,7 @@ void Actor::Impl::WalkingState::setDestination(const std::vector<glm::vec2> &pat
   _pActor->getCostume().setFacing(getFacing());
   _pActor->getCostume().setWalkState();
   _isWalking = true;
-  _init = _pActor->getRealPosition();
+  _init = _pActor->getPosition();
   _elapsed = ngf::TimeSpan::seconds(0);
   trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
 }
@@ -238,7 +238,7 @@ void Actor::Impl::WalkingState::stop() {
 }
 
 Facing Actor::Impl::WalkingState::getFacing() {
-  auto pos = _pActor->getRealPosition();
+  auto pos = _pActor->getPosition();
   auto dx = _path[0].x - pos.x;
   auto dy = _path[0].y - pos.y;
   if (fabs(dx) > fabs(dy))
@@ -314,7 +314,7 @@ float Actor::getScale() const {
   auto pRoom = pImpl->_pRoom;
   if (!pRoom)
     return 1.f;
-  return pRoom->getRoomScaling().getScaling(getRealPosition().y);
+  return pRoom->getRoomScaling().getScaling(getPosition().y);
 }
 
 void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
@@ -355,17 +355,17 @@ void Actor::update(const ngf::TimeSpan &elapsed) {
 
 std::vector<glm::vec2> Actor::walkTo(const glm::vec2 &destination, std::optional<Facing> facing) {
   if (pImpl->_pRoom == nullptr)
-    return {getRealPosition()};
+    return {getPosition()};
 
   std::vector<glm::vec2> path;
   if (pImpl->_useWalkboxes) {
-    path = pImpl->_pRoom->calculatePath(getRealPosition(), destination);
+    path = pImpl->_pRoom->calculatePath(getPosition(), destination);
     if (path.size() < 2) {
       pImpl->_path = nullptr;
       return path;
     }
   } else {
-    path.push_back(getRealPosition());
+    path.push_back(getPosition());
     path.push_back(destination);
   }
 

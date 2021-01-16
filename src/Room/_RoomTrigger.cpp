@@ -82,7 +82,7 @@ void _RoomTrigger::trigCore() {
   if (!actor)
     return;
 
-  auto inObjectHotspot = _object.getRealHotspot().contains(actor->getRealPosition());
+  auto inObjectHotspot = _object.getRealHotspot().contains(actor->getPosition());
   if (!_isInside && inObjectHotspot) {
     _isInside = true;
 

@@ -455,7 +455,7 @@ private:
       if (!spot) {
         return sq_throwerror(v, _SC("failed to get spot"));
       }
-      auto pos = spot->getRealPosition();
+      auto pos = spot->getPosition();
       auto usePos = spot->getUsePosition().value_or(glm::vec2());
       x = pos.x + usePos.x;
       y = pos.y + usePos.y;
@@ -510,7 +510,7 @@ private:
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    auto pos = obj->getRealPosition();
+    auto pos = obj->getPosition();
     auto hotspot = obj->getHotspot();
     auto usePos = obj->getUsePosition().value_or(glm::vec2());
     sq_pushinteger(v, static_cast<SQInteger>(pos.x + usePos.x + hotspot.getTopLeft().x + hotspot.getWidth() / 2));
@@ -522,7 +522,7 @@ private:
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    auto pos = obj->getRealPosition();
+    auto pos = obj->getPosition();
     auto hotspot = obj->getHotspot();
     auto usePos = obj->getUsePosition().value_or(glm::vec2());
     pos.y += usePos.y + hotspot.getTopLeft().y + hotspot.getHeight() / 2;
@@ -726,7 +726,7 @@ private:
     glm::vec2 pos;
     Object *obj = EntityManager::getObject(v, 2);
     if (obj) {
-      pos = obj->getRealPosition();
+      pos = obj->getPosition();
       auto usePos = obj->getUsePosition().value_or(glm::vec2());
       pos += usePos;
     } else {

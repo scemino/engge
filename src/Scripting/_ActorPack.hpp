@@ -176,7 +176,7 @@ private:
       if (!pObj) {
         return sq_throwerror(v, _SC("failed to get object or room"));
       }
-      auto pos = pObj->getRealPosition() + pObj->getUsePosition().value_or(glm::vec2());
+      auto pos = pObj->getPosition() + pObj->getUsePosition().value_or(glm::vec2());
       pRoom = pObj->getRoom();
       pActor->setRoom(pRoom);
       pActor->setPosition(pos);
@@ -277,7 +277,7 @@ private:
     }
     auto pActor2 = EntityManager::getActor(v, 3);
     if (pActor2) {
-      auto dist = _distance(pActor->getRealPosition(), pActor2->getRealPosition());
+      auto dist = _distance(pActor->getPosition(), pActor2->getPosition());
       sq_pushinteger(v, dist);
       return 1;
     }
@@ -285,8 +285,8 @@ private:
     if (!pObject) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    auto posObj = pObject->getRealPosition() + pObject->getUsePosition().value_or(glm::vec2());
-    auto dist = _distance(pActor->getRealPosition(), posObj);
+    auto posObj = pObject->getPosition() + pObject->getUsePosition().value_or(glm::vec2());
+    auto dist = _distance(pActor->getPosition(), posObj);
     sq_pushinteger(v, dist);
     return 1;
   }
@@ -302,7 +302,7 @@ private:
     }
     auto pActor2 = EntityManager::getActor(v, 3);
     if (pActor2) {
-      auto dist = _distance(actor->getRealPosition(), pActor2->getRealPosition());
+      auto dist = _distance(actor->getPosition(), pActor2->getPosition());
 //      trace("actorDistanceWithin({},{},{})=>{} ({})",
 //            actor->getKey(),
 //            pActor2->getKey(),
@@ -318,8 +318,8 @@ private:
       return sq_throwerror(v, _SC("failed to get object or actor"));
     }
 
-    auto posObj = pObject->getRealPosition() + pObject->getUsePosition().value_or(glm::vec2());
-    auto dist = _distance(actor->getRealPosition(), posObj);
+    auto posObj = pObject->getPosition() + pObject->getUsePosition().value_or(glm::vec2());
+    auto dist = _distance(actor->getPosition(), posObj);
 //    trace("actorDistanceWithin({},{},{})=>{} ({})",
 //          actor->getKey(),
 //          pObject->getName(),
@@ -408,7 +408,7 @@ private:
     if (!object) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    bool isInside = object->getRealHotspot().contains(actor->getRealPosition());
+    bool isInside = object->getRealHotspot().contains(actor->getPosition());
     sq_pushbool(v, isInside);
     return 1;
   }
@@ -424,7 +424,7 @@ private:
       return sq_throwerror(v, _SC("failed to get walkbox"));
     }
     auto pWalkbox = g_pEngine->getRoom()->getWalkbox(walkboxName);
-    auto inWalkbox = pWalkbox && pWalkbox->inside(actor->getRealPosition());
+    auto inWalkbox = pWalkbox && pWalkbox->inside(actor->getPosition());
     sq_pushbool(v, inWalkbox ? SQTrue : SQFalse);
     return 1;
   }
@@ -507,7 +507,7 @@ private:
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    sq_pushinteger(v, pActor->getRealPosition().x);
+    sq_pushinteger(v, pActor->getPosition().x);
     return 1;
   }
 
@@ -516,7 +516,7 @@ private:
     if (!pActor) {
       return sq_throwerror(v, _SC("failed to get actor"));
     }
-    sq_pushinteger(v, pActor->getRealPosition().y);
+    sq_pushinteger(v, pActor->getPosition().y);
     return 1;
   }
 
@@ -685,7 +685,7 @@ private:
 
   static Facing _getFacingToFaceTo(Actor *pActor, Entity *pEntity) {
     Facing facing;
-    auto d = pEntity->getRealPosition() - pActor->getRealPosition();
+    auto d = pEntity->getPosition() - pActor->getPosition();
     if (d.x == 0) {
       facing = d.y > 0 ? Facing::FACE_FRONT : Facing::FACE_BACK;
     } else {
@@ -772,7 +772,7 @@ private:
     case Facing::FACE_RIGHT:direction = glm::vec2(dist, 0);
       break;
     }
-    actor->walkTo(actor->getRealPosition() + direction);
+    actor->walkTo(actor->getPosition() + direction);
     return 0;
   }
 
@@ -816,7 +816,7 @@ private:
     if (numArgs == 3) {
       auto *pObject = EntityManager::getObject(v, 3);
       if (pObject) {
-        auto pos = pObject->getRealPosition();
+        auto pos = pObject->getPosition();
         auto usePos = pObject->getUsePosition().value_or(glm::vec2());
         pos.x += usePos.x;
         pos.y += usePos.y;
@@ -829,7 +829,7 @@ private:
         return sq_throwerror(v, _SC("failed to get object or actor"));
       }
 
-      auto pos = pActor->getRealPosition();
+      auto pos = pActor->getPosition();
       pActor->walkTo(glm::vec2(pos), getOppositeFacing(pActor->getCostume().getFacing()));
       return 0;
     }
@@ -904,7 +904,7 @@ private:
     }
 
     auto screen = g_pEngine->getRoom()->getScreenSize();
-    auto pos = (glm::ivec2) entity->getRealPosition();
+    auto pos = (glm::ivec2) entity->getPosition();
     auto camera = g_pEngine->getCamera().getAt();
     ngf::irect rect = ngf::irect::fromPositionSize({camera.x, camera.y}, {screen.x, screen.y});
     auto isOnScreen = rect.contains(pos);
@@ -1047,7 +1047,7 @@ private:
     }
     sq_newarray(v, 0);
     for (const auto &actor : g_pEngine->getActors()) {
-      if (object->getRealHotspot().contains((glm::ivec2) actor->getRealPosition())) {
+      if (object->getRealHotspot().contains((glm::ivec2) actor->getPosition())) {
         sq_pushobject(v, actor->getTable());
         sq_arrayappend(v, -2);
       }

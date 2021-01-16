@@ -79,11 +79,11 @@ void SoundId::updateVolume() {
     if (pRoom == pEntity->getRoom()) {
       auto width = _soundManager.getEngine()->getRoom()->getScreenSize().x;
       at.x += width / 2.f;
-      auto diff = fabs(at.x - pEntity->getRealPosition().x);
+      auto diff = fabs(at.x - pEntity->getPosition().x);
       entityVolume = (1.5f - (diff / width)) / 1.5f;
       if (entityVolume < 0)
         entityVolume = 0;
-      float pan = (pEntity->getRealPosition().x - at.x) / (width / 2);
+      float pan = (pEntity->getPosition().x - at.x) / (width / 2);
       if (pan > 1.f)
         pan = 1.f;
       if (pan < -1.f)
