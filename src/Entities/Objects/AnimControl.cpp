@@ -87,13 +87,14 @@ void AnimControl::update(const ngf::TimeSpan &e, ObjectAnimation &animation) con
   animation.frameIndex++;
 
   // quit if animation length not reached
-  if (animation.frameIndex != static_cast<int>(animation.frames.size()))
+  if (animation.frameIndex != static_cast<int>(animation.frames.size())) {
+    trig(animation);
     return;
+  }
 
   // loop if requested
   if (m_loop || animation.loop) {
     animation.frameIndex = 0;
-    trig(animation);
     return;
   }
 
@@ -110,11 +111,13 @@ int AnimControl::getFps(const ObjectAnimation &animation) {
 }
 
 void AnimControl::trig(const ObjectAnimation &animation) {
-  if (!animation.callbacks.empty() && (animation.frameIndex >= 0)
-      && (animation.frameIndex < static_cast<int>(animation.callbacks.size()))) {
-    auto callback = animation.callbacks.at(animation.frameIndex);
-    if (callback)
-      callback();
+  if (animation.callbacks.empty() || animation.frameIndex < 0
+      || animation.frameIndex >= static_cast<int>(animation.callbacks.size()))
+    return;
+
+  auto callback = animation.callbacks.at(animation.frameIndex);
+  if (callback) {
+    callback();
   }
 }
 }
