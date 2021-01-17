@@ -48,7 +48,7 @@ jobs:
       - name: 📦 Upload Ubuntu package
         uses: actions/upload-artifact@v2
         with:
-          name: Ubuntu package
+          name: engge-linux
           path: ${{runner.workspace}}/build/*.zip
 
   win:
@@ -82,7 +82,7 @@ jobs:
       - name: 📦 Upload Portable ZIP
         uses: actions/upload-artifact@v2
         with:
-          name: Windows package
+          name: engge-win
           path: ${{runner.workspace}}/build/*.zip
 
   macos-build:
@@ -116,5 +116,5 @@ jobs:
       - name: 📦 Upload Portable ZIP
         uses: actions/upload-artifact@v2
         with:
-          name: macOS package
+          name: engge-macOS
           path: ${{runner.workspace}}/build/*.zip
