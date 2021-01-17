@@ -177,7 +177,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
       choose(dialog + 1);
       break;
     }
-    y += getGlobalBounds(text).getHeight();
+    y += getGlobalBounds(text).getHeight() / 2.f;
     dialog++;
   }
 }
