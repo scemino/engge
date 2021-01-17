@@ -1,6 +1,6 @@
 # engge
 
-![Build](https://github.com/scemino/engge/workflows/Build/badge.svg)
+[![Build](https://github.com/scemino/engge/workflows/Build/badge.svg)](https://github.com/scemino/engge/actions)
 [![CodeFactor](https://www.codefactor.io/repository/github/scemino/engge/badge)](https://www.codefactor.io/repository/github/scemino/engge)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fengge_the_game)](https://twitter.com/engge_the_game)
 
