@@ -1,7 +1,6 @@
 # engge
 
-[![Build Status](https://travis-ci.org/scemino/engge.svg?branch=master)](https://travis-ci.org/scemino/engge)
-[![Build status](https://ci.appveyor.com/api/projects/status/i3u9klo4o762lacf?svg=true)](https://ci.appveyor.com/project/scemino/engge)
+![Build](https://github.com/scemino/engge/workflows/Build/badge.svg)
 [![CodeFactor](https://www.codefactor.io/repository/github/scemino/engge/badge)](https://www.codefactor.io/repository/github/scemino/engge)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fengge_the_game)](https://twitter.com/engge_the_game)
 
@@ -20,9 +19,8 @@ It's still a project in active development, and there are a lot of issues, don't
 * Buy [Thimbleweed park](https://thimbleweedpark.com)
 * Go to your installation folder and copy these files:  **ThimbleweedPark.ggpack1** and **ThimbleweedPark.ggpack2** to **engge** directory
 * **engge** has these following dependencies
-  * [SFML](https://www.sfml-dev.org/): Simple and Fast Multimedia Library
-  * [dear imgui](https://github.com/ocornut/imgui): Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies
-  * [imgui-sfml](https://github.com/eliasdaler/imgui-sfml): ImGui binding for use with SFML
+  * [ngf](https://github.com/scemino/EnggeFramework/): Engge Framework is a C++ framework based on SDL.
+  * [SFML](https://www.sfml-dev.org/): Simple and Fast Multimedia Library (SFML-Audio only)
   * [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
   * [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
   * [clipper](https://sourceforge.net/projects/polyclipping/): Polygon and line clipping and offsetting library.
