@@ -68,9 +68,9 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
     text.getTransform().setPosition({slot.pos.x, y + slot.pos.y});
     auto bounds = getGlobalBounds(text);
     text.setColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
-    text.draw(target,{});
+    text.draw(target, {});
 
-    y += getGlobalBounds(text).getHeight();
+    y += getGlobalBounds(text).getHeight() / 2.f;
   }
 
   target.setView(view);
@@ -151,7 +151,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
         }
       }
     }
-    y += bounds.getHeight();
+    y += bounds.getHeight() / 2.f;
     dialog++;
   }
 
