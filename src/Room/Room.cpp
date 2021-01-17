@@ -84,7 +84,7 @@ struct Room::Impl {
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(bg.string_value);
         _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
         _layers[0]->setOffsetY(offsetY);
-        _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize});
+        _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize, false});
         width += frame.getWidth();
       }
     } else if (jWimpy["background"].isString()) {
@@ -93,7 +93,7 @@ struct Room::Impl {
       auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
       _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
       _layers[0]->setOffsetY(offsetY);
-      _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize});
+      _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize, false});
     }
     // room width seems to be not enough :S
     if (width > _roomSize.x) {
@@ -120,14 +120,14 @@ struct Room::Impl {
           auto frame = _spriteSheet.getRect(layerName);
           auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
           auto sourceSize = _spriteSheet.getSourceSize(layerName);
-          layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize});
+          layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
         }
       } else {
         auto layerName = jLayer["name"].string_value;
         auto frame = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
-        layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize});
+        layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
       }
       if (jLayer["parallax"].isString()) {
         auto parallax = _parsePos(jLayer["parallax"].string_value);
@@ -627,7 +627,7 @@ Object &Room::createObject(const std::string &image) {
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
   anim.name = "state0";
   anim.texture = texture.get();
-  anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size});
+  anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size, false});
   object->getAnims().push_back(anim);
 
   object->setAnimation("state0");
