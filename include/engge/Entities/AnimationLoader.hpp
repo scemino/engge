@@ -9,7 +9,7 @@
 namespace ng {
 class AnimationLoader final {
 public:
-  static std::vector<ObjectAnimation> parseObjectAnimations(
+  static std::vector<ObjectAnimation> parseAnimations(
       Entity &entity,
       const GGPackValue &gAnimations,
       const SpriteSheet &spriteSheet) {
@@ -19,7 +19,7 @@ public:
     for (const auto &gAnimation : gAnimations.array_value) {
       if (gAnimation.isNull())
         continue;
-      anims.push_back(parseObjectAnimation(entity, gAnimation, spriteSheet));
+      anims.push_back(parseAnimation(entity, gAnimation, spriteSheet));
     }
     return anims;
   }
@@ -36,9 +36,9 @@ private:
     return glm::ivec2{x, y};
   }
 
-  static ObjectAnimation parseObjectAnimation(Entity &entity,
-                                              const GGPackValue &gAnimation,
-                                              const SpriteSheet &defaultSpriteSheet) {
+  static ObjectAnimation parseAnimation(Entity &entity,
+                                        const GGPackValue &gAnimation,
+                                        const SpriteSheet &defaultSpriteSheet) {
     const SpriteSheet *spriteSheet = &defaultSpriteSheet;
     ObjectAnimation anim;
     if (gAnimation["sheet"].isString()) {
@@ -52,13 +52,19 @@ private:
     if (!gAnimation["frames"].isNull()) {
       for (const auto &gFrame : gAnimation["frames"].array_value) {
         auto name = gFrame.getString();
-        anim.frames.push_back(spriteSheet->getItem(name));
+        if (name == "null") {
+          SpriteSheetItem item;
+          item.isNull = true;
+          anim.frames.push_back(item);
+        } else {
+          anim.frames.push_back(spriteSheet->getItem(name));
+        }
       }
     }
 
     if (!gAnimation["layers"].isNull()) {
       for (const auto &gLayer : gAnimation["layers"].array_value) {
-        auto layer = parseObjectAnimation(entity, gLayer, *spriteSheet);
+        auto layer = parseAnimation(entity, gLayer, *spriteSheet);
         anim.layers.push_back(layer);
       }
     }
@@ -69,11 +75,15 @@ private:
       }
     }
     if (!gAnimation["triggers"].isNull()) {
-      anim.callbacks.resize(gAnimation["triggers"].array_value.size());
+      auto numTriggers = gAnimation["triggers"].array_value.size();
+      anim.callbacks.resize(numTriggers);
+      anim.triggers.resize(numTriggers);
       for (auto i = 0; i < static_cast<int>(gAnimation["triggers"].array_value.size()); i++) {
-        const auto &gTriggers = gAnimation["triggers"].array_value[i];
-        auto trigName = gTriggers.getString();
-        anim.triggers.push_back(gTriggers.getString());
+        const auto &gTrigger = gAnimation["triggers"].array_value[i];
+        if (gTrigger.isNull())
+          continue;
+        auto trigName = gTrigger.getString();
+        anim.triggers[i] = trigName;
         anim.callbacks[i] = [&entity, trigName]() { entity.trig(trigName); };
       }
     }

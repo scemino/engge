@@ -9,5 +9,6 @@ struct SpriteSheetItem {
   ngf::irect frame{};
   ngf::irect spriteSourceSize{};
   glm::ivec2 sourceSize{};
+  bool isNull{true};
 };
 }

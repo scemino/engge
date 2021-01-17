@@ -223,7 +223,7 @@ struct Room::Impl {
       // animations
       object->setTexture(&_spriteSheet.getTexture());
       if (jObject["animations"].isArray()) {
-        auto anims = AnimationLoader::parseObjectAnimations(*object, jObject["animations"], _spriteSheet);
+        auto anims = AnimationLoader::parseAnimations(*object, jObject["animations"], _spriteSheet);
         auto &objAnims = object->getAnims();
         std::copy(anims.begin(), anims.end(), std::back_inserter(objAnims));
 

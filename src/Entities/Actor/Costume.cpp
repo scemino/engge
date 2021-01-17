@@ -136,7 +136,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
     setLayerVisible(layerName, i == _headIndex);
   }
 
-  _animations = AnimationLoader::parseObjectAnimations(*_pActor, hash["animations"], _costumeSheet);
+  _animations = AnimationLoader::parseAnimations(*_pActor, hash["animations"], _costumeSheet);
 
   // don't know if it's necessary, reyes has no costume in the intro
   setStandState();

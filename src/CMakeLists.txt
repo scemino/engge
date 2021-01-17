@@ -34,6 +34,8 @@ set(SOURCES
         Entities/Actor/Costume.cpp
         Entities/Entity.cpp
         Engine/EntityManager.cpp
+        Entities/Objects/AnimControl.cpp
+        Entities/Objects/AnimDrawable.cpp
         Entities/Objects/Object.cpp
         Entities/Objects/TextObject.cpp
         Graphics/FntFont.cpp
