@@ -320,16 +320,53 @@ private:
   }
 
   static SQInteger clampInWalkbox(HSQUIRRELVM v) {
-    error("TODO: clampInWalkbox: not implemented");
-    SQInteger x = 0;
-    if (SQ_FAILED(sq_getinteger(v, 2, &x))) {
-      return sq_throwerror(v, _SC("failed to get x"));
+    auto numArgs = sq_gettop(v);
+    glm::vec2 pos1, pos2;
+    if (numArgs == 3) {
+      SQInteger x = 0;
+      if (SQ_FAILED(sq_getinteger(v, 2, &x))) {
+        return sq_throwerror(v, _SC("failed to get x"));
+      }
+      SQInteger y = 0;
+      if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
+        return sq_throwerror(v, _SC("failed to get y"));
+      }
+      pos1 = {x, y};
+      auto pActor = g_pEngine->getCurrentActor();
+      pos2 = pActor->getPosition();
+    } else if (numArgs == 5) {
+      SQInteger x1 = 0;
+      if (SQ_FAILED(sq_getinteger(v, 2, &x1))) {
+        return sq_throwerror(v, _SC("failed to get x1"));
+      }
+      SQInteger y1 = 0;
+      if (SQ_FAILED(sq_getinteger(v, 3, &y1))) {
+        return sq_throwerror(v, _SC("failed to get y1"));
+      }
+      pos1 = {x1, y1};
+      SQInteger x2 = 0;
+      if (SQ_FAILED(sq_getinteger(v, 2, &x2))) {
+        return sq_throwerror(v, _SC("failed to get x2"));
+      }
+      SQInteger y2 = 0;
+      if (SQ_FAILED(sq_getinteger(v, 3, &y1))) {
+        return sq_throwerror(v, _SC("failed to get y2"));
+      }
+      pos2 = {x2, y2};
+    } else {
+      return sq_throwerror(v, _SC("Invalid argument number in clampInWalkbox"));
     }
-    SQInteger y = 0;
-    if (SQ_FAILED(sq_getinteger(v, 3, &y))) {
-      return sq_throwerror(v, _SC("failed to get y"));
+    auto walkboxes = g_pEngine->getRoom()->getWalkboxes();
+    auto it = std::find_if(walkboxes.cbegin(), walkboxes.cend(), [pos2](const auto &walkbox) {
+      return walkbox.inside(pos2);
+    });
+    if (it == walkboxes.cend()) {
+      error("Actor's walkbox has not been found.");
+      ScriptEngine::push(v, glm::ivec2(pos1));
+    } else {
+      auto pos = it->getClosestPointOnEdge(pos1);
+      ScriptEngine::push(v, pos);
     }
-    ScriptEngine::push(v, glm::ivec2(x, y));
     return 1;
   }
 

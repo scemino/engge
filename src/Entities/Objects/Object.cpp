@@ -373,7 +373,8 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
 
   if (pImpl->_pAnim) {
     auto pos = t.getPosition();
-    t.setPosition({pos.x, pImpl->_pRoom->getScreenSize().y - pos.y});
+    auto scale = getScale();
+    t.setPosition({pos.x, pImpl->_pRoom->getScreenSize().y - pos.y - scale * getRenderOffset().y});
     states.transform = t.getTransform() * states.transform;
 
     AnimDrawable animDrawable;
