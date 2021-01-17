@@ -101,6 +101,7 @@ void SoundManager::stopSound(const SoundDefinition *pSoundDef) {
 }
 
 void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume) {
+  volume = std::clamp(volume, 0.f, 1.f);
   trace("setVolume (sound definition: {})", pSoundDef->getPath());
   for (size_t i = 1; i <= getSize(); i++) {
     auto &&sound = getSound(i);
