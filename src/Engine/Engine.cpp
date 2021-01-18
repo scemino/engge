@@ -78,6 +78,10 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
       auto newLang = _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language,
                                                                          PreferenceDefaultValues::Language);
       _pImpl->onLanguageChange(newLang);
+    } else if (name == PreferenceNames::Fullscreen) {
+      auto fullscreen = _pImpl->_preferences.getUserPreference<bool>(PreferenceNames::Fullscreen,
+                                                                     PreferenceDefaultValues::Fullscreen);
+      _pImpl->_pApp->getWindow().setFullscreen(fullscreen);
     }
   });
 }
