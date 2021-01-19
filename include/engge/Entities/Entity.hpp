@@ -133,7 +133,7 @@ private:
   [[nodiscard]] glm::vec2 getRealPosition() const;
 
 protected:
-  [[nodiscard]] const std::vector<Entity *> getChildren() const;
+  [[nodiscard]] std::vector<Entity *> getChildren() const;
   [[nodiscard]] ngf::Transform getTransform() const;
 
 private:

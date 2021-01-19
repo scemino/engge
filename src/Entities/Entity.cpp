@@ -128,7 +128,11 @@ glm::vec2 Entity::getOffset() const {
   return pImpl->_offset;
 }
 
-void Entity::setRotation(float angle) { pImpl->_transform.setRotation(angle); }
+void Entity::setRotation(float angle) {
+  pImpl->_transform.setRotation(angle);
+  pImpl->_rotateTo.isEnabled = false;
+}
+
 float Entity::getRotation() const {
   // SFML give rotation in degree between [0, 360]
   float angle = pImpl->_transform.getRotation();
@@ -235,7 +239,7 @@ glm::ivec2 Entity::getRenderOffset() const {
 }
 
 void Entity::alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto getAlpha = [this] { return getColor().a; };
+  auto getAlpha = [this] { return pImpl->_color.a; };
   auto setAlpha = [this](const float &a) { pImpl->_color.a = a; };
   auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
   pImpl->_alphaTo.function = std::move(alphaTo);
@@ -251,15 +255,15 @@ void Entity::offsetTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMe
 }
 
 void Entity::moveTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return getPosition(); };
-  auto set = [this](const glm::vec2 &value) { setPosition(value); };
+  auto get = [this] { return pImpl->_transform.getPosition(); };
+  auto set = [this](const glm::vec2 &value) { pImpl->_transform.setPosition(value); };
   auto moveTo = std::make_unique<ChangeProperty<glm::vec2>>(get, set, destination, time, method);
   pImpl->_moveTo.function = std::move(moveTo);
   pImpl->_moveTo.isEnabled = true;
 }
 
 void Entity::rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return getRotation(); };
+  auto get = [this] { return pImpl->_transform.getRotation(); };
   auto set = [this](const float &value) { pImpl->_transform.setRotation(value); };
   auto rotateTo =
       std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
@@ -372,7 +376,7 @@ void Entity::setParent(Entity *pParent) {
   }
 }
 
-const std::vector<Entity *> Entity::getChildren() const {
+std::vector<Entity *> Entity::getChildren() const {
   return pImpl->_children;
 }
 
