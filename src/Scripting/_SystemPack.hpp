@@ -749,7 +749,7 @@ private:
     }
 
     // WIP need to be check
-    auto pos = g_pEngine->getApplication()->getRenderTarget()->mapCoordsToPixel(glm::vec2(x, y) - g_pEngine->getCamera().getAt());
+    // auto pos = g_pEngine->getApplication()->getRenderTarget()->mapCoordsToPixel(glm::vec2(x, y) - g_pEngine->getCamera().getAt());
     // TODO: ngf::Mouse::setPosition(pos, g_pEngine->getApplication()->get);
     error("moveCursorTo not implemented");
     return 0;

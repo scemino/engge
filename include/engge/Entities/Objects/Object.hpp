@@ -61,41 +61,41 @@ public:
   ~Object() override;
 
   void setZOrder(int zorder);
-  int getZOrder() const override;
+  [[nodiscard]] int getZOrder() const override;
 
   void setType(ObjectType type);
-  ObjectType getType() const;
+  [[nodiscard]] ObjectType getType() const;
 
-  bool isTouchable() const override;
-  bool isInventoryObject() const override;
+  [[nodiscard]] bool isTouchable() const override;
+  [[nodiscard]] bool isInventoryObject() const override;
 
   void setHotspot(const ngf::irect &hotspot);
-  const ngf::irect &getHotspot() const;
-  ngf::irect getRealHotspot() const;
+  [[nodiscard]] const ngf::irect &getHotspot() const;
+  [[nodiscard]] ngf::irect getRealHotspot() const;
   void showDebugHotspot(bool show);
-  bool isHotspotVisible() const;
+  [[nodiscard]] bool isHotspotVisible() const;
 
   void setIcon(const std::string &icon);
   void setIcon(int fps, const std::vector<std::string> &icons);
-  std::string getIcon() const;
+  [[nodiscard]] std::string getIcon() const;
 
   HSQOBJECT &getTable() override;
-  HSQOBJECT &getTable() const override;
+  [[nodiscard]] HSQOBJECT &getTable() const override;
 
-  void setTexture(const ngf::Texture* texture);
+  void setTexture(const ngf::Texture *texture);
   std::vector<ObjectAnimation> &getAnims();
 
-  bool isVisible() const override;
+  [[nodiscard]] bool isVisible() const override;
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
   void playAnim(const std::string &anim, bool loop);
-  int getState() const;
+  [[nodiscard]] int getState() const;
   void setAnimation(const std::string &name);
-  ObjectAnimation * &getAnimation();
-  AnimControl& getAnimControl();
+  ObjectAnimation *&getAnimation();
+  AnimControl &getAnimControl();
 
   Room *getRoom() override;
-  const Room *getRoom() const override;
+  [[nodiscard]] const Room *getRoom() const override;
   void setRoom(Room *pRoom);
 
   void update(const ngf::TimeSpan &elapsed) override;
@@ -109,28 +109,23 @@ public:
 
   void dependentOn(Object *parentObject, int state);
 
-  bool hasParent() const override;
-  void setParent(Object *pParent);
-
   void setFps(int fps) override;
 
-  Actor *getOwner() const;
+  [[nodiscard]] Actor *getOwner() const;
   void setOwner(Actor *pActor);
 
   void setScreenSpace(ScreenSpace screenSpace);
-  ScreenSpace getScreenSpace() const;
-
-  void stopObjectMotors() override;
+  [[nodiscard]] ScreenSpace getScreenSpace() const;
 
   void setTemporary(bool isTemporary);
-  bool isTemporary() const;
+  [[nodiscard]] bool isTemporary() const;
 
   void setJiggle(bool enabled);
-  bool getJiggle() const;
+  [[nodiscard]] bool getJiggle() const;
 
   void setPop(int count);
-  int getPop() const;
-  float getPopScale() const;
+  [[nodiscard]] int getPop() const;
+  [[nodiscard]] float getPopScale() const;
 
 private:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;

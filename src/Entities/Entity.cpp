@@ -11,6 +11,7 @@
 
 namespace ng {
 struct Entity::Impl {
+  std::string _key;
   Engine &_engine;
   std::map<int, Trigger *> _triggers;
   std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
@@ -27,7 +28,9 @@ struct Entity::Impl {
   ngf::Color _talkColor;
   glm::ivec2 _talkOffset{0, 0};
   _TalkingState _talkingState;
-  std::string _key;
+  ngf::Transform _transform;
+  Entity *_pParent{nullptr};
+  std::vector<Entity *> _children;
 
   Impl() : _engine(ng::Locator<ng::Engine>::get()) {
     _talkingState.setEngine(&_engine);
@@ -104,12 +107,12 @@ std::optional<UseDirection> Entity::getUseDirection() const {
 }
 
 void Entity::setPosition(const glm::vec2 &pos) {
-  _transform.setPosition(pos);
+  pImpl->_transform.setPosition(pos);
   pImpl->_moveTo.isEnabled = false;
 }
 
 glm::vec2 Entity::getPosition() const {
-  return _transform.getPosition();
+  return pImpl->_transform.getPosition();
 }
 
 glm::vec2 Entity::getRealPosition() const {
@@ -125,10 +128,10 @@ glm::vec2 Entity::getOffset() const {
   return pImpl->_offset;
 }
 
-void Entity::setRotation(float angle) { _transform.setRotation(angle); }
+void Entity::setRotation(float angle) { pImpl->_transform.setRotation(angle); }
 float Entity::getRotation() const {
   // SFML give rotation in degree between [0, 360]
-  float angle = _transform.getRotation();
+  float angle = pImpl->_transform.getRotation();
   // convert it to [-180, 180]
   if (angle > 180)
     angle -= 360;
@@ -145,16 +148,16 @@ const ngf::Color &Entity::getColor() const {
 }
 
 void Entity::setScale(float s) {
-  _transform.setScale({s, s});
+  pImpl->_transform.setScale({s, s});
   pImpl->_scaleTo.isEnabled = false;
 }
 
 float Entity::getScale() const {
-  return _transform.getScale().x;
+  return pImpl->_transform.getScale().x;
 }
 
 ngf::Transform Entity::getTransform() const {
-  auto transform = _transform;
+  auto transform = pImpl->_transform;
   transform.move(pImpl->_offset);
   return transform;
 }
@@ -249,7 +252,7 @@ void Entity::offsetTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMe
 
 void Entity::moveTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMethod method) {
   auto get = [this] { return getPosition(); };
-  auto set = [this](const glm::vec2 &value) { _transform.setPosition(value); };
+  auto set = [this](const glm::vec2 &value) { setPosition(value); };
   auto moveTo = std::make_unique<ChangeProperty<glm::vec2>>(get, set, destination, time, method);
   pImpl->_moveTo.function = std::move(moveTo);
   pImpl->_moveTo.isEnabled = true;
@@ -257,7 +260,7 @@ void Entity::moveTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMeth
 
 void Entity::rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
   auto get = [this] { return getRotation(); };
-  auto set = [this](const float &value) { _transform.setRotation(value); };
+  auto set = [this](const float &value) { pImpl->_transform.setRotation(value); };
   auto rotateTo =
       std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
   pImpl->_rotateTo.function = std::move(rotateTo);
@@ -265,8 +268,8 @@ void Entity::rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod
 }
 
 void Entity::scaleTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return _transform.getScale().x; };
-  auto set = [this](const float &s) { _transform.setScale({s, s}); };
+  auto get = [this] { return pImpl->_transform.getScale().x; };
+  auto set = [this](const float &s) { pImpl->_transform.setScale({s, s}); };
   auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
   pImpl->_scaleTo.function = std::move(scalteTo);
   pImpl->_scaleTo.isEnabled = true;
@@ -289,6 +292,9 @@ void Entity::stopObjectMotors() {
   pImpl->_rotateTo.isEnabled = false;
   pImpl->_moveTo.isEnabled = false;
   pImpl->_alphaTo.isEnabled = false;
+  for (auto &&child : pImpl->_children) {
+    child->stopObjectMotors();
+  }
 }
 
 void Entity::setTalkColor(ngf::Color color) { pImpl->_talkColor = color; }
@@ -339,6 +345,35 @@ Actor *Entity::getActor(const Entity *pEntity) {
     return itActor->get();
   }
   return nullptr;
+}
+
+Entity *Entity::getParent() {
+  return pImpl->_pParent;
+}
+
+const Entity *Entity::getParent() const {
+  return pImpl->_pParent;
+}
+
+bool Entity::hasParent() const { return pImpl->_pParent != nullptr; }
+
+void Entity::setParent(Entity *pParent) {
+  auto pOldParent = pImpl->_pParent;
+  if (pOldParent) {
+    pOldParent->pImpl->_children.erase(std::remove_if(pOldParent->pImpl->_children.begin(),
+                                                      pOldParent->pImpl->_children.end(),
+                                                      [this](const auto *pChild) {
+                                                        return pChild == this;
+                                                      }), pOldParent->pImpl->_children.end());
+  }
+  pImpl->_pParent = pParent;
+  if (pParent) {
+    pParent->pImpl->_children.push_back(this);
+  }
+}
+
+const std::vector<Entity *> Entity::getChildren() const {
+  return pImpl->_children;
 }
 
 } // namespace ng

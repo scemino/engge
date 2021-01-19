@@ -23,12 +23,14 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   if (!_enabled)
     return;
 
+  // disable lighting for layer rendering
   auto pShader = (LightingShader *) states.shader;
   auto count = pShader->getNumberLights();
   auto ambient = pShader->getAmbientColor();
   pShader->setAmbientColor(ngf::Colors::White);
   pShader->setNumberLights(0);
 
+  // sort entities by z-order
   std::vector<std::reference_wrapper<Entity>> entities;
   std::copy(_entities.begin(), _entities.end(), std::back_inserter(entities));
   std::sort(entities.begin(), entities.end(),
@@ -57,10 +59,11 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
     s.draw(target, states);
   }
 
-  // draw layer objects
+  // draw layer entities: actors and objects
   for (const Entity &entity : entities) {
     if (entity.hasParent())
       continue;
+
     // indicates whether or not the entity needs lighting
     pShader->setAmbientColor(entity.isLit() ? ambient : ngf::Colors::White);
     pShader->setNumberLights(entity.isLit() ? count : 0);

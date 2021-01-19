@@ -84,7 +84,8 @@ struct Room::Impl {
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(bg.string_value);
         _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
         _layers[0]->setOffsetY(offsetY);
-        _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize, false});
+        _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize,
+                                                                  false});
         width += frame.getWidth();
       }
     } else if (jWimpy["background"].isString()) {
@@ -93,7 +94,8 @@ struct Room::Impl {
       auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
       _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
       _layers[0]->setOffsetY(offsetY);
-      _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize, false});
+      _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize,
+                                                                false});
     }
     // room width seems to be not enough :S
     if (width > _roomSize.x) {
@@ -234,6 +236,27 @@ struct Room::Impl {
       object->setRoom(_pRoom);
       _layers[0]->addEntity(*object);
       _objects.push_back(std::move(object));
+    }
+
+    // update parent, it has to been done after objects initialization
+    auto jObjects = jWimpy["objects"].array_value;
+    for (auto &object : _objects) {
+      auto name = object->getName();
+      auto it = std::find_if(jObjects.cbegin(), jObjects.cend(), [&name](const auto &jObject) {
+        return jObject["name"].getString() == name;
+      });
+      if (it == jObjects.cend())
+        continue;
+      auto jParent = (*it)["parent"];
+      if (jParent.isNull())
+        continue;
+      auto parent = jParent.getString();
+      auto itParent = std::find_if(_objects.cbegin(), _objects.cend(), [&parent](const auto &o) {
+        return o->getName() == parent;
+      });
+      if (itParent == _objects.cend())
+        continue;
+      object->setParent(itParent->get());
     }
 
     // sort objects

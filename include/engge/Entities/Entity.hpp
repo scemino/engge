@@ -40,74 +40,76 @@ public:
   void setKey(const std::string &key);
   [[nodiscard]] const std::string &getKey() const;
 
-  uint32_t getFlags() const;
+  [[nodiscard]] uint32_t getFlags() const;
 
   virtual void update(const ngf::TimeSpan &elapsed);
-  virtual int getZOrder() const = 0;
+  [[nodiscard]] virtual int getZOrder() const = 0;
 
   void setName(const std::string &name);
-  std::string getName() const;
+  [[nodiscard]] std::string getName() const;
 
   void setVisible(bool isVisible);
-  virtual bool isVisible() const;
+  [[nodiscard]] virtual bool isVisible() const;
 
   void setLit(bool isLit);
-  bool isLit() const;
+  [[nodiscard]] bool isLit() const;
 
   void setTouchable(bool isTouchable);
-  virtual bool isTouchable() const;
+  [[nodiscard]] virtual bool isTouchable() const;
 
   void objectBumperCycle(bool enabled);
-  bool objectBumperCycle() const;
+  [[nodiscard]] bool objectBumperCycle() const;
 
-  virtual bool isInventoryObject() const = 0;
+  [[nodiscard]] virtual bool isInventoryObject() const = 0;
 
   void setRenderOffset(const glm::ivec2 &offset);
-  glm::ivec2 getRenderOffset() const;
+  [[nodiscard]] glm::ivec2 getRenderOffset() const;
 
   void setUseDirection(std::optional<UseDirection> direction);
-  std::optional<UseDirection> getUseDirection() const;
+  [[nodiscard]] std::optional<UseDirection> getUseDirection() const;
 
   void setUsePosition(std::optional<glm::vec2> pos);
-  void setPosition(const glm::vec2 &pos);
+  [[nodiscard]] std::optional<glm::vec2> getUsePosition() const;
 
-  glm::vec2 getPosition() const;
-  glm::vec2 getRealPosition() const;
-  std::optional<glm::vec2> getUsePosition() const;
+  void setPosition(const glm::vec2 &pos);
+  [[nodiscard]] glm::vec2 getPosition() const;
 
   void setOffset(const glm::vec2 &offset);
-  glm::vec2 getOffset() const;
+  [[nodiscard]] glm::vec2 getOffset() const;
 
   void setRotation(float angle);
-  float getRotation() const;
+  [[nodiscard]] float getRotation() const;
 
   void setScale(float s);
-  virtual float getScale() const;
+  [[nodiscard]] virtual float getScale() const;
 
   void setColor(const ngf::Color &color);
-  const ngf::Color &getColor() const;
+  [[nodiscard]] const ngf::Color &getColor() const;
 
   void setTalkColor(ngf::Color color);
-  ngf::Color getTalkColor() const;
+  [[nodiscard]] ngf::Color getTalkColor() const;
 
   void setTalkOffset(const glm::ivec2 &offset);
-  glm::ivec2 getTalkOffset() const;
+  [[nodiscard]] glm::ivec2 getTalkOffset() const;
 
   void setTrigger(int triggerNumber, Trigger *pTrigger);
   void removeTrigger(int triggerNumber);
   void trig(const std::string &name);
 
-  virtual std::optional<float> getVolume() const { return std::nullopt; }
+  [[nodiscard]] virtual std::optional<float> getVolume() const { return std::nullopt; }
   virtual void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const;
 
   virtual Room *getRoom() = 0;
-  virtual const Room *getRoom() const = 0;
+  [[nodiscard]] virtual const Room *getRoom() const = 0;
   virtual void setFps(int fps) = 0;
 
   virtual HSQOBJECT &getTable() = 0;
-  virtual HSQOBJECT &getTable() const = 0;
+  [[nodiscard]] virtual HSQOBJECT &getTable() const = 0;
 
-  virtual bool hasParent() const { return false; }
+  [[nodiscard]] bool hasParent() const;
+  void setParent(Entity *pParent);
+  Entity *getParent();
+  [[nodiscard]] const Entity *getParent() const;
 
   SoundTrigger *createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds);
 
@@ -117,22 +119,22 @@ public:
   void rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
   void scaleTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
 
-  virtual void stopObjectMotors();
+  void stopObjectMotors();
 
   void say(const std::string &text, bool mumble = false);
   void stopTalking();
-  bool isTalking() const;
+  [[nodiscard]] bool isTalking() const;
 
-  int getDefaultVerb(int defaultVerbId) const;
+  [[nodiscard]] int getDefaultVerb(int defaultVerbId) const;
   static Actor *getActor(const Entity *pEntity);
 
 private:
   static void update(Motor &motor, const ngf::TimeSpan &elapsed);
-
+  [[nodiscard]] glm::vec2 getRealPosition() const;
 
 protected:
+  [[nodiscard]] const std::vector<Entity *> getChildren() const;
   [[nodiscard]] ngf::Transform getTransform() const;
-  ngf::Transform _transform;
 
 private:
   struct Impl;

@@ -1,5 +1,3 @@
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <engge/Entities/Objects/Object.hpp>
 #include <engge/Engine/Function.hpp>
 #include <engge/System/Locator.hpp>
@@ -40,11 +38,9 @@ struct Object::Impl {
   ngf::TimeSpan _popElapsed;
   int _index{0};
   ScreenSpace _screenSpace{ScreenSpace::Room};
-  std::vector<Object *> _children;
   bool _temporary{false};
   bool _jiggle{false};
   int _pop{0};
-  Object *_pParent{nullptr};
   const ngf::Texture *_texture{nullptr};
   AnimControl _animControl;
 
@@ -385,7 +381,7 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
 
   initialStates.transform = t.getTransform() * initialStates.transform;
 
-  for (const auto *pChild : pImpl->_children) {
+  for (const auto *pChild : getChildren()) {
     pChild->draw(target, initialStates);
   }
 }
@@ -398,30 +394,6 @@ void Object::dependentOn(Object *parentObject, int state) {
 void Object::setFps(int fps) {
   if (pImpl->_pAnim) {
     pImpl->_pAnim->fps = fps;
-  }
-}
-
-void Object::setParent(Object *pParent) {
-  auto pOldParent = pImpl->_pParent;
-  if (pOldParent) {
-    pOldParent->pImpl->_children.erase(std::remove_if(pOldParent->pImpl->_children.begin(),
-                                                      pOldParent->pImpl->_children.end(),
-                                                      [this](const auto *pChild) {
-                                                        return pChild == this;
-                                                      }), pOldParent->pImpl->_children.end());
-  }
-  pImpl->_pParent = pParent;
-  if (pParent) {
-    pParent->pImpl->_children.push_back(this);
-  }
-}
-
-bool Object::hasParent() const { return pImpl->_pParent != nullptr; }
-
-void Object::stopObjectMotors() {
-  Entity::stopObjectMotors();
-  for (auto &&child : pImpl->_children) {
-    child->stopObjectMotors();
   }
 }
 
@@ -463,7 +435,7 @@ void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) co
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj) {
-  return os << towstring(obj.getName()) << L" (" << obj.getRealPosition().x << L"," << obj.getRealPosition().y << L":"
+  return os << towstring(obj.getName()) << L" (" << obj.getPosition().x << L"," << obj.getPosition().y << L":"
             << obj.getZOrder() << L")";
 }
 
