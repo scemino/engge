@@ -158,9 +158,9 @@ private:
         const auto pObject = dynamic_cast<Object *>(entity);
         pos = g_pEngine->getInventory().getPosition(pObject);
       } else {
-        pos = entity->getPosition() - g_pEngine->getCamera().getAt();
-        auto roomScreenSize = g_pEngine->getRoom()->getScreenSize();
-        pos = glm::vec2(Screen::Width * pos.x / roomScreenSize.x, Screen::Height * pos.y / roomScreenSize.y);
+        auto screenSize = g_pEngine->getRoom()->getScreenSize();
+        pos = entity->getPosition() - g_pEngine->getCamera().getRect().getTopLeft();
+        pos = glm::vec2(Screen::Width * pos.x / screenSize.x, Screen::Height * pos.y / screenSize.y);
       }
     }
     ScriptEngine::push(v, pos);
@@ -312,8 +312,7 @@ private:
       pos = entity->getPosition();
     }
 
-    auto screen = g_pEngine->getRoom()->getScreenSize();
-    g_pEngine->getCamera().at(glm::vec2(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f));
+    g_pEngine->getCamera().at(pos);
     return 0;
   }
 
@@ -341,12 +340,9 @@ private:
     return 0;
   }
 
-  static void _cameraPanTo(sf::Vector2i pos, float timeInSeconds, int interpolation) {
-    auto screen = g_pEngine->getRoom()->getScreenSize();
+  static void _cameraPanTo(glm::ivec2 pos, float timeInSeconds, int interpolation) {
     g_pEngine->follow(nullptr);
-    g_pEngine->getCamera().panTo(glm::vec2(pos.x - screen.x / 2.f, pos.y - screen.y / 2.f),
-                                 ngf::TimeSpan::seconds(timeInSeconds),
-                                 toInterpolationMethod(interpolation));
+    g_pEngine->getCamera().panTo(pos, ngf::TimeSpan::seconds(timeInSeconds), toInterpolationMethod(interpolation));
   }
 
   static SQInteger cameraPanTo(HSQUIRRELVM v) {
@@ -363,7 +359,7 @@ private:
       if (SQ_FAILED(sq_getfloat(v, 3, &t))) {
         return sq_throwerror(v, _SC("failed to get time"));
       }
-      _cameraPanTo(sf::Vector2i(x, y), t, interpolation);
+      _cameraPanTo(glm::ivec2(x, y), t, interpolation);
       return 0;
     }
 
@@ -378,7 +374,7 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 4, &interpolation))) {
         interpolation = 0;
       }
-      _cameraPanTo(sf::Vector2i(x, y), t, interpolation);
+      _cameraPanTo(glm::ivec2(x, y), t, interpolation);
       return 0;
     }
 
@@ -394,7 +390,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 5, &interpolation))) {
       interpolation = 0;
     }
-    _cameraPanTo(sf::Vector2i(x, y), t, interpolation);
+    _cameraPanTo(glm::ivec2(x, y), t, interpolation);
     return 0;
   }
 

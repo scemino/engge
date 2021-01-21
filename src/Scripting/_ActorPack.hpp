@@ -903,11 +903,8 @@ private:
       return 1;
     }
 
-    auto screen = g_pEngine->getRoom()->getScreenSize();
-    auto pos = (glm::ivec2) entity->getPosition();
-    auto camera = g_pEngine->getCamera().getAt();
-    ngf::irect rect = ngf::irect::fromPositionSize({camera.x, camera.y}, {screen.x, screen.y});
-    auto isOnScreen = rect.contains(pos);
+    auto pos = entity->getPosition();
+    auto isOnScreen = g_pEngine->getCamera().getRect().contains(pos);
     sq_pushbool(v, isOnScreen ? SQTrue : SQFalse);
     return 1;
   }

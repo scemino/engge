@@ -1264,7 +1264,6 @@ struct Engine::Impl {
   void selectPreviousActor();
   void selectNextActor();
   bool hasFlag(int id, uint32_t flagToTest) const;
-  glm::ivec2 getScreenSize() const;
 };
 
 Engine::Impl::Impl()
@@ -1502,8 +1501,8 @@ void Engine::Impl::setCurrentRoom(Room *pRoom) {
     ScriptEngine::set("currentRoom", pRoom);
   }
   _camera.resetBounds();
-  _camera.at(glm::vec2(0, 0));
   _pRoom = pRoom;
+  _camera.at(glm::vec2(0, 0));
 }
 
 void Engine::Impl::updateCutscene(const ngf::TimeSpan &elapsed) {
@@ -1868,7 +1867,7 @@ void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
   if (!_pRoom || _showDrawWalkboxes == 0)
     return;
 
-  auto at = _camera.getAt();
+  auto at = _camera.getRect().getTopLeft();
   ngf::Transform t;
   t.setPosition(-at);
   ngf::RenderStates states;

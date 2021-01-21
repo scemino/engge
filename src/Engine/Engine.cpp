@@ -191,14 +191,12 @@ void Engine::follow(Actor *pActor) {
     return;
 
   auto pos = pActor->getPosition();
-  auto screen = _pImpl->_pRoom->getScreenSize();
   setRoom(pActor->getRoom());
   if (panCamera) {
-    _pImpl->_camera.panTo(pos - glm::vec2(screen.x / 2, screen.y / 2), ngf::TimeSpan::seconds(4),
-                          InterpolationMethod::EaseOut);
+    _pImpl->_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
     return;
   }
-  _pImpl->_camera.at(pos - glm::vec2(screen.x / 2, screen.y / 2));
+  _pImpl->_camera.at(pos);
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) {
@@ -264,27 +262,18 @@ SQInteger Engine::setRoom(Room *pRoom) {
 
 SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   auto dir = pDoor->getUseDirection();
-  Facing facing = Facing::FACE_FRONT;
-  if (dir.has_value()) {
-    switch (dir.value()) {
-    case UseDirection::Back:facing = Facing::FACE_FRONT;
-      break;
-    case UseDirection::Front:facing = Facing::FACE_BACK;
-      break;
-    case UseDirection::Left:facing = Facing::FACE_RIGHT;
-      break;
-    case UseDirection::Right:facing = Facing::FACE_LEFT;
-      break;
-    default:throw std::invalid_argument("direction is invalid");
-    }
-  }
+  auto facing = _toFacing(dir);
   auto pRoom = pDoor->getRoom();
+
+  // exit current room
   auto result = _pImpl->exitRoom(nullptr);
   if (SQ_FAILED(result))
     return result;
 
+  // change current room
   _pImpl->setCurrentRoom(pRoom);
 
+  // move current actor to the new room
   auto actor = getCurrentActor();
   actor->getCostume().setFacing(facing);
   actor->setRoom(pRoom);
@@ -293,10 +282,12 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   pos += usePos;
   actor->setPosition(pos);
 
+  // move camera to the actor if not closeup room
   if (pRoom->getFullscreen() != 1) {
     _pImpl->_camera.at(pos);
   }
 
+  // enter current room
   return _pImpl->enterRoom(pRoom, pDoor);
 }
 
@@ -318,10 +309,10 @@ void Engine::update(const ngf::TimeSpan &el) {
       getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor, PreferenceDefaultValues::GameSpeedFactor);
   const ngf::TimeSpan elapsed(ngf::TimeSpan::seconds(el.getTotalSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
-  auto view = ngf::View{ngf::frect::fromPositionSize({0, 0}, _pImpl->_pRoom->getScreenSize())};
+  auto screenSize = _pImpl->_pRoom->getScreenSize();
+  auto view = ngf::View{ngf::frect::fromPositionSize({0, 0}, screenSize)};
   _pImpl->_mousePos = _pImpl->_pApp->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(), view);
   if (_pImpl->_pRoom && _pImpl->_pRoom->getName() != "Void") {
-    auto screenSize = _pImpl->_pRoom->getScreenSize();
     auto screenMouse = toDefaultView((glm::ivec2) _pImpl->_mousePos, screenSize);
     _pImpl->_hud.setMousePosition(screenMouse);
     _pImpl->_dialogManager.setMousePosition(screenMouse);
@@ -372,7 +363,6 @@ void Engine::update(const ngf::TimeSpan &el) {
 
   _pImpl->updateRoomScalings();
 
-  auto screen = _pImpl->_pRoom->getScreenSize();
   _pImpl->_pRoom->update(elapsed);
   for (auto &pActor : _pImpl->_actors) {
     if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
@@ -381,7 +371,8 @@ void Engine::update(const ngf::TimeSpan &el) {
   }
 
   if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible() && _pImpl->_pFollowActor->getRoom() == getRoom()) {
-    auto pos = _pImpl->_pFollowActor->getPosition() - glm::vec2(screen.x / 2, screen.y / 2);
+    auto screen = _pImpl->_pRoom->getScreenSize();
+    auto pos = _pImpl->_pFollowActor->getPosition();
     auto margin = glm::vec2(screen.x / 4, screen.y / 4);
     auto cameraPos = _pImpl->_camera.getAt();
     if (_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin.x) || (cameraPos.x < pos.x - margin.x) ||
@@ -400,7 +391,7 @@ void Engine::update(const ngf::TimeSpan &el) {
 
   auto mousePos =
       glm::vec2(_pImpl->_mousePos.x, _pImpl->_pRoom->getScreenSize().y - _pImpl->_mousePos.y);
-  _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getAt();
+  _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getRect().getTopLeft();
 
   _pImpl->_dialogManager.update(elapsed);
 
@@ -527,10 +518,11 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
 
   // render the room to a texture, this allows to create a post process effect: room effect
   ngf::RenderTexture roomTexture(target.getSize());
-  ngf::View view(ngf::frect::fromPositionSize({0, 0}, _pImpl->_pRoom->getScreenSize()));
+  auto screenSize = _pImpl->_pRoom->getScreenSize();
+  ngf::View view(ngf::frect::fromPositionSize({0, 0}, screenSize));
   roomTexture.setView(view);
   roomTexture.clear();
-  _pImpl->_pRoom->draw(roomTexture, _pImpl->_camera.getAt());
+  _pImpl->_pRoom->draw(roomTexture, _pImpl->_camera.getRect().getTopLeft());
   roomTexture.display();
 
   // then render a sprite with this texture and apply the room effect

@@ -314,13 +314,12 @@ void Entity::say(const std::string &text, bool mumble) {
   glm::vec2 pos;
   auto screenSize = pImpl->_engine.getRoom()->getScreenSize();
   if (getRoom() == pImpl->_engine.getRoom()) {
-    auto at = pImpl->_engine.getCamera().getAt();
-    pos = getRealPosition();
+    auto at = pImpl->_engine.getCamera().getRect().getTopLeft();
+    pos = getPosition();
     pos = {pos.x - at.x + pImpl->_talkOffset.x, screenSize.y - pos.y - at.y - pImpl->_talkOffset.y};
   } else {
     // TODO: the position in this case is wrong, don't know what to do yet
     pos = (glm::vec2) pImpl->_talkOffset;
-    pos = {pos.x, screenSize.y + pos.y};
   }
   pos = toDefaultView((glm::ivec2) pos, pImpl->_engine.getRoom()->getScreenSize());
   pImpl->_talkingState.setPosition(pos);

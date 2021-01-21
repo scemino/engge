@@ -78,7 +78,6 @@ void SoundId::updateVolume() {
 
     if (pRoom == pEntity->getRoom()) {
       auto width = _soundManager.getEngine()->getRoom()->getScreenSize().x;
-      at.x += width / 2.f;
       auto diff = fabs(at.x - pEntity->getPosition().x);
       entityVolume = (1.5f - (diff / width)) / 1.5f;
       if (entityVolume < 0)
