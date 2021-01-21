@@ -1,3 +1,8 @@
+#ifdef _WIN32
+// for Windows you'll need this to have M_PI_2 defined
+#define _USE_MATH_DEFINES
+#include <cmath>
+#endif
 #include <engge/Entities/Objects/Object.hpp>
 #include <engge/Engine/Function.hpp>
 #include <engge/System/Locator.hpp>
