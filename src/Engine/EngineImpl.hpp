@@ -252,6 +252,201 @@ void main()
    FragColor.a = 1.0;
 })";
 
+static const char *_ghostFragmentShader =
+    R"(#version 330 core
+// Work in progress ghost shader.. Too over the top at the moment, it'll make you sick.
+
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform float iGlobalTime;
+uniform float iFade;
+uniform float wobbleIntensity;
+uniform vec3 shadows;
+uniform vec3 midtones;
+uniform vec3 highlights;
+uniform sampler2D u_texture;
+
+in vec2 v_texCoords;
+out vec4 FragColor;
+
+const float speed = 0.1;
+const float emboss = 0.70;
+const float intensity = 0.6;
+const int steps = 4;
+const float frequency = 9.0;
+
+
+float colour(vec2 coord) {
+    float col = 0.0;
+
+    float timeSpeed = iGlobalTime*speed;
+    vec2 adjc = coord;
+    adjc.x += timeSpeed;   //adjc0.x += fcos*timeSpeed;
+    float sum0 = cos( adjc.x*frequency)*intensity;
+    col += sum0;
+
+    adjc = coord;
+    float fcos = 0.623489797;
+    float fsin = 0.781831503;
+    adjc.x += fcos*timeSpeed;
+    adjc.y -= fsin*timeSpeed;
+    float sum1 = cos( (adjc.x*fcos - adjc.y*fsin)*frequency)*intensity;
+    col += sum1;
+
+    adjc = coord;
+    fcos = -0.900968909;
+    fsin = 0.433883607;
+    adjc.x += fcos*timeSpeed;
+    adjc.y -= fsin*timeSpeed;
+    col += cos( (adjc.x*fcos - adjc.y*fsin)*frequency)*intensity;
+
+    // do same in reverse.
+    col += sum1;
+    col += sum0;
+
+    return cos(col);
+}
+
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv2rgb(vec3 c)
+{
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+float rand(vec2 Input)
+{
+    float dt= dot(Input, vec2(12.9898,78.233));
+    float sn= mod(dt,3.14);
+    return fract(sin(sn)*43758.5453123);
+}
+
+float color_balance( float col, float l, vec3 change )
+{
+    // NOTE: change = (shadow, midtones, highlights)
+
+    float sup = 83.0;    // shadow upper bounds
+    float mup = 166.0;    // midtones upper bounds
+
+    float value = col*255.0;
+    l = l * 100.0;
+
+    if (l < sup)
+    {
+        // shadow
+        float f = (sup - l + 1.0)/(sup + 1.0);
+        value += change.x * f;
+    }
+    else if (l < mup)
+    {
+        // midtone
+        float mrange = (mup - sup)/2.0;
+        float mid = mrange + sup;
+        float diff = mid - l;
+        diff = -diff;
+        if (diff < 0.0)
+        {
+            float f = 1.0 - (diff + 1.0) / (mrange + 1.0);
+            value += change.y * f;
+        }
+    }
+    else
+    {
+        // highlight
+        float f = (l - mup + 1.0)/(255.0 - mup + 1.0);
+        value += change.z * f;
+    }
+    value = min(255.0,max(0.0,value));
+    return value/255.0;
+}
+
+vec2 rgb2cv(vec3 RGB)
+{
+    vec4 P = (RGB.g < RGB.b) ? vec4(RGB.bg, -1.0, 2.0/3.0) : vec4(RGB.gb, 0.0, -1.0/3.0);
+    vec4 Q = (RGB.r < P.x) ? vec4(P.xyw, RGB.r) : vec4(RGB.r, P.yzx);
+    float C = Q.x - min(Q.w, Q.y);
+    return vec2(C, Q.x);
+}
+
+float rgbToLuminance(vec3 RGB)
+{
+    float cMax = max( max(RGB.x, RGB.y), RGB.z);
+    float cMin = min( min(RGB.x, RGB.y), RGB.z);
+
+    return (cMax+cMin) * 0.5;
+}
+
+
+void main(void)
+{
+    vec2 c1 = v_texCoords;
+   float cc1 = colour(c1);
+    vec2 offset;
+
+    c1.x += (0.001 *wobbleIntensity);      // appx 12 pixels horizontal
+    offset.x = emboss*(cc1-colour(c1));
+
+    c1.x = v_texCoords.x;
+    c1.y += (0.002*wobbleIntensity);      // appx 12 pixels verticle
+    offset.y = emboss*(cc1-colour(c1));
+
+    // TODO: The effect should be centered around Franklyns position in the room, not the center
+    //if ( emitFromCenter == 1)
+    {
+        vec2 center = vec2(0.5, 0.5);
+        float distToCenter = distance(center, v_texCoords);
+        offset *= distToCenter * 2.0;
+    }
+
+    c1 = v_texCoords;
+    c1 += ( offset * iFade );
+
+    vec3 col = vec3(0,0,0);
+    if ( c1.x >= 0.0 && c1.x < (1.0-0.003125) )
+    {
+        col = texture(u_texture,c1).rgb;
+        float intensity = rgbToLuminance(col);  //(col.r + col.g + col.b) * 0.333333333;
+
+        // Exponential Shadows
+        float shadowsBleed = 1.0 - intensity;
+        shadowsBleed *= shadowsBleed;
+        shadowsBleed *= shadowsBleed;
+
+        // Exponential midtones
+        float midtonesBleed = 1.0 - abs(-1.0 + intensity * 2.0);
+        midtonesBleed *= midtonesBleed;
+        midtonesBleed *= midtonesBleed;
+
+        // Exponential Hilights
+        float hilightsBleed = intensity;
+        hilightsBleed *= hilightsBleed;
+        hilightsBleed *= hilightsBleed;
+
+        vec3 colorization = col.rgb + shadows * shadowsBleed +
+        midtones * midtonesBleed +
+        highlights * hilightsBleed;
+
+        colorization = mix(col, colorization,iFade);
+
+        //col = lerp(col, colorization, _Amount);
+        col =  min(vec3(1.0),max(vec3(0.0),colorization));
+    }
+    FragColor = vec4(col,1);
+})";
+
 uint32_t toInteger(const ngf::Color &c) {
   auto r = static_cast<uint32_t>(c.r * 255u);
   auto g = static_cast<uint32_t>(c.g * 255u);

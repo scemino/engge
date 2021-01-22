@@ -37,6 +37,14 @@ enum class UseFlag {
   GiveTo = 4
 };
 
+struct RoomEffect {
+  float iFade{1.f};
+  float wobbleIntensity{1.f};
+  glm::vec3 shadows{-0.3,0,0};
+  glm::vec3 midtones{-0.2,0,0.1};
+  glm::vec3 highlights{0,0,0.2};
+};
+
 class Engine : public NonCopyable {
 public:
   Engine();
@@ -154,6 +162,9 @@ public:
   void setAutoSave(bool autosave);
   [[nodiscard]] bool getAutoSave() const;
   void allowSaveGames(bool allow);
+
+public:
+  RoomEffect roomEffect;
 
 private:
   struct Impl;

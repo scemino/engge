@@ -508,11 +508,23 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
       _pImpl->_roomShader.load(_vertexShader, _bwFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_EGA) {
       _pImpl->_roomShader.load(_vertexShader, _egaFragmenShader);
+    } else if (effect == RoomEffectConstants::EFFECT_GHOST) {
+      _pImpl->_roomShader.load(_vertexShader, _ghostFragmentShader);
     }
+    _pImpl->_roomEffect = effect;
   }
   states.shader = &_pImpl->_roomShader;
-  if (effect != RoomEffectConstants::EFFECT_BLACKANDWHITE &&
-      effect != RoomEffectConstants::EFFECT_EGA) {
+  if (effect == RoomEffectConstants::EFFECT_GHOST) {
+    // don't remove the fmod function or you will have float overflow with the shader and the effect will look strange
+    _pImpl->_roomShader.setUniform("iGlobalTime", fmod(_pImpl->_time.getTotalSeconds(), 1000.f));
+    _pImpl->_roomShader.setUniform("iFade", roomEffect.iFade);
+    _pImpl->_roomShader.setUniform("wobbleIntensity", roomEffect.wobbleIntensity);
+    _pImpl->_roomShader.setUniform("shadows", roomEffect.shadows);
+    _pImpl->_roomShader.setUniform("midtones", roomEffect.midtones);
+    _pImpl->_roomShader.setUniform("highlights", roomEffect.highlights);
+  } else if (effect != RoomEffectConstants::EFFECT_BLACKANDWHITE &&
+      effect != RoomEffectConstants::EFFECT_EGA &&
+      effect != RoomEffectConstants::EFFECT_GHOST) {
     states.shader = nullptr;
   }
 
@@ -530,6 +542,7 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   roomWithEffectTexture.clear();
   ngf::Sprite sprite(roomTexture.getTexture());
   sprite.draw(roomWithEffectTexture, states);
+
   // and render overlay
   ngf::RectangleShape fadeShape;
   fadeShape.setSize(roomWithEffectTexture.getSize());
