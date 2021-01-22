@@ -40,9 +40,17 @@ enum class UseFlag {
 struct RoomEffect {
   float iFade{1.f};
   float wobbleIntensity{1.f};
-  glm::vec3 shadows{-0.3,0,0};
-  glm::vec3 midtones{-0.2,0,0.1};
-  glm::vec3 highlights{0,0,0.2};
+  glm::vec3 shadows{-0.3f, 0, 0};
+  glm::vec3 midtones{-0.2f, 0, 0.1f};
+  glm::vec3 highlights{0, 0, 0.2f};
+
+  void reset() {
+    iFade = 1.f;
+    wobbleIntensity = 1.f;
+    shadows = {-0.3f, 0, 0};
+    midtones = {-0.2f, 0, 0.1f};
+    highlights = {0, 0, 0.2f};
+  }
 };
 
 class Engine : public NonCopyable {
@@ -58,8 +66,8 @@ public:
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);
   SQInteger enterRoomFromDoor(Object *pDoor);
-  [[nodiscard]] static std::wstring getText(int id) ;
-  [[nodiscard]] static std::wstring getText(const std::string &text) ;
+  [[nodiscard]] static std::wstring getText(int id);
+  [[nodiscard]] static std::wstring getText(const std::string &text);
 
   void addActor(std::unique_ptr<Actor> actor);
   void addRoom(std::unique_ptr<Room> room);
@@ -141,13 +149,13 @@ public:
   [[nodiscard]] float getFade() const;
   void fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
 
-  void keyDown(const Input& key);
-  void keyUp(const Input& key);
+  void keyDown(const Input &key);
+  void keyUp(const Input &key);
 
   void sayLineAt(glm::ivec2 pos, ngf::Color color, ngf::TimeSpan duration, const std::string &text);
   void sayLineAt(glm::ivec2 pos, Entity &entity, const std::string &text);
   void stopTalking() const;
-  void stopTalkingExcept(Entity* pEntity) const;
+  void stopTalkingExcept(Entity *pEntity) const;
 
   void showOptions(bool visible);
   void quit();

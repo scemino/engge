@@ -390,13 +390,31 @@ private:
 
   static SQInteger roomEffect(HSQUIRRELVM v) {
     SQInteger effect = 0;
+    auto count = sq_gettop(v);
     if (SQ_FAILED(sq_getinteger(v, 2, &effect))) {
       return sq_throwerror(v, _SC("failed to get effect"));
     }
     auto pRoom = g_pEngine->getRoom();
-    if (pRoom) {
-      pRoom->setEffect(static_cast<int>(effect));
+    if (!pRoom)
+      return 0;
+    if (count == 14) {
+      SQInteger unused;
+      sq_getfloat(v, 3, &g_pEngine->roomEffect.iFade);
+      sq_getfloat(v, 4, &g_pEngine->roomEffect.wobbleIntensity);
+      sq_getinteger(v, 5, &unused);
+      sq_getfloat(v, 6, &g_pEngine->roomEffect.shadows.r);
+      sq_getfloat(v, 7, &g_pEngine->roomEffect.shadows.g);
+      sq_getfloat(v, 8, &g_pEngine->roomEffect.shadows.b);
+      sq_getfloat(v, 9, &g_pEngine->roomEffect.midtones.r);
+      sq_getfloat(v, 10, &g_pEngine->roomEffect.midtones.g);
+      sq_getfloat(v, 11, &g_pEngine->roomEffect.midtones.b);
+      sq_getfloat(v, 12, &g_pEngine->roomEffect.highlights.r);
+      sq_getfloat(v, 13, &g_pEngine->roomEffect.highlights.g);
+      sq_getfloat(v, 14, &g_pEngine->roomEffect.highlights.b);
+    } else {
+      g_pEngine->roomEffect.reset();
     }
+    pRoom->setEffect(static_cast<int>(effect));
     return 0;
   }
 
