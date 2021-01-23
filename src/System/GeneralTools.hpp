@@ -4,11 +4,11 @@
 #include "engge/Dialog/DialogManager.hpp"
 
 namespace ng {
-class _GeneralTools {
+class GeneralTools {
 public:
-  explicit _GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable)
-      : _engine(engine), _textureVisible(textureVisible), _consoleVisible(consoleVisible),
-        _showGlobalsTable(showGlobalsTable) {}
+  explicit GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable)
+      : m_engine(engine), m_textureVisible(textureVisible), m_consoleVisible(consoleVisible),
+        m_showGlobalsTable(showGlobalsTable) {}
 
   void render() {
     std::stringstream s;
@@ -16,33 +16,38 @@ public:
     std::vector<std::string> stack;
     getStack(stack);
     ImGui::Combo(s.str().c_str(),
-                 &_selectedStack,
+                 &m_selectedStack,
                  _DebugControls::stringGetter,
                  static_cast<void *>(&stack),
                  stack.size());
-    ImGui::Text("In cutscene: %s", _engine.inCutscene() ? "yes" : "no");
-    auto dialogState = _engine.getDialogManager().getState();
+    ImGui::Text("In cutscene: %s", m_engine.inCutscene() ? "yes" : "no");
+    auto dialogState = m_engine.getDialogManager().getState();
     ImGui::Text("In dialog: %s",
                 ((dialogState == DialogManagerState::Active)
                  ? "yes"
                  : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
 
-    auto fade = _engine.getFade();
-    if (ImGui::SliderFloat("Fade", &fade, 0.f, 1.f)) {
-      _engine.setFade(fade);
+    ImGui::Separator();
+    auto effects = "None\0In\0Out\0Wobble\0";
+    ImGui::Combo("Effect", (int *) &m_fadeEffect, effects);
+    ImGui::DragFloat("Duration", &m_fadeDuration, 0.1f, 0.f, 10.f);
+    if (ImGui::Button("Fade")) {
+      m_engine.fadeTo((FadeEffect) m_fadeEffect, ngf::TimeSpan::seconds(m_fadeDuration));
     }
-    auto gameSpeedFactor = _engine.getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor,
-                                                                      PreferenceDefaultValues::GameSpeedFactor);
+    ImGui::Separator();
+
+    auto gameSpeedFactor = m_engine.getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor,
+                                                                       PreferenceDefaultValues::GameSpeedFactor);
     if (ImGui::SliderFloat("Game speed factor", &gameSpeedFactor, 0.f, 5.f)) {
-      _engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
+      m_engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
     }
     ImGui::Checkbox("Show cursor position", &_DebugFeatures::showCursorPosition);
     ImGui::Checkbox("Show hovered object", &_DebugFeatures::showHoveredObject);
-    ImGui::Checkbox("Textures", &_textureVisible);
-    ImGui::Checkbox("Console", &_consoleVisible);
+    ImGui::Checkbox("Textures", &m_textureVisible);
+    ImGui::Checkbox("Console", &m_consoleVisible);
     ImGui::SameLine();
     if (ImGui::SmallButton("Globals...")) {
-      _showGlobalsTable = true;
+      m_showGlobalsTable = true;
     }
   }
 
@@ -131,10 +136,12 @@ private:
   }
 
 private:
-  Engine &_engine;
-  int _selectedStack{0};
-  bool &_textureVisible;
-  bool &_consoleVisible;
-  bool &_showGlobalsTable;
+  Engine &m_engine;
+  int m_selectedStack{0};
+  bool &m_textureVisible;
+  bool &m_consoleVisible;
+  bool &m_showGlobalsTable;
+  int m_fadeEffect{0};
+  float m_fadeDuration{3.f};
 };
 }

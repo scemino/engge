@@ -67,7 +67,6 @@
 namespace fs = std::filesystem;
 
 namespace ng {
-
 namespace {
 static const char *_vertexShader =
     R"(#version 330 core
@@ -1395,7 +1394,6 @@ struct Engine::Impl {
   int _frameCounter{0};
   HSQOBJECT _pDefaultObject{};
   Camera _camera;
-  float _fade{0.f};
   std::unique_ptr<Sentence> _pSentence{};
   std::unordered_set<Input, InputHash> _oldKeyDowns;
   std::unordered_set<Input, InputHash> _newKeyDowns;
@@ -1409,6 +1407,7 @@ struct Engine::Impl {
   Hud _hud;
   bool _autoSave{true};
   bool _cursorVisible{true};
+  FadeEffectParameters _fadeEffect;
 
   Impl();
 

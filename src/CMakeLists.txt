@@ -88,11 +88,11 @@ target_link_libraries(${PROJECT_NAME} ngf)
 # SDL2
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} SDL2::SDL2main)
-endif()
+endif ()
 # std::filesystem
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     target_link_libraries(${PROJECT_NAME} stdc++fs)
-endif()
+endif ()
 
 
 # Install exe

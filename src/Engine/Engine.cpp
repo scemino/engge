@@ -1,4 +1,20 @@
+#ifdef _WIN32
+// for Windows you'll need this to have M_PI defined
+#define _USE_MATH_DEFINES
+#endif
+#include <cmath>
+#include <ctime>
+#include <cwchar>
+#include <filesystem>
+#include <iomanip>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_set>
 #include <squirrel.h>
+#include <ngf/Application.h>
+#include <ngf/Graphics/Colors.h>
+#include <ngf/System/Mouse.h>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/ActorIconSlot.hpp"
 #include "engge/Engine/ActorIcons.hpp"
@@ -20,23 +36,11 @@
 #include "engge/Engine/TextDatabase.hpp"
 #include "engge/Engine/Verb.hpp"
 #include "engge/Scripting/VerbExecute.hpp"
-#include "../System/_DebugTools.hpp"
-#include "../Entities/Actor/_TalkingState.hpp"
 #include "engge/System/Logger.hpp"
-#include <cmath>
-#include <ctime>
-#include <cwchar>
-#include <filesystem>
-#include <iomanip>
-#include <memory>
-#include <set>
-#include <string>
-#include <unordered_set>
-#include <ngf/Application.h>
-#include <ngf/Graphics/Colors.h>
 #include "engge/Engine/InputStateConstants.hpp"
 #include "EngineImpl.hpp"
-#include <ngf/System/Mouse.h>
+#include "../System/_DebugTools.hpp"
+#include "../Entities/Actor/_TalkingState.hpp"
 
 namespace fs = std::filesystem;
 
@@ -241,8 +245,6 @@ SQInteger Engine::setRoom(Room *pRoom) {
   if (!pRoom)
     return 0;
 
-  _pImpl->_fade = 0.f;
-
   auto pOldRoom = _pImpl->_pRoom;
   if (pRoom == pOldRoom)
     return 0;
@@ -328,6 +330,8 @@ void Engine::update(const ngf::TimeSpan &el) {
     return;
   }
 
+  // update fade effect
+  _pImpl->_fadeEffect.elapsed += elapsed;
   _pImpl->_talkingState.update(elapsed);
 
   _pImpl->_frameCounter++;
@@ -550,20 +554,52 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   fadeShape.draw(roomWithEffectTexture, {});
   roomWithEffectTexture.display();
 
+  // render fade
+  ngf::Sprite fadeSprite;
+  float fade = _pImpl->_fadeEffect.effect == FadeEffect::None ? 0.f :
+      std::clamp(_pImpl->_fadeEffect.elapsed.getTotalSeconds() / _pImpl->_fadeEffect.duration.getTotalSeconds(),
+                 0.f, 1.f);
+  ngf::RenderTexture roomTexture2(target.getSize());
+  roomTexture2.setView(view);
+  roomTexture2.clear();
+  if (_pImpl->_fadeEffect.effect == FadeEffect::Wobble) {
+    _pImpl->_fadeEffect.room->draw(roomTexture2, _pImpl->_fadeEffect.cameraTopLeft);
+  }
+  roomTexture2.display();
+
+  ngf::RenderTexture roomTexture3(target.getSize());
+  ngf::Sprite sprite2(roomTexture2.getTexture());
+  sprite2.draw(roomTexture3, {});
+  roomTexture3.display();
+
+  const ngf::Texture *texture1{nullptr};
+  const ngf::Texture *texture2{nullptr};
+  switch (_pImpl->_fadeEffect.effect) {
+  case FadeEffect::Wobble:
+  case FadeEffect::In:texture1 = &roomTexture3.getTexture();
+    texture2 = &roomWithEffectTexture.getTexture();
+    break;
+  case FadeEffect::Out:texture1 = &roomWithEffectTexture.getTexture();
+    texture2 = &roomTexture3.getTexture();
+    break;
+  default:texture1 = &roomWithEffectTexture.getTexture();
+    texture2 = &roomWithEffectTexture.getTexture();
+    break;
+  }
+  fadeSprite.setTexture(*texture1);
+  _pImpl->_fadeShader.setUniform("u_texture2", *texture2);
+  _pImpl->_fadeShader.setUniform("u_fade", fade); // fade value between [0.f,1.f]
+  _pImpl->_fadeShader.setUniform("u_fadeToSep", _pImpl->_fadeEffect.fadeToSepia ? 1 : 0);  // 1 to fade to sepia
+  _pImpl->_fadeShader.setUniform("u_movement",
+                                 sinf(M_PI * fade) * _pImpl->_fadeEffect.movement); // movement for wobble effect
+  _pImpl->_fadeShader.setUniform("u_timer", _pImpl->_fadeEffect.elapsed.getTotalSeconds());
+  states.shader = &_pImpl->_fadeShader;
+
   // apply the room rotation
-  ngf::Sprite fadeSprite(roomWithEffectTexture.getTexture());
   auto pos = target.getView().getSize() / 2.f;
   fadeSprite.getTransform().setOrigin(pos);
   fadeSprite.getTransform().setPosition(pos);
   fadeSprite.getTransform().setRotation(_pImpl->_pRoom->getRotation());
-
-  // render fade
-  _pImpl->_fadeShader.setUniform("u_texture2", _pImpl->_blackTexture); // TODO: change this to fade to new room
-  _pImpl->_fadeShader.setUniform("u_fade", _pImpl->_fade); // fade value between [0.f,1.f]
-  _pImpl->_fadeShader.setUniform("u_fadeToSep", 0);  // 1 to fade to sepia
-  _pImpl->_fadeShader.setUniform("u_movement", 0.f); // change this for wobble effect
-  _pImpl->_fadeShader.setUniform("u_timer", _pImpl->_time.getTotalSeconds());
-  states.shader = &_pImpl->_fadeShader;
   fadeSprite.draw(target, states);
 
   // draw walkboxes, actor texts
@@ -678,15 +714,17 @@ void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
 
 const Verb *Engine::getActiveVerb() const { return _pImpl->_hud.getCurrentVerb(); }
 
-void Engine::setFade(float fade) { _pImpl->_fade = fade; }
+void Engine::fadeTo(FadeEffect effect, const ngf::TimeSpan &duration) {
+  _pImpl->_fadeEffect.effect = effect;
+  _pImpl->_fadeEffect.room = getRoom();
+  _pImpl->_fadeEffect.cameraTopLeft = _pImpl->_camera.getRect().getTopLeft();
+  _pImpl->_fadeEffect.duration = duration;
+  _pImpl->_fadeEffect.movement = effect == FadeEffect::Wobble ? 0.005f : 0.f;
+  _pImpl->_fadeEffect.elapsed = ngf::TimeSpan::seconds(0);
+}
 
-float Engine::getFade() const { return _pImpl->_fade; }
-
-void Engine::fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this]() -> float { return getFade(); };
-  auto set = [this](const float &a) { setFade(a); };
-  auto f = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  addFunction(std::move(f));
+FadeEffectParameters &Engine::getFadeParameters() {
+  return _pImpl->_fadeEffect;
 }
 
 void Engine::pushSentence(int id, Entity *pObj1, Entity *pObj2) {

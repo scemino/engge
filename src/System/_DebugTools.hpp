@@ -30,7 +30,7 @@
 #include "_RoomTools.hpp"
 #include "_SoundTools.hpp"
 #include "_ThreadTools.hpp"
-#include "_GeneralTools.hpp"
+#include "GeneralTools.hpp"
 #include "_CameraTools.hpp"
 #include "_PreferencesTools.hpp"
 
@@ -176,7 +176,7 @@ private:
   _RoomTools _roomTools;
   _SoundTools _soundTools;
   _ThreadTools _threadTools;
-  _GeneralTools _generalTools;
+  GeneralTools _generalTools;
   _CameraTools _cameraTools;
   _PreferencesTools _preferencesTools;
 };

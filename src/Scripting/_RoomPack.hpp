@@ -104,10 +104,6 @@ private:
     ScriptEngine::registerGlobalFunction(walkboxHidden, "walkboxHidden");
   }
 
-  static void _fadeTo(float a, const ngf::TimeSpan &time) {
-    g_pEngine->fadeTo(a, time, InterpolationMethod::Linear);
-  }
-
   static SQInteger createLight(HSQUIRRELVM v) {
     SQInteger color;
     if (SQ_FAILED(sq_getinteger(v, 2, &color))) {
@@ -500,11 +496,23 @@ private:
     if (SQ_FAILED(sq_getfloat(v, 3, &t))) {
       return sq_throwerror(v, _SC("failed to get time"));
     }
-    if (type < 2) {
-      _fadeTo(type == 0 ? 0.f : 1.f, ngf::TimeSpan::seconds(t));
-    } else {
+    FadeEffect effect;
+    switch (type) {
+    case 0:
+      effect = FadeEffect::In;
+      break;
+    case 1:
+      effect = FadeEffect::Out;
+      break;
+    case 2:
+      effect = FadeEffect::Wobble;
+      break;
+    default: {
       error("roomFade not implemented");
+      return 0;
     }
+    }
+    g_pEngine->fadeTo(effect, ngf::TimeSpan::seconds(t));
     return 0;
   }
 

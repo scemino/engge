@@ -1,13 +1,14 @@
 #pragma once
-#include "ActorIcons.hpp"
-#include "Callback.hpp"
-#include "engge/System/NonCopyable.hpp"
-#include <squirrel.h>
-#include "SavegameSlot.hpp"
 #include <memory>
+#include <squirrel.h>
 #include <ngf/Graphics/RenderWindow.h>
 #include <ngf/Application.h>
-#include "engge/Input/InputConstants.hpp"
+#include <engge/Engine/ActorIcons.hpp>
+#include <engge/Engine/Callback.hpp>
+#include <engge/Engine/RoomEffect.hpp>
+#include <engge/Engine/SavegameSlot.hpp>
+#include <engge/System/NonCopyable.hpp>
+#include <engge/Input/InputConstants.hpp>
 
 namespace ng {
 class Actor;
@@ -37,20 +38,21 @@ enum class UseFlag {
   GiveTo = 4
 };
 
-struct RoomEffect {
-  float iFade{1.f};
-  float wobbleIntensity{1.f};
-  glm::vec3 shadows{-0.3f, 0, 0};
-  glm::vec3 midtones{-0.2f, 0, 0.1f};
-  glm::vec3 highlights{0, 0, 0.2f};
+enum class FadeEffect {
+  None,
+  In,
+  Out,
+  Wobble
+};
 
-  void reset() {
-    iFade = 1.f;
-    wobbleIntensity = 1.f;
-    shadows = {-0.3f, 0, 0};
-    midtones = {-0.2f, 0, 0.1f};
-    highlights = {0, 0, 0.2f};
-  }
+struct FadeEffectParameters {
+  FadeEffect effect{FadeEffect::None};
+  Room *room{nullptr};
+  ngf::TimeSpan duration;
+  ngf::TimeSpan elapsed;
+  glm::vec2 cameraTopLeft{0, 0};
+  float movement{0.f};
+  bool fadeToSepia{false};
 };
 
 class Engine : public NonCopyable {
@@ -145,9 +147,11 @@ public:
 
   HSQOBJECT &getDefaultObject();
 
-  void setFade(float fade);
-  [[nodiscard]] float getFade() const;
-  void fadeTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
+  /// Fades the screen with the specified effect and duration.
+  /// \param effect: Effect to use to fade the screen.
+  /// \param duration: Duration of the effect.
+  void fadeTo(FadeEffect effect, const ngf::TimeSpan& duration);
+  FadeEffectParameters& getFadeParameters();
 
   void keyDown(const Input &key);
   void keyUp(const Input &key);
