@@ -24,14 +24,26 @@ add_subdirectory(extlibs/ngf/)
 # Install misc. files
 install(FILES LICENSE DESTINATION .)
 
-# Install libraries on Linux
+# Copy dependencies
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 
-    install(DIRECTORY "${SFML_DIR}/../../" DESTINATION . FILES_MATCHING PATTERN "libsfml*")
+    install(FILES "/usr/lib/x86_64-linux-gnu/libsfml-audio.so.2.5" DESTINATION "bin/")
+    install(FILES "/usr/lib/x86_64-linux-gnu/libsfml-system.so.2.5" DESTINATION "bin/")
 
     install(CODE "execute_process(COMMAND patchelf --remove-needed libsfml-audio.so.2.5 ./src/engge)")
     install(CODE "execute_process(COMMAND patchelf --add-needed ./libsfml-audio.so.2.5 ./src/engge)")
 
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+	install(FILES "${VCPKG_BIN_DIR}/FLAC.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/glew32.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/ogg.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/OpenAL32.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/SDL2.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/sfml-audio-2.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/sfml-system-2.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/vorbis.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/vorbisenc.dll" DESTINATION "bin/")
+	install(FILES "${VCPKG_BIN_DIR}/vorbisfile.dll" DESTINATION "bin/")
 endif()
 
 target_compile_features("${appName}" PRIVATE cxx_std_17)
