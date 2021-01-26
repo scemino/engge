@@ -7,16 +7,16 @@
 
 namespace ng {
 constexpr const char *vertexShaderCode =
-    R"(#version 330 core
+    R"(#version 100
 precision mediump float;
-layout (location = 0) in vec2 a_position;
-layout (location = 1) in vec4 a_color;
-layout (location = 2) in vec2 a_texCoords;
+attribute vec2 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoords;
 
 uniform mat3 u_transform;
 
-out vec4 v_color;
-out vec2 v_texCoords;
+varying vec4 v_color;
+varying vec2 v_texCoords;
 
 void main(void) {
   v_color = a_color;
@@ -26,14 +26,13 @@ void main(void) {
   gl_Position = vec4(normalizedPosition.xy, 0, 1);
 })";
 
-constexpr const char *fragmentShaderCode = R"(#version 330 core
+constexpr const char *fragmentShaderCode = R"(#version 100
 #ifdef GL_ES
 precision highp float;
 #endif
 
-in vec2 v_texCoords;
-in vec4 v_color;
-out vec4 FragColor;
+varying vec2 v_texCoords;
+varying vec4 v_color;
 
 uniform sampler2D u_texture;
 
@@ -55,7 +54,7 @@ uniform vec2  u_coneDirection[50];
 
 void main(void)
 {
-    vec4 texColor=texture(u_texture, v_texCoords);
+    vec4 texColor = texture2D(u_texture, v_texCoords);
 
     vec2 spriteTexCoord = (v_texCoords - u_spritePosInSheet) / u_spriteSizeRelToSheet; // [0..1]
     vec2 pixelPos = spriteTexCoord * u_contentSize + u_spriteOffset; // [0..origSize]
@@ -97,7 +96,7 @@ void main(void)
     vec4 finalCol = texColor * v_color;
     vec3 finalLight = (diffuse+u_ambientColor);
     finalLight = min( finalLight, vec3(1,1,1) );
-    FragColor = vec4(finalCol.rgb*finalLight, finalCol.a);
+    gl_FragColor = vec4(finalCol.rgb*finalLight, finalCol.a);
 })";
 
 class LightingShader : public ngf::Shader {

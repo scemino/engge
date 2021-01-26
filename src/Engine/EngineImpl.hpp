@@ -69,15 +69,15 @@ namespace fs = std::filesystem;
 namespace ng {
 namespace {
 static const char *_vertexShader =
-    R"(#version 330 core
+    R"(#version 100
 precision mediump float;
-layout (location = 0) in vec2 a_position;
-layout (location = 1) in vec4 a_color;
-layout (location = 2) in vec2 a_texCoords;
+attribute vec2 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoords;
 
 uniform mat3 u_transform;
-out vec2 v_texCoords;
-out vec4 v_color;
+varying vec2 v_texCoords;
+varying vec4 v_color;
 
 void main(void) {
   v_color = a_color;
@@ -89,29 +89,27 @@ void main(void) {
 })";
 
 static const char *_bwFragmentShader =
-    R"(#version 330 core
+    R"(#version 100
 precision mediump float;
-out vec4 FragColor;
-in vec2 v_texCoords;
-in vec4 v_color;
+varying vec2 v_texCoords;
+varying vec4 v_color;
 uniform sampler2D u_texture;
 void main()
 {
-  vec4 texColor = texture(u_texture, v_texCoords);
+  vec4 texColor = texture2D(u_texture, v_texCoords);
   vec4 col = v_color * texColor;
   float gray = dot(col.xyz, vec3(0.299, 0.587, 0.114));
-  FragColor = vec4(gray, gray, gray, col.a);
+  gl_FragColor = vec4(gray, gray, gray, col.a);
 })";
 
 static const char *_egaFragmenShader =
-    R"(#version 330 core
+    R"(#version 100
 #ifdef GL_ES
 precision highp float;
 #endif
 
-out vec4 FragColor;
-in vec2 v_texCoords;
-in vec4 v_color;
+varying vec2 v_texCoords;
+varying vec4 v_color;
 uniform sampler2D u_texture;
 
 vec3 rgb2hsv(vec3 c)
@@ -202,21 +200,20 @@ vec3 nearest_rgbi (vec3 orig)
 
 void main()
 {
-   vec4 texColor = texture( u_texture, v_texCoords );
+   vec4 texColor = texture2D( u_texture, v_texCoords );
    vec4 srcCol = v_color * texColor;
    vec3 newCol = nearest_rgbi(srcCol.rgb);
-   FragColor = vec4(newCol, srcCol.a);
+   gl_FragColor = vec4(newCol, srcCol.a);
 })";
 
 static const char *_fadeFragmentShader =
-    R"(#version 330 core
+    R"(#version 100
 #ifdef GL_ES
 precision highp float;
 #endif
 
-out vec4 FragColor;
-in vec2 v_texCoords;
-in vec4 v_color;
+varying vec2 v_texCoords;
+varying vec4 v_color;
 uniform sampler2D u_texture;
 uniform sampler2D u_texture2;
 
@@ -234,8 +231,8 @@ void main()
    float pi2 = (3.142*2.0);
    float intervals = 4.0;
    uv.x += sin((u_timer+uv.y)*(pi2*intervals))*u_movement;
-   vec4 texColor1 = v_color * texture( u_texture, uv);
-   vec4 texColor2 = v_color * texture( u_texture2, uv);
+   vec4 texColor1 = v_color * texture2D( u_texture, uv);
+   vec4 texColor2 = v_color * texture2D( u_texture2, uv);
    if (u_fadeToSep!=0) {
        float gray = dot(texColor2.rgb, vec3(0.299, 0.587, 0.114));
        vec2 dist = vec2(uv.x - 0.5, uv.y - 0.5);
@@ -243,16 +240,16 @@ void main()
        float len = dot(dist,dist);
        float vignette = smoothstep(RADIUS, RADIUS-SOFTNESS, len);
        vec3 sep = mix(texColor2.rgb, sepiaColor, 0.80) * vignette;
-       FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (sep*u_fade);
+       gl_FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (sep*u_fade);
    }
    else {
-       FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (texColor2.rgb*u_fade);
+       gl_FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (texColor2.rgb*u_fade);
    }
-   FragColor.a = 1.0;
+   gl_FragColor.a = 1.0;
 })";
 
 static const char *_ghostFragmentShader =
-    R"(#version 330 core
+    R"(#version 100
 // Work in progress ghost shader.. Too over the top at the moment, it'll make you sick.
 
 #ifdef GL_ES
@@ -267,8 +264,7 @@ uniform vec3 midtones;
 uniform vec3 highlights;
 uniform sampler2D u_texture;
 
-in vec2 v_texCoords;
-out vec4 FragColor;
+varying vec2 v_texCoords;
 
 const float speed = 0.1;
 const float emboss = 0.70;
@@ -416,7 +412,7 @@ void main(void)
     vec3 col = vec3(0,0,0);
     if ( c1.x >= 0.0 && c1.x < (1.0-0.003125) )
     {
-        col = texture(u_texture,c1).rgb;
+        col = texture2D(u_texture,c1).rgb;
         float intensity = rgbToLuminance(col);  //(col.r + col.g + col.b) * 0.333333333;
 
         // Exponential Shadows
@@ -443,7 +439,7 @@ void main(void)
         //col = lerp(col, colorization, _Amount);
         col =  min(vec3(1.0),max(vec3(0.0),colorization));
     }
-    FragColor = vec4(col,1);
+    gl_FragColor = vec4(col,1);
 })";
 
 uint32_t toInteger(const ngf::Color &c) {

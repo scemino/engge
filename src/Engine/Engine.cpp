@@ -39,8 +39,6 @@
 #include "engge/System/Logger.hpp"
 #include "engge/Engine/InputStateConstants.hpp"
 #include "EngineImpl.hpp"
-#include "../System/_DebugTools.hpp"
-#include "../Entities/Actor/_TalkingState.hpp"
 
 namespace fs = std::filesystem;
 

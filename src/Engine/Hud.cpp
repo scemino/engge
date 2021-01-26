@@ -8,11 +8,11 @@
 
 namespace ng {
 static const char *_vertexShaderSource =
-    R"(#version 330 core
+    R"(#version 100
 precision mediump float;
-layout (location = 0) in vec2 a_position;
-layout (location = 1) in vec4 a_color;
-layout (location = 2) in vec2 a_texCoords;
+attribute vec2 a_position;
+attribute vec4 a_color;
+attribute vec2 a_texCoords;
 
 uniform vec4 u_shadowColor;
 uniform vec4 u_normalColor;
@@ -20,12 +20,12 @@ uniform vec4 u_highlightColor;
 uniform vec2 u_ranges;
 uniform mat3 u_transform;
 
-out vec4 v_color;
-out vec2 v_texCoords;
-out vec4 v_shadowColor;
-out vec4 v_normalColor;
-out vec4 v_highlightColor;
-out vec2 v_ranges;
+varying vec4 v_color;
+varying vec2 v_texCoords;
+varying vec4 v_shadowColor;
+varying vec4 v_normalColor;
+varying vec4 v_highlightColor;
+varying vec2 v_ranges;
 
 void main(void) {
   v_color = a_color;
@@ -41,19 +41,17 @@ void main(void) {
 })";
 
 static const char *_verbShaderCode =
-    R"(#version 330 core
+    R"(#version 100
 #ifdef GL_ES
 precision highp float;
 #endif
 
-out vec4 FragColor;
-
-in vec4 v_color;
-in vec2 v_texCoords;
-in vec4 v_shadowColor;
-in vec4 v_normalColor;
-in vec4 v_highlightColor;
-in vec2 v_ranges;
+varying vec4 v_color;
+varying vec2 v_texCoords;
+varying vec4 v_shadowColor;
+varying vec4 v_normalColor;
+varying vec4 v_highlightColor;
+varying vec2 v_ranges;
 uniform sampler2D u_texture;
 
 void main(void)
@@ -61,7 +59,7 @@ void main(void)
     float shadows = v_ranges.x;
     float highlights = v_ranges.y;
 
-    vec4 texColor = texture(u_texture, v_texCoords);
+    vec4 texColor = texture2D(u_texture, v_texCoords);
 
     if ( texColor.g <= shadows)
     {
@@ -76,7 +74,7 @@ void main(void)
         texColor*=v_normalColor;
     }
     texColor *= v_color;
-    FragColor = texColor;
+    gl_FragColor = texColor;
 }
 )";
 
