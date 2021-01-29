@@ -46,7 +46,7 @@ struct Object::Impl {
   bool _temporary{false};
   bool _jiggle{false};
   int _pop{0};
-  const ngf::Texture *_texture{nullptr};
+  std::string _texture;
   AnimControl _animControl;
 
   Impl() {
@@ -152,7 +152,7 @@ HSQOBJECT &Object::getTable() { return pImpl->_table; }
 HSQOBJECT &Object::getTable() const { return pImpl->_table; }
 bool Object::isInventoryObject() const { return getOwner() != nullptr; }
 
-void Object::setTexture(const ngf::Texture *texture) {
+void Object::setTexture(const std::string &texture) {
   pImpl->_texture = texture;
 }
 
@@ -432,7 +432,7 @@ void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) co
     return;
 
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
-  ngf::Sprite s(gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
+  ngf::Sprite s(*gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
   s.setColor(ngf::Color(255, 165, 0));
   s.getTransform().setScale({0.25f, 0.25f});
   s.getTransform().setOrigin({15.f, 15.f});

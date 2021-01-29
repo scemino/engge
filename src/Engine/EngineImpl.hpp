@@ -2101,7 +2101,7 @@ void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
 
   ngf::Sprite sprite;
   sprite.getTransform().setPosition(viewCenter);
-  sprite.setTexture(saveLoadSheet.getTexture());
+  sprite.setTexture(*saveLoadSheet.getTexture());
   sprite.getTransform().setOrigin({rect.getWidth() / 2.f, rect.getHeight() / 2.f});
   sprite.setTextureRect(rect);
   sprite.draw(target, {});
@@ -2154,7 +2154,7 @@ void Engine::Impl::drawCursor(ngf::RenderTarget &target) const {
   shape.getTransform().setPosition(pos);
   shape.getTransform().setOrigin(cursorSize / 2.f);
   shape.setSize(cursorSize);
-  shape.setTexture(gameSheet.getTexture(), false);
+  shape.setTexture(*gameSheet.getTexture(), false);
   shape.setTextureRect(getCursorRect());
   shape.draw(target, {});
 
@@ -2308,7 +2308,7 @@ void Engine::Impl::drawNoOverride(ngf::RenderTarget &target) const {
   spriteNo.setColor(c);
   spriteNo.getTransform().setPosition({8.f, 8.f});
   spriteNo.getTransform().setScale({2.f, 2.f});
-  spriteNo.setTexture(gameSheet.getTexture());
+  spriteNo.setTexture(*gameSheet.getTexture());
   spriteNo.setTextureRect(gameSheet.getRect("icon_no"));
   spriteNo.draw(target, {});
 

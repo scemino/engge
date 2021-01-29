@@ -32,7 +32,7 @@ public:
     _sprite.getTransform().setPosition({Screen::Width / 2.f, _y});
     _sprite.getTransform().setScale(scale);
     _sprite.getTransform().setOrigin({sliderRect.getWidth() / 2.f, 0});
-    _sprite.setTexture(pSpriteSheet->getTexture());
+    _sprite.setTexture(*pSpriteSheet->getTexture());
     _sprite.setTextureRect(sliderRect);
 
     _min = Screen::Width / 2.f - (sliderRect.getWidth() * scale.x / 2.f);
@@ -41,7 +41,7 @@ public:
     _spriteHandle.getTransform().setPosition({x, _y});
     _spriteHandle.getTransform().setScale(scale);
     _spriteHandle.getTransform().setOrigin({handleRect.getWidth() / 2.f, 0});
-    _spriteHandle.setTexture(pSpriteSheet->getTexture());
+    _spriteHandle.setTexture(*pSpriteSheet->getTexture());
     _spriteHandle.setTextureRect(handleRect);
   }
 

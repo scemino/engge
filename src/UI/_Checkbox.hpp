@@ -37,7 +37,7 @@ public:
     glm::vec2 scale(Screen::Width / 320.f, Screen::Height / 180.f);
     _sprite.getTransform().setScale(scale);
     _sprite.getTransform().setOrigin({checkedRect.getWidth() / 2.f, checkedRect.getHeight() / 2.f});
-    _sprite.setTexture(pSpriteSheet->getTexture());
+    _sprite.setTexture(*pSpriteSheet->getTexture());
     _sprite.setTextureRect(checkedRect);
   }
 

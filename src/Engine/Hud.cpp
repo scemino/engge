@@ -153,7 +153,7 @@ void Hud::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   auto uiBackingRect = hudSentence ? gameSheet.getRect("ui_backing_tall") : gameSheet.getRect("ui_backing");
 
-  ngf::Sprite uiBacking(gameSheet.getTexture(), uiBackingRect);
+  ngf::Sprite uiBacking(*gameSheet.getTexture(), uiBackingRect);
   uiBacking.setColor(ngf::Color(0.f, 0.f, 0.f, uiBackingAlpha * _alpha));
   uiBacking.getTransform().setPosition({0, 720.f - uiBackingRect.getHeight()});
   uiBacking.draw(target, {});
@@ -174,7 +174,7 @@ void Hud::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
     auto verbName = getVerbName(verb);
     auto rect = verbSheet.getRect(verbName);
     auto s = verbSheet.getSpriteSourceSize(verbName);
-    ngf::Sprite verbSprite(verbSheet.getTexture(), rect);
+    ngf::Sprite verbSprite(*verbSheet.getTexture(), rect);
     verbSprite.setColor(color);
     verbSprite.getTransform().setPosition(s.getTopLeft());
     verbSprite.draw(target, verbStates);

@@ -390,7 +390,7 @@ struct OptionsDialog::Impl {
     auto rect = _saveLoadSheet.getRect("options_background");
     ngf::Sprite sprite;
     sprite.getTransform().setPosition(viewCenter);
-    sprite.setTexture(_saveLoadSheet.getTexture());
+    sprite.setTexture(*_saveLoadSheet.getTexture());
     sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
                                      static_cast<float>(rect.getHeight() / 2.f)});
     sprite.setTextureRect(rect);

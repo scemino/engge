@@ -82,7 +82,7 @@ public:
   HSQOBJECT &getTable() override;
   [[nodiscard]] HSQOBJECT &getTable() const override;
 
-  void setTexture(const ngf::Texture *texture);
+  void setTexture(const std::string &texture);
   std::vector<ObjectAnimation> &getAnims();
 
   [[nodiscard]] bool isVisible() const override;

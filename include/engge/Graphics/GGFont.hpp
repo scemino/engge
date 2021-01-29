@@ -12,7 +12,7 @@ public:
 
   void load(const std::string &path);
 
-  [[nodiscard]] const ngf::Texture &getTexture(unsigned int) const override;
+  [[nodiscard]] const std::shared_ptr<ngf::Texture> &getTexture(unsigned int) const override;
   [[nodiscard]] const Glyph &getGlyph(unsigned int codePoint) const override;
   [[nodiscard]] float getKerning(unsigned int first, unsigned int second, unsigned int characterSize) const override;
 

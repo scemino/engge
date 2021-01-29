@@ -11,7 +11,7 @@ public:
   RoomLayer();
   ~RoomLayer() = default;
 
-  void setTexture(const ngf::Texture *texture);
+  void setTexture(const std::string &texture);
   void setRoomSizeY(int roomSizeY) { _roomSizeY = roomSizeY; }
   void setOffsetY(int offsetY) { _offsetY = offsetY; }
 
@@ -34,7 +34,7 @@ public:
   void update(const ngf::TimeSpan &elapsed);
 
 private:
-  const ngf::Texture *_texture{nullptr};
+  std::string _textureName;
   std::vector<SpriteSheetItem> _backgrounds;
   std::vector<std::reference_wrapper<Entity>> _entities;
   glm::vec2 _parallax{1, 1};

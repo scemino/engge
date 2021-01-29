@@ -107,7 +107,7 @@ private:
 class FntFont : public Font {
 private:
   CharSet m_chars;
-  std::vector<ngf::Texture> m_textures;
+  std::vector<std::shared_ptr<ngf::Texture>> m_textures;
 
 public:
   ~FntFont() override;
@@ -117,7 +117,7 @@ public:
   [[nodiscard]] const Glyph &getGlyph(unsigned int codePoint) const override;
   [[nodiscard]] float getKerning(unsigned int first, unsigned int second,
                                  unsigned int characterSize) const override;
-  [[nodiscard]] const ngf::Texture &getTexture(
+  [[nodiscard]] const std::shared_ptr<ngf::Texture> &getTexture(
       unsigned int characterSize) const override;
 
 private:

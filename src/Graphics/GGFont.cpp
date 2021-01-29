@@ -7,7 +7,7 @@
 namespace ng {
 GGFont::~GGFont() = default;
 
-const ngf::Texture &GGFont::getTexture(unsigned int) const { return *_texture; }
+const std::shared_ptr<ngf::Texture> &GGFont::getTexture(unsigned int) const { return _texture; }
 
 float GGFont::getKerning(unsigned int, unsigned int, unsigned int) const { return 0; }
 

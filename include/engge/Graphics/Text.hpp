@@ -81,7 +81,7 @@ private:
   mutable std::vector<ngf::Vertex> m_vertices;
   mutable ngf::frect m_bounds{};
   mutable bool m_geometryNeedUpdate{false};
-  mutable const ngf::Texture *m_fontTexture{nullptr};
+  mutable std::shared_ptr<ngf::Texture> m_fontTexture{nullptr};
   float m_maxWidth{0};
 };
 }

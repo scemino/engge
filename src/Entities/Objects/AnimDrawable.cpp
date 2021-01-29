@@ -3,6 +3,8 @@
 #include <engge/Graphics/LightingShader.h>
 #include <ngf/Math/Transform.h>
 #include <ngf/Graphics/Sprite.h>
+#include <engge/Graphics/ResourceManager.hpp>
+#include <engge/System/Locator.hpp>
 
 namespace ng {
 void AnimDrawable::setAnim(ObjectAnimation *anim) { m_anim = anim; }
@@ -57,7 +59,7 @@ void AnimDrawable::draw(const glm::vec2 &pos,
   states.transform = tFlipX.getTransform() * t.getTransform() * states.transform;
 
   auto pShader = (LightingShader *) states.shader;
-  auto texture = anim.texture;
+  auto texture = Locator<ResourceManager>::get().getTexture(anim.texture);
   if (!texture)
     return;
 

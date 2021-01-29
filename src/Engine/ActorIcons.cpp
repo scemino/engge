@@ -203,7 +203,7 @@ void ActorIcons::drawActorIcon(ngf::RenderTarget &target, const std::string &ico
   s.setColor(c);
   s.getTransform().setPosition(offset);
   s.getTransform().setOrigin(-pos);
-  s.setTexture(texture);
+  s.setTexture(*texture);
   s.setTextureRect(backRect);
   s.draw(target, states);
 

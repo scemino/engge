@@ -74,7 +74,7 @@ struct Room::Impl {
     if (!jWimpy["fullscreen"].isNull()) {
       _fullscreen = jWimpy["fullscreen"].int_value;
     }
-    _layers[0]->setTexture(&_spriteSheet.getTexture());
+    _layers[0]->setTexture(_spriteSheet.getTextureName());
     auto screenHeight = _pRoom->getScreenSize().y;
     auto offsetY = screenHeight - _pRoom->getRoomSize().y;
     if (jWimpy["background"].isArray()) {
@@ -114,7 +114,7 @@ struct Room::Impl {
       auto &layer = _layers[zsort];
       layer->setRoomSizeY(_pRoom->getRoomSize().y);
       layer->setOffsetY(offsetY);
-      layer->setTexture(&_spriteSheet.getTexture());
+      layer->setTexture(_spriteSheet.getTextureName());
       layer->setZOrder(zsort);
       if (jLayer["name"].isArray()) {
         for (const auto &jName : jLayer["name"].array_value) {
@@ -223,7 +223,7 @@ struct Room::Impl {
       object->setUsePosition(usePos);
 
       // animations
-      object->setTexture(&_spriteSheet.getTexture());
+      object->setTexture(_spriteSheet.getTextureName());
       if (jObject["animations"].isArray()) {
         auto anims = AnimationLoader::parseAnimations(*object, jObject["animations"], _spriteSheet);
         auto &objAnims = object->getAnims();
@@ -596,7 +596,7 @@ TextObject &Room::createTextObject(const std::string &fontName) {
 
   const auto &font = pImpl->_textureManager.getFntFont(path);
   object->setFont(&font);
-  object->setTexture(&getSpriteSheet().getTexture());
+  object->setTexture(getSpriteSheet().getTextureName());
   auto &obj = *object;
   obj.setVisible(true);
   obj.setRoom(this);
@@ -614,11 +614,11 @@ Object &Room::createObject(const std::vector<std::string> &anims) { return creat
 Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &frames) {
   auto object = std::make_unique<Object>();
   auto spriteSheet = pImpl->_textureManager.getSpriteSheet(sheet);
-  object->setTexture(&spriteSheet.getTexture());
+  object->setTexture(spriteSheet.getTextureName());
 
   ObjectAnimation anim;
   anim.name = "state0";
-  anim.texture = &spriteSheet.getTexture();
+  anim.texture = spriteSheet.getTextureName();
 
   for (auto frame :frames) {
     checkLanguage(frame);
@@ -640,16 +640,15 @@ Object &Room::createObject(const std::string &image) {
   checkLanguage(name);
 
   const std::vector<std::string> anims{name};
-  auto texture = pImpl->_textureManager.getTexture(name);
-
   auto object = std::make_unique<Object>();
-  object->setTexture(texture.get());
+  auto texture = Locator<ResourceManager>::get().getTexture(name);
+  object->setTexture(name);
 
   ObjectAnimation anim;
   auto size = texture->getSize();
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
   anim.name = "state0";
-  anim.texture = texture.get();
+  anim.texture = name;
   anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size, false});
   object->getAnims().push_back(anim);
 

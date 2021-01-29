@@ -100,7 +100,7 @@ void Text::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
     ensureGeometryUpdate();
 
     ngf::RenderStates s = states;
-    s.texture = m_fontTexture;
+    s.texture = m_fontTexture.get();
     s.transform *= m_transform.getTransform();
     target.draw(ngf::PrimitiveType::Triangles, m_vertices, s);
   }
@@ -113,11 +113,11 @@ void Text::ensureGeometryUpdate() const {
   // Do nothing, if geometry has not changed and the font texture has not
   // changed
   if (!m_geometryNeedUpdate &&
-      &m_font->getTexture(m_characterSize) == m_fontTexture)
+      m_font->getTexture(m_characterSize) == m_fontTexture)
     return;
 
   // Save the current fonts texture id
-  m_fontTexture = &m_font->getTexture(m_characterSize);
+  m_fontTexture = m_font->getTexture(m_characterSize);
 
   // Mark geometry as updated
   m_geometryNeedUpdate = false;

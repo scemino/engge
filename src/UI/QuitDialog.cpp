@@ -135,7 +135,7 @@ struct QuitDialog::Impl {
     auto rect = _saveLoadSheet.getRect("error_dialog_small");
     ngf::Sprite sprite;
     sprite.getTransform().setPosition(viewCenter);
-    sprite.setTexture(_saveLoadSheet.getTexture());
+    sprite.setTexture(*_saveLoadSheet.getTexture());
     sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2), static_cast<float>(rect.getHeight() / 2)});
     sprite.setTextureRect(rect);
     sprite.draw(target, {});

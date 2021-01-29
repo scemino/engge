@@ -44,7 +44,7 @@ private:
     if (gAnimation["sheet"].isString()) {
       spriteSheet = &Locator<ResourceManager>::get().getSpriteSheet(gAnimation["sheet"].getString());
     }
-    anim.texture = &spriteSheet->getTexture();
+    anim.texture = spriteSheet->getTextureName();
     anim.name = gAnimation["name"].getString();
     anim.loop = toBool(gAnimation["loop"]);
     anim.fps = gAnimation["fps"].isNull() ? 0 : gAnimation["fps"].getInt();

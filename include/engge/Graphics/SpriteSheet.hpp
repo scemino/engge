@@ -10,7 +10,7 @@ class SpriteSheet {
 public:
   void setTextureManager(ResourceManager *pTextureManager) { _pResourceManager = pTextureManager; }
   void load(const std::string &name);
-  [[nodiscard]] const ngf::Texture &getTexture() const { return *_pResourceManager->getTexture(_textureName); }
+  [[nodiscard]] std::shared_ptr<ngf::Texture> getTexture() const { return _pResourceManager->getTexture(_textureName); }
   [[nodiscard]] std::string getTextureName() const { return _textureName; }
   [[nodiscard]] bool hasRect(const std::string &name) const;
   [[nodiscard]] ngf::irect getRect(const std::string &name) const;

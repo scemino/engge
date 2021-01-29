@@ -7,8 +7,8 @@
 namespace ng {
 RoomLayer::RoomLayer() = default;
 
-void RoomLayer::setTexture(const ngf::Texture *texture) {
-  _texture = texture;
+void RoomLayer::setTexture(const std::string &textureName) {
+  _textureName = textureName;
 }
 
 void RoomLayer::addEntity(Entity &entity) { _entities.emplace_back(entity); }
@@ -31,7 +31,7 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   pShader->setNumberLights(0);
 
   // sort entities by z-order
-  std::vector<std::reference_wrapper<Entity>> entities;
+  std::vector <std::reference_wrapper<Entity>> entities;
   std::copy(_entities.begin(), _entities.end(), std::back_inserter(entities));
   std::sort(entities.begin(), entities.end(),
             [](const Entity &a, const Entity &b) {
@@ -43,8 +43,9 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   float offsetX = 0.f;
   // draw layer sprites
   for (const auto &item : _backgrounds) {
-    auto texSize = _texture->getSize();
-    pShader->setTexture(*_texture);
+    auto texture = Locator<ResourceManager>::get().getTexture(_textureName);
+    auto texSize = texture->getSize();
+    pShader->setTexture(*texture);
     pShader->setContentSize(item.sourceSize);
     pShader->setSpriteOffset({0, -item.frame.getHeight()});
     pShader->setSpritePosInSheet({static_cast<float>(item.frame.min.x) / texSize.x,
@@ -52,7 +53,7 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
     pShader->setSpriteSizeRelToSheet({static_cast<float>(item.sourceSize.x) / texSize.x,
                                       static_cast<float>(item.sourceSize.y) / texSize.y});
 
-    ngf::Sprite s(*_texture, item.frame);
+    ngf::Sprite s(*texture, item.frame);
     glm::vec2 off{item.spriteSourceSize.min.x, item.spriteSourceSize.min.y + _roomSizeY - item.sourceSize.y};
     s.getTransform().setPosition(off + glm::vec2{offsetX, _offsetY});
     offsetX += item.frame.getWidth();

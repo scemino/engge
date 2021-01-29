@@ -115,8 +115,8 @@ void Inventory::drawUpArrow(ngf::RenderTarget &target) const {
   scrollUpShape.setColor(color);
   scrollUpShape.getTransform().setPosition(_scrollUpRect.getTopLeft());
   scrollUpShape.setSize(scrollUpSize);
-  scrollUpShape.setTexture(_gameSheet.getTexture(), false);
-  scrollUpShape.setTextureRect(_gameSheet.getTexture().computeTextureCoords(rect));
+  scrollUpShape.setTexture(*_gameSheet.getTexture(), false);
+  scrollUpShape.setTextureRect(_gameSheet.getTexture()->computeTextureCoords(rect));
   scrollUpShape.draw(target, {});
 }
 
@@ -138,8 +138,8 @@ void Inventory::drawDownArrow(ngf::RenderTarget &target) const {
   scrollDownShape.setColor(color);
   scrollDownShape.getTransform().setPosition(_scrollDownRect.getTopLeft());
   scrollDownShape.setSize(scrollDownSize);
-  scrollDownShape.setTexture(_gameSheet.getTexture(), false);
-  scrollDownShape.setTextureRect(_gameSheet.getTexture().computeTextureCoords(scrollDownFrameRect));
+  scrollDownShape.setTexture(*_gameSheet.getTexture(), false);
+  scrollDownShape.setTextureRect(_gameSheet.getTexture()->computeTextureCoords(scrollDownFrameRect));
   scrollDownShape.draw(target, {});
 }
 
@@ -171,7 +171,7 @@ void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   auto inventoryRect = _gameSheet.getRect("inventory_background");
   ngf::Sprite inventoryShape;
   inventoryShape.setColor(c);
-  inventoryShape.setTexture(_gameSheet.getTexture());
+  inventoryShape.setTexture(*_gameSheet.getTexture());
   inventoryShape.setTextureRect(inventoryRect);
   for (auto i = 0; i < 8; i++) {
     inventoryShape.getTransform().setPosition(_inventoryRects[i].getTopLeft());
@@ -205,7 +205,7 @@ void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
       sprite.getTransform().setRotation(3.f * sinf(_jiggleTime));
     }
     sprite.getTransform().setPosition(_inventoryRects[i].getTopLeft());
-    sprite.setTexture(_inventoryItems.getTexture());
+    sprite.setTexture(*_inventoryItems.getTexture());
     sprite.setTextureRect(rect);
     if (object->getPop() > 0) {
       const auto pop = 4.25f + object->getPopScale() * 0.25f;

@@ -11,7 +11,7 @@
 namespace ng {
 struct ObjectAnimation {
   std::string name;
-  const ngf::Texture *texture{nullptr};
+  std::string texture;
   std::vector<SpriteSheetItem> frames;
   std::vector<ObjectAnimation> layers;
   std::vector<glm::ivec2> offsets;

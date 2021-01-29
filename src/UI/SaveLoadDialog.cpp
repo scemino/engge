@@ -106,7 +106,7 @@ struct SaveLoadDialog::Impl {
 
       // prepare the sprite for the frame
       auto rect = spriteSheet.getRect("saveload_slot_frame");
-      _sprite.setTexture(spriteSheet.getTexture());
+      _sprite.setTexture(*spriteSheet.getTexture());
       _sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
                                         static_cast<float>(rect.getHeight() / 2.f)});
       _sprite.getTransform().setScale({4, 4});
@@ -131,7 +131,7 @@ struct SaveLoadDialog::Impl {
 
       // or prepare a sprite for the savegame empty slot
       auto saveslotRect = spriteSheet.getRect("saveload_slot");
-      _spriteImg.setTexture(spriteSheet.getTexture());
+      _spriteImg.setTexture(*spriteSheet.getTexture());
       _spriteImg.setTextureRect(saveslotRect);
       _spriteImg.getTransform().setOrigin({static_cast<float>(saveslotRect.getWidth() / 2.f),
                                            static_cast<float>(saveslotRect.getHeight() / 2.f)});
@@ -238,7 +238,7 @@ struct SaveLoadDialog::Impl {
     auto rect = _saveLoadSheet.getRect("saveload");
     ngf::Sprite sprite;
     sprite.getTransform().setPosition(viewCenter);
-    sprite.setTexture(_saveLoadSheet.getTexture());
+    sprite.setTexture(*_saveLoadSheet.getTexture());
     sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
                                      static_cast<float>(rect.getHeight() / 2.f)});
     sprite.setTextureRect(rect);

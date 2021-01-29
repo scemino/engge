@@ -41,6 +41,6 @@ public:
   /// @brief Gets the texture containing the loaded glyphs of a certain size.
   /// \param characterSize Reference character size.
   /// \return Texture containing the glyphs of the requested size.
-  [[nodiscard]] virtual const ngf::Texture &getTexture(unsigned int characterSize) const = 0;
+  [[nodiscard]] virtual const std::shared_ptr<ngf::Texture> &getTexture(unsigned int characterSize) const = 0;
 };
 }

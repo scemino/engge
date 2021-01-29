@@ -54,7 +54,7 @@ void FntFont::load(const std::filesystem::path &path, std::istream &input) {
   for (size_t i = 0; i < m_chars.pages.size(); i++) {
     std::filesystem::path texPath = m_chars.pages[i];
     texPath = texPath.replace_extension("");
-    m_textures[i] = *Locator<ResourceManager>::get().getTexture(texPath.string());
+    m_textures[i] = Locator<ResourceManager>::get().getTexture(texPath.string());
   }
 }
 
@@ -76,7 +76,7 @@ float FntFont::getKerning(
   return m_chars.getKerning(first, second);
 }
 
-const ngf::Texture &FntFont::getTexture(unsigned int) const {
+const std::shared_ptr<ngf::Texture> &FntFont::getTexture(unsigned int) const {
   return m_textures[0];
 }
 
