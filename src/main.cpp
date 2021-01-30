@@ -1,13 +1,13 @@
 #include "engge/EnggeApplication.hpp"
 
 int main(int, char *[]) {
+  ng::EnggeApplication app;
   try {
-    ng::EnggeApplication app;
     app.run();
     ng::Locator<ng::Engine>::reset();
   }
   catch (std::exception &e) {
-    ng::error("Sorry, an error occurred: {}", e.what());
+    app.showMessageBox("Critical Error!", e.what(), ngf::MessageBoxType::Warning);
     return 1;
   }
   catch (...) {

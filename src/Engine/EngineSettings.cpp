@@ -1,10 +1,19 @@
 #include <sstream>
 #include <filesystem>
 #include "engge/System/Locator.hpp"
+#include "engge/System/Logger.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Engine/EngineSettings.hpp"
 #include "../System/_Util.hpp"
 namespace fs = std::filesystem;
+
+namespace {
+void throwEntryNotFound(const std::string &name) {
+  std::string s;
+  s = "File '" + name + "' not found in ggpack files.";
+  throw std::logic_error(s);
+}
+}
 
 namespace ng {
 EngineSettings::EngineSettings() = default;
@@ -16,6 +25,7 @@ void EngineSettings::loadPacks() {
   for (const auto &entry : fs::directory_iterator(path)) {
     if (ng::startsWith(entry.path().extension().string(), ".ggpack")) {
       auto pack = std::make_unique<GGPack>();
+      info("Opening pack '{}'...", entry.path().string());
       pack->open(entry.path().string());
       _packs.push_back(std::move(pack));
     }
@@ -55,7 +65,9 @@ void EngineSettings::readEntry(const std::string &name, std::vector<char> &data)
   });
   if (it != _packs.end()) {
     (*it)->readEntry(name, data);
+    return;
   }
+  throwEntryNotFound(name);
 }
 
 void EngineSettings::readEntry(const std::string &name, GGPackValue &hash) {
@@ -64,7 +76,9 @@ void EngineSettings::readEntry(const std::string &name, GGPackValue &hash) {
   });
   if (it != _packs.end()) {
     (*it)->readHashEntry(name, hash);
+    return;
   }
+  throwEntryNotFound(name);
 }
 
 void EngineSettings::getEntries(std::vector<std::string> &entries) {

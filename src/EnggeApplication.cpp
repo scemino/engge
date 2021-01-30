@@ -55,6 +55,13 @@ namespace ng {
 void EnggeApplication::onInit() {
   m_window.init({"Engge", {ng::Screen::Width, ng::Screen::Height}});
   ng::Services::init();
+
+  if (ng::Locator<ng::EngineSettings>::get().getPackCount() == 0) {
+    std::string s;
+    s = "No ggpack files detected.";
+    throw std::logic_error(s);
+  }
+
   auto &scriptEngine = ng::Locator<ng::ScriptEngine>::create();
   m_engine = &ng::Locator<ng::Engine>::create();
   m_engine->setApplication(this);
@@ -62,8 +69,9 @@ void EnggeApplication::onInit() {
   m_debugTools = std::make_unique<ng::_DebugTools>(*m_engine);
 
   Locator<CommandManager>::get().registerCommands({
-    {EngineCommands::ToggleDebug, [this] { m_debugTools->visible = !m_debugTools->visible; }}
-  });
+                                                      {EngineCommands::ToggleDebug,
+                                                       [this] { m_debugTools->visible = !m_debugTools->visible; }}
+                                                  });
 
   ng::InputMappings::registerMappings();
   ng::info("Start game");

@@ -15,6 +15,8 @@ public:
 
   void loadPacks();
 
+  [[nodiscard]] int getPackCount() const { return static_cast<int>(_packs.size()); }
+
   bool hasEntry(const std::string &name);
   void readEntry(const std::string &name, std::vector<char> &data);
   void readEntry(const std::string &name, GGPackValue &hash);
