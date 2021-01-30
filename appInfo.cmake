@@ -1,6 +1,6 @@
 set(appName "engge")
 set(appVersionMajor 0)
-set(appVersionMinor 6)
+set(appVersionMinor 7)
 set(appVersionPatch 0)
 set(appVersionSuffix "alpha")
 set(appVersion "${appVersionMajor}.${appVersionMinor}.${appVersionPatch}-${appVersionSuffix}")

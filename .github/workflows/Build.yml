@@ -52,6 +52,16 @@ jobs:
           CXX: g++-10
         run: cmake --build . --config $BUILD_TYPE --target package
 
+      - name: 📦 Upload Ubuntu package to release
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{runner.workspace}}/build/*.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+
       - name: 📦 Upload Ubuntu package
         uses: actions/upload-artifact@v2
         with:
@@ -84,6 +94,16 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         run: cmake --build . --config $BUILD_TYPE --target package
+
+      - name: 📦 Upload Windows package to release
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{runner.workspace}}/build/*.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
 
       - name: 📦 Upload Portable ZIP
         uses: actions/upload-artifact@v2
@@ -118,6 +138,16 @@ jobs:
         shell: bash
         run: |
           cmake --build . --config $BUILD_TYPE --target package
+
+      - name: 📦 Upload macOS package to release
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{runner.workspace}}/build/*.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
 
       - name: 📦 Upload Portable ZIP
         uses: actions/upload-artifact@v2
