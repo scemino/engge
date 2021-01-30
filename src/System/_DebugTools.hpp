@@ -53,6 +53,8 @@ public:
   }
 
   void render() {
+    if(!visible) return;
+
     ImGui::Begin("Debug");
 
     _generalTools.render();
@@ -164,6 +166,9 @@ private:
                                      : InputStateConstants::UI_HUDOBJECTS_OFF);
     }
   }
+
+public:
+  bool visible{false};
 
 private:
   Engine &_engine;

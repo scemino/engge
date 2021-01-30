@@ -38,7 +38,6 @@
 #include "../../extlibs/squirrel/squirrel/sqcompiler.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncstate.h"
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
-#include "../System/_DebugTools.hpp"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "engge/System/Logger.hpp"
 #include "engge/Parsers/GGPackValue.hpp"
@@ -58,6 +57,7 @@
 #include <ngf/Graphics/RectangleShape.h>
 #include <engge/Util/Util.hpp>
 #include <engge/Graphics/Text.hpp>
+#include <imgui.h>
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/Input/CommandManager.hpp"
 #include "engge/Engine/EngineCommands.hpp"

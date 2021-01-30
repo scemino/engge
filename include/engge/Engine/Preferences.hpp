@@ -36,8 +36,10 @@ static const std::string KeySelect5 = "keySelect5";
 static const std::string KeySelect6 = "keySelect6";
 static const std::string KeySelectPrev = "keySelectPrev";
 static const std::string KeySelectNext = "keySelectNext";
-static const std::string GameSpeedFactor = "gameSpeedFactor"; // engge only
-static const std::string DevPath = "devPath"; // engge only
+// engge only
+static const std::string EnggeGameSpeedFactor = "gameSpeedFactor";
+static const std::string EnggeDevPath = "devPath";
+static const bool EnggeDebug = false;
 }
 
 namespace PreferenceDefaultValues {
@@ -69,9 +71,10 @@ static const std::string KeySelect5 = "5";
 static const std::string KeySelect6 = "6";
 static const std::string KeySelectPrev = "9";
 static const std::string KeySelectNext = "0";
-static const float GameSpeedFactor = 1.f;
 static const bool AnnoyingInJokes = false;
-static const std::string DevPath = "";
+static const std::string EnggeDevPath = "";
+static const float EnggeGameSpeedFactor = 1.f;
+static const bool EnggeDebug = false;
 }
 
 namespace TempPreferenceNames {

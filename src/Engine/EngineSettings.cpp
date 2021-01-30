@@ -10,8 +10,8 @@ namespace ng {
 EngineSettings::EngineSettings() = default;
 
 void EngineSettings::loadPacks() {
-  auto devPath = ng::Locator<ng::Preferences>::get().getUserPreference(PreferenceNames::DevPath,
-                                                                       PreferenceDefaultValues::DevPath);
+  auto devPath = ng::Locator<ng::Preferences>::get().getUserPreference(PreferenceNames::EnggeDevPath,
+                                                                       PreferenceDefaultValues::EnggeDevPath);
   auto path = devPath.empty() ? fs::current_path() : fs::path(devPath);
   for (const auto &entry : fs::directory_iterator(path)) {
     if (ng::startsWith(entry.path().extension().string(), ".ggpack")) {

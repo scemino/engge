@@ -306,7 +306,7 @@ void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
 void Engine::update(const ngf::TimeSpan &el) {
   auto gameSpeedFactor =
-      getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor, PreferenceDefaultValues::GameSpeedFactor);
+      getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor, PreferenceDefaultValues::EnggeGameSpeedFactor);
   const ngf::TimeSpan elapsed(ngf::TimeSpan::seconds(el.getTotalSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
   auto screenSize = _pImpl->_pRoom->getScreenSize();

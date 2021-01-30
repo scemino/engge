@@ -1,6 +1,7 @@
 #include "engge/EnggeApplication.hpp"
 #include "engge/Input/InputMappings.hpp"
 #include <ngf/Graphics/Colors.h>
+#include "engge/Engine/EngineCommands.hpp"
 
 namespace {
 ng::InputConstants toKey(ngf::Scancode key) {
@@ -59,6 +60,10 @@ void EnggeApplication::onInit() {
   m_engine->setApplication(this);
   scriptEngine.setEngine(*m_engine);
   m_debugTools = std::make_unique<ng::_DebugTools>(*m_engine);
+
+  Locator<CommandManager>::get().registerCommands({
+    {EngineCommands::ToggleDebug, [this] { m_debugTools->visible = !m_debugTools->visible; }}
+  });
 
   ng::InputMappings::registerMappings();
   ng::info("Start game");

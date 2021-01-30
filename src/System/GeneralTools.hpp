@@ -36,10 +36,10 @@ public:
     }
     ImGui::Separator();
 
-    auto gameSpeedFactor = m_engine.getPreferences().getUserPreference(PreferenceNames::GameSpeedFactor,
-                                                                       PreferenceDefaultValues::GameSpeedFactor);
+    auto gameSpeedFactor = m_engine.getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor,
+                                                                       PreferenceDefaultValues::EnggeGameSpeedFactor);
     if (ImGui::SliderFloat("Game speed factor", &gameSpeedFactor, 0.f, 5.f)) {
-      m_engine.getPreferences().setUserPreference(PreferenceNames::GameSpeedFactor, gameSpeedFactor);
+      m_engine.getPreferences().setUserPreference(PreferenceNames::EnggeGameSpeedFactor, gameSpeedFactor);
     }
     ImGui::Checkbox("Show cursor position", &_DebugFeatures::showCursorPosition);
     ImGui::Checkbox("Show hovered object", &_DebugFeatures::showHoveredObject);
