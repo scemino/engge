@@ -16,6 +16,7 @@ set(SOURCES
         Dialog/DialogPlayer.cpp
         Dialog/EngineDialogScript.cpp
         EnggeApplication.cpp
+        Engine/AchievementManager.cpp
         Engine/TextDatabase.cpp
         Engine/Engine.cpp
         Engine/ActorIcons.cpp

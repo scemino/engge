@@ -546,8 +546,29 @@ private:
     return g_pEngine->setRoom(pRoom);
   }
 
-  static SQInteger markAchievement(HSQUIRRELVM) {
-    error("TODO: markAchievement: not implemented");
+  static SQInteger markAchievement(HSQUIRRELVM v) {
+    const SQChar *id = nullptr;
+    sq_getstring(v, 2, &id);
+    auto numArgs = sq_gettop(v);
+    auto &achievements = ng::Locator<ng::AchievementManager>::get();
+    auto earnedValue = achievements.getPrivatePreference("earnedAchievements");
+    std::string earned = earnedValue.isNull() ? "" : earnedValue.getString();
+    switch (numArgs) {
+    case 2:achievements.setPrivatePreference("earnedAchievements", earned + "|" + id);
+      break;
+    case 4: {
+      SQInteger count;
+      SQInteger total;
+      sq_getinteger(v, 3, &count);
+      sq_getinteger(v, 4, &total);
+      if (count == total) {
+        achievements.setPrivatePreference("earnedAchievements", earned + "|" + id);
+      }
+    }
+      break;
+    default:error("TODO: markAchievement not implemented");
+      break;
+    }
     return 0;
   }
 

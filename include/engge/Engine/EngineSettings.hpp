@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <filesystem>
 #include "engge/Parsers/GGPack.hpp"
 
 namespace ng {
@@ -13,6 +14,7 @@ public:
   EngineSettings();
   ~EngineSettings() = default;
 
+  [[nodiscard]] std::filesystem::path getPath() const;
   void loadPacks();
 
   [[nodiscard]] int getPackCount() const { return static_cast<int>(_packs.size()); }

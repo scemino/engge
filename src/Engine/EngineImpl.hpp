@@ -561,10 +561,12 @@ struct Engine::Impl {
       loadGame(hash);
     }
 
-    static std::string getSlotPath(int slot) {
-      std::ostringstream path;
-      path << "Savegame" << slot << ".save";
-      return path.str();
+    static std::filesystem::path getSlotPath(int slot) {
+      std::ostringstream filename;
+      filename << "Savegame" << slot << ".save";
+      auto path = Locator<EngineSettings>::get().getPath();
+      path.append(filename.str());
+      return path;
     }
 
     static void getSlot(SavegameSlot &slot) {

@@ -1,4 +1,5 @@
 #pragma once
+#include <Engine/AchievementManager.hpp>
 #include "engge/Audio/SoundManager.hpp"
 #include "engge/Input/CommandManager.hpp"
 #include "engge/Engine/EngineSettings.hpp"
@@ -17,6 +18,7 @@ public:
     ng::info("Init services");
     ng::Locator<ng::RandomNumberGenerator>::create();
     ng::Locator<ng::CommandManager>::create();
+    ng::Locator<ng::AchievementManager>::create();
     ng::Locator<ng::Preferences>::create();
     ng::Locator<ng::EngineSettings>::create().loadPacks();
     ng::Locator<ng::EntityManager>::create();

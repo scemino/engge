@@ -18,10 +18,14 @@ void throwEntryNotFound(const std::string &name) {
 namespace ng {
 EngineSettings::EngineSettings() = default;
 
-void EngineSettings::loadPacks() {
+std::filesystem::path EngineSettings::getPath() const{
   auto devPath = ng::Locator<ng::Preferences>::get().getUserPreference(PreferenceNames::EnggeDevPath,
                                                                        PreferenceDefaultValues::EnggeDevPath);
-  auto path = devPath.empty() ? fs::current_path() : fs::path(devPath);
+  return devPath.empty() ? fs::current_path() : fs::path(devPath);
+}
+
+void EngineSettings::loadPacks() {
+  auto path = getPath();
   for (const auto &entry : fs::directory_iterator(path)) {
     if (ng::startsWith(entry.path().extension().string(), ".ggpack")) {
       auto pack = std::make_unique<GGPack>();

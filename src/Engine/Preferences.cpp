@@ -28,13 +28,6 @@ void Preferences::removeUserPreference(const std::string &name) {
   }
 }
 
-void Preferences::removePrivatePreference(const std::string &name) {
-  auto it = _privateValues.hash_value.find(name);
-  if (it != _privateValues.hash_value.end()) {
-    _privateValues.hash_value.erase(it);
-  }
-}
-
 void Preferences::subscribe(const std::function<void(const std::string &)> &function) {
   _functions.emplace_back(function);
 }
@@ -42,14 +35,6 @@ void Preferences::subscribe(const std::function<void(const std::string &)> &func
 GGPackValue Preferences::getUserPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const {
   auto it = _values.hash_value.find(name);
   if (it != _values.hash_value.end()) {
-    return it->second;
-  }
-  return defaultValue;
-}
-
-GGPackValue Preferences::getPrivatePreferenceCore(const std::string &name, const GGPackValue &defaultValue) const {
-  auto it = _privateValues.hash_value.find(name);
-  if (it != _privateValues.hash_value.end()) {
     return it->second;
   }
   return defaultValue;

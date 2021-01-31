@@ -1,21 +1,23 @@
 #include <filesystem>
 #include <string>
-#include "engge/UI/SaveLoadDialog.hpp"
+#include <engge/UI/SaveLoadDialog.hpp>
 #include "_ControlConstants.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Util/Util.hpp"
+#include <engge/Engine/Engine.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/Graphics/SpriteSheet.hpp>
+#include <engge/Util/Util.hpp>
 #include "_Button.hpp"
 #include <imgui.h>
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <engge/Graphics/Text.hpp>
 #include <engge/Graphics/FntFont.h>
+#include <engge/Engine/EngineSettings.hpp>
+#include <engge/System/Locator.hpp>
 
 namespace ng {
 struct SaveLoadDialog::Impl {
-  class _BackButton final : public ngf::Drawable {
+  class BackButton final : public ngf::Drawable {
   private:
     inline static const int BackId = 99904;
 
@@ -66,7 +68,7 @@ struct SaveLoadDialog::Impl {
     ng::Text _text;
   };
 
-  class _Slot final : public ngf::Drawable {
+  class Slot final : public ngf::Drawable {
   private:
     inline static const int AutosaveId = 99901;
 
@@ -116,11 +118,13 @@ struct SaveLoadDialog::Impl {
       // try to find the savegame thumbnail
       std::ostringstream s;
       s << "Savegame" << (_index + 1) << ".png";
+      auto path = Locator<EngineSettings>::get().getPath();
+      path.append(s.str());
 
-      _isEmpty = !std::filesystem::exists(s.str());
+      _isEmpty = !std::filesystem::exists(path);
       if (!_isEmpty) {
         // prepare a sprite for the savegame thumbnail
-        _texture.load(s.str());
+        _texture.load(path);
         _spriteImg.setTexture(_texture, true);
         _spriteImg.getTransform().setOrigin({160.f, 90.f});
         auto size = _texture.getSize();
@@ -175,10 +179,10 @@ struct SaveLoadDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
   ng::Text _headingText;
-  SaveLoadDialog::Impl::_BackButton _backButton;
+  SaveLoadDialog::Impl::BackButton _backButton;
   Callback _callback{nullptr};
   SlotCallback _slotCallback{nullptr};
-  std::array<_Slot, 9> _slots;
+  std::array<Slot, 9> _slots;
   bool _wasMouseDown{false};
   bool _saveMode{false};
 

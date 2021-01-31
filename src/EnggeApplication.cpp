@@ -56,6 +56,14 @@ void EnggeApplication::onInit() {
   m_window.init({"Engge", {ng::Screen::Width, ng::Screen::Height}});
   ng::Services::init();
 
+  // read achievements if any
+  auto achievementsPath = ng::Locator<ng::EngineSettings>::get().getPath();
+  achievementsPath.append("save.dat");
+  if (std::filesystem::exists(achievementsPath)) {
+    ng::Locator<ng::AchievementManager>::get().load(achievementsPath);
+  }
+
+  // detect if we have any ggpack file
   if (ng::Locator<ng::EngineSettings>::get().getPackCount() == 0) {
     std::string s;
     s = "No ggpack files detected.";
@@ -152,5 +160,12 @@ void EnggeApplication::onUpdate(const ngf::TimeSpan &elapsed) {
   ngf::StopWatch clock;
   m_engine->update(elapsed);
   ng::_DebugFeatures::_updateTime = clock.getElapsedTime();
+}
+
+void EnggeApplication::onQuit() {
+  auto achievementsPath = ng::Locator<ng::EngineSettings>::get().getPath();
+  achievementsPath.append("save.dat");
+  ng::Locator<ng::AchievementManager>::get().save(achievementsPath);
+  Application::onQuit();
 }
 }

@@ -1,3 +1,4 @@
+#include "Engine/AchievementManager.hpp"
 #include "engge/EnggeApplication.hpp"
 
 int main(int, char *[]) {

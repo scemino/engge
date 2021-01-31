@@ -21,6 +21,7 @@ private:
   void onRender(ngf::RenderTarget &target) override;
   void onImGuiRender() override;
   void onUpdate(const ngf::TimeSpan &elapsed) override;
+  void onQuit() override;
 
 private:
   ng::Engine *m_engine{nullptr};

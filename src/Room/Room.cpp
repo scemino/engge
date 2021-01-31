@@ -473,6 +473,7 @@ std::unique_ptr<Room> Room::define(HSQOBJECT roomTable, const char *name) {
   }
 
   pRoom->setName(isPseudoRoom ? name : background);
+  ScriptEngine::set(pRoom.get(), "_key", pRoom->getName());
   pRoom->setPseudoRoom(isPseudoRoom);
   pRoom->load(background);
 

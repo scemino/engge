@@ -18,6 +18,7 @@
 #include "engge/Audio/SoundId.hpp"
 #include "engge/Audio/SoundManager.hpp"
 #include "engge/Engine/Thread.hpp"
+#include <Engine/AchievementManager.hpp>
 #include "../System/_Util.hpp"
 
 #define SQ_SUSPEND_FLAG -666
@@ -96,7 +97,7 @@ public:
 
 class _BreakWhileAnimatingObjectFunction : public _BreakFunction {
 private:
-  Object& _object;
+  Object &_object;
   std::optional<ObjectAnimation *> _animation;
 
 public:
@@ -905,18 +906,80 @@ private:
   }
 
   static SQInteger setPrivatePref(HSQUIRRELVM v) {
-    _setPref(v,
-             [](auto key, auto value) { return g_pEngine->getPreferences().setPrivatePreference(key, value); },
-             [](auto key) { return g_pEngine->getPreferences().removePrivatePreference(key); });
+    const SQChar *key;
+    if (SQ_FAILED(sq_getstring(v, 2, &key))) {
+      return sq_throwerror(v, _SC("failed to get key"));
+    }
+    auto &achievements = ng::Locator<ng::AchievementManager>::get();
+    auto type = sq_gettype(v, 3);
+    if (type == SQObjectType::OT_STRING) {
+      const SQChar *str = nullptr;
+      sq_getstring(v, 3, &str);
+      std::string strValue = str;
+      achievements.setPrivatePreference(key, strValue);
+      return 0;
+    }
+    if (type == SQObjectType::OT_INTEGER) {
+      SQInteger integer;
+      sq_getinteger(v, 3, &integer);
+      achievements.setPrivatePreference(key, integer);
+      return 0;
+    }
+    if (type == SQObjectType::OT_BOOL) {
+      SQBool b;
+      sq_getbool(v, 3, &b);
+      achievements.setPrivatePreference(key, static_cast<int>(b));
+      return 0;
+    }
+    if (type == SQObjectType::OT_FLOAT) {
+      SQFloat fl;
+      sq_getfloat(v, 3, &fl);
+      achievements.setPrivatePreference(key, fl);
+      return 0;
+    }
     return 0;
   }
 
+  static HSQOBJECT toSquirrel(HSQUIRRELVM v, const ngf::GGPackValue &value) {
+    HSQOBJECT obj;
+    switch (value.type()) {
+    case ngf::detail::GGPackValueType::String:obj._type = OT_STRING;
+      obj._unVal.pString = SQString::Create(v->_sharedstate, value.getString().c_str(), -1);
+      return obj;
+    case ngf::detail::GGPackValueType::Integer:obj._type = OT_INTEGER;
+      obj._unVal.nInteger = value.getInt();
+      return obj;
+    case ngf::detail::GGPackValueType::Double:obj._type = OT_FLOAT;
+      obj._unVal.fFloat = value.getDouble();
+      return obj;
+    case ngf::detail::GGPackValueType::Null:obj._type = OT_NULL;
+      return obj;
+    default:throw std::runtime_error("Cannot convert this type to squirrel");
+    }
+  }
+
   static SQInteger getPrivatePref(HSQUIRRELVM v) {
-    return _getPref(v,
-                    [](auto name, auto value) {
-                      return g_pEngine->getPreferences().getPrivatePreference(name,
-                                                                              value);
-                    });
+    const SQChar *key;
+    if (SQ_FAILED(sq_getstring(v, 2, &key))) {
+      return sq_throwerror(v, _SC("failed to get key"));
+    }
+
+    auto &achievements = ng::Locator<ng::AchievementManager>::get();
+    auto value = achievements.getPrivatePreference(key);
+    // key found in preferences ?
+    if (!value.isNull()) {
+      sq_pushobject(v, toSquirrel(v, value));
+      return 1;
+    }
+    // we have a default value ?
+    if (sq_gettop(v) == 3) {
+      sq_push(v, 3);
+      return 1;
+    }
+
+    // return null
+    sq_pushnull(v);
+    return 1;
   }
 
   static SQInteger getUserPref(HSQUIRRELVM v) {

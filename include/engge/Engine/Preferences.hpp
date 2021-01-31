@@ -104,12 +104,6 @@ public:
   T getUserPreference(const std::string &name, T value) const;
 
   void removeUserPreference(const std::string &name);
-  void removePrivatePreference(const std::string &name);
-
-  template<typename T>
-  void setPrivatePreference(const std::string &name, T value);
-  template<typename T>
-  T getPrivatePreference(const std::string &name, T value) const;
 
   void subscribe(const std::function<void(const std::string &)> &function);
 
@@ -121,15 +115,12 @@ public:
 
 private:
   [[nodiscard]] GGPackValue getUserPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
-  [[nodiscard]] GGPackValue getPrivatePreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
   [[nodiscard]] GGPackValue getTempPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
 
 private:
   GGPackValue _values;
-  GGPackValue _privateValues;
   GGPackValue _tempValues;
   std::vector<std::function<void(const std::string &)>> _functions;
-  bool _forceTalkieText{false};
 };
 
 template<typename T>
@@ -141,18 +132,8 @@ void Preferences::setUserPreference(const std::string &name, T value) {
 }
 
 template<typename T>
-void Preferences::setPrivatePreference(const std::string &name, T value) {
-  _privateValues.hash_value[name] = toGGPackValue(value);
-}
-
-template<typename T>
 T Preferences::getUserPreference(const std::string &name, T value) const {
   return Preferences::fromGGPackValue<T>(getUserPreferenceCore(name, Preferences::toGGPackValue<T>(value)));
-}
-
-template<typename T>
-T Preferences::getPrivatePreference(const std::string &name, T value) const {
-  return Preferences::fromGGPackValue<T>(getPrivatePreferenceCore(name, Preferences::toGGPackValue<T>(value)));
 }
 
 template<typename T>

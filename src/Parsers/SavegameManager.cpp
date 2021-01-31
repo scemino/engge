@@ -74,24 +74,4 @@ int32_t SavegameManager::computeHash(const std::vector<char> &data, int32_t size
   } while (v10 < size);
   return v11;
 }
-
-void SavegameManager::loadSaveDat(const std::string &path) {
-  std::ifstream is(path, std::ifstream::binary);
-  is.seekg(0, std::ios::end);
-  auto size = is.tellg();
-  is.seekg(0, std::ios::beg);
-  std::vector<char> data(size, '\0');
-  is.read(data.data(), size);
-  is.close();
-
-  const int32_t decSize = size / 4;
-  const uint8_t
-      key[] = {0x93, 0x9D, 0xAB, 0x2A, 0x2A, 0x56, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA3, 0x4B, 0x2B};
-
-  BTEACrypto::decrypt((uint32_t *) &data[0], decSize, (uint32_t *) key);
-
-//      std::ofstream os("Save.dat.txt", std::ifstream::binary);
-//      os.write(data.data(), size);
-//      os.close();
-}
 }
