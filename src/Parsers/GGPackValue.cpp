@@ -8,7 +8,6 @@
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
 #include "engge/Engine/EntityManager.hpp"
 #include "engge/Room/Room.hpp"
-#include "engge/Entities/Objects/Object.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
 #include "engge/Parsers/GGPackValue.hpp"
 

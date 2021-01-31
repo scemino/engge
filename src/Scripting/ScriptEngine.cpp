@@ -291,7 +291,7 @@ void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar 
                                 SQInteger column) {
   std::ostringstream os;
   os << desc << ' ' << source << '(' << line << ',' << column << ')';
-  for(auto& callback : _errorCallbacks){
+  for (auto &callback : _errorCallbacks) {
     callback(v, os.str().data());
   }
   error(os.str());
@@ -304,20 +304,20 @@ void ScriptEngine::errorfunc(HSQUIRRELVM v, const SQChar *s, ...) {
   vsprintf(buf, s, vl);
   va_end(vl);
 
-  for(auto& callback : _errorCallbacks){
+  for (auto &callback : _errorCallbacks) {
     callback(v, buf);
   }
   error(buf);
 }
 
 void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...) {
-  std::vector<SQChar> buf(1024*1024);
+  std::vector<SQChar> buf(1024 * 1024);
   va_list vl;
   va_start(vl, s);
   vsnprintf(buf.data(), buf.size(), s, vl);
   va_end(vl);
 
-  for(auto& callback : _printCallbacks){
+  for (auto &callback : _printCallbacks) {
     callback(v, buf.data());
   }
   trace(buf.data());
@@ -356,7 +356,7 @@ void ScriptEngine::executeNutScript(const std::string &name) {
     is.read(code.data(), len);
   } else {
     auto entryName = std::regex_replace(name, std::regex("\\.nut"), ".bnut");
-    Locator<EngineSettings>::get().readEntry(entryName, code);
+    code = Locator<EngineSettings>::get().readBuffer(entryName);
 
     // decode bnut
     int cursor = static_cast<int>(code.size() - 1) & 0xff;

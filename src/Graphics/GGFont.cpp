@@ -26,8 +26,7 @@ void GGFont::load(const std::string &path) {
   _jsonFilename = path;
   _jsonFilename.append(".json");
 
-  std::vector<char> buffer;
-  Locator<EngineSettings>::get().readEntry(_jsonFilename, buffer);
+  auto buffer = Locator<EngineSettings>::get().readBuffer(_jsonFilename);
   _json = ng::Json::Parser::parse(buffer);
 
 #if 0

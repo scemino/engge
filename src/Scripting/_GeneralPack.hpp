@@ -252,9 +252,9 @@ private:
     auto &settings = Locator<EngineSettings>::get();
     std::vector<char> buffer;
     if (settings.hasEntry(filename)) {
-      settings.readEntry(filename, buffer);
+      buffer = settings.readBuffer(filename);
     } else {
-      settings.readEntry(name, buffer);
+      buffer = settings.readBuffer(name);
     }
     GGPackBufferStream input(buffer);
     std::string line;

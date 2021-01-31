@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include <utility>
 #include <ngf/Graphics/ImGuiExtensions.h>
 
 namespace ng {
@@ -174,20 +175,22 @@ public:
       if (ImGui::ListBoxHeader("Costume")) {
         auto actorKey = actor->getKey();
         std::vector<std::string> entries;
-        Locator<EngineSettings>::get().getEntries(entries);
-        for (const auto &entry : entries) {
-          if (entry.length() < 15)
-            continue;
-          auto extension = entry.substr(entry.length() - 14, 14);
-          CaseInsensitiveCompare cmp;
-          if (!cmp(extension, "Animation.json"))
-            continue;
-          auto prefix = entry.substr(0, actorKey.length());
-          if (!cmp(prefix, actorKey))
-            continue;
-          if (_filterCostume.PassFilter(entry.c_str())) {
-            if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) {
-              actor->getCostume().loadCostume(entry);
+        for (const auto &pack : Locator<EngineSettings>::get()) {
+          for (auto itEntry = pack->cbegin(); itEntry != pack->cend(); ++itEntry) {
+            const auto& entry = itEntry->first;
+            if (entry.length() < 15)
+              continue;
+            auto extension = entry.substr(entry.length() - 14, 14);
+            CaseInsensitiveCompare cmp;
+            if (!cmp(extension, "Animation.json"))
+              continue;
+            auto prefix = entry.substr(0, actorKey.length());
+            if (!cmp(prefix, actorKey))
+              continue;
+            if (_filterCostume.PassFilter(entry.c_str())) {
+              if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) {
+                actor->getCostume().loadCostume(entry);
+              }
             }
           }
         }

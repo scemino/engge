@@ -15,8 +15,7 @@ void ResourceManager::load(const std::string &id) {
   info("Load texture {}", id);
   std::string path;
   path.append(id).append(".png");
-  std::vector<char> data;
-  Locator<EngineSettings>::get().readEntry(path, data);
+  auto data = Locator<EngineSettings>::get().readBuffer(path);
 
 #if 0
   std::ofstream os(path, std::ios::out|std::ios::binary);
@@ -45,8 +44,7 @@ void ResourceManager::loadFntFont(const std::string &id) {
   info("Load Fnt font {}", id);
   auto font = std::make_shared<FntFont>();
 
-  std::vector<char> data;
-  Locator<EngineSettings>::get().readEntry(id, data);
+  auto data = Locator<EngineSettings>::get().readBuffer(id);
   ngf::MemoryStream ms(data.data(), data.data() + data.size());
   font->load(id, ms);
 

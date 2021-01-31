@@ -1,3 +1,4 @@
+#include <ngf/IO/Json/JsonParser.h>
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/Parsers/JsonTokenReader.hpp"
 #include "engge/System/Locator.hpp"
@@ -15,13 +16,12 @@ void SpriteSheet::load(const std::string &name) {
   _spriteSourceSize.clear();
   _sourceSize.clear();
 
-  ng::GGPackValue json;
+  ngf::GGPackValue json;
 
   std::string jsonFilename;
   jsonFilename.append(name).append(".json");
   {
-    std::vector<char> buffer;
-    Locator<EngineSettings>::get().readEntry(jsonFilename, buffer);
+    auto buffer = Locator<EngineSettings>::get().readBuffer(jsonFilename);
 
 #if 0
     std::ofstream out;
@@ -29,18 +29,17 @@ void SpriteSheet::load(const std::string &name) {
     out.write(buffer.data(), buffer.size());
     out.close();
 #endif
-    ng::Json::Parser::parse(buffer, json);
+    json = ngf::Json::parse(buffer.data());
   }
 
   auto jFrames = json["frames"];
-  for (auto &it : jFrames.hash_value) {
-    auto &n = it.first;
-    auto rect = _toRect(json["frames"][n]["frame"]);
-    _rects.insert(std::make_pair(n, rect));
-    rect = _toRect(json["frames"][n]["spriteSourceSize"]);
-    _spriteSourceSize.insert(std::make_pair(n, rect));
-    auto size = _toSize(json["frames"][n]["sourceSize"]);
-    _sourceSize.insert(std::make_pair(n, size));
+  for (auto &it : jFrames.items()) {
+    auto rect = _toRect(it.value()["frame"]);
+    _rects.insert(std::make_pair(it.key(), rect));
+    rect = _toRect(it.value()["spriteSourceSize"]);
+    _spriteSourceSize.insert(std::make_pair(it.key(), rect));
+    auto size = _toSize(it.value()["sourceSize"]);
+    _sourceSize.insert(std::make_pair(it.key(), size));
   }
 }
 

@@ -11,12 +11,12 @@ class AnimationLoader final {
 public:
   static std::vector<ObjectAnimation> parseAnimations(
       Entity &entity,
-      const GGPackValue &gAnimations,
+      const ngf::GGPackValue &gAnimations,
       const SpriteSheet &spriteSheet) {
     std::vector<ObjectAnimation> anims;
     if (gAnimations.isNull())
       return anims;
-    for (const auto &gAnimation : gAnimations.array_value) {
+    for (const auto &gAnimation : gAnimations) {
       if (gAnimation.isNull())
         continue;
       anims.push_back(parseAnimation(entity, gAnimation, spriteSheet));
@@ -25,7 +25,7 @@ public:
   }
 
 private:
-  static bool toBool(const GGPackValue &gValue) {
+  static bool toBool(const ngf::GGPackValue &gValue) {
     return !gValue.isNull() && gValue.getInt() == 1;
   }
 
@@ -37,7 +37,7 @@ private:
   }
 
   static ObjectAnimation parseAnimation(Entity &entity,
-                                        const GGPackValue &gAnimation,
+                                        const ngf::GGPackValue &gAnimation,
                                         const SpriteSheet &defaultSpriteSheet) {
     const SpriteSheet *spriteSheet = &defaultSpriteSheet;
     ObjectAnimation anim;
@@ -50,7 +50,7 @@ private:
     anim.fps = gAnimation["fps"].isNull() ? 0 : gAnimation["fps"].getInt();
     anim.flags = gAnimation["flags"].isNull() ? 0 : gAnimation["flags"].getInt();
     if (!gAnimation["frames"].isNull()) {
-      for (const auto &gFrame : gAnimation["frames"].array_value) {
+      for (const auto &gFrame : gAnimation["frames"]) {
         auto name = gFrame.getString();
         if (name == "null") {
           SpriteSheetItem item;
@@ -63,23 +63,23 @@ private:
     }
 
     if (!gAnimation["layers"].isNull()) {
-      for (const auto &gLayer : gAnimation["layers"].array_value) {
+      for (const auto &gLayer : gAnimation["layers"]) {
         auto layer = parseAnimation(entity, gLayer, *spriteSheet);
         anim.layers.push_back(layer);
       }
     }
     if (!gAnimation["offsets"].isNull()) {
-      for (const auto &gOffset : gAnimation["offsets"].array_value) {
+      for (const auto &gOffset : gAnimation["offsets"]) {
         auto offset = parseIVec2(gOffset.getString());
         anim.offsets.push_back(offset);
       }
     }
     if (!gAnimation["triggers"].isNull()) {
-      auto numTriggers = gAnimation["triggers"].array_value.size();
+      auto numTriggers = gAnimation["triggers"].size();
       anim.callbacks.resize(numTriggers);
       anim.triggers.resize(numTriggers);
-      for (auto i = 0; i < static_cast<int>(gAnimation["triggers"].array_value.size()); i++) {
-        const auto &gTrigger = gAnimation["triggers"].array_value[i];
+      for (auto i = 0; i < static_cast<int>(gAnimation["triggers"].size()); i++) {
+        const auto &gTrigger = gAnimation["triggers"][i];
         if (gTrigger.isNull())
           continue;
         auto trigName = gTrigger.getString();

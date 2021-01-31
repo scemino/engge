@@ -10,8 +10,7 @@ TextDatabase::TextDatabase() = default;
 void TextDatabase::load(const std::string &path) {
   _texts.clear();
   std::wregex re(L"^(\\d+)\\s+(.*)$");
-  std::vector<char> buffer;
-  Locator<EngineSettings>::get().readEntry(path, buffer);
+  auto buffer = Locator<EngineSettings>::get().readBuffer(path);
   GGPackBufferStream input(buffer);
   std::wstring line;
   while (getLine(input, line)) {
