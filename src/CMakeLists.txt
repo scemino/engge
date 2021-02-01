@@ -53,12 +53,7 @@ set(SOURCES
         Parsers/Lip.cpp
         Parsers/YackTokenReader.cpp
         Parsers/YackParser.cpp
-        Parsers/GGPack.cpp
-        Parsers/GGPackValue.cpp
         Parsers/GGPackBufferStream
-        Parsers/JsonTokenReader.cpp
-        Parsers/GGHashReader.cpp
-        Parsers/GGHashWriter.cpp
         Parsers/SavegameManager.cpp
         Room/Room.cpp
         Room/RoomLayer.cpp

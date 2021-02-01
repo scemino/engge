@@ -40,7 +40,6 @@
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "engge/System/Logger.hpp"
-#include "engge/Parsers/GGPackValue.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 #include <cmath>
 #include <ctime>

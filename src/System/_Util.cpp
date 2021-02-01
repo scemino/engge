@@ -175,22 +175,7 @@ ngf::irect _toRect(const ngf::GGPackValue &json) {
   return ngf::irect::fromPositionSize({x, y}, {w, h});
 }
 
-ngf::irect _toRect(const ng::GGPackValue &json) {
-  auto x = json["x"].getInt();
-  auto y = json["y"].getInt();
-  auto w = json["w"].getInt();
-  auto h = json["h"].getInt();
-  return ngf::irect::fromPositionSize({x, y}, {w, h});
-}
-
 glm::ivec2 _toSize(const ngf::GGPackValue &json) {
-  glm::ivec2 v;
-  v.x = json["w"].getInt();
-  v.y = json["h"].getInt();
-  return v;
-}
-
-glm::ivec2 _toSize(const ng::GGPackValue &json) {
   glm::ivec2 v;
   v.x = json["w"].getInt();
   v.y = json["h"].getInt();

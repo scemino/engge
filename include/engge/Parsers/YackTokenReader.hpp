@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "GGPack.hpp"
 #include "GGPackBufferStream.hpp"
 
 namespace ng {

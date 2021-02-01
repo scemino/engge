@@ -6,7 +6,6 @@
 #include <engge/Entities/Actor/Costume.hpp>
 #include <engge/Engine/EngineSettings.hpp>
 #include <engge/System/Locator.hpp>
-#include <engge/Parsers/GGPackValue.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
 #include <engge/Room/Room.hpp>
 #include "../../System/_Util.hpp"

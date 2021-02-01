@@ -4,7 +4,6 @@
 #include <engge/Entities/Entity.hpp>
 #include <engge/Entities/Objects/ObjectAnimation.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
-#include <engge/Parsers/GGPackValue.hpp>
 
 namespace ng {
 class AnimationLoader final {

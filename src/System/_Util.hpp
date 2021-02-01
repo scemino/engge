@@ -5,7 +5,6 @@
 #include "engge/Parsers/GGPackBufferStream.hpp"
 #include "engge/Entities/Actor/Costume.hpp"
 #include "engge/Entities/Objects/Object.hpp"
-#include "engge/Parsers/GGPack.hpp"
 #include "engge/Graphics/Screen.hpp"
 
 namespace ng {
@@ -47,9 +46,7 @@ UseDirection _toDirection(const std::string &text);
 Facing getOppositeFacing(Facing facing);
 
 ngf::irect _toRect(const ngf::GGPackValue &json);
-ngf::irect _toRect(const ng::GGPackValue &json);
 glm::ivec2 _toSize(const ngf::GGPackValue &json);
-glm::ivec2 _toSize(const ng::GGPackValue &json);
 
 glm::vec2 _parsePos(const std::string &text);
 ngf::irect _parseRect(const std::string &text);

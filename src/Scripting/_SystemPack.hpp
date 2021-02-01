@@ -20,6 +20,7 @@
 #include "engge/Engine/Thread.hpp"
 #include <Engine/AchievementManager.hpp>
 #include "../System/_Util.hpp"
+#include "engge/Util/Util.hpp"
 
 #define SQ_SUSPEND_FLAG -666
 
@@ -600,7 +601,7 @@ private:
     if (SQ_FAILED(sq_getstackobj(v, 2, &obj))) {
       return sq_throwerror(v, _SC("Failed to get object"));
     }
-    auto value = GGPackValue::toGGPackValue(obj);
+    auto value = ng::toGGPackValue(obj);
     std::ostringstream os;
     os << value;
     ScriptEngine::printfunc(v, "%s", os.str().data());
@@ -614,7 +615,7 @@ private:
     if (SQ_FAILED(sq_getstackobj(v, -1, &rt))) {
       return sq_throwerror(v, _SC("Failed to get root table from stack"));
     }
-    auto value = GGPackValue::toGGPackValue(rt);
+    auto value = ng::toGGPackValue(rt);
     std::ostringstream os;
     os << value;
     ScriptEngine::printfunc(v, "%s", os.str().data());
@@ -988,7 +989,8 @@ private:
   }
 
   static SQInteger _getPref(HSQUIRRELVM v,
-                            const std::function<ngf::GGPackValue(const std::string &name, ngf::GGPackValue value)> &func) {
+                            const std::function<ngf::GGPackValue(const std::string &name,
+                                                                 ngf::GGPackValue value)> &func) {
     const SQChar *key;
     if (SQ_FAILED(sq_getstring(v, 2, &key))) {
       return sq_throwerror(v, _SC("failed to get key"));
