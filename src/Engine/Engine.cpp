@@ -81,7 +81,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
                                                                          PreferenceDefaultValues::Language);
       _pImpl->onLanguageChange(newLang);
     } else if (name == PreferenceNames::Fullscreen) {
-      auto fullscreen = _pImpl->_preferences.getUserPreference<bool>(PreferenceNames::Fullscreen,
+      auto fullscreen = _pImpl->_preferences.getUserPreference(PreferenceNames::Fullscreen,
                                                                      PreferenceDefaultValues::Fullscreen);
       _pImpl->_pApp->getWindow().setFullscreen(fullscreen);
     }

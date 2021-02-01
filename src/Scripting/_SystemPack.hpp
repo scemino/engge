@@ -988,46 +988,41 @@ private:
   }
 
   static SQInteger _getPref(HSQUIRRELVM v,
-                            const std::function<GGPackValue(const std::string &name, GGPackValue value)> &func) {
+                            const std::function<ngf::GGPackValue(const std::string &name, ngf::GGPackValue value)> &func) {
     const SQChar *key;
     if (SQ_FAILED(sq_getstring(v, 2, &key))) {
       return sq_throwerror(v, _SC("failed to get key"));
     }
     auto numArgs = sq_gettop(v) - 1;
-    GGPackValue defaultValue;
+    ngf::GGPackValue defaultValue;
     if (numArgs > 1) {
       auto type = sq_gettype(v, 3);
       if (type == SQObjectType::OT_STRING) {
         const SQChar *str = nullptr;
         sq_getstring(v, 3, &str);
-        std::string strValue = str;
-        defaultValue.type = 4;
-        defaultValue.string_value = strValue;
+        defaultValue = str;
       } else if (type == SQObjectType::OT_INTEGER) {
         SQInteger integer;
         sq_getinteger(v, 3, &integer);
-        defaultValue.type = 5;
-        defaultValue.int_value = integer;
+        defaultValue = integer;
       } else if (type == SQObjectType::OT_BOOL) {
         SQBool b;
         sq_getbool(v, 3, &b);
-        defaultValue.type = 5;
-        defaultValue.int_value = b ? 1 : 0;
+        defaultValue = b ? 1 : 0;
       } else if (type == SQObjectType::OT_FLOAT) {
         SQFloat fl;
         sq_getfloat(v, 3, &fl);
-        defaultValue.type = 6;
-        defaultValue.double_value = fl;
+        defaultValue = fl;
       }
     }
 
     auto value = func(key, defaultValue);
     if (value.isString()) {
-      sq_pushstring(v, value.string_value.data(), -1);
+      sq_pushstring(v, value.getString().data(), -1);
     } else if (value.isInteger()) {
-      sq_pushinteger(v, value.int_value);
+      sq_pushinteger(v, value.getInt());
     } else if (value.isDouble()) {
-      sq_pushfloat(v, value.double_value);
+      sq_pushfloat(v, value.getDouble());
     } else {
       sq_pushnull(v);
     }
@@ -1062,7 +1057,7 @@ private:
   }
 
   static SQInteger _setPref(HSQUIRRELVM v,
-                            const std::function<void(const std::string &, GGPackValue)> &setPref,
+                            const std::function<void(const std::string &, ngf::GGPackValue)> &setPref,
                             const std::function<void(const std::string &)> &removePref) {
     const SQChar *key;
     if (SQ_FAILED(sq_getstring(v, 2, &key))) {

@@ -16,25 +16,25 @@ public:
       setSelectedLang(selectedLang);
     }
     auto retroVerbs = _engine.getPreferences().getUserPreference(PreferenceNames::RetroVerbs,
-                                                                 PreferenceDefaultValues::RetroVerbs);
+                                                                 PreferenceDefaultValues::RetroVerbs) != 0;
     if (ImGui::Checkbox("Retro Verbs", &retroVerbs)) {
-      _engine.getPreferences().setUserPreference(PreferenceNames::RetroVerbs, retroVerbs);
+      _engine.getPreferences().setUserPreference(PreferenceNames::RetroVerbs, retroVerbs ? 1 : 0);
     }
     auto retroFonts = _engine.getPreferences().getUserPreference(PreferenceNames::RetroFonts,
                                                                  PreferenceDefaultValues::RetroFonts);
     if (ImGui::Checkbox("Retro Fonts", &retroFonts)) {
-      _engine.getPreferences().setUserPreference(PreferenceNames::RetroFonts, retroFonts);
+      _engine.getPreferences().setUserPreference(PreferenceNames::RetroFonts, retroFonts ? 1 : 0);
     }
     auto invertVerbHighlight =
         _engine.getPreferences().getUserPreference(PreferenceNames::InvertVerbHighlight,
                                                    PreferenceDefaultValues::InvertVerbHighlight);
     if (ImGui::Checkbox("Invert Verb Highlight", &invertVerbHighlight)) {
-      _engine.getPreferences().setUserPreference(PreferenceNames::InvertVerbHighlight, invertVerbHighlight);
+      _engine.getPreferences().setUserPreference(PreferenceNames::InvertVerbHighlight, invertVerbHighlight ? 1 : 0);
     }
     auto hudSentence = _engine.getPreferences().getUserPreference(PreferenceNames::HudSentence,
                                                                   PreferenceDefaultValues::HudSentence);
     if (ImGui::Checkbox("HUD Sentence", &hudSentence)) {
-      _engine.getPreferences().setUserPreference(PreferenceNames::HudSentence, hudSentence);
+      _engine.getPreferences().setUserPreference(PreferenceNames::HudSentence, hudSentence ? 1 : 0);
     }
     auto uiBackingAlpha = _engine.getPreferences().getUserPreference(PreferenceNames::UiBackingAlpha,
                                                                      PreferenceDefaultValues::UiBackingAlpha) * 100.f;

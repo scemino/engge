@@ -2,8 +2,7 @@
 #include <functional>
 #include <map>
 #include <string>
-#include "engge/Parsers/GGPack.hpp"
-#include "engge/Parsers/JsonTokenReader.hpp"
+#include <ngf/IO/GGPackValue.h>
 
 namespace ng {
 namespace PreferenceNames {
@@ -83,8 +82,8 @@ static const std::string ShowHotspot = "showHotspot";
 }
 
 namespace TempPreferenceDefaultValues {
-static const bool ForceTalkieText = false;
-static const bool ShowHotspot = false;
+static const int ForceTalkieText = 0;
+static const int ShowHotspot = 0;
 }
 
 class Preferences {
@@ -108,28 +107,33 @@ public:
   void subscribe(const std::function<void(const std::string &)> &function);
 
   template<typename T>
-  static GGPackValue toGGPackValue(T value);
+  static ngf::GGPackValue toGGPackValue(T value);
 
   template<typename T>
-  static T fromGGPackValue(const GGPackValue &value);
+  static T fromGGPackValue(const ngf::GGPackValue &value);
 
 private:
-  [[nodiscard]] GGPackValue getUserPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
-  [[nodiscard]] GGPackValue getTempPreferenceCore(const std::string &name, const GGPackValue &defaultValue) const;
+  [[nodiscard]] ngf::GGPackValue getUserPreferenceCore(const std::string &name,
+                                                       const ngf::GGPackValue &defaultValue) const;
+  [[nodiscard]] ngf::GGPackValue getTempPreferenceCore(const std::string &name,
+                                                       const ngf::GGPackValue &defaultValue) const;
 
 private:
-  GGPackValue _values;
-  GGPackValue _tempValues;
+  ngf::GGPackValue m_values;
+  ngf::GGPackValue m_tempValues;
   std::vector<std::function<void(const std::string &)>> _functions;
 };
 
 template<typename T>
 void Preferences::setUserPreference(const std::string &name, T value) {
-  _values.hash_value[name] = toGGPackValue(value);
+  m_values[name] = value;
   for (auto &&func : _functions) {
     func(name);
   }
 }
+
+template<>
+void Preferences::setUserPreference(const std::string &name, bool value);
 
 template<typename T>
 T Preferences::getUserPreference(const std::string &name, T value) const {
@@ -138,7 +142,7 @@ T Preferences::getUserPreference(const std::string &name, T value) const {
 
 template<typename T>
 void Preferences::setTempPreference(const std::string &name, T value) {
-  _tempValues.hash_value[name] = toGGPackValue(value);
+  m_tempValues[name] = toGGPackValue(value);
 }
 
 template<typename T>
