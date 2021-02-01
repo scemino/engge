@@ -1,6 +1,6 @@
 #pragma once
-#include "engge/Parsers/JsonTokenReader.hpp"
-#include "engge/Graphics/ResourceManager.hpp"
+#include <ngf/IO/GGPackValue.h>
+#include <engge/Graphics/ResourceManager.hpp>
 #include "Font.h"
 #include <memory>
 
@@ -17,12 +17,12 @@ public:
   [[nodiscard]] float getKerning(unsigned int first, unsigned int second, unsigned int characterSize) const override;
 
 private:
-  std::map<unsigned int, Glyph> _glyphs;
-  ResourceManager *_resourceManager{nullptr};
-  std::string _path;
-  std::string _jsonFilename;
-  ng::GGPackValue _json;
-  std::shared_ptr<ngf::Texture> _texture;
+  std::map<unsigned int, Glyph> m_glyphs;
+  ResourceManager *m_resourceManager{nullptr};
+  std::string m_path;
+  std::string m_jsonFilename;
+  ngf::GGPackValue m_json;
+  std::shared_ptr<ngf::Texture> m_texture;
 };
 
 } // namespace ng

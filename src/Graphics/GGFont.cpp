@@ -1,4 +1,5 @@
 #include <fstream>
+#include <ngf/IO/Json/JsonParser.h>
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/Graphics/GGFont.hpp"
 #include "engge/System/Locator.hpp"
@@ -7,27 +8,27 @@
 namespace ng {
 GGFont::~GGFont() = default;
 
-const std::shared_ptr<ngf::Texture> &GGFont::getTexture(unsigned int) const { return _texture; }
+const std::shared_ptr<ngf::Texture> &GGFont::getTexture(unsigned int) const { return m_texture; }
 
 float GGFont::getKerning(unsigned int, unsigned int, unsigned int) const { return 0; }
 
 const Glyph &GGFont::getGlyph(unsigned int codePoint) const {
-  if (_glyphs.find(codePoint) == _glyphs.end())
-    return _glyphs.at(0x20);
-  return _glyphs.at(codePoint);
+  if (m_glyphs.find(codePoint) == m_glyphs.end())
+    return m_glyphs.at(0x20);
+  return m_glyphs.at(codePoint);
 }
 
 void GGFont::setTextureManager(ResourceManager *textureManager) {
-  _resourceManager = textureManager;
+  m_resourceManager = textureManager;
 }
 
 void GGFont::load(const std::string &path) {
-  _path = path;
-  _jsonFilename = path;
-  _jsonFilename.append(".json");
+  m_path = path;
+  m_jsonFilename = path;
+  m_jsonFilename.append(".json");
 
-  auto buffer = Locator<EngineSettings>::get().readBuffer(_jsonFilename);
-  _json = ng::Json::Parser::parse(buffer);
+  auto buffer = Locator<EngineSettings>::get().readBuffer(m_jsonFilename);
+  m_json = ngf::Json::parse(buffer.data());
 
 #if 0
   std::ofstream o;
@@ -36,19 +37,19 @@ void GGFont::load(const std::string &path) {
   o.close();
 #endif
 
-  _texture = _resourceManager->getTexture(_path);
+  m_texture = m_resourceManager->getTexture(m_path);
 
-  for (const auto &jFrame : _json["frames"].hash_value) {
-    auto sValue = jFrame.first;
+  for (const auto &jFrame : m_json["frames"].items()) {
+    auto sValue = jFrame.key();
     auto key = std::stoi(sValue);
-    auto frame = _toRect(_json["frames"][sValue]["frame"]);
-    auto spriteSourceSize = _toRect(_json["frames"][sValue]["spriteSourceSize"]);
-    auto sourceSize = _toSize(_json["frames"][sValue]["sourceSize"]);
+    auto frame = _toRect(m_json["frames"][sValue]["frame"]);
+    auto spriteSourceSize = _toRect(m_json["frames"][sValue]["spriteSourceSize"]);
+    auto sourceSize = _toSize(m_json["frames"][sValue]["sourceSize"]);
     Glyph glyph;
     glyph.advance = std::max(sourceSize.x - spriteSourceSize.getTopLeft().x - 4, 0);
     glyph.bounds = spriteSourceSize;
     glyph.textureRect = frame;
-    _glyphs[key] = glyph;
+    m_glyphs[key] = glyph;
   }
 
 }

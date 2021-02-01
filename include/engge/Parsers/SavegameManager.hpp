@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "GGPackValue.hpp"
+#include <ngf/IO/GGPackValue.h>
 
 namespace ng {
 class SavegameManager {
 public:
-  static void loadGame(const std::string &path, GGPackValue& hash);
-  static void saveGame(const std::string &path, const GGPackValue& hash);
+  static ngf::GGPackValue loadGame(const std::string &path);
+  static void saveGame(const std::string &path, const ngf::GGPackValue& hash);
   static int32_t computeHash(const std::vector<char> &data, int32_t size);
 };
 }

@@ -1,15 +1,16 @@
 #include <sstream>
+#include <ngf/IO/GGPackHashReader.h>
+#include <ngf/IO/MemoryStream.h>
+#include <ngf/IO/GGPackHashWriter.h>
 #include "engge/Util/BTEACrypto.hpp"
 #include "engge/System/Logger.hpp"
-#include "engge/Parsers/GGHashReader.hpp"
-#include "engge/Parsers/GGHashWriter.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 
 namespace ng {
 static const uint8_t
     _savegameKey[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
 
-void SavegameManager::loadGame(const std::string &path, GGPackValue &hash) {
+ngf::GGPackValue SavegameManager::loadGame(const std::string &path) {
   std::ifstream is(path, std::ifstream::binary);
   is.seekg(0, std::ios::end);
   auto size = static_cast<int>(is.tellg());
@@ -26,18 +27,17 @@ void SavegameManager::loadGame(const std::string &path, GGPackValue &hash) {
 
   if (hashData != hashCheck) {
     warn("Invalid savegame: {}", path);
-    return;
+    return nullptr;
   }
 
-  GGHashReader reader;
-  reader.readHash(data, hash);
+  ngf::MemoryStream ms(data.data(), data.data() + data.size());
+  return ngf::GGPackHashReader::read(ms);
 }
 
-void SavegameManager::saveGame(const std::string &path, const GGPackValue &saveGameHash) {
+void SavegameManager::saveGame(const std::string &path, const ngf::GGPackValue &saveGameHash) {
   // save hash
   std::stringstream o;
-  GGHashWriter writer;
-  writer.writeHash(saveGameHash, o);
+  ngf::GGPackHashWriter::write(saveGameHash, o);
 
   // encode data
   const int fullSize = 500000;
