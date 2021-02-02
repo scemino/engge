@@ -487,7 +487,7 @@ struct Engine::Impl {
   public:
     explicit SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
 
-    void saveGame(const std::string &path) {
+    void saveGame(const std::filesystem::path &path) {
       ScriptEngine::call("preSave");
 
       auto actorsHash = saveActors();

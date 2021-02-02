@@ -10,7 +10,7 @@ namespace ng {
 static const uint8_t
     _savegameKey[] = {0xF3, 0xED, 0xA4, 0xAE, 0x2A, 0x33, 0xF8, 0xAF, 0xB4, 0xDB, 0xA2, 0xB5, 0x22, 0xA0, 0x4B, 0x9B};
 
-ngf::GGPackValue SavegameManager::loadGame(const std::string &path) {
+ngf::GGPackValue SavegameManager::loadGame(const std::filesystem::path &path) {
   std::ifstream is(path, std::ifstream::binary);
   is.seekg(0, std::ios::end);
   auto size = static_cast<int>(is.tellg());
@@ -26,7 +26,7 @@ ngf::GGPackValue SavegameManager::loadGame(const std::string &path) {
   const int32_t hashCheck = computeHash(data, size - 16);
 
   if (hashData != hashCheck) {
-    warn("Invalid savegame: {}", path);
+    warn("Invalid savegame: {}", path.string().c_str());
     return nullptr;
   }
 
@@ -34,7 +34,7 @@ ngf::GGPackValue SavegameManager::loadGame(const std::string &path) {
   return ngf::GGPackHashReader::read(ms);
 }
 
-void SavegameManager::saveGame(const std::string &path, const ngf::GGPackValue &saveGameHash) {
+void SavegameManager::saveGame(const std::filesystem::path &path, const ngf::GGPackValue &saveGameHash) {
   // save hash
   std::stringstream o;
   ngf::GGPackHashWriter::write(saveGameHash, o);

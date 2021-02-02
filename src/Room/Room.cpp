@@ -239,7 +239,7 @@ struct Room::Impl {
     }
 
     // update parent, it has to been done after objects initialization
-    auto jObjects = jWimpy["objects"];
+    const auto& jObjects = jWimpy["objects"];
     for (auto &object : _objects) {
       auto name = object->getName();
       auto it = std::find_if(jObjects.cbegin(), jObjects.cend(), [&name](const auto &jObject) {
@@ -708,9 +708,6 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
 }
 
 void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
-  auto screen = getScreenSize();
-  auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
-
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
     ngf::Transform t;
