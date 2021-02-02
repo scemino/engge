@@ -15,6 +15,7 @@
 #include <ngf/Application.h>
 #include <ngf/Graphics/Colors.h>
 #include <ngf/System/Mouse.h>
+#include <engge/Util/RandomNumberGenerator.hpp>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/ActorIconSlot.hpp"
 #include "engge/Engine/ActorIcons.hpp"
@@ -82,7 +83,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
       _pImpl->onLanguageChange(newLang);
     } else if (name == PreferenceNames::Fullscreen) {
       auto fullscreen = _pImpl->_preferences.getUserPreference(PreferenceNames::Fullscreen,
-                                                                     PreferenceDefaultValues::Fullscreen);
+                                                               PreferenceDefaultValues::Fullscreen);
       _pImpl->_pApp->getWindow().setFullscreen(fullscreen);
     }
   });
@@ -305,8 +306,11 @@ void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
 void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
 void Engine::update(const ngf::TimeSpan &el) {
+  roomEffect.RandomValue[0] = Locator<RandomNumberGenerator>::get().generateFloat(0, 1.f);
+  roomEffect.TimeLapse = fmod(_pImpl->_time.getTotalSeconds(), 1000.f);
   auto gameSpeedFactor =
-      getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor, PreferenceDefaultValues::EnggeGameSpeedFactor);
+      getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor,
+                                         PreferenceDefaultValues::EnggeGameSpeedFactor);
   const ngf::TimeSpan elapsed(ngf::TimeSpan::seconds(el.getTotalSeconds() * gameSpeedFactor));
   _pImpl->stopThreads();
   auto screenSize = _pImpl->_pRoom->getScreenSize();
@@ -512,6 +516,8 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
       _pImpl->_roomShader.load(_vertexShader, _egaFragmenShader);
     } else if (effect == RoomEffectConstants::EFFECT_GHOST) {
       _pImpl->_roomShader.load(_vertexShader, _ghostFragmentShader);
+    } else if (effect == RoomEffectConstants::EFFECT_SEPIA) {
+      _pImpl->_roomShader.load(_vertexShader, _sepiaFragmentShader);
     }
     _pImpl->_roomEffect = effect;
   }
@@ -524,9 +530,11 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
     _pImpl->_roomShader.setUniform("shadows", roomEffect.shadows);
     _pImpl->_roomShader.setUniform("midtones", roomEffect.midtones);
     _pImpl->_roomShader.setUniform("highlights", roomEffect.highlights);
-  } else if (effect != RoomEffectConstants::EFFECT_BLACKANDWHITE &&
-      effect != RoomEffectConstants::EFFECT_EGA &&
-      effect != RoomEffectConstants::EFFECT_GHOST) {
+  } else if (effect == RoomEffectConstants::EFFECT_SEPIA) {
+    _pImpl->_roomShader.setUniform("sepiaFlicker", roomEffect.sepiaFlicker);
+    _pImpl->_roomShader.setUniformArray("RandomValue", roomEffect.RandomValue.data(), 5);
+    _pImpl->_roomShader.setUniform("TimeLapse", roomEffect.TimeLapse);
+  } else if (effect != RoomEffectConstants::EFFECT_BLACKANDWHITE && effect != RoomEffectConstants::EFFECT_EGA) {
     states.shader = nullptr;
   }
 
@@ -555,8 +563,9 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   // render fade
   ngf::Sprite fadeSprite;
   float fade = _pImpl->_fadeEffect.effect == FadeEffect::None ? 0.f :
-      std::clamp(_pImpl->_fadeEffect.elapsed.getTotalSeconds() / _pImpl->_fadeEffect.duration.getTotalSeconds(),
-                 0.f, 1.f);
+               std::clamp(
+                   _pImpl->_fadeEffect.elapsed.getTotalSeconds() / _pImpl->_fadeEffect.duration.getTotalSeconds(),
+                   0.f, 1.f);
   ngf::RenderTexture roomTexture2(target.getSize());
   roomTexture2.setView(view);
   roomTexture2.clear();

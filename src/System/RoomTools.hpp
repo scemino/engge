@@ -97,11 +97,17 @@ public:
     if (ImGui::Combo("Shader", &effect, effects)) {
       room->setEffect(effect);
     }
-    ImGui::DragFloat("iFade", &_engine.roomEffect.iFade);
-    ImGui::DragFloat("wobbleIntensity", &_engine.roomEffect.wobbleIntensity);
-    ImGui::DragFloat3("shadows", glm::value_ptr(_engine.roomEffect.shadows), 0.1f, -1.f, 1.f);
-    ImGui::DragFloat3("midtones", glm::value_ptr(_engine.roomEffect.midtones), 0.1f, -1.f, 1.f);
-    ImGui::DragFloat3("highlights", glm::value_ptr(_engine.roomEffect.highlights), 0.1f, -1.f, 1.f);
+    if (effect == 1) {
+      ImGui::DragFloat("sepiaFlicker", &_engine.roomEffect.sepiaFlicker, 0.01f, 0.f, 1.f);
+      ImGui::DragFloat("RandomValue", &_engine.roomEffect.RandomValue[0], 0.01f, 0.f, 1.f);
+      ImGui::DragFloat("TimeLapse", &_engine.roomEffect.TimeLapse);
+    } else if (effect == 4) {
+      ImGui::DragFloat("iFade", &_engine.roomEffect.iFade);
+      ImGui::DragFloat("wobbleIntensity", &_engine.roomEffect.wobbleIntensity);
+      ImGui::DragFloat3("shadows", glm::value_ptr(_engine.roomEffect.shadows), 0.1f, -1.f, 1.f);
+      ImGui::DragFloat3("midtones", glm::value_ptr(_engine.roomEffect.midtones), 0.1f, -1.f, 1.f);
+      ImGui::DragFloat3("highlights", glm::value_ptr(_engine.roomEffect.highlights), 0.1f, -1.f, 1.f);
+    }
   }
 
   void updateWalkboxInfos(Room *pRoom) {

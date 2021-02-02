@@ -9,6 +9,10 @@ struct RoomEffect {
   glm::vec3 midtones{-0.2f, 0, 0.1f};
   glm::vec3 highlights{0, 0, 0.2f};
 
+  float sepiaFlicker{1.f};
+  std::array<float,5> RandomValue;
+  float TimeLapse{0.f};
+
   void reset() {
     iFade = 1.f;
     wobbleIntensity = 1.f;
