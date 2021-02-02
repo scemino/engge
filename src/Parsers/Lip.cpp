@@ -12,8 +12,7 @@ void Lip::clear() {
 }
 
 void Lip::load(const std::string &path) {
-  std::vector<char> buffer;
-  Locator<EngineSettings>::get().readEntry(path, buffer);
+  auto buffer = Locator<EngineSettings>::get().readBuffer(path);
   GGPackBufferStream input(buffer);
   _data.clear();
   _path = path;

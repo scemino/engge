@@ -1,4 +1,5 @@
 #include <codecvt>
+#include <ngf/IO/GGPackValue.h>
 #include "_Util.hpp"
 #include "engge/System/Locator.hpp"
 #include "engge/Engine/Preferences.hpp"
@@ -166,7 +167,7 @@ Facing getOppositeFacing(Facing facing) {
   }
 }
 
-ngf::irect _toRect(const ng::GGPackValue &json) {
+ngf::irect _toRect(const ngf::GGPackValue &json) {
   auto x = json["x"].getInt();
   auto y = json["y"].getInt();
   auto w = json["w"].getInt();
@@ -174,7 +175,7 @@ ngf::irect _toRect(const ng::GGPackValue &json) {
   return ngf::irect::fromPositionSize({x, y}, {w, h});
 }
 
-glm::ivec2 _toSize(const ng::GGPackValue &json) {
+glm::ivec2 _toSize(const ngf::GGPackValue &json) {
   glm::ivec2 v;
   v.x = json["w"].getInt();
   v.y = json["h"].getInt();

@@ -40,7 +40,6 @@
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
 #include "../Entities/Actor/_TalkingState.hpp"
 #include "engge/System/Logger.hpp"
-#include "engge/Parsers/GGPackValue.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 #include <cmath>
 #include <ctime>
@@ -68,7 +67,7 @@ namespace fs = std::filesystem;
 
 namespace ng {
 namespace {
-static const char *_vertexShader =
+const char *_vertexShader =
     R"(#version 100
 precision mediump float;
 attribute vec2 a_position;
@@ -88,7 +87,7 @@ void main(void) {
   gl_Position = vec4(normalizedPosition.xy, 0, 1);
 })";
 
-static const char *_bwFragmentShader =
+const char *_bwFragmentShader =
     R"(#version 100
 precision mediump float;
 varying vec2 v_texCoords;
@@ -102,7 +101,7 @@ void main()
   gl_FragColor = vec4(gray, gray, gray, col.a);
 })";
 
-static const char *_egaFragmenShader =
+const char *_egaFragmenShader =
     R"(#version 100
 #ifdef GL_ES
 precision highp float;
@@ -206,7 +205,7 @@ void main()
    gl_FragColor = vec4(newCol, srcCol.a);
 })";
 
-static const char *_fadeFragmentShader =
+const char *_fadeFragmentShader =
     R"(#version 100
 #ifdef GL_ES
 precision highp float;
@@ -248,7 +247,7 @@ void main()
    gl_FragColor.a = 1.0;
 })";
 
-static const char *_ghostFragmentShader =
+const char *_ghostFragmentShader =
     R"(#version 100
 // Work in progress ghost shader.. Too over the top at the moment, it'll make you sick.
 
@@ -488,32 +487,17 @@ struct Engine::Impl {
   public:
     explicit SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
 
-    void saveGame(const std::string &path) {
+    void saveGame(const std::filesystem::path &path) {
       ScriptEngine::call("preSave");
 
-      GGPackValue actorsHash;
-      saveActors(actorsHash);
-
-      GGPackValue callbacksHash;
-      saveCallbacks(callbacksHash);
-
-      GGPackValue dialogHash;
-      saveDialogs(dialogHash);
-
-      GGPackValue gameSceneHash;
-      saveGameScene(gameSceneHash);
-
-      GGPackValue globalsHash;
-      saveGlobals(globalsHash);
-
-      GGPackValue inventoryHash;
-      saveInventory(inventoryHash);
-
-      GGPackValue objectsHash;
-      saveObjects(objectsHash);
-
-      GGPackValue roomsHash;
-      saveRooms(roomsHash);
+      auto actorsHash = saveActors();
+      auto callbacksHash = saveCallbacks();
+      auto dialogHash = saveDialogs();
+      auto gameSceneHash = saveGameScene();
+      auto globalsHash = saveGlobals();
+      auto inventoryHash = saveInventory();
+      auto objectsHash = saveObjects();
+      auto roomsHash = saveRooms();
 
       time_t now;
       time(&now);
@@ -523,26 +507,24 @@ struct Engine::Impl {
       SQObjectPtr easyMode;
       _table(g)->Get(ScriptEngine::toSquirrel("easy_mode"), easyMode);
 
-      GGPackValue saveGameHash;
-      saveGameHash.type = 2;
-      saveGameHash.hash_value = {
+      ngf::GGPackValue saveGameHash = {
           {"actors", actorsHash},
           {"callbacks", callbacksHash},
-          {"currentRoom", GGPackValue::toGGPackValue(_pImpl->_pRoom->getName())},
+          {"currentRoom", _pImpl->_pRoom->getName()},
           {"dialog", dialogHash},
-          {"easy_mode", GGPackValue::toGGPackValue(static_cast<int>(_integer(easyMode)))},
-          {"gameGUID", GGPackValue::toGGPackValue(std::string())},
+          {"easy_mode", static_cast<int>(_integer(easyMode))},
+          {"gameGUID", std::string()},
           {"gameScene", gameSceneHash},
-          {"gameTime", GGPackValue::toGGPackValue(_pImpl->_time.getTotalSeconds())},
+          {"gameTime", _pImpl->_time.getTotalSeconds()},
           {"globals", globalsHash},
-          {"inputState", GGPackValue::toGGPackValue(_pImpl->_pEngine->getInputState())},
+          {"inputState", _pImpl->_pEngine->getInputState()},
           {"inventory", inventoryHash},
           {"objects", objectsHash},
           {"rooms", roomsHash},
-          {"savebuild", GGPackValue::toGGPackValue(958)},
-          {"savetime", GGPackValue::toGGPackValue(static_cast<int>(now))},
-          {"selectedActor", GGPackValue::toGGPackValue(_pImpl->_pEngine->getCurrentActor()->getKey())},
-          {"version", GGPackValue::toGGPackValue(2)},
+          {"savebuild", 958},
+          {"savetime", static_cast<int>(now)},
+          {"selectedActor", _pImpl->_pEngine->getCurrentActor()->getKey()},
+          {"version", 2},
       };
 
       SavegameManager::saveGame(path, saveGameHash);
@@ -551,8 +533,7 @@ struct Engine::Impl {
     }
 
     void loadGame(const std::string &path) {
-      GGPackValue hash;
-      SavegameManager::loadGame(path, hash);
+      auto hash = SavegameManager::loadGame(path);
 
       std::ofstream os(path + ".json");
       os << hash;
@@ -570,28 +551,26 @@ struct Engine::Impl {
     }
 
     static void getSlot(SavegameSlot &slot) {
-      GGPackValue hash;
-      SavegameManager::loadGame(slot.path, hash);
-
+      auto hash = SavegameManager::loadGame(slot.path);
       slot.easyMode = hash["easy_mode"].getInt() != 0;
       slot.savetime = (time_t) hash["savetime"].getInt();
       slot.gametime = ngf::TimeSpan::seconds(static_cast<float>(hash["gameTime"].getDouble()));
     }
 
   private:
-    static std::string getValue(const GGPackValue &property) {
+    static std::string getValue(const ngf::GGPackValue &property) {
       std::ostringstream s;
       if (property.isInteger()) {
-        s << property.int_value;
+        s << property.getInt();
       } else if (property.isDouble()) {
-        s << property.double_value;
+        s << property.getDouble();
       } else if (property.isString()) {
-        s << property.string_value;
+        s << property.getString();
       }
       return s.str();
     }
 
-    SQObjectPtr toSquirrel(const GGPackValue &value) {
+    SQObjectPtr toSquirrel(const ngf::GGPackValue &value) {
       if (value.isString()) {
         return ScriptEngine::toSquirrel(value.getString());
       }
@@ -602,59 +581,58 @@ struct Engine::Impl {
         return static_cast<SQFloat>(value.getDouble());
       }
       if (value.isArray()) {
-        auto array = SQArray::Create(_ss(ScriptEngine::getVm()), value.array_value.size());
+        auto array = SQArray::Create(_ss(ScriptEngine::getVm()), value.size());
         SQInteger i = 0;
-        for (auto &item : value.array_value) {
+        for (auto &item : value) {
           array->Set(i++, toSquirrel(item));
         }
         return array;
       }
       if (value.isHash()) {
-        auto itActor = value.hash_value.find(_actorKey);
-        auto itEnd = value.hash_value.cend();
-        if (itActor != itEnd) {
-          auto pActor = getActor(itActor->second.getString());
+        auto actor = value[_actorKey];
+        if (!actor.isNull()) {
+          auto pActor = getActor(actor.getString());
           return pActor->getTable();
         }
-        auto itObject = value.hash_value.find(_objectKey);
-        auto itRoom = value.hash_value.find(_roomKey);
-        if (itObject != itEnd) {
+        auto object = value[_objectKey];
+        auto room = value[_roomKey];
+        if (!object.isNull()) {
           Object *pObject;
-          if (itRoom != itEnd) {
-            auto pRoom = getRoom(itRoom->second.getString());
-            pObject = getObject(pRoom, itObject->second.getString());
+          if (!room.isNull()) {
+            auto pRoom = getRoom(room.getString());
+            pObject = getObject(pRoom, object.getString());
             if (!pObject) {
-              warn("load: object {} not found", itObject->second.getString());
+              warn("load: object {} not found", object.getString());
               return SQObjectPtr();
             }
             return pObject->getTable();
           }
-          pObject = getObject(itObject->second.getString());
+          pObject = getObject(object.getString());
           if (!pObject) {
-            warn("load: object {} not found", itObject->second.getString());
+            warn("load: object {} not found", object.getString());
             return SQObjectPtr();
           }
           return pObject->getTable();
         }
 
-        if (itRoom != itEnd) {
-          auto pRoom = getRoom(itRoom->second.getString());
+        if (!room.isNull()) {
+          auto pRoom = getRoom(room.getString());
           return pRoom->getTable();
         }
 
         auto table = SQTable::Create(_ss(ScriptEngine::getVm()), 0);
-        for (const auto&[key, value] : value.hash_value) {
+        for (const auto&[key, value] : value.items()) {
           table->NewSlot(ScriptEngine::toSquirrel(key), toSquirrel(value));
         }
         return table;
       }
       if (!value.isNull()) {
-        warn("trying to convert an unknown value (type={}) to squirrel", static_cast<int >(value.type));
+        warn("trying to convert an unknown value (type={}) to squirrel", static_cast<int >(value.type()));
       }
       return SQObjectPtr();
     }
 
-    void loadGameScene(const GGPackValue &hash) {
+    void loadGameScene(const ngf::GGPackValue &hash) {
       auto actorsSelectable = hash["actorsSelectable"].getInt();
       auto actorsTempUnselectable = hash["actorsTempUnselectable"].getInt();
       auto mode = actorsSelectable ? ActorSlotSelectableMode::On : ActorSlotSelectableMode::Off;
@@ -664,18 +642,18 @@ struct Engine::Impl {
       _pImpl->_pEngine->setActorSlotSelectable(mode);
       auto forceTalkieText = hash["forceTalkieText"].getInt() != 0;
       _pImpl->_pEngine->getPreferences().setTempPreference(TempPreferenceNames::ForceTalkieText, forceTalkieText);
-      for (auto &selectableActor : hash["selectableActors"].array_value) {
+      for (const auto &selectableActor : hash["selectableActors"]) {
         auto pActor = getActor(selectableActor[_actorKey].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
         _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
       }
     }
 
-    void loadDialog(const GGPackValue &hash) {
+    void loadDialog(const ngf::GGPackValue &hash) {
       auto &states = _pImpl->_dialogManager.getStates();
       states.clear();
-      for (auto &property : hash.hash_value) {
-        auto dialog = property.first;
+      for (auto &property : hash.items()) {
+        const auto& dialog = property.key();
         // dialog format: mode dialog number actor
         // example: #ChetAgentStreetDialog14reyes
         // mode:
@@ -724,9 +702,9 @@ struct Engine::Impl {
       return state;
     }
 
-    void loadCallbacks(const GGPackValue &hash) {
+    void loadCallbacks(const ngf::GGPackValue &hash) {
       _pImpl->_callbacks.clear();
-      for (auto &callBackHash : hash["callbacks"].array_value) {
+      for (auto &callBackHash : hash["callbacks"]) {
         auto name = callBackHash["function"].getString();
         auto id = callBackHash["guid"].getInt();
         auto time = ngf::TimeSpan::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
@@ -737,17 +715,17 @@ struct Engine::Impl {
       Locator<EntityManager>::get().setCallbackId(hash["nextGuid"].getInt());
     }
 
-    void loadActors(const GGPackValue &hash) {
+    void loadActors(const ngf::GGPackValue &hash) {
       for (auto &pActor : _pImpl->_actors) {
         if (pActor->getKey().empty())
           continue;
 
-        auto &actorHash = hash[pActor->getKey()];
+        const auto &actorHash = hash[pActor->getKey()];
         loadActor(pActor.get(), actorHash);
       }
     }
 
-    void loadActor(Actor *pActor, const GGPackValue &actorHash) {
+    void loadActor(Actor *pActor, const ngf::GGPackValue &actorHash) {
       ngf::Color color{ngf::Colors::White};
       getValue(actorHash, "_color", color);
       pActor->setColor(color);
@@ -801,55 +779,55 @@ struct Engine::Impl {
       getValue(actorHash, "_offset", offset);
       pActor->setOffset(offset);
 
-      for (auto &property : actorHash.hash_value) {
-        if (property.first.empty() || property.first[0] == '_') {
-          if (property.first == "_animations") {
+      for (auto &property : actorHash.items()) {
+        if (property.key().empty() || property.key()[0] == '_') {
+          if (property.key() == "_animations") {
             std::vector<std::string> anims;
-            for (auto &value : property.second.array_value) {
+            for (auto &value : property.value()) {
               anims.push_back(value.getString());
             }
             // TODO: _animations
             trace("load: actor {} property '{}' not loaded (type={}) size={}",
                   pActor->getKey(),
-                  property.first,
-                  static_cast<int>(property.second.type), anims.size());
-          } else if ((property.first == "_pos") || (property.first == "_costume") || (property.first == "_costumeSheet")
-              || (property.first == _roomKey) ||
-              (property.first == "_color") || (property.first == "_dir") || (property.first == "_useDir")
-              || (property.first == "_lockFacing") || (property.first == "_volume") || (property.first == "_usePos")
-              || (property.first == "_renderOffset") || (property.first == "_offset")) {
+                  property.key(),
+                  static_cast<int>(property.value().type()), anims.size());
+          } else if ((property.key() == "_pos") || (property.key() == "_costume") || (property.key() == "_costumeSheet")
+              || (property.key() == _roomKey) ||
+              (property.key() == "_color") || (property.key() == "_dir") || (property.key() == "_useDir")
+              || (property.key() == "_lockFacing") || (property.key() == "_volume") || (property.key() == "_usePos")
+              || (property.key() == "_renderOffset") || (property.key() == "_offset")) {
           } else {
             // TODO: other types
-            auto s = getValue(property.second);
+            auto s = getValue(property.value());
             trace("load: actor {} property '{}' not loaded (type={}): {}",
                   pActor->getKey(),
-                  property.first,
-                  static_cast<int>(property.second.type), s);
+                  property.key(),
+                  static_cast<int>(property.value().type()), s);
           }
           continue;
         }
 
-        _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+        _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.key()), toSquirrel(property.value()));
       }
       if (ScriptEngine::rawExists(pActor, "postLoad")) {
         ScriptEngine::objCall(pActor, "postLoad");
       }
     }
 
-    void loadInventory(const GGPackValue &hash) {
+    void loadInventory(const ngf::GGPackValue &hash) {
       for (auto i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); ++i) {
         auto *pActor = _pImpl->_actorsIconSlots[i].pActor;
         if (!pActor)
           continue;
-        auto &slot = hash["slots"].array_value.at(i);
+        auto &slot = hash["slots"].at(i);
         pActor->clearInventory();
         int jiggleCount = 0;
-        for (auto &obj : slot["objects"].array_value) {
+        for (const auto &obj : slot["objects"]) {
           auto pObj = getInventoryObject(obj.getString());
           // TODO: why we don't find the inventory object here ?
           if (!pObj)
             continue;
-          const auto jiggle = slot["jiggle"].isArray() && slot["jiggle"].array_value[jiggleCount++].getInt() != 0;
+          const auto jiggle = slot["jiggle"].isArray() && slot["jiggle"][jiggleCount++].getInt() != 0;
           pObj->setJiggle(jiggle);
           pActor->pickupObject(pObj);
         }
@@ -858,9 +836,9 @@ struct Engine::Impl {
       }
     }
 
-    void loadObjects(const GGPackValue &hash) {
-      for (auto &obj :  hash.hash_value) {
-        auto objName = obj.first;
+    void loadObjects(const ngf::GGPackValue &hash) {
+      for (auto &obj :  hash.items()) {
+        const auto& objName = obj.key();
         if (objName.empty())
           continue;
         auto pObj = getObject(objName);
@@ -869,53 +847,47 @@ struct Engine::Impl {
           trace("load: object '{}' not loaded because it has not been found", objName);
           continue;
         }
-        loadObject(pObj, obj.second);
+        loadObject(pObj, obj.value());
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, int &value) {
-      auto it = hash.hash_value.find(key);
-      if (it != hash.hash_value.end()) {
-        value = it->second.getInt();
+    static void getValue(const ngf::GGPackValue &hash, const std::string &key, int &value) {
+      if (!hash[key].isNull()) {
+        value = hash[key].getInt();
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, std::string &value) {
-      auto it = hash.hash_value.find(key);
-      if (it != hash.hash_value.end()) {
-        value = it->second.getString();
+    static void getValue(const ngf::GGPackValue &hash, const std::string &key, std::string &value) {
+      if (!hash[key].isNull()) {
+        value = hash[key].getString();
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, float &value) {
-      auto it = hash.hash_value.find(key);
-      if (it != hash.hash_value.end()) {
-        value = static_cast<float>(it->second.getDouble());
+    static void getValue(const ngf::GGPackValue &hash, const std::string &key, float &value) {
+      if (!hash[key].isNull()) {
+        value = static_cast<float>(hash[key].getDouble());
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, bool &value) {
-      auto it = hash.hash_value.find(key);
-      if (it != hash.hash_value.end()) {
-        value = it->second.getInt() != 0;
+    static void getValue(const ngf::GGPackValue &hash, const std::string &key, bool &value) {
+      if (!hash[key].isNull()) {
+        value = hash[key].getInt() != 0;
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, glm::vec2 &value) {
-      auto it = hash.hash_value.find(key);
-      if (it != hash.hash_value.end()) {
-        value = _parsePos(it->second.getString());
+    static void getValue(const ngf::GGPackValue &hash, const std::string &key, glm::vec2 &value) {
+      if (!hash[key].isNull()) {
+        value = _parsePos(hash[key].getString());
       }
     }
 
-    static void getValue(const GGPackValue &hash, const std::string &key, ngf::Color &value) {
-      auto it = hash.hash_value.find(key);
-      if (it != hash.hash_value.end()) {
-        value = _toColor(it->second.getInt());
+    static void getValue(const ngf::GGPackValue &hash, const std::string &key, ngf::Color &value) {
+      if (!hash[key].isNull()) {
+        value = _toColor(hash[key].getInt());
       }
     }
 
-    void loadObject(Object *pObj, const GGPackValue &hash) {
+    void loadObject(Object *pObj, const ngf::GGPackValue &hash) {
       auto state = 0;
       ScriptEngine::rawGet(pObj, "initState", state);
       getValue(hash, "_state", state);
@@ -937,59 +909,59 @@ struct Engine::Impl {
       getValue(hash, "_color", color);
       pObj->setColor(color);
 
-      for (auto &property :  hash.hash_value) {
-        if (property.first.empty() || property.first[0] == '_') {
-          if (property.first == "_state" || property.first == "_touchable" || property.first == "_offset"
-              || property.first == "_hidden" || property.first == "_rotation" || property.first == "_color")
+      for (auto &property :  hash.items()) {
+        if (property.key().empty() || property.key()[0] == '_') {
+          if (property.key() == "_state" || property.key() == "_touchable" || property.key() == "_offset"
+              || property.key() == "_hidden" || property.key() == "_rotation" || property.key() == "_color")
             continue;
 
           // TODO: other types
-          auto s = getValue(property.second);
+          auto s = getValue(property.value());
           warn("load: object {} property '{}' not loaded (type={}): {}",
                pObj->getKey(),
-               property.first,
-               static_cast<int>(property.second.type), s);
+               property.key(),
+               static_cast<int>(property.value().type()), s);
           continue;
         }
 
-        _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+        _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(property.key()), toSquirrel(property.value()));
       }
     }
 
-    void loadPseudoObjects(Room *pRoom, const std::map<std::string, GGPackValue> &hash) {
-      for (auto &[objName, objValue] :  hash) {
-        auto pObj = getObject(pRoom, objName);
+    void loadPseudoObjects(Room *pRoom, const ngf::GGPackValue &hash) {
+      for (const auto &entry :  hash.items()) {
+        auto pObj = getObject(pRoom, entry.key());
         if (!pObj) {
-          trace("load: room '{}' object '{}' not loaded because it has not been found", pRoom->getName(), objName);
+          trace("load: room '{}' object '{}' not loaded because it has not been found", pRoom->getName(), entry.key());
           continue;
         }
-        loadObject(pObj, objValue);
+        loadObject(pObj, entry.value());
       }
     }
 
-    void loadRooms(const GGPackValue &hash) {
-      for (auto &roomHash :  hash.hash_value) {
-        auto roomName = roomHash.first;
+    void loadRooms(const ngf::GGPackValue &hash) {
+      for (auto &roomHash :  hash.items()) {
+        const auto& roomName = roomHash.key();
         auto pRoom = getRoom(roomName);
         if (!pRoom) {
           trace("load: room '{}' not loaded because it has not been found", roomName);
           continue;
         }
 
-        for (auto &property : roomHash.second.hash_value) {
-          if (property.first.empty() || property.first[0] == '_') {
-            if (property.first == _pseudoObjectsKey) {
-              loadPseudoObjects(pRoom, property.second.hash_value);
+        for (auto &property : roomHash.value().items()) {
+          if (property.key().empty() || property.key()[0] == '_') {
+            if (property.key() == _pseudoObjectsKey) {
+              loadPseudoObjects(pRoom, property.value());
             } else {
               trace("load: room '{}' property '{}' (type={}) not loaded",
                     roomName,
-                    property.first,
-                    static_cast<int>(property.second.type));
+                    property.key(),
+                    static_cast<int>(property.value().type()));
               continue;
             }
           }
 
-          _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.first), toSquirrel(property.second));
+          _table(pRoom->getTable())->Set(ScriptEngine::toSquirrel(property.key()), toSquirrel(property.value()));
           if (ScriptEngine::rawExists(pRoom, "postLoad")) {
             ScriptEngine::objCall(pRoom, "postLoad");
           }
@@ -997,7 +969,7 @@ struct Engine::Impl {
       }
     }
 
-    void loadGame(const GGPackValue &hash) {
+    void loadGame(const ngf::GGPackValue &hash) {
       auto version = hash["version"].getInt();
       if (version != 2) {
         warn("Cannot load savegame version {}", version);
@@ -1078,57 +1050,57 @@ struct Engine::Impl {
       _pImpl->_pEngine->setRoom(getRoom(name));
     }
 
-    void saveActors(GGPackValue &actorsHash) {
-      actorsHash.type = 2;
+    [[nodiscard]] ngf::GGPackValue saveActors() const {
+      ngf::GGPackValue actorsHash;
       for (auto &pActor : _pImpl->_actors) {
         // TODO: find why this entry exists...
         if (pActor->getKey().empty())
           continue;
 
         auto table = pActor->getTable();
-        auto actorHash = GGPackValue::toGGPackValue(table);
+        auto actorHash = ng::toGGPackValue(table);
         auto costume = fs::path(pActor->getCostume().getPath()).filename();
         if (costume.has_extension())
           costume.replace_extension();
-        actorHash.hash_value["_costume"] = GGPackValue::toGGPackValue(costume.u8string());
-        actorHash.hash_value["_dir"] = GGPackValue::toGGPackValue(static_cast<int>(pActor->getCostume().getFacing()));
+        actorHash["_costume"] = costume.u8string();
+        actorHash["_dir"] = static_cast<int>(pActor->getCostume().getFacing());
         auto lockFacing = pActor->getCostume().getLockFacing();
-        actorHash.hash_value["_lockFacing"] =
-            GGPackValue::toGGPackValue(lockFacing.has_value() ? static_cast<int>(lockFacing.value()) : 0);
-        actorHash.hash_value["_pos"] = GGPackValue::toGGPackValue(toString(pActor->getPosition()));
+        actorHash["_lockFacing"] = lockFacing.has_value() ? static_cast<int>(lockFacing.value()) : 0;
+        actorHash["_pos"] = toString(pActor->getPosition());
         if (pActor->getVolume().has_value()) {
-          actorHash.hash_value["_volume"] = GGPackValue::toGGPackValue(pActor->getVolume().value());
+          actorHash["_volume"] = pActor->getVolume().value();
         }
         auto useDir = pActor->getUseDirection();
         if (useDir.has_value()) {
-          actorHash.hash_value["_useDir"] = GGPackValue::toGGPackValue(static_cast<int>(useDir.value()));
+          actorHash["_useDir"] = static_cast<int>(useDir.value());
         }
         auto usePos = pActor->getUsePosition();
         if (useDir.has_value()) {
-          actorHash.hash_value["_usePos"] = GGPackValue::toGGPackValue(toString(usePos.value()));
+          actorHash["_usePos"] = toString(usePos.value());
         }
         auto renderOffset = pActor->getRenderOffset();
         if (renderOffset != glm::ivec2(0, 45)) {
-          actorHash.hash_value["_renderOffset"] = GGPackValue::toGGPackValue(toString(renderOffset));
+          actorHash["_renderOffset"] = toString(renderOffset);
         }
         if (pActor->getColor() != ngf::Colors::White) {
-          actorHash.hash_value["_color"] = GGPackValue::toGGPackValue(static_cast<int>(toInteger(pActor->getColor())));
+          actorHash["_color"] = static_cast<int>(toInteger(pActor->getColor()));
         }
         auto costumeSheet = pActor->getCostume().getSheet();
         if (!costumeSheet.empty()) {
-          actorHash.hash_value["_costumeSheet"] = GGPackValue::toGGPackValue(costumeSheet);
+          actorHash["_costumeSheet"] = costumeSheet;
         }
         if (pActor->getRoom()) {
-          actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(pActor->getRoom()->getName());
+          actorHash[_roomKey] = pActor->getRoom()->getName();
         } else {
-          actorHash.hash_value[_roomKey] = GGPackValue::toGGPackValue(nullptr);
+          actorHash[_roomKey] = nullptr;
         }
 
-        actorsHash.hash_value[pActor->getKey()] = actorHash;
+        actorsHash[pActor->getKey()] = actorHash;
       }
+      return actorsHash;
     }
 
-    static void saveGlobals(GGPackValue &globalsHash) {
+    [[nodiscard]] static ngf::GGPackValue saveGlobals() {
       auto v = ScriptEngine::getVm();
       auto top = sq_gettop(v);
       sq_pushroottable(v);
@@ -1137,12 +1109,13 @@ struct Engine::Impl {
       HSQOBJECT g;
       sq_getstackobj(v, -1, &g);
 
-      globalsHash = GGPackValue::toGGPackValue(g);
+      auto globalsHash = ng::toGGPackValue(g);
       sq_settop(v, top);
+      return globalsHash;
     }
 
-    void saveDialogs(GGPackValue &hash) {
-      hash.type = 2;
+    [[nodiscard]] ngf::GGPackValue saveDialogs() const {
+      ngf::GGPackValue hash;
       const auto &states = _pImpl->_dialogManager.getStates();
       for (const auto &state : states) {
         std::ostringstream s;
@@ -1159,91 +1132,80 @@ struct Engine::Impl {
         }
         s << state.dialog << state.line << state.actorKey;
         // TODO: value should be 1 or another value ?
-        hash.hash_value[s.str()] = GGPackValue::toGGPackValue(state.mode == DialogConditionMode::ShowOnce ? 2 : 1);
+        hash[s.str()] = state.mode == DialogConditionMode::ShowOnce ? 2 : 1;
       }
+      return hash;
     }
 
-    void saveGameScene(GGPackValue &hash) const {
+    [[nodiscard]] ngf::GGPackValue saveGameScene() const {
       auto actorsSelectable =
           ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
       auto actorsTempUnselectable = ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
           == ActorSlotSelectableMode::TemporaryUnselectable);
 
-      GGPackValue selectableActors;
-      selectableActors.type = 3;
+      ngf::GGPackValue selectableActors;
       for (auto &slot : _pImpl->_actorsIconSlots) {
-        GGPackValue selectableActor;
-        selectableActor.type = 2;
+        ngf::GGPackValue selectableActor;
         if (slot.pActor) {
-          selectableActor.hash_value = {
-              {_actorKey, GGPackValue::toGGPackValue(slot.pActor->getKey())},
-              {"selectable", GGPackValue::toGGPackValue(slot.selectable)},
+          selectableActor = {
+              {_actorKey, slot.pActor->getKey()},
+              {"selectable", slot.selectable ? 1 : 0},
           };
         } else {
-          selectableActor.hash_value = {
-              {"selectable", GGPackValue::toGGPackValue(0)},
-          };
+          selectableActor = {{"selectable", 0}};
         }
-        selectableActors.array_value.push_back(selectableActor);
+        selectableActors.push_back(selectableActor);
       }
 
-      hash.type = 2;
-      hash.hash_value = {
-          {"actorsSelectable", GGPackValue::toGGPackValue(actorsSelectable)},
-          {"actorsTempUnselectable", GGPackValue::toGGPackValue(actorsTempUnselectable)},
-          {"forceTalkieText",
-           GGPackValue::toGGPackValue(_pImpl->_pEngine->getPreferences().getTempPreference(TempPreferenceNames::ForceTalkieText,
-                                                                                           TempPreferenceDefaultValues::ForceTalkieText))},
+      auto forceTalkieText = _pImpl->_pEngine->getPreferences()
+          .getTempPreference(TempPreferenceNames::ForceTalkieText,
+                             TempPreferenceDefaultValues::ForceTalkieText);
+      return {
+          {"actorsSelectable", actorsSelectable ? 1 : 0},
+          {"actorsTempUnselectable", actorsTempUnselectable ? 1 : 0},
+          {"forceTalkieText", forceTalkieText ? 1 : 0},
           {"selectableActors", selectableActors}
       };
     }
 
-    void saveInventory(GGPackValue &hash) const {
-      GGPackValue slots;
-      slots.type = 3;
+    [[nodiscard]] ngf::GGPackValue saveInventory() const {
+      ngf::GGPackValue slots;
       for (auto &slot : _pImpl->_actorsIconSlots) {
-        GGPackValue actorSlot;
-        actorSlot.type = 2;
+        ngf::GGPackValue actorSlot;
         if (slot.pActor) {
           std::vector<int> jiggleArray(slot.pActor->getObjects().size());
-          GGPackValue objects;
-          objects.type = 3;
+          ngf::GGPackValue objects;
           int jiggleCount = 0;
           for (auto &obj : slot.pActor->getObjects()) {
             jiggleArray[jiggleCount++] = obj->getJiggle() ? 1 : 0;
-            objects.array_value.push_back(GGPackValue::toGGPackValue(obj->getKey()));
+            objects.push_back(obj->getKey());
           }
-          actorSlot.hash_value = {
+          actorSlot = {
               {"objects", objects},
-              {"scroll", GGPackValue::toGGPackValue(slot.pActor->getInventoryOffset())},
+              {"scroll", slot.pActor->getInventoryOffset()},
           };
           const auto saveJiggle = std::any_of(jiggleArray.cbegin(),
                                               jiggleArray.cend(), [](int value) { return value == 1; });
           if (saveJiggle) {
-            GGPackValue jiggle;
-            jiggle.type = 3;
-            std::transform(jiggleArray.cbegin(),
+            ngf::GGPackValue jiggle;
+            std::copy(jiggleArray.cbegin(),
                            jiggleArray.cend(),
-                           std::back_inserter(jiggle.array_value),
-                           [](int value) { return GGPackValue::toGGPackValue(value); });
-            actorSlot.hash_value.insert({"jiggle", jiggle});
+                           std::back_inserter(jiggle));
+            actorSlot["jiggle"] = jiggle;
           }
         } else {
-          actorSlot.hash_value = {
-              {"scroll", GGPackValue::toGGPackValue(0)},
-          };
+          actorSlot = {{"scroll", 0}};
         }
-        slots.array_value.push_back(actorSlot);
+        slots.push_back(actorSlot);
       }
 
-      hash.type = 2;
-      hash.hash_value = {
+      return {
           {"slots", slots},
       };
     }
 
-    void saveObjects(GGPackValue &hash) const {
-      hash.type = 2;
+    [[nodiscard]] ngf::GGPackValue saveObjects() const {
+      ngf::GGPackValue hash;
       for (auto &room : _pImpl->_rooms) {
         for (auto &object : room->getObjects()) {
           if (object->getType() != ObjectType::Object)
@@ -1251,86 +1213,79 @@ struct Engine::Impl {
           auto pRoom = object->getRoom();
           if (pRoom && pRoom->isPseudoRoom())
             continue;
-          GGPackValue hashObject;
-          saveObject(object.get(), hashObject);
-          hash.hash_value[object->getKey()] = hashObject;
+          hash[object->getKey()] = saveObject(object.get());
         }
       }
+      return hash;
     }
 
-    static void savePseudoObjects(const Room *pRoom, GGPackValue &hash) {
-      if (!pRoom->isPseudoRoom())
-        return;
-      GGPackValue hashObjects;
-      hashObjects.type = 2;
+    static ngf::GGPackValue savePseudoObjects(const Room *pRoom) {
+      ngf::GGPackValue hashObjects;
       for (const auto &pObj : pRoom->getObjects()) {
-        GGPackValue hashObject;
-        saveObject(pObj.get(), hashObject);
-        hashObjects.hash_value[pObj->getKey()] = hashObject;
+        hashObjects[pObj->getKey()] = saveObject(pObj.get());
       }
-      hash.hash_value[_pseudoObjectsKey] = hashObjects;
+      return hashObjects;
     }
 
-    static void saveObject(const Object *pObject, GGPackValue &hashObject) {
-      hashObject = GGPackValue::toGGPackValue(pObject->getTable());
+    static ngf::GGPackValue saveObject(const Object *pObject) {
+      auto hashObject = ng::toGGPackValue(pObject->getTable());
       if (pObject->getState() != 0) {
-        hashObject.hash_value["_state"] = GGPackValue::toGGPackValue(pObject->getState());
+        hashObject["_state"] = pObject->getState();
       }
       if (!pObject->isTouchable()) {
-        hashObject.hash_value["_touchable"] = GGPackValue::toGGPackValue(pObject->isTouchable());
+        hashObject["_touchable"] = pObject->isTouchable() ? 1 : 0;
       }
       // this is the way to compare 2 vectors... not so simple
       if (glm::any(glm::epsilonNotEqual(pObject->getOffset(), glm::vec2(0, 0), 1e-6f))) {
-        hashObject.hash_value["_offset"] = GGPackValue::toGGPackValue(toString(pObject->getOffset()));
+        hashObject["_offset"] = toString(pObject->getOffset());
       }
+      return hashObject;
     }
 
-    void saveRooms(GGPackValue &hash) const {
-      hash.type = 2;
+    [[nodiscard]] ngf::GGPackValue saveRooms() const {
+      ngf::GGPackValue hash;
       for (auto &room : _pImpl->_rooms) {
-        auto hashRoom = GGPackValue::toGGPackValue(room->getTable());
-        savePseudoObjects(room.get(), hashRoom);
-        hash.hash_value[room->getName()] = hashRoom;
+        auto hashRoom = ng::toGGPackValue(room->getTable());
+        if (room->isPseudoRoom()) {
+          hashRoom[_pseudoObjectsKey] = savePseudoObjects(room.get());
+        }
+        hash[room->getName()] = hashRoom;
       }
+      return hash;
     }
 
-    void saveCallbacks(GGPackValue &callbacksHash) {
-      callbacksHash.type = 2;
-      GGPackValue callbacksArray;
-      callbacksArray.type = 3;
-
+    [[nodiscard]] ngf::GGPackValue saveCallbacks() const {
+      ngf::GGPackValue callbacksArray;
       for (auto &callback : _pImpl->_callbacks) {
-        GGPackValue callbackHash;
-        callbackHash.type = 2;
-        callbackHash.hash_value = {
-            {"function", GGPackValue::toGGPackValue(callback->getMethod())},
-            {"guid", GGPackValue::toGGPackValue(callback->getId())},
-            {"time", GGPackValue::toGGPackValue(callback->getElapsed().getTotalMilliseconds())}
+        ngf::GGPackValue callbackHash{
+            {"function", callback->getMethod()},
+            {"guid", callback->getId()},
+            {"time", callback->getElapsed().getTotalMilliseconds()}
         };
         auto arg = callback->getArgument();
         if (arg._type != OT_NULL) {
-          callbackHash.hash_value["param"] = GGPackValue::toGGPackValue(arg);
+          callbackHash["param"] = ng::toGGPackValue(arg);
         }
-        callbacksArray.array_value.push_back(callbackHash);
+        callbacksArray.push_back(callbackHash);
       }
 
       auto &resourceManager = Locator<EntityManager>::get();
       auto id = resourceManager.getCallbackId();
       resourceManager.setCallbackId(id);
 
-      callbacksHash.hash_value = {
+      return {
           {"callbacks", callbacksArray},
-          {"nextGuid", GGPackValue::toGGPackValue(id)},
+          {"nextGuid", id},
       };
     }
 
-    void loadGlobals(const GGPackValue &hash) {
+    void loadGlobals(const ngf::GGPackValue &hash) {
       SQTable *pRootTable = _table(ScriptEngine::getVm()->_roottable);
       SQObjectPtr gObject;
       pRootTable->Get(ScriptEngine::toSquirrel("g"), gObject);
       SQTable *gTable = _table(gObject);
-      for (const auto &variable : hash.hash_value) {
-        gTable->Set(ScriptEngine::toSquirrel(variable.first), toSquirrel(variable.second));
+      for (const auto &variable : hash.items()) {
+        gTable->Set(ScriptEngine::toSquirrel(variable.key()), toSquirrel(variable.value()));
       }
     }
 
@@ -2275,7 +2230,8 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   if (_DebugFeatures::showCursorPosition) {
     std::wstringstream ss;
     std::wstring txt = text.getWideString();
-    ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y << L")";
+    ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y
+       << L")";
     text.setWideString(ss.str());
   }
 

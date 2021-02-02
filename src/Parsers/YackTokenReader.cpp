@@ -59,8 +59,7 @@ Token *YackTokenReader::Iterator::operator->() {
 }
 
 void YackTokenReader::load(const std::string &path) {
-  std::vector<char> buffer;
-  Locator<EngineSettings>::get().readEntry(path, buffer);
+  auto buffer = Locator<EngineSettings>::get().readBuffer(path);
 
 #if 0
   std::ofstream o;

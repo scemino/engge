@@ -69,19 +69,19 @@ struct Room::Impl {
 
   void setRoom(Room *pRoom) { _pRoom = pRoom; }
 
-  void loadBackgrounds(GGPackValue &jWimpy) {
+  void loadBackgrounds(ngf::GGPackValue &jWimpy) {
     int width = 0;
     if (!jWimpy["fullscreen"].isNull()) {
-      _fullscreen = jWimpy["fullscreen"].int_value;
+      _fullscreen = jWimpy["fullscreen"].getInt();
     }
     _layers[0]->setTexture(_spriteSheet.getTextureName());
     auto screenHeight = _pRoom->getScreenSize().y;
     auto offsetY = screenHeight - _pRoom->getRoomSize().y;
     if (jWimpy["background"].isArray()) {
-      for (auto &bg : jWimpy["background"].array_value) {
-        auto frame = _spriteSheet.getRect(bg.string_value);
-        auto sourceSize = _spriteSheet.getSourceSize(bg.string_value);
-        auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(bg.string_value);
+      for (auto &bg : jWimpy["background"]) {
+        auto frame = _spriteSheet.getRect(bg.getString());
+        auto sourceSize = _spriteSheet.getSourceSize(bg.getString());
+        auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(bg.getString());
         _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
         _layers[0]->setOffsetY(offsetY);
         _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize,
@@ -89,9 +89,9 @@ struct Room::Impl {
         width += frame.getWidth();
       }
     } else if (jWimpy["background"].isString()) {
-      auto frame = _spriteSheet.getRect(jWimpy["background"].string_value);
-      auto sourceSize = _spriteSheet.getSourceSize(jWimpy["background"].string_value);
-      auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(jWimpy["background"].string_value);
+      auto frame = _spriteSheet.getRect(jWimpy["background"].getString());
+      auto sourceSize = _spriteSheet.getSourceSize(jWimpy["background"].getString());
+      auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(jWimpy["background"].getString());
       _layers[0]->setRoomSizeY(_pRoom->getRoomSize().y);
       _layers[0]->setOffsetY(offsetY);
       _layers[0]->getBackgrounds().emplace_back(SpriteSheetItem{"background", frame, spriteSourceSize, sourceSize,
@@ -103,36 +103,36 @@ struct Room::Impl {
     }
   }
 
-  void loadLayers(GGPackValue &jWimpy) {
+  void loadLayers(const ngf::GGPackValue &jWimpy) {
     if (jWimpy["layers"].isNull())
       return;
 
     auto offsetY = _pRoom->getScreenSize().y - _pRoom->getRoomSize().y;
 
-    for (auto jLayer : jWimpy["layers"].array_value) {
-      auto zsort = jLayer["zsort"].int_value;
+    for (auto jLayer : jWimpy["layers"]) {
+      auto zsort = jLayer["zsort"].getInt();
       auto &layer = _layers[zsort];
       layer->setRoomSizeY(_pRoom->getRoomSize().y);
       layer->setOffsetY(offsetY);
       layer->setTexture(_spriteSheet.getTextureName());
       layer->setZOrder(zsort);
       if (jLayer["name"].isArray()) {
-        for (const auto &jName : jLayer["name"].array_value) {
-          auto layerName = jName.string_value;
+        for (const auto &jName : jLayer["name"]) {
+          auto layerName = jName.getString();
           auto frame = _spriteSheet.getRect(layerName);
           auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
           auto sourceSize = _spriteSheet.getSourceSize(layerName);
           layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
         }
       } else {
-        auto layerName = jLayer["name"].string_value;
+        auto layerName = jLayer["name"].getString();
         auto frame = _spriteSheet.getRect(layerName);
         auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
         auto sourceSize = _spriteSheet.getSourceSize(layerName);
         layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
       }
       if (jLayer["parallax"].isString()) {
-        auto parallax = _parsePos(jLayer["parallax"].string_value);
+        auto parallax = _parsePos(jLayer["parallax"].getString());
         layer->setParallax(parallax);
       } else {
         auto parallax = jLayer["parallax"].getDouble();
@@ -141,11 +141,11 @@ struct Room::Impl {
     }
   }
 
-  void loadObjects(const GGPackValue &jWimpy) {
-    for (auto jObject : jWimpy["objects"].array_value) {
+  void loadObjects(const ngf::GGPackValue &jWimpy) {
+    for (auto jObject : jWimpy["objects"]) {
       std::unique_ptr<Object> object;
 
-      auto objectName = jObject["name"].string_value;
+      auto objectName = jObject["name"].getString();
       auto v = ScriptEngine::getVm();
       sq_pushobject(v, _pRoom->getTable());
       sq_pushstring(v, objectName.c_str(), -1);
@@ -188,7 +188,7 @@ struct Room::Impl {
       object->setKey(objectName);
       // parent
       if (jObject["parent"].isString()) {
-        auto parent = jObject["parent"].string_value;
+        auto parent = jObject["parent"].getString();
         auto it = std::find_if(_objects.begin(), _objects.end(), [&parent](const std::unique_ptr<Object> &o) {
           return o->getName() == parent;
         });
@@ -197,25 +197,25 @@ struct Room::Impl {
         }
       }
       // zsort
-      object->setZOrder(jObject["zsort"].int_value);
+      object->setZOrder(jObject["zsort"].getInt());
       // position
-      auto pos = _parsePos(jObject["pos"].string_value);
-      auto usePos = _parsePos(jObject["usepos"].string_value);
-      auto useDir = _toDirection(jObject["usedir"].string_value);
+      auto pos = _parsePos(jObject["pos"].getString());
+      auto usePos = _parsePos(jObject["usepos"].getString());
+      auto useDir = _toDirection(jObject["usedir"].getString());
       object->setUseDirection(useDir);
       // hotspot
-      auto hotspot = _parseRect(jObject["hotspot"].string_value);
+      auto hotspot = _parseRect(jObject["hotspot"].getString());
       object->setHotspot(ngf::irect::fromPositionSize(hotspot.getTopLeft(), hotspot.getSize()));
       // prop
-      bool isProp = jObject["prop"].isInteger() && jObject["prop"].int_value == 1;
+      bool isProp = jObject["prop"].isInteger() && jObject["prop"].getInt() == 1;
       if (isProp)
         object->setType(ObjectType::Prop);
       // spot
-      bool isSpot = jObject["spot"].isInteger() && jObject["spot"].int_value == 1;
+      bool isSpot = jObject["spot"].isInteger() && jObject["spot"].getInt() == 1;
       if (isSpot)
         object->setType(ObjectType::Spot);
       // trigger
-      bool isTrigger = jObject["trigger"].isInteger() && jObject["trigger"].int_value == 1;
+      bool isTrigger = jObject["trigger"].isInteger() && jObject["trigger"].getInt() == 1;
       if (isTrigger)
         object->setType(ObjectType::Trigger);
 
@@ -239,7 +239,7 @@ struct Room::Impl {
     }
 
     // update parent, it has to been done after objects initialization
-    auto jObjects = jWimpy["objects"].array_value;
+    const auto& jObjects = jWimpy["objects"];
     for (auto &object : _objects) {
       auto name = object->getName();
       auto it = std::find_if(jObjects.cbegin(), jObjects.cend(), [&name](const auto &jObject) {
@@ -329,12 +329,12 @@ struct Room::Impl {
     return 0;
   }
 
-  void loadScalings(GGPackValue &jWimpy) {
+  void loadScalings(const ngf::GGPackValue &jWimpy) {
     if (jWimpy["scaling"].isArray()) {
       if (jWimpy["scaling"][0].isString()) {
         RoomScaling scaling;
-        for (const auto &jScaling : jWimpy["scaling"].array_value) {
-          auto value = jScaling.string_value;
+        for (const auto &jScaling : jWimpy["scaling"]) {
+          auto value = jScaling.getString();
           auto index = value.find('@');
           auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
           auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
@@ -345,14 +345,14 @@ struct Room::Impl {
         }
         _scalings.push_back(scaling);
       } else if (jWimpy["scaling"][0].isHash()) {
-        for (auto jScaling : jWimpy["scaling"].array_value) {
+        for (auto jScaling : jWimpy["scaling"]) {
           RoomScaling scaling;
           if (jScaling["trigger"].isString()) {
-            scaling.setTrigger(jScaling["trigger"].string_value);
+            scaling.setTrigger(jScaling["trigger"].getString());
           }
-          for (const auto &jSubScaling : jScaling["scaling"].array_value) {
+          for (const auto &jSubScaling : jScaling["scaling"]) {
             if (jSubScaling.isString()) {
-              auto value = jSubScaling.string_value;
+              auto value = jSubScaling.getString();
               auto index = value.find('@');
               auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
               auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
@@ -361,8 +361,8 @@ struct Room::Impl {
               s.yPos = yPos;
               scaling.getScalings().push_back(s);
             } else if (jSubScaling.isArray()) {
-              for (const auto &jSubScalingScaling : jSubScaling.array_value) {
-                auto value = jSubScalingScaling.string_value;
+              for (const auto &jSubScalingScaling : jSubScaling) {
+                auto value = jSubScalingScaling.getString();
                 auto index = value.find('@');
                 auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
                 auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
@@ -384,15 +384,15 @@ struct Room::Impl {
     }
   }
 
-  void loadWalkboxes(const GGPackValue &jWimpy) {
-    for (auto jWalkbox : jWimpy["walkboxes"].array_value) {
+  void loadWalkboxes(const ngf::GGPackValue &jWimpy) {
+    for (auto jWalkbox : jWimpy["walkboxes"]) {
       std::vector<glm::ivec2> vertices;
-      auto polygon = jWalkbox["polygon"].string_value;
+      auto polygon = jWalkbox["polygon"].getString();
       _parsePolygon(polygon, vertices);
       ngf::Walkbox walkbox(vertices);
       walkbox.setYAxisDirection(ngf::YAxisDirection::Up);
       if (jWalkbox["name"].isString()) {
-        auto walkboxName = jWalkbox["name"].string_value;
+        auto walkboxName = jWalkbox["name"].getString();
         walkbox.setName(walkboxName);
       }
       _walkboxes.push_back(walkbox);
@@ -562,8 +562,7 @@ void Room::load(const char *name) {
   if (!Locator<EngineSettings>::get().hasEntry(wimpyFilename))
     return;
 
-  GGPackValue hash;
-  Locator<EngineSettings>::get().readEntry(wimpyFilename, hash);
+  auto hash = Locator<EngineSettings>::get().readEntry(wimpyFilename);
 
 #if 0
   std::ofstream out;
@@ -572,9 +571,9 @@ void Room::load(const char *name) {
   out.close();
 #endif
 
-  pImpl->_sheet = hash["sheet"].string_value;
-  pImpl->_screenHeight = hash["height"].int_value;
-  pImpl->_roomSize = (glm::ivec2) _parsePos(hash["roomsize"].string_value);
+  pImpl->_sheet = hash["sheet"].getString();
+  pImpl->_screenHeight = hash["height"].getInt();
+  pImpl->_roomSize = (glm::ivec2) _parsePos(hash["roomsize"].getString());
 
   // load json file
   pImpl->_spriteSheet.load(pImpl->_sheet);
@@ -709,9 +708,6 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
 }
 
 void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
-  auto screen = getScreenSize();
-  auto halfScreen = glm::vec2(screen.x / 2.f, screen.y / 2.f);
-
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
     ngf::Transform t;

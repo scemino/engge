@@ -81,7 +81,7 @@ Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
                                                                          PreferenceDefaultValues::Language);
       _pImpl->onLanguageChange(newLang);
     } else if (name == PreferenceNames::Fullscreen) {
-      auto fullscreen = _pImpl->_preferences.getUserPreference<bool>(PreferenceNames::Fullscreen,
+      auto fullscreen = _pImpl->_preferences.getUserPreference(PreferenceNames::Fullscreen,
                                                                      PreferenceDefaultValues::Fullscreen);
       _pImpl->_pApp->getWindow().setFullscreen(fullscreen);
     }
@@ -805,7 +805,7 @@ void Engine::saveGame(int slot) {
 
 void Engine::loadGame(int slot) {
   Impl::SaveGameSystem saveGameSystem(_pImpl.get());
-  saveGameSystem.loadGame(Impl::SaveGameSystem::getSlotPath(slot));
+  saveGameSystem.loadGame(Impl::SaveGameSystem::getSlotPath(slot).string());
 }
 
 void Engine::setAutoSave(bool autoSave) { _pImpl->_autoSave = autoSave; }

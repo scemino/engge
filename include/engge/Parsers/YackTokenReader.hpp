@@ -2,8 +2,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <vector>
-#include "GGPack.hpp"
 #include "GGPackBufferStream.hpp"
 
 namespace ng {

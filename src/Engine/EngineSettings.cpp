@@ -16,9 +16,7 @@ void throwEntryNotFound(const std::string &name) {
 }
 
 namespace ng {
-EngineSettings::EngineSettings() = default;
-
-std::filesystem::path EngineSettings::getPath() const{
+std::filesystem::path EngineSettings::getPath() const {
   auto devPath = ng::Locator<ng::Preferences>::get().getUserPreference(PreferenceNames::EnggeDevPath,
                                                                        PreferenceDefaultValues::EnggeDevPath);
   return devPath.empty() ? fs::current_path() : fs::path(devPath);
@@ -28,7 +26,7 @@ void EngineSettings::loadPacks() {
   auto path = getPath();
   for (const auto &entry : fs::directory_iterator(path)) {
     if (ng::startsWith(entry.path().extension().string(), ".ggpack")) {
-      auto pack = std::make_unique<GGPack>();
+      auto pack = std::make_unique<ngf::GGPack>();
       info("Opening pack '{}'...", entry.path().string());
       pack->open(entry.path().string());
       _packs.push_back(std::move(pack));
@@ -43,51 +41,47 @@ bool EngineSettings::hasEntry(const std::string &name) {
     is.close();
     return true;
   }
-  auto it = std::find_if(_packs.begin(), _packs.end(), [&name](auto &pack) {
-    return pack->hasEntry(name);
+  auto it = std::find_if(_packs.cbegin(), _packs.cend(), [&name](const auto &pack) {
+    return pack->contains(name);
   });
   return it != _packs.end();
 }
 
-void EngineSettings::readEntry(const std::string &name, std::vector<char> &data) {
+std::vector<char> EngineSettings::readBuffer(const std::string &name) const {
   // first try to find the resource in the filesystem
   std::ifstream is;
   is.open(name);
   if (is.is_open()) {
     is.seekg(0, std::ios::end);
     auto size = is.tellg();
+    std::vector<char> data;
     data.resize(size);
     is.seekg(0, std::ios::beg);
     is.read(data.data(), size);
     is.close();
-    return;
+    return data;
   }
 
   // not found in filesystem, check in the pack files
-  auto it = std::find_if(_packs.begin(), _packs.end(), [&name](auto &pack) {
-    return pack->hasEntry(name);
+  auto it = std::find_if(_packs.cbegin(), _packs.cend(), [&name](const auto &pack) {
+    return pack->contains(name);
   });
   if (it != _packs.end()) {
-    (*it)->readEntry(name, data);
-    return;
+    return it->get()->readEntry(name);
   }
   throwEntryNotFound(name);
+  assert(false);
 }
 
-void EngineSettings::readEntry(const std::string &name, GGPackValue &hash) {
-  auto it = std::find_if(_packs.begin(), _packs.end(), [&name](auto &pack) {
-    return pack->hasEntry(name);
+ngf::GGPackValue EngineSettings::readEntry(const std::string &name) const {
+  auto it = std::find_if(_packs.cbegin(), _packs.cend(), [&name](const auto &pack) {
+    return pack->contains(name);
   });
   if (it != _packs.end()) {
-    (*it)->readHashEntry(name, hash);
-    return;
+    return it->get()->readHashEntry(name);
   }
   throwEntryNotFound(name);
+  assert(false);
 }
 
-void EngineSettings::getEntries(std::vector<std::string> &entries) {
-  for (auto &pack : _packs) {
-    pack->getEntries(entries);
-  }
-}
 } // namespace ng

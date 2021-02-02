@@ -8,7 +8,6 @@
 #include <ngf/Graphics/Drawable.h>
 #include <ngf/Graphics/RenderStates.h>
 #include <ngf/Graphics/RenderTarget.h>
-#include <engge/Parsers/GGPack.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
 #include <engge/Graphics/ResourceManager.hpp>
 #include <engge/Entities/Objects/ObjectAnimation.hpp>

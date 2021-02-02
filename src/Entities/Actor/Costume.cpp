@@ -6,7 +6,6 @@
 #include <engge/Entities/Actor/Costume.hpp>
 #include <engge/Engine/EngineSettings.hpp>
 #include <engge/System/Locator.hpp>
-#include <engge/Parsers/GGPackValue.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
 #include <engge/Room/Room.hpp>
 #include "../../System/_Util.hpp"
@@ -117,8 +116,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   if (!costumePath.has_extension()) {
     costumePath.replace_extension(".json");
   }
-  GGPackValue hash;
-  Locator<EngineSettings>::get().readEntry(costumePath.string(), hash);
+  auto hash = Locator<EngineSettings>::get().readEntry(costumePath.string());
   if (costumeSheet.empty()) {
     costumeSheet = hash["sheet"].getString();
   }

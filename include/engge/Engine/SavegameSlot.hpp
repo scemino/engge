@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <string>
 #include <ngf/System/TimeSpan.h>
 
@@ -8,7 +9,7 @@ public:
   int slot{0};
   time_t savetime{};
   ngf::TimeSpan gametime;
-  std::string path;
+  std::filesystem::path path;
   bool easyMode{false};
 
   [[nodiscard]] std::wstring getSaveTimeString() const;

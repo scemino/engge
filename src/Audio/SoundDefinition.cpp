@@ -18,8 +18,7 @@ SoundDefinition::~SoundDefinition() = default;
 void SoundDefinition::load() {
   if (_isLoaded)
     return;
-  std::vector<char> buffer;
-  Locator<EngineSettings>::get().readEntry(_path, buffer);
+  auto buffer = Locator<EngineSettings>::get().readBuffer(_path);
   _isLoaded = _buffer.loadFromMemory(buffer.data(), buffer.size());
   if (!_isLoaded) {
     error("Can't load the sound {}", _path);
