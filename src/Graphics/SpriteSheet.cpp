@@ -1,7 +1,7 @@
 #include <ngf/IO/Json/JsonParser.h>
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/System/Locator.hpp"
-#include "../System/_Util.hpp"
+#include "../Util/Util.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
 
 namespace ng {

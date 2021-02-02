@@ -6,7 +6,7 @@
 namespace ng {
 class Engine;
 
-class EngineDialogScript : public DialogScriptAbstract {
+class EngineDialogScript final : public DialogScriptAbstract {
 public:
   explicit EngineDialogScript(Engine &engine);
   ~EngineDialogScript() override = default;

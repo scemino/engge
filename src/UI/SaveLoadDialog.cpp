@@ -1,13 +1,11 @@
 #include <filesystem>
 #include <string>
 #include <engge/UI/SaveLoadDialog.hpp>
-#include "_ControlConstants.hpp"
+#include "ControlConstants.hpp"
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/Screen.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
-#include <engge/Util/Util.hpp>
-#include "_Button.hpp"
-#include <imgui.h>
+#include "Button.hpp"
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <engge/Graphics/Text.hpp>
@@ -48,7 +46,7 @@ struct SaveLoadDialog::Impl {
       auto textRect = ng::getGlobalBounds(_text);
       ngf::Color color;
       if (textRect.contains(pos)) {
-        color = _ControlConstants::HoveColor;
+        color = ControlConstants::HoveColor;
         bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
         ImGuiIO &io = ImGui::GetIO();
         if (!io.WantCaptureMouse && _wasMouseDown && !isDown && _callback) {
@@ -56,7 +54,7 @@ struct SaveLoadDialog::Impl {
         }
         _wasMouseDown = isDown;
       } else {
-        color = _ControlConstants::NormalColor;
+        color = ControlConstants::NormalColor;
       }
       _text.setColor(color);
     }

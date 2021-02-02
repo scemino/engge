@@ -18,7 +18,7 @@ struct DialogSlot {
   mutable glm::vec2 pos;
 };
 
-class DialogManager : public ngf::Drawable {
+class DialogManager final : public ngf::Drawable {
 public:
   void setEngine(Engine *pEngine);
   void start(const std::string &actor, const std::string &name, const std::string &node);

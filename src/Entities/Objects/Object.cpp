@@ -13,7 +13,7 @@
 #include <engge/Audio/SoundTrigger.hpp>
 #include <engge/Engine/Trigger.hpp>
 #include <engge/Engine/Preferences.hpp>
-#include <System/_Util.hpp>
+#include "../../Util/Util.hpp"
 #include <sstream>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>

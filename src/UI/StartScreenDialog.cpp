@@ -1,4 +1,4 @@
-#include "_Button.hpp"
+#include "Button.hpp"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Graphics/Screen.hpp"
@@ -27,7 +27,7 @@ struct StartScreenDialog::Impl {
 
   Engine *_pEngine{nullptr};
 
-  std::vector<_Button> _buttons;
+  std::vector<Button> _buttons;
   QuitDialog _quit;
   OptionsDialog _options;
   SaveLoadDialog _saveload;

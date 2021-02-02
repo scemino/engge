@@ -4,7 +4,7 @@
 
 namespace ng {
 class DialogContextAbstract;
-class ExpressionVisitor : public Ast::AstVisitor {
+class ExpressionVisitor final : public Ast::AstVisitor {
 public:
   explicit ExpressionVisitor(DialogContextAbstract &ctx);
   ~ExpressionVisitor() override;

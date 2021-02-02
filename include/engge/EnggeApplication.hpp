@@ -8,7 +8,7 @@
 #include <engge/Engine/Camera.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <glm/vec2.hpp>
-#include "../../src/System/_DebugTools.hpp"
+#include "../../src/System/DebugTools.hpp"
 
 namespace ng {
 
@@ -29,6 +29,6 @@ private:
   glm::ivec2 m_pos;
   bool m_isMousePressed{false};
   bool m_isKeyPressed{false};
-  std::unique_ptr<_DebugTools> m_debugTools;
+  std::unique_ptr<DebugTools> m_debugTools;
 };
 }

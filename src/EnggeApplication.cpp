@@ -74,7 +74,7 @@ void EnggeApplication::onInit() {
   m_engine = &ng::Locator<ng::Engine>::create();
   m_engine->setApplication(this);
   scriptEngine.setEngine(*m_engine);
-  m_debugTools = std::make_unique<ng::_DebugTools>(*m_engine);
+  m_debugTools = std::make_unique<ng::DebugTools>(*m_engine);
 
   Locator<CommandManager>::get().registerCommands({
                                                       {EngineCommands::ToggleDebug,
@@ -145,7 +145,7 @@ void EnggeApplication::onRender(ngf::RenderTarget &target) {
   if (m_engine)
     m_engine->draw(target);
   Application::onRender(target);
-  ng::_DebugFeatures::_renderTime = clock.getElapsedTime();
+  ng::DebugFeatures::_renderTime = clock.getElapsedTime();
 }
 
 void EnggeApplication::onImGuiRender() {
@@ -159,7 +159,7 @@ void EnggeApplication::onUpdate(const ngf::TimeSpan &elapsed) {
   }
   ngf::StopWatch clock;
   m_engine->update(elapsed);
-  ng::_DebugFeatures::_updateTime = clock.getElapsedTime();
+  ng::DebugFeatures::_updateTime = clock.getElapsedTime();
 }
 
 void EnggeApplication::onQuit() {

@@ -5,7 +5,7 @@ namespace ng{
 
 class DialogConditionAbstract;
 
-class ConditionVisitor : public Ast::AstVisitor {
+class ConditionVisitor final : public Ast::AstVisitor {
 public:
   explicit ConditionVisitor(const DialogConditionAbstract &context);
   [[nodiscard]] bool isAccepted() const { return _isAccepted; }

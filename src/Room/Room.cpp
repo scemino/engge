@@ -11,7 +11,7 @@
 #include <engge/Entities/Objects/TextObject.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
-#include <System/_Util.hpp>
+#include "../Util/Util.hpp"
 #include <squirrel.h>
 #include <clipper.hpp>
 #include <algorithm>

@@ -38,7 +38,7 @@
 #include "../../extlibs/squirrel/squirrel/sqcompiler.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncstate.h"
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
-#include "../Entities/Actor/_TalkingState.hpp"
+#include "../Entities/Actor/TalkingState.hpp"
 #include "engge/System/Logger.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 #include <cmath>
@@ -54,14 +54,13 @@
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/Graphics/RenderTexture.h>
 #include <ngf/Graphics/RectangleShape.h>
-#include <engge/Util/Util.hpp>
 #include <engge/Graphics/Text.hpp>
 #include <imgui.h>
 #include "engge/Engine/EngineSettings.hpp"
 #include "engge/Input/CommandManager.hpp"
 #include "engge/Engine/EngineCommands.hpp"
-#include "_DebugFeatures.hpp"
-#include "../Graphics/_WalkboxDrawable.hpp"
+#include "DebugFeatures.hpp"
+#include "../Graphics/WalkboxDrawable.hpp"
 #include "../Graphics/GraphDrawable.hpp"
 namespace fs = std::filesystem;
 
@@ -1351,7 +1350,7 @@ struct Engine::Impl {
   std::unordered_set<Input, InputHash> _oldKeyDowns;
   std::unordered_set<Input, InputHash> _newKeyDowns;
   EngineState _state{EngineState::StartScreen};
-  _TalkingState _talkingState;
+  TalkingState _talkingState;
   int _showDrawWalkboxes{0};
   OptionsDialog _optionsDialog;
   StartScreenDialog _startScreenDialog;
@@ -2022,14 +2021,14 @@ void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
 
   if (_showDrawWalkboxes & 4) {
     for (const auto &walkbox : _pRoom->getWalkboxes()) {
-      _WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
+      WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
 
   if (_showDrawWalkboxes & 1) {
     for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
-      _WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
+      WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
@@ -2210,7 +2209,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
   if (pObj1) {
     s.append(L" ").append(getDisplayName(ng::Engine::getText(pObj1->getName())));
-    if (_DebugFeatures::showHoveredObject) {
+    if (DebugFeatures::showHoveredObject) {
       if (pObj1) {
         s.append(L"(").append(towstring(pObj1->getKey())).append(L")");
       }
@@ -2227,7 +2226,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   text.setWideString(s);
 
   // do display cursor position:
-  if (_DebugFeatures::showCursorPosition) {
+  if (DebugFeatures::showCursorPosition) {
     std::wstringstream ss;
     std::wstring txt = text.getWideString();
     ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y

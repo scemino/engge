@@ -4,7 +4,7 @@
 #include "engge/Dialog/DialogManager.hpp"
 
 namespace ng {
-class GeneralTools {
+class GeneralTools final {
 public:
   explicit GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable)
       : m_engine(engine), m_textureVisible(textureVisible), m_consoleVisible(consoleVisible),
@@ -17,7 +17,7 @@ public:
     getStack(stack);
     ImGui::Combo(s.str().c_str(),
                  &m_selectedStack,
-                 _DebugControls::stringGetter,
+                 DebugControls::stringGetter,
                  static_cast<void *>(&stack),
                  stack.size());
     ImGui::Text("In cutscene: %s", m_engine.inCutscene() ? "yes" : "no");
@@ -41,8 +41,8 @@ public:
     if (ImGui::SliderFloat("Game speed factor", &gameSpeedFactor, 0.f, 5.f)) {
       m_engine.getPreferences().setUserPreference(PreferenceNames::EnggeGameSpeedFactor, gameSpeedFactor);
     }
-    ImGui::Checkbox("Show cursor position", &_DebugFeatures::showCursorPosition);
-    ImGui::Checkbox("Show hovered object", &_DebugFeatures::showHoveredObject);
+    ImGui::Checkbox("Show cursor position", &DebugFeatures::showCursorPosition);
+    ImGui::Checkbox("Show hovered object", &DebugFeatures::showHoveredObject);
     ImGui::Checkbox("Textures", &m_textureVisible);
     ImGui::Checkbox("Console", &m_consoleVisible);
     ImGui::SameLine();

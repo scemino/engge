@@ -38,7 +38,7 @@ public:
 };
 
 class DialogScriptAbstract;
-class DialogPlayer : public DialogContextAbstract, public DialogConditionAbstract {
+class DialogPlayer final : public DialogContextAbstract, public DialogConditionAbstract {
 private:
   DialogScriptAbstract &_script;
 

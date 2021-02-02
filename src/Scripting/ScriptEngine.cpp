@@ -16,15 +16,15 @@
 #include "engge/Audio/SoundDefinition.hpp"
 #include "engge/Scripting/VerbExecute.hpp"
 #include "ScriptEngine.inl"
-#include "_SystemPack.hpp"
-#include "_GeneralPack.hpp"
-#include "_ObjectPack.hpp"
-#include "_ActorPack.hpp"
-#include "_RoomPack.hpp"
-#include "_SoundPack.hpp"
-#include "_DefaultScriptExecute.hpp"
-#include "_DefaultVerbExecute.hpp"
-#include "_bnutPass.hpp"
+#include "SystemPack.hpp"
+#include "GeneralPack.hpp"
+#include "ObjectPack.hpp"
+#include "ActorPack.hpp"
+#include "RoomPack.hpp"
+#include "SoundPack.hpp"
+#include "DefaultScriptExecute.hpp"
+#include "DefaultVerbExecute.hpp"
+#include "BnutPass.hpp"
 #include "engge/Input/InputConstants.hpp"
 #include "engge/Engine/InputStateConstants.hpp"
 
@@ -254,17 +254,17 @@ ScriptEngine::~ScriptEngine() {
 
 void ScriptEngine::setEngine(Engine &engine) {
   g_pEngine = &engine;
-  auto pVerbExecute = std::make_unique<_DefaultVerbExecute>(engine);
+  auto pVerbExecute = std::make_unique<DefaultVerbExecute>(engine);
   engine.setVerbExecute(std::move(pVerbExecute));
-  auto pScriptExecute = std::make_unique<_DefaultScriptExecute>(_vm);
+  auto pScriptExecute = std::make_unique<DefaultScriptExecute>(_vm);
   engine.setScriptExecute(std::move(pScriptExecute));
 
-  registerPack<_ActorPack>();
-  registerPack<_GeneralPack>();
-  registerPack<_ObjectPack>();
-  registerPack<_RoomPack>();
-  registerPack<_SoundPack>();
-  registerPack<_SystemPack>();
+  registerPack<ActorPack>();
+  registerPack<GeneralPack>();
+  registerPack<ObjectPack>();
+  registerPack<RoomPack>();
+  registerPack<SoundPack>();
+  registerPack<SystemPack>();
 }
 
 Engine &ScriptEngine::getEngine() { return *g_pEngine; }

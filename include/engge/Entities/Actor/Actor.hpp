@@ -17,31 +17,31 @@ public:
   explicit Actor(Engine &engine);
   ~Actor() override;
 
-  std::wstring getTranslatedName() const;
+  [[nodiscard]] std::wstring getTranslatedName() const;
 
-  std::string getIcon() const;
+  [[nodiscard]] std::string getIcon() const;
 
   void useWalkboxes(bool use);
-  bool useWalkboxes() const;
+  [[nodiscard]] bool useWalkboxes() const;
 
-  int getZOrder() const override;
+  [[nodiscard]] int getZOrder() const override;
 
   void setCostume(const std::string &name, const std::string &sheet = "");
-  Costume &getCostume() const;
+  [[nodiscard]] Costume &getCostume() const;
   Costume &getCostume();
 
   Room *getRoom() override;
-  const Room *getRoom() const override;
+  [[nodiscard]] const Room *getRoom() const override;
   void setRoom(Room *pRoom);
 
   void setFps(int fps) override;
-  int getFps() const;
+  [[nodiscard]] int getFps() const;
 
   void setHotspot(const ngf::irect &hotspot);
-  ngf::irect getHotspot() const;
+  [[nodiscard]] ngf::irect getHotspot() const;
   void showHotspot(bool show);
-  bool isHotspotVisible() const;
-  bool contains(const glm::vec2 &pos) const;
+  [[nodiscard]] bool isHotspotVisible() const;
+  [[nodiscard]] bool contains(const glm::vec2 &pos) const;
 
   void update(const ngf::TimeSpan &time) override;
 
@@ -50,27 +50,27 @@ public:
   void giveTo(Object *pObject, Actor *pActor);
   void removeInventory(Object *pObject);
   void clearInventory();
-  const std::vector<Object *> &getObjects() const;
+  [[nodiscard]] const std::vector<Object *> &getObjects() const;
   void setInventoryOffset(int offset);
-  int getInventoryOffset() const;
+  [[nodiscard]] int getInventoryOffset() const;
 
   void setWalkSpeed(const glm::ivec2 &speed);
-  const glm::ivec2 &getWalkSpeed() const;
+  [[nodiscard]] const glm::ivec2 &getWalkSpeed() const;
 
   std::vector<glm::vec2> walkTo(const glm::vec2 &destination, std::optional<Facing> facing = std::nullopt);
   void stopWalking();
-  bool isWalking() const;
+  [[nodiscard]] bool isWalking() const;
 
-  bool isInventoryObject() const override;
+  [[nodiscard]] bool isInventoryObject() const override;
 
   void setVolume(float volume);
-  std::optional<float> getVolume() const override;
+  [[nodiscard]] std::optional<float> getVolume() const override;
 
   void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
   HSQOBJECT &getTable() override;
-  HSQOBJECT &getTable() const override;
-  float getScale() const override;
+  [[nodiscard]] HSQOBJECT &getTable() const override;
+  [[nodiscard]] float getScale() const override;
 
 private:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;

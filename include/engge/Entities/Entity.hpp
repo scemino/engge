@@ -130,7 +130,6 @@ public:
 
 private:
   static void update(Motor &motor, const ngf::TimeSpan &elapsed);
-  [[nodiscard]] glm::vec2 getRealPosition() const;
 
 protected:
   [[nodiscard]] std::vector<Entity *> getChildren() const;

@@ -15,7 +15,7 @@
 #include "engge/Audio/SoundTrigger.hpp"
 #include <glm/vec2.hpp>
 #include <ngf/Graphics/RectangleShape.h>
-#include "../../src/Graphics/_Path.hpp"
+#include "../../src/Graphics/PathDrawable.hpp"
 
 namespace ng {
 
@@ -106,7 +106,7 @@ struct Actor::Impl {
   WalkingState _walkingState;
   glm::ivec2 _speed{30, 15};
   std::optional<float> _volume;
-  std::shared_ptr<_Path> _path;
+  std::shared_ptr<PathDrawable> _path;
   HSQOBJECT _table{};
   bool _hotspotVisible{false};
   int _inventoryOffset{0};
@@ -369,7 +369,7 @@ std::vector<glm::vec2> Actor::walkTo(const glm::vec2 &destination, std::optional
     path.push_back(destination);
   }
 
-  pImpl->_path = std::make_unique<_Path>(path);
+  pImpl->_path = std::make_unique<PathDrawable>(path);
   if (ScriptEngine::rawExists(this, "preWalking")) {
     ScriptEngine::rawCall(this, "preWalking");
   }

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Dialog/_AstDump.hpp"
+#include "../Dialog/AstDump.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 #include <filesystem>
 #include <iostream>

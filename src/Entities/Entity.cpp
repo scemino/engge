@@ -7,7 +7,7 @@
 #include "engge/Audio/SoundTrigger.hpp"
 #include "engge/Engine/Camera.hpp"
 #include "engge/Engine/Trigger.hpp"
-#include "Actor/_TalkingState.hpp"
+#include "Actor/TalkingState.hpp"
 
 namespace ng {
 struct Entity::Impl {
@@ -27,7 +27,7 @@ struct Entity::Impl {
   bool _objectBumperCycle{true};
   ngf::Color _talkColor;
   glm::ivec2 _talkOffset{0, 0};
-  _TalkingState _talkingState;
+  TalkingState _talkingState;
   ngf::Transform _transform;
   Entity *_pParent{nullptr};
   std::vector<Entity *> _children;
@@ -113,10 +113,6 @@ void Entity::setPosition(const glm::vec2 &pos) {
 
 glm::vec2 Entity::getPosition() const {
   return pImpl->_transform.getPosition();
-}
-
-glm::vec2 Entity::getRealPosition() const {
-  return getPosition() + pImpl->_offset;
 }
 
 void Entity::setOffset(const glm::vec2 &offset) {

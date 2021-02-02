@@ -1,17 +1,17 @@
-#include "_ControlConstants.hpp"
+#include "ControlConstants.hpp"
 #include <engge/Graphics/FntFont.h>
 #include "engge/Engine/Engine.hpp"
 #include "engge/Graphics/Screen.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
 #include "engge/UI/QuitDialog.hpp"
-#include "_Button.hpp"
+#include "Button.hpp"
 #include <utility>
 #include <imgui.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
 
 namespace ng {
-class _BackButton : public ngf::Drawable {
+class BackButton final : public ngf::Drawable {
 public:
   typedef std::function<void()> Callback;
 
@@ -19,7 +19,7 @@ public:
     text.draw(target, states);
   }
 public:
-  _BackButton(int id, bool value, Callback callback, bool enabled = true)
+  BackButton(int id, bool value, Callback callback, bool enabled = true)
       : _id(id), _isEnabled(enabled), _value(value), _callback(std::move(callback)) {
   }
 
@@ -40,9 +40,9 @@ public:
     auto textRect = ng::getGlobalBounds(text);
     ngf::Color color;
     if (!_isEnabled) {
-      color = _ControlConstants::DisabledColor;
+      color = ControlConstants::DisabledColor;
     } else if (textRect.contains(pos)) {
-      color = _ControlConstants::HoveColor;
+      color = ControlConstants::HoveColor;
       bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
       ImGuiIO &io = ImGui::GetIO();
       if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
@@ -50,7 +50,7 @@ public:
       }
       _wasMouseDown = isDown;
     } else {
-      color = _ControlConstants::NormalColor;
+      color = ControlConstants::NormalColor;
     }
     text.setColor(color);
   }
@@ -75,7 +75,7 @@ struct QuitDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
   ng::Text _headingText;
-  std::vector<_BackButton> _buttons;
+  std::vector<BackButton> _buttons;
   Callback _callback{nullptr};
 
   void setHeading(int id) {

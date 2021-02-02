@@ -1,7 +1,7 @@
 #include "engge/Entities/Objects/TextObject.hpp"
 #include <engge/Graphics/Text.hpp>
 #include <engge/Room/Room.hpp>
-#include "../../System/_Util.hpp"
+#include "../../Util/Util.hpp"
 
 namespace ng {
 TextAlignment operator|=(TextAlignment &lhs, TextAlignment rhs) {

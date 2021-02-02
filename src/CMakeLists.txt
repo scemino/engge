@@ -33,6 +33,8 @@ set(SOURCES
         Entities/Actor/Actor.cpp
         Entities/Actor/BlinkState.cpp
         Entities/Actor/Costume.cpp
+        Entities/Actor/LipAnimation.cpp
+        Entities/Actor/TalkingState.cpp
         Entities/Entity.cpp
         Engine/EntityManager.cpp
         Entities/Objects/AnimControl.cpp
@@ -44,8 +46,8 @@ set(SOURCES
         Graphics/ResourceManager.cpp
         Graphics/SpriteSheet.cpp
         Graphics/GraphDrawable.cpp
-        Graphics/_WalkboxDrawable.cpp
-        Graphics/_Path.cpp
+        Graphics/WalkboxDrawable.cpp
+        Graphics/PathDrawable.cpp
         Graphics/Text.cpp
         Input/CommandManager.cpp
         Input/InputMappings.cpp
@@ -58,9 +60,9 @@ set(SOURCES
         Room/Room.cpp
         Room/RoomLayer.cpp
         Room/RoomScaling.cpp
-        Room/_RoomTrigger.cpp
+        Room/RoomTrigger.cpp
+        Room/RoomTriggerThread.cpp
         Scripting/ScriptEngine.cpp
-        System/_Util.cpp
         System/Logger.cpp
         UI/OptionsDialog.cpp
         UI/QuitDialog.cpp

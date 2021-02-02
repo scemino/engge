@@ -1,7 +1,7 @@
-#include "_Button.hpp"
-#include "_Checkbox.hpp"
-#include "_Slider.hpp"
-#include "_SwitchButton.hpp"
+#include "Button.hpp"
+#include "Checkbox.hpp"
+#include "Slider.hpp"
+#include "SwitchButton.hpp"
 #include "engge/Audio/SoundManager.hpp"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Preferences.hpp"
@@ -68,10 +68,10 @@ struct OptionsDialog::Impl {
   SpriteSheet _saveLoadSheet;
 
   ng::Text _headingText;
-  std::vector<_Button> _buttons;
-  std::vector<_SwitchButton> _switchButtons;
-  std::vector<_Checkbox> _checkboxes;
-  std::vector<_Slider> _sliders;
+  std::vector<Button> _buttons;
+  std::vector<SwitchButton> _switchButtons;
+  std::vector<Checkbox> _checkboxes;
+  std::vector<Slider> _sliders;
   bool _showQuit{false};
   bool _showSaveLoad{false};
   QuitDialog _quit;
@@ -140,7 +140,7 @@ struct OptionsDialog::Impl {
       _buttons.emplace_back(Ids::Back, getSlotPos(9), [this]() {
         if (_callback)
           _callback();
-      }, true, _Button::Size::Medium);
+      }, true, Button::Size::Medium);
       break;
     case State::Sound:setHeading(Ids::Sound);
       _sliders.emplace_back(Ids::SoundVolume,
@@ -171,7 +171,7 @@ struct OptionsDialog::Impl {
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
                             true,
-                            _Button::Size::Medium);
+                            Button::Size::Medium);
       break;
     case State::Video:setHeading(Ids::Video);
       _checkboxes.emplace_back(Ids::Fullscreen, getSlotPos(1), true,
@@ -206,7 +206,7 @@ struct OptionsDialog::Impl {
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
                             true,
-                            _Button::Size::Medium);
+                            Button::Size::Medium);
       break;
     case State::Controls:setHeading(Ids::Controls);
       _checkboxes.emplace_back(Ids::Controller, getSlotPos(1), false,
@@ -256,7 +256,7 @@ struct OptionsDialog::Impl {
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
                             true,
-                            _Button::Size::Medium);
+                            Button::Size::Medium);
       break;
     case State::TextAndSpeech:setHeading(Ids::TextAndSpeech);
       _sliders.emplace_back(Ids::TextSpeed, getSlotPos(1), true,
@@ -287,9 +287,9 @@ struct OptionsDialog::Impl {
                                  }
                                  setUserPreference(PreferenceNames::HearVoice, value);
                                });
-      _switchButtons.push_back(_SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText,
-                                              Ids::SpanishText}, getSlotPos(5), true,
-                                             getLanguageUserPreference(), [this](auto index) {
+      _switchButtons.push_back(SwitchButton({Ids::EnglishText, Ids::FrenchText, Ids::ItalianText, Ids::GermanText,
+                                             Ids::SpanishText}, getSlotPos(5), true,
+                                            getLanguageUserPreference(), [this](auto index) {
             _isDirty = true;
             setUserPreference(PreferenceNames::Language, LanguageValues[index]);
           }));
@@ -297,7 +297,7 @@ struct OptionsDialog::Impl {
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
                             true,
-                            _Button::Size::Medium);
+                            Button::Size::Medium);
       break;
     case State::Help:setHeading(Ids::Help);
       _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this]() {
@@ -311,7 +311,7 @@ struct OptionsDialog::Impl {
                             getSlotPos(9),
                             [this]() { updateState(State::Main); },
                             true,
-                            _Button::Size::Medium);
+                            Button::Size::Medium);
       break;
     default:updateState(State::Main);
       break;
