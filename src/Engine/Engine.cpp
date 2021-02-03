@@ -307,7 +307,9 @@ void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
 
 void Engine::update(const ngf::TimeSpan &el) {
   roomEffect.RandomValue[0] = Locator<RandomNumberGenerator>::get().generateFloat(0, 1.f);
-  roomEffect.TimeLapse = fmod(_pImpl->_time.getTotalSeconds(), 1000.f);
+  roomEffect.iGlobalTime = fmod(_pImpl->_time.getTotalSeconds(), 1000.f);
+  roomEffect.TimeLapse = roomEffect.iGlobalTime;
+
   auto gameSpeedFactor =
       getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor,
                                          PreferenceDefaultValues::EnggeGameSpeedFactor);
@@ -518,13 +520,15 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
       _pImpl->_roomShader.load(_vertexShader, _ghostFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_SEPIA) {
       _pImpl->_roomShader.load(_vertexShader, _sepiaFragmentShader);
+    } else if (effect == RoomEffectConstants::EFFECT_VHS) {
+      _pImpl->_roomShader.load(_vertexShader, _vhsFragmentShader);
     }
     _pImpl->_roomEffect = effect;
   }
   states.shader = &_pImpl->_roomShader;
   if (effect == RoomEffectConstants::EFFECT_GHOST) {
     // don't remove the fmod function or you will have float overflow with the shader and the effect will look strange
-    _pImpl->_roomShader.setUniform("iGlobalTime", fmod(_pImpl->_time.getTotalSeconds(), 1000.f));
+    _pImpl->_roomShader.setUniform("iGlobalTime", roomEffect.iGlobalTime);
     _pImpl->_roomShader.setUniform("iFade", roomEffect.iFade);
     _pImpl->_roomShader.setUniform("wobbleIntensity", roomEffect.wobbleIntensity);
     _pImpl->_roomShader.setUniform("shadows", roomEffect.shadows);
@@ -534,7 +538,10 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
     _pImpl->_roomShader.setUniform("sepiaFlicker", roomEffect.sepiaFlicker);
     _pImpl->_roomShader.setUniformArray("RandomValue", roomEffect.RandomValue.data(), 5);
     _pImpl->_roomShader.setUniform("TimeLapse", roomEffect.TimeLapse);
-  } else if (effect != RoomEffectConstants::EFFECT_BLACKANDWHITE && effect != RoomEffectConstants::EFFECT_EGA) {
+  } else if (effect == RoomEffectConstants::EFFECT_VHS) {
+    _pImpl->_roomShader.setUniform("iGlobalTime", roomEffect.iGlobalTime);
+    _pImpl->_roomShader.setUniform("iNoiseThreshold", roomEffect.iNoiseThreshold);
+  } else if (effect == RoomEffectConstants::EFFECT_NONE) {
     states.shader = nullptr;
   }
 

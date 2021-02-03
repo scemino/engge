@@ -545,6 +545,108 @@ void main(void)
 }
 )";
 
+const char *_vhsFragmentShader =
+    R"(#version 100
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform float iGlobalTime;
+uniform float iNoiseThreshold;
+uniform sampler2D u_texture;
+
+varying vec2 v_texCoords;
+
+float hash( float Input )
+{
+    return fract(sin(Input)*43758.5453123);
+}
+
+float rand(vec2 Input)
+{
+    float dt= dot(Input, vec2(12.9898,78.233));
+    float sn= mod(dt,3.14);
+    return hash(sn);
+}
+
+// 1d noise function
+float noise1d( float x )
+{
+    float p = floor(x);
+    float f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p + 57.0 + 113.0;
+
+    return mix( hash(n), hash(n+1.0),f);
+}
+
+// 2d noise function
+float noise2d( vec2 x )
+{
+    vec2 p = floor(x);
+    vec2 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0 + 113.0;
+
+    float a = mix( hash(n),      hash(n+ 1.0),f.x);
+    float b = mix( hash(n+57.0), hash(n+58.0),f.x);
+
+    return mix(a,b,f.y);
+}
+
+//tape noise
+float tapenoise()
+{
+    vec2 iResolution = vec2(1280,720);
+    float linesN = 250.0; //fields per seconds
+    float one_y = iResolution.y / linesN; //field line
+    vec2 p = floor(v_texCoords*iResolution.xy/one_y)*one_y;
+
+    float s = iGlobalTime;
+    vec2 fP = vec2(p.x+s, p.y);
+
+    float v = 0.3 + ( noise1d( p.y*.01 +s ) * noise1d( p.y*.011+1000.0+s ) * noise1d( p.y*.51+421.0+s ) * noise2d( fP * 100.0 ) );
+
+    // if ( v < iNoiseThreshold ) v = 0.0;
+
+    // Same as above, without if
+    v *= step(iNoiseThreshold, v);
+
+    return v;
+}
+
+
+void main(void)
+{
+    // Apply a vhs-style distortion.
+    const float magnitude = 0.000003;
+    vec2 colRuv = vec2(v_texCoords.x + (rand(vec2(iGlobalTime*0.03,v_texCoords.y*0.42)) * 0.001 + sin(rand(vec2(iGlobalTime*0.2, v_texCoords.y)))*magnitude), v_texCoords.y);
+    vec2 colGuv = vec2(v_texCoords.x + (rand(vec2(iGlobalTime*0.004,v_texCoords.y*0.002)) * 0.004 + sin(iGlobalTime*9.0)*magnitude), v_texCoords.y);
+    vec2 colBuv = v_texCoords;
+
+    // Now make colours distort around edge
+    const float RADIUS = 0.85;
+    const float SOFTNESS = 0.65;
+
+    vec2 position = v_texCoords / vec2(0.6,1.0) - vec2(0.8,0.5) ;
+    float len = length(position);
+    float vignette = 1.0-smoothstep(RADIUS, RADIUS-SOFTNESS, len);
+
+    float angle = dot(position, v_texCoords) / (length(position)*length(v_texCoords));
+    vec2 screenPos = vec2(1.0)-( v_texCoords );
+    vec3 video;
+
+    video.r = texture2D(u_texture, colRuv-(vignette*(position*(len*0.015)))).r;
+    video.g = texture2D(u_texture, colGuv).g;
+    video.b = texture2D(u_texture, colBuv+(vignette*(position*(len*0.015)))).b;
+
+    // Now add the tape noise
+    video += vec3( tapenoise() );
+
+    gl_FragColor = vec4(video,1.0);
+}
+)";
+
 uint32_t toInteger(const ngf::Color &c) {
   auto r = static_cast<uint32_t>(c.r * 255u);
   auto g = static_cast<uint32_t>(c.g * 255u);
