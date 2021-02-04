@@ -1,3 +1,4 @@
+#include <engge/Engine/EngineSettings.hpp>
 #include "TalkingState.hpp"
 
 namespace ng {
@@ -165,18 +166,22 @@ void TalkingState::loadId(int id, const std::string &text, bool mumble) {
   std::wsmatch matches;
   std::string anim;
 
-  bool loadLipAnim = !mumble;
   if (std::regex_search(_sayText, matches, re)) {
     anim = tostring(matches[1].str());
     _sayText = matches.suffix();
     if (!pActor || anim == "notalk") {
-      loadLipAnim = false;
+      mumble = true;
     } else {
       pActor->getCostume().setState(anim);
     }
   }
 
-  if (pActor && loadLipAnim) {
+  // force mumble if there is no lip file see issue #234
+  if (!mumble) {
+    mumble = !Locator<EngineSettings>::get().hasEntry(path);
+  }
+
+  if (pActor && !mumble) {
     _lipAnim.load(path);
   } else {
     _lipAnim.clear();
