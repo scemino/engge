@@ -859,7 +859,7 @@ struct Engine::Impl {
       auto &states = _pImpl->_dialogManager.getStates();
       states.clear();
       for (auto &property : hash.items()) {
-        const auto& dialog = property.key();
+        const auto &dialog = property.key();
         // dialog format: mode dialog number actor
         // example: #ChetAgentStreetDialog14reyes
         // mode:
@@ -1044,7 +1044,7 @@ struct Engine::Impl {
 
     void loadObjects(const ngf::GGPackValue &hash) {
       for (auto &obj :  hash.items()) {
-        const auto& objName = obj.key();
+        const auto &objName = obj.key();
         if (objName.empty())
           continue;
         auto pObj = getObject(objName);
@@ -1147,7 +1147,7 @@ struct Engine::Impl {
 
     void loadRooms(const ngf::GGPackValue &hash) {
       for (auto &roomHash :  hash.items()) {
-        const auto& roomName = roomHash.key();
+        const auto &roomName = roomHash.key();
         auto pRoom = getRoom(roomName);
         if (!pRoom) {
           trace("load: room '{}' not loaded because it has not been found", roomName);
@@ -1395,8 +1395,8 @@ struct Engine::Impl {
           if (saveJiggle) {
             ngf::GGPackValue jiggle;
             std::copy(jiggleArray.cbegin(),
-                           jiggleArray.cend(),
-                           std::back_inserter(jiggle));
+                      jiggleArray.cend(),
+                      std::back_inserter(jiggle));
             actorSlot["jiggle"] = jiggle;
           }
         } else {
@@ -1850,6 +1850,11 @@ void Engine::Impl::run(bool state) {
 }
 
 void Engine::Impl::setCurrentRoom(Room *pRoom) {
+  // reset fade effect if we change the room except for wobble effect
+  if (_fadeEffect.effect != FadeEffect::Wobble) {
+    _fadeEffect.effect = FadeEffect::None;
+  }
+
   if (pRoom) {
     ScriptEngine::set("currentRoom", pRoom);
   }
