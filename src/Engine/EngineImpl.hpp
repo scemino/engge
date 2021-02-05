@@ -936,7 +936,7 @@ struct Engine::Impl {
       getValue(actorHash, "_color", color);
       pActor->setColor(color);
 
-      glm::vec2 pos;
+      glm::vec2 pos{0, 0};
       getValue(actorHash, "_pos", pos);
       pActor->setPosition(pos);
 
@@ -973,15 +973,15 @@ struct Engine::Impl {
       getValue(actorHash, "_volume", volume);
       pActor->setVolume(volume);
 
-      glm::vec2 usePos;
+      glm::vec2 usePos{0, 0};
       getValue(actorHash, "_usePos", usePos);
       pActor->setUsePosition(usePos);
 
-      glm::vec2 renderOffset = glm::vec2(0, 45);
+      glm::vec2 renderOffset{0, 45};
       getValue(actorHash, "_renderOffset", renderOffset);
       pActor->setRenderOffset((glm::ivec2) renderOffset);
 
-      glm::vec2 offset;
+      glm::vec2 offset{0, 0};
       getValue(actorHash, "_offset", offset);
       pActor->setOffset(offset);
 
@@ -1102,7 +1102,7 @@ struct Engine::Impl {
       ScriptEngine::rawGet(pObj, "initTouchable", touchable);
       getValue(hash, "_touchable", touchable);
       pObj->setTouchable(touchable);
-      glm::vec2 offset;
+      glm::vec2 offset{0, 0};
       getValue(hash, "_offset", offset);
       pObj->setOffset(offset);
       bool hidden = false;
