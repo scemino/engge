@@ -122,7 +122,10 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   }
 
   _costumeSheet.setTextureManager(&_textureManager);
-  _costumeSheet.load(costumeSheet);
+
+  if (!costumeSheet.empty()) {
+    _costumeSheet.load(costumeSheet);
+  }
 
   // load animations
   _animations.clear();
