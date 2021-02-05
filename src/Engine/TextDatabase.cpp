@@ -33,7 +33,6 @@ std::wstring TextDatabase::getText(int id) const {
   }
   auto text = it->second;
   replaceAll(text, L"\\\"", L"\"");
-  removeFirstParenthesis(text);
   return text;
 }
 

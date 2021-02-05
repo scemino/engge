@@ -102,11 +102,15 @@ ResourceManager &Engine::getResourceManager() { return _pImpl->_textureManager; 
 Room *Engine::getRoom() { return _pImpl->_pRoom; }
 
 std::wstring Engine::getText(int id) {
-  return Locator<TextDatabase>::get().getText(id);
+  auto text = Locator<TextDatabase>::get().getText(id);
+  removeFirstParenthesis(text);
+  return text;
 }
 
 std::wstring Engine::getText(const std::string &text) {
-  return Locator<TextDatabase>::get().getText(text);
+  auto text2 = Locator<TextDatabase>::get().getText(text);
+  removeFirstParenthesis(text2);
+  return text2;
 }
 
 void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
@@ -870,12 +874,7 @@ std::wstring SavegameSlot::getSaveTimeString() const {
   // time format: "%b %d at %H:%M"
   auto format = Locator<TextDatabase>::get().getText(99944);
   wcsftime(buffer, 120, format.data(), ltm);
-  std::wstring s(buffer);
-  if (easyMode) {
-    s.append(1, L' ');
-    s.append(Locator<TextDatabase>::get().getText(99955));
-  }
-  return s;
+  return buffer;
 }
 
 std::wstring SavegameSlot::getGameTimeString() const {

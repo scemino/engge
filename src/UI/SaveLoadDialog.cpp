@@ -12,6 +12,7 @@
 #include <engge/Graphics/FntFont.h>
 #include <engge/Engine/EngineSettings.hpp>
 #include <engge/System/Locator.hpp>
+#include <engge/Engine/TextDatabase.hpp>
 
 namespace ng {
 struct SaveLoadDialog::Impl {
@@ -96,6 +97,10 @@ struct SaveLoadDialog::Impl {
         saveTimeText = ng::Engine::getText(AutosaveId);
       } else {
         saveTimeText = slot.getSaveTimeString();
+      }
+      if (slot.easyMode) {
+        saveTimeText.append(1, L' ');
+        saveTimeText.append(Locator<TextDatabase>::get().getText(99955));
       }
       _saveTimeText.setWideString(saveTimeText);
       _saveTimeText.setFont(uiFontSmallBold);
