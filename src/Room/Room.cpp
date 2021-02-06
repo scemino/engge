@@ -707,12 +707,16 @@ void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
 }
 
 void Room::drawForeground(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
+  ngf::RenderStates states;
+  states.shader = &pImpl->_lightingShader;
+  pImpl->_lightingShader.setNumberLights(0);
+  pImpl->_lightingShader.setAmbientColor(ngf::Colors::White);
+
   for (const auto &layer : pImpl->_layers) {
     auto parallax = layer.second->getParallax();
     ngf::Transform t;
     t.setPosition({-cameraPos.x * parallax.x, cameraPos.y * parallax.y});
 
-    ngf::RenderStates states;
     states.transform = t.getTransform();
     layer.second->drawForeground(target, states);
   }

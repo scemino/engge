@@ -70,7 +70,8 @@ public:
   [[nodiscard]] bool isInventoryObject() const override;
 
   void setHotspot(const ngf::irect &hotspot);
-  [[nodiscard]] const ngf::irect &getHotspot() const;
+  [[nodiscard]] ngf::irect getHotspot() const;
+
   [[nodiscard]] ngf::irect getRealHotspot() const;
   void showDebugHotspot(bool show);
   [[nodiscard]] bool isHotspotVisible() const;

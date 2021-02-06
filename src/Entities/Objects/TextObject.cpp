@@ -43,7 +43,7 @@ void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const
   txt.setWideString(_text);
   txt.setMaxWidth(static_cast<float>(_maxWidth));
   auto bounds = txt.getLocalBounds();
-  glm::vec2 offset;
+  glm::vec2 offset{0, 0};
   if (_alignment & TextAlignment::Center) {
     offset.x = getScale() * -bounds.getWidth() / 2;
   } else if (_alignment & TextAlignment::Right) {
@@ -63,7 +63,7 @@ void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const
 
   if (getScreenSpace() == ScreenSpace::Object) {
     ngf::RenderStates s;
-    s.transform *= transformable.getTransform();
+    s.transform = transformable.getTransform();
     txt.draw(target, s);
     target.setView(view);
   } else {

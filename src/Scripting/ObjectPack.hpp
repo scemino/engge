@@ -296,7 +296,11 @@ private:
     if (!obj) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    obj->setScreenSpace(ScreenSpace::Object);
+    SQInteger enable = 1;
+    if (sq_gettop(v) == 3) {
+      sq_getinteger(v, 3, &enable);
+    }
+    obj->setScreenSpace(enable ? ScreenSpace::Object : ScreenSpace::Room);
     return 0;
   }
 

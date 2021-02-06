@@ -620,14 +620,6 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   fadeSprite.getTransform().setRotation(_pImpl->_pRoom->getRotation());
   fadeSprite.draw(target, states);
 
-  // draw walkboxes, actor texts
-  auto orgView = target.getView();
-  target.setView(view);
-  _pImpl->drawWalkboxes(target);
-  _pImpl->_talkingState.draw(target, {});
-  _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
-  target.setView(orgView);
-
   // if we take a screenshot (for savegame) then stop drawing
   if (screenshot)
     return;
@@ -635,6 +627,14 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   // draw dialogs, hud
   _pImpl->_dialogManager.draw(target, {});
   _pImpl->drawHud(target);
+
+  // draw walkboxes, actor texts
+  auto orgView = target.getView();
+  target.setView(view);
+  _pImpl->drawWalkboxes(target);
+  _pImpl->_talkingState.draw(target, {});
+  _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+  target.setView(orgView);
 
   // draw actor icons
   if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)

@@ -175,7 +175,8 @@ void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   inventoryShape.setTextureRect(inventoryRect);
   for (auto i = 0; i < 8; i++) {
     inventoryShape.getTransform().setPosition(_inventoryRects[i].getTopLeft());
-    inventoryShape.getTransform().setOrigin({_inventoryRects[i].getWidth() / 2.f, _inventoryRects[i].getHeight() / 2.f});
+    inventoryShape.getTransform().setOrigin({_inventoryRects[i].getWidth() / 2.f,
+                                             _inventoryRects[i].getHeight() / 2.f});
     inventoryShape.draw(target);
   }
 
@@ -197,7 +198,8 @@ void Inventory::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
     auto rect = _inventoryItems.getRect(icon);
     auto spriteSourceSize = _inventoryItems.getSpriteSourceSize(icon);
     auto sourceSize = _inventoryItems.getSourceSize(icon);
-    glm::vec2 origin(sourceSize.x / 2.f - spriteSourceSize.getTopLeft().x, sourceSize.y / 2.f - spriteSourceSize.getTopLeft().y);
+    glm::vec2 origin
+        (sourceSize.x / 2.f - spriteSourceSize.getTopLeft().x, sourceSize.y / 2.f - spriteSourceSize.getTopLeft().y);
 
     ngf::Sprite sprite;
     sprite.getTransform().setOrigin(origin);
@@ -228,7 +230,7 @@ glm::vec2 Inventory::getPosition(Object *pObject) const {
   auto index = std::distance(objects.cbegin(), it);
   if (index >= inventoryOffset && index < (inventoryOffset + 8)) {
     const auto &rect = _inventoryRects.at(index - inventoryOffset);
-    return rect.getTopLeft();
+    return rect.getTopLeft() + rect.getSize() / 2.f;
   }
   return glm::vec2();
 }
