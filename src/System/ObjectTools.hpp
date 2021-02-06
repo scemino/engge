@@ -58,7 +58,7 @@ public:
         object->setLit(isLit);
       }
       auto state = object->getState();
-      if (ImGui::InputInt("State", &state)) {
+      if (ImGui::DragInt("State", &state)) {
         object->playAnim(state, false);
       }
       auto isTouchable = object->isTouchable();
@@ -66,23 +66,23 @@ public:
         object->setTouchable(isTouchable);
       }
       auto zorder = object->getZOrder();
-      if (ImGui::InputInt("Z-Order", &zorder)) {
+      if (ImGui::DragInt("Z-Order", &zorder)) {
         object->setZOrder(zorder);
       }
       auto pos = object->getPosition();
-      if (ngf::ImGui::InputFloat2("Position", &pos)) {
+      if (ImGui::DragFloat2("Position", &pos.x)) {
         object->setPosition(pos);
       }
       auto usePos = object->getUsePosition().value_or(glm::vec2());
-      if (ngf::ImGui::InputFloat2("Use Position", &usePos)) {
+      if (ImGui::DragFloat2("Use Position", &usePos.x)) {
         object->setUsePosition(usePos);
       }
       auto offset = object->getOffset();
-      if (ngf::ImGui::InputFloat2("Offset", &offset)) {
+      if (ImGui::DragFloat2("Offset", &offset.x)) {
         object->setOffset(offset);
       }
       auto renderOffset = object->getRenderOffset();
-      if (ngf::ImGui::InputInt2("Render Offset", &renderOffset)) {
+      if (ImGui::DragInt2("Render Offset", &renderOffset.x)) {
         object->setRenderOffset(renderOffset);
       }
       auto hotspotVisible = object->isHotspotVisible();
@@ -90,7 +90,7 @@ public:
         object->showDebugHotspot(hotspotVisible);
       }
       auto hotspot = object->getHotspot();
-      if (ngf::ImGui::InputInt4("Hotspot", &hotspot)) {
+      if (ImGui::DragInt4("Hotspot", &hotspot.min.x)) {
         object->setHotspot(hotspot);
       }
       auto color = object->getColor();
