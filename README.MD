@@ -14,6 +14,12 @@ It's still a project in active development, and there are a lot of issues, don't
 
 [![https://i.imgur.com/En75Mzx.png](https://i.imgur.com/En75Mzx.png)](https://www.youtube.com/watch?v=09VEPoX5SZk&t=1s)
 
+## Download
+
+You can download the prebuilt binaries for Window, Linux and macOS [here](https://github.com/scemino/engge/releases).
+
+Look at the assets 😉
+
 ## Prerequisites
 
 * Buy [Thimbleweed park](https://thimbleweedpark.com)
