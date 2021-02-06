@@ -25,7 +25,11 @@ void AnimControl::stop() {
 
 void AnimControl::pause() { m_anim->state = AnimState::Pause; }
 
-AnimState AnimControl::getState() const { return m_anim->state; }
+AnimState AnimControl::getState() const {
+  if (!m_anim)
+    return AnimState::Stopped;
+  return m_anim->state;
+}
 
 void AnimControl::update(const ngf::TimeSpan &e) {
   if (!m_anim)
