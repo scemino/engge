@@ -14,6 +14,7 @@ public:
     _text.draw(target, states);
     _sprite.draw(target, states);
   }
+
 public:
   Checkbox(int id, float y, bool enabled = true, bool checked = false, Callback callback = nullptr)
       : _id(id), _y(y), _isEnabled(enabled), _isChecked(checked), _callback(std::move(std::move(callback))) {

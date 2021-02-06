@@ -22,6 +22,7 @@ public:
   [[nodiscard]] float getAlpha() const {return _alpha;}
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+
 private:
   void drawUpArrow(ngf::RenderTarget &target) const;
   void drawDownArrow(ngf::RenderTarget &target) const;

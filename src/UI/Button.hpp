@@ -17,6 +17,7 @@ public:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
     text.draw(target, states);
   }
+
 public:
   Button(int id, float y, Callback callback, bool enabled = true, Size size = Size::Large)
       : _id(id), _isEnabled(enabled), _y(y), _callback(std::move(callback)), _size(size) {

@@ -69,6 +69,7 @@ public:
   void update(const ngf::TimeSpan &elapsed);
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+
 private:
   void updateAnimation();
 

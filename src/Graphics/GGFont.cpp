@@ -51,6 +51,5 @@ void GGFont::load(const std::string &path) {
     glyph.textureRect = frame;
     m_glyphs[key] = glyph;
   }
-
 }
 } // namespace ng

@@ -18,6 +18,7 @@ public:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
     text.draw(target, states);
   }
+
 public:
   BackButton(int id, bool value, Callback callback, bool enabled = true)
       : _id(id), _isEnabled(enabled), _value(value), _callback(std::move(callback)) {

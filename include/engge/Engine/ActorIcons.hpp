@@ -27,6 +27,7 @@ public:
   void setVisible(bool visible) { _visible = visible; }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+
 private:
   void drawActorIcon(ngf::RenderTarget &target, const std::string &icon, int actorSlot, const glm::vec2 &offset,
                      float alpha) const;

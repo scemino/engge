@@ -32,6 +32,7 @@ public:
   void choose(int choice);
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+
 private:
   void updateChoices(const ngf::TimeSpan &elapsed);
   void updateDialogSlots();

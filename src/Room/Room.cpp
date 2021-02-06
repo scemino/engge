@@ -688,7 +688,6 @@ void Room::update(const ngf::TimeSpan &elapsed) {
 }
 
 void Room::draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const {
-
   // update lighting
   auto nLights = pImpl->_numLights;
   pImpl->_lightingShader.setAmbientColor(pImpl->_ambientColor);
