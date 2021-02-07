@@ -2,6 +2,7 @@
 #include "engge/Entities/Objects/Object.hpp"
 #include "engge/Entities/Entity.hpp"
 #include "../../extlibs/squirrel/squirrel/sqobject.h"
+#include "../../extlibs/squirrel/squirrel/sqtable.h"
 
 namespace ng {
 template<>

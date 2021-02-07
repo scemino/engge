@@ -62,6 +62,11 @@ public:
                          const std::string &standAnim,
                          const std::string &walkAnim,
                          const std::string &reachAnim);
+  void getAnimationNames(std::string &headAnim,
+                         std::string &standAnim,
+                         std::string &walkAnim,
+                         std::string &reachAnim) const;
+
   void setActor(Actor *pActor) { _pActor = pActor; }
 
   void setBlinkRate(double min, double max);

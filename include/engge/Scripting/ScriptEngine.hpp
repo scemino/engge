@@ -2,6 +2,7 @@
 #include <cassert>
 #include <functional>
 #include <string>
+#include <squirrel.h>
 #include "../../../extlibs/squirrel/squirrel/sqobject.h"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Interpolations.hpp"

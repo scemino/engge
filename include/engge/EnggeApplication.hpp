@@ -8,7 +8,7 @@
 #include <engge/Engine/Camera.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <glm/vec2.hpp>
-#include "../../src/System/DebugTools.hpp"
+#include "System/DebugTools/DebugTools.hpp"
 
 namespace ng {
 

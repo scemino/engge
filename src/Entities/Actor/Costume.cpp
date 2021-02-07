@@ -282,6 +282,16 @@ void Costume::setAnimationNames(const std::string &headAnim,
   }
 }
 
+void Costume::getAnimationNames(std::string &headAnim,
+                                std::string &standAnim,
+                                std::string &walkAnim,
+                                std::string &reachAnim) const {
+  headAnim = _headAnimName;
+  standAnim = _standAnimName;
+  walkAnim = _walkAnimName;
+  reachAnim = _reachAnimName;
+}
+
 void Costume::setBlinkRate(double min, double max) {
   _blinkState.setRate(min, max);
 }

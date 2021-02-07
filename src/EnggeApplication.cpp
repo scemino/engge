@@ -1,5 +1,6 @@
 #include "engge/EnggeApplication.hpp"
 #include "engge/Input/InputMappings.hpp"
+#include "Engine/DebugFeatures.hpp"
 #include <ngf/Graphics/Colors.h>
 #include "engge/Engine/EngineCommands.hpp"
 

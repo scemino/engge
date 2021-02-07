@@ -63,6 +63,19 @@ set(SOURCES
         Room/RoomTrigger.cpp
         Room/RoomTriggerThread.cpp
         Scripting/ScriptEngine.cpp
+        System/DebugTools/ActorTools.cpp
+        System/DebugTools/CameraTools.cpp
+        System/DebugTools/Console.cpp
+        System/DebugTools/ConsoleTools.cpp
+        System/DebugTools/DebugControls.cpp
+        System/DebugTools/DebugTools.cpp
+        System/DebugTools/GeneralTools.cpp
+        System/DebugTools/ObjectTools.cpp
+        System/DebugTools/PreferencesTools.cpp
+        System/DebugTools/RoomTools.cpp
+        System/DebugTools/SoundTools.cpp
+        System/DebugTools/TextureTools.cpp
+        System/DebugTools/ThreadTools.cpp
         System/Logger.cpp
         UI/OptionsDialog.cpp
         UI/QuitDialog.cpp
