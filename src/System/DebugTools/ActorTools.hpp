@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 #include <engge/Entities/Entity.hpp>
-#include <engge/Entities/Actor/Costume.hpp>
+#include <engge/Entities/Costume.hpp>
 
 namespace ng {
 class Actor;

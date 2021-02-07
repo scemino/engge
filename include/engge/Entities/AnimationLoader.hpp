@@ -2,17 +2,17 @@
 #include <cstdlib>
 #include <glm/vec2.hpp>
 #include <engge/Entities/Entity.hpp>
-#include <engge/Entities/Objects/ObjectAnimation.hpp>
+#include <engge/Graphics/Animation.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
 
 namespace ng {
 class AnimationLoader final {
 public:
-  static std::vector<ObjectAnimation> parseAnimations(
+  static std::vector<Animation> parseAnimations(
       Entity &entity,
       const ngf::GGPackValue &gAnimations,
       const SpriteSheet &spriteSheet) {
-    std::vector<ObjectAnimation> anims;
+    std::vector<Animation> anims;
     if (gAnimations.isNull())
       return anims;
     for (const auto &gAnimation : gAnimations) {
@@ -35,11 +35,11 @@ private:
     return glm::ivec2{x, y};
   }
 
-  static ObjectAnimation parseAnimation(Entity &entity,
-                                        const ngf::GGPackValue &gAnimation,
-                                        const SpriteSheet &defaultSpriteSheet) {
+  static Animation parseAnimation(Entity &entity,
+                                  const ngf::GGPackValue &gAnimation,
+                                  const SpriteSheet &defaultSpriteSheet) {
     const SpriteSheet *spriteSheet = &defaultSpriteSheet;
-    ObjectAnimation anim;
+    Animation anim;
     if (gAnimation["sheet"].isString()) {
       spriteSheet = &Locator<ResourceManager>::get().getSpriteSheet(gAnimation["sheet"].getString());
     }

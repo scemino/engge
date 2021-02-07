@@ -1,67 +1,34 @@
 #pragma once
+#include <string>
 #include <squirrel.h>
-#include "engge/Scripting/ScriptObject.hpp"
-#include "engge/System/Locator.hpp"
-#include "engge/System/Logger.hpp"
-#include "EntityManager.hpp"
+#include <engge/Scripting/ScriptObject.hpp>
 
 namespace ng {
 class ThreadBase : public ScriptObject {
 protected:
-  ThreadBase() { _id = Locator<EntityManager>::get().getThreadId(); }
+  ThreadBase();
 
 public:
-  ~ThreadBase() override {
-    trace("stop thread {}", _id);
-  }
+  ~ThreadBase() override;
 
   [[nodiscard]] virtual HSQUIRRELVM getThread() const = 0;
   [[nodiscard]] virtual std::string getName() const = 0;
 
-  inline void setPauseable(bool value) { _isPauseable = value; }
-  [[nodiscard]] inline bool isPauseable() const { return _isPauseable; }
+  inline void setPauseable(bool value) { m_isPauseable = value; }
+  [[nodiscard]] inline bool isPauseable() const { return m_isPauseable; }
   [[nodiscard]] virtual bool isGlobal() const { return false; }
 
-  inline void stop() { _isStopped = true; }
+  void stop();
+  bool pause();
+  void suspend();
+  void resume();
 
-  bool pause() {
-    if (!_isPauseable)
-      return false;
-    suspend();
-    return true;
-  }
-
-  void suspend() {
-    if (isSuspended())
-      return;
-    sq_suspendvm(getThread());
-    _isSuspended = true;
-  }
-
-  void resume() {
-    if (!isSuspended())
-      return;
-    sq_wakeupvm(getThread(), SQFalse, SQFalse, SQTrue, SQFalse);
-    _isSuspended = false;
-  }
-
-  [[nodiscard]] bool isSuspended() const {
-    if (_isSuspended)
-      return true;
-    auto state = sq_getvmstate(getThread());
-    return state != SQ_VMSTATE_RUNNING;
-  }
-
-  [[nodiscard]] virtual bool isStopped() const {
-    if (_isStopped)
-      return true;
-    auto state = sq_getvmstate(getThread());
-    return state == SQ_VMSTATE_IDLE;
-  }
+  [[nodiscard]] bool isSuspended() const;
+  [[nodiscard]] virtual bool isStopped() const;
 
 private:
-  bool _isSuspended{false};
-  bool _isPauseable{true};
-  bool _isStopped{false};
+  bool m_isSuspended{false};
+  bool m_isPauseable{true};
+  bool m_isStopped{false};
 };
 }

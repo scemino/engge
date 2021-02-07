@@ -1,11 +1,13 @@
 #pragma once
-#include "engge/Engine/Engine.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Engine/Trigger.hpp"
+#include <engge/Engine/Trigger.hpp>
 #include <squirrel.h>
 #include <string>
+#include <vector>
 
 namespace ng {
+class Engine;
+class Object;
+
 class RoomTrigger : public Trigger {
 public:
   RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQOBJECT outside);

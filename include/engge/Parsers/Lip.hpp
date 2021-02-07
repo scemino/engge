@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 #include <ngf/System/TimeSpan.h>
 

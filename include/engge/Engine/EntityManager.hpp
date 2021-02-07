@@ -1,10 +1,10 @@
 #pragma once
 #include <squirrel.h>
-#include "engge/Room/Room.hpp"
-#include "Engine.hpp"
-#include "Light.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/System/Locator.hpp"
+#include <engge/Room/Room.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/Light.hpp>
+#include <engge/Entities/Object.hpp>
+#include <engge/System/Locator.hpp>
 
 namespace ng {
 class Actor;

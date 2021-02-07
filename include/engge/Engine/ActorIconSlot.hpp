@@ -1,14 +1,9 @@
 #pragma once
-#include "engge/Entities/Actor/Actor.hpp"
 
 namespace ng {
+class Actor;
 struct ActorIconSlot {
-  bool selectable;
-  Actor *pActor;
-
-  ActorIconSlot() {
-    selectable = false;
-    pActor = nullptr;
-  }
+  bool selectable{false};
+  Actor *pActor{nullptr};
 };
 } // namespace ng

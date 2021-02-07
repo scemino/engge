@@ -1,7 +1,7 @@
 #include "ObjectTools.hpp"
 #include <engge/Engine/Engine.hpp>
 #include <engge/Room/Room.hpp>
-#include <engge/Entities/Objects/Object.hpp>
+#include <engge/Entities/Object.hpp>
 #include <engge/Engine/Trigger.hpp>
 #include <ngf/Graphics/ImGuiExtensions.h>
 #include <sstream>

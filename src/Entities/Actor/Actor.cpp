@@ -1,21 +1,21 @@
-#include "engge/Entities/Actor/Actor.hpp"
-#include "engge/Engine/Camera.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Parsers/Lip.hpp"
-#include "engge/System/Locator.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Engine/EntityManager.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Room/Room.hpp"
-#include "engge/Room/RoomScaling.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/Audio/SoundId.hpp"
-#include "engge/Audio/SoundManager.hpp"
-#include "engge/Audio/SoundTrigger.hpp"
+#include <engge/Entities/Actor.hpp>
+#include <engge/Engine/Camera.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Parsers/Lip.hpp>
+#include <engge/System/Locator.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Engine/EntityManager.hpp>
+#include <engge/Entities/Object.hpp>
+#include <engge/Room/Room.hpp>
+#include <engge/Room/RoomScaling.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Audio/SoundId.hpp>
+#include <engge/Audio/SoundManager.hpp>
+#include <engge/Audio/SoundTrigger.hpp>
 #include <glm/vec2.hpp>
 #include <ngf/Graphics/RectangleShape.h>
-#include "../../src/Graphics/PathDrawable.hpp"
+#include "Graphics/PathDrawable.hpp"
 
 namespace ng {
 
@@ -30,7 +30,7 @@ bool frameContains(const SpriteSheetItem &frame, const glm::vec2 &pos) {
   return r.contains(pos);
 }
 
-bool animContains(const ObjectAnimation &anim, const glm::vec2 &pos) {
+bool animContains(const Animation &anim, const glm::vec2 &pos) {
   if (!anim.frames.empty() && frameContains(anim.frames[anim.frameIndex], pos))
     return true;
 

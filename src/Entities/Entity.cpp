@@ -10,6 +10,11 @@
 #include "Actor/TalkingState.hpp"
 
 namespace ng {
+struct Motor {
+  bool isEnabled{false};
+  std::unique_ptr<Function> function;
+};
+
 struct Entity::Impl {
   std::string _key;
   Engine &_engine;

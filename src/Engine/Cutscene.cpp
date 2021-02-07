@@ -1,8 +1,9 @@
-#include "engge/Engine/Camera.hpp"
-#include "engge/Engine/Cutscene.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
+#include <engge/Engine/Camera.hpp>
+#include <engge/Engine/Cutscene.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Engine/EntityManager.hpp>
 
 namespace ng {
 Cutscene::Cutscene(Engine &engine,

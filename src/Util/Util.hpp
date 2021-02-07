@@ -3,11 +3,11 @@
 #include <regex>
 #include <ngf/IO/GGPackValue.h>
 #include <ngf/Graphics/Sprite.h>
-#include "engge/Parsers/GGPackBufferStream.hpp"
-#include "engge/Entities/Actor/Costume.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/Graphics/Text.hpp"
+#include <engge/Parsers/GGPackBufferStream.hpp>
+#include <engge/Entities/Costume.hpp>
+#include <engge/Entities/Object.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/Graphics/Text.hpp>
 
 namespace ng {
 

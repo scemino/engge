@@ -1,14 +1,14 @@
 #include <filesystem>
 #include <iostream>
-#include <engge/Entities/Objects/AnimDrawable.hpp>
-#include <engge/Entities/Actor/Actor.hpp>
-#include <engge/Entities/Actor/BlinkState.hpp>
-#include <engge/Entities/Actor/Costume.hpp>
+#include <engge/Graphics/AnimDrawable.hpp>
+#include <engge/Entities/Actor.hpp>
+#include <engge/Entities/BlinkState.hpp>
+#include <engge/Entities/Costume.hpp>
 #include <engge/Engine/EngineSettings.hpp>
 #include <engge/System/Locator.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
 #include <engge/Room/Room.hpp>
-#include "../../Util/Util.hpp"
+#include "Util/Util.hpp"
 
 namespace fs = std::filesystem;
 

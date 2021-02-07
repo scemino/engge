@@ -1,6 +1,6 @@
 #pragma once
 #include "engge/Entities/Entity.hpp"
-#include "engge/Entities/Actor/Actor.hpp"
+#include "engge/Entities/Actor.hpp"
 #include "Verb.hpp"
 #include "Inventory.hpp"
 

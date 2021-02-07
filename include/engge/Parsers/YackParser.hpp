@@ -21,6 +21,7 @@ public:
   std::streampos start;
   std::streampos end;
 };
+
 class Expression : public Node {
 protected:
   Expression() = default;
@@ -38,6 +39,7 @@ public:
 private:
   int32_t _line;
 };
+
 class CodeCondition : public Condition {
 public:
   explicit CodeCondition(int32_t line);
@@ -47,6 +49,7 @@ public:
 
   std::string code;
 };
+
 class OnceCondition : public Condition {
 public:
   explicit OnceCondition(int32_t line);
@@ -54,6 +57,7 @@ public:
 
   void accept(AstVisitor &visitor) override;
 };
+
 class ShowOnceCondition : public Condition {
 public:
   explicit ShowOnceCondition(int32_t line);
@@ -61,6 +65,7 @@ public:
 
   void accept(AstVisitor &visitor) override;
 };
+
 class OnceEverCondition : public Condition {
 public:
   explicit OnceEverCondition(int32_t line);
@@ -68,6 +73,7 @@ public:
 
   void accept(AstVisitor &visitor) override;
 };
+
 class TempOnceCondition : public Condition {
 public:
   explicit TempOnceCondition(int32_t line);
@@ -75,6 +81,7 @@ public:
 
   void accept(AstVisitor &visitor) override;
 };
+
 class Statement : public Node {
 public:
   Statement() = default;
@@ -85,6 +92,7 @@ public:
   std::unique_ptr<Expression> expression;
   std::vector<std::unique_ptr<Condition>> conditions;
 };
+
 class Goto : public Expression {
 public:
   Goto() = default;
@@ -93,6 +101,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string name;
 };
+
 class Code : public Expression {
 public:
   Code() = default;
@@ -101,6 +110,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string code;
 };
+
 class Choice : public Expression {
 public:
   Choice() = default;
@@ -111,6 +121,7 @@ public:
   std::string text;
   std::unique_ptr<Goto> gotoExp;
 };
+
 class Say : public Expression {
 public:
   Say() = default;
@@ -120,6 +131,7 @@ public:
   std::string actor;
   std::string text;
 };
+
 class Pause : public Expression {
 public:
   Pause() = default;
@@ -128,6 +140,7 @@ public:
   void accept(AstVisitor &visitor) override;
   float time{0};
 };
+
 class Parrot : public Expression {
 public:
   Parrot() = default;
@@ -136,6 +149,7 @@ public:
   void accept(AstVisitor &visitor) override;
   bool active{true};
 };
+
 class Dialog : public Expression {
 public:
   Dialog() = default;
@@ -144,6 +158,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string actor;
 };
+
 class Override : public Expression {
 public:
   Override() = default;
@@ -152,6 +167,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string node;
 };
+
 class Shutup : public Expression {
 public:
   Shutup() = default;
@@ -159,6 +175,7 @@ public:
 
   void accept(AstVisitor &visitor) override;
 };
+
 class AllowObjects : public Expression {
 public:
   AllowObjects() = default;
@@ -168,6 +185,7 @@ public:
 
   bool allow{true};
 };
+
 class Limit : public Expression {
 public:
   Limit() = default;
@@ -177,6 +195,7 @@ public:
 
   int max{0};
 };
+
 class WaitWhile : public Expression {
 public:
   WaitWhile() = default;
@@ -186,6 +205,7 @@ public:
 
   std::string condition;
 };
+
 class WaitFor : public Expression {
 public:
   WaitFor() = default;
@@ -194,6 +214,7 @@ public:
   void accept(AstVisitor &visitor) override;
   std::string actor;
 };
+
 class Label : public Node {
 public:
   Label() = default;
@@ -203,6 +224,7 @@ public:
   std::string name;
   std::vector<std::unique_ptr<Statement>> statements;
 };
+
 class CompilationUnit {
 public:
   CompilationUnit() = default;
@@ -210,6 +232,7 @@ public:
 
   std::vector<std::unique_ptr<Label>> labels;
 };
+
 class AstVisitor {
 public:
   virtual ~AstVisitor();

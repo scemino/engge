@@ -7,19 +7,19 @@
 #include "../../extlibs/squirrel/squirrel/sqarray.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncproto.h"
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
-#include "engge/Entities/Actor/Actor.hpp"
-#include "engge/Engine/Camera.hpp"
-#include "engge/Dialog/DialogManager.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/Function.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Room/Room.hpp"
-#include "engge/Audio/SoundId.hpp"
-#include "engge/Audio/SoundManager.hpp"
-#include "engge/Engine/Thread.hpp"
+#include <engge/Entities/Actor.hpp>
+#include <engge/Engine/Camera.hpp>
+#include <engge/Dialog/DialogManager.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/Function.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Room/Room.hpp>
+#include <engge/Audio/SoundId.hpp>
+#include <engge/Audio/SoundManager.hpp>
+#include <engge/Engine/Thread.hpp>
 #include <Engine/AchievementManager.hpp>
-#include "../Util/Util.hpp"
+#include "Util/Util.hpp"
 
 #define SQ_SUSPEND_FLAG -666
 
@@ -77,7 +77,7 @@ class BreakWhileAnimatingFunction final : public BreakFunction {
 private:
   std::string _name;
   Actor &_actor;
-  ObjectAnimation *_pAnimation;
+  Animation *_pAnimation;
 
 public:
   BreakWhileAnimatingFunction(Engine &engine, int id, Actor &actor)
@@ -98,7 +98,7 @@ public:
 class BreakWhileAnimatingObjectFunction final : public BreakFunction {
 private:
   Object &_object;
-  std::optional<ObjectAnimation *> _animation;
+  std::optional<Animation *> _animation;
 
 public:
   BreakWhileAnimatingObjectFunction(Engine &engine, int id, Object &object)

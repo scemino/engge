@@ -1,6 +1,6 @@
 #pragma once
 #include <utility>
-#include "engge/Entities/Objects/TextObject.hpp"
+#include <engge/Entities/TextObject.hpp>
 #include <squirrel.h>
 
 namespace ng {

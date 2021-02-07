@@ -6,14 +6,14 @@
 #include <ngf/Graphics/Texture.h>
 #include <ngf/System/TimeSpan.h>
 #include <engge/Graphics/SpriteSheetItem.h>
-#include <engge/Entities/Objects/AnimState.hpp>
+#include <engge/Graphics/AnimState.hpp>
 
 namespace ng {
-struct ObjectAnimation {
+struct Animation {
   std::string name;
   std::string texture;
   std::vector<SpriteSheetItem> frames;
-  std::vector<ObjectAnimation> layers;
+  std::vector<Animation> layers;
   std::vector<glm::ivec2> offsets;
   std::vector<std::string> triggers;
   std::vector<std::function<void()>> callbacks;

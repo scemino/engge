@@ -8,10 +8,10 @@
 #include <engge/Room/RoomScaling.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
 #include <engge/Graphics/FntFont.h>
-#include <engge/Entities/Objects/TextObject.hpp>
+#include <engge/Entities/TextObject.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
-#include "../Util/Util.hpp"
+#include "Util/Util.hpp"
 #include <squirrel.h>
 #include <clipper.hpp>
 #include <algorithm>
@@ -616,7 +616,7 @@ Object &Room::createObject(const std::string &sheet, const std::vector<std::stri
   auto spriteSheet = pImpl->_textureManager.getSpriteSheet(sheet);
   object->setTexture(spriteSheet.getTextureName());
 
-  ObjectAnimation anim;
+  Animation anim;
   anim.name = "state0";
   anim.texture = spriteSheet.getTextureName();
 
@@ -644,7 +644,7 @@ Object &Room::createObject(const std::string &image) {
   auto texture = Locator<ResourceManager>::get().getTexture(name);
   object->setTexture(name);
 
-  ObjectAnimation anim;
+  Animation anim;
   auto size = texture->getSize();
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
   anim.name = "state0";

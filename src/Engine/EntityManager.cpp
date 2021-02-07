@@ -1,15 +1,15 @@
 #include <algorithm>
-#include "engge/Audio/SoundId.hpp"
-#include "engge/Audio/SoundManager.hpp"
-#include "engge/Engine/Cutscene.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/EntityManager.hpp"
-#include "engge/Engine/Light.hpp"
-#include "engge/Engine/ThreadBase.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Entities/Actor/Actor.hpp"
-#include "engge/Room/Room.hpp"
-#include "engge/System/Locator.hpp"
+#include <engge/Audio/SoundId.hpp>
+#include <engge/Audio/SoundManager.hpp>
+#include <engge/Engine/Cutscene.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/EntityManager.hpp>
+#include <engge/Engine/Light.hpp>
+#include <engge/Engine/ThreadBase.hpp>
+#include <engge/Entities/Object.hpp>
+#include <engge/Entities/Actor.hpp>
+#include <engge/Room/Room.hpp>
+#include <engge/System/Locator.hpp>
 
 namespace ng {
 Actor *EntityManager::getActorFromId(int id) {

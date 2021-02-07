@@ -17,30 +17,31 @@ set(SOURCES
         Dialog/EngineDialogScript.cpp
         EnggeApplication.cpp
         Engine/AchievementManager.cpp
-        Engine/TextDatabase.cpp
-        Engine/Engine.cpp
         Engine/ActorIcons.cpp
-        Engine/Inventory.cpp
-        Engine/Cutscene.cpp
-        Engine/Light.cpp
-        Engine/Thread.cpp
+        Engine/Callback.cpp
         Engine/Camera.cpp
+        Engine/Cutscene.cpp
+        Engine/Engine.cpp
         Engine/EngineSettings.cpp
+        Engine/EntityManager.cpp
+        Engine/Hud.cpp
+        Engine/Inventory.cpp
+        Engine/Light.cpp
         Engine/Preferences.cpp
         Engine/Sentence.cpp
-        Engine/Callback.cpp
-        Engine/Hud.cpp
+        Engine/TextDatabase.cpp
+        Engine/Thread.cpp
+        Engine/ThreadBase.cpp
         Entities/Actor/Actor.cpp
         Entities/Actor/BlinkState.cpp
         Entities/Actor/Costume.cpp
         Entities/Actor/LipAnimation.cpp
         Entities/Actor/TalkingState.cpp
         Entities/Entity.cpp
-        Engine/EntityManager.cpp
-        Entities/Objects/AnimControl.cpp
-        Entities/Objects/AnimDrawable.cpp
         Entities/Objects/Object.cpp
         Entities/Objects/TextObject.cpp
+        Graphics/AnimControl.cpp
+        Graphics/AnimDrawable.cpp
         Graphics/FntFont.cpp
         Graphics/GGFont.cpp
         Graphics/ResourceManager.cpp

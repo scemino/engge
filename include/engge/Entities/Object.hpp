@@ -2,8 +2,8 @@
 #include <optional>
 #include <squirrel.h>
 #include <engge/Entities/Entity.hpp>
-#include <engge/Entities/Objects/ObjectAnimation.hpp>
-#include <engge/Entities/Objects/AnimControl.hpp>
+#include <engge/Graphics/Animation.hpp>
+#include <engge/Graphics/AnimControl.hpp>
 
 namespace ng {
 enum class ScreenSpace {
@@ -84,7 +84,7 @@ public:
   [[nodiscard]] HSQOBJECT &getTable() const override;
 
   void setTexture(const std::string &texture);
-  std::vector<ObjectAnimation> &getAnims();
+  std::vector<Animation> &getAnims();
 
   [[nodiscard]] bool isVisible() const override;
   void setStateAnimIndex(int animIndex);
@@ -92,7 +92,7 @@ public:
   void playAnim(const std::string &anim, bool loop);
   [[nodiscard]] int getState() const;
   void setAnimation(const std::string &name);
-  ObjectAnimation *&getAnimation();
+  Animation *&getAnimation();
   AnimControl &getAnimControl();
 
   Room *getRoom() override;

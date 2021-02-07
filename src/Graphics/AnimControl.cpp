@@ -1,12 +1,12 @@
-#include <engge/Entities/Objects/AnimControl.hpp>
+#include <engge/Graphics/AnimControl.hpp>
 
 namespace ng {
-void AnimControl::setAnimation(ObjectAnimation *anim) {
+void AnimControl::setAnimation(Animation *anim) {
   m_anim = anim;
   stop();
 }
 
-ObjectAnimation *AnimControl::getAnimation() { return m_anim; }
+Animation *AnimControl::getAnimation() { return m_anim; }
 
 void AnimControl::play(bool loop) {
   m_loop = loop;
@@ -57,7 +57,7 @@ void AnimControl::update(const ngf::TimeSpan &e) {
 
 bool AnimControl::getLoop() const { return m_loop; }
 
-void AnimControl::resetAnim(ObjectAnimation &anim) {
+void AnimControl::resetAnim(Animation &anim) {
   if (!anim.frames.empty()) {
     anim.state = ng::AnimState::Stopped;
     anim.frameIndex = static_cast<int>(anim.frames.size()) - 1;
@@ -67,7 +67,7 @@ void AnimControl::resetAnim(ObjectAnimation &anim) {
   }
 }
 
-void AnimControl::rewind(ObjectAnimation &anim) {
+void AnimControl::rewind(Animation &anim) {
   if (!anim.frames.empty()) {
     anim.frameIndex = 0;
     anim.state = ng::AnimState::Play;
@@ -77,7 +77,7 @@ void AnimControl::rewind(ObjectAnimation &anim) {
   }
 }
 
-void AnimControl::update(const ngf::TimeSpan &e, ObjectAnimation &animation) const {
+void AnimControl::update(const ngf::TimeSpan &e, Animation &animation) const {
   animation.elapsed += e;
   auto fps = getFps(animation);
   assert(fps > 0);
@@ -108,13 +108,13 @@ void AnimControl::update(const ngf::TimeSpan &e, ObjectAnimation &animation) con
   animation.state = AnimState::Stopped;
 }
 
-int AnimControl::getFps(const ObjectAnimation &animation) {
+int AnimControl::getFps(const Animation &animation) {
   if (animation.fps <= 0)
     return 10;
   return animation.fps;
 }
 
-void AnimControl::trig(const ObjectAnimation &animation) {
+void AnimControl::trig(const Animation &animation) {
   if (animation.callbacks.empty() || animation.frameIndex < 0
       || animation.frameIndex >= static_cast<int>(animation.callbacks.size()))
     return;

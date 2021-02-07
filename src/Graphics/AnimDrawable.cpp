@@ -1,5 +1,5 @@
-#include <engge/Entities/Objects/AnimDrawable.hpp>
-#include <engge/Entities/Objects/ObjectAnimation.hpp>
+#include <engge/Graphics/AnimDrawable.hpp>
+#include <engge/Graphics/Animation.hpp>
 #include <engge/Graphics/LightingShader.h>
 #include <ngf/Math/Transform.h>
 #include <ngf/Graphics/Sprite.h>
@@ -7,7 +7,7 @@
 #include <engge/System/Locator.hpp>
 
 namespace ng {
-void AnimDrawable::setAnim(ObjectAnimation *anim) { m_anim = anim; }
+void AnimDrawable::setAnim(Animation *anim) { m_anim = anim; }
 
 void AnimDrawable::setFlipX(bool flipX) { m_flipX = flipX; }
 
@@ -28,7 +28,7 @@ void AnimDrawable::draw(const glm::vec2 &pos, ngf::RenderTarget &target, ngf::Re
 }
 
 void AnimDrawable::draw(const glm::vec2 &pos,
-                        const ObjectAnimation &anim,
+                        const Animation &anim,
                         ngf::RenderTarget &target,
                         ngf::RenderStates states) const {
   if (!anim.visible)

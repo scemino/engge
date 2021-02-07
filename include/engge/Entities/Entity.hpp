@@ -8,30 +8,19 @@
 #include <ngf/Graphics/RenderStates.h>
 #include <ngf/Graphics/RenderTarget.h>
 #include <ngf/Math/Transform.h>
-#include "engge/Engine/Function.hpp"
-#include "engge/Engine/Interpolations.hpp"
-#include "engge/Scripting/ScriptObject.hpp"
-#include "engge/Entities/Actor/DirectionConstants.hpp"
+#include <engge/Engine/Interpolations.hpp>
+#include <engge/Scripting/ScriptObject.hpp>
+#include <engge/Entities/UseDirection.hpp>
 
 namespace ng {
-enum class UseDirection {
-  Front = DirectionConstants::FACE_FRONT,
-  Back = DirectionConstants::FACE_BACK,
-  Left = DirectionConstants::FACE_LEFT,
-  Right = DirectionConstants::FACE_RIGHT,
-};
-
-struct Motor {
-  bool isEnabled{false};
-  std::unique_ptr<Function> function;
-};
-
 class Actor;
 class Engine;
 class Room;
 class SoundDefinition;
 class SoundTrigger;
 class Trigger;
+struct Motor;
+
 class Entity : public ScriptObject, public ngf::Drawable {
 public:
   Entity();

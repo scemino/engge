@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #endif
-#include <engge/Entities/Objects/Object.hpp>
+#include <engge/Entities/Object.hpp>
 #include <engge/Engine/Function.hpp>
 #include <engge/System/Locator.hpp>
 #include <engge/Engine/EntityManager.hpp>
@@ -13,11 +13,11 @@
 #include <engge/Audio/SoundTrigger.hpp>
 #include <engge/Engine/Trigger.hpp>
 #include <engge/Engine/Preferences.hpp>
-#include "../../Util/Util.hpp"
+#include "Util/Util.hpp"
 #include <sstream>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
-#include <engge/Entities/Objects/AnimDrawable.hpp>
+#include <engge/Graphics/AnimDrawable.hpp>
 
 namespace ng {
 
@@ -45,8 +45,8 @@ glm::vec2 toScreenPosition(Room *pRoom, const glm::vec2 &pos) {
 }
 
 struct Object::Impl {
-  std::vector<ObjectAnimation> _anims;
-  ObjectAnimation *_pAnim{nullptr};
+  std::vector<Animation> _anims;
+  Animation *_pAnim{nullptr};
   std::wstring _name;
   int _zorder{0};
   ObjectType _type{ObjectType::Object};
@@ -179,7 +179,7 @@ void Object::setTexture(const std::string &texture) {
   pImpl->_texture = texture;
 }
 
-std::vector<ObjectAnimation> &Object::getAnims() { return pImpl->_anims; }
+std::vector<Animation> &Object::getAnims() { return pImpl->_anims; }
 
 Room *Object::getRoom() { return pImpl->_pRoom; }
 const Room *Object::getRoom() const { return pImpl->_pRoom; }
@@ -251,7 +251,7 @@ void Object::setAnimation(const std::string &name) {
   pImpl->_animControl.setAnimation(&anim);
 }
 
-ObjectAnimation *&Object::getAnimation() { return pImpl->_pAnim; }
+Animation *&Object::getAnimation() { return pImpl->_pAnim; }
 
 AnimControl &Object::getAnimControl() { return pImpl->_animControl; }
 

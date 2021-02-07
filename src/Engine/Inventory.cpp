@@ -2,13 +2,13 @@
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/System/Mouse.h>
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/Inventory.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Room/Room.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/System/Locator.hpp"
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/Inventory.hpp>
+#include <engge/Entities/Object.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Room/Room.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/System/Locator.hpp>
 
 namespace ng {
 

@@ -1,10 +1,9 @@
 #include "RoomTrigger.hpp"
-#include "engge/System/Locator.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/Entities/Objects/Object.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "../Util/Util.hpp"
 #include "RoomTriggerThread.hpp"
+#include <engge/System/Locator.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/Entities/Object.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
 #include <squirrel.h>
 
 namespace ng {
