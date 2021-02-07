@@ -2,30 +2,32 @@
 
 namespace ng {
 void LipAnimation::load(const std::string &path) {
-  _lip.load(path);
-  _index = 0;
-  _elapsed = ngf::TimeSpan(0);
+  m_lip.load(path);
+  m_index = 0;
+  m_elapsed = ngf::TimeSpan::seconds(0);
   updateHead();
 }
 
 void LipAnimation::clear() {
-  _lip.clear();
+  m_lip.clear();
+  m_index = 0;
 }
 
 void LipAnimation::setActor(Actor *pActor) {
-  _pActor = pActor;
+  m_pActor = pActor;
 }
 
 void LipAnimation::update(const ngf::TimeSpan &elapsed) {
-  if (_lip.getData().empty())
+  if (m_lip.getData().empty() || m_index == static_cast<int>(m_lip.getData().size()))
     return;
 
-  auto time = _lip.getData()[_index].time;
-  _elapsed += elapsed;
-  if (_elapsed > time && _index < static_cast<int>(_lip.getData().size())) {
-    _index++;
+  auto time = m_lip.getData().at(m_index).time;
+  m_elapsed += elapsed;
+  const auto lipSize = static_cast<int>(m_lip.getData().size());
+  if ((m_elapsed > time) && (m_index < lipSize)) {
+    m_index++;
   }
-  if (_index == static_cast<int>(_lip.getData().size())) {
+  if (m_index == static_cast<int>(m_lip.getData().size())) {
     end();
     return;
   }
@@ -33,28 +35,28 @@ void LipAnimation::update(const ngf::TimeSpan &elapsed) {
 }
 
 void LipAnimation::end() {
-  if (!_pActor)
+  if (!m_pActor)
     return;
-  _pActor->getCostume().setHeadIndex(0);
+  m_pActor->getCostume().setHeadIndex(0);
 }
 
 void LipAnimation::updateHead() {
-  if (_lip.getData().empty() && _index >= static_cast<int>(_lip.getData().size()))
+  if (m_lip.getData().empty() && m_index >= static_cast<int>(m_lip.getData().size()))
     return;
-  auto letter = _lip.getData()[_index].letter;
+  auto letter = m_lip.getData().at(m_index).letter;
   if (letter == 'X' || letter == 'G')
     letter = 'A';
   if (letter == 'H')
     letter = 'D';
   auto index = letter - 'A';
-//    trace("lip: {} {}", _lip.getData()[_index].time.asSeconds(), _lip.getData()[_index].letter);
-  // TODO: what is the correspondance between letter and head index ?
-  _pActor->getCostume().setHeadIndex(index);
+//    trace("lip: {} {}", _lip.getData().at(_index).time.asSeconds(), _lip.getData().at(_index).letter);
+  // TODO: what is the correspondence between letter and head index ?
+  m_pActor->getCostume().setHeadIndex(index);
 }
 
 ngf::TimeSpan LipAnimation::getDuration() const {
-  if (_lip.getData().empty())
+  if (m_lip.getData().empty())
     return ngf::TimeSpan(0);
-  return _lip.getData().back().time;
+  return m_lip.getData().back().time;
 }
 }
