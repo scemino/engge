@@ -1665,8 +1665,20 @@ Engine::Impl::Impl()
 void Engine::Impl::pauseGame() {
   _state = _state == EngineState::Game ? EngineState::Paused : EngineState::Game;
   if (_state == EngineState::Paused) {
+    // pause all pauseable threads
+    for (auto &thread : _threads) {
+      if (thread->isPauseable() && !thread->isStopped()) {
+        thread->pause();
+      }
+    }
     _soundManager.pauseAllSounds();
   } else {
+    // resume all pauseable threads
+    for (auto &thread : _threads) {
+      if (thread->isPauseable() && !thread->isStopped()) {
+        thread->resume();
+      }
+    }
     _soundManager.resumeAllSounds();
   }
 }
