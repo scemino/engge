@@ -31,7 +31,7 @@ struct Entity::Impl {
   ngf::Color _color{ngf::Colors::White};
   bool _objectBumperCycle{true};
   ngf::Color _talkColor;
-  glm::ivec2 _talkOffset{0, 0};
+  glm::ivec2 _talkOffset{0, 90};
   TalkingState _talkingState;
   ngf::Transform _transform;
   Entity *_pParent{nullptr};
@@ -317,7 +317,8 @@ void Entity::say(const std::string &text, bool mumble) {
   if (getRoom() == pImpl->_engine.getRoom()) {
     auto at = pImpl->_engine.getCamera().getRect().getTopLeft();
     pos = getPosition();
-    pos = {pos.x - at.x + pImpl->_talkOffset.x, screenSize.y - pos.y - at.y - pImpl->_talkOffset.y};
+    pos = {pos.x - at.x + pImpl->_talkOffset.x + pImpl->_renderOffset.x,
+           screenSize.y - pos.y - at.y - pImpl->_talkOffset.y - pImpl->_renderOffset.y};
   } else {
     // TODO: the position in this case is wrong, don't know what to do yet
     pos = (glm::vec2) pImpl->_talkOffset;
