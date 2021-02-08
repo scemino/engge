@@ -45,6 +45,9 @@ public:
   std::vector<std::unique_ptr<SoundDefinition>> &getSoundDefinitions() { return _sounds; }
   std::array<std::unique_ptr<SoundId>, 32> &getSounds() { return _soundIds; }
 
+  void setSoundHover(SoundDefinition *pSound) { m_pSoundHover = pSound; }
+  [[nodiscard]] SoundDefinition *getSoundHover() const { return m_pSoundHover; }
+
   [[nodiscard]] size_t getSize() const { return _soundIds.size(); }
 
   void update(const ngf::TimeSpan &elapsed);
@@ -64,5 +67,6 @@ private:
   float _soundVolume{1};
   float _musicVolume{1};
   float _talkVolume{1};
+  SoundDefinition *m_pSoundHover{nullptr};
 };
 } // namespace ng

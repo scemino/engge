@@ -1,11 +1,9 @@
 #include <filesystem>
 #include <string>
 #include <engge/UI/SaveLoadDialog.hpp>
-#include "ControlConstants.hpp"
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/Screen.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
-#include "Button.hpp"
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <engge/Graphics/Text.hpp>
@@ -13,10 +11,14 @@
 #include <engge/Engine/EngineSettings.hpp>
 #include <engge/System/Locator.hpp>
 #include <engge/Engine/TextDatabase.hpp>
+#include <ngf/System/Mouse.h>
+#include "Button.hpp"
+#include "ControlConstants.hpp"
+#include "Util/Util.hpp"
 
 namespace ng {
 struct SaveLoadDialog::Impl {
-  class BackButton final : public ngf::Drawable {
+  class BackButton final : public Control {
   private:
     inline static const int BackId = 99904;
 
@@ -24,72 +26,76 @@ struct SaveLoadDialog::Impl {
     typedef std::function<void()> Callback;
 
     void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
-      _text.draw(target, states);
+      m_text.draw(target, states);
     }
 
   public:
     void setCallback(Callback callback) {
-      _callback = std::move(callback);
+      m_callback = std::move(callback);
     }
 
-    void setEngine(Engine *pEngine) {
-      _pEngine = pEngine;
-
-      auto &uiFontLarge = _pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
-      _text.setFont(uiFontLarge);
-      _text.setWideString(Engine::getText(BackId));
-      auto textRect = ng::getGlobalBounds(_text);
-      _text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
-      _text.getTransform().setPosition({Screen::Width / 2.0f, 660.f});
+    void onEngineSet() final {
+      auto &uiFontLarge = m_pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
+      m_text.setFont(uiFontLarge);
+      m_text.setWideString(Engine::getText(BackId));
+      auto textRect = ng::getGlobalBounds(m_text);
+      m_text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
+      m_text.getTransform().setPosition({Screen::Width / 2.0f, 660.f});
     }
 
-    void update(glm::vec2 pos) {
-      auto textRect = ng::getGlobalBounds(_text);
-      ngf::Color color;
-      if (textRect.contains(pos)) {
-        color = ControlConstants::HoveColor;
-        bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
-        ImGuiIO &io = ImGui::GetIO();
-        if (!io.WantCaptureMouse && _wasMouseDown && !isDown && _callback) {
-          _callback();
-        }
-        _wasMouseDown = isDown;
-      } else {
-        color = ControlConstants::NormalColor;
+    bool contains(glm::vec2 pos) const final {
+      auto textRect = ng::getGlobalBounds(m_text);
+      return textRect.contains((glm::vec2) pos);
+    }
+
+    void onClick() final {
+      if (m_callback) {
+        m_callback();
       }
-      _text.setColor(color);
+    }
+
+    void onStateChanged() final {
+      ngf::Color color;
+      switch (m_state) {
+      case ControlState::Disabled:color = ControlConstants::DisabledColor;
+        break;
+      case ControlState::None:color = ControlConstants::NormalColor;
+        break;
+      case ControlState::Hover:color = ControlConstants::HoverColor;
+        break;
+      }
+      m_text.setColor(color);
     }
 
   private:
-    Engine *_pEngine{nullptr};
-    bool _wasMouseDown{false};
-    Callback _callback{nullptr};
-    ng::Text _text;
+    Callback m_callback{nullptr};
+    ng::Text m_text;
   };
 
-  class Slot final : public ngf::Drawable {
+  class Slot final : public Control {
   private:
     inline static const int AutosaveId = 99901;
 
   public:
     void init(const SavegameSlot &slot, const SpriteSheet &spriteSheet, Engine &engine) {
-      _index = slot.slot - 1;
-      auto x = _index % 3;
-      auto y = _index / 3;
+      setEngine(&engine);
+      m_index = slot.slot - 1;
+      auto x = m_index % 3;
+      auto y = m_index / 3;
       glm::vec2 pos = {168.f + 39.f * 4.f + 78.f * 4.f * x + 4.f * x,
                        92.f + 22.f * 4.f + 44.f * 4.f * y + 4.f * y};
 
-      _transform.setPosition(pos);
+      m_transform.setPosition(pos);
 
       const auto &uiFontSmallBold = engine.getResourceManager().getFntFont("UIFontSmallBold.fnt");
 
       // prepare the text for the game time
-      _gameTimeText.setWideString(slot.getGameTimeString());
-      _gameTimeText.setFont(uiFontSmallBold);
-      _gameTimeText.setColor(ngf::Colors::White);
-      auto gameTimeSize = _gameTimeText.getLocalBounds();
-      _gameTimeText.getTransform().setOrigin({static_cast<float>(gameTimeSize.getWidth() / 2), 0});
-      _gameTimeText.getTransform().setPosition({pos.x, pos.y - 88.f});
+      m_gameTimeText.setWideString(slot.getGameTimeString());
+      m_gameTimeText.setFont(uiFontSmallBold);
+      m_gameTimeText.setColor(ngf::Colors::White);
+      auto gameTimeSize = m_gameTimeText.getLocalBounds();
+      m_gameTimeText.getTransform().setOrigin({static_cast<float>(gameTimeSize.getWidth() / 2), 0});
+      m_gameTimeText.getTransform().setPosition({pos.x, pos.y - 88.f});
 
       // prepare the text for the time when the game has been saved
       std::wstring saveTimeText;
@@ -102,78 +108,78 @@ struct SaveLoadDialog::Impl {
         saveTimeText.append(1, L' ');
         saveTimeText.append(Locator<TextDatabase>::get().getText(99955));
       }
-      _saveTimeText.setWideString(saveTimeText);
-      _saveTimeText.setFont(uiFontSmallBold);
-      _saveTimeText.setColor(ngf::Colors::White);
-      auto saveTimeSize = _saveTimeText.getLocalBounds();
-      _saveTimeText.getTransform().setOrigin({static_cast<float>(saveTimeSize.getWidth() / 2), 0});
-      _saveTimeText.getTransform().setPosition({pos.x, pos.y + 48.f});
+      m_saveTimeText.setWideString(saveTimeText);
+      m_saveTimeText.setFont(uiFontSmallBold);
+      m_saveTimeText.setColor(ngf::Colors::White);
+      auto saveTimeSize = m_saveTimeText.getLocalBounds();
+      m_saveTimeText.getTransform().setOrigin({static_cast<float>(saveTimeSize.getWidth() / 2), 0});
+      m_saveTimeText.getTransform().setPosition({pos.x, pos.y + 48.f});
 
       // prepare the sprite for the frame
       auto rect = spriteSheet.getRect("saveload_slot_frame");
-      _sprite.setTexture(*spriteSheet.getTexture());
-      _sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
-                                        static_cast<float>(rect.getHeight() / 2.f)});
-      _sprite.getTransform().setScale({4, 4});
-      _sprite.setTextureRect(rect);
-      _sprite.getTransform().setPosition(pos);
+      m_sprite.setTexture(*spriteSheet.getTexture());
+      m_sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
+                                         static_cast<float>(rect.getHeight() / 2.f)});
+      m_sprite.getTransform().setScale({4, 4});
+      m_sprite.setTextureRect(rect);
+      m_sprite.getTransform().setPosition(pos);
 
       // try to find the savegame thumbnail
       std::ostringstream s;
-      s << "Savegame" << (_index + 1) << ".png";
+      s << "Savegame" << (m_index + 1) << ".png";
       auto path = Locator<EngineSettings>::get().getPath();
       path.append(s.str());
 
-      _isEmpty = !std::filesystem::exists(path);
-      if (!_isEmpty) {
+      m_isEmpty = !std::filesystem::exists(path);
+      if (!m_isEmpty) {
         // prepare a sprite for the savegame thumbnail
-        _texture.load(path);
-        _spriteImg.setTexture(_texture, true);
-        _spriteImg.getTransform().setOrigin({160.f, 90.f});
-        auto size = _texture.getSize();
-        _spriteImg.getTransform().setScale({(rect.getWidth() * 4.f) / size.x, (rect.getHeight() * 4.f) / size.y});
-        _spriteImg.getTransform().setPosition(pos);
+        m_texture.load(path);
+        m_spriteImg.setTexture(m_texture, true);
+        m_spriteImg.getTransform().setOrigin({160.f, 90.f});
+        auto size = m_texture.getSize();
+        m_spriteImg.getTransform().setScale({(rect.getWidth() * 4.f) / size.x, (rect.getHeight() * 4.f) / size.y});
+        m_spriteImg.getTransform().setPosition(pos);
         return;
       }
 
       // or prepare a sprite for the savegame empty slot
       auto saveslotRect = spriteSheet.getRect("saveload_slot");
-      _spriteImg.setTexture(*spriteSheet.getTexture());
-      _spriteImg.setTextureRect(saveslotRect);
-      _spriteImg.getTransform().setOrigin({static_cast<float>(saveslotRect.getWidth() / 2.f),
-                                           static_cast<float>(saveslotRect.getHeight() / 2.f)});
-      _spriteImg.getTransform().setScale({4.f, 4.f});
-      _spriteImg.getTransform().setPosition(pos);
+      m_spriteImg.setTexture(*spriteSheet.getTexture());
+      m_spriteImg.setTextureRect(saveslotRect);
+      m_spriteImg.getTransform().setOrigin({static_cast<float>(saveslotRect.getWidth() / 2.f),
+                                            static_cast<float>(saveslotRect.getHeight() / 2.f)});
+      m_spriteImg.getTransform().setScale({4.f, 4.f});
+      m_spriteImg.getTransform().setPosition(pos);
     }
 
-    bool contains(const glm::vec2 &pos) const {
-      auto trsf = _transform;
+    bool contains(glm::vec2 pos) const final {
+      auto trsf = m_transform;
       trsf.move({-156.f, -88.f});
-      return ngf::transform(trsf.getTransform(), _rect).contains(pos);
+      return ngf::transform(trsf.getTransform(), m_rect).contains(pos);
     }
 
     inline bool isEmpty() const {
-      return _isEmpty;
+      return m_isEmpty;
     }
 
-    void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
-      _spriteImg.draw(target, states);
-      _sprite.draw(target, states);
-      if (!_isEmpty) {
-        _gameTimeText.draw(target, states);
-        _saveTimeText.draw(target, states);
+    void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final {
+      m_spriteImg.draw(target, states);
+      m_sprite.draw(target, states);
+      if (!m_isEmpty) {
+        m_gameTimeText.draw(target, states);
+        m_saveTimeText.draw(target, states);
       }
     }
 
   private:
-    int _index{0};
-    bool _isEmpty{true};
-    ngf::Texture _texture;
-    ngf::Sprite _sprite, _spriteImg;
-    ng::Text _gameTimeText;
-    ng::Text _saveTimeText;
-    ngf::Transform _transform;
-    ngf::frect _rect = ngf::frect::fromPositionSize({0, 0}, {78 * 4, 44 * 4});
+    int m_index{0};
+    bool m_isEmpty{true};
+    ngf::Texture m_texture;
+    ngf::Sprite m_sprite, m_spriteImg;
+    ng::Text m_gameTimeText;
+    ng::Text m_saveTimeText;
+    ngf::Transform m_transform;
+    ngf::frect m_rect = ngf::frect::fromPositionSize({0, 0}, {78 * 4, 44 * 4});
   };
 
   inline static const int LoadGameId = 99910;
@@ -273,8 +279,12 @@ struct SaveLoadDialog::Impl {
                                                                                ngf::View(ngf::frect::fromPositionSize({0,
                                                                                                                        0},
                                                                                                                       {Screen::Width,
+
                                                                                                                        Screen::Height})));
     _backButton.update(pos);
+    for (auto &slot : _slots) {
+      slot.update(pos);
+    }
 
     bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
     const ImGuiIO &io = ImGui::GetIO();

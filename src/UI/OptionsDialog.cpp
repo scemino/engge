@@ -7,6 +7,7 @@
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Graphics/Screen.hpp"
 #include "engge/Graphics/SpriteSheet.hpp"
+#include "engge/Graphics/FntFont.h"
 #include "engge/Scripting/ScriptEngine.hpp"
 #include "engge/System/Logger.hpp"
 #include "engge/UI/OptionsDialog.hpp"
@@ -14,10 +15,11 @@
 #include "engge/UI/QuitDialog.hpp"
 #include <utility>
 #include <ngf/Graphics/RectangleShape.h>
+#include <ngf/System/Mouse.h>
 
 namespace ng {
 struct OptionsDialog::Impl {
-  enum class State { Main, Sound, Video, Controls, TextAndSpeech, Help };
+  enum class State { None, Main, Sound, Video, Controls, TextAndSpeech, Help };
 
   struct Ids {
     inline static const int EnglishText = 98001;
@@ -78,7 +80,8 @@ struct OptionsDialog::Impl {
   SaveLoadDialog _saveload;
   Callback _callback{nullptr};
   bool _isDirty{false};
-  State _state{State::Main};
+  State _state{State::None};
+  State _nextState{State::None};
   bool _saveEnabled{false};
 
   inline static float getSlotPos(int slot) {
@@ -88,7 +91,8 @@ struct OptionsDialog::Impl {
   void setHeading(int id) {
     _headingText.setWideString(Engine::getText(id));
     auto textRect = _headingText.getLocalBounds();
-    _headingText.getTransform().setPosition({(Screen::Width - textRect.getWidth()) / 2.f, yPosStart - textRect.getHeight() / 2});
+    _headingText.getTransform().setPosition({(Screen::Width - textRect.getWidth()) / 2.f,
+                                             yPosStart - textRect.getHeight() / 2});
   }
 
   template<typename T>
@@ -108,8 +112,11 @@ struct OptionsDialog::Impl {
     return static_cast<int>(std::distance(LanguageValues.begin(), it));
   }
 
-  void updateState(State state) {
-    _state = state;
+  void setState(State state) {
+    _nextState = state;
+  }
+
+  void onStateChanged() {
     if (_isDirty) {
       Locator<Preferences>::get().save();
       _quit.updateLanguage();
@@ -119,7 +126,7 @@ struct OptionsDialog::Impl {
     _buttons.clear();
     _switchButtons.clear();
     _checkboxes.clear();
-    switch (state) {
+    switch (_state) {
     case State::Main:setHeading(Ids::Options);
       _buttons.emplace_back(Ids::SaveGame, getSlotPos(0), [this]() {
         _saveload.updateLanguage();
@@ -131,11 +138,11 @@ struct OptionsDialog::Impl {
         _saveload.setSaveMode(false);
         _showSaveLoad = true;
       });
-      _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this]() { updateState(State::Sound); });
-      _buttons.emplace_back(Ids::Video, getSlotPos(3), [this]() { updateState(State::Video); });
-      _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this]() { updateState(State::Controls); });
-      _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this]() { updateState(State::TextAndSpeech); });
-      _buttons.emplace_back(Ids::Help, getSlotPos(6), [this]() { updateState(State::Help); });
+      _buttons.emplace_back(Ids::Sound, getSlotPos(2), [this]() { setState(State::Sound); });
+      _buttons.emplace_back(Ids::Video, getSlotPos(3), [this]() { setState(State::Video); });
+      _buttons.emplace_back(Ids::Controls, getSlotPos(4), [this]() { setState(State::Controls); });
+      _buttons.emplace_back(Ids::TextAndSpeech, getSlotPos(5), [this]() { setState(State::TextAndSpeech); });
+      _buttons.emplace_back(Ids::Help, getSlotPos(6), [this]() { setState(State::Help); });
       _buttons.emplace_back(Ids::Quit, getSlotPos(7), [this]() { _showQuit = true; }, true);
       _buttons.emplace_back(Ids::Back, getSlotPos(9), [this]() {
         if (_callback)
@@ -169,7 +176,7 @@ struct OptionsDialog::Impl {
                             });
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
-                            [this]() { updateState(State::Main); },
+                            [this]() { setState(State::Main); },
                             true,
                             Button::Size::Medium);
       break;
@@ -204,7 +211,7 @@ struct OptionsDialog::Impl {
                                });
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
-                            [this]() { updateState(State::Main); },
+                            [this]() { setState(State::Main); },
                             true,
                             Button::Size::Medium);
       break;
@@ -254,7 +261,7 @@ struct OptionsDialog::Impl {
                                });
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
-                            [this]() { updateState(State::Main); },
+                            [this]() { setState(State::Main); },
                             true,
                             Button::Size::Medium);
       break;
@@ -295,7 +302,7 @@ struct OptionsDialog::Impl {
           }));
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
-                            [this]() { updateState(State::Main); },
+                            [this]() { setState(State::Main); },
                             true,
                             Button::Size::Medium);
       break;
@@ -309,11 +316,11 @@ struct OptionsDialog::Impl {
       _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), []() {}, false);
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
-                            [this]() { updateState(State::Main); },
+                            [this]() { setState(State::Main); },
                             true,
                             Button::Size::Medium);
       break;
-    default:updateState(State::Main);
+    default:setState(State::Main);
       break;
     }
 
@@ -371,7 +378,7 @@ struct OptionsDialog::Impl {
       }
     });
 
-    updateState(State::Main);
+    setState(State::Main);
   }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) {
@@ -428,6 +435,11 @@ struct OptionsDialog::Impl {
   }
 
   void update(const ngf::TimeSpan &elapsed) {
+    if (_state != _nextState) {
+      _state = _nextState;
+      onStateChanged();
+    }
+
     if (_showSaveLoad) {
       _saveload.update(elapsed);
       return;
@@ -439,7 +451,10 @@ struct OptionsDialog::Impl {
     }
 
     auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
-      ngf::View(ngf::frect::fromPositionSize({0, 0},{Screen::Width,Screen::Height})));
+                                                                               ngf::View(ngf::frect::fromPositionSize({0,
+                                                                                                                       0},
+                                                                                                                      {Screen::Width,
+                                                                                                                       Screen::Height})));
     for (auto &button : _buttons) {
       button.update(pos);
     }
@@ -474,7 +489,7 @@ void OptionsDialog::update(const ngf::TimeSpan &elapsed) {
 }
 
 void OptionsDialog::showHelp() {
-  _pImpl->updateState(Impl::State::Help);
+  _pImpl->setState(Impl::State::Help);
 }
 
 void OptionsDialog::setCallback(Callback callback) {

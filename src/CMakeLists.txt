@@ -78,10 +78,15 @@ set(SOURCES
         System/DebugTools/TextureTools.cpp
         System/DebugTools/ThreadTools.cpp
         System/Logger.cpp
+        UI/Button.cpp
+        UI/Checkbox.cpp
+        UI/Control.cpp
         UI/OptionsDialog.cpp
         UI/QuitDialog.cpp
         UI/SaveLoadDialog.cpp
         UI/StartScreenDialog.cpp
+        UI/Slider.cpp
+        UI/SwitchButton.cpp
         Util/BTEACrypto.cpp
         Util/RandomNumberGenerator.cpp
         Util/Util.cpp

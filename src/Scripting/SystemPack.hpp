@@ -644,7 +644,11 @@ private:
       return 0;
     }
     case ExCommandConstants::EX_BUTTON_HOVER_SOUND: {
-      error("TODO: exCommand EX_BUTTON_HOVER_SOUND: not implemented");
+      auto pSound = EntityManager::getSoundDefinition(v, 3);
+      if (!pSound) {
+        return sq_throwerror(v, _SC("failed to get sound for EX_BUTTON_HOVER_SOUND"));
+      }
+      g_pEngine->getSoundManager().setSoundHover(pSound);
       return 0;
     }
     case ExCommandConstants::EX_RESTART: {

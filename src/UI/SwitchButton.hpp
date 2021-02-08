@@ -1,70 +1,39 @@
 #pragma once
-#include "ControlConstants.hpp"
-#include <engge/Graphics/FntFont.h>
+#include <glm/vec2.hpp>
+#include <functional>
+#include <initializer_list>
+#include <vector>
+#include <ngf/Graphics/RenderTarget.h>
+#include <ngf/Graphics/RenderStates.h>
+#include <ngf/Graphics/Drawable.h>
+#include <engge/Graphics/Text.hpp>
+#include "UI/Control.hpp"
 
 namespace ng {
-class SwitchButton : public ngf::Drawable {
-public:
-  typedef std::function<void(int)> Callback;
+class Engine;
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override {
-    text.draw(target, states);
-  }
-
+class SwitchButton : public Control {
 public:
+  using Callback = std::function<void(int)>;
+
   SwitchButton(std::initializer_list<int> ids,
                float y,
                bool enabled = true,
                int index = 0,
-               Callback callback = nullptr)
-      : _ids(ids), _index(index), _isEnabled(enabled), _y(y), _callback(std::move(callback)) {
-  }
-
-  void setEngine(Engine *pEngine) {
-    _pEngine = pEngine;
-
-    auto &uiFontMedium = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
-    text.setFont(uiFontMedium);
-    text.setWideString(Engine::getText(_ids[_index]));
-    auto textRect = text.getLocalBounds();
-    text.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
-    text.getTransform().setPosition({Screen::Width / 2.f, _y});
-  }
-
-  void update(glm::vec2 pos) {
-    auto textRect = ng::getGlobalBounds(text);
-
-    ngf::Color color;
-    if (!_isEnabled) {
-      color = ControlConstants::DisabledColor;
-    } else if (textRect.contains(pos)) {
-      color = ControlConstants::HoveColor;
-      bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
-      ImGuiIO &io = ImGui::GetIO();
-      if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
-        _index = (_index + 1) % static_cast<int>(_ids.size());
-        text.setWideString(Engine::getText(_ids[_index]));
-        if (_callback) {
-          _callback(_index);
-        }
-        textRect = text.getLocalBounds();
-        text.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
-      }
-      _wasMouseDown = isDown;
-    } else {
-      color = ControlConstants::NormalColor;
-    }
-    text.setColor(color);
-  }
+               Callback callback = nullptr);
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
-  Engine *_pEngine{nullptr};
-  std::vector<int> _ids;
-  int _index{0};
-  bool _isEnabled{true};
-  float _y{0};
-  bool _wasMouseDown{false};
-  Callback _callback;
-  ng::Text text;
+  bool contains(glm::vec2 pos) const final;
+  void onEngineSet() final;
+  void onClick() final;
+  void onStateChanged() final;
+
+private:
+  std::vector<int> m_ids;
+  int m_index{0};
+  float m_y{0};
+  Callback m_callback{nullptr};
+  ng::Text m_text;
 };
 }

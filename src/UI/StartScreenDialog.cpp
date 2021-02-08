@@ -11,7 +11,7 @@
 
 namespace ng {
 struct StartScreenDialog::Impl {
-  enum class State { Main, Options, Help, Quit };
+  enum class State { None, Main, Options, Help, Quit };
 
   struct Ids {
     inline static const int LoadGame = 99910;
@@ -31,42 +31,16 @@ struct StartScreenDialog::Impl {
   QuitDialog _quit;
   OptionsDialog _options;
   SaveLoadDialog _saveload;
-  State _state{State::Main};
+  State _state{State::None};
+  State _nextstate{State::None};
   Callback _newGameCallback;
 
   inline static float getSlotPos(int slot) {
     return yPosStart + yPosLarge + yPosSmall * slot;
   }
 
-  void updateState(State state) {
-    _state = state;
-    _buttons.clear();
-    switch (state) {
-    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() { _showSaveLoad = true; });
-      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
-        _saveload.updateLanguage();
-        _saveload.setSaveMode(false);
-        _showSaveLoad = true;
-      });
-      _buttons.emplace_back(Ids::NewGame, getSlotPos(2), [this]() {
-        if (_newGameCallback)
-          _newGameCallback();
-      });
-      _buttons.emplace_back(Ids::Options, getSlotPos(3), [this]() { updateState(State::Options); });
-      _buttons.emplace_back(Ids::Help, getSlotPos(4), [this]() { updateState(State::Help); });
-      _buttons.emplace_back(Ids::Quit, getSlotPos(5), [this]() { updateState(State::Quit); });
-      break;
-    case State::Help:_options.showHelp();
-      break;
-    case State::Options:break;
-    case State::Quit:break;
-    default:updateState(State::Main);
-      break;
-    }
-
-    for (auto &button : _buttons) {
-      button.setEngine(_pEngine);
-    }
+  void setState(State state) {
+    _nextstate = state;
   }
 
   void setEngine(Engine *pEngine) {
@@ -81,17 +55,17 @@ struct StartScreenDialog::Impl {
 
     _options.setEngine(pEngine);
     _options.setCallback([this]() {
-      updateState(State::Main);
+      setState(State::Main);
     });
 
     _quit.setEngine(pEngine);
     _quit.setCallback([this](bool result) {
       if (result)
         _pEngine->quit();
-      updateState(State::Main);
+      setState(State::Main);
     });
 
-    updateState(State::Main);
+    setState(State::Main);
   }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) {
@@ -120,10 +94,46 @@ struct StartScreenDialog::Impl {
 
     case State::Quit:_quit.draw(target, states);
       break;
+    case State::None:break;
+    }
+  }
+
+  void onStateChanged() {
+    _buttons.clear();
+    switch (_state) {
+    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() { _showSaveLoad = true; });
+      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
+        _saveload.updateLanguage();
+        _saveload.setSaveMode(false);
+        _showSaveLoad = true;
+      });
+      _buttons.emplace_back(Ids::NewGame, getSlotPos(2), [this]() {
+        if (_newGameCallback)
+          _newGameCallback();
+      });
+      _buttons.emplace_back(Ids::Options, getSlotPos(3), [this]() { setState(State::Options); });
+      _buttons.emplace_back(Ids::Help, getSlotPos(4), [this]() { setState(State::Help); });
+      _buttons.emplace_back(Ids::Quit, getSlotPos(5), [this]() { setState(State::Quit); });
+      break;
+    case State::Help:_options.showHelp();
+      break;
+    case State::Options:break;
+    case State::Quit:break;
+    default:setState(State::Main);
+      break;
+    }
+
+    for (auto &button : _buttons) {
+      button.setEngine(_pEngine);
     }
   }
 
   void update(const ngf::TimeSpan &elapsed) {
+    if (_nextstate != _state) {
+      _state = _nextstate;
+      onStateChanged();
+    }
+
     switch (_state) {
     case State::Quit:_quit.update(elapsed);
       break;
