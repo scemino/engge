@@ -20,9 +20,11 @@ GeneralTools::GeneralTools(Engine &engine,
                            bool &consoleVisible,
                            bool &showGlobalsTable,
                            bool &soundsVisible,
-                           bool &threadsVisible)
+                           bool &threadsVisible,
+                           bool &actorsVisible)
     : m_engine(engine), m_textureVisible(textureVisible), m_consoleVisible(consoleVisible),
-      m_showGlobalsTable(showGlobalsTable), m_soundsVisible(soundsVisible), m_threadsVisible(threadsVisible) {}
+      m_showGlobalsTable(showGlobalsTable), m_soundsVisible(soundsVisible), m_threadsVisible(threadsVisible),
+      m_actorsVisible(actorsVisible) {}
 
 void GeneralTools::render() {
   std::stringstream s;
@@ -57,6 +59,7 @@ void GeneralTools::render() {
   }
   ImGui::Checkbox("Show cursor position", &DebugFeatures::showCursorPosition);
   ImGui::Checkbox("Show hovered object", &DebugFeatures::showHoveredObject);
+  ImGui::Checkbox("Actors", &m_actorsVisible);
   ImGui::Checkbox("Sounds", &m_soundsVisible);
   ImGui::Checkbox("Textures", &m_textureVisible);
   ImGui::Checkbox("Threads", &m_threadsVisible);

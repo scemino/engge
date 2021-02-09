@@ -27,7 +27,8 @@ DebugTools::DebugTools(Engine &engine)
                      m_consoleTools.consoleVisible,
                      m_showGlobalsTable,
                      m_soundTools.soundsVisible,
-                     m_threadTools.threadsVisible),
+                     m_threadTools.threadsVisible,
+                     m_actorTools.actorsVisible),
       m_cameraTools(engine),
       m_preferencesTools(engine) {
   memset(m_renderTimes.values, 0, IM_ARRAYSIZE(m_renderTimes.values));
@@ -54,7 +55,6 @@ void DebugTools::render() {
   m_soundTools.render();
   m_threadTools.render();
   showRoomTable();
-  showActorTable();
   showPerformance();
 
   ImGui::End();
@@ -102,19 +102,6 @@ void DebugTools::showGlobalsTable() {
   SQObjectPtr g;
   _table(ScriptEngine::getVm()->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
   DebugControls::createTree("Globals", g);
-  ImGui::End();
-}
-
-void DebugTools::showActorTable() {
-  if (!m_actorTools.showActorTable)
-    return;
-
-  ImGui::Begin("Actor table", &m_actorTools.showActorTable);
-  auto pActor = m_engine.getCurrentActor();
-  if (pActor) {
-    auto table = pActor->getTable();
-    DebugControls::createTree(pActor->getName().c_str(), table);
-  }
   ImGui::End();
 }
 

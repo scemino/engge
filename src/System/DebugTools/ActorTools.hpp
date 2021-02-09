@@ -18,6 +18,7 @@ private:
   void showInventory(Actor *actor);
   void showGeneral(Actor *actor);
   void showCostume(Actor *actor);
+  void showActorTable(Actor *actor);
 
 private:
   static std::string getFlags(Actor &actor);
@@ -27,12 +28,15 @@ private:
   static UseDirection intToDirection(int dir);
 
 public:
-  bool showActorTable{false};
+  bool actorsVisible{true};
 
 private:
   Engine &m_engine;
-  int m_selectedActor{0};
+  Actor* m_selectedActor{nullptr};
   ImGuiTextFilter m_filterCostume;
-  std::vector<std::string> m_actorInfos;
+  bool m_showActorTable{false};
+  bool m_showInventory{false};
+  bool m_showGeneral{false};
+  bool m_showCostume{false};
 };
 }

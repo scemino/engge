@@ -32,7 +32,6 @@ private:
   static void renderTimes(const char *label, Plot &plot, const std::function<ngf::TimeSpan()> &func);
   void showRoomTable();
   void showGlobalsTable();
-  void showActorTable();
   void showInputState();
 
 public:

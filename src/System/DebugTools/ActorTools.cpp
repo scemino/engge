@@ -11,162 +11,182 @@ namespace ng {
 ActorTools::ActorTools(Engine &engine) : m_engine(engine) {}
 
 void ActorTools::render() {
-  if (!ImGui::CollapsingHeader("Actors"))
+  if (!actorsVisible)
     return;
 
-  ImGui::Indent();
-  auto &actors = m_engine.getActors();
-  m_actorInfos.clear();
-  for (auto &&actor : actors) {
-    m_actorInfos.push_back(toUtf8(actor->getTranslatedName()));
-  }
-  ImGui::Combo("##Actor",
-               &m_selectedActor,
-               DebugControls::stringGetter,
-               static_cast<void *>(&m_actorInfos),
-               m_actorInfos.size());
-  ImGui::SameLine();
+  ImGui::Begin("Actors", &actorsVisible);
   if (ImGui::SmallButton("Table...")) {
-    showActorTable = true;
+    m_showActorTable = true;
+  }
+  ImGui::Checkbox("General", &m_showGeneral);
+  ImGui::Checkbox("Inventory", &m_showInventory);
+  ImGui::Checkbox("Costume", &m_showCostume);
+  ImGui::Separator();
+
+  // show actor list
+  auto &actors = m_engine.getActors();
+  for (auto &&actor : actors) {
+    ImGui::PushID(actor.get());
+    bool isSelected = actor.get() == m_selectedActor;
+    auto visible = actor->isVisible();
+    if (ImGui::Checkbox("", &visible)) {
+      actor->setVisible(visible);
+    }
+    ImGui::SameLine();
+    if (ImGui::Selectable(toUtf8(actor->getTranslatedName()).c_str(), isSelected)) {
+      m_selectedActor = actor.get();
+    }
+    ImGui::PopID();
   }
 
-  auto &actor = actors[m_selectedActor];
+  ImGui::End();
 
-  auto head = actor->getCostume().getHeadIndex();
-  if (ImGui::SliderInt("Head index", &head, 0, 5)) {
-    actor->getCostume().setHeadIndex(head);
+  if (m_selectedActor) {
+    showActorTable(m_selectedActor);
+    showGeneral(m_selectedActor);
+    showInventory(m_selectedActor);
+    showCostume(m_selectedActor);
   }
-
-  showGeneral(actor.get());
-  showInventory(actor.get());
-  showCostume(actor.get());
-
-  ImGui::Unindent();
 }
 
 void ActorTools::showInventory(Actor *actor) {
-  if (ImGui::TreeNode("Inventory")) {
-    for (const auto &obj : actor->getObjects()) {
-      if (ImGui::TreeNode(&obj, "%s", obj->getKey().c_str())) {
-        auto jiggle = obj->getJiggle();
-        if (ImGui::Checkbox("Jiggle", &jiggle)) {
-          obj->setJiggle(jiggle);
-        }
-        auto pop = obj->getPop();
-        if (ImGui::DragInt("Pop", &pop, 1, 0, 10)) {
-          obj->setPop(pop);
-        }
-        ImGui::TreePop();
+  if (!m_showInventory)
+    return;
+
+  ImGui::Begin("Inventory", &m_showInventory);
+  for (const auto &obj : actor->getObjects()) {
+    if (ImGui::TreeNode(&obj, "%s", obj->getKey().c_str())) {
+      auto jiggle = obj->getJiggle();
+      if (ImGui::Checkbox("Jiggle", &jiggle)) {
+        obj->setJiggle(jiggle);
       }
+      auto pop = obj->getPop();
+      if (ImGui::DragInt("Pop", &pop, 1, 0, 10)) {
+        obj->setPop(pop);
+      }
+      ImGui::TreePop();
     }
-    ImGui::TreePop();
   }
+  ImGui::End();
 }
 
 void ActorTools::showGeneral(Actor *actor) {
-  if (ImGui::TreeNode("General")) {
-    auto isVisible = actor->isVisible();
-    if (ImGui::Checkbox("Visible", &isVisible)) {
-      actor->setVisible(isVisible);
-    }
-    auto isTouchable = actor->isTouchable();
-    if (ImGui::Checkbox("Touchable", &isTouchable)) {
-      actor->setTouchable(isTouchable);
-    }
-    auto isLit = actor->isLit();
-    if (ImGui::Checkbox("Lit", &isLit)) {
-      actor->setLit(isLit);
-    }
-    auto pRoom = actor->getRoom();
-    auto flags = getFlags(*actor);
-    ImGui::Text("Key: %s", actor->getKey().c_str());
-    ImGui::Text("Flags: %s", flags.c_str());
-    ImGui::Text("Icon: %s", actor->getIcon().c_str());
-    ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
-    ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
-    ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
-    ImGui::Text("Z-Order: %d", actor->getZOrder());
-    auto facing = facingToInt(actor->getCostume().getFacing());
-    auto facings = "Front\0Back\0Left\0Right\0";
-    if (ImGui::Combo("Facing", &facing, facings)) {
-      actor->getCostume().setFacing(intToFacing(facing));
-    }
-    if (pRoom) {
-      auto scale = actor->getScale();
-      ImGui::Text("Scale: %.3f", scale);
-    }
-    auto color = actor->getColor();
-    if (ngf::ImGui::ColorEdit4("Color", &color)) {
-      actor->setColor(color);
-    }
-    auto talkColor = actor->getTalkColor();
-    if (ngf::ImGui::ColorEdit4("Talk color", &talkColor)) {
-      actor->setTalkColor(talkColor);
-    }
-    auto talkOffset = actor->getTalkOffset();
-    if (ngf::ImGui::InputInt2("Talk offset", &talkOffset)) {
-      actor->setTalkOffset(talkOffset);
-    }
-    auto pos = actor->getPosition();
-    if (ngf::ImGui::InputFloat2("Position", &pos)) {
-      actor->setPosition(pos);
-    }
-    auto usePos = actor->getUsePosition().value_or(glm::vec2());
-    if (ngf::ImGui::InputFloat2("Use Position", &usePos)) {
-      actor->setUsePosition(usePos);
-    }
-    auto offset = actor->getOffset();
-    if (ngf::ImGui::InputFloat2("Offset", &offset)) {
-      actor->setOffset(offset);
-    }
-    auto renderOffset = actor->getRenderOffset();
-    if (ngf::ImGui::InputInt2("Render Offset", &renderOffset)) {
-      actor->setRenderOffset(renderOffset);
-    }
-    auto walkSpeed = actor->getWalkSpeed();
-    if (ngf::ImGui::InputInt2("Walk speed", &walkSpeed)) {
-      actor->setWalkSpeed(walkSpeed);
-    }
-    auto hotspotVisible = actor->isHotspotVisible();
-    if (ImGui::Checkbox("Show hotspot", &hotspotVisible)) {
-      actor->showHotspot(hotspotVisible);
-    }
-    auto hotspot = actor->getHotspot();
-    if (ngf::ImGui::InputInt4("Hotspot", &hotspot)) {
-      actor->setHotspot(hotspot);
-    }
-    auto useWalkboxes = actor->useWalkboxes();
-    if (ImGui::Checkbox("Use Walkboxes", &useWalkboxes)) {
-      actor->useWalkboxes(useWalkboxes);
-    }
-    auto useDirection = directionToInt(actor->getUseDirection().value_or(UseDirection::Front));
-    auto directions = "Front\0Back\0Left\0Right\0";
-    if (ImGui::Combo("Use direction", &useDirection, directions)) {
-      actor->setUseDirection(intToDirection(useDirection));
-    }
-    auto fps = actor->getFps();
-    if (ImGui::InputInt("FPS", &fps)) {
-      actor->setFps(fps);
-    }
-    auto inventoryOffset = actor->getInventoryOffset();
-    if (ImGui::InputInt("Inventory Offset", &inventoryOffset)) {
-      actor->setInventoryOffset(inventoryOffset);
-    }
-    auto volume = actor->getVolume().value_or(1.0f);
-    if (ImGui::SliderFloat("Volume", &volume, 0.f, 1.0f)) {
-      actor->setVolume(volume);
-    }
-    auto rotation = actor->getRotation();
-    if (ImGui::SliderFloat("Rotation", &rotation, 0.f, 360.0f)) {
-      actor->setRotation(rotation);
-    }
+  if (!m_showGeneral)
+    return;
+
+  ImGui::Begin("General", &m_showGeneral);
+
+  auto isTouchable = actor->isTouchable();
+  if (ImGui::Checkbox("Touchable", &isTouchable)) {
+    actor->setTouchable(isTouchable);
+  }
+  auto isLit = actor->isLit();
+  if (ImGui::Checkbox("Lit", &isLit)) {
+    actor->setLit(isLit);
+  }
+  auto useWalkboxes = actor->useWalkboxes();
+  if (ImGui::Checkbox("Use Walkboxes", &useWalkboxes)) {
+    actor->useWalkboxes(useWalkboxes);
+  }
+  auto pRoom = actor->getRoom();
+  auto flags = getFlags(*actor);
+  ImGui::Text("Key: %s", actor->getKey().c_str());
+  ImGui::Text("Flags: %s", flags.c_str());
+  ImGui::Text("Icon: %s", actor->getIcon().c_str());
+  ImGui::Text("Room: %s", pRoom ? pRoom->getName().c_str() : "(none)");
+  ImGui::Text("Talking: %s", actor->isTalking() ? "yes" : "no");
+  ImGui::Text("Walking: %s", actor->isWalking() ? "yes" : "no");
+  ImGui::Text("Z-Order: %d", actor->getZOrder());
+  if (pRoom) {
     auto scale = actor->getScale();
-    if (ImGui::SliderFloat("scale", &scale, 0.f, 100.f)) {
-      actor->setScale(scale);
-    }
-    ImGui::TreePop();
+    ImGui::Text("Scale: %.3f", scale);
+  }
+  auto facing = facingToInt(actor->getCostume().getFacing());
+  auto facings = "Front\0Back\0Left\0Right\0";
+  if (ImGui::Combo("Facing", &facing, facings)) {
+    actor->getCostume().setFacing(intToFacing(facing));
+  }
+  auto color = actor->getColor();
+  if (ngf::ImGui::ColorEdit4("Color", &color)) {
+    actor->setColor(color);
+  }
+  auto talkColor = actor->getTalkColor();
+  if (ngf::ImGui::ColorEdit4("Talk color", &talkColor)) {
+    actor->setTalkColor(talkColor);
+  }
+  auto talkOffset = actor->getTalkOffset();
+  if (ImGui::DragInt2("Talk offset", &talkOffset.x)) {
+    actor->setTalkOffset(talkOffset);
+  }
+  auto pos = actor->getPosition();
+  if (ImGui::DragFloat2("Position", &pos.x)) {
+    actor->setPosition(pos);
+  }
+  auto usePos = actor->getUsePosition().value_or(glm::vec2());
+  if (ImGui::DragFloat2("Use Position", &usePos.x)) {
+    actor->setUsePosition(usePos);
+  }
+  auto offset = actor->getOffset();
+  if (ImGui::DragFloat2("Offset", &offset.x)) {
+    actor->setOffset(offset);
+  }
+  auto renderOffset = actor->getRenderOffset();
+  if (ImGui::DragInt2("Render Offset", &renderOffset.x)) {
+    actor->setRenderOffset(renderOffset);
+  }
+  auto walkSpeed = actor->getWalkSpeed();
+  if (ImGui::DragInt2("Walk speed", &walkSpeed.x)) {
+    actor->setWalkSpeed(walkSpeed);
+  }
+  auto hotspotVisible = actor->isHotspotVisible();
+  if (ImGui::Checkbox("Show hotspot", &hotspotVisible)) {
+    actor->showHotspot(hotspotVisible);
+  }
+  auto hotspot = actor->getHotspot();
+  if (ImGui::DragInt4("Hotspot", &hotspot.min.x)) {
+    actor->setHotspot(hotspot);
+  }
+  auto useDirection = directionToInt(actor->getUseDirection().value_or(UseDirection::Front));
+  auto directions = "Front\0Back\0Left\0Right\0";
+  if (ImGui::Combo("Use direction", &useDirection, directions)) {
+    actor->setUseDirection(intToDirection(useDirection));
+  }
+  auto fps = actor->getFps();
+  if (ImGui::InputInt("FPS", &fps)) {
+    actor->setFps(fps);
+  }
+  auto inventoryOffset = actor->getInventoryOffset();
+  if (ImGui::InputInt("Inventory Offset", &inventoryOffset)) {
+    actor->setInventoryOffset(inventoryOffset);
+  }
+  auto volume = actor->getVolume().value_or(1.0f);
+  if (ImGui::SliderFloat("Volume", &volume, 0.f, 1.0f)) {
+    actor->setVolume(volume);
+  }
+  auto rotation = actor->getRotation();
+  if (ImGui::DragFloat("Rotation", &rotation, 0.f, 360.0f)) {
+    actor->setRotation(rotation);
+  }
+  auto scale = actor->getScale();
+  if (ImGui::DragFloat("scale", &scale, 0.f, 100.f)) {
+    actor->setScale(scale);
   }
 
+  // head index
+  ImGui::Separator();
+  auto head = actor->getCostume().getHeadIndex();
+  for (int i = 0; i < 6; ++i) {
+    std::string s;
+    s.append("Head #").append(std::to_string(i + 1));
+    if (ImGui::RadioButton(s.c_str(), head == i)) {
+      actor->getCostume().setHeadIndex(head);
+    }
+    ImGui::SameLine();
+  }
+  ImGui::NewLine();
+
+  // animation names
+  ImGui::Separator();
   std::string headAnim;
   std::string standAnim;
   std::string walkAnim;
@@ -176,39 +196,41 @@ void ActorTools::showGeneral(Actor *actor) {
   ImGui::Text("Stand: %s", standAnim.c_str());
   ImGui::Text("Walk: %s", walkAnim.c_str());
   ImGui::Text("Reach: %s", reachAnim.c_str());
+
+  ImGui::End();
 }
 
 void ActorTools::showCostume(Actor *actor) {
-  if (ImGui::TreeNode("Costume")) {
-    ImGui::PushID("costume");
-    m_filterCostume.Draw("Filter");
-    if (ImGui::ListBoxHeader("Costume")) {
-      auto actorKey = actor->getKey();
-      std::vector<std::string> entries;
-      for (const auto &pack : Locator<EngineSettings>::get()) {
-        for (auto itEntry = pack->cbegin(); itEntry != pack->cend(); ++itEntry) {
-          const auto &entry = itEntry->first;
-          if (entry.length() < 15)
-            continue;
-          auto extension = entry.substr(entry.length() - 14, 14);
-          CaseInsensitiveCompare cmp;
-          if (!cmp(extension, "Animation.json"))
-            continue;
-          auto prefix = entry.substr(0, actorKey.length());
-          if (!cmp(prefix, actorKey))
-            continue;
-          if (m_filterCostume.PassFilter(entry.c_str())) {
-            if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) {
-              actor->getCostume().loadCostume(entry);
-            }
+  if (!m_showCostume)
+    return;
+
+  ImGui::Begin("General", &m_showCostume);
+  m_filterCostume.Draw("Filter");
+  if (ImGui::ListBoxHeader("Costume")) {
+    auto actorKey = actor->getKey();
+    std::vector<std::string> entries;
+    for (const auto &pack : Locator<EngineSettings>::get()) {
+      for (const auto &itEntry : *pack) {
+        const auto &entry = itEntry.first;
+        if (entry.length() < 15)
+          continue;
+        auto extension = entry.substr(entry.length() - 14, 14);
+        CaseInsensitiveCompare cmp;
+        if (!cmp(extension, "Animation.json"))
+          continue;
+        auto prefix = entry.substr(0, actorKey.length());
+        if (!cmp(prefix, actorKey))
+          continue;
+        if (m_filterCostume.PassFilter(entry.c_str())) {
+          if (ImGui::Selectable(entry.c_str(), actor->getCostume().getPath() == entry)) {
+            actor->getCostume().loadCostume(entry);
           }
         }
       }
-      ImGui::ListBoxFooter();
     }
-    ImGui::PopID();
-    ImGui::TreePop();
+    ImGui::ListBoxFooter();
   }
+  ImGui::End();
 }
 
 std::string ActorTools::getFlags(Actor &actor) {
@@ -231,6 +253,18 @@ std::string ActorTools::getFlags(Actor &actor) {
   }
   os << std::hex << flags;
   return os.str();
+}
+
+void ActorTools::showActorTable(Actor *actor) {
+  if (!m_showActorTable)
+    return;
+
+  ImGui::Begin("Actor table", &m_showActorTable);
+  if (actor) {
+    auto table = actor->getTable();
+    DebugControls::createTree(actor->getName().c_str(), table);
+  }
+  ImGui::End();
 }
 
 int ActorTools::facingToInt(Facing facing) {

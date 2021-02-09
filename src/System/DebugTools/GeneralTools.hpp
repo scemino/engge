@@ -8,7 +8,7 @@ class Engine;
 class GeneralTools final {
 public:
   explicit GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable,
-                        bool &soundsVisible, bool & threadsVisible);
+                        bool &soundsVisible, bool & threadsVisible, bool & actorsVisible);
 
   void render();
 
@@ -23,6 +23,7 @@ private:
   bool &m_showGlobalsTable;
   bool& m_soundsVisible;
   bool& m_threadsVisible;
+  bool& m_actorsVisible;
   int m_fadeEffect{0};
   float m_fadeDuration{3.f};
 };
