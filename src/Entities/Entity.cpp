@@ -184,7 +184,7 @@ void Entity::trig(const std::string &name) {
   auto id = std::strtol(name.data() + 1, &end, 10);
   if (end == name.data() + 1) {
     // trig sound
-    auto soundId = pImpl->_engine.getSoundDefinition(name);
+    auto soundId = pImpl->_engine.getSoundDefinition(name.data() + 1);
     if (!soundId)
       return;
     pImpl->_engine.getSoundManager().playSound(soundId);
