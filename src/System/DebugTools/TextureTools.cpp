@@ -17,24 +17,28 @@ void TextureTools::render() {
   auto totalSizeText = convertSize(totalSize);
   ImGui::Text("Total memory: %s", totalSizeText.data());
   ImGui::Separator();
-  ImGui::Columns(3);
-  ImGui::Text("Name");
-  ImGui::NextColumn();
-  ImGui::Text("Size");
-  ImGui::NextColumn();
-  ImGui::Text("Refs");
-  ImGui::NextColumn();
-  ImGui::Separator();
-  for (const auto&[key, value] :map) {
-    auto fileSize = convertSize(value._size);
-    ImGui::Text("%s", key.data());
-    ImGui::NextColumn();
-    ImGui::Text("%s", fileSize.data());
-    ImGui::NextColumn();
-    ImGui::Text("%ld", value._texture.use_count());
-    ImGui::NextColumn();
+
+  if (ImGui::BeginTable("Textures",
+                        3,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable
+                            | ImGuiTableFlags_RowBg)) {
+    ImGui::TableSetupColumn("Name");
+    ImGui::TableSetupColumn("Size");
+    ImGui::TableSetupColumn("Refs");
+    ImGui::TableHeadersRow();
+
+    for (const auto&[key, value] :map) {
+      auto fileSize = convertSize(value._size);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", key.data());
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", fileSize.data());
+      ImGui::TableNextColumn();
+      ImGui::Text("%ld", value._texture.use_count());
+    }
+    ImGui::EndTable();
   }
-  ImGui::Columns(1);
   ImGui::End();
 }
 

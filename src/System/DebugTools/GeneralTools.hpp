@@ -7,12 +7,13 @@ class Engine;
 
 class GeneralTools final {
 public:
-  explicit GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable);
+  explicit GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable,
+                        bool &soundsVisible, bool & threadsVisible);
 
   void render();
 
 private:
-  void getStack(std::vector<std::string> &stack);
+  static void getStack(std::vector<std::string> &stack);
 
 private:
   Engine &m_engine;
@@ -20,6 +21,8 @@ private:
   bool &m_textureVisible;
   bool &m_consoleVisible;
   bool &m_showGlobalsTable;
+  bool& m_soundsVisible;
+  bool& m_threadsVisible;
   int m_fadeEffect{0};
   float m_fadeDuration{3.f};
 };

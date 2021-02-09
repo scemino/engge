@@ -9,6 +9,9 @@ public:
 
   void render();
 
+public:
+  bool threadsVisible{false};
+
 private:
   Engine &m_engine;
 };

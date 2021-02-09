@@ -100,7 +100,7 @@ bool Entity::isVisible() const {
 }
 
 void Entity::setUsePosition(std::optional<glm::vec2> pos) {
-  pImpl->_usePos = pos;
+  pImpl->_usePos = std::move(pos);
 }
 
 void Entity::setUseDirection(std::optional<UseDirection> direction) {

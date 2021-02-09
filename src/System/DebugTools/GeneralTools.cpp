@@ -1,5 +1,4 @@
 #include "GeneralTools.hpp"
-#include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
 #include <engge/Dialog/DialogManager.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
@@ -16,9 +15,14 @@
 #include "../../extlibs/squirrel/squirrel/sqclosure.h"
 
 namespace ng {
-GeneralTools::GeneralTools(Engine &engine, bool &textureVisible, bool &consoleVisible, bool &showGlobalsTable)
+GeneralTools::GeneralTools(Engine &engine,
+                           bool &textureVisible,
+                           bool &consoleVisible,
+                           bool &showGlobalsTable,
+                           bool &soundsVisible,
+                           bool &threadsVisible)
     : m_engine(engine), m_textureVisible(textureVisible), m_consoleVisible(consoleVisible),
-      m_showGlobalsTable(showGlobalsTable) {}
+      m_showGlobalsTable(showGlobalsTable), m_soundsVisible(soundsVisible), m_threadsVisible(threadsVisible) {}
 
 void GeneralTools::render() {
   std::stringstream s;
@@ -53,7 +57,9 @@ void GeneralTools::render() {
   }
   ImGui::Checkbox("Show cursor position", &DebugFeatures::showCursorPosition);
   ImGui::Checkbox("Show hovered object", &DebugFeatures::showHoveredObject);
+  ImGui::Checkbox("Sounds", &m_soundsVisible);
   ImGui::Checkbox("Textures", &m_textureVisible);
+  ImGui::Checkbox("Threads", &m_threadsVisible);
   ImGui::Checkbox("Console", &m_consoleVisible);
   ImGui::SameLine();
   if (ImGui::SmallButton("Globals...")) {

@@ -22,7 +22,12 @@ DebugTools::DebugTools(Engine &engine)
       m_roomTools(engine),
       m_soundTools(engine),
       m_threadTools(engine),
-      m_generalTools(engine, m_texturesTools.texturesVisible, m_consoleTools.consoleVisible, m_showGlobalsTable),
+      m_generalTools(engine,
+                     m_texturesTools.texturesVisible,
+                     m_consoleTools.consoleVisible,
+                     m_showGlobalsTable,
+                     m_soundTools.soundsVisible,
+                     m_threadTools.threadsVisible),
       m_cameraTools(engine),
       m_preferencesTools(engine) {
   memset(m_renderTimes.values, 0, IM_ARRAYSIZE(m_renderTimes.values));
@@ -125,7 +130,7 @@ void DebugTools::showInputState() {
   auto cursorVisible = (inputState & InputStateConstants::UI_CURSOR_ON) == InputStateConstants::UI_CURSOR_ON;
   if (ImGui::Checkbox("Cusrsor visible", &cursorVisible)) {
     m_engine.setInputState(cursorVisible ? InputStateConstants::UI_CURSOR_ON
-                                        : InputStateConstants::UI_CURSOR_OFF);
+                                         : InputStateConstants::UI_CURSOR_OFF);
   }
 
   auto inputVerbs = (inputState & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON;
@@ -135,7 +140,7 @@ void DebugTools::showInputState() {
   auto inputHUD = (inputState & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON;
   if (ImGui::Checkbox("Input HUD", &inputHUD)) {
     m_engine.setInputState(inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON
-                                   : InputStateConstants::UI_HUDOBJECTS_OFF);
+                                    : InputStateConstants::UI_HUDOBJECTS_OFF);
   }
 }
 }
