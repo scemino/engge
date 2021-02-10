@@ -17,6 +17,8 @@ Costume::Costume(ResourceManager &textureManager)
     : m_textureManager(textureManager),
       m_blinkState(*this) {
   resetLockFacing();
+  setLayerVisible("eyes_left", false);
+  setLayerVisible("eyes_right", false);
 }
 
 Costume::~Costume() = default;
