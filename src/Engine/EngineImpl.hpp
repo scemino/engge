@@ -38,7 +38,7 @@
 #include "../../extlibs/squirrel/squirrel/sqcompiler.h"
 #include "../../extlibs/squirrel/squirrel/sqfuncstate.h"
 #include "../../extlibs/squirrel/squirrel/sqclass.h"
-#include "../Entities/Actor/TalkingState.hpp"
+#include "../Entities/TalkingState.hpp"
 #include "engge/System/Logger.hpp"
 #include "engge/Parsers/SavegameManager.hpp"
 #include <cmath>

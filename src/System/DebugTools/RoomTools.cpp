@@ -1,5 +1,6 @@
 #include "RoomTools.hpp"
 #include <imgui.h>
+#include <sstream>
 #include <engge/Room/Room.hpp>
 #include <engge/Engine/Engine.hpp>
 #include <ngf/Math/PathFinding/Walkbox.h>

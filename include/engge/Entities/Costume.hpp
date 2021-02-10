@@ -12,15 +12,9 @@
 #include <engge/Graphics/ResourceManager.hpp>
 #include <engge/Graphics/Animation.hpp>
 #include <engge/Graphics/AnimControl.hpp>
+#include <engge/Entities/Facing.hpp>
 
 namespace ng {
-
-enum class Facing {
-  FACE_FRONT = DirectionConstants::FACE_FRONT,
-  FACE_BACK = DirectionConstants::FACE_BACK,
-  FACE_LEFT = DirectionConstants::FACE_LEFT,
-  FACE_RIGHT = DirectionConstants::FACE_RIGHT
-};
 
 enum class Reaching {
   High,
@@ -30,14 +24,14 @@ enum class Reaching {
 
 class Actor;
 
-class Costume : public ngf::Drawable {
+class Costume final : public ngf::Drawable {
 public:
   explicit Costume(ResourceManager &textureManager);
-  ~Costume() override;
+  ~Costume() final;
 
   void loadCostume(const std::string &name, const std::string &sheet = "");
-  [[nodiscard]] std::string getPath() const { return _path; }
-  [[nodiscard]] std::string getSheet() const { return _sheet; }
+  [[nodiscard]] std::string getPath() const { return m_path; }
+  [[nodiscard]] std::string getSheet() const { return m_sheet; }
   void lockFacing(Facing left, Facing right, Facing front, Facing back);
   void unlockFacing();
   void resetLockFacing();
@@ -46,14 +40,13 @@ public:
   void setFacing(Facing facing);
   [[nodiscard]] Facing getFacing() const;
   void setState(const std::string &name, bool loop = false);
-  void setStandState() { setState(_standAnimName); }
-  void setWalkState() { setState(_walkAnimName, true); }
+  void setStandState() { setState(m_standAnimName); }
+  void setWalkState() { setState(m_walkAnimName, true); }
   void setReachState(Reaching reaching);
   bool setAnimation(const std::string &name);
-  bool setMatchingAnimation(const std::string &animName);
-  Animation *getAnimation() { return _pCurrentAnimation; }
-  AnimControl& getAnimControl() { return _animControl; }
-  std::vector<Animation> &getAnimations() { return _animations; }
+  Animation *getAnimation() { return m_pCurrentAnimation; }
+  AnimControl& getAnimControl() { return m_animControl; }
+  std::vector<Animation> &getAnimations() { return m_animations; }
   void setLayerVisible(const std::string &name, bool isVisible);
   void setHeadIndex(int index);
   [[nodiscard]] int getHeadIndex() const;
@@ -67,36 +60,37 @@ public:
                          std::string &walkAnim,
                          std::string &reachAnim) const;
 
-  void setActor(Actor *pActor) { _pActor = pActor; }
+  void setActor(Actor *pActor) { m_pActor = pActor; }
 
-  void setBlinkRate(double min, double max);
+  void setBlinkRate(float min, float max);
 
   void update(const ngf::TimeSpan &elapsed);
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 
 private:
+  bool setMatchingAnimation(const std::string &animName);
   void updateAnimation();
 
 private:
-  ResourceManager &_textureManager;
-  std::string _path;
-  std::string _sheet;
-  std::vector<Animation> _animations;
-  Animation *_pCurrentAnimation{nullptr};
-  Facing _facing{Facing::FACE_FRONT};
-  std::set<std::string> _hiddenLayers;
-  std::string _animation{"stand"};
-  std::string _standAnimName{"stand"};
-  std::string _headAnimName{"head"};
-  std::string _walkAnimName{"walk"};
-  std::string _reachAnimName{"reach"};
-  int _headIndex{0};
-  Actor *_pActor{nullptr};
-  BlinkState _blinkState;
-  std::unordered_map<Facing, Facing> _facings;
-  bool _lockFacing{false};
-  SpriteSheet _costumeSheet;
-  AnimControl _animControl;
+  ResourceManager &m_textureManager;
+  std::string m_path;
+  std::string m_sheet;
+  std::vector<Animation> m_animations;
+  Animation *m_pCurrentAnimation{nullptr};
+  Facing m_facing{Facing::FACE_FRONT};
+  std::set<std::string> m_hiddenLayers;
+  std::string m_animation{"stand"};
+  std::string m_standAnimName{"stand"};
+  std::string m_headAnimName{"head"};
+  std::string m_walkAnimName{"walk"};
+  std::string m_reachAnimName{"reach"};
+  int m_headIndex{0};
+  Actor *m_pActor{nullptr};
+  BlinkState m_blinkState;
+  std::unordered_map<Facing, Facing> m_facings;
+  bool m_lockFacing{false};
+  SpriteSheet m_costumeSheet;
+  AnimControl m_animControl;
 };
 } // namespace ng

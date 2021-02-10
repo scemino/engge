@@ -1,5 +1,6 @@
 #include "LipAnimation.hpp"
 #include <engge/Entities/Actor.hpp>
+#include <engge/Entities/Costume.hpp>
 
 namespace ng {
 void LipAnimation::load(const std::string &path) {

@@ -32,14 +32,14 @@ set(SOURCES
         Engine/TextDatabase.cpp
         Engine/Thread.cpp
         Engine/ThreadBase.cpp
-        Entities/Actor/Actor.cpp
-        Entities/Actor/BlinkState.cpp
-        Entities/Actor/Costume.cpp
-        Entities/Actor/LipAnimation.cpp
-        Entities/Actor/TalkingState.cpp
+        Entities/Actor.cpp
+        Entities/BlinkState.cpp
+        Entities/Costume.cpp
+        Entities/LipAnimation.cpp
+        Entities/TalkingState.cpp
         Entities/Entity.cpp
-        Entities/Objects/Object.cpp
-        Entities/Objects/TextObject.cpp
+        Entities/Object.cpp
+        Entities/TextObject.cpp
         Graphics/AnimControl.cpp
         Graphics/AnimDrawable.cpp
         Graphics/FntFont.cpp

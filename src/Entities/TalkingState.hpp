@@ -7,7 +7,7 @@
 #include "engge/Graphics/Screen.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
 #include "LipAnimation.hpp"
-#include "../../Util/Util.hpp"
+#include "Util/Util.hpp"
 #include "engge/Audio/SoundId.hpp"
 #include "engge/Engine/Preferences.hpp"
 #include "engge/Audio/SoundManager.hpp"

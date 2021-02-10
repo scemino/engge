@@ -1,3 +1,4 @@
+#include <sstream>
 #include <engge/System/Logger.hpp>
 #include <engge/Entities/Actor.hpp>
 #include <engge/Dialog/EngineDialogScript.hpp>

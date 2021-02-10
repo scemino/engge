@@ -3,19 +3,20 @@
 #include <string>
 #include <optional>
 #include <squirrel.h>
-#include "Costume.hpp"
-#include "engge/Entities/Entity.hpp"
+#include <engge/Entities/Entity.hpp>
+#include <engge/Entities/Facing.hpp>
 
 namespace ng {
+class Costume;
 class Engine;
 class Lip;
 class Object;
 class Room;
 
-class Actor : public Entity {
+class Actor final : public Entity {
 public:
   explicit Actor(Engine &engine);
-  ~Actor() override;
+  ~Actor() final;
 
   [[nodiscard]] std::wstring getTranslatedName() const;
 
@@ -24,17 +25,17 @@ public:
   void useWalkboxes(bool use);
   [[nodiscard]] bool useWalkboxes() const;
 
-  [[nodiscard]] int getZOrder() const override;
+  [[nodiscard]] int getZOrder() const final;
 
   void setCostume(const std::string &name, const std::string &sheet = "");
   [[nodiscard]] Costume &getCostume() const;
   Costume &getCostume();
 
-  Room *getRoom() override;
-  [[nodiscard]] const Room *getRoom() const override;
+  Room *getRoom() final;
+  [[nodiscard]] const Room *getRoom() const final;
   void setRoom(Room *pRoom);
 
-  void setFps(int fps) override;
+  void setFps(int fps) final;
   [[nodiscard]] int getFps() const;
 
   void setHotspot(const ngf::irect &hotspot);
@@ -43,7 +44,7 @@ public:
   [[nodiscard]] bool isHotspotVisible() const;
   [[nodiscard]] bool contains(const glm::vec2 &pos) const;
 
-  void update(const ngf::TimeSpan &time) override;
+  void update(const ngf::TimeSpan &time) final;
 
   void pickupObject(Object *pObject);
   void pickupReplacementObject(Object *pObject1, Object *pObject2);
@@ -61,19 +62,19 @@ public:
   void stopWalking();
   [[nodiscard]] bool isWalking() const;
 
-  [[nodiscard]] bool isInventoryObject() const override;
+  [[nodiscard]] bool isInventoryObject() const final;
 
   void setVolume(float volume);
-  [[nodiscard]] std::optional<float> getVolume() const override;
+  [[nodiscard]] std::optional<float> getVolume() const final;
 
-  void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 
-  HSQOBJECT &getTable() override;
-  [[nodiscard]] HSQOBJECT &getTable() const override;
-  [[nodiscard]] float getScale() const override;
+  HSQOBJECT &getTable() final;
+  [[nodiscard]] HSQOBJECT &getTable() const final;
+  [[nodiscard]] float getScale() const final;
 
 private:
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 
 private:
   struct Impl;

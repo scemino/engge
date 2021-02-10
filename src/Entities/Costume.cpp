@@ -14,8 +14,8 @@ namespace fs = std::filesystem;
 
 namespace ng {
 Costume::Costume(ResourceManager &textureManager)
-    : _textureManager(textureManager),
-      _blinkState(*this) {
+    : m_textureManager(textureManager),
+      m_blinkState(*this) {
   resetLockFacing();
 }
 
@@ -23,94 +23,94 @@ Costume::~Costume() = default;
 
 void Costume::setLayerVisible(const std::string &name, bool isVisible) {
   if (!isVisible) {
-    _hiddenLayers.emplace(name);
+    m_hiddenLayers.emplace(name);
   } else {
-    _hiddenLayers.erase(name);
+    m_hiddenLayers.erase(name);
   }
-  if (_pCurrentAnimation == nullptr)
+  if (m_pCurrentAnimation == nullptr)
     return;
-  if (_pCurrentAnimation->layers.empty())
+  if (m_pCurrentAnimation->layers.empty())
     return;
   auto it =
-      std::find_if(_pCurrentAnimation->layers.begin(), _pCurrentAnimation->layers.end(), [name](auto &layer) {
+      std::find_if(m_pCurrentAnimation->layers.begin(), m_pCurrentAnimation->layers.end(), [name](auto &layer) {
         return layer.name == name;
       });
-  if (it != _pCurrentAnimation->layers.end()) {
+  if (it != m_pCurrentAnimation->layers.end()) {
     it->visible = isVisible;
   }
 }
 
 Facing Costume::getFacing() const {
-  if (_lockFacing) {
-    return _facings.at(_facing);
+  if (m_lockFacing) {
+    return m_facings.at(m_facing);
   }
-  return _facing;
+  return m_facing;
 }
 
 void Costume::setFacing(Facing facing) {
-  if (_facing == facing)
+  if (m_facing == facing)
     return;
-  _facing = facing;
+  m_facing = facing;
   updateAnimation();
 }
 
 void Costume::lockFacing(Facing left, Facing right, Facing front, Facing back) {
-  _facings[Facing::FACE_LEFT] = left;
-  _facings[Facing::FACE_RIGHT] = right;
-  _facings[Facing::FACE_FRONT] = front;
-  _facings[Facing::FACE_BACK] = back;
-  _lockFacing = true;
+  m_facings[Facing::FACE_LEFT] = left;
+  m_facings[Facing::FACE_RIGHT] = right;
+  m_facings[Facing::FACE_FRONT] = front;
+  m_facings[Facing::FACE_BACK] = back;
+  m_lockFacing = true;
 }
 
 void Costume::resetLockFacing() {
-  _facings[Facing::FACE_LEFT] = Facing::FACE_LEFT;
-  _facings[Facing::FACE_RIGHT] = Facing::FACE_RIGHT;
-  _facings[Facing::FACE_FRONT] = Facing::FACE_FRONT;
-  _facings[Facing::FACE_BACK] = Facing::FACE_BACK;
+  m_facings[Facing::FACE_LEFT] = Facing::FACE_LEFT;
+  m_facings[Facing::FACE_RIGHT] = Facing::FACE_RIGHT;
+  m_facings[Facing::FACE_FRONT] = Facing::FACE_FRONT;
+  m_facings[Facing::FACE_BACK] = Facing::FACE_BACK;
 }
 
 void Costume::unlockFacing() {
-  _lockFacing = false;
+  m_lockFacing = false;
 }
 
 std::optional<Facing> Costume::getLockFacing() const {
-  if (!_lockFacing)
+  if (!m_lockFacing)
     return std::nullopt;
-  auto frontFacing = _facings.find(Facing::FACE_FRONT)->second;
-  auto backFacing = _facings.find(Facing::FACE_BACK)->second;
+  auto frontFacing = m_facings.find(Facing::FACE_FRONT)->second;
+  auto backFacing = m_facings.find(Facing::FACE_BACK)->second;
   if (frontFacing != backFacing)
     return std::nullopt;
   return frontFacing;
 }
 
 void Costume::setState(const std::string &name, bool loop) {
-  _animation = name;
-  auto pOldAnim = _pCurrentAnimation;
+  m_animation = name;
+  auto pOldAnim = m_pCurrentAnimation;
   updateAnimation();
-  if (pOldAnim != _pCurrentAnimation) {
-    _animControl.play(loop);
+  if (pOldAnim != m_pCurrentAnimation) {
+    m_animControl.play(loop);
   }
 }
 
 void Costume::setReachState(Reaching reaching) {
   std::string animName;
   switch (reaching) {
-  case Reaching::High:animName = _reachAnimName + "_high";
+  case Reaching::High:animName = m_reachAnimName + "_high";
     break;
-  case Reaching::Medium:animName = _reachAnimName + "_med";
+  case Reaching::Medium:animName = m_reachAnimName + "_med";
     break;
-  case Reaching::Low:animName = _reachAnimName + "_low";
+  case Reaching::Low:animName = m_reachAnimName + "_low";
     break;
   }
   setState(animName);
-  if (!_pCurrentAnimation) {
-    setState(_reachAnimName);
+  if (!m_pCurrentAnimation) {
+    setState(m_reachAnimName);
   }
 }
 
 void Costume::loadCostume(const std::string &path, const std::string &sheet) {
-  _path = path;
-  auto costumeSheet = _sheet = sheet;
+  m_path = path;
+  auto costumeSheet = m_sheet = sheet;
 
   auto costumePath = fs::path(path);
   if (!costumePath.has_extension()) {
@@ -121,37 +121,37 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
     costumeSheet = hash["sheet"].getString();
   }
 
-  _costumeSheet.setTextureManager(&_textureManager);
+  m_costumeSheet.setTextureManager(&m_textureManager);
 
   if (!costumeSheet.empty()) {
-    _costumeSheet.load(costumeSheet);
+    m_costumeSheet.load(costumeSheet);
   }
 
   // load animations
-  _animations.clear();
-  _pCurrentAnimation = nullptr;
-  setHeadIndex(_headIndex);
+  m_animations.clear();
+  m_pCurrentAnimation = nullptr;
+  setHeadIndex(m_headIndex);
 
-  _animations = AnimationLoader::parseAnimations(*_pActor, hash["animations"], _costumeSheet);
+  m_animations = AnimationLoader::parseAnimations(*m_pActor, hash["animations"], m_costumeSheet);
 
   // don't know if it's necessary, reyes has no costume in the intro
   setStandState();
 }
 
 bool Costume::setAnimation(const std::string &animName) {
-  if (_pCurrentAnimation && _pCurrentAnimation->name == animName)
+  if (m_pCurrentAnimation && m_pCurrentAnimation->name == animName)
     return true;
 
-  for (auto &anim : _animations) {
+  for (auto &anim : m_animations) {
     if (anim.name == animName) {
-      _pCurrentAnimation = &anim;
-      _animControl.setAnimation(_pCurrentAnimation);
-      for (auto &layer : _pCurrentAnimation->layers) {
+      m_pCurrentAnimation = &anim;
+      m_animControl.setAnimation(m_pCurrentAnimation);
+      for (auto &layer : m_pCurrentAnimation->layers) {
         auto layerName = layer.name;
-        layer.visible = _hiddenLayers.find(layerName) == _hiddenLayers.end();
+        layer.visible = m_hiddenLayers.find(layerName) == m_hiddenLayers.end();
       }
 
-      _animControl.play();
+      m_animControl.play();
       return true;
     }
   }
@@ -160,19 +160,19 @@ bool Costume::setAnimation(const std::string &animName) {
 }
 
 bool Costume::setMatchingAnimation(const std::string &animName) {
-  if (_pCurrentAnimation && startsWith(_pCurrentAnimation->name, animName))
+  if (m_pCurrentAnimation && startsWith(m_pCurrentAnimation->name, animName))
     return true;
 
-  for (auto &anim : _animations) {
+  for (auto &anim : m_animations) {
     if (startsWith(anim.name, animName)) {
-      _pCurrentAnimation = &anim;
-      _animControl.setAnimation(_pCurrentAnimation);
-      for (auto &layer : _pCurrentAnimation->layers) {
+      m_pCurrentAnimation = &anim;
+      m_animControl.setAnimation(m_pCurrentAnimation);
+      for (auto &layer : m_pCurrentAnimation->layers) {
         auto layerName = layer.name;
-        layer.visible = _hiddenLayers.find(layerName) == _hiddenLayers.end();
+        layer.visible = m_hiddenLayers.find(layerName) == m_hiddenLayers.end();
       }
 
-      _animControl.play();
+      m_animControl.play();
       return true;
     }
   }
@@ -181,20 +181,20 @@ bool Costume::setMatchingAnimation(const std::string &animName) {
 }
 
 void Costume::updateAnimation() {
-  std::string animName = _animation;
+  std::string animName = m_animation;
   if (animName == "stand") {
-    animName = _standAnimName;
+    animName = m_standAnimName;
   } else if (animName == "head") {
-    animName = _headAnimName;
+    animName = m_headAnimName;
   } else if (animName == "walk") {
-    animName = _walkAnimName;
+    animName = m_walkAnimName;
   } else if (animName == "reach") {
-    animName = _reachAnimName;
+    animName = m_reachAnimName;
   }
 
   // special case for eyes... bof
-  if (_pCurrentAnimation && startsWith(animName, "eyes_")) {
-    auto &layers = _pCurrentAnimation->layers;
+  if (m_pCurrentAnimation && startsWith(animName, "eyes_")) {
+    auto &layers = m_pCurrentAnimation->layers;
     for (auto &&layer : layers) {
       if (!startsWith(layer.name, "eyes_"))
         continue;
@@ -221,64 +221,72 @@ void Costume::updateAnimation() {
     }
   }
 
-  setHeadIndex(_headIndex);
+  setHeadIndex(m_headIndex);
 }
 
 void Costume::update(const ngf::TimeSpan &elapsed) {
-  if (!_pCurrentAnimation)
+  if (!m_pCurrentAnimation)
     return;
-  _animControl.update(elapsed);
-  _blinkState.update(elapsed);
+  m_animControl.update(elapsed);
+  m_blinkState.update(elapsed);
 }
 
 void Costume::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  if (!_pCurrentAnimation)
+  if (!m_pCurrentAnimation)
     return;
   AnimDrawable animDrawable;
-  animDrawable.setAnim(_pCurrentAnimation);
-  animDrawable.setColor(_pActor->getColor());
+  animDrawable.setAnim(m_pCurrentAnimation);
+  animDrawable.setColor(m_pActor->getColor());
   if (getFacing() == Facing::FACE_LEFT)
     animDrawable.setFlipX(true);
-  animDrawable.draw(_pActor->getPosition(), target, states);
+  animDrawable.draw(m_pActor->getPosition(), target, states);
 }
 
 void Costume::setHeadIndex(int index) {
-  _headIndex = index;
-  if (!_pCurrentAnimation)
-    return;
+  m_headIndex = index;
+
+  setLayerVisible(m_headAnimName, m_headIndex == 0);
   for (int i = 0; i < 6; i++) {
-    std::ostringstream s;
-    s << _headAnimName;
-    if (i != 0) {
-      s << (i + 1);
-    }
-    auto layerName = s.str();
-    setLayerVisible(layerName, i == _headIndex);
+    auto name = m_headAnimName;
+    name.append(std::to_string(i + 1));
+    setLayerVisible(name, i == m_headIndex);
   }
 }
 
-int Costume::getHeadIndex() const { return _headIndex; }
+int Costume::getHeadIndex() const { return m_headIndex; }
 
 void Costume::setAnimationNames(const std::string &headAnim,
                                 const std::string &standAnim,
                                 const std::string &walkAnim,
                                 const std::string &reachAnim) {
   if (!headAnim.empty()) {
-    _headAnimName = headAnim;
+    setLayerVisible(m_headAnimName, false);
+    for (int i = 0; i < 6; ++i) {
+      auto name = m_headAnimName;
+      name.append(std::to_string(i + 1));
+      setLayerVisible(name, false);
+    }
+    m_headAnimName = headAnim;
+    setLayerVisible(m_headAnimName, m_headIndex == 0);
+    for (int i = 0; i < 6; ++i) {
+      auto name = m_headAnimName;
+      name.append(std::to_string(i + 1));
+      setLayerVisible(name, m_headIndex == i);
+    }
   }
   if (!standAnim.empty()) {
-    _standAnimName = standAnim;
+    m_standAnimName = standAnim;
   }
   if (!walkAnim.empty()) {
-    _walkAnimName = walkAnim;
+    m_walkAnimName = walkAnim;
   }
   if (!reachAnim.empty()) {
-    _reachAnimName = reachAnim;
+    m_reachAnimName = reachAnim;
   }
   // update animation if necessary
-  if (_pCurrentAnimation) {
-    _pCurrentAnimation = nullptr;
-    setState(_animation, _animControl.getLoop());
+  if (m_pCurrentAnimation) {
+    m_pCurrentAnimation = nullptr;
+    setState(m_animation, m_animControl.getLoop());
   }
 }
 
@@ -286,13 +294,13 @@ void Costume::getAnimationNames(std::string &headAnim,
                                 std::string &standAnim,
                                 std::string &walkAnim,
                                 std::string &reachAnim) const {
-  headAnim = _headAnimName;
-  standAnim = _standAnimName;
-  walkAnim = _walkAnimName;
-  reachAnim = _reachAnimName;
+  headAnim = m_headAnimName;
+  standAnim = m_standAnimName;
+  walkAnim = m_walkAnimName;
+  reachAnim = m_reachAnimName;
 }
 
-void Costume::setBlinkRate(double min, double max) {
-  _blinkState.setRate(min, max);
+void Costume::setBlinkRate(float min, float max) {
+  m_blinkState.setRate(min, max);
 }
 } // namespace ng

@@ -5,7 +5,7 @@
 namespace ng {
 class Costume;
 
-class BlinkState {
+class BlinkState final {
 public:
   explicit BlinkState(Costume &costume);
 
@@ -13,11 +13,11 @@ public:
   void update(ngf::TimeSpan elapsed);
 
 private:
-  Costume &_costume;
-  double _min{0};
-  double _max{0};
-  ngf::TimeSpan _value;
-  int32_t _state{-1};
-  ngf::TimeSpan _elapsed;
+  Costume &m_costume;
+  float m_min{0};
+  float m_max{0};
+  ngf::TimeSpan m_value;
+  int32_t m_state{-1};
+  ngf::TimeSpan m_elapsed;
 };
 }

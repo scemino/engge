@@ -2,12 +2,12 @@
 #include <optional>
 #include <utility>
 #include <glm/vec2.hpp>
-#include "engge/Entities/Entity.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/Audio/SoundTrigger.hpp"
-#include "engge/Engine/Camera.hpp"
-#include "engge/Engine/Trigger.hpp"
-#include "Actor/TalkingState.hpp"
+#include <engge/Entities/Entity.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Audio/SoundTrigger.hpp>
+#include <engge/Engine/Camera.hpp>
+#include <engge/Engine/Trigger.hpp>
+#include "TalkingState.hpp"
 
 namespace ng {
 struct Motor {
