@@ -7,6 +7,11 @@
 #include "DebugControls.hpp"
 
 namespace ng {
+namespace {
+const char *RoomEffects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0";
+const char *FadeEffects = "None\0In\0Out\0Wobble\0";
+}
+
 RoomTools::RoomTools(Engine &engine) : m_engine(engine) {}
 
 void RoomTools::render() {
@@ -92,8 +97,7 @@ void RoomTools::render() {
     }
   }
   auto effect = room->getEffect();
-  auto effects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0";
-  if (ImGui::Combo("Shader", &effect, effects)) {
+  if (ImGui::Combo("Shader", &effect, RoomEffects)) {
     room->setEffect(effect);
   }
   ImGui::DragFloat("iGlobalTime", &m_engine.roomEffect.iGlobalTime);
@@ -110,6 +114,13 @@ void RoomTools::render() {
     ImGui::DragFloat3("midtones", glm::value_ptr(m_engine.roomEffect.midtones), 0.1f, -1.f, 1.f);
     ImGui::DragFloat3("highlights", glm::value_ptr(m_engine.roomEffect.highlights), 0.1f, -1.f, 1.f);
   }
+  ImGui::Separator();
+
+  ImGui::Combo("Effect", (int *) &m_fadeEffect, FadeEffects);
+  ImGui::DragFloat("Duration", &m_fadeDuration, 0.1f, 0.f, 10.f);
+  if (ImGui::Button("Fade")) {
+    m_engine.fadeTo((FadeEffect) m_fadeEffect, ngf::TimeSpan::seconds(m_fadeDuration));
+  }
 }
 
 void RoomTools::updateWalkboxInfos(Room *pRoom) {
@@ -119,7 +130,7 @@ void RoomTools::updateWalkboxInfos(Room *pRoom) {
   auto &walkboxes = pRoom->getWalkboxes();
   for (size_t i = 0; i < walkboxes.size(); ++i) {
     auto walkbox = walkboxes.at(i);
-    auto name = walkbox.getName();
+    const auto& name = walkbox.getName();
     std::ostringstream s;
     if (!name.empty()) {
       s << name;

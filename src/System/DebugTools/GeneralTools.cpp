@@ -21,10 +21,11 @@ GeneralTools::GeneralTools(Engine &engine,
                            bool &showGlobalsTable,
                            bool &soundsVisible,
                            bool &threadsVisible,
-                           bool &actorsVisible)
+                           bool &actorsVisible,
+                           bool &objectsVisible)
     : m_engine(engine), m_textureVisible(textureVisible), m_consoleVisible(consoleVisible),
       m_showGlobalsTable(showGlobalsTable), m_soundsVisible(soundsVisible), m_threadsVisible(threadsVisible),
-      m_actorsVisible(actorsVisible) {}
+      m_actorsVisible(actorsVisible), m_objectsVisible(objectsVisible) {}
 
 void GeneralTools::render() {
   std::stringstream s;
@@ -44,13 +45,6 @@ void GeneralTools::render() {
                : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
 
   ImGui::Separator();
-  auto effects = "None\0In\0Out\0Wobble\0";
-  ImGui::Combo("Effect", (int *) &m_fadeEffect, effects);
-  ImGui::DragFloat("Duration", &m_fadeDuration, 0.1f, 0.f, 10.f);
-  if (ImGui::Button("Fade")) {
-    m_engine.fadeTo((FadeEffect) m_fadeEffect, ngf::TimeSpan::seconds(m_fadeDuration));
-  }
-  ImGui::Separator();
 
   auto gameSpeedFactor = m_engine.getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor,
                                                                      PreferenceDefaultValues::EnggeGameSpeedFactor);
@@ -60,6 +54,7 @@ void GeneralTools::render() {
   ImGui::Checkbox("Show cursor position", &DebugFeatures::showCursorPosition);
   ImGui::Checkbox("Show hovered object", &DebugFeatures::showHoveredObject);
   ImGui::Checkbox("Actors", &m_actorsVisible);
+  ImGui::Checkbox("Objects", &m_objectsVisible);
   ImGui::Checkbox("Sounds", &m_soundsVisible);
   ImGui::Checkbox("Textures", &m_textureVisible);
   ImGui::Checkbox("Threads", &m_threadsVisible);

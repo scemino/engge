@@ -16,7 +16,7 @@ public:
 
 private:
   void showInventory(Actor *actor);
-  void showGeneral(Actor *actor);
+  void showProperties(Actor *actor);
   void showCostume(Actor *actor);
   void showActorTable(Actor *actor);
 
@@ -28,7 +28,7 @@ private:
   static UseDirection intToDirection(int dir);
 
 public:
-  bool actorsVisible{true};
+  bool actorsVisible{false};
 
 private:
   Engine &m_engine;
@@ -36,7 +36,7 @@ private:
   ImGuiTextFilter m_filterCostume;
   bool m_showActorTable{false};
   bool m_showInventory{false};
-  bool m_showGeneral{false};
+  bool m_showProperties{false};
   bool m_showCostume{false};
 };
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 namespace ng {
+struct Animation;
 class Engine;
 class Object;
 
@@ -11,7 +12,17 @@ public:
   void render();
 
 private:
+  void showProperties(Object *object);
+  void showAnimations(Object *object);
+  static void showAnimationNode(Animation *anim);
+
+public:
+  bool objectsVisible{false};
+
+private:
   Engine &m_engine;
   Object *m_pSelectedObject{nullptr};
+  bool m_showProperties{false};
+  bool m_showAnimations{false};
 };
 }

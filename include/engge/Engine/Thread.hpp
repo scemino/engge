@@ -7,7 +7,7 @@
 namespace ng {
 class Thread : public ThreadBase {
 public:
-  Thread(const std::string& name, bool isGlobal,
+  Thread(std::string  name, bool isGlobal,
          HSQUIRRELVM v,
          HSQOBJECT thread_obj,
          HSQOBJECT env_obj,

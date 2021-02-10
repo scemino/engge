@@ -28,7 +28,8 @@ DebugTools::DebugTools(Engine &engine)
                      m_showGlobalsTable,
                      m_soundTools.soundsVisible,
                      m_threadTools.threadsVisible,
-                     m_actorTools.actorsVisible),
+                     m_actorTools.actorsVisible,
+                     m_objectTools.objectsVisible),
       m_cameraTools(engine),
       m_preferencesTools(engine) {
   memset(m_renderTimes.values, 0, IM_ARRAYSIZE(m_renderTimes.values));

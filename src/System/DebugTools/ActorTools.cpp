@@ -18,7 +18,7 @@ void ActorTools::render() {
   if (ImGui::SmallButton("Table...")) {
     m_showActorTable = true;
   }
-  ImGui::Checkbox("General", &m_showGeneral);
+  ImGui::Checkbox("General", &m_showProperties);
   ImGui::Checkbox("Inventory", &m_showInventory);
   ImGui::Checkbox("Costume", &m_showCostume);
   ImGui::Separator();
@@ -43,7 +43,7 @@ void ActorTools::render() {
 
   if (m_selectedActor) {
     showActorTable(m_selectedActor);
-    showGeneral(m_selectedActor);
+    showProperties(m_selectedActor);
     showInventory(m_selectedActor);
     showCostume(m_selectedActor);
   }
@@ -70,11 +70,11 @@ void ActorTools::showInventory(Actor *actor) {
   ImGui::End();
 }
 
-void ActorTools::showGeneral(Actor *actor) {
-  if (!m_showGeneral)
+void ActorTools::showProperties(Actor *actor) {
+  if (!m_showProperties)
     return;
 
-  ImGui::Begin("General", &m_showGeneral);
+  ImGui::Begin("Actor properties", &m_showProperties);
 
   auto isTouchable = actor->isTouchable();
   if (ImGui::Checkbox("Touchable", &isTouchable)) {

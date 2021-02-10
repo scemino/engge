@@ -2,17 +2,16 @@
 #include "engge/System/Locator.hpp"
 #include "engge/Engine/EntityManager.hpp"
 #include "engge/Engine/Thread.hpp"
-#include <sstream>
 #include <utility>
 
 namespace ng {
-Thread::Thread(const std::string &name, bool isGlobal,
+Thread::Thread(std::string name, bool isGlobal,
                HSQUIRRELVM v,
                HSQOBJECT thread_obj,
                HSQOBJECT env_obj,
                HSQOBJECT closureObj,
                std::vector<HSQOBJECT> args)
-    : _name(name), _v(v), _thread_obj(thread_obj), _env_obj(env_obj), _closureObj(closureObj), _args(std::move(args)),
+    : _name(std::move(name)), _v(v), _thread_obj(thread_obj), _env_obj(env_obj), _closureObj(closureObj), _args(std::move(args)),
       _isGlobal(isGlobal) {
   sq_addref(_v, &_thread_obj);
   sq_addref(_v, &_env_obj);
@@ -27,9 +26,7 @@ Thread::~Thread() {
 }
 
 std::string Thread::getName() const {
-  std::ostringstream s;
-  s << (_isGlobal ? "global thread " : "local thread ") << _name;
-  return s.str();
+  return _name;
 }
 
 HSQUIRRELVM Thread::getThread() const { return _thread_obj._unVal.pThread; }
