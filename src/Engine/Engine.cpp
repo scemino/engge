@@ -16,29 +16,28 @@
 #include <ngf/Graphics/Colors.h>
 #include <ngf/System/Mouse.h>
 #include <engge/Util/RandomNumberGenerator.hpp>
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/ActorIconSlot.hpp"
-#include "engge/Engine/ActorIcons.hpp"
-#include "engge/Engine/Camera.hpp"
-#include "engge/Engine/Cutscene.hpp"
-#include "engge/Engine/Hud.hpp"
-#include "engge/Input/InputConstants.hpp"
-#include "engge/Dialog/DialogManager.hpp"
-#include "engge/Engine/Inventory.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Room/Room.hpp"
-#include "engge/Room/RoomScaling.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/Scripting/ScriptExecute.hpp"
-#include "engge/Engine/Sentence.hpp"
-#include "engge/Audio/SoundDefinition.hpp"
-#include "engge/Audio/SoundManager.hpp"
-#include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Engine/TextDatabase.hpp"
-#include "engge/Engine/Verb.hpp"
-#include "engge/Scripting/VerbExecute.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/Engine/InputStateConstants.hpp"
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/ActorIcons.hpp>
+#include <engge/Engine/Camera.hpp>
+#include <engge/Engine/Cutscene.hpp>
+#include <engge/Engine/Hud.hpp>
+#include <engge/Input/InputConstants.hpp>
+#include <engge/Dialog/DialogManager.hpp>
+#include <engge/Engine/Inventory.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Room/Room.hpp>
+#include <engge/Room/RoomScaling.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Scripting/ScriptExecute.hpp>
+#include <engge/Engine/Sentence.hpp>
+#include <engge/Audio/SoundDefinition.hpp>
+#include <engge/Audio/SoundManager.hpp>
+#include <engge/Graphics/SpriteSheet.hpp>
+#include <engge/Engine/TextDatabase.hpp>
+#include <engge/Engine/Verb.hpp>
+#include <engge/Scripting/VerbExecute.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/Engine/InputStateConstants.hpp>
 #include "EngineImpl.hpp"
 
 namespace fs = std::filesystem;
@@ -517,15 +516,15 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   auto effect = _pImpl->_pRoom->getEffect();
   if (_pImpl->_roomEffect != effect) {
     if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE) {
-      _pImpl->_roomShader.load(_vertexShader, _bwFragmentShader);
+      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::bwFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_EGA) {
-      _pImpl->_roomShader.load(_vertexShader, _egaFragmenShader);
+      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::egaFragmenShader);
     } else if (effect == RoomEffectConstants::EFFECT_GHOST) {
-      _pImpl->_roomShader.load(_vertexShader, _ghostFragmentShader);
+      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::ghostFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_SEPIA) {
-      _pImpl->_roomShader.load(_vertexShader, _sepiaFragmentShader);
+      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::sepiaFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_VHS) {
-      _pImpl->_roomShader.load(_vertexShader, _vhsFragmentShader);
+      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::vhsFragmentShader);
     }
     _pImpl->_roomEffect = effect;
   }

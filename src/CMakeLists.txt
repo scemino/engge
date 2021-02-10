@@ -29,6 +29,7 @@ set(SOURCES
         Engine/Light.cpp
         Engine/Preferences.cpp
         Engine/Sentence.cpp
+        Engine/Shaders.cpp
         Engine/TextDatabase.cpp
         Engine/Thread.cpp
         Engine/ThreadBase.cpp
