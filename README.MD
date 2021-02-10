@@ -33,13 +33,7 @@ Look at the assets 😉
 
 ## Building
 
-```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
-cd ..
-```
+Have a look to this [page](https://github.com/scemino/engge/wiki/Build-instructions).
 
 ## Running
 
