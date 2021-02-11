@@ -16,6 +16,13 @@ void AnimControl::play(bool loop) {
   rewind(*m_anim);
 }
 
+void AnimControl::resume(bool loop) {
+  m_loop = loop;
+  if (!m_anim)
+    return;
+  m_anim->state = AnimState::Play;
+}
+
 void AnimControl::stop() {
   if (!m_anim)
     return;

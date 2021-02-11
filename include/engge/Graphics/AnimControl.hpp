@@ -10,6 +10,7 @@ public:
   Animation *getAnimation();
 
   void play(bool loop = false);
+  void resume(bool loop = false);
   void stop();
   void pause();
 

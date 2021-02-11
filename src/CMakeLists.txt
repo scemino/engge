@@ -41,6 +41,7 @@ set(SOURCES
         Entities/Entity.cpp
         Entities/Object.cpp
         Entities/TextObject.cpp
+        Entities/WalkingState.cpp
         Graphics/AnimControl.cpp
         Graphics/AnimDrawable.cpp
         Graphics/FntFont.cpp

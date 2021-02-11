@@ -11,6 +11,7 @@
 #include <glm/vec2.hpp>
 #include <ngf/Graphics/RectangleShape.h>
 #include "Graphics/PathDrawable.hpp"
+#include "WalkingState.hpp"
 
 namespace ng {
 
@@ -38,28 +39,6 @@ bool animContains(const Animation &anim, const glm::vec2 &pos) {
 }
 
 struct Actor::Impl {
-  class WalkingState {
-  public:
-    WalkingState() = default;
-
-    void setActor(Actor *pActor);
-    void setDestination(const std::vector<glm::vec2> &path, std::optional<Facing> facing);
-    void update(const ngf::TimeSpan &elapsed);
-    void stop();
-    [[nodiscard]] bool isWalking() const { return _isWalking; }
-
-  private:
-    Facing getFacing();
-
-  private:
-    Actor *_pActor{nullptr};
-    std::vector<glm::vec2> _path;
-    std::optional<Facing> _facing{Facing::FACE_FRONT};
-    bool _isWalking{false};
-    glm::vec2 _init{0, 0};
-    ngf::TimeSpan _elapsed;
-  };
-
   explicit Impl(Engine &engine)
       : _engine(engine), _costume(engine.getResourceManager()) {
   }
@@ -209,76 +188,6 @@ HSQOBJECT &Actor::getTable() { return pImpl->_table; }
 HSQOBJECT &Actor::getTable() const { return pImpl->_table; }
 
 bool Actor::isInventoryObject() const { return false; }
-
-void Actor::Impl::WalkingState::setActor(Actor *pActor) { _pActor = pActor; }
-
-void Actor::Impl::WalkingState::setDestination(const std::vector<glm::vec2> &path, std::optional<Facing> facing) {
-  _path = path;
-  _facing = facing;
-  _path.erase(_path.begin());
-  _pActor->getCostume().setFacing(getFacing());
-  _pActor->getCostume().setWalkState();
-  _isWalking = true;
-  _init = _pActor->getPosition();
-  _elapsed = ngf::TimeSpan::seconds(0);
-  trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
-}
-
-void Actor::Impl::WalkingState::stop() {
-  _isWalking = false;
-  _pActor->getCostume().setStandState();
-  if (ScriptEngine::rawExists(_pActor, "postWalking")) {
-    ScriptEngine::objCall(_pActor, "postWalking");
-  }
-}
-
-Facing Actor::Impl::WalkingState::getFacing() {
-  auto pos = _pActor->getPosition();
-  auto dx = _path[0].x - pos.x;
-  auto dy = _path[0].y - pos.y;
-  if (fabs(dx) > fabs(dy))
-    return (dx > 0) ? Facing::FACE_RIGHT : Facing::FACE_LEFT;
-  return (dy < 0) ? Facing::FACE_FRONT : Facing::FACE_BACK;
-}
-
-void Actor::Impl::WalkingState::update(const ngf::TimeSpan &elapsed) {
-  if (!_isWalking)
-    return;
-
-  _elapsed += elapsed;
-  auto delta = (_path[0] - _init);
-  auto vSpeed = _pActor->getWalkSpeed();
-  glm::vec2 vDuration;
-  vDuration.x = std::abs(delta.x) / vSpeed.x;
-  vDuration.y = std::abs(delta.y) / vSpeed.y;
-  auto maxDuration = std::max(vDuration.x, vDuration.y);
-  auto factor = (2.f * _elapsed.getTotalSeconds()) / maxDuration;
-  auto end = factor >= 1.f;
-  auto newPos = end ? _path[0] : (_init + factor * delta);
-  _pActor->setPosition(newPos);
-  if (!end)
-    return;
-
-  _path.erase(_path.begin());
-  if (!_path.empty()) {
-    _pActor->getCostume().setFacing(getFacing());
-    _pActor->getCostume().setWalkState();
-    _init = newPos;
-    _elapsed = ngf::TimeSpan::seconds(0);
-    trace("{} go to : {},{}", _pActor->getName(), _path[0].x, _path[0].y);
-    return;
-  }
-
-  stop();
-  trace("Play anim stand");
-  if (_facing.has_value()) {
-    _pActor->getCostume().setFacing(_facing.value());
-  }
-  _pActor->getCostume().setStandState();
-  if (ScriptEngine::rawExists(_pActor, "actorArrived")) {
-    ScriptEngine::rawCall(_pActor, "actorArrived");
-  }
-}
 
 Actor::Actor(Engine &engine) : pImpl(std::make_unique<Impl>(engine)) {
   pImpl->setActor(this);

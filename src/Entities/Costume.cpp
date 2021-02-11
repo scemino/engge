@@ -91,6 +91,8 @@ void Costume::setState(const std::string &name, bool loop) {
   updateAnimation();
   if (pOldAnim != m_pCurrentAnimation) {
     m_animControl.play(loop);
+  } else {
+    m_animControl.resume(loop);
   }
 }
 

@@ -205,6 +205,26 @@ void ActorTools::showCostume(Actor *actor) {
     return;
 
   ImGui::Begin("General", &m_showCostume);
+
+  auto state = actor->getCostume().getAnimControl().getState();
+  auto loop = actor->getCostume().getAnimControl().getLoop();
+  auto pAnim = actor->getCostume().getAnimControl().getAnimation();
+  std::string stateText;
+  switch (state) {
+  case AnimState::Stopped:stateText = "Stopped";
+    break;
+  case AnimState::Play:stateText = "Play";
+    break;
+  case AnimState::Pause:stateText = "Pause";
+    break;
+  default:stateText = "?";
+    break;
+  }
+  ImGui::Text("Anim: %s", pAnim ? pAnim->name.c_str() : "(none)");
+  ImGui::Text("State: %s", stateText.c_str());
+  ImGui::Text("Loop: %s", loop ? "yes" : "no");
+  ImGui::Separator();
+
   m_filterCostume.Draw("Filter");
   if (ImGui::ListBoxHeader("Costume")) {
     auto actorKey = actor->getKey();
