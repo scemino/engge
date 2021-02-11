@@ -615,9 +615,9 @@ struct Engine::Impl {
       _pImpl->_time = ngf::TimeSpan::seconds(static_cast<float>(hash["gameTime"].getDouble()));
       _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
 
+      loadObjects(hash["objects"]);
       setActor(hash["selectedActor"].getString());
       setCurrentRoom(hash["currentRoom"].getString());
-      loadObjects(hash["objects"]);
 
       ScriptEngine::set("SAVEBUILD", hash["savebuild"].getInt());
 
