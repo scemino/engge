@@ -342,10 +342,11 @@ void Engine::update(const ngf::TimeSpan &el) {
   _pImpl->_talkingState.update(elapsed);
 
   _pImpl->_frameCounter++;
-  auto wasMouseDown = _pImpl->_isMouseDown;
+  auto &io = ImGui::GetIO();
+  auto wasMouseDown = _pImpl->_isMouseDown && !io.WantCaptureMouse;
   auto wasMouseRightDown = _pImpl->_isMouseRightDown;
   _pImpl->_isMouseDown =
-      ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
+      ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left) && !io.WantCaptureMouse;
   if (!wasMouseDown || !_pImpl->_isMouseDown) {
     _pImpl->_mouseDownTime = ngf::TimeSpan::seconds(0);
     _pImpl->run(false);
@@ -355,7 +356,7 @@ void Engine::update(const ngf::TimeSpan &el) {
       _pImpl->run(true);
     }
   }
-  _pImpl->_isMouseRightDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Right);
+  _pImpl->_isMouseRightDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Right) && !io.WantCaptureMouse;
   bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
   auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
 
