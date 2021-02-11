@@ -38,7 +38,7 @@ public:
   [[nodiscard]] std::string getName() const;
 
   void setVisible(bool isVisible);
-  [[nodiscard]] virtual bool isVisible() const;
+  [[nodiscard]] bool isVisible() const;
 
   void setLit(bool isLit);
   [[nodiscard]] bool isLit() const;

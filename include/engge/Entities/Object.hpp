@@ -86,7 +86,6 @@ public:
   void setTexture(const std::string &texture);
   std::vector<Animation> &getAnims();
 
-  [[nodiscard]] bool isVisible() const override;
   void setStateAnimIndex(int animIndex);
   void playAnim(int animIndex, bool loop);
   void playAnim(const std::string &anim, bool loop);

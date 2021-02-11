@@ -223,7 +223,6 @@ struct Room::Impl {
       object->setUsePosition(usePos);
 
       // animations
-      object->setTexture(_spriteSheet.getTextureName());
       if (jObject["animations"].isArray()) {
         auto anims = AnimationLoader::parseAnimations(*object, jObject["animations"], _spriteSheet);
         auto &objAnims = object->getAnims();
@@ -596,7 +595,6 @@ TextObject &Room::createTextObject(const std::string &fontName) {
 
   const auto &font = pImpl->_textureManager.getFntFont(path);
   object->setFont(&font);
-  object->setTexture(getSpriteSheet().getTextureName());
   auto &obj = *object;
   obj.setVisible(true);
   obj.setRoom(this);
@@ -614,7 +612,6 @@ Object &Room::createObject(const std::vector<std::string> &anims) { return creat
 Object &Room::createObject(const std::string &sheet, const std::vector<std::string> &frames) {
   auto object = std::make_unique<Object>();
   auto spriteSheet = pImpl->_textureManager.getSpriteSheet(sheet);
-  object->setTexture(spriteSheet.getTextureName());
 
   Animation anim;
   anim.name = "state0";
@@ -642,7 +639,6 @@ Object &Room::createObject(const std::string &image) {
   const std::vector<std::string> anims{name};
   auto object = std::make_unique<Object>();
   auto texture = Locator<ResourceManager>::get().getTexture(name);
-  object->setTexture(name);
 
   Animation anim;
   auto size = texture->getSize();

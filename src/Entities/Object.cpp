@@ -69,7 +69,6 @@ struct Object::Impl {
   bool _temporary{false};
   bool _jiggle{false};
   int _pop{0};
-  std::string _texture;
   AnimControl _animControl;
 
   Impl() {
@@ -175,10 +174,6 @@ HSQOBJECT &Object::getTable() { return pImpl->_table; }
 HSQOBJECT &Object::getTable() const { return pImpl->_table; }
 bool Object::isInventoryObject() const { return getOwner() != nullptr; }
 
-void Object::setTexture(const std::string &texture) {
-  pImpl->_texture = texture;
-}
-
 std::vector<Animation> &Object::getAnims() { return pImpl->_anims; }
 
 Room *Object::getRoom() { return pImpl->_pRoom; }
@@ -210,18 +205,11 @@ ngf::irect Object::getRealHotspot() const {
   return ngf::irect::fromPositionSize(result.getPosition(), result.getSize());
 }
 
-bool Object::isVisible() const {
-  if (pImpl->_state == ObjectStateConstants::GONE)
-    return false;
-  return Entity::isVisible();
-}
-
 void Object::setStateAnimIndex(int animIndex) {
   std::ostringstream s;
   s << "state" << animIndex;
   pImpl->_state = animIndex;
 
-  setVisible(animIndex != ObjectStateConstants::GONE);
   setAnimation(s.str());
 }
 
