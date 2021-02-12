@@ -1,8 +1,10 @@
+#include <utility>
 #include <ngf/Graphics/RenderTarget.h>
-#include <engge/Graphics/Text.hpp>
 #include <ngf/Graphics/Vertex.h>
 #include <ngf/System/StringHelper.h>
-#include <utility>
+#include <ngf/Graphics/RectangleShape.h>
+#include <engge/Graphics/Text.hpp>
+#include <Engine/DebugFeatures.hpp>
 
 namespace ng {
 namespace {
@@ -15,17 +17,15 @@ glm::vec2 normalize(const ngf::Texture &texture, const glm::ivec2 &v) {
 // Add a glyph quad to the vertex array
 void addGlyphQuad(std::vector<ngf::Vertex> &vertices, glm::vec2 position,
                   const ngf::Color &color, const ng::Glyph &glyph, const ngf::Texture &texture) {
-  int padding = 1;
+  float left = glyph.bounds.min.x;
+  float top = glyph.bounds.min.y;
+  float right = glyph.bounds.max.x;
+  float bottom = glyph.bounds.max.y;
 
-  float left = glyph.bounds.min.x - static_cast<float>(padding);
-  float top = glyph.bounds.min.y - static_cast<float>(padding);
-  float right = glyph.bounds.max.x + static_cast<float>(padding);
-  float bottom = glyph.bounds.max.y + static_cast<float>(padding);
-
-  int u1 = glyph.textureRect.min.x - padding;
-  int v1 = glyph.textureRect.min.y - padding;
-  int u2 = glyph.textureRect.max.x + padding - 1;
-  int v2 = glyph.textureRect.max.y + padding - 1;
+  int u1 = glyph.textureRect.min.x;
+  int v1 = glyph.textureRect.min.y;
+  int u2 = glyph.textureRect.max.x - 1;
+  int v2 = glyph.textureRect.max.y - 1;
 
   vertices.push_back(
       ngf::Vertex{{position.x + left, position.y + top}, color, normalize(texture, {u1, v1})});
@@ -96,13 +96,22 @@ ngf::frect Text::getLocalBounds() const {
 }
 
 void Text::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  if (m_font) {
-    ensureGeometryUpdate();
+  if (!m_font)
+    return;
 
-    ngf::RenderStates s = states;
-    s.texture = m_fontTexture.get();
-    s.transform *= m_transform.getTransform();
-    target.draw(ngf::PrimitiveType::Triangles, m_vertices, s);
+  ensureGeometryUpdate();
+
+  ngf::RenderStates s = states;
+  s.texture = m_fontTexture.get();
+  s.transform = m_transform.getTransform() * s.transform;
+  target.draw(ngf::PrimitiveType::Triangles, m_vertices, s);
+
+  if (DebugFeatures::showTextBounds) {
+    ngf::RectangleShape rect(getLocalBounds());
+    rect.setOutlineThickness(2);
+    rect.setOutlineColor(getColor());
+    rect.setColor(ngf::Colors::Transparent);
+    rect.draw(target, s);
   }
 }
 
@@ -175,7 +184,7 @@ void Text::ensureGeometryUpdate() const {
         (curChar == L'#')) {
       if (m_maxWidth && x >= m_maxWidth) {
         y += maxLineY;
-        // maxLineY = 0;
+        maxLineY = 0;
         x = 0;
         if (lastWordIndexSaved != lastWordIndex) {
           i = lastWordIndex;
@@ -194,7 +203,7 @@ void Text::ensureGeometryUpdate() const {
       case L'\n':y += maxLineY;
         lastWordIndex = i;
         x = 0;
-        // maxLineY = 0;
+        maxLineY = 0;
         break;
       case L'#':auto strColor = m_string.substr(i + 1, 6);
         auto str = ngf::StringHelper::tostring(strColor);
@@ -210,13 +219,12 @@ void Text::ensureGeometryUpdate() const {
     // Extract the current glyph's description
     const auto *pGlyph = &m_font->getGlyph(curChar);
     charInfos[i].pGlyph = pGlyph;
-    maxLineY = std::max(maxLineY, (float)pGlyph->bounds.getHeight());
+    maxLineY = std::max(maxLineY, (float) pGlyph->bounds.getHeight());
 
     // Advance to the next character
     x += pGlyph->advance;
   }
 
-  maxLineY = 0.f;
   for (auto i = 0; i < static_cast<int>(m_string.size()); ++i) {
     auto info = charInfos[i];
 
@@ -228,10 +236,9 @@ void Text::ensureGeometryUpdate() const {
     if ((info.chr == L' ') || (info.chr == L'\n') || (info.chr == L'\t') ||
         (info.chr == L'#')) {
       switch (info.chr) {
-      case L' ':
+      case L' ': break;
       case L'\t': break;
-      case L'\n': maxLineY = 0.f;
-        break;
+      case L'\n': break;
       case L'#': i += 7;
         break;
       }
@@ -244,15 +251,12 @@ void Text::ensureGeometryUpdate() const {
     addGlyphQuad(m_vertices, info.pos, info.color, *charInfos[i].pGlyph, *m_fontTexture);
 
     // Update the current bounds with the non outlined glyph bounds
-    maxX = std::max(maxX, info.pos.x + charInfos[i].pGlyph->bounds.getWidth());
-    maxY = std::max(maxY, info.pos.y + charInfos[i].pGlyph->bounds.getHeight());
-    maxLineY = std::max(maxLineY, (float)charInfos[i].pGlyph->bounds.getHeight());
+    maxX = std::max(maxX, info.pos.x + charInfos[i].pGlyph->bounds.max.x);
+    maxY = std::max(maxY, info.pos.y + charInfos[i].pGlyph->bounds.max.y);
   }
 
-  maxY += maxLineY;
-
   // Update the bounding rectangle
-  m_bounds.min = glm::vec2();
+  m_bounds.min = {0, 0};
   m_bounds.max = {maxX, maxY};
 }
 }

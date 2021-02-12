@@ -2,15 +2,12 @@
 #include <string>
 #include <vector>
 #include <ngf/Graphics/Drawable.h>
-#include <ngf/Graphics/FntFont.h>
 #include <engge/Graphics/Font.h>
 #include <ngf/Graphics/Vertex.h>
 #include <ngf/Math/Transform.h>
 
 namespace ng {
-class RenderTarget;
-
-// This code has been copied from SFML Text and adapted to use FntFont.
+// This code has been copied from SFML Text and adapted to use Font.
 
 /// @brief Graphical text that can be drawn to a render target
 class Text : public ngf::Drawable {
@@ -56,7 +53,7 @@ public:
   /// @brief Draws the text to the target with the specified render states.
   /// \param target This is where the drawing is made (a window, a texture, etc.)
   /// \param states Render states to use to draw this text.
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states = {}) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
   /// @brief Gets the local bounding rectangle of the text.
   /// \return The local bounding rectangle of the text.

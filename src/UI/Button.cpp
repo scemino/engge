@@ -2,13 +2,15 @@
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/FntFont.h>
 #include <engge/Audio/SoundManager.hpp>
+#include <utility>
 #include <ngf/System/Mouse.h>
+#include <ngf/Graphics/RectangleShape.h>
 #include "ControlConstants.hpp"
 #include "Util/Util.hpp"
 
 namespace ng {
 Button::Button(int id, float y, Callback callback, bool enabled, Size size)
-    : Control(enabled), m_callback(callback), m_id(id), m_y(y), m_size(size) {
+    : Control(enabled), m_callback(std::move(callback)), m_id(id), m_y(y), m_size(size) {
   m_text.setColor(enabled ? ControlConstants::NormalColor : ControlConstants::DisabledColor);
 }
 
@@ -48,7 +50,7 @@ void Button::onStateChanged() {
 }
 
 bool Button::contains(glm::vec2 pos) const {
-  auto textRect = ng::getGlobalBounds(m_text);
-  return textRect.contains((glm::vec2) pos);
+  auto p = ngf::transform(glm::inverse(m_text.getTransform().getTransform()), pos);
+  return m_text.getLocalBounds().contains(p);
 }
 }

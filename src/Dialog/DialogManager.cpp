@@ -8,14 +8,16 @@
 #include "engge/Graphics/Screen.hpp"
 
 namespace ng {
-
 namespace {
+constexpr float DialogTop = 504.f;
+const wchar_t *const Bullet = L"\u25CF ";
+constexpr float SlidingSpeed = 25.f;
+
 ngf::frect getGlobalBounds(const ng::Text &text) {
   return ngf::transform(text.getTransform().getTransform(), text.getLocalBounds());
 }
 }
 
-static constexpr float SlidingSpeed = 25.f;
 
 void DialogManager::setEngine(Engine *pEngine) {
   _pEngine = pEngine;
@@ -49,7 +51,7 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
                                                                  PreferenceDefaultValues::RetroFonts);
   const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  auto y = 534.f;
+  auto y = DialogTop;
 
   auto actorName = _pPlayer->getActor();
   auto dialogHighlight = _pEngine->getVerbUiColors(actorName)->dialogHighlight;
@@ -57,20 +59,23 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
 
   Text text;
   text.setFont(font);
+  auto hoverDone = false;
   for (const auto &slot : _slots) {
     if (!slot.pChoice)
       continue;
 
     std::wstring s;
-    s = L"\u25CF ";
+    s = Bullet;
     s += slot.text;
     text.setWideString(s);
     text.getTransform().setPosition({slot.pos.x, y + slot.pos.y});
     auto bounds = getGlobalBounds(text);
-    text.setColor(bounds.contains(_mousePos) ? dialogHighlight : dialogNormal);
+    auto hover = bounds.contains(_mousePos);
+    text.setColor(hover && !hoverDone ? dialogHighlight : dialogNormal);
+    hoverDone |= hover;
     text.draw(target, {});
 
-    y += getGlobalBounds(text).getHeight() / 2.f;
+    y += (2.f * getGlobalBounds(text).getHeight() / 3.f);
   }
 
   target.setView(view);
@@ -119,7 +124,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
                                                                  PreferenceDefaultValues::RetroFonts);
   const GGFont &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  auto y = 534.f;
+  auto y = DialogTop;
   int dialog = 0;
   for (const auto &dlg : _slots) {
     if (dlg.pChoice == nullptr)
@@ -127,7 +132,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
 
     // HACK: bad, bad, this code is the same as in the draw function
     std::wstring s;
-    s = L"\u25CF ";
+    s = Bullet;
     s += dlg.text;
     Text text;
     text.setFont(font);
@@ -158,7 +163,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
   if (!ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left))
     return;
 
-  y = 534.f;
+  y = DialogTop;
   dialog = 0;
 
   for (const auto &slot : _slots) {
@@ -167,7 +172,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
 
     // HACK: bad, bad, this code is the same as in the draw function
     std::wstring s;
-    s = L"\u25CF ";
+    s = Bullet;
     s += slot.text;
     Text text;
     text.setFont(font);

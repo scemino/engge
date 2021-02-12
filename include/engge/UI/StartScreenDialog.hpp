@@ -3,14 +3,14 @@
 
 namespace ng {
 
-class StartScreenDialog : public ngf::Drawable {
+class StartScreenDialog final : public ngf::Drawable {
 public:
   typedef std::function<void()> Callback;
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 public:
   StartScreenDialog();
-  ~StartScreenDialog() override;
+  ~StartScreenDialog() final;
 
   void setNewGameCallback(Callback callback);
   void setSlotCallback(SaveLoadDialog::SlotCallback callback);

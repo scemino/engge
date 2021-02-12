@@ -17,15 +17,14 @@ bool operator&(TextAlignment lhs, TextAlignment rhs) {
           static_cast<std::underlying_type<TextAlignment>::type>(rhs)) > TextAlignment::None;
 }
 
-TextObject::TextObject()
-    : _alignment(TextAlignment::Left) {
+TextObject::TextObject() {
   setTemporary(true);
 }
 
 TextObject::~TextObject() = default;
 
 void TextObject::setText(const std::string &text) {
-  _text = towstring(text);
+  m_text = towstring(text);
 }
 
 void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
@@ -38,20 +37,20 @@ void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const
   }
 
   Text txt;
-  txt.setFont(*_font);
+  txt.setFont(*m_font);
   txt.setColor(getColor());
-  txt.setWideString(_text);
-  txt.setMaxWidth(static_cast<float>(_maxWidth));
+  txt.setWideString(m_text);
+  txt.setMaxWidth(static_cast<float>(m_maxWidth));
   auto bounds = txt.getLocalBounds();
   glm::vec2 offset{0, 0};
-  if (_alignment & TextAlignment::Center) {
+  if (m_alignment & TextAlignment::Center) {
     offset.x = getScale() * -bounds.getWidth() / 2;
-  } else if (_alignment & TextAlignment::Right) {
+  } else if (m_alignment & TextAlignment::Right) {
     offset.x = getScale() * bounds.getWidth() / 2;
   }
-  if (_alignment & TextAlignment::Top) {
+  if (m_alignment & TextAlignment::Top) {
     offset.y = 0;
-  } else if (_alignment & TextAlignment::Bottom) {
+  } else if (m_alignment & TextAlignment::Bottom) {
     offset.y = getScale() * bounds.getHeight();
   } else {
     offset.y = getScale() * bounds.getHeight() / 2;
@@ -67,7 +66,7 @@ void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const
     txt.draw(target, s);
     target.setView(view);
   } else {
-    states.transform *= transformable.getTransform();
+    states.transform = transformable.getTransform() * states.transform;
     txt.draw(target, states);
   }
 }

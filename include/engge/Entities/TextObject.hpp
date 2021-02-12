@@ -16,24 +16,24 @@ enum class TextAlignment : unsigned long {
 
 class Font;
 
-class TextObject : public Object {
+class TextObject final : public Object {
 public:
   TextObject();
-  ~TextObject() override;
+  ~TextObject() final;
 
-  const Font *getFont() { return _font; }
-  void setFont(const Font* font) { _font = font; }
+  const Font *getFont() { return m_font; }
+  void setFont(const Font *font) { m_font = font; }
   void setText(const std::string &text);
-  void setAlignment(TextAlignment alignment) { _alignment = alignment; }
-  void setMaxWidth(int maxWidth) { _maxWidth = maxWidth; }
+  void setAlignment(TextAlignment alignment) { m_alignment = alignment; }
+  void setMaxWidth(int maxWidth) { m_maxWidth = maxWidth; }
 
 private:
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 
 private:
-  mutable const Font *_font{nullptr};
-  std::wstring _text;
-  TextAlignment _alignment;
-  int _maxWidth{0};
+  mutable const Font *m_font{nullptr};
+  std::wstring m_text;
+  TextAlignment m_alignment{TextAlignment::Left};
+  int m_maxWidth{0};
 };
 } // namespace ng

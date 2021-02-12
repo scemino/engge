@@ -261,7 +261,7 @@ struct SaveLoadDialog::Impl {
     target.setView(ngf::View(viewRect));
 
     // heading
-    _headingText.draw(target);
+    _headingText.draw(target, {});
 
     // slots
     for (auto &slot : _slots) {

@@ -53,6 +53,7 @@ void GeneralTools::render() {
   }
   ImGui::Checkbox("Show cursor position", &DebugFeatures::showCursorPosition);
   ImGui::Checkbox("Show hovered object", &DebugFeatures::showHoveredObject);
+  ImGui::Checkbox("Show text bounds", &DebugFeatures::showTextBounds);
   ImGui::Checkbox("Actors", &m_actorsVisible);
   ImGui::Checkbox("Objects", &m_objectsVisible);
   ImGui::Checkbox("Sounds", &m_soundsVisible);

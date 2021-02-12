@@ -114,7 +114,7 @@ void TalkingState::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
     pos.y = pos.y - bounds.getHeight();
   }
   text.getTransform().setPosition(pos);
-  text.draw(target);
+  text.draw(target, {});
 
 // sf::RectangleShape shape;
 // shape.setFillColor(sf::Color::Transparent);
