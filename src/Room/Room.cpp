@@ -13,7 +13,6 @@
 #include <engge/Entities/AnimationLoader.hpp>
 #include "Util/Util.hpp"
 #include <squirrel.h>
-#include <clipper.hpp>
 #include <algorithm>
 #include <iostream>
 #include <cmath>
@@ -399,53 +398,13 @@ struct Room::Impl {
     _pf.reset();
   }
 
-  static void toPath(const ngf::Walkbox &walkbox, ClipperLib::Path &path) {
-    const auto &vertices = walkbox.getVertices();
-    std::transform(vertices.begin(), vertices.end(), std::back_inserter(path),
-                   [](const auto &p) { return ClipperLib::IntPoint{p.x, p.y}; });
-  }
-
   bool updateGraph(const glm::vec2 &start) {
     _graphWalkboxes.clear();
     if (!_walkboxes.empty()) {
-      mergeWalkboxes();
+      _graphWalkboxes = ngf::Walkbox::merge(_walkboxes);
       return sortWalkboxes(start);
     }
     return false;
-  }
-
-  void mergeWalkboxes() {
-    ClipperLib::Paths solutions;
-    ClipperLib::Path path;
-    toPath(_walkboxes[0], path);
-    solutions.push_back(path);
-
-    for (int i = 1; i < static_cast<int>(_walkboxes.size()); i++) {
-      if (!_walkboxes[i].isEnabled())
-        continue;
-      path.clear();
-      toPath(_walkboxes[i], path);
-      ClipperLib::Clipper clipper;
-      clipper.AddPaths(solutions, ClipperLib::ptSubject, true);
-      clipper.AddPath(path, ClipperLib::ptClip, true);
-      solutions.clear();
-      clipper.Execute(ClipperLib::ctUnion, solutions, ClipperLib::pftEvenOdd);
-    }
-
-    for (auto &sol:solutions) {
-      std::vector<glm::ivec2> sPoints;
-      std::transform(sol.begin(), sol.end(), std::back_inserter(sPoints), [](auto &p) -> glm::ivec2 {
-        return glm::ivec2(p.X, p.Y);
-      });
-      bool isEnabled = ClipperLib::Orientation(sol);
-      if (!isEnabled) {
-        std::reverse(sPoints.begin(), sPoints.end());
-      }
-      ngf::Walkbox walkbox(sPoints);
-      walkbox.setYAxisDirection(ngf::YAxisDirection::Down);
-      walkbox.setEnabled(isEnabled);
-      _graphWalkboxes.push_back(walkbox);
-    }
   }
 
   bool sortWalkboxes(const glm::vec2 &start) {

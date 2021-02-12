@@ -18,7 +18,6 @@ find_package(SDL2 CONFIG REQUIRED)
 # Sources
 add_subdirectory(src)
 add_subdirectory(extlibs/squirrel)
-add_subdirectory(extlibs/clipper)
 add_subdirectory(extlibs/ngf/)
 
 # Install misc. files
