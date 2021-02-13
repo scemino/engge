@@ -12,7 +12,7 @@ enum class ActorSlotSelectableMode {
 };
 
 class Engine;
-class ActorIcons : public ngf::Drawable {
+class ActorIcons final : public ngf::Drawable {
 public:
   ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, Hud &hud,
              Actor *&pCurrentActor);
@@ -20,13 +20,13 @@ public:
   void setEngine(Engine *pEngine);
   void setMousePosition(const glm::vec2 &pos);
   void update(const ngf::TimeSpan &elapsed);
-  [[nodiscard]] bool isMouseOver() const { return _isInside; }
+  [[nodiscard]] bool isMouseOver() const { return m_isInside; }
   void flash(bool on);
   void setMode(ActorSlotSelectableMode mode);
-  [[nodiscard]] inline ActorSlotSelectableMode getMode() const { return _mode; }
-  void setVisible(bool visible) { _visible = visible; }
+  [[nodiscard]] inline ActorSlotSelectableMode getMode() const { return m_mode; }
+  void setVisible(bool visible) { m_visible = visible; }
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 
 private:
   void drawActorIcon(ngf::RenderTarget &target, const std::string &icon, int actorSlot, const glm::vec2 &offset,
@@ -43,19 +43,19 @@ private:
   static bool isSelectable(const ActorIconSlot &slot);
 
 private:
-  Engine *_pEngine{nullptr};
-  std::array<ActorIconSlot, 6> &_actorsIconSlots;
-  Hud &_hud;
-  Actor *&_pCurrentActor;
-  glm::vec2 _mousePos{0, 0};
-  ngf::StopWatch _clock;
-  bool _isInside{false};
-  bool _on{true};
-  float _position{0};
-  bool _isMouseButtonPressed{false};
-  ngf::TimeSpan _time;
-  float _alpha{0};
-  ActorSlotSelectableMode _mode{ActorSlotSelectableMode::On};
-  bool _visible{true};
+  Engine *m_pEngine{nullptr};
+  std::array<ActorIconSlot, 6> &m_actorsIconSlots;
+  Hud &m_hud;
+  Actor *&m_pCurrentActor;
+  glm::vec2 m_mousePos{0, 0};
+  ngf::StopWatch m_clock;
+  bool m_isInside{false};
+  bool m_on{true};
+  float m_position{0};
+  bool m_isMouseButtonPressed{false};
+  ngf::TimeSpan m_time;
+  float m_alpha{0};
+  ActorSlotSelectableMode m_mode{ActorSlotSelectableMode::On};
+  bool m_visible{true};
 };
 } // namespace ng

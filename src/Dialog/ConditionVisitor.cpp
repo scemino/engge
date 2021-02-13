@@ -3,26 +3,26 @@
 #include "engge/Dialog/DialogConditionAbstract.hpp"
 
 namespace ng {
-ConditionVisitor::ConditionVisitor(const DialogConditionAbstract &context) : _context(context) {
+ConditionVisitor::ConditionVisitor(const DialogConditionAbstract &context) : m_context(context) {
 }
 
 void ConditionVisitor::visit(const Ast::CodeCondition &node) {
-  _isAccepted = _context.executeCondition(node.code);
+  m_isAccepted = m_context.executeCondition(node.code);
 }
 
 void ConditionVisitor::visit(const Ast::OnceCondition &node) {
-  _isAccepted = _context.isOnce(node.getLine());
+  m_isAccepted = m_context.isOnce(node.getLine());
 }
 
 void ConditionVisitor::visit(const Ast::ShowOnceCondition &node) {
-  _isAccepted = _context.isShowOnce(node.getLine());
+  m_isAccepted = m_context.isShowOnce(node.getLine());
 }
 
 void ConditionVisitor::visit(const Ast::OnceEverCondition &node) {
-  _isAccepted = _context.isOnceEver(node.getLine());
+  m_isAccepted = m_context.isOnceEver(node.getLine());
 }
 
 void ConditionVisitor::visit(const Ast::TempOnceCondition &node) {
-  _isAccepted = _context.isTempOnce(node.getLine());
+  m_isAccepted = m_context.isTempOnce(node.getLine());
 }
 }

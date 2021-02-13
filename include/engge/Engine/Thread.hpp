@@ -5,7 +5,7 @@
 #include "ThreadBase.hpp"
 
 namespace ng {
-class Thread : public ThreadBase {
+class Thread final : public ThreadBase {
 public:
   Thread(std::string  name, bool isGlobal,
          HSQUIRRELVM v,
@@ -13,21 +13,21 @@ public:
          HSQOBJECT env_obj,
          HSQOBJECT closureObj,
          std::vector<HSQOBJECT> args);
-  ~Thread() override;
+  ~Thread() final;
 
-  [[nodiscard]] std::string getName() const override;
-  [[nodiscard]] HSQUIRRELVM getThread() const override;
-  [[nodiscard]] bool isGlobal() const override { return _isGlobal; }
+  [[nodiscard]] std::string getName() const final;
+  [[nodiscard]] HSQUIRRELVM getThread() const final;
+  [[nodiscard]] bool isGlobal() const final { return m_isGlobal; }
 
   bool call();
 
 private:
-  std::string _name;
-  HSQUIRRELVM _v;
-  HSQOBJECT _thread_obj;
-  HSQOBJECT _env_obj;
-  HSQOBJECT _closureObj;
-  std::vector<HSQOBJECT> _args;
-  bool _isGlobal{false};
+  std::string m_name;
+  HSQUIRRELVM m_v;
+  HSQOBJECT m_threadObj;
+  HSQOBJECT m_envObj;
+  HSQOBJECT m_closureObj;
+  std::vector<HSQOBJECT> m_args;
+  bool m_isGlobal{false};
 };
 } // namespace ng

@@ -5,9 +5,9 @@ class ScriptObject {
 public:
   virtual ~ScriptObject() = default;
 
-  [[nodiscard]] int getId() const { return _id; }
+  [[nodiscard]] int getId() const { return m_id; }
 
 protected:
-  int _id{0};
+  int m_id{0};
 };
 }

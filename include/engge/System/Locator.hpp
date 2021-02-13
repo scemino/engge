@@ -11,27 +11,27 @@ struct Locator {
   ~Locator() = delete;
 
   inline static void set(std::shared_ptr<TService> pService) {
-    _pService = std::move(pService);
+    m_pService = std::move(pService);
   }
 
   template<class ..._Args>
   inline static TService &create(_Args &&...__args) {
-    _pService = std::move(std::make_shared<TService>(std::forward<_Args>(__args)...));
-    return *_pService;
+    m_pService = std::move(std::make_shared<TService>(std::forward<_Args>(__args)...));
+    return *m_pService;
   }
 
   inline static TService &get() {
-    return *_pService;
+    return *m_pService;
   }
 
   static void reset() {
-    _pService.reset();
+    m_pService.reset();
   }
 
 private:
-  static std::shared_ptr<TService> _pService;
+  static std::shared_ptr<TService> m_pService;
 };
 
 template<typename TService>
-std::shared_ptr<TService> Locator<TService>::_pService{};
+std::shared_ptr<TService> Locator<TService>::m_pService{};
 }

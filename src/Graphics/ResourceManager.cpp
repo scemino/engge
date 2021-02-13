@@ -65,7 +65,7 @@ std::shared_ptr<ngf::Texture> ResourceManager::getTexture(const std::string &id)
     load(id);
     found = _textureMap.find(id);
   }
-  return found->second._texture;
+  return found->second.texture;
 }
 
 GGFont &ResourceManager::getFont(const std::string &id) {

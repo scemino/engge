@@ -12,7 +12,7 @@ void TextureTools::render() {
   const auto &map = Locator<ResourceManager>::get().getTextureMap();
   size_t totalSize = 0;
   for (const auto&[key, value] :map) {
-    totalSize += value._size;
+    totalSize += value.size;
   }
   auto totalSizeText = convertSize(totalSize);
   ImGui::Text("Total memory: %s", totalSizeText.data());
@@ -28,14 +28,14 @@ void TextureTools::render() {
     ImGui::TableHeadersRow();
 
     for (const auto&[key, value] :map) {
-      auto fileSize = convertSize(value._size);
+      auto fileSize = convertSize(value.size);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("%s", key.data());
       ImGui::TableNextColumn();
       ImGui::Text("%s", fileSize.data());
       ImGui::TableNextColumn();
-      ImGui::Text("%ld", value._texture.use_count());
+      ImGui::Text("%ld", value.texture.use_count());
     }
     ImGui::EndTable();
   }

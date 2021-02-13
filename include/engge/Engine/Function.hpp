@@ -14,35 +14,34 @@ public:
 };
 
 class TimeFunction : public Function {
-protected:
-  ngf::TimeSpan _elapsed;
-  ngf::TimeSpan _time;
-  bool _done{false};
-
 public:
   explicit TimeFunction(const ngf::TimeSpan &time)
-      : _time(time) {
+      : m_time(time) {
   }
 
   ~TimeFunction() override = default;
 
   void operator()(const ngf::TimeSpan &elapsed) override {
-    _elapsed += elapsed;
+    m_elapsed += elapsed;
   }
 
-  [[nodiscard]] ngf::TimeSpan getElapsed() const { return _elapsed; }
+  [[nodiscard]] ngf::TimeSpan getElapsed() const { return m_elapsed; }
 
   bool isElapsed() override {
-    auto isElapsed = _elapsed > _time;
-    if (isElapsed && !_done) {
-      _done = true;
+    auto isElapsed = m_elapsed > m_time;
+    if (isElapsed && !m_done) {
+      m_done = true;
       onElapsed();
     }
     return isElapsed;
   }
 
-  virtual void onElapsed() {
-  }
+  virtual void onElapsed() {}
+
+protected:
+  ngf::TimeSpan m_elapsed;
+  ngf::TimeSpan m_time;
+  bool m_done{false};
 };
 
 template<typename Value>
@@ -54,52 +53,52 @@ public:
                  const ngf::TimeSpan &time,
                  InterpolationMethod method = InterpolationMethod::Linear)
       : TimeFunction(time),
-        _get(get),
-        _set(set),
-        _destination(destination),
-        _init(get()),
-        _delta(_destination - _init),
-        _current(_init) {
-    _anim = InterpolationHelper::getInterpolationMethod(method);
-    _isLooping =
+        m_get(get),
+        m_set(set),
+        m_destination(destination),
+        m_init(get()),
+        m_delta(m_destination - m_init),
+        m_current(m_init) {
+    m_anim = InterpolationHelper::getInterpolationMethod(method);
+    m_isLooping =
         ((method & InterpolationMethod::Looping) | (method & InterpolationMethod::Swing)) != InterpolationMethod::None;
-    _isSwing = (method & InterpolationMethod::Swing) != InterpolationMethod::None;
+    m_isSwing = (method & InterpolationMethod::Swing) != InterpolationMethod::None;
   }
 
   void operator()(const ngf::TimeSpan &elapsed) override {
     TimeFunction::operator()(elapsed);
-    _set(_current);
+    m_set(m_current);
     if (!isElapsed()) {
-      auto t = _elapsed.getTotalSeconds() / _time.getTotalSeconds();
-      auto f = _dirForward ? _anim(t) : 1.f - _anim(t);
-      _current = _init + f * _delta;
-      if (_elapsed >= _time && _isLooping) {
-        _elapsed = ngf::TimeSpan::seconds(_elapsed.getTotalSeconds() - _time.getTotalSeconds());
-        _dirForward = !_dirForward;
+      auto t = m_elapsed.getTotalSeconds() / m_time.getTotalSeconds();
+      auto f = m_dirForward ? m_anim(t) : 1.f - m_anim(t);
+      m_current = m_init + f * m_delta;
+      if (m_elapsed >= m_time && m_isLooping) {
+        m_elapsed = ngf::TimeSpan::seconds(m_elapsed.getTotalSeconds() - m_time.getTotalSeconds());
+        m_dirForward = !m_dirForward;
       }
     }
   }
 
   bool isElapsed() override {
-    if (!_isLooping)
+    if (!m_isLooping)
       return TimeFunction::isElapsed();
     return false;
   }
 
   void onElapsed() override {
-    _set(_destination);
+    m_set(m_destination);
   }
 
 private:
-  std::function<Value()> _get;
-  std::function<void(const Value &)> _set;
-  Value _destination;
-  Value _init;
-  Value _delta;
-  Value _current;
-  std::function<float(float)> _anim;
-  bool _isLooping{false};
-  bool _isSwing{false};
-  bool _dirForward{true};
+  std::function<Value()> m_get;
+  std::function<void(const Value &)> m_set;
+  Value m_destination;
+  Value m_init;
+  Value m_delta;
+  Value m_current;
+  std::function<float(float)> m_anim;
+  bool m_isLooping{false};
+  bool m_isSwing{false};
+  bool m_dirForward{true};
 };
 } // namespace ng

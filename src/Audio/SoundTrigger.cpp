@@ -6,29 +6,29 @@
 
 namespace ng {
 SoundTrigger::SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, int id)
-    : _engine(engine), _id(id), _distribution(0, sounds.size() - 1) {
-  _name = "SoundTrigger ";
-  _soundsDefinitions.resize(sounds.size());
+    : m_engine(engine), m_id(id), m_distribution(0, sounds.size() - 1) {
+  m_name = "SoundTrigger ";
+  m_soundsDefinitions.resize(sounds.size());
   for (size_t i = 0; i < sounds.size(); i++) {
-    _name.append(sounds[i]->getPath());
-    _name.append(",");
-    _soundsDefinitions[i] = sounds[i];
+    m_name.append(sounds[i]->getPath());
+    m_name.append(",");
+    m_soundsDefinitions[i] = sounds[i];
   }
-  _sounds.resize(sounds.size());
+  m_sounds.resize(sounds.size());
   for (size_t i = 0; i < sounds.size(); i++) {
-    _sounds[i] = 0;
+    m_sounds[i] = 0;
   }
 }
 
 SoundTrigger::~SoundTrigger() = default;
 
 void SoundTrigger::trigCore() {
-  int i = _distribution(_generator);
-  auto pSound = _engine.getSoundManager().playSound(_soundsDefinitions[i], 1, _id);
+  int i = m_distribution(m_defaultRandomEngine);
+  auto pSound = m_engine.getSoundManager().playSound(m_soundsDefinitions[i], 1, m_id);
   if (!pSound)
     return;
-  _sounds[i] = pSound->getId();
+  m_sounds[i] = pSound->getId();
 }
 
-std::string SoundTrigger::getName() { return _name; }
+std::string SoundTrigger::getName() { return m_name; }
 } // namespace ng

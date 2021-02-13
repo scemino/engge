@@ -6,10 +6,10 @@ namespace ng {
 class Entity;
 class SoundManager;
 
-class SoundId : public Sound {
+class SoundId final : public Sound {
 public:
   explicit SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category);
-  ~SoundId() override;
+  ~SoundId() final;
 
   void play(int loopTimes);
   void stop();
@@ -21,8 +21,8 @@ public:
 
   SoundDefinition *getSoundDefinition();
   [[nodiscard]] bool isPlaying() const;
-  [[nodiscard]] int getLoopTimes() const { return _loopTimes; }
-  [[nodiscard]] SoundCategory getSoundCategory() const { return _category; }
+  [[nodiscard]] int getLoopTimes() const { return m_loopTimes; }
+  [[nodiscard]] SoundCategory getSoundCategory() const { return m_category; }
   void fadeTo(float volume, const ngf::TimeSpan &duration);
 
   void setEntity(int id);
@@ -33,13 +33,13 @@ private:
   void updateVolume();
 
 private:
-  SoundManager &_soundManager;
-  SoundDefinition *_pSoundDefinition{nullptr};
-  sf::Sound _sound;
-  std::unique_ptr<ChangeProperty<float>> _fade;
-  SoundCategory _category;
-  float _volume{1.0f};
-  int _loopTimes{0};
-  int _entityId{0};
+  SoundManager &m_soundManager;
+  SoundDefinition *m_pSoundDefinition{nullptr};
+  sf::Sound m_sound;
+  std::unique_ptr<ChangeProperty<float>> m_fade;
+  SoundCategory m_category;
+  float m_volume{1.0f};
+  int m_loopTimes{0};
+  int m_entityId{0};
 };
 } // namespace ng

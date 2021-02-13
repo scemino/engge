@@ -26,9 +26,9 @@ public:
 
   void setMousePosition(glm::vec2 pos);
 
-  const std::vector<DialogConditionState>& getStates() const { return _pPlayer->getStates(); }
-  std::vector<DialogConditionState>& getStates() { return _pPlayer->getStates(); }
-  [[nodiscard]] DialogManagerState getState() const { return _state; }
+  const std::vector<DialogConditionState> &getStates() const { return m_pPlayer->getStates(); }
+  std::vector<DialogConditionState> &getStates() { return m_pPlayer->getStates(); }
+  [[nodiscard]] DialogManagerState getState() const { return m_state; }
   void choose(int choice);
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
@@ -39,11 +39,11 @@ private:
   static void onDialogEnded();
 
 private:
-  Engine *_pEngine{nullptr};
-  DialogManagerState _state{DialogManagerState::None};
-  glm::vec2 _mousePos;
-  std::unique_ptr<EngineDialogScript> _pEngineDialogScript;
-  std::unique_ptr<DialogPlayer> _pPlayer;
-  std::array<DialogSlot, 9> _slots;
+  Engine *m_pEngine{nullptr};
+  DialogManagerState m_state{DialogManagerState::None};
+  glm::vec2 m_mousePos{0, 0};
+  std::unique_ptr<EngineDialogScript> m_pEngineDialogScript;
+  std::unique_ptr<DialogPlayer> m_pPlayer;
+  std::array<DialogSlot, 9> m_slots;
 };
 } // namespace ng

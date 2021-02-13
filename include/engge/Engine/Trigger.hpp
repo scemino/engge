@@ -11,14 +11,14 @@ public:
       return;
     trigCore();
   }
-  [[nodiscard]] bool isEnabled() const { return _isEnabled; }
-  void disable() { _isEnabled = false; }
+  [[nodiscard]] bool isEnabled() const { return m_isEnabled; }
+  void disable() { m_isEnabled = false; }
   virtual std::string getName() = 0;
 
 protected:
   virtual void trigCore() = 0;
 
 private:
-  bool _isEnabled{true};
+  bool m_isEnabled{true};
 };
 } // namespace ng

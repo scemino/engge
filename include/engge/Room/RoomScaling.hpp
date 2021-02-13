@@ -19,7 +19,7 @@ public:
   std::vector<Scaling> &getScalings();
 
 private:
-  std::string _trigger;
-  std::vector<Scaling> _scalings;
+  std::string m_trigger;
+  std::vector<Scaling> m_scalings;
 };
 } // namespace ng

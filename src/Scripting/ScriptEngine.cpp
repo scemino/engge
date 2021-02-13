@@ -38,11 +38,11 @@ namespace ng {
 template<typename TConstant>
 void ScriptEngine::registerConstants(std::initializer_list<std::tuple<const SQChar *, TConstant>> list) {
   for (auto t : list) {
-    sq_pushconsttable(_vm);
-    sq_pushstring(_vm, std::get<0>(t), -1);
-    push(_vm, std::get<1>(t));
-    sq_newslot(_vm, -3, SQTrue);
-    sq_pop(_vm, 1);
+    sq_pushconsttable(m_vm);
+    sq_pushstring(m_vm, std::get<0>(t), -1);
+    push(m_vm, std::get<1>(t));
+    sq_newslot(m_vm, -3, SQTrue);
+    sq_pop(m_vm, 1);
   }
 }
 
@@ -59,7 +59,7 @@ void ScriptEngine::registerPack() {
   auto pack = std::make_unique<TPack>();
   auto pPack = (Pack *) pack.get();
   pPack->registerPack();
-  _packs.push_back(std::move(pack));
+  m_packs.push_back(std::move(pack));
 }
 
 enum class Platform : int {
@@ -96,18 +96,18 @@ static Platform _getPlatform() {
 }
 
 ScriptEngine::ScriptEngine() {
-  _vm = sq_open(1024 * 2);
-  sq_setcompilererrorhandler(_vm, errorHandler);
-  sq_newclosure(_vm, aux_printerror, 0);
-  sq_seterrorhandler(_vm);
-  sq_setprintfunc(_vm, printfunc, errorfunc); // sets the print function
+  m_vm = sq_open(1024 * 2);
+  sq_setcompilererrorhandler(m_vm, errorHandler);
+  sq_newclosure(m_vm, aux_printerror, 0);
+  sq_seterrorhandler(m_vm);
+  sq_setprintfunc(m_vm, printfunc, errorfunc); // sets the print function
 
-  sq_pushroottable(_vm);
-  sqstd_register_mathlib(_vm);
-  sqstd_register_stringlib(_vm);
-  sq_pushstring(_vm, _SC("PLATFORM"), -1);
-  sq_pushinteger(_vm, (SQInteger) _getPlatform());
-  sq_newslot(_vm, -3, SQFalse);
+  sq_pushroottable(m_vm);
+  sqstd_register_mathlib(m_vm);
+  sqstd_register_stringlib(m_vm);
+  sq_pushstring(m_vm, _SC("PLATFORM"), -1);
+  sq_pushinteger(m_vm, (SQInteger) _getPlatform());
+  sq_newslot(m_vm, -3, SQFalse);
   registerConstants<int>({
                              {"ALL", ObjectStateConstants::ALL},
                              {"HERE", ObjectStateConstants::HERE},
@@ -249,14 +249,14 @@ ScriptEngine::ScriptEngine() {
 }
 
 ScriptEngine::~ScriptEngine() {
-  sq_close(_vm);
+  sq_close(m_vm);
 }
 
 void ScriptEngine::setEngine(Engine &engine) {
   g_pEngine = &engine;
   auto pVerbExecute = std::make_unique<DefaultVerbExecute>(engine);
   engine.setVerbExecute(std::move(pVerbExecute));
-  auto pScriptExecute = std::make_unique<DefaultScriptExecute>(_vm);
+  auto pScriptExecute = std::make_unique<DefaultScriptExecute>(m_vm);
   engine.setScriptExecute(std::move(pScriptExecute));
 
   registerPack<ActorPack>();
@@ -291,7 +291,7 @@ void ScriptEngine::errorHandler(HSQUIRRELVM v, const SQChar *desc, const SQChar 
                                 SQInteger column) {
   std::ostringstream os;
   os << desc << ' ' << source << '(' << line << ',' << column << ')';
-  for (auto &callback : _errorCallbacks) {
+  for (auto &callback : m_errorCallbacks) {
     callback(v, os.str().data());
   }
   error(os.str());
@@ -304,7 +304,7 @@ void ScriptEngine::errorfunc(HSQUIRRELVM v, const SQChar *s, ...) {
   vsprintf(buf, s, vl);
   va_end(vl);
 
-  for (auto &callback : _errorCallbacks) {
+  for (auto &callback : m_errorCallbacks) {
     callback(v, buf);
   }
   error(buf);
@@ -317,7 +317,7 @@ void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...) {
   vsnprintf(buf.data(), buf.size(), s, vl);
   va_end(vl);
 
-  for (auto &callback : _printCallbacks) {
+  for (auto &callback : m_printCallbacks) {
     callback(v, buf.data());
   }
   trace(buf.data());
@@ -325,20 +325,20 @@ void ScriptEngine::printfunc(HSQUIRRELVM v, const SQChar *s, ...) {
 
 void ScriptEngine::registerGlobalFunction(SQFUNCTION f, const SQChar *functionName, SQInteger nparamscheck,
                                           const SQChar *typemask) {
-  sq_pushroottable(_vm);
-  sq_pushstring(_vm, functionName, -1);
-  sq_newclosure(_vm, f, 0); // create a new function
-  sq_setparamscheck(_vm, nparamscheck, typemask);
-  sq_setnativeclosurename(_vm, -1, functionName);
-  sq_newslot(_vm, -3, SQFalse);
-  sq_pop(_vm, 1); // pops the root table
+  sq_pushroottable(m_vm);
+  sq_pushstring(m_vm, functionName, -1);
+  sq_newclosure(m_vm, f, 0); // create a new function
+  sq_setparamscheck(m_vm, nparamscheck, typemask);
+  sq_setnativeclosurename(m_vm, -1, functionName);
+  sq_newslot(m_vm, -3, SQFalse);
+  sq_pop(m_vm, 1); // pops the root table
 }
 
 void ScriptEngine::executeScript(const std::string &name) {
-  if (SQ_FAILED(sqstd_dofile(_vm, name.c_str(), SQFalse, SQTrue))) {
+  if (SQ_FAILED(sqstd_dofile(m_vm, name.c_str(), SQFalse, SQTrue))) {
     error("failed to execute {}", name);
-    sq_getlasterror(_vm);
-    aux_printerror(_vm);
+    sq_getlasterror(m_vm);
+    aux_printerror(m_vm);
     return;
   }
 }
@@ -372,61 +372,61 @@ void ScriptEngine::executeNutScript(const std::string &name) {
   o.write(code.data(), code.size());
   o.close();
 #endif
-  auto top = sq_gettop(_vm);
-  sq_pushroottable(_vm);
-  if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size() - 1, _SC(name.data()), SQTrue))) {
+  auto top = sq_gettop(m_vm);
+  sq_pushroottable(m_vm);
+  if (SQ_FAILED(sq_compilebuffer(m_vm, code.data(), code.size() - 1, _SC(name.data()), SQTrue))) {
     error("Error compiling {}", name);
     return;
   }
-  sq_push(_vm, -2);
+  sq_push(m_vm, -2);
   // call
-  if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue))) {
+  if (SQ_FAILED(sq_call(m_vm, 1, SQFalse, SQTrue))) {
     error("Error calling {}", name);
-    sqstd_printcallstack(_vm);
+    sqstd_printcallstack(m_vm);
     return;
   }
-  sq_settop(_vm, top);
+  sq_settop(m_vm, top);
 }
 
 bool ScriptEngine::rawCall(const char *name) {
-  sq_pushroottable(_vm);
-  sq_pushstring(_vm, _SC(name), -1);
-  if (SQ_FAILED(sq_rawget(_vm, -2))) {
-    sq_pop(_vm, 1);
+  sq_pushroottable(m_vm);
+  sq_pushstring(m_vm, _SC(name), -1);
+  if (SQ_FAILED(sq_rawget(m_vm, -2))) {
+    sq_pop(m_vm, 1);
     trace("can't find {} function", name);
     return false;
   }
-  sq_remove(_vm, -2);
+  sq_remove(m_vm, -2);
 
-  sq_pushroottable(_vm);
-  if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue))) {
-    sqstd_printcallstack(_vm);
-    sq_pop(_vm, 1);
+  sq_pushroottable(m_vm);
+  if (SQ_FAILED(sq_call(m_vm, 1, SQFalse, SQTrue))) {
+    sqstd_printcallstack(m_vm);
+    sq_pop(m_vm, 1);
     error("function {} call failed", name);
     return false;
   }
-  sq_pop(_vm, 1);
+  sq_pop(m_vm, 1);
   return true;
 }
 
 bool ScriptEngine::call(const char *name) {
-  sq_pushroottable(_vm);
-  sq_pushstring(_vm, _SC(name), -1);
-  if (SQ_FAILED(sq_get(_vm, -2))) {
-    sq_pop(_vm, 1);
+  sq_pushroottable(m_vm);
+  sq_pushstring(m_vm, _SC(name), -1);
+  if (SQ_FAILED(sq_get(m_vm, -2))) {
+    sq_pop(m_vm, 1);
     trace("can't find {} function", name);
     return false;
   }
-  sq_remove(_vm, -2);
+  sq_remove(m_vm, -2);
 
-  sq_pushroottable(_vm);
-  if (SQ_FAILED(sq_call(_vm, 1, SQFalse, SQTrue))) {
-    sqstd_printcallstack(_vm);
-    sq_pop(_vm, 1);
+  sq_pushroottable(m_vm);
+  if (SQ_FAILED(sq_call(m_vm, 1, SQFalse, SQTrue))) {
+    sqstd_printcallstack(m_vm);
+    sq_pop(m_vm, 1);
     error("function {} call failed", name);
     return false;
   }
-  sq_pop(_vm, 1);
+  sq_pop(m_vm, 1);
   return true;
 }
 

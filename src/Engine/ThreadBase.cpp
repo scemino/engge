@@ -5,11 +5,11 @@
 
 namespace ng {
 ThreadBase::ThreadBase() {
-  _id = Locator<EntityManager>::get().getThreadId();
+  m_id = Locator<EntityManager>::get().getThreadId();
 }
 
 ThreadBase::~ThreadBase() {
-  trace("stop thread {}", _id);
+  trace("stop thread {}", m_id);
 }
 
 void ThreadBase::stop() {

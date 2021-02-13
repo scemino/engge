@@ -10,8 +10,8 @@ class FntFont;
 class SpriteSheet;
 
 struct TextureResource {
-  std::shared_ptr<ngf::Texture> _texture;
-  size_t _size;
+  std::shared_ptr<ngf::Texture> texture;
+  size_t size;
 };
 
 class ResourceManager : public NonCopyable {

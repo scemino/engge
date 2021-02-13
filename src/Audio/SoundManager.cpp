@@ -11,14 +11,14 @@ namespace ng {
 SoundManager::SoundManager() = default;
 
 SoundId *SoundManager::getSound(size_t index) {
-  if (index < 1 || index > _soundIds.size())
+  if (index < 1 || index > m_soundIds.size())
     return nullptr;
-  return _soundIds.at(index - 1).get();
+  return m_soundIds.at(index - 1).get();
 }
 
 int SoundManager::getSlotIndex() {
-  for (size_t i = 0; i < _soundIds.size(); i++) {
-    if (_soundIds.at(i) == nullptr || !_soundIds.at(i)->isPlaying())
+  for (size_t i = 0; i < m_soundIds.size(); i++) {
+    if (m_soundIds.at(i) == nullptr || !m_soundIds.at(i)->isPlaying())
       return i;
   }
   return -1;
@@ -30,7 +30,7 @@ SoundDefinition *SoundManager::defineSound(const std::string &name) {
 
   auto sound = std::make_unique<SoundDefinition>(name);
   auto pSound = sound.get();
-  _sounds.push_back(std::move(sound));
+  m_sounds.push_back(std::move(sound));
   return pSound;
 }
 
@@ -65,14 +65,14 @@ SoundId *SoundManager::play(SoundDefinition *pSoundDefinition, SoundCategory cat
   }
   //trace("[{}] loop {} {} {}", index, loopTimes, sCategory, pSoundDefinition->getPath());
   SoundId *pSoundId = soundId.get();
-  _soundIds.at(index) = std::move(soundId);
+  m_soundIds.at(index) = std::move(soundId);
   pSoundId->play(loopTimes);
   return pSoundId;
 }
 
 void SoundManager::stopAllSounds() {
   trace("stopAllSounds");
-  for (auto &_soundId : _soundIds) {
+  for (auto &_soundId : m_soundIds) {
     if (_soundId) {
       _soundId.reset();
     }
@@ -82,7 +82,7 @@ void SoundManager::stopAllSounds() {
 void SoundManager::stopSound(SoundId *pSound) {
   if (!pSound)
     return;
-  for (auto &_soundId : _soundIds) {
+  for (auto &_soundId : m_soundIds) {
     if (_soundId && _soundId.get() == pSound) {
       _soundId.reset();
       return;
@@ -112,7 +112,7 @@ void SoundManager::setVolume(const SoundDefinition *pSoundDef, float volume) {
 }
 
 void SoundManager::update(const ngf::TimeSpan &elapsed) {
-  for (auto &&soundId : _soundIds) {
+  for (auto &&soundId : m_soundIds) {
     if (soundId) {
       soundId->update(elapsed);
     }
@@ -120,7 +120,7 @@ void SoundManager::update(const ngf::TimeSpan &elapsed) {
 }
 
 void SoundManager::pauseAllSounds() {
-  for (auto &&soundId : _soundIds) {
+  for (auto &&soundId : m_soundIds) {
     if (soundId) {
       soundId->pause();
     }
@@ -128,7 +128,7 @@ void SoundManager::pauseAllSounds() {
 }
 
 void SoundManager::resumeAllSounds() {
-  for (auto &&soundId : _soundIds) {
+  for (auto &&soundId : m_soundIds) {
     if (soundId) {
       soundId->resume();
     }

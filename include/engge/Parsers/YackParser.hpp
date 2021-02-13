@@ -35,9 +35,9 @@ protected:
   explicit Condition(int32_t line);
 public:
   ~Condition() override;
-  int32_t getLine() const { return _line; }
+  int32_t getLine() const { return m_line; }
 private:
-  int32_t _line;
+  int32_t m_line;
 };
 
 class CodeCondition : public Condition {
@@ -279,7 +279,7 @@ private:
   std::unique_ptr<Ast::Choice> parseChoiceExpression();
 
 private:
-  YackTokenReader &_reader;
-  YackTokenReader::iterator _it;
+  YackTokenReader &m_reader;
+  YackTokenReader::iterator m_it;
 };
 } // namespace ng

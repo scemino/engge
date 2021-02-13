@@ -9,15 +9,15 @@ namespace ng {
 
 class Engine;
 
-class SaveLoadDialog : public ngf::Drawable {
+class SaveLoadDialog final : public ngf::Drawable {
 public:
-  typedef std::function<void()> Callback;
-  typedef std::function<void(int slot)> SlotCallback;
+  using Callback =  std::function<void()>;
+  using SlotCallback = std::function<void(int slot)>;
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 public:
   SaveLoadDialog();
-  ~SaveLoadDialog() override;
+  ~SaveLoadDialog() final;
 
   void setSaveMode(bool saveMode);
   [[nodiscard]] bool getSaveMode() const;
@@ -29,6 +29,6 @@ public:
 
 private:
   struct Impl;
-  std::unique_ptr<Impl> _pImpl;
+  std::unique_ptr<Impl> m_pImpl;
 };
 }

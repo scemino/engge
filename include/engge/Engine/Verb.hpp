@@ -43,11 +43,11 @@ struct Verb {
 
 class VerbSlot {
 public:
-  void setVerb(int index, const Verb &verb) { _verbs.at(index) = verb; }
-  [[nodiscard]] const Verb &getVerb(int index) const { return _verbs.at(index); }
+  void setVerb(int index, const Verb &verb) { m_verbs.at(index) = verb; }
+  [[nodiscard]] const Verb &getVerb(int index) const { return m_verbs.at(index); }
 
 private:
-  std::array<Verb, 10> _verbs;
+  std::array<Verb, 10> m_verbs;
 };
 
 struct VerbUiColors {

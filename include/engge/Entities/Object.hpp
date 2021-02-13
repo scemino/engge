@@ -83,7 +83,6 @@ public:
   HSQOBJECT &getTable() override;
   [[nodiscard]] HSQOBJECT &getTable() const override;
 
-  void setTexture(const std::string &texture);
   std::vector<Animation> &getAnims();
 
   void setStateAnimIndex(int animIndex);

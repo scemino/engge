@@ -12,46 +12,46 @@ Cutscene::Cutscene(Engine &engine,
                    HSQOBJECT closureObj,
                    HSQOBJECT closureCutsceneOverrideObj,
                    HSQOBJECT envObj)
-    : _engine(engine), _v(v), _threadCutscene(thread), _state(0), _closureObj(closureObj),
-      _closureCutsceneOverrideObj(closureCutsceneOverrideObj), _envObj(envObj) {
+    : m_engine(engine), m_v(v), m_threadCutscene(thread), m_state(0), m_closureObj(closureObj),
+      m_closureCutsceneOverrideObj(closureCutsceneOverrideObj), m_envObj(envObj) {
   auto engineVm = ScriptEngine::getVm();
-  _hasCutsceneOverride = !sq_isnull(_closureCutsceneOverrideObj);
-  _inputState = _engine.getInputState();
-  trace("Cutscene with inputState {}", _inputState);
-  _engine.setInputActive(false);
-  _engine.setInputVerbs(false);
+  m_hasCutsceneOverride = !sq_isnull(m_closureCutsceneOverrideObj);
+  m_inputState = m_engine.getInputState();
+  trace("Cutscene with inputState {}", m_inputState);
+  m_engine.setInputActive(false);
+  m_engine.setInputVerbs(false);
 
-  sq_addref(engineVm, &_threadCutscene);
-  sq_addref(engineVm, &_closureObj);
-  sq_addref(engineVm, &_closureCutsceneOverrideObj);
-  sq_addref(engineVm, &_envObj);
+  sq_addref(engineVm, &m_threadCutscene);
+  sq_addref(engineVm, &m_closureObj);
+  sq_addref(engineVm, &m_closureCutsceneOverrideObj);
+  sq_addref(engineVm, &m_envObj);
 }
 
 Cutscene::~Cutscene() {
   auto engineVm = ScriptEngine::getVm();
-  sq_release(engineVm, &_threadCutscene);
-  sq_release(engineVm, &_closureObj);
-  sq_release(engineVm, &_closureCutsceneOverrideObj);
-  sq_release(engineVm, &_envObj);
+  sq_release(engineVm, &m_threadCutscene);
+  sq_release(engineVm, &m_closureObj);
+  sq_release(engineVm, &m_closureCutsceneOverrideObj);
+  sq_release(engineVm, &m_envObj);
 }
 
 HSQUIRRELVM Cutscene::getThread() const {
-  return _threadCutscene._unVal.pThread;
+  return m_threadCutscene._unVal.pThread;
 }
 
 std::string Cutscene::getName() const {
   return "cutscene";
 }
 
-bool Cutscene::isElapsed() { return _state == 5; }
+bool Cutscene::isElapsed() { return m_state == 5; }
 
 void Cutscene::cutsceneOverride() {
-  if (_hasCutsceneOverride && _state == 1)
-    _state = 2;
+  if (m_hasCutsceneOverride && m_state == 1)
+    m_state = 2;
 }
 
 void Cutscene::operator()(const ngf::TimeSpan &) {
-  switch (_state) {
+  switch (m_state) {
   case 0:trace("startCutscene");
     startCutscene();
     break;
@@ -71,59 +71,59 @@ void Cutscene::operator()(const ngf::TimeSpan &) {
 }
 
 void Cutscene::startCutscene() {
-  _state = 1;
-  trace("start cutscene: {}", _id);
-  sq_pushobject(_threadCutscene._unVal.pThread, _closureObj);
-  sq_pushobject(_threadCutscene._unVal.pThread, _envObj);
-  if (SQ_FAILED(sq_call(_threadCutscene._unVal.pThread, 1, SQFalse, SQTrue))) {
+  m_state = 1;
+  trace("start cutscene: {}", m_id);
+  sq_pushobject(m_threadCutscene._unVal.pThread, m_closureObj);
+  sq_pushobject(m_threadCutscene._unVal.pThread, m_envObj);
+  if (SQ_FAILED(sq_call(m_threadCutscene._unVal.pThread, 1, SQFalse, SQTrue))) {
     error("Couldn't call cutscene");
   }
 }
 
 void Cutscene::checkEndCutscene() {
   if (ThreadBase::isStopped()) {
-    _state = 4;
-    trace("end cutscene: {}", _id);
+    m_state = 4;
+    trace("end cutscene: {}", m_id);
   }
 }
 
 void Cutscene::doCutsceneOverride() {
-  if (_hasCutsceneOverride) {
-    _state = 3;
-    trace("start cutsceneOverride: {}", _id);
-    sq_pushobject(_threadCutscene._unVal.pThread, _closureCutsceneOverrideObj);
-    sq_pushobject(_threadCutscene._unVal.pThread, _envObj);
-    if (SQ_FAILED(sq_call(_threadCutscene._unVal.pThread, 1, SQFalse, SQTrue))) {
+  if (m_hasCutsceneOverride) {
+    m_state = 3;
+    trace("start cutsceneOverride: {}", m_id);
+    sq_pushobject(m_threadCutscene._unVal.pThread, m_closureCutsceneOverrideObj);
+    sq_pushobject(m_threadCutscene._unVal.pThread, m_envObj);
+    if (SQ_FAILED(sq_call(m_threadCutscene._unVal.pThread, 1, SQFalse, SQTrue))) {
       error("Couldn't call cutsceneOverride");
     }
     return;
   }
-  _state = 4;
+  m_state = 4;
 }
 
 void Cutscene::checkEndCutsceneOverride() {
   if (ThreadBase::isStopped()) {
-    _state = 4;
-    trace("end checkEndCutsceneOverride: {}", _id);
+    m_state = 4;
+    trace("end checkEndCutsceneOverride: {}", m_id);
   }
 }
 
 void Cutscene::endCutscene() {
-  _state = 5;
-  trace("End cutscene {} with inputState {}", _id, _inputState);
-  _engine.setInputState(_inputState);
-  _engine.follow(_engine.getCurrentActor());
+  m_state = 5;
+  trace("End cutscene {} with inputState {}", m_id, m_inputState);
+  m_engine.setInputState(m_inputState);
+  m_engine.follow(m_engine.getCurrentActor());
   ScriptEngine::call("onCutsceneEnded");
-  auto pThread = EntityManager::getThreadFromVm(_v);
+  auto pThread = EntityManager::getThreadFromVm(m_v);
   if (pThread)
     pThread->resume();
-  pThread = EntityManager::getThreadFromId(_id);
+  pThread = EntityManager::getThreadFromId(m_id);
   if (pThread)
     pThread->stop();
 }
 
 bool Cutscene::isStopped() const {
-  return _state == 5;
+  return m_state == 5;
 }
 
 } // namespace ng

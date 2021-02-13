@@ -22,8 +22,8 @@ public:
   void execute(const Input& input, bool keyDown) const;
 
 private:
-  std::unordered_map<std::string, CommandHandler> _commandHandlers;
-  std::unordered_map<std::string, PressedCommandHandler> _pressedCommandHandlers;
-  std::unordered_map<Input, std::string, InputHash> _inputBindings;
+  std::unordered_map<std::string, CommandHandler> m_commandHandlers;
+  std::unordered_map<std::string, PressedCommandHandler> m_pressedCommandHandlers;
+  std::unordered_map<Input, std::string, InputHash> m_inputBindings;
 };
 }

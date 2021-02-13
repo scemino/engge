@@ -27,32 +27,32 @@ public:
   void critical(string_view_t message, const Args &... args);
 
 private:
-  std::shared_ptr<spdlog::logger> _out;
+  std::shared_ptr<spdlog::logger> m_out;
 };
 
 template<typename... Args>
 void Logger::trace(string_view_t message, const Args &... args) {
-  _out->trace(message, args...);
+  m_out->trace(message, args...);
 }
 
 template<typename... Args>
 void Logger::info(string_view_t message, const Args &... args) {
-  _out->info(message, args...);
+  m_out->info(message, args...);
 }
 
 template<typename... Args>
 void Logger::warn(string_view_t message, const Args &... args) {
-  _out->warn(message, args...);
+  m_out->warn(message, args...);
 }
 
 template<typename... Args>
 void Logger::error(string_view_t message, const Args &... args) {
-  _out->error(message, args...);
+  m_out->error(message, args...);
 }
 
 template<typename... Args>
 void Logger::critical(string_view_t message, const Args &... args) {
-  _out->critical(message, args...);
+  m_out->critical(message, args...);
 }
 
 template<typename... Args>

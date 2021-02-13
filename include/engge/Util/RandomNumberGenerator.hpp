@@ -11,6 +11,6 @@ public:
   float generateFloat(float min, float max);
 
 private:
-  long _seed{0};
+  long m_seed{0};
 };
 }

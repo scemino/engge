@@ -12,6 +12,6 @@ public:
   [[nodiscard]] std::wstring getText(const std::string &text) const;
 
 private:
-  std::map<int, std::wstring> _texts;
+  std::map<int, std::wstring> m_texts;
 };
 } // namespace ng

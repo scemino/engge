@@ -95,13 +95,13 @@ struct Object::Impl {
 };
 
 Object::Object() : pImpl(std::make_unique<Impl>()) {
-  _id = Locator<EntityManager>::get().getObjectId();
-  ScriptEngine::set(this, "_id", _id);
+  m_id = Locator<EntityManager>::get().getObjectId();
+  ScriptEngine::set(this, "_id", m_id);
 }
 
 Object::Object(HSQOBJECT obj) : pImpl(std::make_unique<Impl>(obj)) {
-  _id = Locator<EntityManager>::get().getObjectId();
-  ScriptEngine::set(this, "_id", _id);
+  m_id = Locator<EntityManager>::get().getObjectId();
+  ScriptEngine::set(this, "_id", m_id);
 }
 
 Object::~Object() = default;

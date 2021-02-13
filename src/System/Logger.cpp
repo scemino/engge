@@ -13,7 +13,7 @@ Logger::Logger() {
   auto dist_sink = std::make_shared<spdlog::sinks::dist_sink_st>();
   dist_sink->add_sink(console_sink);
   dist_sink->add_sink(file_sink);
-  _out = std::make_shared<spdlog::logger>("log", dist_sink);
-  _out->set_level(spdlog::level::trace);
+  m_out = std::make_shared<spdlog::logger>("log", dist_sink);
+  m_out->set_level(spdlog::level::trace);
 }
 } // namespace ng

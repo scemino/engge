@@ -5,7 +5,7 @@
 namespace ng {
 Light::Light() {
   sq_resetobject(&table);
-  _id = Locator<EntityManager>::get().getLightId();
+  m_id = Locator<EntityManager>::get().getLightId();
 }
 
 Light::~Light() = default;

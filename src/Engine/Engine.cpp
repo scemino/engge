@@ -44,61 +44,61 @@ namespace fs = std::filesystem;
 
 namespace ng {
 
-Engine::Engine() : _pImpl(std::make_unique<Impl>()) {
-  _pImpl->_pEngine = this;
-  _pImpl->_soundManager.setEngine(this);
-  _pImpl->_dialogManager.setEngine(this);
-  _pImpl->_actorIcons.setEngine(this);
-  _pImpl->_camera.setEngine(this);
-  _pImpl->_talkingState.setEngine(this);
+Engine::Engine() : m_pImpl(std::make_unique<Impl>()) {
+  m_pImpl->_pEngine = this;
+  m_pImpl->_soundManager.setEngine(this);
+  m_pImpl->_dialogManager.setEngine(this);
+  m_pImpl->_actorIcons.setEngine(this);
+  m_pImpl->_camera.setEngine(this);
+  m_pImpl->_talkingState.setEngine(this);
 
   // load all messages
   std::stringstream s;
   auto lang =
-      _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
+      m_pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
   s << "ThimbleweedText_" << lang << ".tsv";
   Locator<TextDatabase>::get().load(s.str());
 
-  _pImpl->_optionsDialog.setSaveEnabled(true);
-  _pImpl->_optionsDialog.setEngine(this);
-  _pImpl->_optionsDialog.setCallback([this]() {
+  m_pImpl->_optionsDialog.setSaveEnabled(true);
+  m_pImpl->_optionsDialog.setEngine(this);
+  m_pImpl->_optionsDialog.setCallback([this]() {
     showOptions(false);
   });
-  _pImpl->_startScreenDialog.setEngine(this);
-  _pImpl->_startScreenDialog.setNewGameCallback([this]() {
-    _pImpl->_state = EngineState::Game;
-    _pImpl->exitRoom(nullptr);
+  m_pImpl->_startScreenDialog.setEngine(this);
+  m_pImpl->_startScreenDialog.setNewGameCallback([this]() {
+    m_pImpl->_state = EngineState::Game;
+    m_pImpl->exitRoom(nullptr);
     ScriptEngine::call("start", true);
   });
-  _pImpl->_startScreenDialog.setSlotCallback([this](int slot) {
-    _pImpl->_state = EngineState::Game;
+  m_pImpl->_startScreenDialog.setSlotCallback([this](int slot) {
+    m_pImpl->_state = EngineState::Game;
     loadGame(slot);
   });
 
-  _pImpl->_preferences.subscribe([this](const std::string &name) {
+  m_pImpl->_preferences.subscribe([this](const std::string &name) {
     if (name == PreferenceNames::Language) {
-      auto newLang = _pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language,
-                                                                         PreferenceDefaultValues::Language);
-      _pImpl->onLanguageChange(newLang);
+      auto newLang = m_pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language,
+                                                                          PreferenceDefaultValues::Language);
+      m_pImpl->onLanguageChange(newLang);
     } else if (name == PreferenceNames::Fullscreen) {
-      auto fullscreen = _pImpl->_preferences.getUserPreference(PreferenceNames::Fullscreen,
-                                                               PreferenceDefaultValues::Fullscreen);
-      _pImpl->_pApp->getWindow().setFullscreen(fullscreen);
+      auto fullscreen = m_pImpl->_preferences.getUserPreference(PreferenceNames::Fullscreen,
+                                                                PreferenceDefaultValues::Fullscreen);
+      m_pImpl->_pApp->getWindow().setFullscreen(fullscreen);
     }
   });
 }
 
 Engine::~Engine() = default;
 
-int Engine::getFrameCounter() const { return _pImpl->_frameCounter; }
+int Engine::getFrameCounter() const { return m_pImpl->_frameCounter; }
 
-void Engine::setApplication(ngf::Application *app) { _pImpl->_pApp = app; }
+void Engine::setApplication(ngf::Application *app) { m_pImpl->_pApp = app; }
 
-const ngf::Application *Engine::getApplication() const { return _pImpl->_pApp; }
+const ngf::Application *Engine::getApplication() const { return m_pImpl->_pApp; }
 
-ResourceManager &Engine::getResourceManager() { return _pImpl->_textureManager; }
+ResourceManager &Engine::getResourceManager() { return m_pImpl->_textureManager; }
 
-Room *Engine::getRoom() { return _pImpl->_pRoom; }
+Room *Engine::getRoom() { return m_pImpl->_pRoom; }
 
 std::wstring Engine::getText(int id) {
   auto text = Locator<TextDatabase>::get().getText(id);
@@ -112,152 +112,152 @@ std::wstring Engine::getText(const std::string &text) {
   return text2;
 }
 
-void Engine::addActor(std::unique_ptr<Actor> actor) { _pImpl->_actors.push_back(std::move(actor)); }
+void Engine::addActor(std::unique_ptr<Actor> actor) { m_pImpl->_actors.push_back(std::move(actor)); }
 
-void Engine::addRoom(std::unique_ptr<Room> room) { _pImpl->_rooms.push_back(std::move(room)); }
+void Engine::addRoom(std::unique_ptr<Room> room) { m_pImpl->_rooms.push_back(std::move(room)); }
 
-std::vector<std::unique_ptr<Room>> &Engine::getRooms() { return _pImpl->_rooms; }
+std::vector<std::unique_ptr<Room>> &Engine::getRooms() { return m_pImpl->_rooms; }
 
-void Engine::addFunction(std::unique_ptr<Function> function) { _pImpl->_newFunctions.push_back(std::move(function)); }
+void Engine::addFunction(std::unique_ptr<Function> function) { m_pImpl->_newFunctions.push_back(std::move(function)); }
 
-void Engine::addCallback(std::unique_ptr<Callback> callback) { _pImpl->_callbacks.push_back(std::move(callback)); }
+void Engine::addCallback(std::unique_ptr<Callback> callback) { m_pImpl->_callbacks.push_back(std::move(callback)); }
 
 void Engine::removeCallback(int id) {
-  auto it = std::find_if(_pImpl->_callbacks.begin(), _pImpl->_callbacks.end(),
+  auto it = std::find_if(m_pImpl->_callbacks.begin(), m_pImpl->_callbacks.end(),
                          [id](auto &callback) -> bool { return callback->getId() == id; });
-  if (it != _pImpl->_callbacks.end()) {
-    _pImpl->_callbacks.erase(it);
+  if (it != m_pImpl->_callbacks.end()) {
+    m_pImpl->_callbacks.erase(it);
   }
 }
 
-std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return _pImpl->_actors; }
+std::vector<std::unique_ptr<Actor>> &Engine::getActors() { return m_pImpl->_actors; }
 
-Actor *Engine::getCurrentActor() { return _pImpl->_pCurrentActor; }
+Actor *Engine::getCurrentActor() { return m_pImpl->_pCurrentActor; }
 
 const VerbUiColors *Engine::getVerbUiColors(const std::string &name) const {
   if (name.empty()) {
-    auto index = _pImpl->getCurrentActorIndex();
+    auto index = m_pImpl->getCurrentActorIndex();
     if (index == -1)
       return nullptr;
-    return &_pImpl->_hud.getVerbUiColors(index);
+    return &m_pImpl->_hud.getVerbUiColors(index);
   }
-  for (int i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); i++) {
-    const auto &selectableActor = _pImpl->_actorsIconSlots.at(i);
+  for (int i = 0; i < static_cast<int>(m_pImpl->_actorsIconSlots.size()); i++) {
+    const auto &selectableActor = m_pImpl->_actorsIconSlots.at(i);
     if (selectableActor.pActor && selectableActor.pActor->getKey() == name) {
-      return &_pImpl->_hud.getVerbUiColors(i);
+      return &m_pImpl->_hud.getVerbUiColors(i);
     }
   }
   return nullptr;
 }
 
-bool Engine::getInputActive() const { return _pImpl->_inputActive; }
+bool Engine::getInputActive() const { return m_pImpl->_inputActive; }
 
 void Engine::setInputState(int state) {
   if ((state & InputStateConstants::UI_INPUT_ON) == InputStateConstants::UI_INPUT_ON) {
-    _pImpl->_inputActive = true;
+    m_pImpl->_inputActive = true;
   }
   if ((state & InputStateConstants::UI_INPUT_OFF) == InputStateConstants::UI_INPUT_OFF) {
-    _pImpl->_inputActive = false;
+    m_pImpl->_inputActive = false;
   }
   if ((state & InputStateConstants::UI_VERBS_ON) == InputStateConstants::UI_VERBS_ON) {
-    _pImpl->_inputVerbsActive = true;
+    m_pImpl->_inputVerbsActive = true;
   }
   if ((state & InputStateConstants::UI_VERBS_OFF) == InputStateConstants::UI_VERBS_OFF) {
-    _pImpl->_inputVerbsActive = false;
+    m_pImpl->_inputVerbsActive = false;
   }
   if ((state & InputStateConstants::UI_CURSOR_ON) == InputStateConstants::UI_CURSOR_ON) {
-    _pImpl->_showCursor = true;
+    m_pImpl->_showCursor = true;
   }
   if ((state & InputStateConstants::UI_CURSOR_OFF) == InputStateConstants::UI_CURSOR_OFF) {
-    _pImpl->_showCursor = false;
+    m_pImpl->_showCursor = false;
   }
   if ((state & InputStateConstants::UI_HUDOBJECTS_ON) == InputStateConstants::UI_HUDOBJECTS_ON) {
-    _pImpl->_inputHUD = true;
+    m_pImpl->_inputHUD = true;
   }
   if ((state & InputStateConstants::UI_HUDOBJECTS_OFF) == InputStateConstants::UI_HUDOBJECTS_OFF) {
-    _pImpl->_inputHUD = false;
+    m_pImpl->_inputHUD = false;
   }
 }
 
 int Engine::getInputState() const {
   int inputState = 0;
-  inputState |= (_pImpl->_inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
-  inputState |= (_pImpl->_inputVerbsActive ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
-  inputState |= (_pImpl->_showCursor ? InputStateConstants::UI_CURSOR_ON : InputStateConstants::UI_CURSOR_OFF);
-  inputState |= (_pImpl->_inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
+  inputState |= (m_pImpl->_inputActive ? InputStateConstants::UI_INPUT_ON : InputStateConstants::UI_INPUT_OFF);
+  inputState |= (m_pImpl->_inputVerbsActive ? InputStateConstants::UI_VERBS_ON : InputStateConstants::UI_VERBS_OFF);
+  inputState |= (m_pImpl->_showCursor ? InputStateConstants::UI_CURSOR_ON : InputStateConstants::UI_CURSOR_OFF);
+  inputState |= (m_pImpl->_inputHUD ? InputStateConstants::UI_HUDOBJECTS_ON : InputStateConstants::UI_HUDOBJECTS_OFF);
   return inputState;
 }
 
 void Engine::follow(Actor *pActor) {
   auto panCamera =
-      (_pImpl->_pFollowActor && pActor && _pImpl->_pFollowActor != pActor && _pImpl->_pFollowActor->getRoom() &&
-          pActor->getRoom() && _pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
-  _pImpl->_pFollowActor = pActor;
+      (m_pImpl->_pFollowActor && pActor && m_pImpl->_pFollowActor != pActor && m_pImpl->_pFollowActor->getRoom() &&
+          pActor->getRoom() && m_pImpl->_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
+  m_pImpl->_pFollowActor = pActor;
   if (!pActor)
     return;
 
   auto pos = pActor->getPosition();
   setRoom(pActor->getRoom());
   if (panCamera) {
-    _pImpl->_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
+    m_pImpl->_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
     return;
   }
-  _pImpl->_camera.at(pos);
+  m_pImpl->_camera.at(pos);
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) {
-  _pImpl->_pVerbExecute = std::move(verbExecute);
+  m_pImpl->_pVerbExecute = std::move(verbExecute);
 }
 
 void Engine::setDefaultVerb() {
-  _pImpl->_hud.setHoveredEntity(nullptr);
-  auto index = _pImpl->getCurrentActorIndex();
+  m_pImpl->_hud.setHoveredEntity(nullptr);
+  auto index = m_pImpl->getCurrentActorIndex();
   if (index == -1)
     return;
 
-  const auto &verbSlot = _pImpl->_hud.getVerbSlot(index);
-  _pImpl->_hud.setCurrentVerb(&verbSlot.getVerb(0));
-  _pImpl->_useFlag = UseFlag::None;
-  _pImpl->_pUseObject = nullptr;
-  _pImpl->_objId1 = 0;
-  _pImpl->_pObj2 = nullptr;
+  const auto &verbSlot = m_pImpl->_hud.getVerbSlot(index);
+  m_pImpl->_hud.setCurrentVerb(&verbSlot.getVerb(0));
+  m_pImpl->_useFlag = UseFlag::None;
+  m_pImpl->_pUseObject = nullptr;
+  m_pImpl->_objId1 = 0;
+  m_pImpl->_pObj2 = nullptr;
 }
 
 void Engine::setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute) {
-  _pImpl->_pScriptExecute = std::move(scriptExecute);
+  m_pImpl->_pScriptExecute = std::move(scriptExecute);
 }
 
-void Engine::addThread(std::unique_ptr<ThreadBase> thread) { _pImpl->_threads.push_back(std::move(thread)); }
+void Engine::addThread(std::unique_ptr<ThreadBase> thread) { m_pImpl->_threads.push_back(std::move(thread)); }
 
-std::vector<std::unique_ptr<ThreadBase>> &Engine::getThreads() { return _pImpl->_threads; }
+std::vector<std::unique_ptr<ThreadBase>> &Engine::getThreads() { return m_pImpl->_threads; }
 
-glm::vec2 Engine::getMousePositionInRoom() const { return _pImpl->_mousePosInRoom; }
+glm::vec2 Engine::getMousePositionInRoom() const { return m_pImpl->_mousePosInRoom; }
 
-Preferences &Engine::getPreferences() { return _pImpl->_preferences; }
+Preferences &Engine::getPreferences() { return m_pImpl->_preferences; }
 
-SoundManager &Engine::getSoundManager() { return _pImpl->_soundManager; }
+SoundManager &Engine::getSoundManager() { return m_pImpl->_soundManager; }
 
-DialogManager &Engine::getDialogManager() { return _pImpl->_dialogManager; }
+DialogManager &Engine::getDialogManager() { return m_pImpl->_dialogManager; }
 
-Camera &Engine::getCamera() { return _pImpl->_camera; }
+Camera &Engine::getCamera() { return m_pImpl->_camera; }
 
-ngf::TimeSpan Engine::getTime() const { return _pImpl->_time; }
+ngf::TimeSpan Engine::getTime() const { return m_pImpl->_time; }
 
 SQInteger Engine::setRoom(Room *pRoom) {
   if (!pRoom)
     return 0;
 
-  auto pOldRoom = _pImpl->_pRoom;
+  auto pOldRoom = m_pImpl->_pRoom;
   if (pRoom == pOldRoom)
     return 0;
 
-  auto result = _pImpl->exitRoom(nullptr);
+  auto result = m_pImpl->exitRoom(nullptr);
   if (SQ_FAILED(result))
     return result;
 
-  _pImpl->setCurrentRoom(pRoom);
+  m_pImpl->setCurrentRoom(pRoom);
 
-  result = _pImpl->enterRoom(pRoom, nullptr);
+  result = m_pImpl->enterRoom(pRoom, nullptr);
   if (SQ_FAILED(result))
     return result;
 
@@ -270,12 +270,12 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   auto pRoom = pDoor->getRoom();
 
   // exit current room
-  auto result = _pImpl->exitRoom(nullptr);
+  auto result = m_pImpl->exitRoom(nullptr);
   if (SQ_FAILED(result))
     return result;
 
   // change current room
-  _pImpl->setCurrentRoom(pRoom);
+  m_pImpl->setCurrentRoom(pRoom);
 
   // move current actor to the new room
   auto actor = getCurrentActor();
@@ -288,212 +288,212 @@ SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
 
   // move camera to the actor if not closeup room
   if (pRoom->getFullscreen() != 1) {
-    _pImpl->_camera.at(pos);
+    m_pImpl->_camera.at(pos);
   }
 
   // enter current room
-  return _pImpl->enterRoom(pRoom, pDoor);
+  return m_pImpl->enterRoom(pRoom, pDoor);
 }
 
-void Engine::setInputHUD(bool on) { _pImpl->_inputHUD = on; }
+void Engine::setInputHUD(bool on) { m_pImpl->_inputHUD = on; }
 
 void Engine::setInputActive(bool active) {
   if (inCutscene())
     return;
-  _pImpl->_inputActive = active;
-  _pImpl->_showCursor = active;
+  m_pImpl->_inputActive = active;
+  m_pImpl->_showCursor = active;
 }
 
-void Engine::inputSilentOff() { _pImpl->_inputActive = false; }
+void Engine::inputSilentOff() { m_pImpl->_inputActive = false; }
 
-void Engine::setInputVerbs(bool on) { _pImpl->_inputVerbsActive = on; }
+void Engine::setInputVerbs(bool on) { m_pImpl->_inputVerbsActive = on; }
 
 void Engine::update(const ngf::TimeSpan &el) {
   roomEffect.RandomValue[0] = Locator<RandomNumberGenerator>::get().generateFloat(0, 1.f);
-  roomEffect.iGlobalTime = fmod(_pImpl->_time.getTotalSeconds(), 1000.f);
+  roomEffect.iGlobalTime = fmod(m_pImpl->_time.getTotalSeconds(), 1000.f);
   roomEffect.TimeLapse = roomEffect.iGlobalTime;
 
   auto gameSpeedFactor =
       getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor,
                                          PreferenceDefaultValues::EnggeGameSpeedFactor);
   const ngf::TimeSpan elapsed(ngf::TimeSpan::seconds(el.getTotalSeconds() * gameSpeedFactor));
-  _pImpl->stopThreads();
-  auto screenSize = _pImpl->_pRoom->getScreenSize();
+  m_pImpl->stopThreads();
+  auto screenSize = m_pImpl->_pRoom->getScreenSize();
   auto view = ngf::View{ngf::frect::fromPositionSize({0, 0}, screenSize)};
-  _pImpl->_mousePos = _pImpl->_pApp->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(), view);
-  if (_pImpl->_pRoom && _pImpl->_pRoom->getName() != "Void") {
-    auto screenMouse = toDefaultView((glm::ivec2) _pImpl->_mousePos, screenSize);
-    _pImpl->_hud.setMousePosition(screenMouse);
-    _pImpl->_dialogManager.setMousePosition(screenMouse);
+  m_pImpl->_mousePos = m_pImpl->_pApp->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(), view);
+  if (m_pImpl->_pRoom && m_pImpl->_pRoom->getName() != "Void") {
+    auto screenMouse = toDefaultView((glm::ivec2) m_pImpl->_mousePos, screenSize);
+    m_pImpl->_hud.setMousePosition(screenMouse);
+    m_pImpl->_dialogManager.setMousePosition(screenMouse);
   }
-  if (_pImpl->_state == EngineState::Options) {
-    _pImpl->_optionsDialog.update(elapsed);
-  } else if (_pImpl->_state == EngineState::StartScreen) {
-    _pImpl->_startScreenDialog.update(elapsed);
+  if (m_pImpl->_state == EngineState::Options) {
+    m_pImpl->_optionsDialog.update(elapsed);
+  } else if (m_pImpl->_state == EngineState::StartScreen) {
+    m_pImpl->_startScreenDialog.update(elapsed);
   }
 
-  if (_pImpl->_state == EngineState::Paused) {
-    _pImpl->updateKeys();
+  if (m_pImpl->_state == EngineState::Paused) {
+    m_pImpl->updateKeys();
     return;
   }
 
   // update fade effect
-  _pImpl->_fadeEffect.elapsed += elapsed;
-  _pImpl->_talkingState.update(elapsed);
+  m_pImpl->_fadeEffect.elapsed += elapsed;
+  m_pImpl->_talkingState.update(elapsed);
 
-  _pImpl->_frameCounter++;
+  m_pImpl->_frameCounter++;
   auto &io = ImGui::GetIO();
-  auto wasMouseDown = _pImpl->_isMouseDown && !io.WantCaptureMouse;
-  auto wasMouseRightDown = _pImpl->_isMouseRightDown;
-  _pImpl->_isMouseDown =
+  auto wasMouseDown = m_pImpl->_isMouseDown && !io.WantCaptureMouse;
+  auto wasMouseRightDown = m_pImpl->_isMouseRightDown;
+  m_pImpl->_isMouseDown =
       ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left) && !io.WantCaptureMouse;
-  if (!wasMouseDown || !_pImpl->_isMouseDown) {
-    _pImpl->_mouseDownTime = ngf::TimeSpan::seconds(0);
-    _pImpl->run(false);
+  if (!wasMouseDown || !m_pImpl->_isMouseDown) {
+    m_pImpl->_mouseDownTime = ngf::TimeSpan::seconds(0);
+    m_pImpl->run(false);
   } else {
-    _pImpl->_mouseDownTime += elapsed;
-    if (_pImpl->_mouseDownTime > ngf::TimeSpan::seconds(0.5f)) {
-      _pImpl->run(true);
+    m_pImpl->_mouseDownTime += elapsed;
+    if (m_pImpl->_mouseDownTime > ngf::TimeSpan::seconds(0.5f)) {
+      m_pImpl->run(true);
     }
   }
-  _pImpl->_isMouseRightDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Right) && !io.WantCaptureMouse;
-  bool isRightClick = wasMouseRightDown != _pImpl->_isMouseRightDown && !_pImpl->_isMouseRightDown;
-  auto isMouseClick = wasMouseDown != _pImpl->_isMouseDown && !_pImpl->_isMouseDown;
+  m_pImpl->_isMouseRightDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Right) && !io.WantCaptureMouse;
+  bool isRightClick = wasMouseRightDown != m_pImpl->_isMouseRightDown && !m_pImpl->_isMouseRightDown;
+  auto isMouseClick = wasMouseDown != m_pImpl->_isMouseDown && !m_pImpl->_isMouseDown;
 
-  _pImpl->_time += elapsed;
-  _pImpl->_noOverrideElapsed += elapsed;
+  m_pImpl->_time += elapsed;
+  m_pImpl->_noOverrideElapsed += elapsed;
 
-  _pImpl->_camera.update(elapsed);
-  _pImpl->_soundManager.update(elapsed);
-  _pImpl->updateCutscene(elapsed);
-  _pImpl->updateFunctions(elapsed);
-  _pImpl->updateSentence(elapsed);
-  _pImpl->updateKeys();
+  m_pImpl->_camera.update(elapsed);
+  m_pImpl->_soundManager.update(elapsed);
+  m_pImpl->updateCutscene(elapsed);
+  m_pImpl->updateFunctions(elapsed);
+  m_pImpl->updateSentence(elapsed);
+  m_pImpl->updateKeys();
 
-  if (!_pImpl->_pRoom || _pImpl->_pRoom->getName() == "Void")
+  if (!m_pImpl->_pRoom || m_pImpl->_pRoom->getName() == "Void")
     return;
 
-  _pImpl->updateRoomScalings();
+  m_pImpl->updateRoomScalings();
 
-  _pImpl->_pRoom->update(elapsed);
-  for (auto &pActor : _pImpl->_actors) {
-    if (!pActor || pActor->getRoom() == _pImpl->_pRoom)
+  m_pImpl->_pRoom->update(elapsed);
+  for (auto &pActor : m_pImpl->_actors) {
+    if (!pActor || pActor->getRoom() == m_pImpl->_pRoom)
       continue;
     pActor->update(elapsed);
   }
 
-  if (_pImpl->_pFollowActor && _pImpl->_pFollowActor->isVisible() && _pImpl->_pFollowActor->getRoom() == getRoom()) {
-    auto screen = _pImpl->_pRoom->getScreenSize();
-    auto pos = _pImpl->_pFollowActor->getPosition();
+  if (m_pImpl->_pFollowActor && m_pImpl->_pFollowActor->isVisible() && m_pImpl->_pFollowActor->getRoom() == getRoom()) {
+    auto screen = m_pImpl->_pRoom->getScreenSize();
+    auto pos = m_pImpl->_pFollowActor->getPosition();
     auto margin = glm::vec2(screen.x / 4, screen.y / 4);
-    auto cameraPos = _pImpl->_camera.getAt();
-    if (_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin.x) || (cameraPos.x < pos.x - margin.x) ||
+    auto cameraPos = m_pImpl->_camera.getAt();
+    if (m_pImpl->_camera.isMoving() || (cameraPos.x > pos.x + margin.x) || (cameraPos.x < pos.x - margin.x) ||
         (cameraPos.y > pos.y + margin.y) || (cameraPos.y < pos.y - margin.y)) {
-      _pImpl->_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
+      m_pImpl->_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
     }
   }
 
-  _pImpl->updateActorIcons(elapsed);
+  m_pImpl->updateActorIcons(elapsed);
 
-  if (_pImpl->_state == EngineState::Options)
+  if (m_pImpl->_state == EngineState::Options)
     return;
 
-  _pImpl->_cursorDirection = CursorDirection::None;
-  _pImpl->updateMouseCursor();
+  m_pImpl->_cursorDirection = CursorDirection::None;
+  m_pImpl->updateMouseCursor();
 
   auto mousePos =
-      glm::vec2(_pImpl->_mousePos.x, _pImpl->_pRoom->getScreenSize().y - _pImpl->_mousePos.y);
-  _pImpl->_mousePosInRoom = mousePos + _pImpl->_camera.getRect().getTopLeft();
+      glm::vec2(m_pImpl->_mousePos.x, m_pImpl->_pRoom->getScreenSize().y - m_pImpl->_mousePos.y);
+  m_pImpl->_mousePosInRoom = mousePos + m_pImpl->_camera.getRect().getTopLeft();
 
-  _pImpl->_dialogManager.update(elapsed);
+  m_pImpl->_dialogManager.update(elapsed);
 
-  _pImpl->_hud.setActive(_pImpl->_inputVerbsActive && _pImpl->_dialogManager.getState() == DialogManagerState::None
-                             && _pImpl->_pRoom->getFullscreen() != 1);
-  _pImpl->_hud.setHoveredEntity(_pImpl->getHoveredEntity(_pImpl->_mousePosInRoom));
-  _pImpl->updateHoveredEntity(isRightClick);
+  m_pImpl->_hud.setActive(m_pImpl->_inputVerbsActive && m_pImpl->_dialogManager.getState() == DialogManagerState::None
+                             && m_pImpl->_pRoom->getFullscreen() != 1);
+  m_pImpl->_hud.setHoveredEntity(m_pImpl->getHoveredEntity(m_pImpl->_mousePosInRoom));
+  m_pImpl->updateHoveredEntity(isRightClick);
 
-  if (_pImpl->_pCurrentActor) {
-    auto &objects = _pImpl->_pCurrentActor->getObjects();
+  if (m_pImpl->_pCurrentActor) {
+    auto &objects = m_pImpl->_pCurrentActor->getObjects();
     for (auto &object : objects) {
       object->update(elapsed);
     }
   }
 
-  _pImpl->_hud.update(elapsed);
+  m_pImpl->_hud.update(elapsed);
 
-  if (_pImpl->_actorIcons.isMouseOver())
+  if (m_pImpl->_actorIcons.isMouseOver())
     return;
 
-  if (isMouseClick && _pImpl->clickedAt(_pImpl->_mousePosInRoom))
+  if (isMouseClick && m_pImpl->clickedAt(m_pImpl->_mousePosInRoom))
     return;
 
-  if (!_pImpl->_inputActive)
+  if (!m_pImpl->_inputActive)
     return;
 
-  _pImpl->updateKeyboard();
+  m_pImpl->updateKeyboard();
 
-  if (_pImpl->_dialogManager.getState() != DialogManagerState::None) {
+  if (m_pImpl->_dialogManager.getState() != DialogManagerState::None) {
     auto rightClickSkipsDialog = getPreferences().getUserPreference(PreferenceNames::RightClickSkipsDialog,
                                                                     PreferenceDefaultValues::RightClickSkipsDialog);
     if (rightClickSkipsDialog && isRightClick) {
-      _pImpl->skipText();
+      m_pImpl->skipText();
     }
     return;
   }
 
-  if (!_pImpl->_pCurrentActor)
+  if (!m_pImpl->_pCurrentActor)
     return;
 
-  if (!isMouseClick && !isRightClick && !_pImpl->_isMouseDown)
+  if (!isMouseClick && !isRightClick && !m_pImpl->_isMouseDown)
     return;
 
-  _pImpl->_hud.setVisible(true);
-  _pImpl->_actorIcons.setVisible(true);
-  _pImpl->_cursorVisible = true;
+  m_pImpl->_hud.setVisible(true);
+  m_pImpl->_actorIcons.setVisible(true);
+  m_pImpl->_cursorVisible = true;
   stopSentence();
 
-  const auto *pVerb = _pImpl->getHoveredVerb();
+  const auto *pVerb = m_pImpl->getHoveredVerb();
   // input click on a verb ?
-  if (_pImpl->_hud.getActive() && pVerb) {
-    _pImpl->onVerbClick(pVerb);
+  if (m_pImpl->_hud.getActive() && pVerb) {
+    m_pImpl->onVerbClick(pVerb);
     return;
   }
 
   if (!isMouseClick && !isRightClick) {
-    if (!pVerb && !_pImpl->_hud.getHoveredEntity())
-      _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
+    if (!pVerb && !m_pImpl->_hud.getHoveredEntity())
+      m_pImpl->_pCurrentActor->walkTo(m_pImpl->_mousePosInRoom);
     return;
   }
 
-  if (_pImpl->_hud.getHoveredEntity()) {
-    ScriptEngine::rawCall("onObjectClick", _pImpl->_hud.getHoveredEntity());
-    auto pVerbOverride = _pImpl->_hud.getVerbOverride();
+  if (m_pImpl->_hud.getHoveredEntity()) {
+    ScriptEngine::rawCall("onObjectClick", m_pImpl->_hud.getHoveredEntity());
+    auto pVerbOverride = m_pImpl->_hud.getVerbOverride();
     if (!pVerbOverride) {
-      pVerbOverride = _pImpl->_hud.getCurrentVerb();
+      pVerbOverride = m_pImpl->_hud.getCurrentVerb();
     }
-    pVerbOverride = _pImpl->overrideVerb(pVerbOverride);
-    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_pImpl->_objId1);
-    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? _pImpl->getEntity(pObj1) : pObj1;
-    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? _pImpl->getEntity(_pImpl->_pObj2) : _pImpl->_pObj2;
+    pVerbOverride = m_pImpl->overrideVerb(pVerbOverride);
+    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(m_pImpl->_objId1);
+    pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? m_pImpl->getEntity(pObj1) : pObj1;
+    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? m_pImpl->getEntity(m_pImpl->_pObj2) : m_pImpl->_pObj2;
     if (pObj1) {
-      _pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
+      m_pImpl->_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
     }
     return;
   }
 
-  if (_pImpl->_hud.isMouseOver())
+  if (m_pImpl->_hud.isMouseOver())
     return;
 
-  _pImpl->_pCurrentActor->walkTo(_pImpl->_mousePosInRoom);
+  m_pImpl->_pCurrentActor->walkTo(m_pImpl->_mousePosInRoom);
   setDefaultVerb();
 }
 
 void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
-  _pImpl->_pCurrentActor = pCurrentActor;
+  m_pImpl->_pCurrentActor = pCurrentActor;
 
-  int currentActorIndex = _pImpl->getCurrentActorIndex();
-  _pImpl->_hud.setCurrentActorIndex(currentActorIndex);
-  _pImpl->_hud.setCurrentActor(_pImpl->_pCurrentActor);
+  int currentActorIndex = m_pImpl->getCurrentActorIndex();
+  m_pImpl->_hud.setCurrentActorIndex(currentActorIndex);
+  m_pImpl->_hud.setCurrentActor(m_pImpl->_pCurrentActor);
 
   ScriptEngine::rawCall("onActorSelected", pCurrentActor, userSelected);
   auto pRoom = pCurrentActor ? pCurrentActor->getRoom() : nullptr;
@@ -503,59 +503,59 @@ void Engine::setCurrentActor(Actor *pCurrentActor, bool userSelected) {
     }
   }
 
-  if (_pImpl->_pCurrentActor) {
-    follow(_pImpl->_pCurrentActor);
+  if (m_pImpl->_pCurrentActor) {
+    follow(m_pImpl->_pCurrentActor);
   }
 }
 
 void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
-  if (!_pImpl->_pRoom)
+  if (!m_pImpl->_pRoom)
     return;
 
   // update room shader if necessary
   ngf::RenderStates states;
-  auto effect = _pImpl->_pRoom->getEffect();
-  if (_pImpl->_roomEffect != effect) {
+  auto effect = m_pImpl->_pRoom->getEffect();
+  if (m_pImpl->_roomEffect != effect) {
     if (effect == RoomEffectConstants::EFFECT_BLACKANDWHITE) {
-      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::bwFragmentShader);
+      m_pImpl->_roomShader.load(Shaders::vertexShader, Shaders::bwFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_EGA) {
-      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::egaFragmenShader);
+      m_pImpl->_roomShader.load(Shaders::vertexShader, Shaders::egaFragmenShader);
     } else if (effect == RoomEffectConstants::EFFECT_GHOST) {
-      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::ghostFragmentShader);
+      m_pImpl->_roomShader.load(Shaders::vertexShader, Shaders::ghostFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_SEPIA) {
-      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::sepiaFragmentShader);
+      m_pImpl->_roomShader.load(Shaders::vertexShader, Shaders::sepiaFragmentShader);
     } else if (effect == RoomEffectConstants::EFFECT_VHS) {
-      _pImpl->_roomShader.load(Shaders::vertexShader, Shaders::vhsFragmentShader);
+      m_pImpl->_roomShader.load(Shaders::vertexShader, Shaders::vhsFragmentShader);
     }
-    _pImpl->_roomEffect = effect;
+    m_pImpl->_roomEffect = effect;
   }
-  states.shader = &_pImpl->_roomShader;
+  states.shader = &m_pImpl->_roomShader;
   if (effect == RoomEffectConstants::EFFECT_GHOST) {
     // don't remove the fmod function or you will have float overflow with the shader and the effect will look strange
-    _pImpl->_roomShader.setUniform("iGlobalTime", roomEffect.iGlobalTime);
-    _pImpl->_roomShader.setUniform("iFade", roomEffect.iFade);
-    _pImpl->_roomShader.setUniform("wobbleIntensity", roomEffect.wobbleIntensity);
-    _pImpl->_roomShader.setUniform("shadows", roomEffect.shadows);
-    _pImpl->_roomShader.setUniform("midtones", roomEffect.midtones);
-    _pImpl->_roomShader.setUniform("highlights", roomEffect.highlights);
+    m_pImpl->_roomShader.setUniform("iGlobalTime", roomEffect.iGlobalTime);
+    m_pImpl->_roomShader.setUniform("iFade", roomEffect.iFade);
+    m_pImpl->_roomShader.setUniform("wobbleIntensity", roomEffect.wobbleIntensity);
+    m_pImpl->_roomShader.setUniform("shadows", roomEffect.shadows);
+    m_pImpl->_roomShader.setUniform("midtones", roomEffect.midtones);
+    m_pImpl->_roomShader.setUniform("highlights", roomEffect.highlights);
   } else if (effect == RoomEffectConstants::EFFECT_SEPIA) {
-    _pImpl->_roomShader.setUniform("sepiaFlicker", roomEffect.sepiaFlicker);
-    _pImpl->_roomShader.setUniformArray("RandomValue", roomEffect.RandomValue.data(), 5);
-    _pImpl->_roomShader.setUniform("TimeLapse", roomEffect.TimeLapse);
+    m_pImpl->_roomShader.setUniform("sepiaFlicker", roomEffect.sepiaFlicker);
+    m_pImpl->_roomShader.setUniformArray("RandomValue", roomEffect.RandomValue.data(), 5);
+    m_pImpl->_roomShader.setUniform("TimeLapse", roomEffect.TimeLapse);
   } else if (effect == RoomEffectConstants::EFFECT_VHS) {
-    _pImpl->_roomShader.setUniform("iGlobalTime", roomEffect.iGlobalTime);
-    _pImpl->_roomShader.setUniform("iNoiseThreshold", roomEffect.iNoiseThreshold);
+    m_pImpl->_roomShader.setUniform("iGlobalTime", roomEffect.iGlobalTime);
+    m_pImpl->_roomShader.setUniform("iNoiseThreshold", roomEffect.iNoiseThreshold);
   } else if (effect == RoomEffectConstants::EFFECT_NONE) {
     states.shader = nullptr;
   }
 
   // render the room to a texture, this allows to create a post process effect: room effect
   ngf::RenderTexture roomTexture(target.getSize());
-  auto screenSize = _pImpl->_pRoom->getScreenSize();
+  auto screenSize = m_pImpl->_pRoom->getScreenSize();
   ngf::View view(ngf::frect::fromPositionSize({0, 0}, screenSize));
   roomTexture.setView(view);
   roomTexture.clear();
-  _pImpl->_pRoom->draw(roomTexture, _pImpl->_camera.getRect().getTopLeft());
+  m_pImpl->_pRoom->draw(roomTexture, m_pImpl->_camera.getRect().getTopLeft());
   roomTexture.display();
 
   // then render a sprite with this texture and apply the room effect
@@ -567,21 +567,21 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   // and render overlay
   ngf::RectangleShape fadeShape;
   fadeShape.setSize(roomWithEffectTexture.getSize());
-  fadeShape.setColor(_pImpl->_pRoom->getOverlayColor());
+  fadeShape.setColor(m_pImpl->_pRoom->getOverlayColor());
   fadeShape.draw(roomWithEffectTexture, {});
   roomWithEffectTexture.display();
 
   // render fade
   ngf::Sprite fadeSprite;
-  float fade = _pImpl->_fadeEffect.effect == FadeEffect::None ? 0.f :
+  float fade = m_pImpl->_fadeEffect.effect == FadeEffect::None ? 0.f :
                std::clamp(
-                   _pImpl->_fadeEffect.elapsed.getTotalSeconds() / _pImpl->_fadeEffect.duration.getTotalSeconds(),
+                   m_pImpl->_fadeEffect.elapsed.getTotalSeconds() / m_pImpl->_fadeEffect.duration.getTotalSeconds(),
                    0.f, 1.f);
   ngf::RenderTexture roomTexture2(target.getSize());
   roomTexture2.setView(view);
   roomTexture2.clear();
-  if (_pImpl->_fadeEffect.effect == FadeEffect::Wobble) {
-    _pImpl->_fadeEffect.room->draw(roomTexture2, _pImpl->_fadeEffect.cameraTopLeft);
+  if (m_pImpl->_fadeEffect.effect == FadeEffect::Wobble) {
+    m_pImpl->_fadeEffect.room->draw(roomTexture2, m_pImpl->_fadeEffect.cameraTopLeft);
   }
   roomTexture2.display();
 
@@ -592,7 +592,7 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
 
   const ngf::Texture *texture1{nullptr};
   const ngf::Texture *texture2{nullptr};
-  switch (_pImpl->_fadeEffect.effect) {
+  switch (m_pImpl->_fadeEffect.effect) {
   case FadeEffect::Wobble:
   case FadeEffect::In:texture1 = &roomTexture3.getTexture();
     texture2 = &roomWithEffectTexture.getTexture();
@@ -605,19 +605,19 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
     break;
   }
   fadeSprite.setTexture(*texture1);
-  _pImpl->_fadeShader.setUniform("u_texture2", *texture2);
-  _pImpl->_fadeShader.setUniform("u_fade", fade); // fade value between [0.f,1.f]
-  _pImpl->_fadeShader.setUniform("u_fadeToSep", _pImpl->_fadeEffect.fadeToSepia ? 1 : 0);  // 1 to fade to sepia
-  _pImpl->_fadeShader.setUniform("u_movement",
-                                 sinf(M_PI * fade) * _pImpl->_fadeEffect.movement); // movement for wobble effect
-  _pImpl->_fadeShader.setUniform("u_timer", _pImpl->_fadeEffect.elapsed.getTotalSeconds());
-  states.shader = &_pImpl->_fadeShader;
+  m_pImpl->_fadeShader.setUniform("u_texture2", *texture2);
+  m_pImpl->_fadeShader.setUniform("u_fade", fade); // fade value between [0.f,1.f]
+  m_pImpl->_fadeShader.setUniform("u_fadeToSep", m_pImpl->_fadeEffect.fadeToSepia ? 1 : 0);  // 1 to fade to sepia
+  m_pImpl->_fadeShader.setUniform("u_movement",
+                                  sinf(M_PI * fade) * m_pImpl->_fadeEffect.movement); // movement for wobble effect
+  m_pImpl->_fadeShader.setUniform("u_timer", m_pImpl->_fadeEffect.elapsed.getTotalSeconds());
+  states.shader = &m_pImpl->_fadeShader;
 
   // apply the room rotation
   auto pos = target.getView().getSize() / 2.f;
   fadeSprite.getTransform().setOrigin(pos);
   fadeSprite.getTransform().setPosition(pos);
-  fadeSprite.getTransform().setRotation(_pImpl->_pRoom->getRotation());
+  fadeSprite.getTransform().setRotation(m_pImpl->_pRoom->getRotation());
   fadeSprite.draw(target, states);
 
   // if we take a screenshot (for savegame) then stop drawing
@@ -625,182 +625,182 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
     return;
 
   // draw dialogs, hud
-  _pImpl->_dialogManager.draw(target, {});
-  _pImpl->drawHud(target);
+  m_pImpl->_dialogManager.draw(target, {});
+  m_pImpl->drawHud(target);
 
   // draw walkboxes, actor texts
   auto orgView = target.getView();
   target.setView(view);
-  _pImpl->drawWalkboxes(target);
-  _pImpl->_talkingState.draw(target, {});
-  _pImpl->_pRoom->drawForeground(target, _pImpl->_camera.getAt());
+  m_pImpl->drawWalkboxes(target);
+  m_pImpl->_talkingState.draw(target, {});
+  m_pImpl->_pRoom->drawForeground(target, m_pImpl->_camera.getAt());
   target.setView(orgView);
 
   // draw actor icons
-  if ((_pImpl->_dialogManager.getState() == DialogManagerState::None)
-      && _pImpl->_inputActive) {
-    _pImpl->_actorIcons.draw(target, {});
+  if ((m_pImpl->_dialogManager.getState() == DialogManagerState::None)
+      && m_pImpl->_inputActive) {
+    m_pImpl->_actorIcons.draw(target, {});
   }
 
   // draw options or startscreen if necessary
-  if (_pImpl->_state == EngineState::Options) {
-    _pImpl->_optionsDialog.draw(target, {});
-  } else if (_pImpl->_state == EngineState::StartScreen) {
-    _pImpl->_startScreenDialog.draw(target, {});
+  if (m_pImpl->_state == EngineState::Options) {
+    m_pImpl->_optionsDialog.draw(target, {});
+  } else if (m_pImpl->_state == EngineState::StartScreen) {
+    m_pImpl->_startScreenDialog.draw(target, {});
   }
 
   // draw pause, cursor and no override icon
-  _pImpl->drawPause(target);
-  _pImpl->drawCursor(target);
-  _pImpl->drawCursorText(target);
-  _pImpl->drawNoOverride(target);
+  m_pImpl->drawPause(target);
+  m_pImpl->drawCursor(target);
+  m_pImpl->drawCursorText(target);
+  m_pImpl->drawNoOverride(target);
 }
 
-void Engine::setWalkboxesFlags(int show) { _pImpl->_showDrawWalkboxes = show; }
+void Engine::setWalkboxesFlags(int show) { m_pImpl->_showDrawWalkboxes = show; }
 
-int Engine::getWalkboxesFlags() const { return _pImpl->_showDrawWalkboxes; }
+int Engine::getWalkboxesFlags() const { return m_pImpl->_showDrawWalkboxes; }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node) {
   std::string actor;
-  if (_pImpl->_pCurrentActor)
-    actor = _pImpl->_pCurrentActor->getKey();
-  _pImpl->_dialogManager.start(actor, dialog, node);
+  if (m_pImpl->_pCurrentActor)
+    actor = m_pImpl->_pCurrentActor->getKey();
+  m_pImpl->_dialogManager.start(actor, dialog, node);
 }
 
-void Engine::execute(const std::string &code) { _pImpl->_pScriptExecute->execute(code); }
+void Engine::execute(const std::string &code) { m_pImpl->_pScriptExecute->execute(code); }
 
 SoundDefinition *Engine::getSoundDefinition(const std::string &name) {
-  return _pImpl->_pScriptExecute->getSoundDefinition(name);
+  return m_pImpl->_pScriptExecute->getSoundDefinition(name);
 }
 
-bool Engine::executeCondition(const std::string &code) { return _pImpl->_pScriptExecute->executeCondition(code); }
+bool Engine::executeCondition(const std::string &code) { return m_pImpl->_pScriptExecute->executeCondition(code); }
 
-std::string Engine::executeDollar(const std::string &code) { return _pImpl->_pScriptExecute->executeDollar(code); }
+std::string Engine::executeDollar(const std::string &code) { return m_pImpl->_pScriptExecute->executeDollar(code); }
 
 void Engine::addSelectableActor(int index, Actor *pActor) {
-  _pImpl->_actorsIconSlots.at(index - 1).selectable = true;
-  _pImpl->_actorsIconSlots.at(index - 1).pActor = pActor;
+  m_pImpl->_actorsIconSlots.at(index - 1).selectable = true;
+  m_pImpl->_actorsIconSlots.at(index - 1).pActor = pActor;
 }
 
 void Engine::actorSlotSelectable(Actor *pActor, bool selectable) {
-  auto it = std::find_if(_pImpl->_actorsIconSlots.begin(), _pImpl->_actorsIconSlots.end(),
+  auto it = std::find_if(m_pImpl->_actorsIconSlots.begin(), m_pImpl->_actorsIconSlots.end(),
                          [&pActor](auto &selectableActor) -> bool { return selectableActor.pActor == pActor; });
-  if (it != _pImpl->_actorsIconSlots.end()) {
+  if (it != m_pImpl->_actorsIconSlots.end()) {
     it->selectable = selectable;
   }
 }
 
 void Engine::actorSlotSelectable(int index, bool selectable) {
-  _pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
+  m_pImpl->_actorsIconSlots.at(index - 1).selectable = selectable;
 }
 
 bool Engine::isActorSelectable(Actor *pActor) const {
-  for (auto &&slot : _pImpl->_actorsIconSlots) {
+  for (auto &&slot : m_pImpl->_actorsIconSlots) {
     if (slot.pActor == pActor)
       return slot.selectable;
   }
   return false;
 }
 
-ActorSlotSelectableMode Engine::getActorSlotSelectable() const { return _pImpl->_actorIcons.getMode(); }
+ActorSlotSelectableMode Engine::getActorSlotSelectable() const { return m_pImpl->_actorIcons.getMode(); }
 
-void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { _pImpl->_actorIcons.setMode(mode); }
+void Engine::setActorSlotSelectable(ActorSlotSelectableMode mode) { m_pImpl->_actorIcons.setMode(mode); }
 
 void Engine::setUseFlag(UseFlag flag, Entity *object) {
-  _pImpl->_useFlag = flag;
-  _pImpl->_pUseObject = object;
+  m_pImpl->_useFlag = flag;
+  m_pImpl->_pUseObject = object;
 }
 
 void Engine::cutsceneOverride() {
-  if (!_pImpl->_pCutscene)
+  if (!m_pImpl->_pCutscene)
     return;
-  _pImpl->_pCutscene->cutsceneOverride();
+  m_pImpl->_pCutscene->cutsceneOverride();
 }
 
 void Engine::cutscene(std::unique_ptr<Cutscene> function) {
-  _pImpl->_pCutscene = function.get();
+  m_pImpl->_pCutscene = function.get();
   addThread(std::move(function));
 }
 
-Cutscene *Engine::getCutscene() const { return _pImpl->_pCutscene; }
+Cutscene *Engine::getCutscene() const { return m_pImpl->_pCutscene; }
 
-bool Engine::inCutscene() const { return _pImpl->_pCutscene && !_pImpl->_pCutscene->isElapsed(); }
+bool Engine::inCutscene() const { return m_pImpl->_pCutscene && !m_pImpl->_pCutscene->isElapsed(); }
 
-HSQOBJECT &Engine::getDefaultObject() { return _pImpl->_pDefaultObject; }
+HSQOBJECT &Engine::getDefaultObject() { return m_pImpl->_pDefaultObject; }
 
-void Engine::flashSelectableActor(bool on) { _pImpl->_actorIcons.flash(on); }
+void Engine::flashSelectableActor(bool on) { m_pImpl->_actorIcons.flash(on); }
 
-const Verb *Engine::getActiveVerb() const { return _pImpl->_hud.getCurrentVerb(); }
+const Verb *Engine::getActiveVerb() const { return m_pImpl->_hud.getCurrentVerb(); }
 
 void Engine::fadeTo(FadeEffect effect, const ngf::TimeSpan &duration) {
-  _pImpl->_fadeEffect.effect = effect;
-  _pImpl->_fadeEffect.room = getRoom();
-  _pImpl->_fadeEffect.cameraTopLeft = _pImpl->_camera.getRect().getTopLeft();
-  _pImpl->_fadeEffect.duration = duration;
-  _pImpl->_fadeEffect.movement = effect == FadeEffect::Wobble ? 0.005f : 0.f;
-  _pImpl->_fadeEffect.elapsed = ngf::TimeSpan::seconds(0);
+  m_pImpl->_fadeEffect.effect = effect;
+  m_pImpl->_fadeEffect.room = getRoom();
+  m_pImpl->_fadeEffect.cameraTopLeft = m_pImpl->_camera.getRect().getTopLeft();
+  m_pImpl->_fadeEffect.duration = duration;
+  m_pImpl->_fadeEffect.movement = effect == FadeEffect::Wobble ? 0.005f : 0.f;
+  m_pImpl->_fadeEffect.elapsed = ngf::TimeSpan::seconds(0);
 }
 
 FadeEffectParameters &Engine::getFadeParameters() {
-  return _pImpl->_fadeEffect;
+  return m_pImpl->_fadeEffect;
 }
 
 void Engine::pushSentence(int id, Entity *pObj1, Entity *pObj2) {
-  const Verb *pVerb = _pImpl->_hud.getVerb(id);
+  const Verb *pVerb = m_pImpl->_hud.getVerb(id);
   if (!pVerb)
     return;
-  _pImpl->_pVerbExecute->execute(pVerb, pObj1, pObj2);
+  m_pImpl->_pVerbExecute->execute(pVerb, pObj1, pObj2);
 }
 
 void Engine::setSentence(std::unique_ptr<Sentence> sentence) {
-  _pImpl->_pSentence = std::move(sentence);
+  m_pImpl->_pSentence = std::move(sentence);
 }
 
 void Engine::stopSentence() {
-  if (!_pImpl->_pSentence)
+  if (!m_pImpl->_pSentence)
     return;
-  _pImpl->_pSentence->stop();
-  _pImpl->_pSentence.reset();
+  m_pImpl->_pSentence->stop();
+  m_pImpl->_pSentence.reset();
 }
 
 void Engine::keyDown(const Input &key) {
-  _pImpl->_newKeyDowns.insert(key);
+  m_pImpl->_newKeyDowns.insert(key);
 }
 
 void Engine::keyUp(const Input &key) {
-  auto it = _pImpl->_newKeyDowns.find(key);
-  if (it == _pImpl->_newKeyDowns.end())
+  auto it = m_pImpl->_newKeyDowns.find(key);
+  if (it == m_pImpl->_newKeyDowns.end())
     return;
-  _pImpl->_newKeyDowns.erase(it);
+  m_pImpl->_newKeyDowns.erase(it);
 }
 
 void Engine::sayLineAt(glm::ivec2 pos, ngf::Color color, ngf::TimeSpan duration, const std::string &text) {
-  _pImpl->_talkingState.setTalkColor(color);
+  m_pImpl->_talkingState.setTalkColor(color);
   auto size = getRoom()->getRoomSize();
-  _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
-  _pImpl->_talkingState.setText(getText(text));
-  _pImpl->_talkingState.setDuration(duration);
+  m_pImpl->_talkingState.setPosition(toDefaultView(pos, size));
+  m_pImpl->_talkingState.setText(getText(text));
+  m_pImpl->_talkingState.setDuration(duration);
 }
 
 void Engine::sayLineAt(glm::ivec2 pos, Entity &entity, const std::string &text) {
   auto size = getRoom()->getRoomSize();
-  _pImpl->_talkingState.setPosition(toDefaultView(pos, size));
-  _pImpl->_talkingState.loadLip(text, &entity);
+  m_pImpl->_talkingState.setPosition(toDefaultView(pos, size));
+  m_pImpl->_talkingState.loadLip(text, &entity);
 }
 
 void Engine::showOptions(bool visible) {
-  _pImpl->_state = visible ? EngineState::Options : EngineState::Game;
+  m_pImpl->_state = visible ? EngineState::Options : EngineState::Game;
 }
 
 void Engine::quit() {
-  _pImpl->_pApp->quit();
+  m_pImpl->_pApp->quit();
 }
 
 void Engine::run() {
   std::ifstream is("engge.nut");
   if (is.is_open()) {
     info("execute engge.nut");
-    _pImpl->_state = EngineState::Game;
+    m_pImpl->_state = EngineState::Game;
     ScriptEngine::executeScript("engge.nut");
     return;
   }
@@ -811,34 +811,34 @@ void Engine::run() {
   execute("cameraInRoom(StartScreen)");
 }
 
-Inventory &Engine::getInventory() { return _pImpl->_hud.getInventory(); }
-Hud &Engine::getHud() { return _pImpl->_hud; }
+Inventory &Engine::getInventory() { return m_pImpl->_hud.getInventory(); }
+Hud &Engine::getHud() { return m_pImpl->_hud; }
 
 void Engine::saveGame(int slot) {
-  Impl::SaveGameSystem saveGameSystem(_pImpl.get());
+  Impl::SaveGameSystem saveGameSystem(m_pImpl.get());
   auto path = Impl::SaveGameSystem::getSlotPath(slot);
   std::filesystem::path screenshotPath(path);
   screenshotPath.replace_extension(".png");
-  _pImpl->captureScreen(screenshotPath.string());
+  m_pImpl->captureScreen(screenshotPath.string());
   saveGameSystem.saveGame(path);
 }
 
 void Engine::loadGame(int slot) {
-  Impl::SaveGameSystem saveGameSystem(_pImpl.get());
+  Impl::SaveGameSystem saveGameSystem(m_pImpl.get());
   saveGameSystem.loadGame(Impl::SaveGameSystem::getSlotPath(slot).string());
 }
 
-void Engine::setAutoSave(bool autoSave) { _pImpl->_autoSave = autoSave; }
+void Engine::setAutoSave(bool autoSave) { m_pImpl->_autoSave = autoSave; }
 
-bool Engine::getAutoSave() const { return _pImpl->_autoSave; }
+bool Engine::getAutoSave() const { return m_pImpl->_autoSave; }
 
 void Engine::allowSaveGames(bool allow) {
-  _pImpl->_optionsDialog.setSaveEnabled(allow);
+  m_pImpl->_optionsDialog.setSaveEnabled(allow);
 }
 
 Entity *Engine::getEntity(const std::string &name) {
   if (name == "agent" || name == "player")
-    return _pImpl->_pCurrentActor;
+    return m_pImpl->_pCurrentActor;
 
   Entity *pEntity = nullptr;
   ScriptEngine::get(name.data(), pEntity);
@@ -861,11 +861,11 @@ void Engine::getSlotSavegames(std::vector<SavegameSlot> &slots) {
 }
 
 void Engine::stopTalking() const {
-  _pImpl->stopTalking();
+  m_pImpl->stopTalking();
 }
 
 void Engine::stopTalkingExcept(Entity *pEntity) const {
-  _pImpl->stopTalkingExcept(pEntity);
+  m_pImpl->stopTalkingExcept(pEntity);
 }
 
 std::wstring SavegameSlot::getSaveTimeString() const {

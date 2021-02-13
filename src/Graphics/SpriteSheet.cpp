@@ -6,14 +6,14 @@
 
 namespace ng {
 void SpriteSheet::load(const std::string &name) {
-  if (_textureName == name)
+  if (m_textureName == name)
     return;
 
-  _textureName = name;
+  m_textureName = name;
 
-  _rects.clear();
-  _spriteSourceSize.clear();
-  _sourceSize.clear();
+  m_rects.clear();
+  m_spriteSourceSize.clear();
+  m_sourceSize.clear();
 
   ngf::GGPackValue json;
 
@@ -34,31 +34,31 @@ void SpriteSheet::load(const std::string &name) {
   auto jFrames = json["frames"];
   for (auto &it : jFrames.items()) {
     auto rect = _toRect(it.value()["frame"]);
-    _rects.insert(std::make_pair(it.key(), rect));
+    m_rects.insert(std::make_pair(it.key(), rect));
     rect = _toRect(it.value()["spriteSourceSize"]);
-    _spriteSourceSize.insert(std::make_pair(it.key(), rect));
+    m_spriteSourceSize.insert(std::make_pair(it.key(), rect));
     auto size = _toSize(it.value()["sourceSize"]);
-    _sourceSize.insert(std::make_pair(it.key(), size));
+    m_sourceSize.insert(std::make_pair(it.key(), size));
   }
 }
 
 bool SpriteSheet::hasRect(const std::string &name) const {
-  const auto it = _rects.find(name);
-  return it != _rects.end();
+  const auto it = m_rects.find(name);
+  return it != m_rects.end();
 }
 
 ngf::irect SpriteSheet::getRect(const std::string &name) const {
-  const auto it = _rects.find(name);
+  const auto it = m_rects.find(name);
   return it->second;
 }
 
 ngf::irect SpriteSheet::getSpriteSourceSize(const std::string &name) const {
-  const auto it = _spriteSourceSize.find(name);
+  const auto it = m_spriteSourceSize.find(name);
   return it->second;
 }
 
 glm::ivec2 SpriteSheet::getSourceSize(const std::string &name) const {
-  const auto it = _sourceSize.find(name);
+  const auto it = m_sourceSize.find(name);
   return it->second;
 }
 

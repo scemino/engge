@@ -9,11 +9,11 @@ RandomNumberGenerator::RandomNumberGenerator() {
 }
 
 void RandomNumberGenerator::setSeed(long seed) {
-  _seed = seed;
-  srand(_seed);
+  m_seed = seed;
+  srand(m_seed);
 }
 
-long RandomNumberGenerator::getSeed() const { return _seed; }
+long RandomNumberGenerator::getSeed() const { return m_seed; }
 
 long RandomNumberGenerator::generateLong(long min, long max) {
   max++;

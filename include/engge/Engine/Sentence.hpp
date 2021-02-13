@@ -13,7 +13,7 @@ public:
   void operator()(const ngf::TimeSpan &elapsed) override;
 
 private:
-  std::vector<std::unique_ptr<Function>> _functions;
-  bool _stopped{false};
+  std::vector<std::unique_ptr<Function>> m_functions;
+  bool m_stopped{false};
 };
 }

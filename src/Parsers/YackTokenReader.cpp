@@ -24,19 +24,19 @@ std::string Token::readToken() const {
 }
 
 YackTokenReader::Iterator::Iterator(YackTokenReader &reader, std::streampos pos)
-    : _reader(reader),
-      _pos(pos) {
+    : m_reader(reader),
+      m_pos(pos) {
   operator++();
 }
 
 YackTokenReader::Iterator::Iterator(const Iterator &it)
-    : _reader(it._reader), _pos(it._pos), _token(it._token) {
+    : m_reader(it.m_reader), m_pos(it.m_pos), m_token(it.m_token) {
 }
 
 YackTokenReader::Iterator &YackTokenReader::Iterator::operator++() {
-  _reader._stream.seek(_pos);
-  _reader.readToken(_token);
-  _pos = _reader._stream.tell();
+  m_reader.m_stream.seek(m_pos);
+  m_reader.readToken(m_token);
+  m_pos = m_reader.m_stream.tell();
   return *this;
 }
 
@@ -47,15 +47,15 @@ YackTokenReader::Iterator YackTokenReader::Iterator::operator++(int) {
 }
 
 Token &YackTokenReader::Iterator::operator*() {
-  return _token;
+  return m_token;
 }
 
 const Token &YackTokenReader::Iterator::operator*() const {
-  return _token;
+  return m_token;
 }
 
 Token *YackTokenReader::Iterator::operator->() {
-  return &_token;
+  return &m_token;
 }
 
 void YackTokenReader::load(const std::string &path) {
@@ -68,28 +68,28 @@ void YackTokenReader::load(const std::string &path) {
   o.close();
 #endif
 
-  _stream.setBuffer(buffer);
+  m_stream.setBuffer(buffer);
 }
 
 YackTokenReader::iterator YackTokenReader::begin() {
   return Iterator(*this, 0);
 }
 YackTokenReader::iterator YackTokenReader::end() {
-  auto start = _stream.tell();
-  _stream.seek(_stream.getLength());
-  auto pos = _stream.tell();
-  _stream.seek(start);
+  auto start = m_stream.tell();
+  m_stream.seek(m_stream.getLength());
+  auto pos = m_stream.tell();
+  m_stream.seek(start);
   return Iterator(*this, pos);
 }
 
 YackTokenReader::YackTokenReader()
-    : _offset(-1) {
+    : m_offset(-1) {
 }
 
 int YackTokenReader::getLine(const Token &token) const {
   auto previous = -1;
   auto previousVal = -1;
-  for (auto &[key, val] : _lines) {
+  for (auto &[key, val] : m_lines) {
     if ((previous < token.start) && (token.start < key)) {
       return val;
     }
@@ -100,13 +100,13 @@ int YackTokenReader::getLine(const Token &token) const {
 }
 
 bool YackTokenReader::readToken(Token &token) {
-  std::streampos start = _stream.tell();
+  std::streampos start = m_stream.tell();
   auto id = readTokenId();
   while (id == TokenId::Whitespace || id == TokenId::Comment || id == TokenId::NewLine || id == TokenId::None) {
-    start = _stream.tell();
+    start = m_stream.tell();
     id = readTokenId();
   }
-  std::streampos end = _stream.tell();
+  std::streampos end = m_stream.tell();
   token.id = id;
   token.start = start;
   token.end = end;
@@ -116,10 +116,10 @@ bool YackTokenReader::readToken(Token &token) {
 std::string YackTokenReader::readText(std::streampos pos, std::streamsize size) {
   std::string out;
   out.reserve(size);
-  _stream.seek(pos);
+  m_stream.seek(pos);
   char c;
   for (int i = 0; i < size; i++) {
-    _stream.read(&c, 1);
+    m_stream.read(&c, 1);
     out.append(&c, 1);
   }
   return out;
@@ -131,23 +131,23 @@ std::string YackTokenReader::readText(const Token &token) {
 
 TokenId YackTokenReader::readTokenId() {
   char c;
-  _stream.read(&c, 1);
-  if (_stream.eof()) {
+  m_stream.read(&c, 1);
+  if (m_stream.eof()) {
     return TokenId::End;
   }
 
   switch (c) {
   case '\0':return TokenId::End;
   case '\n':
-    if (_lines.find(_stream.tell() - 1) == _lines.end()) {
-      _lines[_stream.tell() - 1] = _offset == -1 ? 1 : _lines[_offset] + 1;
-      _offset = _stream.tell() - 1;
+    if (m_lines.find(m_stream.tell() - 1) == m_lines.end()) {
+      m_lines[m_stream.tell() - 1] = m_offset == -1 ? 1 : m_lines[m_offset] + 1;
+      m_offset = m_stream.tell() - 1;
     }
     return TokenId::NewLine;
   case '\t':
   case ' ':
-    while (isspace(_stream.peek()) && _stream.peek() != '\n')
-      _stream.ignore();
+    while (isspace(m_stream.peek()) && m_stream.peek() != '\n')
+      m_stream.ignore();
     return TokenId::Whitespace;
   case '!':return readCode();
   case ':':return TokenId::Colon;
@@ -158,8 +158,8 @@ TokenId YackTokenReader::readTokenId() {
   case '#':
   case ';':return readComment();
   default:
-    if (c == '-' && _stream.peek() == '>') {
-      _stream.ignore();
+    if (c == '-' && m_stream.peek() == '>') {
+      m_stream.ignore();
       return TokenId::Goto;
     }
     if (c == '-' || isdigit(c)) {
@@ -175,10 +175,10 @@ TokenId YackTokenReader::readTokenId() {
 TokenId YackTokenReader::readCode() {
   char c;
   char previousChar = '\0';
-  while ((c = _stream.peek()) != '\n' && c != '\0') {
-    _stream.ignore();
-    if (previousChar == ' ' && c == '[' && _stream.peek() != ' ') {
-      _stream.seek(_stream.tell() - 1);
+  while ((c = m_stream.peek()) != '\n' && c != '\0') {
+    m_stream.ignore();
+    if (previousChar == ' ' && c == '[' && m_stream.peek() != ' ') {
+      m_stream.seek(m_stream.tell() - 1);
       return TokenId::Code;
     }
     previousChar = c;
@@ -188,49 +188,49 @@ TokenId YackTokenReader::readCode() {
 
 TokenId YackTokenReader::readDollar() {
   char c;
-  while ((c = _stream.peek()) != '[' && c != ' ' && c != '\n' && c != '\0') {
-    _stream.ignore();
+  while ((c = m_stream.peek()) != '[' && c != ' ' && c != '\n' && c != '\0') {
+    m_stream.ignore();
   }
   return TokenId::Dollar;
 }
 
 TokenId YackTokenReader::readCondition() {
-  while (_stream.peek() != ']') {
-    _stream.ignore();
+  while (m_stream.peek() != ']') {
+    m_stream.ignore();
   }
-  _stream.ignore();
+  m_stream.ignore();
   return TokenId::Condition;
 }
 
 TokenId YackTokenReader::readNumber() {
-  while (isdigit(_stream.peek())) {
-    _stream.ignore();
+  while (isdigit(m_stream.peek())) {
+    m_stream.ignore();
   }
-  if (_stream.peek() == '.') {
-    _stream.ignore();
+  if (m_stream.peek() == '.') {
+    m_stream.ignore();
   }
-  while (isdigit(_stream.peek())) {
-    _stream.ignore();
+  while (isdigit(m_stream.peek())) {
+    m_stream.ignore();
   }
   return TokenId::Number;
 }
 
 TokenId YackTokenReader::readComment() {
-  _stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  _stream.seek(_stream.tell() - 1);
+  m_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  m_stream.seek(m_stream.tell() - 1);
   return TokenId::Comment;
 }
 
 TokenId YackTokenReader::readString() {
-  _stream.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
+  m_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
   return TokenId::String;
 }
 
 TokenId YackTokenReader::readIdentifier(char c) {
   std::string id;
   id.push_back(c);
-  while (isalnum(_stream.peek()) || _stream.peek() == '_') {
-    _stream.read(&c, 1);
+  while (isalnum(m_stream.peek()) || m_stream.peek() == '_') {
+    m_stream.read(&c, 1);
     id.push_back(c);
   }
   if (id == "waitwhile") {

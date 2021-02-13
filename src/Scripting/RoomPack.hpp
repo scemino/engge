@@ -34,7 +34,7 @@ public:
     TimeFunction::operator()(elapsed);
     _pRoom->setOverlayColor(_current);
     if (!isElapsed()) {
-      auto t = _elapsed.getTotalSeconds() / _time.getTotalSeconds();
+      auto t = m_elapsed.getTotalSeconds() / m_time.getTotalSeconds();
       auto f = _anim(t);
       _current = plusColor(_startColor, f);
     }

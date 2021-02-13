@@ -9,31 +9,31 @@
 
 namespace ng {
 SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
-    : _soundManager(soundManager), _pSoundDefinition(pSoundDefinition), _category(category) {
-  _id = Locator<EntityManager>::get().getSoundId();
+    : m_soundManager(soundManager), m_pSoundDefinition(pSoundDefinition), m_category(category) {
+  m_id = Locator<EntityManager>::get().getSoundId();
 }
 
 SoundId::~SoundId() {
   //trace("delete SoundId ({}) {}", (long)this, _pSoundDefinition->getPath());
   stop();
-  _pSoundDefinition = nullptr;
+  m_pSoundDefinition = nullptr;
 }
 
 SoundDefinition *SoundId::getSoundDefinition() {
-  return _pSoundDefinition;
+  return m_pSoundDefinition;
 }
 
 bool SoundId::isPlaying() const {
-  return _sound.getLoop() || _sound.getStatus() == sf::SoundSource::Playing;
+  return m_sound.getLoop() || m_sound.getStatus() == sf::SoundSource::Playing;
 }
 
 void SoundId::play(int loopTimes) {
-  _loopTimes = loopTimes;
-  _pSoundDefinition->load();
-  _sound.setBuffer(_pSoundDefinition->_buffer);
-  _sound.setLoop(loopTimes == -1);
+  m_loopTimes = loopTimes;
+  m_pSoundDefinition->load();
+  m_sound.setBuffer(m_pSoundDefinition->m_buffer);
+  m_sound.setLoop(loopTimes == -1);
   updateVolume();
-  _sound.play();
+  m_sound.play();
 }
 
 void SoundId::setVolume(float volume) {
@@ -41,43 +41,43 @@ void SoundId::setVolume(float volume) {
 //    auto path = _pSoundDefinition->getPath();
 //    trace("setVolume({},{})", path, volume);
 //  }
-  _volume = volume;
+  m_volume = volume;
 }
 
 float SoundId::getVolume() const {
-  return _volume;
+  return m_volume;
 }
 
 void SoundId::stop() {
 //  auto path = _pSoundDefinition->getPath();
 //  trace("stopSoundId({})", path);
-  _loopTimes = 0;
-  _sound.stop();
+  m_loopTimes = 0;
+  m_sound.stop();
 }
 
 void SoundId::pause() {
-  auto path = _pSoundDefinition->getPath();
+  auto path = m_pSoundDefinition->getPath();
   trace("pause sound({})", path);
-  _sound.pause();
+  m_sound.pause();
 }
 
 void SoundId::resume() {
-  auto path = _pSoundDefinition->getPath();
+  auto path = m_pSoundDefinition->getPath();
   trace("resume sound({})", path);
-  _sound.play();
+  m_sound.play();
 }
 
 void SoundId::updateVolume() {
   float entityVolume = 1.f;
-  Entity *pEntity = _entityId ? EntityManager::getScriptObjectFromId<Entity>(_entityId) : nullptr;
+  Entity *pEntity = m_entityId ? EntityManager::getScriptObjectFromId<Entity>(m_entityId) : nullptr;
 
   if (pEntity) {
-    auto pRoom = _soundManager.getEngine()->getRoom();
-    auto at = _soundManager.getEngine()->getCamera().getAt();
+    auto pRoom = m_soundManager.getEngine()->getRoom();
+    auto at = m_soundManager.getEngine()->getCamera().getAt();
     entityVolume = pRoom != pEntity->getRoom() ? 0 : pEntity->getVolume().value_or(1.f);
 
     if (pRoom == pEntity->getRoom()) {
-      auto width = _soundManager.getEngine()->getRoom()->getScreenSize().x;
+      auto width = m_soundManager.getEngine()->getRoom()->getScreenSize().x;
       auto diff = fabs(at.x - pEntity->getPosition().x);
       entityVolume = (1.5f - (diff / width)) / 1.5f;
       if (entityVolume < 0)
@@ -87,44 +87,44 @@ void SoundId::updateVolume() {
         pan = 1.f;
       if (pan < -1.f)
         pan = -1.f;
-      _sound.setPosition({pan, 0.f, pan < 0.f ? -pan - 1.f : pan - 1.f});
+      m_sound.setPosition({pan, 0.f, pan < 0.f ? -pan - 1.f : pan - 1.f});
     }
   }
   float categoryVolume = 0;
-  switch (_category) {
-  case SoundCategory::Music:categoryVolume = _soundManager.getMusicVolume();
+  switch (m_category) {
+  case SoundCategory::Music:categoryVolume = m_soundManager.getMusicVolume();
     break;
-  case SoundCategory::Sound:categoryVolume = _soundManager.getSoundVolume();
+  case SoundCategory::Sound:categoryVolume = m_soundManager.getSoundVolume();
     break;
-  case SoundCategory::Talk:categoryVolume = _soundManager.getTalkVolume();
+  case SoundCategory::Talk:categoryVolume = m_soundManager.getTalkVolume();
     break;
   }
-  auto masterVolume = _soundManager.getMasterVolume();
-  float volume = masterVolume * _volume * categoryVolume * entityVolume;
-  _sound.setVolume(volume * 100.f);
+  auto masterVolume = m_soundManager.getMasterVolume();
+  float volume = masterVolume * m_volume * categoryVolume * entityVolume;
+  m_sound.setVolume(volume * 100.f);
 }
 
 void SoundId::update(const ngf::TimeSpan &elapsed) {
   updateVolume();
   if (!isPlaying()) {
-    if (_loopTimes > 1) {
-      _loopTimes--;
-      _sound.play();
+    if (m_loopTimes > 1) {
+      m_loopTimes--;
+      m_sound.play();
     } else {
 //      auto path = _pSoundDefinition->getPath();
 //      trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
-      _soundManager.stopSound(this);
+      m_soundManager.stopSound(this);
       return;
     }
   }
 
-  if (!_fade)
+  if (!m_fade)
     return;
 
-  if (_fade->isElapsed()) {
-    _fade.reset();
+  if (m_fade->isElapsed()) {
+    m_fade.reset();
   } else {
-    (*_fade)(elapsed);
+    (*m_fade)(elapsed);
   }
 }
 
@@ -132,11 +132,11 @@ void SoundId::fadeTo(float volume, const ngf::TimeSpan &duration) {
   const auto get = [this] { return getVolume(); };
   const auto set = [this](float v) { setVolume(v); };
   auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, volume, duration);
-  _fade = std::move(fadeTo);
+  m_fade = std::move(fadeTo);
 }
 
 void SoundId::setEntity(int id) {
-  _entityId = id;
+  m_entityId = id;
 }
 
 } // namespace ng

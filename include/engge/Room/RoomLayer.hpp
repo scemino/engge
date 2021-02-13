@@ -12,35 +12,35 @@ public:
   ~RoomLayer() = default;
 
   void setTexture(const std::string &texture);
-  void setRoomSizeY(int roomSizeY) { _roomSizeY = roomSizeY; }
-  void setOffsetY(int offsetY) { _offsetY = offsetY; }
+  void setRoomSizeY(int roomSizeY) { m_roomSizeY = roomSizeY; }
+  void setOffsetY(int offsetY) { m_offsetY = offsetY; }
 
-  std::vector<SpriteSheetItem> &getBackgrounds() { return _backgrounds; }
+  std::vector<SpriteSheetItem> &getBackgrounds() { return m_backgrounds; }
 
-  void setParallax(const glm::vec2 &parallax) { _parallax = parallax; }
-  [[nodiscard]] const glm::vec2 &getParallax() const { return _parallax; }
+  void setParallax(const glm::vec2 &parallax) { m_parallax = parallax; }
+  [[nodiscard]] const glm::vec2 &getParallax() const { return m_parallax; }
 
-  void setZOrder(int zsort) { _zsort = zsort; }
-  [[nodiscard]] int getZOrder() const { return _zsort; }
+  void setZOrder(int zsort) { m_zsort = zsort; }
+  [[nodiscard]] int getZOrder() const { return m_zsort; }
 
   void addEntity(Entity &entity);
   void removeEntity(Entity &entity);
 
-  void setEnabled(bool enabled) { _enabled = enabled; }
-  [[nodiscard]] bool isEnabled() const { return _enabled; }
+  void setEnabled(bool enabled) { m_enabled = enabled; }
+  [[nodiscard]] bool isEnabled() const { return m_enabled; }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const;
   void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const;
   void update(const ngf::TimeSpan &elapsed);
 
 private:
-  std::string _textureName;
-  std::vector<SpriteSheetItem> _backgrounds;
-  std::vector<std::reference_wrapper<Entity>> _entities;
-  glm::vec2 _parallax{1, 1};
-  int _zsort{0};
-  bool _enabled{true};
-  int _offsetY{0};
-  int _roomSizeY{0};
+  std::string m_textureName;
+  std::vector<SpriteSheetItem> m_backgrounds;
+  std::vector<std::reference_wrapper<Entity>> m_entities;
+  glm::vec2 m_parallax{1, 1};
+  int m_zsort{0};
+  bool m_enabled{true};
+  int m_offsetY{0};
+  int m_roomSizeY{0};
 };
 } // namespace ng

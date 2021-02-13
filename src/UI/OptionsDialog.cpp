@@ -471,28 +471,28 @@ struct OptionsDialog::Impl {
 };
 
 OptionsDialog::OptionsDialog()
-    : _pImpl(std::make_unique<Impl>()) {
+    : m_pImpl(std::make_unique<Impl>()) {
 }
 
 OptionsDialog::~OptionsDialog() = default;
 
-void OptionsDialog::setSaveEnabled(bool enabled) { _pImpl->_saveEnabled = enabled; }
+void OptionsDialog::setSaveEnabled(bool enabled) { m_pImpl->_saveEnabled = enabled; }
 
-void OptionsDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
+void OptionsDialog::setEngine(Engine *pEngine) { m_pImpl->setEngine(pEngine); }
 
 void OptionsDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  _pImpl->draw(target, states);
+  m_pImpl->draw(target, states);
 }
 
 void OptionsDialog::update(const ngf::TimeSpan &elapsed) {
-  _pImpl->update(elapsed);
+  m_pImpl->update(elapsed);
 }
 
 void OptionsDialog::showHelp() {
-  _pImpl->setState(Impl::State::Help);
+  m_pImpl->setState(Impl::State::Help);
 }
 
 void OptionsDialog::setCallback(Callback callback) {
-  _pImpl->_callback = std::move(callback);
+  m_pImpl->_callback = std::move(callback);
 }
 }

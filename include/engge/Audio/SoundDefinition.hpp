@@ -14,20 +14,20 @@ public:
   ~Sound() override;
 };
 
-class SoundDefinition : public Sound {
+class SoundDefinition final : public Sound {
   friend class SoundId;
 
 public:
   explicit SoundDefinition(std::string path);
-  ~SoundDefinition() override;
+  ~SoundDefinition() final;
 
-  const std::string &getPath() const { return _path; };
+  const std::string &getPath() const { return m_path; };
 
   void load();
 
 private:
-  std::string _path;
-  bool _isLoaded;
-  sf::SoundBuffer _buffer;
+  std::string m_path;
+  bool m_isLoaded{false};
+  sf::SoundBuffer m_buffer;
 };
 } // namespace ng

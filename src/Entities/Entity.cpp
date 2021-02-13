@@ -16,29 +16,29 @@ struct Motor {
 };
 
 struct Entity::Impl {
-  std::string _key;
-  Engine &_engine;
-  std::map<int, Trigger *> _triggers;
-  std::vector<std::unique_ptr<SoundTrigger>> _soundTriggers;
-  std::optional<glm::vec2> _usePos;
-  std::optional<UseDirection> _useDir;
-  glm::vec2 _offset{0, 0};
-  bool _isLit{false};
-  bool _isVisible{true};
-  bool _isTouchable{true};
-  glm::ivec2 _renderOffset{0, 0};
-  Motor _offsetTo, _scaleTo, _rotateTo, _moveTo, _alphaTo;
-  ngf::Color _color{ngf::Colors::White};
-  bool _objectBumperCycle{true};
-  ngf::Color _talkColor;
-  glm::ivec2 _talkOffset{0, 90};
-  TalkingState _talkingState;
-  ngf::Transform _transform;
-  Entity *_pParent{nullptr};
-  std::vector<Entity *> _children;
+  std::string m_key;
+  Engine &m_engine;
+  std::map<int, Trigger *> m_triggers;
+  std::vector<std::unique_ptr<SoundTrigger>> m_soundTriggers;
+  std::optional<glm::vec2> m_usePos;
+  std::optional<UseDirection> m_useDir;
+  glm::vec2 m_offset{0, 0};
+  bool m_isLit{false};
+  bool m_isVisible{true};
+  bool m_isTouchable{true};
+  glm::ivec2 m_renderOffset{0, 0};
+  Motor m_offsetTo, m_scaleTo, m_rotateTo, m_moveTo, m_alphaTo;
+  ngf::Color m_color{ngf::Colors::White};
+  bool m_objectBumperCycle{true};
+  ngf::Color m_talkColor;
+  glm::ivec2 m_talkOffset{0, 90};
+  TalkingState m_talkingState;
+  ngf::Transform m_transform;
+  Entity *m_pParent{nullptr};
+  std::vector<Entity *> m_children;
 
-  Impl() : _engine(ng::Locator<ng::Engine>::get()) {
-    _talkingState.setEngine(&_engine);
+  Impl() : m_engine(ng::Locator<ng::Engine>::get()) {
+    m_talkingState.setEngine(&m_engine);
   }
 
   static std::optional<int> getDefaultVerb(const Entity *pEntity) {
@@ -56,22 +56,22 @@ struct Entity::Impl {
   }
 };
 
-Entity::Entity() : pImpl(std::make_unique<Entity::Impl>()) {
+Entity::Entity() : m_pImpl(std::make_unique<Entity::Impl>()) {
 }
 
 Entity::~Entity() = default;
 
-void Entity::objectBumperCycle(bool enabled) { pImpl->_objectBumperCycle = enabled; }
+void Entity::objectBumperCycle(bool enabled) { m_pImpl->m_objectBumperCycle = enabled; }
 
-bool Entity::objectBumperCycle() const { return pImpl->_objectBumperCycle; }
+bool Entity::objectBumperCycle() const { return m_pImpl->m_objectBumperCycle; }
 
 void Entity::update(const ngf::TimeSpan &elapsed) {
-  pImpl->_talkingState.update(elapsed);
-  update(pImpl->_offsetTo, elapsed);
-  update(pImpl->_scaleTo, elapsed);
-  update(pImpl->_rotateTo, elapsed);
-  update(pImpl->_moveTo, elapsed);
-  update(pImpl->_alphaTo, elapsed);
+  m_pImpl->m_talkingState.update(elapsed);
+  update(m_pImpl->m_offsetTo, elapsed);
+  update(m_pImpl->m_scaleTo, elapsed);
+  update(m_pImpl->m_rotateTo, elapsed);
+  update(m_pImpl->m_moveTo, elapsed);
+  update(m_pImpl->m_alphaTo, elapsed);
 }
 
 void Entity::update(Motor &motor, const ngf::TimeSpan &elapsed) {
@@ -84,59 +84,59 @@ void Entity::update(Motor &motor, const ngf::TimeSpan &elapsed) {
 }
 
 void Entity::setLit(bool isLit) {
-  pImpl->_isLit = isLit;
+  m_pImpl->m_isLit = isLit;
 }
 
 bool Entity::isLit() const {
-  return pImpl->_isLit;
+  return m_pImpl->m_isLit;
 }
 
 void Entity::setVisible(bool isVisible) {
-  pImpl->_isVisible = isVisible;
+  m_pImpl->m_isVisible = isVisible;
 }
 
 bool Entity::isVisible() const {
-  return pImpl->_isVisible;
+  return m_pImpl->m_isVisible;
 }
 
 void Entity::setUsePosition(std::optional<glm::vec2> pos) {
-  pImpl->_usePos = std::move(pos);
+  m_pImpl->m_usePos = std::move(pos);
 }
 
 void Entity::setUseDirection(std::optional<UseDirection> direction) {
-  pImpl->_useDir = direction;
+  m_pImpl->m_useDir = direction;
 }
 
 std::optional<UseDirection> Entity::getUseDirection() const {
-  return pImpl->_useDir;
+  return m_pImpl->m_useDir;
 }
 
 void Entity::setPosition(const glm::vec2 &pos) {
-  pImpl->_transform.setPosition(pos);
-  pImpl->_moveTo.isEnabled = false;
+  m_pImpl->m_transform.setPosition(pos);
+  m_pImpl->m_moveTo.isEnabled = false;
 }
 
 glm::vec2 Entity::getPosition() const {
-  return pImpl->_transform.getPosition();
+  return m_pImpl->m_transform.getPosition();
 }
 
 void Entity::setOffset(const glm::vec2 &offset) {
-  pImpl->_offset = offset;
-  pImpl->_offsetTo.isEnabled = false;
+  m_pImpl->m_offset = offset;
+  m_pImpl->m_offsetTo.isEnabled = false;
 }
 
 glm::vec2 Entity::getOffset() const {
-  return pImpl->_offset;
+  return m_pImpl->m_offset;
 }
 
 void Entity::setRotation(float angle) {
-  pImpl->_transform.setRotation(angle);
-  pImpl->_rotateTo.isEnabled = false;
+  m_pImpl->m_transform.setRotation(angle);
+  m_pImpl->m_rotateTo.isEnabled = false;
 }
 
 float Entity::getRotation() const {
   // SFML give rotation in degree between [0, 360]
-  float angle = pImpl->_transform.getRotation();
+  float angle = m_pImpl->m_transform.getRotation();
   // convert it to [-180, 180]
   if (angle > 180)
     angle -= 360;
@@ -144,39 +144,39 @@ float Entity::getRotation() const {
 }
 
 void Entity::setColor(const ngf::Color &color) {
-  pImpl->_color = color;
-  pImpl->_alphaTo.isEnabled = false;
+  m_pImpl->m_color = color;
+  m_pImpl->m_alphaTo.isEnabled = false;
 }
 
 const ngf::Color &Entity::getColor() const {
-  return pImpl->_color;
+  return m_pImpl->m_color;
 }
 
 void Entity::setScale(float s) {
-  pImpl->_transform.setScale({s, s});
-  pImpl->_scaleTo.isEnabled = false;
+  m_pImpl->m_transform.setScale({s, s});
+  m_pImpl->m_scaleTo.isEnabled = false;
 }
 
 float Entity::getScale() const {
-  return pImpl->_transform.getScale().x;
+  return m_pImpl->m_transform.getScale().x;
 }
 
 ngf::Transform Entity::getTransform() const {
-  auto transform = pImpl->_transform;
-  transform.move(pImpl->_offset);
+  auto transform = m_pImpl->m_transform;
+  transform.move(m_pImpl->m_offset);
   return transform;
 }
 
 std::optional<glm::vec2> Entity::getUsePosition() const {
-  return pImpl->_usePos;
+  return m_pImpl->m_usePos;
 }
 
 void Entity::setTrigger(int triggerNumber, Trigger *pTrigger) {
-  pImpl->_triggers[triggerNumber] = pTrigger;
+  m_pImpl->m_triggers[triggerNumber] = pTrigger;
 }
 
 void Entity::removeTrigger(int triggerNumber) {
-  pImpl->_triggers.erase(triggerNumber);
+  m_pImpl->m_triggers.erase(triggerNumber);
 }
 
 void Entity::trig(const std::string &name) {
@@ -184,36 +184,36 @@ void Entity::trig(const std::string &name) {
   auto id = std::strtol(name.data() + 1, &end, 10);
   if (end == name.data() + 1) {
     // trig sound
-    auto soundId = pImpl->_engine.getSoundDefinition(name.data() + 1);
+    auto soundId = m_pImpl->m_engine.getSoundDefinition(name.data() + 1);
     if (!soundId)
       return;
-    pImpl->_engine.getSoundManager().playSound(soundId);
+    m_pImpl->m_engine.getSoundManager().playSound(soundId);
   } else {
     // find a corresponding trigger
-    auto it = pImpl->_triggers.find(id);
-    if (it != pImpl->_triggers.end()) {
+    auto it = m_pImpl->m_triggers.find(id);
+    if (it != m_pImpl->m_triggers.end()) {
       it->second->trig();
     }
   }
 }
 
 void Entity::drawForeground(ngf::RenderTarget &target, ngf::RenderStates s) const {
-  if (!pImpl->_talkingState.isTalking())
+  if (!m_pImpl->m_talkingState.isTalking())
     return;
 
-  pImpl->_talkingState.draw(target, s);
+  m_pImpl->m_talkingState.draw(target, s);
 }
 
 SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds) {
   auto trigger = std::make_unique<SoundTrigger>(engine, sounds, this->getId());
   SoundTrigger *pTrigger = trigger.get();
-  pImpl->_soundTriggers.push_back(std::move(trigger));
+  m_pImpl->m_soundTriggers.push_back(std::move(trigger));
   return pTrigger;
 }
 
-void Entity::setKey(const std::string &key) { pImpl->_key = key; }
+void Entity::setKey(const std::string &key) { m_pImpl->m_key = key; }
 
-const std::string &Entity::getKey() const { return pImpl->_key; }
+const std::string &Entity::getKey() const { return m_pImpl->m_key; }
 
 uint32_t Entity::getFlags() const {
   int flags = 0;
@@ -222,62 +222,62 @@ uint32_t Entity::getFlags() const {
 }
 
 void Entity::setTouchable(bool isTouchable) {
-  pImpl->_isTouchable = isTouchable;
+  m_pImpl->m_isTouchable = isTouchable;
 }
 
 bool Entity::isTouchable() const {
   if (!isVisible())
     return false;
-  return pImpl->_isTouchable;
+  return m_pImpl->m_isTouchable;
 }
 
 void Entity::setRenderOffset(const glm::ivec2 &offset) {
-  pImpl->_renderOffset = offset;
+  m_pImpl->m_renderOffset = offset;
 }
 
 glm::ivec2 Entity::getRenderOffset() const {
-  return pImpl->_renderOffset;
+  return m_pImpl->m_renderOffset;
 }
 
 void Entity::alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto getAlpha = [this] { return pImpl->_color.a; };
-  auto setAlpha = [this](const float &a) { pImpl->_color.a = a; };
+  auto getAlpha = [this] { return m_pImpl->m_color.a; };
+  auto setAlpha = [this](const float &a) { m_pImpl->m_color.a = a; };
   auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
-  pImpl->_alphaTo.function = std::move(alphaTo);
-  pImpl->_alphaTo.isEnabled = true;
+  m_pImpl->m_alphaTo.function = std::move(alphaTo);
+  m_pImpl->m_alphaTo.isEnabled = true;
 }
 
 void Entity::offsetTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return pImpl->_offset; };
-  auto set = [this](const glm::vec2 &value) { pImpl->_offset = value; };
+  auto get = [this] { return m_pImpl->m_offset; };
+  auto set = [this](const glm::vec2 &value) { m_pImpl->m_offset = value; };
   auto offsetTo = std::make_unique<ChangeProperty<glm::vec2>>(get, set, destination, time, method);
-  pImpl->_offsetTo.function = std::move(offsetTo);
-  pImpl->_offsetTo.isEnabled = true;
+  m_pImpl->m_offsetTo.function = std::move(offsetTo);
+  m_pImpl->m_offsetTo.isEnabled = true;
 }
 
 void Entity::moveTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return pImpl->_transform.getPosition(); };
-  auto set = [this](const glm::vec2 &value) { pImpl->_transform.setPosition(value); };
+  auto get = [this] { return m_pImpl->m_transform.getPosition(); };
+  auto set = [this](const glm::vec2 &value) { m_pImpl->m_transform.setPosition(value); };
   auto moveTo = std::make_unique<ChangeProperty<glm::vec2>>(get, set, destination, time, method);
-  pImpl->_moveTo.function = std::move(moveTo);
-  pImpl->_moveTo.isEnabled = true;
+  m_pImpl->m_moveTo.function = std::move(moveTo);
+  m_pImpl->m_moveTo.isEnabled = true;
 }
 
 void Entity::rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return pImpl->_transform.getRotation(); };
-  auto set = [this](const float &value) { pImpl->_transform.setRotation(value); };
+  auto get = [this] { return m_pImpl->m_transform.getRotation(); };
+  auto set = [this](const float &value) { m_pImpl->m_transform.setRotation(value); };
   auto rotateTo =
       std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  pImpl->_rotateTo.function = std::move(rotateTo);
-  pImpl->_rotateTo.isEnabled = true;
+  m_pImpl->m_rotateTo.function = std::move(rotateTo);
+  m_pImpl->m_rotateTo.isEnabled = true;
 }
 
 void Entity::scaleTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto get = [this] { return pImpl->_transform.getScale().x; };
-  auto set = [this](const float &s) { pImpl->_transform.setScale({s, s}); };
+  auto get = [this] { return m_pImpl->m_transform.getScale().x; };
+  auto set = [this](const float &s) { m_pImpl->m_transform.setScale({s, s}); };
   auto scalteTo = std::make_unique<ChangeProperty<float>>(get, set, destination, time, method);
-  pImpl->_scaleTo.function = std::move(scalteTo);
-  pImpl->_scaleTo.isEnabled = true;
+  m_pImpl->m_scaleTo.function = std::move(scalteTo);
+  m_pImpl->m_scaleTo.isEnabled = true;
 }
 
 void Entity::setName(const std::string &name) {
@@ -292,51 +292,51 @@ std::string Entity::getName() const {
 }
 
 void Entity::stopObjectMotors() {
-  pImpl->_offsetTo.isEnabled = false;
-  pImpl->_scaleTo.isEnabled = false;
-  pImpl->_rotateTo.isEnabled = false;
-  pImpl->_moveTo.isEnabled = false;
-  pImpl->_alphaTo.isEnabled = false;
-  for (auto &&child : pImpl->_children) {
+  m_pImpl->m_offsetTo.isEnabled = false;
+  m_pImpl->m_scaleTo.isEnabled = false;
+  m_pImpl->m_rotateTo.isEnabled = false;
+  m_pImpl->m_moveTo.isEnabled = false;
+  m_pImpl->m_alphaTo.isEnabled = false;
+  for (auto &&child : m_pImpl->m_children) {
     child->stopObjectMotors();
   }
 }
 
-void Entity::setTalkColor(ngf::Color color) { pImpl->_talkColor = color; }
+void Entity::setTalkColor(ngf::Color color) { m_pImpl->m_talkColor = color; }
 
-ngf::Color Entity::getTalkColor() const { return pImpl->_talkColor; }
+ngf::Color Entity::getTalkColor() const { return m_pImpl->m_talkColor; }
 
-void Entity::setTalkOffset(const glm::ivec2 &offset) { pImpl->_talkOffset = offset; }
+void Entity::setTalkOffset(const glm::ivec2 &offset) { m_pImpl->m_talkOffset = offset; }
 
-glm::ivec2 Entity::getTalkOffset() const { return pImpl->_talkOffset; }
+glm::ivec2 Entity::getTalkOffset() const { return m_pImpl->m_talkOffset; }
 
 void Entity::say(const std::string &text, bool mumble) {
-  pImpl->_talkingState.loadLip(text, this, mumble);
+  m_pImpl->m_talkingState.loadLip(text, this, mumble);
   glm::vec2 pos;
-  auto screenSize = pImpl->_engine.getRoom()->getScreenSize();
-  if (getRoom() == pImpl->_engine.getRoom()) {
-    auto at = pImpl->_engine.getCamera().getRect().getTopLeft();
+  auto screenSize = m_pImpl->m_engine.getRoom()->getScreenSize();
+  if (getRoom() == m_pImpl->m_engine.getRoom()) {
+    auto at = m_pImpl->m_engine.getCamera().getRect().getTopLeft();
     pos = getPosition();
-    pos = {pos.x - at.x + pImpl->_talkOffset.x + pImpl->_renderOffset.x,
-           screenSize.y - pos.y - at.y - pImpl->_talkOffset.y - pImpl->_renderOffset.y};
+    pos = {pos.x - at.x + m_pImpl->m_talkOffset.x + m_pImpl->m_renderOffset.x,
+           screenSize.y - pos.y - at.y - m_pImpl->m_talkOffset.y - m_pImpl->m_renderOffset.y};
   } else {
     // TODO: the position in this case is wrong, don't know what to do yet
-    pos = (glm::vec2) pImpl->_talkOffset;
+    pos = (glm::vec2) m_pImpl->m_talkOffset;
   }
-  pos = toDefaultView((glm::ivec2) pos, pImpl->_engine.getRoom()->getScreenSize());
-  pImpl->_talkingState.setPosition(pos);
+  pos = toDefaultView((glm::ivec2) pos, m_pImpl->m_engine.getRoom()->getScreenSize());
+  m_pImpl->m_talkingState.setPosition(pos);
 }
 
-void Entity::stopTalking() { pImpl->_talkingState.stop(); }
+void Entity::stopTalking() { m_pImpl->m_talkingState.stop(); }
 
-bool Entity::isTalking() const { return pImpl->_talkingState.isTalking(); }
+bool Entity::isTalking() const { return m_pImpl->m_talkingState.isTalking(); }
 
 int Entity::getDefaultVerb(int defaultVerbId) const {
-  auto result = pImpl->getDefaultVerb(this);
+  auto result = m_pImpl->getDefaultVerb(this);
   if (result.has_value())
     return result.value();
 
-  result = pImpl->getDefaultVerb(getActor(this));
+  result = m_pImpl->getDefaultVerb(getActor(this));
   return result.value_or(defaultVerbId);
 }
 
@@ -353,32 +353,32 @@ Actor *Entity::getActor(const Entity *pEntity) {
 }
 
 Entity *Entity::getParent() {
-  return pImpl->_pParent;
+  return m_pImpl->m_pParent;
 }
 
 const Entity *Entity::getParent() const {
-  return pImpl->_pParent;
+  return m_pImpl->m_pParent;
 }
 
-bool Entity::hasParent() const { return pImpl->_pParent != nullptr; }
+bool Entity::hasParent() const { return m_pImpl->m_pParent != nullptr; }
 
 void Entity::setParent(Entity *pParent) {
-  auto pOldParent = pImpl->_pParent;
+  auto pOldParent = m_pImpl->m_pParent;
   if (pOldParent) {
-    pOldParent->pImpl->_children.erase(std::remove_if(pOldParent->pImpl->_children.begin(),
-                                                      pOldParent->pImpl->_children.end(),
-                                                      [this](const auto *pChild) {
+    pOldParent->m_pImpl->m_children.erase(std::remove_if(pOldParent->m_pImpl->m_children.begin(),
+                                                         pOldParent->m_pImpl->m_children.end(),
+                                                         [this](const auto *pChild) {
                                                         return pChild == this;
-                                                      }), pOldParent->pImpl->_children.end());
+                                                      }), pOldParent->m_pImpl->m_children.end());
   }
-  pImpl->_pParent = pParent;
+  m_pImpl->m_pParent = pParent;
   if (pParent) {
-    pParent->pImpl->_children.push_back(this);
+    pParent->m_pImpl->m_children.push_back(this);
   }
 }
 
 std::vector<Entity *> Entity::getChildren() const {
-  return pImpl->_children;
+  return m_pImpl->m_children;
 }
 
 } // namespace ng

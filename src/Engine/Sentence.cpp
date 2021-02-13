@@ -2,25 +2,25 @@
 
 namespace ng {
 Sentence &Sentence::push_back(std::unique_ptr<Function> func) {
-  _functions.push_back(std::move(func));
+  m_functions.push_back(std::move(func));
   return *this;
 }
 
-void Sentence::stop() { _stopped = true; }
+void Sentence::stop() { m_stopped = true; }
 
-bool Sentence::isElapsed() { return _functions.empty(); }
+bool Sentence::isElapsed() { return m_functions.empty(); }
 
 void Sentence::operator()(const ngf::TimeSpan &elapsed) {
-  if (_functions.empty())
+  if (m_functions.empty())
     return;
-  if (_stopped) {
-    _functions.clear();
+  if (m_stopped) {
+    m_functions.clear();
     return;
   }
-  if (_functions[0]->isElapsed()) {
-    _functions.erase(_functions.begin());
+  if (m_functions[0]->isElapsed()) {
+    m_functions.erase(m_functions.begin());
   } else {
-    (*_functions[0])(elapsed);
+    (*m_functions[0])(elapsed);
   }
 }
 } // namespace ng

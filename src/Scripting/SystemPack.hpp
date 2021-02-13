@@ -287,11 +287,11 @@ public:
   }
 
   void operator()(const ngf::TimeSpan &elapsed) override {
-    if (_done)
+    if (m_done)
       return;
     TimeFunction::operator()(elapsed);
     if (isElapsed()) {
-      _done = true;
+      m_done = true;
       auto pThread = EntityManager::getThreadFromId(_threadId);
       if (!pThread)
         return;

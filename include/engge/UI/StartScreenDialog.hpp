@@ -5,7 +5,7 @@ namespace ng {
 
 class StartScreenDialog final : public ngf::Drawable {
 public:
-  typedef std::function<void()> Callback;
+  using Callback = std::function<void()>;
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 public:
@@ -19,6 +19,6 @@ public:
 
 private:
   struct Impl;
-  std::unique_ptr<Impl> _pImpl;
+  std::unique_ptr<Impl> m_pImpl;
 };
 }

@@ -14,14 +14,14 @@ namespace ng {
 
 class Engine;
 
-class EnggeApplication : public ngf::Application {
+class EnggeApplication final : public ngf::Application {
 private:
-  void onInit() override;
-  void onEvent(ngf::Event &event) override;
-  void onRender(ngf::RenderTarget &target) override;
-  void onImGuiRender() override;
-  void onUpdate(const ngf::TimeSpan &elapsed) override;
-  void onQuit() override;
+  void onInit() final;
+  void onEvent(ngf::Event &event) final;
+  void onRender(ngf::RenderTarget &target) final;
+  void onImGuiRender() final;
+  void onUpdate(const ngf::TimeSpan &elapsed) final;
+  void onQuit() final;
 
 private:
   ng::Engine *m_engine{nullptr};

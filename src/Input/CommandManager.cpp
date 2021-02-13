@@ -3,11 +3,11 @@
 
 namespace ng {
 void CommandManager::registerCommand(const std::string &command, CommandHandler handler) {
-  _commandHandlers[command] = std::move(handler);
+  m_commandHandlers[command] = std::move(handler);
 }
 
 void CommandManager::registerPressedCommand(const std::string &command, PressedCommandHandler handler) {
-  _pressedCommandHandlers[command] = std::move(handler);
+  m_pressedCommandHandlers[command] = std::move(handler);
 }
 
 void CommandManager::registerCommands(std::initializer_list<std::tuple<const char *, CommandHandler>> commands) {
@@ -17,7 +17,7 @@ void CommandManager::registerCommands(std::initializer_list<std::tuple<const cha
 }
 
 void CommandManager::registerInputBinding(const Input& input, const std::string &command) {
-  _inputBindings[input] = command;
+  m_inputBindings[input] = command;
 }
 
 void CommandManager::registerInputBindings(std::initializer_list<std::tuple<Input, const char *>> bindings){
@@ -28,24 +28,24 @@ void CommandManager::registerInputBindings(std::initializer_list<std::tuple<Inpu
 
 void CommandManager::execute(const std::string &command) const {
   trace("Execute command {}", command);
-  auto it = _commandHandlers.find(command);
-  if (it != _commandHandlers.end()) {
+  auto it = m_commandHandlers.find(command);
+  if (it != m_commandHandlers.end()) {
     it->second();
   }
 }
 
 void CommandManager::execute(const Input& input) const {
-  auto it = _inputBindings.find(input);
-  if (it != _inputBindings.end()) {
+  auto it = m_inputBindings.find(input);
+  if (it != m_inputBindings.end()) {
     execute(it->second);
   }
 }
 
 void CommandManager::execute(const Input& input, bool keyDown) const {
-  auto it = _inputBindings.find(input);
-  if (it != _inputBindings.end()) {
-    auto it2 = _pressedCommandHandlers.find(it->second);
-    if (it2 != _pressedCommandHandlers.end()) {
+  auto it = m_inputBindings.find(input);
+  if (it != m_inputBindings.end()) {
+    auto it2 = m_pressedCommandHandlers.find(it->second);
+    if (it2 != m_pressedCommandHandlers.end()) {
       it2->second(keyDown);
     }
   }

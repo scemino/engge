@@ -309,37 +309,37 @@ struct SaveLoadDialog::Impl {
 };
 
 SaveLoadDialog::SaveLoadDialog()
-    : _pImpl(std::make_unique<Impl>()) {
+    : m_pImpl(std::make_unique<Impl>()) {
 }
 
 SaveLoadDialog::~SaveLoadDialog() = default;
 
-void SaveLoadDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
+void SaveLoadDialog::setEngine(Engine *pEngine) { m_pImpl->setEngine(pEngine); }
 
 void SaveLoadDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  _pImpl->draw(target, states);
+  m_pImpl->draw(target, states);
 }
 
 void SaveLoadDialog::update(const ngf::TimeSpan &elapsed) {
-  _pImpl->update(elapsed);
+  m_pImpl->update(elapsed);
 }
 
 void SaveLoadDialog::setCallback(Callback callback) {
-  _pImpl->m_callback = std::move(callback);
+  m_pImpl->m_callback = std::move(callback);
 }
 
 void SaveLoadDialog::setSlotCallback(SlotCallback callback) {
-  _pImpl->m_slotCallback = std::move(callback);
+  m_pImpl->m_slotCallback = std::move(callback);
 }
 
 void SaveLoadDialog::updateLanguage() {
-  _pImpl->updateState();
+  m_pImpl->updateState();
 }
 
 void SaveLoadDialog::setSaveMode(bool saveMode) {
-  _pImpl->m_saveMode = saveMode;
-  _pImpl->setHeading(saveMode);
+  m_pImpl->m_saveMode = saveMode;
+  m_pImpl->setHeading(saveMode);
 }
 
-bool SaveLoadDialog::getSaveMode() const { return _pImpl->m_saveMode; }
+bool SaveLoadDialog::getSaveMode() const { return m_pImpl->m_saveMode; }
 }

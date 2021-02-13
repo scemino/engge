@@ -2,45 +2,45 @@
 #include "engge/Dialog/ExpressionVisitor.hpp"
 
 namespace ng {
-ExpressionVisitor::ExpressionVisitor(DialogContextAbstract &ctx) : context(ctx) {
+ExpressionVisitor::ExpressionVisitor(DialogContextAbstract &ctx) : m_context(ctx) {
 }
 ExpressionVisitor::~ExpressionVisitor() = default;
 
 void ExpressionVisitor::visit(const Ast::Say &node) {
-  auto func = context.say(node.actor, node.text);
-  _pWaitAction = [func]() { return func(); };
+  auto func = m_context.say(node.actor, node.text);
+  m_pWaitAction = [func]() { return func(); };
 }
 void ExpressionVisitor::visit(const Ast::Code &node) {
-  context.execute(node.code);
+  m_context.execute(node.code);
 }
 void ExpressionVisitor::visit(const Ast::Goto &node) {
-  context.gotoLabel(node.name);
+  m_context.gotoLabel(node.name);
 }
 void ExpressionVisitor::visit(const Ast::Shutup &) {
-  context.shutup();
+  m_context.shutup();
 }
 void ExpressionVisitor::visit(const Ast::Pause &node) {
-  _pWaitAction = context.pause(ngf::TimeSpan::seconds(node.time));
+  m_pWaitAction = m_context.pause(ngf::TimeSpan::seconds(node.time));
 }
 void ExpressionVisitor::visit(const Ast::WaitFor &node) {
-  _pWaitAction = context.waitFor(node.actor);
+  m_pWaitAction = m_context.waitFor(node.actor);
 }
 void ExpressionVisitor::visit(const Ast::Parrot &node) {
-  context.parrot(node.active);
+  m_context.parrot(node.active);
 }
 void ExpressionVisitor::visit(const Ast::Dialog &node) {
-  context.dialog(node.actor);
+  m_context.dialog(node.actor);
 }
 void ExpressionVisitor::visit(const Ast::Override &node) {
-  context.override(node.node);
+  m_context.override(node.node);
 }
 void ExpressionVisitor::visit(const Ast::AllowObjects &node) {
-  context.allowObjects(node.allow);
+  m_context.allowObjects(node.allow);
 }
 void ExpressionVisitor::visit(const Ast::WaitWhile &node) {
-  _pWaitAction = context.waitWhile(node.condition);
+  m_pWaitAction = m_context.waitWhile(node.condition);
 }
 void ExpressionVisitor::visit(const Ast::Limit &node) {
-  context.limit(node.max);
+  m_context.limit(node.max);
 }
 }

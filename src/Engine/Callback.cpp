@@ -15,29 +15,29 @@
 
 namespace ng {
 Callback::Callback(int id, ngf::TimeSpan duration, std::string method, HSQOBJECT arg)
-    : TimeFunction(duration), _id(id), _method(std::move(method)), _arg(arg) {
-  sq_addref(ScriptEngine::getVm(), &_arg);
+    : TimeFunction(duration), m_id(id), m_method(std::move(method)), m_arg(arg) {
+  sq_addref(ScriptEngine::getVm(), &m_arg);
 }
 
 Callback::~Callback(){
-  sq_release(ScriptEngine::getVm(), &_arg);
+  sq_release(ScriptEngine::getVm(), &m_arg);
 }
 
 void Callback::onElapsed() {
-  if (_callbackDone)
+  if (m_callbackDone)
     return;
-  _callbackDone = true;
+  m_callbackDone = true;
 
   auto v = ScriptEngine::getVm();
   SQObjectPtr method;
-  _table(v->_roottable)->Get(ScriptEngine::toSquirrel(_method), method);
+  _table(v->_roottable)->Get(ScriptEngine::toSquirrel(m_method), method);
 
   SQInteger numArgs = 1;
   sq_pushobject(v, method);
   sq_pushroottable(v);
-  if (_arg._type != OT_NULL) {
+  if (m_arg._type != OT_NULL) {
     numArgs++;
-    sq_pushobject(v, _arg);
+    sq_pushobject(v, m_arg);
   }
   if (SQ_FAILED(sq_call(v, numArgs, SQFalse, SQTrue))) {
     error("failed to call callback");

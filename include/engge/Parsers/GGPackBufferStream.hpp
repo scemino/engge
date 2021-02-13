@@ -18,6 +18,6 @@ public:
   GGPackBufferStream &ignore(std::streamsize n = 1, int delim = EOF);
 
 private:
-  std::vector<char> _input;
-  int _offset{0};
+  std::vector<char> m_input;
+  int m_offset{0};
 };

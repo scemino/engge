@@ -40,74 +40,74 @@ void Camera::Impl::clampCamera(glm::vec2 &at) {
   at.y = std::clamp<int>(at.y, screenSize.y / 2, std::max(roomSize.y - screenSize.y / 2, 0));
 }
 
-Camera::Camera() : _pImpl(std::make_unique<Impl>()) {}
+Camera::Camera() : m_pImpl(std::make_unique<Impl>()) {}
 
 Camera::~Camera() = default;
 
-void Camera::setEngine(Engine *pEngine) { _pImpl->_pEngine = pEngine; }
+void Camera::setEngine(Engine *pEngine) { m_pImpl->_pEngine = pEngine; }
 
 void Camera::at(const glm::vec2 &at) {
-  _pImpl->_at = at;
-  _pImpl->clampCamera(_pImpl->_at);
-  _pImpl->_target = _pImpl->_at;
-  _pImpl->_time = ngf::TimeSpan::seconds(0);
-  _pImpl->_isMoving = false;
+  m_pImpl->_at = at;
+  m_pImpl->clampCamera(m_pImpl->_at);
+  m_pImpl->_target = m_pImpl->_at;
+  m_pImpl->_time = ngf::TimeSpan::seconds(0);
+  m_pImpl->_isMoving = false;
 }
 
 ngf::frect Camera::getRect() const {
-  auto pRoom = _pImpl->_pEngine->getRoom();
+  auto pRoom = m_pImpl->_pEngine->getRoom();
   auto screenSize = pRoom->getScreenSize();
-  return ngf::frect::fromCenterSize(_pImpl->_at, screenSize);
+  return ngf::frect::fromCenterSize(m_pImpl->_at, screenSize);
 }
 
-glm::vec2 Camera::getAt() const { return _pImpl->_at; }
+glm::vec2 Camera::getAt() const { return m_pImpl->_at; }
 
 void Camera::move(const glm::vec2 &offset) {
-  _pImpl->_at += offset;
-  _pImpl->clampCamera(_pImpl->_at);
-  _pImpl->_target = _pImpl->_at;
-  _pImpl->_isMoving = false;
+  m_pImpl->_at += offset;
+  m_pImpl->clampCamera(m_pImpl->_at);
+  m_pImpl->_target = m_pImpl->_at;
+  m_pImpl->_isMoving = false;
 }
 
 void Camera::setBounds(const ngf::irect &cameraBounds) {
-  _pImpl->_bounds = cameraBounds;
-  _pImpl->clampCamera(_pImpl->_at);
+  m_pImpl->_bounds = cameraBounds;
+  m_pImpl->clampCamera(m_pImpl->_at);
 }
 
-std::optional<ngf::irect> Camera::getBounds() const { return _pImpl->_bounds; }
+std::optional<ngf::irect> Camera::getBounds() const { return m_pImpl->_bounds; }
 
-void Camera::resetBounds() { _pImpl->_bounds = std::nullopt; }
+void Camera::resetBounds() { m_pImpl->_bounds = std::nullopt; }
 
 void Camera::panTo(glm::vec2 target, ngf::TimeSpan time, InterpolationMethod interpolation) {
-  if (!_pImpl->_isMoving) {
-    _pImpl->_isMoving = true;
-    _pImpl->_init = _pImpl->_at;
-    _pImpl->_elapsed = ngf::TimeSpan::seconds(0);
+  if (!m_pImpl->_isMoving) {
+    m_pImpl->_isMoving = true;
+    m_pImpl->_init = m_pImpl->_at;
+    m_pImpl->_elapsed = ngf::TimeSpan::seconds(0);
   }
-  _pImpl->_function = InterpolationHelper::getInterpolationMethod(interpolation);
-  _pImpl->_target = target;
-  _pImpl->_time = time;
+  m_pImpl->_function = InterpolationHelper::getInterpolationMethod(interpolation);
+  m_pImpl->_target = target;
+  m_pImpl->_time = time;
 }
 
 void Camera::update(const ngf::TimeSpan &elapsed) {
-  _pImpl->_elapsed += elapsed;
-  auto isMoving = _pImpl->_elapsed < _pImpl->_time;
+  m_pImpl->_elapsed += elapsed;
+  auto isMoving = m_pImpl->_elapsed < m_pImpl->_time;
 
-  if (_pImpl->_isMoving && !isMoving) {
-    _pImpl->_isMoving = false;
-    at(_pImpl->_target);
+  if (m_pImpl->_isMoving && !isMoving) {
+    m_pImpl->_isMoving = false;
+    at(m_pImpl->_target);
   }
   if (!isMoving)
     return;
 
-  auto t = _pImpl->_elapsed.getTotalSeconds() / _pImpl->_time.getTotalSeconds();
-  auto d = _pImpl->_target - _pImpl->_init;
-  auto pos = _pImpl->_init + _pImpl->_function(t) * d;
+  auto t = m_pImpl->_elapsed.getTotalSeconds() / m_pImpl->_time.getTotalSeconds();
+  auto d = m_pImpl->_target - m_pImpl->_init;
+  auto pos = m_pImpl->_init + m_pImpl->_function(t) * d;
 
-  _pImpl->clampCamera(pos);
-  _pImpl->_at = pos;
+  m_pImpl->clampCamera(pos);
+  m_pImpl->_at = pos;
 }
 
-bool Camera::isMoving() const { return _pImpl->_isMoving; }
+bool Camera::isMoving() const { return m_pImpl->_isMoving; }
 
 } // namespace ng

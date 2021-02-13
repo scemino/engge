@@ -51,12 +51,12 @@ public:
   void update();
 
   [[nodiscard]] DialogManagerState getState() const;
-  [[nodiscard]] std::string getActor() const { return _actor; }
-  [[nodiscard]] std::string getDialogName() const { return _dialogName; }
+  [[nodiscard]] std::string getActor() const { return m_actor; }
+  [[nodiscard]] std::string getDialogName() const { return m_dialogName; }
 
-  [[nodiscard]] const std::array<const Ast::Statement *, 9> &getChoices() const { return _choices; }
-  [[nodiscard]] const std::vector<DialogConditionState>& getStates() const { return _states; }
-  std::vector<DialogConditionState>& getStates() { return _states; }
+  [[nodiscard]] const std::array<const Ast::Statement *, 9> &getChoices() const { return m_choices; }
+  [[nodiscard]] const std::vector<DialogConditionState>& getStates() const { return m_states; }
+  std::vector<DialogConditionState>& getStates() { return m_states; }
 
 private:
   void resetState();
@@ -94,19 +94,19 @@ private:
   void endDialog();
 
 private:
-  std::string _dialogName;
-  std::unique_ptr<Ast::CompilationUnit> _pCompilationUnit;
-  std::array<const Ast::Statement *, 9> _choices{};
-  Ast::Label *_pLabel{nullptr};
-  int _currentStatement{0};
-  DialogPlayerState _state{DialogPlayerState::None};
-  std::string _actor;
-  bool _parrot{true};
-  bool _allowObjects{false};
-  int _limit{6};
-  std::string _overrideLabel;
-  std::function<bool()> _pWaitAction{nullptr};
-  std::vector<DialogConditionState> _states;
-  std::string _nextLabel;
+  std::string m_dialogName;
+  std::unique_ptr<Ast::CompilationUnit> m_pCompilationUnit;
+  std::array<const Ast::Statement *, 9> m_choices{};
+  Ast::Label *m_pLabel{nullptr};
+  int m_currentStatement{0};
+  DialogPlayerState m_state{DialogPlayerState::None};
+  std::string m_actor;
+  bool m_parrot{true};
+  bool m_allowObjects{false};
+  int m_limit{6};
+  std::string m_overrideLabel;
+  std::function<bool()> m_pWaitAction{nullptr};
+  std::vector<DialogConditionState> m_states;
+  std::string m_nextLabel;
 };
 }

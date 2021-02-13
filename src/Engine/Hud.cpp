@@ -81,57 +81,59 @@ void main(void)
 Hud::Hud() {
   glm::vec2 size(Screen::Width / 6.f, Screen::Height / 14.f);
   for (int i = 0; i < 9; i++) {
-    auto left = (i / 3) * size.x;
+    auto left = static_cast<float>(i / 3) * size.x;
     auto top = Screen::Height - size.y * 3 + static_cast<float>(i % 3) * size.y;
-    _verbRects.at(i) = ngf::irect::fromPositionSize({left, top}, {size.x, size.y});
+    m_verbRects.at(i) = ngf::irect::fromPositionSize({left, top}, {size.x, size.y});
   }
 
-  _verbShader.load(_vertexShaderSource, _verbShaderCode);
+  m_verbShader.load(_vertexShaderSource, _verbShaderCode);
 }
 
+Hud::~Hud() = default;
+
 bool Hud::isMouseOver() const {
-  if (!_active)
+  if (!m_active)
     return false;
-  return _mousePos.y >= _verbRects.at(0).getTopLeft().y;
+  return m_mousePos.y >= m_verbRects.at(0).getTopLeft().y;
 }
 
 void Hud::setTextureManager(ResourceManager *pTextureManager) {
-  _inventory.setTextureManager(pTextureManager);
+  m_inventory.setTextureManager(pTextureManager);
 }
 
 void Hud::setVerb(int characterSlot, int verbSlot, const Verb &verb) {
-  _verbSlots.at(characterSlot).setVerb(verbSlot, verb);
+  m_verbSlots.at(characterSlot).setVerb(verbSlot, verb);
 }
 
 [[nodiscard]] const VerbSlot &Hud::getVerbSlot(int characterSlot) const {
-  return _verbSlots.at(characterSlot);
+  return m_verbSlots.at(characterSlot);
 }
 
 void Hud::setVerbUiColors(int characterSlot, VerbUiColors colors) {
-  _verbUiColors.at(characterSlot) = colors;
+  m_verbUiColors.at(characterSlot) = colors;
 }
 
 [[nodiscard]] const VerbUiColors &Hud::getVerbUiColors(int characterSlot) const {
-  return _verbUiColors.at(characterSlot);
+  return m_verbUiColors.at(characterSlot);
 }
 
 void Hud::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
-  if (!_isVisible)
+  if (!m_isVisible)
     return;
-  if (_currentActorIndex == -1 || getVerbSlot(_currentActorIndex).getVerb(0).id == 0)
+  if (m_currentActorIndex == -1 || getVerbSlot(m_currentActorIndex).getVerb(0).id == 0)
     return;
 
-  auto pVerb = _pVerbOverride;
+  auto pVerb = m_pVerbOverride;
   if (!pVerb) {
-    pVerb = _pVerb;
+    pVerb = m_pVerb;
   }
   auto verbId = pVerb->id;
-  if (_pHoveredEntity && verbId == VerbConstants::VERB_WALKTO) {
-    verbId = _pHoveredEntity->getDefaultVerb(VerbConstants::VERB_LOOKAT);
+  if (m_pHoveredEntity && verbId == VerbConstants::VERB_WALKTO) {
+    verbId = m_pHoveredEntity->getDefaultVerb(VerbConstants::VERB_LOOKAT);
   } else {
-    for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
-      if (_verbRects.at(i).contains((glm::ivec2) _mousePos)) {
-        verbId = _verbSlots.at(_currentActorIndex).getVerb(1 + i).id;
+    for (int i = 0; i < static_cast<int>(m_verbRects.size()); i++) {
+      if (m_verbRects.at(i).contains((glm::ivec2) m_mousePos)) {
+        verbId = m_verbSlots.at(m_currentActorIndex).getVerb(1 + i).id;
         break;
       }
     }
@@ -147,29 +149,29 @@ void Hud::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
       preferences.getUserPreference(PreferenceNames::UiBackingAlpha, PreferenceDefaultValues::UiBackingAlpha);
   auto invertVerbHighlight = preferences.getUserPreference(PreferenceNames::InvertVerbHighlight,
                                                            PreferenceDefaultValues::InvertVerbHighlight);
-  const auto &verbUiColors = getVerbUiColors(_currentActorIndex);
+  const auto &verbUiColors = getVerbUiColors(m_currentActorIndex);
   auto verbHighlight = invertVerbHighlight ? ngf::Colors::White : verbUiColors.verbHighlight;
   auto verbColor = invertVerbHighlight ? verbUiColors.verbHighlight : ngf::Colors::White;
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
   auto uiBackingRect = hudSentence ? gameSheet.getRect("ui_backing_tall") : gameSheet.getRect("ui_backing");
 
   ngf::Sprite uiBacking(*gameSheet.getTexture(), uiBackingRect);
-  uiBacking.setColor(ngf::Color(0.f, 0.f, 0.f, uiBackingAlpha * _alpha));
+  uiBacking.setColor(ngf::Color(0.f, 0.f, 0.f, uiBackingAlpha * m_alpha));
   uiBacking.getTransform().setPosition({0, 720.f - uiBackingRect.getHeight()});
   uiBacking.draw(target, {});
 
-  _verbShader.setUniform("u_ranges", glm::vec2(0.8f, 0.8f));
-  _verbShader.setUniform4("u_shadowColor", verbUiColors.verbNormalTint);
-  _verbShader.setUniform4("u_normalColor", verbUiColors.verbHighlight);
-  _verbShader.setUniform4("u_highlightColor", verbUiColors.verbHighlightTint);
+  m_verbShader.setUniform("u_ranges", glm::vec2(0.8f, 0.8f));
+  m_verbShader.setUniform4("u_shadowColor", verbUiColors.verbNormalTint);
+  m_verbShader.setUniform4("u_normalColor", verbUiColors.verbHighlight);
+  m_verbShader.setUniform4("u_highlightColor", verbUiColors.verbHighlightTint);
 
   ngf::RenderStates verbStates;
-  verbStates.shader = &_verbShader;
+  verbStates.shader = &m_verbShader;
   auto &verbSheet = Locator<ResourceManager>::get().getSpriteSheet("VerbSheet");
   for (int i = 1; i <= 9; i++) {
-    auto verb = getVerbSlot(_currentActorIndex).getVerb(i);
+    auto verb = getVerbSlot(m_currentActorIndex).getVerb(i);
     auto color = verb.id == verbId ? verbHighlight : verbColor;
-    color.a = _alpha;
+    color.a = m_alpha;
 
     auto verbName = getVerbName(verb);
     auto rect = verbSheet.getRect(verbName);
@@ -182,17 +184,17 @@ void Hud::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
 
   target.setView(view);
 
-  _inventory.draw(target, {});
+  m_inventory.draw(target, {});
 }
 
 void Hud::setCurrentActorIndex(int index) {
-  _currentActorIndex = index;
-  _inventory.setCurrentActorIndex(index);
-  _inventory.setVerbUiColors(&getVerbUiColors(_currentActorIndex));
+  m_currentActorIndex = index;
+  m_inventory.setCurrentActorIndex(index);
+  m_inventory.setVerbUiColors(&getVerbUiColors(m_currentActorIndex));
 }
 
 void Hud::setCurrentActor(Actor *pActor) {
-  _inventory.setCurrentActor(pActor);
+  m_inventory.setCurrentActor(pActor);
 }
 
 glm::vec2 Hud::findScreenPosition(int verbId) const {
@@ -204,7 +206,7 @@ glm::vec2 Hud::findScreenPosition(int verbId) const {
 }
 
 const Verb *Hud::getVerb(int id) const {
-  auto index = _currentActorIndex;
+  auto index = m_currentActorIndex;
   if (index < 0)
     return nullptr;
   const auto &verbSlot = getVerbSlot(index);
@@ -227,17 +229,17 @@ std::string Hud::getVerbName(const Verb &verb) {
 }
 
 void Hud::setMousePosition(glm::vec2 pos) {
-  _mousePos = pos;
-  _inventory.setMousePosition(pos);
+  m_mousePos = pos;
+  m_inventory.setMousePosition(pos);
 }
 
 const Verb *Hud::getHoveredVerb() const {
-  if (_currentActorIndex == -1)
+  if (m_currentActorIndex == -1)
     return nullptr;
 
-  for (int i = 0; i < static_cast<int>(_verbRects.size()); i++) {
-    if (_verbRects.at(i).contains((glm::ivec2) _mousePos)) {
-      auto verbId = getVerbSlot(_currentActorIndex).getVerb(1 + i).id;
+  for (int i = 0; i < static_cast<int>(m_verbRects.size()); i++) {
+    if (m_verbRects.at(i).contains((glm::ivec2) m_mousePos)) {
+      auto verbId = getVerbSlot(m_currentActorIndex).getVerb(1 + i).id;
       return getVerb(verbId);
     }
   }
@@ -245,30 +247,30 @@ const Verb *Hud::getHoveredVerb() const {
 }
 
 void Hud::update(const ngf::TimeSpan &elapsed) {
-  if (_state == State::FadeIn) {
-    _alpha += elapsed.getTotalSeconds();
-    if (_alpha >= 1.f) {
-      _state = State::On;
-      _alpha = 1.f;
+  if (m_state == State::FadeIn) {
+    m_alpha += elapsed.getTotalSeconds();
+    if (m_alpha >= 1.f) {
+      m_state = State::On;
+      m_alpha = 1.f;
     }
-  } else if (_state == State::FadeOut) {
-    _alpha -= elapsed.getTotalSeconds();
-    if (_alpha <= 0.f) {
-      _state = State::Off;
-      _alpha = 0.f;
+  } else if (m_state == State::FadeOut) {
+    m_alpha -= elapsed.getTotalSeconds();
+    if (m_alpha <= 0.f) {
+      m_state = State::Off;
+      m_alpha = 0.f;
     }
   }
-  _inventory.setAlpha(_alpha);
-  _inventory.update(elapsed);
+  m_inventory.setAlpha(m_alpha);
+  m_inventory.update(elapsed);
 }
 
 void Hud::setActive(bool active) {
-  if (!_active && active) {
-    _state = State::FadeIn;
-  } else if (_active && !active) {
-    _state = State::FadeOut;
+  if (!m_active && active) {
+    m_state = State::FadeIn;
+  } else if (m_active && !active) {
+    m_state = State::FadeOut;
   }
-  _active = active;
+  m_active = active;
 }
 
 }

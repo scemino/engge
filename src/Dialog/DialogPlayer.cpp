@@ -74,23 +74,23 @@ DialogPlayer::~DialogPlayer() = default;
 
 void DialogPlayer::start(const std::string &actor, const std::string &name, const std::string &node) {
   resetState();
-  _actor = actor;
-  _dialogName = name;
+  m_actor = actor;
+  m_dialogName = name;
   std::string path;
   path.append(name).append(".byack");
 
   YackTokenReader reader;
   reader.load(path);
   YackParser parser(reader);
-  _pCompilationUnit = parser.parse();
+  m_pCompilationUnit = parser.parse();
   selectLabel(node);
 }
 
 void DialogPlayer::choose(int choiceId) {
-  if (_state != DialogPlayerState::WaitingForChoice)
+  if (m_state != DialogPlayerState::WaitingForChoice)
     return;
   int i = 1;
-  for (const auto &choice : _choices) {
+  for (const auto &choice : m_choices) {
     if (!choice)
       continue;
     if (i++ == choiceId) {
@@ -101,14 +101,14 @@ void DialogPlayer::choose(int choiceId) {
         cond->accept(visitor);
         auto state = visitor.getState();
         if (state.has_value()) {
-          _states.push_back(state.value());
+          m_states.push_back(state.value());
         }
       }
 
-      if (_parrot) {
-        _state = DialogPlayerState::WaitingForSayingChoice;
-        _pWaitAction = say(_actor, pChoice->text);
-        _nextLabel = pChoice->gotoExp->name;
+      if (m_parrot) {
+        m_state = DialogPlayerState::WaitingForSayingChoice;
+        m_pWaitAction = say(m_actor, pChoice->text);
+        m_nextLabel = pChoice->gotoExp->name;
         return;
       }
       selectLabel(pChoice->gotoExp->name);
@@ -118,30 +118,30 @@ void DialogPlayer::choose(int choiceId) {
 }
 
 void DialogPlayer::update() {
-  switch (_state) {
+  switch (m_state) {
   case DialogPlayerState::None:break;
   case DialogPlayerState::Start: running(); break;
   case DialogPlayerState::Running: running(); break;
   case DialogPlayerState::WaitingForChoice:break;
   case DialogPlayerState::WaitingForSayingChoice: {
-    if (!_pWaitAction || _pWaitAction()) {
-      _pWaitAction = nullptr;
-      selectLabel(_nextLabel);
+    if (!m_pWaitAction || m_pWaitAction()) {
+      m_pWaitAction = nullptr;
+      selectLabel(m_nextLabel);
     }
     break;
   }
   case DialogPlayerState::WaitingEndAnimation:
-    if (!_pWaitAction || _pWaitAction()) {
-      _pWaitAction = nullptr;
-      _currentStatement++;
-      _state = DialogPlayerState::Running;
+    if (!m_pWaitAction || m_pWaitAction()) {
+      m_pWaitAction = nullptr;
+      m_currentStatement++;
+      m_state = DialogPlayerState::Running;
     }
     break;
   }
 }
 
 DialogManagerState DialogPlayer::getState() const {
-  switch (_state) {
+  switch (m_state) {
   case DialogPlayerState::None:return DialogManagerState::None;
   case DialogPlayerState::WaitingForChoice: return DialogManagerState::WaitingForChoice;
   case DialogPlayerState::Running: return DialogManagerState::Active;
@@ -152,98 +152,98 @@ DialogManagerState DialogPlayer::getState() const {
 }
 
 void DialogPlayer::running() {
-  if (!_pLabel) {
-    _state = DialogPlayerState::None;
+  if (!m_pLabel) {
+    m_state = DialogPlayerState::None;
     return;
   }
-  auto count = static_cast<int>(_pLabel->statements.size());
-  if (_currentStatement == count) {
+  auto count = static_cast<int>(m_pLabel->statements.size());
+  if (m_currentStatement == count) {
     gotoNextLabel();
     return;
   }
-  _state = DialogPlayerState::Running;
-  while (_currentStatement < count && _state == DialogPlayerState::Running) {
-    auto pCurrentStatement = _pLabel->statements.at(_currentStatement).get();
+  m_state = DialogPlayerState::Running;
+  while (m_currentStatement < count && m_state == DialogPlayerState::Running) {
+    auto pCurrentStatement = m_pLabel->statements.at(m_currentStatement).get();
     if (!acceptConditions(pCurrentStatement)) {
-      _currentStatement++;
+      m_currentStatement++;
       continue;
     }
     auto pChoice = dynamic_cast<Ast::Choice *>(pCurrentStatement->expression.get());
     if (pChoice) {
       addChoice(pCurrentStatement, pChoice);
-      _currentStatement++;
+      m_currentStatement++;
       continue;
     }
     if (choicesReady()) {
-      _state = DialogPlayerState::WaitingForChoice;
+      m_state = DialogPlayerState::WaitingForChoice;
       return;
     }
     run(pCurrentStatement);
-    count = _pLabel ? static_cast<int>(_pLabel->statements.size()) : 0;
-    if(_state != DialogPlayerState::WaitingEndAnimation) {
-      _currentStatement++;
+    count = m_pLabel ? static_cast<int>(m_pLabel->statements.size()) : 0;
+    if(m_state != DialogPlayerState::WaitingEndAnimation) {
+      m_currentStatement++;
     }
   }
   if (choicesReady()) {
-    _state = DialogPlayerState::WaitingForChoice;
+    m_state = DialogPlayerState::WaitingForChoice;
     return;
   }
-  if(_state == DialogPlayerState::Running) {
+  if(m_state == DialogPlayerState::Running) {
     gotoNextLabel();
   }
 }
 
 void DialogPlayer::resetState() {
-  _parrot = true;
-  _limit = 6;
-  _overrideLabel.clear();
-  _states.erase(std::remove_if(_states.begin(), _states.end(), [](const auto &state) {
+  m_parrot = true;
+  m_limit = 6;
+  m_overrideLabel.clear();
+  m_states.erase(std::remove_if(m_states.begin(), m_states.end(), [](const auto &state) {
     return state.mode == DialogConditionMode::TempOnce;
-  }), _states.end());
+  }), m_states.end());
 }
 
 void DialogPlayer::selectLabel(const std::string &name) {
   trace("select label {}", name);
-  auto it = std::find_if(_pCompilationUnit->labels.rbegin(),
-                         _pCompilationUnit->labels.rend(),
+  auto it = std::find_if(m_pCompilationUnit->labels.rbegin(),
+                         m_pCompilationUnit->labels.rend(),
                          [&name](const std::unique_ptr<Ast::Label> &label) {
                            return label->name == name;
                          });
-  _pLabel = it != _pCompilationUnit->labels.rend() ? it->get() : nullptr;
-  _currentStatement = 0;
+  m_pLabel = it != m_pCompilationUnit->labels.rend() ? it->get() : nullptr;
+  m_currentStatement = 0;
   clearChoices();
-  if (_pLabel) {
-    _state = DialogPlayerState::Start;
+  if (m_pLabel) {
+    m_state = DialogPlayerState::Start;
     update();
     return;
   }
-  _state = DialogPlayerState::None;
+  m_state = DialogPlayerState::None;
 }
 
 void DialogPlayer::endDialog() {
-  _state = DialogPlayerState::None;
-  _pLabel = nullptr;
+  m_state = DialogPlayerState::None;
+  m_pLabel = nullptr;
 }
 
 bool DialogPlayer::gotoNextLabel() {
-  if (!_pCompilationUnit) {
+  if (!m_pCompilationUnit) {
     endDialog();
     return false;
   }
-  if (!_pLabel) {
+  if (!m_pLabel) {
     endDialog();
     return false;
   }
   auto it =
-      std::find_if(_pCompilationUnit->labels.cbegin(), _pCompilationUnit->labels.cend(), [this](const auto &pLabel) {
-        return pLabel.get() == _pLabel;
+      std::find_if(m_pCompilationUnit->labels.cbegin(), m_pCompilationUnit->labels.cend(), [this](const auto &pLabel) {
+        return pLabel.get() == m_pLabel;
       });
-  if (it == _pCompilationUnit->labels.cend()) {
+  if (it == m_pCompilationUnit->labels.cend()) {
     endDialog();
     return false;
   }
   it++;
-  if (it == _pCompilationUnit->labels.cend()) {
+  if (it == m_pCompilationUnit->labels.cend()) {
     endDialog();
     return false;
   }
@@ -256,32 +256,32 @@ void DialogPlayer::run(Ast::Statement *pStatement) {
     return;
   ExpressionVisitor visitor(*this);
   pStatement->expression->accept(visitor);
-  _pWaitAction = visitor.getWaitAction();
-  if (_pWaitAction) {
-    _state = DialogPlayerState::WaitingEndAnimation;
+  m_pWaitAction = visitor.getWaitAction();
+  if (m_pWaitAction) {
+    m_state = DialogPlayerState::WaitingEndAnimation;
   }
 }
 
 void DialogPlayer::addChoice(const Ast::Statement *pStatement, const Ast::Choice *pChoice) {
-  if (_choices[pChoice->number - 1])
+  if (m_choices[pChoice->number - 1])
     return;
   int count = 0;
-  for (auto &_choice : _choices) {
+  for (auto &_choice : m_choices) {
     if(_choice) count++;
   }
-  if(count >= _limit) return;
+  if(count >= m_limit) return;
   trace("Add choice {}", pChoice->text);
-  _choices[pChoice->number - 1] = pStatement;
+  m_choices[pChoice->number - 1] = pStatement;
 }
 
 void DialogPlayer::clearChoices() {
-  for (auto &_choice : _choices) {
+  for (auto &_choice : m_choices) {
     _choice = nullptr;
   }
 }
 
 bool DialogPlayer::choicesReady() const {
-  return std::any_of(_choices.cbegin(), _choices.cend(), [](const auto &pStatement) {
+  return std::any_of(m_choices.cbegin(), m_choices.cend(), [](const auto &pStatement) {
     return pStatement != nullptr;
   });
 }
@@ -299,20 +299,20 @@ bool DialogPlayer::acceptConditions(const Ast::Statement *pStatement) {
     cond->accept(stateVisitor);
     auto state = stateVisitor.getState();
     if (state.has_value()) {
-      _states.push_back(state.value());
+      m_states.push_back(state.value());
     }
   }
 
   return true;
 }
 
-void DialogPlayer::allowObjects(bool allow) { _allowObjects = allow; }
-void DialogPlayer::dialog(const std::string &actor) { _actor = actor; }
+void DialogPlayer::allowObjects(bool allow) { m_allowObjects = allow; }
+void DialogPlayer::dialog(const std::string &actor) { m_actor = actor; }
 void DialogPlayer::execute(const std::string &code) { _script.execute(code); }
 void DialogPlayer::gotoLabel(const std::string &label) { selectLabel(label); }
-void DialogPlayer::limit(int max) { _limit = max; }
-void DialogPlayer::override(const std::string &label) { _overrideLabel = label; }
-void DialogPlayer::parrot(bool enabled) { _parrot = enabled; }
+void DialogPlayer::limit(int max) { m_limit = max; }
+void DialogPlayer::override(const std::string &label) { m_overrideLabel = label; }
+void DialogPlayer::parrot(bool enabled) { m_parrot = enabled; }
 std::function<bool()> DialogPlayer::pause(ngf::TimeSpan seconds) { return _script.pause(seconds); }
 std::function<bool()> DialogPlayer::say(const std::string &actor, const std::string &text) {
   return _script.say(actor, text);
@@ -323,49 +323,49 @@ std::function<bool()> DialogPlayer::waitWhile(const std::string &condition) { re
 
 bool DialogPlayer::isOnce(int32_t line) const {
   auto it =
-      std::find_if(_states.cbegin(), _states.cend(),
+      std::find_if(m_states.cbegin(), m_states.cend(),
                    [this, line](const auto &state) {
                      return state.mode == DialogConditionMode::Once &&
-                         state.actorKey == _actor &&
-                         state.dialog == _dialogName &&
+                         state.actorKey == m_actor &&
+                         state.dialog == m_dialogName &&
                          state.line == line;
                    });
-  return it == _states.cend();
+  return it == m_states.cend();
 }
 
 bool DialogPlayer::isShowOnce(int32_t line) const {
   auto it =
-      std::find_if(_states.cbegin(), _states.cend(),
+      std::find_if(m_states.cbegin(), m_states.cend(),
                    [this, line](const auto &state) {
                      return state.mode == DialogConditionMode::ShowOnce &&
-                         state.actorKey == _actor &&
-                         state.dialog == _dialogName &&
+                         state.actorKey == m_actor &&
+                         state.dialog == m_dialogName &&
                          state.line == line;
                    });
-  return it == _states.cend();
+  return it == m_states.cend();
 }
 
 bool DialogPlayer::isOnceEver(int32_t line) const {
   auto it =
-      std::find_if(_states.cbegin(), _states.cend(),
+      std::find_if(m_states.cbegin(), m_states.cend(),
                    [this, line](const auto &state) {
                      return state.mode == DialogConditionMode::OnceEver &&
-                         state.dialog == _dialogName &&
+                         state.dialog == m_dialogName &&
                          state.line == line;
                    });
-  return it == _states.cend();
+  return it == m_states.cend();
 }
 
 bool DialogPlayer::isTempOnce(int32_t line) const {
   auto it =
-      std::find_if(_states.cbegin(), _states.cend(),
+      std::find_if(m_states.cbegin(), m_states.cend(),
                    [this, line](const auto &state) {
                      return state.mode == DialogConditionMode::TempOnce &&
-                         state.actorKey == _actor &&
-                         state.dialog == _dialogName &&
+                         state.actorKey == m_actor &&
+                         state.dialog == m_dialogName &&
                          state.line == line;
                    });
-  return it == _states.cend();
+  return it == m_states.cend();
 }
 
 bool DialogPlayer::executeCondition(const std::string &condition) const { return _script.executeCondition(condition); }

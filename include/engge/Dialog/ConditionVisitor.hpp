@@ -8,7 +8,7 @@ class DialogConditionAbstract;
 class ConditionVisitor final : public Ast::AstVisitor {
 public:
   explicit ConditionVisitor(const DialogConditionAbstract &context);
-  [[nodiscard]] bool isAccepted() const { return _isAccepted; }
+  [[nodiscard]] bool isAccepted() const { return m_isAccepted; }
 
 private:
   void visit(const Ast::CodeCondition &node) override;
@@ -18,7 +18,7 @@ private:
   void visit(const Ast::TempOnceCondition &node) override;
 
 private:
-  const DialogConditionAbstract &_context;
-  bool _isAccepted{true};
+  const DialogConditionAbstract &m_context;
+  bool m_isAccepted{true};
 };
 }

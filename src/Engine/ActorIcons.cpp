@@ -19,81 +19,81 @@ static const float enableAlpha = 1.0f;
 
 ActorIcons::ActorIcons(std::array<ActorIconSlot, 6> &actorsIconSlots, Hud &hud,
                        Actor *&pCurrentActor)
-    : _actorsIconSlots(actorsIconSlots), _hud(hud), _pCurrentActor(pCurrentActor) {
+    : m_actorsIconSlots(actorsIconSlots), m_hud(hud), m_pCurrentActor(pCurrentActor) {
 }
 
 void ActorIcons::setEngine(Engine *pEngine) {
-  _pEngine = pEngine;
+  m_pEngine = pEngine;
 }
 
-void ActorIcons::setMousePosition(const glm::vec2 &pos) { _mousePos = pos; }
+void ActorIcons::setMousePosition(const glm::vec2 &pos) { m_mousePos = pos; }
 
 void ActorIcons::update(const ngf::TimeSpan &elapsed) {
-  if (_on) {
-    _time += elapsed;
-    _alpha = (160.f + 96.f * sinf(M_PI * 4 * _time.getTotalSeconds())) / 255.f;
+  if (m_on) {
+    m_time += elapsed;
+    m_alpha = (160.f + 96.f * sinf(M_PI * 4 * m_time.getTotalSeconds())) / 255.f;
 
-    if (_time > ngf::TimeSpan::seconds(40)) {
+    if (m_time > ngf::TimeSpan::seconds(40)) {
       flash(false);
     }
   }
   ngf::frect iconRect = ngf::frect::fromPositionSize({Screen::Width - iconSize.x - rightMargin, topMargin},
                                                      {iconSize.x, iconSize.y
-                                                         + (_isInside ? getIconsNum() * (iconSize.y + iconsMargin)
-                                                                      : 0.f)});
-  bool wasInside = _isInside;
-  _isInside = iconRect.contains(_mousePos);
-  if (wasInside != _isInside) {
-    _clock.restart();
-    if (_isInside) {
+                                                         + (m_isInside ? getIconsNum() * (iconSize.y + iconsMargin)
+                                                                       : 0.f)});
+  bool wasInside = m_isInside;
+  m_isInside = iconRect.contains(m_mousePos);
+  if (wasInside != m_isInside) {
+    m_clock.restart();
+    if (m_isInside) {
       flash(false);
     }
   }
-  _position = _clock.getElapsedTime().getTotalSeconds() / ngf::TimeSpan::milliseconds(250).getTotalSeconds();
-  if (_position > 1) {
-    _position = 1;
+  m_position = m_clock.getElapsedTime().getTotalSeconds() / ngf::TimeSpan::milliseconds(250).getTotalSeconds();
+  if (m_position > 1) {
+    m_position = 1;
   }
 
-  if (_isInside && !_isMouseButtonPressed && ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left)) {
-    _isMouseButtonPressed = true;
+  if (m_isInside && !m_isMouseButtonPressed && ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left)) {
+    m_isMouseButtonPressed = true;
     return;
   }
 
-  auto isEnabled = ((_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
-      && ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
-  if (_isMouseButtonPressed && !ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left)) {
-    _isMouseButtonPressed = false;
+  auto isEnabled = ((m_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
+      && ((m_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
+  if (m_isMouseButtonPressed && !ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left)) {
+    m_isMouseButtonPressed = false;
     iconRect =
         ngf::frect::fromPositionSize({Screen::Width - iconSize.x - rightMargin, topMargin + iconsMargin + iconSize.y},
                                      {iconSize.x, iconSize.y});
-    for (auto selectableActor : _actorsIconSlots) {
-      if (!isSelectable(selectableActor) || selectableActor.pActor == _pCurrentActor)
+    for (auto selectableActor : m_actorsIconSlots) {
+      if (!isSelectable(selectableActor) || selectableActor.pActor == m_pCurrentActor)
         continue;
 
-      if (isEnabled && iconRect.contains(_mousePos)) {
-        _pEngine->setCurrentActor(selectableActor.pActor, true);
+      if (isEnabled && iconRect.contains(m_mousePos)) {
+        m_pEngine->setCurrentActor(selectableActor.pActor, true);
         return;
       }
       iconRect.min.y += iconsMargin + iconSize.y;
       iconRect.max.y += iconsMargin + iconSize.y;
     }
-    if (iconRect.contains(_mousePos)) {
-      _pEngine->showOptions(true);
+    if (iconRect.contains(m_mousePos)) {
+      m_pEngine->showOptions(true);
       return;
     }
   }
 }
 
 float ActorIcons::getOffsetY(int num) const {
-  if (_isInside)
-    return (topMargin + (iconSize.y / 2.f) + (iconSize.y + iconsMargin) * num) * _position;
+  if (m_isInside)
+    return (topMargin + (iconSize.y / 2.f) + (iconSize.y + iconsMargin) * num) * m_position;
   return topMargin + (iconSize.y / 2.f) + (iconSize.y + iconsMargin) * num;
 }
 
 int ActorIcons::getIconsNum() const {
   int numIcons = 1;
-  for (auto selectableActor : _actorsIconSlots) {
-    if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == _pCurrentActor)
+  for (auto selectableActor : m_actorsIconSlots) {
+    if (!selectableActor.selectable || !selectableActor.pActor || selectableActor.pActor == m_pCurrentActor)
       continue;
 
     numIcons++;
@@ -102,12 +102,12 @@ int ActorIcons::getIconsNum() const {
 }
 
 void ActorIcons::flash(bool on) {
-  _time = ngf::TimeSpan::seconds(0);
-  _alpha = disableAlpha;
-  _on = on;
+  m_time = ngf::TimeSpan::seconds(0);
+  m_alpha = disableAlpha;
+  m_on = on;
 }
 
-void ActorIcons::setMode(ActorSlotSelectableMode mode) { _mode = mode; }
+void ActorIcons::setMode(ActorSlotSelectableMode mode) { m_mode = mode; }
 
 bool ActorIcons::isSelectable(const ActorIconSlot &slot) {
   if (!slot.selectable)
@@ -122,7 +122,7 @@ bool ActorIcons::isSelectable(const ActorIconSlot &slot) {
 }
 
 void ActorIcons::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
-  if ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) == ActorSlotSelectableMode::TemporaryUnselectable)
+  if ((m_mode & ActorSlotSelectableMode::TemporaryUnselectable) == ActorSlotSelectableMode::TemporaryUnselectable)
     return;
 
   auto currentActorIndex = getCurrentActorIndex();
@@ -133,29 +133,29 @@ void ActorIcons::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   float alpha;
-  auto isEnabled = ((_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
-      && ((_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
+  auto isEnabled = ((m_mode & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On)
+      && ((m_mode & ActorSlotSelectableMode::TemporaryUnselectable) != ActorSlotSelectableMode::TemporaryUnselectable);
   if (isEnabled) {
-    alpha = _isInside ? enableAlpha : _alpha;
+    alpha = m_isInside ? enableAlpha : m_alpha;
   } else {
     alpha = disableAlpha;
   }
 
-  const auto &icon = _actorsIconSlots.at(currentActorIndex).pActor->getIcon();
+  const auto &icon = m_actorsIconSlots.at(currentActorIndex).pActor->getIcon();
 
   int numIcons = 0;
   glm::vec2 offset(Screen::Width - (iconSize.x / 2.f) - rightMargin, getOffsetY(numIcons));
   drawActorIcon(target, icon, currentActorIndex, offset, alpha);
   numIcons++;
 
-  if (!_isInside) {
+  if (!m_isInside) {
     target.setView(view);
     return;
   }
 
-  for (size_t i = 0; i < _actorsIconSlots.size(); i++) {
-    const auto &selectableActor = _actorsIconSlots.at(i);
-    if (!isSelectable(selectableActor) || selectableActor.pActor == _pCurrentActor)
+  for (size_t i = 0; i < m_actorsIconSlots.size(); i++) {
+    const auto &selectableActor = m_actorsIconSlots.at(i);
+    if (!isSelectable(selectableActor) || selectableActor.pActor == m_pCurrentActor)
       continue;
 
     offset.y = getOffsetY(numIcons);
@@ -172,7 +172,7 @@ void ActorIcons::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
 
 void ActorIcons::drawActorIcon(ngf::RenderTarget &target, const std::string &icon, int actorSlot,
                                const glm::vec2 &offset, float alpha) const {
-  const auto &colors = _hud.getVerbUiColors(actorSlot);
+  const auto &colors = m_hud.getVerbUiColors(actorSlot);
   drawActorIcon(target, icon, colors.inventoryBackground, colors.inventoryFrame, offset, alpha);
 }
 
@@ -229,9 +229,9 @@ void ActorIcons::drawActorIcon(ngf::RenderTarget &target, const std::string &ico
 }
 
 int ActorIcons::getCurrentActorIndex() const {
-  for (size_t i = 0; i < _actorsIconSlots.size(); i++) {
-    const auto &selectableActor = _actorsIconSlots.at(i);
-    if (selectableActor.pActor == _pCurrentActor) {
+  for (size_t i = 0; i < m_actorsIconSlots.size(); i++) {
+    const auto &selectableActor = m_actorsIconSlots.at(i);
+    if (selectableActor.pActor == m_pCurrentActor) {
       return i;
     }
   }

@@ -47,9 +47,9 @@ public:
     using iterator_category = std::forward_iterator_tag;
 
   private:
-    YackTokenReader &_reader;
-    std::streampos _pos;
-    Token _token;
+    YackTokenReader &m_reader;
+    std::streampos m_pos;
+    Token m_token;
 
   public:
     Iterator(YackTokenReader &reader, std::streampos pos);
@@ -57,8 +57,8 @@ public:
     Iterator &operator++();
     Iterator operator++(int);
 
-    bool operator==(const Iterator &rhs) const { return _pos == rhs._pos; }
-    bool operator!=(const Iterator &rhs) const { return _pos != rhs._pos; }
+    bool operator==(const Iterator &rhs) const { return m_pos == rhs.m_pos; }
+    bool operator!=(const Iterator &rhs) const { return m_pos != rhs.m_pos; }
     Token &operator*();
     const Token &operator*() const;
     Token *operator->();
@@ -88,8 +88,8 @@ private:
   TokenId readIdentifier(char c);
 
 private:
-  GGPackBufferStream _stream;
-  std::map<int, int> _lines;
-  int _offset;
+  GGPackBufferStream m_stream;
+  std::map<int, int> m_lines;
+  int m_offset;
 };
 } // namespace ng

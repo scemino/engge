@@ -2,14 +2,14 @@
 #include <ngf/Graphics/Drawable.h>
 
 namespace ng {
-class OptionsDialog : public ngf::Drawable {
+class OptionsDialog final : public ngf::Drawable {
 public:
-  typedef std::function<void()> Callback;
+  using Callback = std::function<void()>;
 
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 public:
   OptionsDialog();
-  ~OptionsDialog() override;
+  ~OptionsDialog() final;
 
   void setCallback(Callback callback);
   void setSaveEnabled(bool enabled);
@@ -20,6 +20,6 @@ public:
 
 private:
   struct Impl;
-  std::unique_ptr<Impl> _pImpl;
+  std::unique_ptr<Impl> m_pImpl;
 };
 }

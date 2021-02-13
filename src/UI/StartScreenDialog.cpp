@@ -164,26 +164,26 @@ struct StartScreenDialog::Impl {
 };
 
 StartScreenDialog::StartScreenDialog()
-    : _pImpl(std::make_unique<Impl>()) {
+    : m_pImpl(std::make_unique<Impl>()) {
 }
 
 StartScreenDialog::~StartScreenDialog() = default;
 
-void StartScreenDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
+void StartScreenDialog::setEngine(Engine *pEngine) { m_pImpl->setEngine(pEngine); }
 
 void StartScreenDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  _pImpl->draw(target, states);
+  m_pImpl->draw(target, states);
 }
 
 void StartScreenDialog::update(const ngf::TimeSpan &elapsed) {
-  _pImpl->update(elapsed);
+  m_pImpl->update(elapsed);
 }
 
 void StartScreenDialog::setNewGameCallback(Callback callback) {
-  _pImpl->_newGameCallback = std::move(callback);
+  m_pImpl->_newGameCallback = std::move(callback);
 }
 
 void StartScreenDialog::setSlotCallback(SaveLoadDialog::SlotCallback callback) {
-  _pImpl->_saveload.setSlotCallback(std::move(callback));
+  m_pImpl->_saveload.setSlotCallback(std::move(callback));
 }
 }

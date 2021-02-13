@@ -29,7 +29,7 @@ void EngineSettings::loadPacks() {
       auto pack = std::make_unique<ngf::GGPack>();
       info("Opening pack '{}'...", entry.path().string());
       pack->open(entry.path().string());
-      _packs.push_back(std::move(pack));
+      m_packs.push_back(std::move(pack));
     }
   }
 }
@@ -41,10 +41,10 @@ bool EngineSettings::hasEntry(const std::string &name) {
     is.close();
     return true;
   }
-  auto it = std::find_if(_packs.cbegin(), _packs.cend(), [&name](const auto &pack) {
+  auto it = std::find_if(m_packs.cbegin(), m_packs.cend(), [&name](const auto &pack) {
     return pack->contains(name);
   });
-  return it != _packs.end();
+  return it != m_packs.end();
 }
 
 std::vector<char> EngineSettings::readBuffer(const std::string &name) const {
@@ -63,10 +63,10 @@ std::vector<char> EngineSettings::readBuffer(const std::string &name) const {
   }
 
   // not found in filesystem, check in the pack files
-  auto it = std::find_if(_packs.cbegin(), _packs.cend(), [&name](const auto &pack) {
+  auto it = std::find_if(m_packs.cbegin(), m_packs.cend(), [&name](const auto &pack) {
     return pack->contains(name);
   });
-  if (it != _packs.end()) {
+  if (it != m_packs.end()) {
     return it->get()->readEntry(name);
   }
   throwEntryNotFound(name);
@@ -74,10 +74,10 @@ std::vector<char> EngineSettings::readBuffer(const std::string &name) const {
 }
 
 ngf::GGPackValue EngineSettings::readEntry(const std::string &name) const {
-  auto it = std::find_if(_packs.cbegin(), _packs.cend(), [&name](const auto &pack) {
+  auto it = std::find_if(m_packs.cbegin(), m_packs.cend(), [&name](const auto &pack) {
     return pack->contains(name);
   });
-  if (it != _packs.end()) {
+  if (it != m_packs.end()) {
     return it->get()->readHashEntry(name);
   }
   throwEntryNotFound(name);

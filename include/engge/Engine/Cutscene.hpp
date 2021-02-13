@@ -7,18 +7,7 @@ namespace ng {
 class Actor;
 class Engine;
 class Room;
-class Cutscene : public ThreadBase, public Function {
-private:
-  Engine &_engine;
-  HSQUIRRELVM _v{};
-  HSQOBJECT _threadCutscene{};
-  int _state{0};
-  HSQOBJECT _closureObj{};
-  HSQOBJECT _closureCutsceneOverrideObj{};
-  HSQOBJECT _envObj{};
-  int _inputState{0};
-  bool _hasCutsceneOverride{false};
-
+class Cutscene final : public ThreadBase, public Function {
 public:
   Cutscene(Engine &engine,
            HSQUIRRELVM v,
@@ -26,18 +15,18 @@ public:
            HSQOBJECT closureObj,
            HSQOBJECT closureCutsceneOverrideObj,
            HSQOBJECT envObj);
-  ~Cutscene() override;
+  ~Cutscene() final;
 
-  [[nodiscard]] HSQUIRRELVM getThread() const override;
-  [[nodiscard]] std::string getName() const override;
-  [[nodiscard]] bool isGlobal() const override { return true; }
-  [[nodiscard]] bool isStopped() const override;
+  [[nodiscard]] HSQUIRRELVM getThread() const final;
+  [[nodiscard]] std::string getName() const final;
+  [[nodiscard]] bool isGlobal() const final { return true; }
+  [[nodiscard]] bool isStopped() const final;
 
 public:
-  bool isElapsed() override;
-  void operator()(const ngf::TimeSpan &elapsed) override;
+  bool isElapsed() final;
+  void operator()(const ngf::TimeSpan &elapsed) final;
   void cutsceneOverride();
-  [[nodiscard]] bool hasCutsceneOverride() const { return _hasCutsceneOverride; }
+  [[nodiscard]] bool hasCutsceneOverride() const { return m_hasCutsceneOverride; }
 
 private:
   void startCutscene();
@@ -45,5 +34,16 @@ private:
   void doCutsceneOverride();
   void checkEndCutsceneOverride();
   void endCutscene();
+
+private:
+  Engine &m_engine;
+  HSQUIRRELVM m_v{};
+  HSQOBJECT m_threadCutscene{};
+  int m_state{0};
+  HSQOBJECT m_closureObj{};
+  HSQOBJECT m_closureCutsceneOverrideObj{};
+  HSQOBJECT m_envObj{};
+  int m_inputState{0};
+  bool m_hasCutsceneOverride{false};
 };
 } // namespace ng

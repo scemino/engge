@@ -18,11 +18,11 @@ public:
 
   void clear();
   void load(const std::string &path);
-  [[nodiscard]] std::vector<NGLipData> getData() const { return _data; }
-  [[nodiscard]] std::string getPath() const { return _path; }
+  [[nodiscard]] std::vector<NGLipData> getData() const { return m_data; }
+  [[nodiscard]] std::string getPath() const { return m_path; }
 
 private:
-  std::string _path;
-  std::vector<NGLipData> _data;
+  std::string m_path;
+  std::vector<NGLipData> m_data;
 };
 } // namespace ng

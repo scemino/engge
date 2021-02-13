@@ -6,10 +6,10 @@
 #include "engge/Scripting/ScriptObject.hpp"
 
 namespace ng {
-class Light : public ScriptObject {
+class Light final : public ScriptObject {
 public:
   Light();
-  ~Light() override;
+  ~Light() final;
 
 public:
   HSQOBJECT table{};

@@ -8,7 +8,7 @@ namespace ng {
 TextDatabase::TextDatabase() = default;
 
 void TextDatabase::load(const std::string &path) {
-  _texts.clear();
+  m_texts.clear();
   std::wregex re(L"^(\\d+)\\s+(.*)$");
   auto buffer = Locator<EngineSettings>::get().readBuffer(path);
   GGPackBufferStream input(buffer);
@@ -21,13 +21,13 @@ void TextDatabase::load(const std::string &path) {
     wchar_t *end;
     auto num = std::wcstoul(matches[1].str().c_str(), &end, 10);
     auto text = matches[2].str();
-    _texts.insert(std::make_pair(num, text));
+    m_texts.insert(std::make_pair(num, text));
   }
 }
 
 std::wstring TextDatabase::getText(int id) const {
-  const auto it = _texts.find(id);
-  if (it == _texts.end()) {
+  const auto it = m_texts.find(id);
+  if (it == m_texts.end()) {
     error("Text ID {} doest not exist", id);
     return L"";
   }
