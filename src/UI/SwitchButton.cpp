@@ -52,4 +52,9 @@ void SwitchButton::onStateChanged() {
   }
   m_text.setColor(color);
 }
+
+void SwitchButton::update(const ngf::TimeSpan &elapsed, glm::vec2 pos) {
+  Control::update(elapsed, pos);
+  m_text.getTransform().setPosition(m_shakeOffset + glm::vec2{Screen::Width / 2.f, m_y});
+}
 }

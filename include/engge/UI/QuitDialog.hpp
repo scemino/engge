@@ -17,7 +17,7 @@ public:
 
 private:
   struct Impl;
-  std::unique_ptr<Impl> _pImpl;
+  std::unique_ptr<Impl> m_pImpl;
 };
 
 }

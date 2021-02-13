@@ -155,7 +155,7 @@ struct StartScreenDialog::Impl {
                                                                                      {Screen::Width,
                                                                                       Screen::Height})));
       for (auto &button : _buttons) {
-        button.update(pos);
+        button.update(elapsed, pos);
       }
       break;
     }

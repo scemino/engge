@@ -78,4 +78,10 @@ void Checkbox::onStateChanged() {
 void Checkbox::onClick() {
   setChecked(!m_isChecked);
 }
+
+void Checkbox::update(const ngf::TimeSpan &elapsed, glm::vec2 pos) {
+  Control::update(elapsed, pos);
+  m_sprite.getTransform().setPosition(m_shakeOffset + glm::vec2{820.f, m_y});
+  m_text.getTransform().setPosition(m_shakeOffset + glm::vec2{420.f, m_y});
+}
 }

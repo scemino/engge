@@ -17,6 +17,7 @@ public:
   void setSpriteSheet(SpriteSheet *pSpriteSheet);
   void setChecked(bool checked);
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void update(const ngf::TimeSpan &elapsed, glm::vec2 pos) final;
 
 private:
   bool contains(glm::vec2 pos) const final;

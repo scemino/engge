@@ -16,7 +16,7 @@ void Slider::setSpriteSheet(SpriteSheet *pSpriteSheet) {
   m_text.setFont(uiFontMedium);
   m_text.setWideString(Engine::getText(m_id));
   auto textRect = m_text.getLocalBounds();
-  m_text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
+  m_text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight()});
   m_text.getTransform().setPosition({Screen::Width / 2.f, m_y});
 
   auto sliderRect = pSpriteSheet->getRect("slider");
@@ -43,8 +43,8 @@ bool Slider::contains(glm::vec2 pos) const {
   return textRect.contains(pos);
 }
 
-void Slider::update(glm::vec2 pos) {
-  Control::update(pos);
+void Slider::update(const ngf::TimeSpan &elapsed, glm::vec2 pos) {
+  Control::update(elapsed, pos);
 
   auto textRect = ng::getGlobalBounds(m_sprite);
   bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
@@ -76,7 +76,11 @@ void Slider::update(glm::vec2 pos) {
         m_onValueChanged.value()(value);
       }
     }
-    m_spriteHandle.getTransform().setPosition({x, m_spriteHandle.getTransform().getPosition().y});
+    m_spriteHandle.getTransform().setPosition({x, m_y});
+  } else if (m_state == ControlState::Hover) {
+    m_text.getTransform().setPosition(m_shakeOffset + glm::vec2{Screen::Width / 2.f, m_y});
+    m_sprite.getTransform().setPosition(m_shakeOffset + glm::vec2{Screen::Width / 2.f, m_y});
+    m_spriteHandle.getTransform().setPosition(m_shakeOffset + glm::vec2{m_min + m_value * (m_max - m_min), m_y});
   }
 }
 

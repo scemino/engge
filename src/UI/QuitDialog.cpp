@@ -14,7 +14,7 @@
 namespace ng {
 class BackButton final : public Control {
 public:
-  typedef std::function<void()> Callback;
+  using Callback = std::function<void()>;
 
 public:
   BackButton(int id, bool value, Callback callback, bool enabled = true)
@@ -31,12 +31,11 @@ public:
   }
 
   void onEngineSet() final {
-    auto &uiFontLarge = m_pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
-    m_text.setFont(uiFontLarge);
+    m_text.setFont(m_pEngine->getResourceManager().getFntFont("UIFontLarge.fnt"));
     m_text.setWideString(Engine::getText(m_id));
     auto textRect = m_text.getLocalBounds();
     auto originX = m_value ? textRect.getWidth() : 0;
-    auto x = m_value ? -40.f : 40.f;
+    auto x = m_value ? -60.f : 60.f;
     m_text.getTransform().setOrigin({originX, textRect.getHeight() / 2.f});
     m_text.getTransform().setPosition({Screen::Width / 2.0f + x, 400.f});
   }
@@ -60,6 +59,12 @@ public:
     }
   }
 
+  void update(const ngf::TimeSpan &elapsed, glm::vec2 pos) final {
+    Control::update(elapsed, pos);
+    auto x = m_value ? -60.f : 60.f;
+    m_text.getTransform().setPosition(m_shakeOffset + glm::vec2{Screen::Width / 2.0f + x, 400.f});
+  }
+
 private:
   int m_id{0};
   bool m_value{false};
@@ -74,49 +79,48 @@ struct QuitDialog::Impl {
     static constexpr int QuitText = 99909;
   };
 
-  Engine *_pEngine{nullptr};
-  SpriteSheet _saveLoadSheet;
-  ng::Text _headingText;
-  std::vector<BackButton> _buttons;
-  Callback _callback{nullptr};
+  Engine *m_pEngine{nullptr};
+  SpriteSheet m_saveLoadSheet;
+  ng::Text m_headingText;
+  std::vector<BackButton> m_buttons;
+  Callback m_callback{nullptr};
 
   void setHeading(int id) {
-    _headingText.setWideString(Engine::getText(id));
-    auto textRect = _headingText.getLocalBounds();
-    _headingText.getTransform().setPosition({(Screen::Width - textRect.getWidth()) / 2.f, 260.f});
+    m_headingText.setWideString(Engine::getText(id));
+    auto textRect = m_headingText.getLocalBounds();
+    m_headingText.getTransform().setPosition({(Screen::Width - textRect.getWidth()) / 2.f, 260.f});
   }
 
   void updateState() {
-    _buttons.clear();
+    m_buttons.clear();
 
     setHeading(Ids::QuitText);
 
-    _buttons.emplace_back(Ids::Yes, true, [this]() {
-      if (_callback)
-        _callback(true);
+    m_buttons.emplace_back(Ids::Yes, true, [this]() {
+      if (m_callback)
+        m_callback(true);
     });
-    _buttons.emplace_back(Ids::No, false, [this]() {
-      if (_callback)
-        _callback(false);
+    m_buttons.emplace_back(Ids::No, false, [this]() {
+      if (m_callback)
+        m_callback(false);
     });
 
-    for (auto &button : _buttons) {
-      button.setEngine(_pEngine);
+    for (auto &button : m_buttons) {
+      button.setEngine(m_pEngine);
     }
   }
 
   void setEngine(Engine *pEngine) {
-    _pEngine = pEngine;
+    m_pEngine = pEngine;
     if (!pEngine)
       return;
 
-    ResourceManager &tm = pEngine->getResourceManager();
-    _saveLoadSheet.setTextureManager(&tm);
-    _saveLoadSheet.load("SaveLoadSheet");
+    m_saveLoadSheet.setTextureManager(&pEngine->getResourceManager());
+    m_saveLoadSheet.load("SaveLoadSheet");
 
-    auto &headingFont = _pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
-    _headingText.setFont(headingFont);
-    _headingText.setColor(ngf::Colors::White);
+    auto &headingFont = m_pEngine->getResourceManager().getFntFont("UIFontMedium.fnt");
+    m_headingText.setFont(headingFont);
+    m_headingText.setColor(ngf::Colors::White);
 
     updateState();
   }
@@ -134,10 +138,10 @@ struct QuitDialog::Impl {
 
     // draw background
     auto viewCenter = glm::vec2(viewRect.getWidth() / 2, viewRect.getHeight() / 2);
-    auto rect = _saveLoadSheet.getRect("error_dialog_small");
+    auto rect = m_saveLoadSheet.getRect("error_dialog_small");
     ngf::Sprite sprite;
     sprite.getTransform().setPosition(viewCenter);
-    sprite.setTexture(*_saveLoadSheet.getTexture());
+    sprite.setTexture(*m_saveLoadSheet.getTexture());
     sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2),
                                      static_cast<float>(rect.getHeight() / 2)});
     sprite.setTextureRect(rect);
@@ -147,48 +151,47 @@ struct QuitDialog::Impl {
     target.setView(ngf::View(viewRect));
 
     // heading
-    _headingText.draw(target, {});
+    m_headingText.draw(target, {});
 
     // controls
-    for (auto &button : _buttons) {
+    for (auto &button : m_buttons) {
       button.draw(target, {});
     }
     target.setView(view);
   }
 
-  void update(const ngf::TimeSpan &) {
-    auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
-                                                                               ngf::View(ngf::frect::fromPositionSize({0,
-                                                                                                                       0},
-                                                                                                                      {Screen::Width,
-                                                                                                                       Screen::Height})));
-    for (auto &button : _buttons) {
-      button.update(pos);
+  void update(const ngf::TimeSpan &elapsed) {
+    auto pos = m_pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(
+        ngf::Mouse::getPosition(),
+        ngf::View(ngf::frect::fromPositionSize(
+            {0, 0}, {Screen::Width, Screen::Height})));
+    for (auto &button : m_buttons) {
+      button.update(elapsed, pos);
     }
   }
 };
 
 QuitDialog::QuitDialog()
-    : _pImpl(std::make_unique<Impl>()) {
+  : m_pImpl(std::make_unique<Impl>()) {
 }
 
 QuitDialog::~QuitDialog() = default;
 
-void QuitDialog::setEngine(Engine *pEngine) { _pImpl->setEngine(pEngine); }
+void QuitDialog::setEngine(Engine *pEngine) { m_pImpl->setEngine(pEngine); }
 
 void QuitDialog::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  _pImpl->draw(target, states);
+  m_pImpl->draw(target, states);
 }
 
 void QuitDialog::update(const ngf::TimeSpan &elapsed) {
-  _pImpl->update(elapsed);
+  m_pImpl->update(elapsed);
 }
 
 void QuitDialog::setCallback(Callback callback) {
-  _pImpl->_callback = std::move(callback);
+  m_pImpl->m_callback = std::move(callback);
 }
 
 void QuitDialog::updateLanguage() {
-  _pImpl->updateState();
+  m_pImpl->updateState();
 }
 }

@@ -18,7 +18,7 @@ class Engine;
 class Control : public ngf::Drawable {
 public:
   void setEngine(Engine *pEngine);
-  virtual void update(glm::vec2 pos);
+  virtual void update(const ngf::TimeSpan &elapsed, glm::vec2 pos);
 
 protected:
   explicit Control(bool enabled = true);
@@ -33,6 +33,11 @@ protected:
 protected:
   Engine *m_pEngine{nullptr};
   ControlState m_state{ControlState::None};
+  glm::vec2 m_shakeOffset{0, 0};
+
+private:
   bool m_wasMouseDown{false};
+  float m_shakeTime{0};
+  bool m_shake{false};
 };
 }

@@ -456,16 +456,16 @@ struct OptionsDialog::Impl {
                                                                                                                       {Screen::Width,
                                                                                                                        Screen::Height})));
     for (auto &button : _buttons) {
-      button.update(pos);
+      button.update(elapsed, pos);
     }
     for (auto &switchButton : _switchButtons) {
-      switchButton.update(pos);
+      switchButton.update(elapsed, pos);
     }
     for (auto &checkbox : _checkboxes) {
-      checkbox.update(pos);
+      checkbox.update(elapsed, pos);
     }
     for (auto &slider : _sliders) {
-      slider.update(pos);
+      slider.update(elapsed, pos);
     }
   }
 };

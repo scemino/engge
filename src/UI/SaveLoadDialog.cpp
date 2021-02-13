@@ -35,8 +35,7 @@ struct SaveLoadDialog::Impl {
     }
 
     void onEngineSet() final {
-      auto &uiFontLarge = m_pEngine->getResourceManager().getFntFont("UIFontLarge.fnt");
-      m_text.setFont(uiFontLarge);
+      m_text.setFont(m_pEngine->getResourceManager().getFntFont("UIFontLarge.fnt"));
       m_text.setWideString(Engine::getText(BackId));
       auto textRect = ng::getGlobalBounds(m_text);
       m_text.getTransform().setOrigin({textRect.getWidth() / 2.f, textRect.getHeight() / 2.f});
@@ -65,6 +64,11 @@ struct SaveLoadDialog::Impl {
         break;
       }
       m_text.setColor(color);
+    }
+
+    void update(const ngf::TimeSpan &elapsed, glm::vec2 pos) final {
+      Control::update(elapsed, pos);
+      m_text.getTransform().setPosition(m_shakeOffset + glm::vec2{Screen::Width / 2.0f, 660.f});
     }
 
   private:
@@ -185,54 +189,54 @@ struct SaveLoadDialog::Impl {
   inline static const int LoadGameId = 99910;
   inline static const int SaveGameId = 99911;
 
-  Engine *_pEngine{nullptr};
-  SpriteSheet _saveLoadSheet;
-  ng::Text _headingText;
-  SaveLoadDialog::Impl::BackButton _backButton;
-  Callback _callback{nullptr};
-  SlotCallback _slotCallback{nullptr};
-  std::array<Slot, 9> _slots;
-  bool _wasMouseDown{false};
-  bool _saveMode{false};
+  Engine *m_pEngine{nullptr};
+  SpriteSheet m_saveLoadSheet;
+  ng::Text m_headingText;
+  SaveLoadDialog::Impl::BackButton m_backButton;
+  Callback m_callback{nullptr};
+  SlotCallback m_slotCallback{nullptr};
+  std::array<Slot, 9> m_slots;
+  bool m_wasMouseDown{false};
+  bool m_saveMode{false};
 
   void setHeading(bool saveMode) {
-    _headingText.setWideString(Engine::getText(saveMode ? SaveGameId : LoadGameId));
-    auto textRect = _headingText.getLocalBounds();
-    _headingText.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
-    _headingText.getTransform().setPosition({Screen::Width / 2.f, 32.f});
+    m_headingText.setWideString(Engine::getText(saveMode ? SaveGameId : LoadGameId));
+    auto textRect = m_headingText.getLocalBounds();
+    m_headingText.getTransform().setOrigin({textRect.getWidth() / 2.f, 0});
+    m_headingText.getTransform().setPosition({Screen::Width / 2.f, 32.f});
   }
 
   void updateState() {
     std::vector<SavegameSlot> slots;
     ng::Engine::getSlotSavegames(slots);
 
-    for (int i = 0; i < static_cast<int>(_slots.size()); ++i) {
-      _slots[i].init(slots[i], _saveLoadSheet, *_pEngine);
+    for (int i = 0; i < static_cast<int>(m_slots.size()); ++i) {
+      m_slots[i].init(slots[i], m_saveLoadSheet, *m_pEngine);
     }
 
-    _wasMouseDown = false;
-    setHeading(_saveMode);
+    m_wasMouseDown = false;
+    setHeading(m_saveMode);
 
-    _backButton.setCallback([this]() {
-      if (_callback)
-        _callback();
+    m_backButton.setCallback([this]() {
+      if (m_callback)
+        m_callback();
     });
 
-    _backButton.setEngine(_pEngine);
+    m_backButton.setEngine(m_pEngine);
   }
 
   void setEngine(Engine *pEngine) {
-    _pEngine = pEngine;
+    m_pEngine = pEngine;
     if (!pEngine)
       return;
 
     ResourceManager &tm = pEngine->getResourceManager();
-    _saveLoadSheet.setTextureManager(&tm);
-    _saveLoadSheet.load("SaveLoadSheet");
+    m_saveLoadSheet.setTextureManager(&tm);
+    m_saveLoadSheet.load("SaveLoadSheet");
 
-    auto &headingFont = _pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
-    _headingText.setFont(headingFont);
-    _headingText.setColor(ngf::Colors::White);
+    auto &headingFont = m_pEngine->getResourceManager().getFntFont("HeadingFont.fnt");
+    m_headingText.setFont(headingFont);
+    m_headingText.setColor(ngf::Colors::White);
   }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates) {
@@ -248,10 +252,10 @@ struct SaveLoadDialog::Impl {
 
     // draw background
     auto viewCenter = glm::vec2(viewRect.getWidth() / 2, viewRect.getHeight() / 2);
-    auto rect = _saveLoadSheet.getRect("saveload");
+    auto rect = m_saveLoadSheet.getRect("saveload");
     ngf::Sprite sprite;
     sprite.getTransform().setPosition(viewCenter);
-    sprite.setTexture(*_saveLoadSheet.getTexture());
+    sprite.setTexture(*m_saveLoadSheet.getTexture());
     sprite.getTransform().setOrigin({static_cast<float>(rect.getWidth() / 2.f),
                                      static_cast<float>(rect.getHeight() / 2.f)});
     sprite.setTextureRect(rect);
@@ -261,46 +265,46 @@ struct SaveLoadDialog::Impl {
     target.setView(ngf::View(viewRect));
 
     // heading
-    _headingText.draw(target, {});
+    m_headingText.draw(target, {});
 
     // slots
-    for (auto &slot : _slots) {
+    for (auto &slot : m_slots) {
       slot.draw(target, {});
     }
 
     // back button
-    _backButton.draw(target, {});
+    m_backButton.draw(target, {});
 
     target.setView(view);
   }
 
-  void update(const ngf::TimeSpan &) {
-    auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
-                                                                               ngf::View(ngf::frect::fromPositionSize({0,
-                                                                                                                       0},
-                                                                                                                      {Screen::Width,
+  void update(const ngf::TimeSpan &elapsed) {
+    auto pos = m_pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
+                                                                                ngf::View(ngf::frect::fromPositionSize({0,
+                                                                                                                        0},
+                                                                                                                       {Screen::Width,
 
-                                                                                                                       Screen::Height})));
-    _backButton.update(pos);
-    for (auto &slot : _slots) {
-      slot.update(pos);
+                                                                                                                        Screen::Height})));
+    m_backButton.update(elapsed, pos);
+    for (auto &slot : m_slots) {
+      slot.update(elapsed, pos);
     }
 
     bool isDown = ngf::Mouse::isButtonPressed(ngf::Mouse::Button::Left);
     const ImGuiIO &io = ImGui::GetIO();
-    if (!io.WantCaptureMouse && _wasMouseDown && !isDown) {
+    if (!io.WantCaptureMouse && m_wasMouseDown && !isDown) {
       int i = 0;
-      for (const auto &slot : _slots) {
+      for (const auto &slot : m_slots) {
         if (slot.contains(pos)) {
-          if ((_saveMode || !slot.isEmpty()) && _slotCallback) {
-            _slotCallback(i + 1);
+          if ((m_saveMode || !slot.isEmpty()) && m_slotCallback) {
+            m_slotCallback(i + 1);
           }
           return;
         }
         i++;
       }
     }
-    _wasMouseDown = isDown;
+    m_wasMouseDown = isDown;
   }
 };
 
@@ -321,11 +325,11 @@ void SaveLoadDialog::update(const ngf::TimeSpan &elapsed) {
 }
 
 void SaveLoadDialog::setCallback(Callback callback) {
-  _pImpl->_callback = std::move(callback);
+  _pImpl->m_callback = std::move(callback);
 }
 
 void SaveLoadDialog::setSlotCallback(SlotCallback callback) {
-  _pImpl->_slotCallback = std::move(callback);
+  _pImpl->m_slotCallback = std::move(callback);
 }
 
 void SaveLoadDialog::updateLanguage() {
@@ -333,9 +337,9 @@ void SaveLoadDialog::updateLanguage() {
 }
 
 void SaveLoadDialog::setSaveMode(bool saveMode) {
-  _pImpl->_saveMode = saveMode;
+  _pImpl->m_saveMode = saveMode;
   _pImpl->setHeading(saveMode);
 }
 
-bool SaveLoadDialog::getSaveMode() const { return _pImpl->_saveMode; }
+bool SaveLoadDialog::getSaveMode() const { return _pImpl->m_saveMode; }
 }

@@ -12,7 +12,7 @@
 namespace ng {
 class Engine;
 
-class SwitchButton : public Control {
+class SwitchButton final : public Control {
 public:
   using Callback = std::function<void(int)>;
 
@@ -21,7 +21,8 @@ public:
                bool enabled = true,
                int index = 0,
                Callback callback = nullptr);
-  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
+  void draw(ngf::RenderTarget &target, ngf::RenderStates states) const final;
+  void update(const ngf::TimeSpan &elapsed, glm::vec2 pos) final;
 
 private:
   bool contains(glm::vec2 pos) const final;

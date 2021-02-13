@@ -53,4 +53,9 @@ bool Button::contains(glm::vec2 pos) const {
   auto p = ngf::transform(glm::inverse(m_text.getTransform().getTransform()), pos);
   return m_text.getLocalBounds().contains(p);
 }
+
+void Button::update(const ngf::TimeSpan &elapsed, glm::vec2 pos) {
+  Control::update(elapsed, pos);
+  m_text.getTransform().setPosition(m_shakeOffset + glm::vec2{Screen::Width / 2.f, m_y});
+}
 }
