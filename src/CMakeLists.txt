@@ -40,6 +40,7 @@ set(SOURCES
         Entities/BlinkState.cpp
         Entities/Costume.cpp
         Entities/LipAnimation.cpp
+        Entities/ShakeFunction.cpp
         Entities/TalkingState.cpp
         Entities/Entity.cpp
         Entities/Object.cpp

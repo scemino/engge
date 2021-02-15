@@ -7,6 +7,7 @@
 #include <engge/Audio/SoundTrigger.hpp>
 #include <engge/Engine/Camera.hpp>
 #include <engge/Engine/Trigger.hpp>
+#include "ShakeFunction.hpp"
 #include "TalkingState.hpp"
 
 namespace ng {
@@ -23,11 +24,12 @@ struct Entity::Impl {
   std::optional<glm::vec2> m_usePos;
   std::optional<UseDirection> m_useDir;
   glm::vec2 m_offset{0, 0};
+  glm::vec2 m_shakeOffset{0, 0};
   bool m_isLit{false};
   bool m_isVisible{true};
   bool m_isTouchable{true};
   glm::ivec2 m_renderOffset{0, 0};
-  Motor m_offsetTo, m_scaleTo, m_rotateTo, m_moveTo, m_alphaTo;
+  Motor m_offsetTo, m_scaleTo, m_rotateTo, m_moveTo, m_alphaTo, m_shake;
   ngf::Color m_color{ngf::Colors::White};
   bool m_objectBumperCycle{true};
   ngf::Color m_talkColor;
@@ -72,6 +74,7 @@ void Entity::update(const ngf::TimeSpan &elapsed) {
   update(m_pImpl->m_rotateTo, elapsed);
   update(m_pImpl->m_moveTo, elapsed);
   update(m_pImpl->m_alphaTo, elapsed);
+  update(m_pImpl->m_shake, elapsed);
 }
 
 void Entity::update(Motor &motor, const ngf::TimeSpan &elapsed) {
@@ -126,7 +129,7 @@ void Entity::setOffset(const glm::vec2 &offset) {
 }
 
 glm::vec2 Entity::getOffset() const {
-  return m_pImpl->m_offset;
+  return m_pImpl->m_offset + m_pImpl->m_shakeOffset;
 }
 
 void Entity::setRotation(float angle) {
@@ -163,7 +166,7 @@ float Entity::getScale() const {
 
 ngf::Transform Entity::getTransform() const {
   auto transform = m_pImpl->m_transform;
-  transform.move(m_pImpl->m_offset);
+  transform.move(getOffset());
   return transform;
 }
 
@@ -237,6 +240,13 @@ void Entity::setRenderOffset(const glm::ivec2 &offset) {
 
 glm::ivec2 Entity::getRenderOffset() const {
   return m_pImpl->m_renderOffset;
+}
+
+void Entity::shake(float amount) {
+  auto setShake = [this](const auto &offset) { m_pImpl->m_shakeOffset = offset; };
+  auto shake = std::make_unique<ShakeFunction>(setShake, amount);
+  m_pImpl->m_shake.function = std::move(shake);
+  m_pImpl->m_shake.isEnabled = true;
 }
 
 void Entity::alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
@@ -368,8 +378,8 @@ void Entity::setParent(Entity *pParent) {
     pOldParent->m_pImpl->m_children.erase(std::remove_if(pOldParent->m_pImpl->m_children.begin(),
                                                          pOldParent->m_pImpl->m_children.end(),
                                                          [this](const auto *pChild) {
-                                                        return pChild == this;
-                                                      }), pOldParent->m_pImpl->m_children.end());
+                                                           return pChild == this;
+                                                         }), pOldParent->m_pImpl->m_children.end());
   }
   m_pImpl->m_pParent = pParent;
   if (pParent) {

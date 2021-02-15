@@ -967,8 +967,19 @@ private:
     return 0;
   }
 
-  static SQInteger shakeObject(HSQUIRRELVM) {
-    error("TODO: shakeObject: not implemented");
+  static SQInteger shakeObject(HSQUIRRELVM v) {
+    if (sq_gettype(v, 2) == OT_NULL)
+      return 0;
+
+    auto *obj = EntityManager::getEntity(v, 2);
+    if (!obj) {
+      return sq_throwerror(v, _SC("failed to get object/actor"));
+    }
+    SQFloat amount = 0;
+    if (SQ_FAILED(sq_getfloat(v, 3, &amount))) {
+      return sq_throwerror(v, _SC("failed to get amount"));
+    }
+    obj->shake(amount);
     return 0;
   }
 

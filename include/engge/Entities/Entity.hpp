@@ -107,6 +107,7 @@ public:
   void moveTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMethod method);
   void rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
   void scaleTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
+  void shake(float amount);
 
   void stopObjectMotors();
 
