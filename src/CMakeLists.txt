@@ -33,7 +33,10 @@ set(SOURCES
         Engine/TextDatabase.cpp
         Engine/Thread.cpp
         Engine/ThreadBase.cpp
+        Engine/TimeFunction.cpp
+        Engine/Trigger.cpp
         Entities/Actor.cpp
+        Entities/AnimationLoader.cpp
         Entities/BlinkState.cpp
         Entities/Costume.cpp
         Entities/LipAnimation.cpp
@@ -49,6 +52,7 @@ set(SOURCES
         Graphics/ResourceManager.cpp
         Graphics/SpriteSheet.cpp
         Graphics/GraphDrawable.cpp
+        Graphics/LightingShader.cpp
         Graphics/WalkboxDrawable.cpp
         Graphics/PathDrawable.cpp
         Graphics/Text.cpp

@@ -3,7 +3,7 @@
 #include <vector>
 #include <squirrel.h>
 #include <ngf/System/TimeSpan.h>
-#include "Function.hpp"
+#include <engge/Engine/TimeFunction.hpp>
 
 namespace ng {
 class Callback final : public TimeFunction {

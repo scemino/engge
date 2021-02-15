@@ -1,4 +1,5 @@
 #pragma once
+#include <engge/Engine/ChangeProperty.hpp>
 #include "SoundCategory.hpp"
 #include "SoundDefinition.hpp"
 

@@ -4,15 +4,14 @@
 namespace ng {
 class Trigger {
 public:
-  Trigger() = default;
-  virtual ~Trigger() = default;
-  void trig() {
-    if (!isEnabled())
-      return;
-    trigCore();
-  }
-  [[nodiscard]] bool isEnabled() const { return m_isEnabled; }
-  void disable() { m_isEnabled = false; }
+  Trigger();
+  virtual ~Trigger();
+
+  void trig();
+
+  [[nodiscard]] bool isEnabled() const;
+  void disable();
+
   virtual std::string getName() = 0;
 
 protected:
