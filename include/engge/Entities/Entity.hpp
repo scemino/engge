@@ -108,6 +108,7 @@ public:
   void rotateTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
   void scaleTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
   void shake(float amount);
+  void jiggle(float amount);
 
   void stopObjectMotors();
 

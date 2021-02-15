@@ -7,6 +7,7 @@
 #include <engge/Audio/SoundTrigger.hpp>
 #include <engge/Engine/Camera.hpp>
 #include <engge/Engine/Trigger.hpp>
+#include "JiggleFunction.hpp"
 #include "ShakeFunction.hpp"
 #include "TalkingState.hpp"
 
@@ -25,11 +26,12 @@ struct Entity::Impl {
   std::optional<UseDirection> m_useDir;
   glm::vec2 m_offset{0, 0};
   glm::vec2 m_shakeOffset{0, 0};
+  float m_jiggleOffset{0.f};
   bool m_isLit{false};
   bool m_isVisible{true};
   bool m_isTouchable{true};
   glm::ivec2 m_renderOffset{0, 0};
-  Motor m_offsetTo, m_scaleTo, m_rotateTo, m_moveTo, m_alphaTo, m_shake;
+  Motor m_offsetTo, m_scaleTo, m_rotateTo, m_moveTo, m_alphaTo, m_shake, m_jiggle;
   ngf::Color m_color{ngf::Colors::White};
   bool m_objectBumperCycle{true};
   ngf::Color m_talkColor;
@@ -75,6 +77,7 @@ void Entity::update(const ngf::TimeSpan &elapsed) {
   update(m_pImpl->m_moveTo, elapsed);
   update(m_pImpl->m_alphaTo, elapsed);
   update(m_pImpl->m_shake, elapsed);
+  update(m_pImpl->m_jiggle, elapsed);
 }
 
 void Entity::update(Motor &motor, const ngf::TimeSpan &elapsed) {
@@ -167,6 +170,7 @@ float Entity::getScale() const {
 ngf::Transform Entity::getTransform() const {
   auto transform = m_pImpl->m_transform;
   transform.move(getOffset());
+  transform.rotate(m_pImpl->m_jiggleOffset);
   return transform;
 }
 
@@ -249,6 +253,13 @@ void Entity::shake(float amount) {
   m_pImpl->m_shake.isEnabled = true;
 }
 
+void Entity::jiggle(float amount) {
+  auto setJiggle = [this](const auto &offset) { m_pImpl->m_jiggleOffset = offset; };
+  auto jiggle = std::make_unique<JiggleFunction>(setJiggle, amount);
+  m_pImpl->m_jiggle.function = std::move(jiggle);
+  m_pImpl->m_jiggle.isEnabled = true;
+}
+
 void Entity::alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
   auto getAlpha = [this] { return m_pImpl->m_color.a; };
   auto setAlpha = [this](const float &a) { m_pImpl->m_color.a = a; };
@@ -307,6 +318,8 @@ void Entity::stopObjectMotors() {
   m_pImpl->m_rotateTo.isEnabled = false;
   m_pImpl->m_moveTo.isEnabled = false;
   m_pImpl->m_alphaTo.isEnabled = false;
+  m_pImpl->m_shake.isEnabled = false;
+  m_pImpl->m_jiggle.isEnabled = false;
   for (auto &&child : m_pImpl->m_children) {
     child->stopObjectMotors();
   }

@@ -4,7 +4,7 @@ namespace ng {
 ShakeFunction::ShakeFunction(std::function<void(const glm::vec2 &)> shake, float amount)
     : m_shake(std::move(shake)), m_amount(amount) {}
 
-    ShakeFunction::~ShakeFunction() = default;
+ShakeFunction::~ShakeFunction() = default;
 
 bool ShakeFunction::isElapsed() { return false; }
 
