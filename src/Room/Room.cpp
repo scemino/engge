@@ -30,6 +30,7 @@ struct CmpLayer {
 struct Room::Impl {
   ResourceManager &_textureManager;
   std::vector<std::unique_ptr<Object>> _objects;
+  std::vector<Object *> _objectsToDelete;
   std::vector<ngf::Walkbox> _walkboxes;
   std::vector<ngf::Walkbox> _graphWalkboxes;
   std::map<int, std::unique_ptr<RoomLayer>, CmpLayer> _layers;
@@ -237,7 +238,7 @@ struct Room::Impl {
     }
 
     // update parent, it has to been done after objects initialization
-    const auto& jObjects = jWimpy["objects"];
+    const auto &jObjects = jWimpy["objects"];
     for (auto &object : _objects) {
       auto name = object->getName();
       auto it = std::find_if(jObjects.cbegin(), jObjects.cend(), [&name](const auto &jObject) {
@@ -507,7 +508,7 @@ void Room::removeEntity(Entity *pEntity) {
     layer.second->removeEntity(*pEntity);
   }
   m_pImpl->_objects.erase(std::remove_if(m_pImpl->_objects.begin(), m_pImpl->_objects.end(),
-                                         [pEntity](std::unique_ptr<Object> &pObj) { return pObj.get() == pEntity; }),
+                                         [pEntity](auto &pObj) { return pObj.get() == pEntity; }),
                           m_pImpl->_objects.end());
 }
 
@@ -564,7 +565,9 @@ TextObject &Room::createTextObject(const std::string &fontName) {
   return obj;
 }
 
-void Room::deleteObject(Object &object) { m_pImpl->_layers[0]->removeEntity(object); }
+void Room::deleteObject(Object &object) {
+  m_pImpl->_objectsToDelete.push_back(&object);
+}
 
 Object &Room::createObject(const std::vector<std::string> &anims) { return createObject(m_pImpl->_sheet, anims); }
 
@@ -637,6 +640,18 @@ const ngf::Graph *Room::getGraph() const {
 }
 
 void Room::update(const ngf::TimeSpan &elapsed) {
+  if (!m_pImpl->_objectsToDelete.empty()) {
+    for (auto &obj : m_pImpl->_objectsToDelete) {
+      for (auto &&layer : m_pImpl->_layers) {
+        layer.second->removeEntity(*obj);
+      }
+      m_pImpl->_objects.erase(std::remove_if(
+          m_pImpl->_objects.begin(), m_pImpl->_objects.end(),
+          [&obj](auto &pObj) { return pObj.get() == obj; }), m_pImpl->_objects.end());
+    }
+    m_pImpl->_objectsToDelete.clear();
+  }
+
   for (auto &&layer : m_pImpl->_layers) {
     layer.second->update(elapsed);
   }
@@ -730,8 +745,7 @@ void Room::exit() {
     }
   }
   m_pImpl->_objects.erase(std::remove_if(m_pImpl->_objects.begin(), m_pImpl->_objects.end(),
-                                         [](auto &pObj) { return pObj->isTemporary(); }),
-                          m_pImpl->_objects.end());
+                                         [](auto &pObj) { return pObj->isTemporary(); }), m_pImpl->_objects.end());
 }
 
 void Room::setEffect(int effect) { m_pImpl->setEffect(effect); }

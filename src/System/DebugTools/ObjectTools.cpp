@@ -21,6 +21,7 @@ void ObjectTools::render() {
 
   // show object list
   auto &objects = m_engine.getRoom()->getObjects();
+  ImGui::Text("Count: %ld", objects.size());
   for (auto &&object : objects) {
     ImGui::PushID(object.get());
     bool isSelected = object.get() == m_pSelectedObject;

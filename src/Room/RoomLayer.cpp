@@ -31,7 +31,7 @@ void RoomLayer::draw(ngf::RenderTarget &target, ngf::RenderStates states) const 
   pShader->setNumberLights(0);
 
   // sort entities by z-order
-  std::vector <std::reference_wrapper<Entity>> entities;
+  std::vector<std::reference_wrapper<Entity>> entities;
   std::copy(m_entities.begin(), m_entities.end(), std::back_inserter(entities));
   std::sort(entities.begin(), entities.end(),
             [](const Entity &a, const Entity &b) {
@@ -81,7 +81,7 @@ void RoomLayer::drawForeground(ngf::RenderTarget &target, ngf::RenderStates stat
 }
 
 void RoomLayer::update(const ngf::TimeSpan &elapsed) {
-  std::for_each(std::begin(m_entities), std::end(m_entities), [elapsed](Entity &obj) { obj.update(elapsed); });
+  std::for_each(m_entities.begin(), m_entities.end(), [elapsed](Entity &obj) { obj.update(elapsed); });
 }
 
 } // namespace ng
