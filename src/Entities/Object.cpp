@@ -194,6 +194,8 @@ void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
 bool Object::isTouchable() const {
   if (getType() != ObjectType::Object)
     return false;
+  if (pImpl->_state == ObjectStateConstants::GONE)
+    return false;
   return Entity::isTouchable();
 }
 
