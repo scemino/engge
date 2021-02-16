@@ -13,6 +13,7 @@
 #include "engge/UI/OptionsDialog.hpp"
 #include "engge/UI/SaveLoadDialog.hpp"
 #include "engge/UI/QuitDialog.hpp"
+#include "HelpDialog.hpp"
 #include <utility>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/System/Mouse.h>
@@ -76,8 +77,10 @@ struct OptionsDialog::Impl {
   std::vector<Slider> _sliders;
   bool _showQuit{false};
   bool _showSaveLoad{false};
+  bool _showHelp{false};
   QuitDialog _quit;
   SaveLoadDialog _saveload;
+  HelpDialog m_help;
   Callback _callback{nullptr};
   bool _isDirty{false};
   State _state{State::None};
@@ -308,12 +311,25 @@ struct OptionsDialog::Impl {
       break;
     case State::Help:setHeading(Ids::Help);
       _buttons.emplace_back(Ids::Introduction, getSlotPos(1), [this]() {
-        _pEngine->execute("HelpScreens.helpIntro()");
+        m_help.init(_pEngine, [this]() { _showHelp = false; }, {1, 2, 3, 4, 5, 6});
+        _showHelp = true;
       }, true);
-      _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), []() {}, false);
-      _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), []() {}, false);
-      _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), []() {}, false);
-      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), []() {}, false);
+      _buttons.emplace_back(Ids::MouseTips, getSlotPos(2), [this]() {
+        m_help.init(_pEngine, [this]() { _showHelp = false; }, {7, 8, 9});
+        _showHelp = true;
+      }, true);
+      _buttons.emplace_back(Ids::ControllerTips, getSlotPos(3), [this]() {
+        m_help.init(_pEngine, [this]() { _showHelp = false; }, {10, 11, 12, 13, 14});
+        _showHelp = true;
+      }, true);
+      _buttons.emplace_back(Ids::ControllerMap, getSlotPos(4), [this]() {
+        m_help.init(_pEngine, [this]() { _showHelp = false; }, {15});
+        _showHelp = true;
+      }, true);
+      _buttons.emplace_back(Ids::KeyboardMap, getSlotPos(5), [this]() {
+        m_help.init(_pEngine, [this]() { _showHelp = false; }, {16});
+        _showHelp = true;
+      }, true);
       _buttons.emplace_back(Ids::Back,
                             getSlotPos(9),
                             [this]() { setState(State::Main); },
@@ -382,6 +398,11 @@ struct OptionsDialog::Impl {
   }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) {
+    if (_showHelp) {
+      m_help.draw(target, states);
+      return;
+    }
+
     const auto view = target.getView();
     auto viewRect = ngf::frect::fromPositionSize({0, 0}, {320, 180});
     target.setView(ngf::View(viewRect));
@@ -438,6 +459,11 @@ struct OptionsDialog::Impl {
     if (_state != _nextState) {
       _state = _nextState;
       onStateChanged();
+    }
+
+    if (_showHelp) {
+      m_help.update(elapsed);
+      return;
     }
 
     if (_showSaveLoad) {

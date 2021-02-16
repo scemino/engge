@@ -66,6 +66,10 @@ public:
   /// \return The read-only transformation of the sprite.
   const ngf::Transform &getTransform() const { return m_transform; }
 
+  /// @brief Sets the origin of the transformation of the text.
+  /// \param anchor The orgin of the text.
+  void setAnchor(ngf::Anchor anchor);
+
 private:
   void ensureGeometryUpdate() const;
 

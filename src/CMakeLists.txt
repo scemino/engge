@@ -89,6 +89,7 @@ set(SOURCES
         UI/Button.cpp
         UI/Checkbox.cpp
         UI/Control.cpp
+        UI/HelpDialog.cpp
         UI/OptionsDialog.cpp
         UI/QuitDialog.cpp
         UI/SaveLoadDialog.cpp

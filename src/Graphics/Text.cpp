@@ -259,4 +259,8 @@ void Text::ensureGeometryUpdate() const {
   m_bounds.min = {0, 0};
   m_bounds.max = {maxX, maxY};
 }
+
+void Text::setAnchor(ngf::Anchor anchor) {
+  m_transform.setOriginFromAnchorAndBounds(anchor, getLocalBounds());
+}
 }
