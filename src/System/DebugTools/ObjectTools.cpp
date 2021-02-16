@@ -22,7 +22,15 @@ void ObjectTools::render() {
   // show object list
   auto &objects = m_engine.getRoom()->getObjects();
   ImGui::Text("Count: %ld", objects.size());
+  m_textFilter.Draw();
+
   for (auto &&object : objects) {
+    auto name = toUtf8(ng::Engine::getText(object->getKey()));
+    if (name.empty()) {
+      name = "#" + std::to_string(object->getId());
+    }
+    if (!m_textFilter.PassFilter(name.c_str()))
+      continue;
     ImGui::PushID(object.get());
     bool isSelected = object.get() == m_pSelectedObject;
     auto visible = object->isVisible();
@@ -30,10 +38,6 @@ void ObjectTools::render() {
       object->setVisible(visible);
     }
     ImGui::SameLine();
-    auto name = toUtf8(ng::Engine::getText(object->getKey()));
-    if (name.empty()) {
-      name = "#" + std::to_string(object->getId());
-    }
     if (ImGui::Selectable(name.c_str(), isSelected)) {
       m_pSelectedObject = object.get();
     }

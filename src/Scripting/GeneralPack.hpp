@@ -157,9 +157,16 @@ private:
       if (entity->isInventoryObject()) {
         const auto pObject = dynamic_cast<Object *>(entity);
         pos = g_pEngine->getInventory().getPosition(pObject);
+        pos.y = Screen::Height - pos.y;
       } else {
         auto screenSize = g_pEngine->getRoom()->getScreenSize();
         pos = entity->getPosition() - g_pEngine->getCamera().getRect().getTopLeft();
+        const auto pObject = dynamic_cast<Object *>(entity);
+        if (pObject) {
+          auto rect = pObject->getHotspot();
+          auto center = rect.getCenter();
+          pos += center;
+        }
         pos = glm::vec2(Screen::Width * pos.x / screenSize.x, Screen::Height * pos.y / screenSize.y);
       }
     }

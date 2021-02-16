@@ -1,4 +1,5 @@
 #pragma once
+#include <imgui.h>
 
 namespace ng {
 struct Animation;
@@ -22,6 +23,7 @@ public:
 private:
   Engine &m_engine;
   Object *m_pSelectedObject{nullptr};
+  ImGuiTextFilter m_textFilter;
   bool m_showProperties{false};
   bool m_showAnimations{false};
 };

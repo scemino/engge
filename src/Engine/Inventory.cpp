@@ -230,7 +230,7 @@ glm::vec2 Inventory::getPosition(Object *pObject) const {
   auto index = std::distance(objects.cbegin(), it);
   if (index >= inventoryOffset && index < (inventoryOffset + 8)) {
     const auto &rect = m_inventoryRects.at(index - inventoryOffset);
-    return rect.getTopLeft() + rect.getSize() / 2.f;
+    return rect.getTopLeft();
   }
   return glm::vec2();
 }
