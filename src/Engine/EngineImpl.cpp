@@ -746,6 +746,9 @@ ngf::irect Engine::Impl::getCursorRect() const {
   if (_dialogManager.getState() != DialogManagerState::None)
     return gameSheet.getRect("cursor");
 
+  if (_pRoom->getFullscreen() == 1)
+    return gameSheet.getRect("cursor");
+
   if (_cursorDirection & CursorDirection::Left) {
     return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_left")
                                                        : gameSheet.getRect("cursor_left");
@@ -820,20 +823,27 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   std::wstring s;
-  if (pVerb->id != VerbConstants::VERB_WALKTO || _hud.getHoveredEntity()) {
+  // draw verb
+  if ((_pRoom->getFullscreen() != 1) && (pVerb->id != VerbConstants::VERB_WALKTO || _hud.getHoveredEntity())) {
     auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
     s.append(ng::Engine::getText(id));
   }
   auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
+  // draw object 1 name
   if (pObj1) {
-    s.append(L" ").append(getDisplayName(ng::Engine::getText(pObj1->getName())));
+    if (!s.empty()) {
+      s.append(L" ");
+    }
+    s.append(getDisplayName(ng::Engine::getText(pObj1->getName())));
     if (DebugFeatures::showHoveredObject) {
       if (pObj1) {
         s.append(L"(").append(towstring(pObj1->getKey())).append(L")");
       }
     }
   }
+  // draw use flags if any
   appendUseFlag(s);
+  // draw object 2 name
   if (_pObj2) {
     s.append(L" ").append(getDisplayName(ng::Engine::getText(_pObj2->getName())));
   }

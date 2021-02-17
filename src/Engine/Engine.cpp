@@ -55,7 +55,8 @@ Engine::Engine() : m_pImpl(std::make_unique<Impl>()) {
   // load all messages
   std::stringstream s;
   auto lang =
-      m_pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language, PreferenceDefaultValues::Language);
+      m_pImpl->_preferences.getUserPreference<std::string>(PreferenceNames::Language,
+                                                           PreferenceDefaultValues::Language);
   s << "ThimbleweedText_" << lang << ".tsv";
   Locator<TextDatabase>::get().load(s.str());
 
@@ -408,7 +409,7 @@ void Engine::update(const ngf::TimeSpan &el) {
   m_pImpl->_dialogManager.update(elapsed);
 
   m_pImpl->_hud.setActive(m_pImpl->_inputVerbsActive && m_pImpl->_dialogManager.getState() == DialogManagerState::None
-                             && m_pImpl->_pRoom->getFullscreen() != 1);
+                              && m_pImpl->_pRoom->getFullscreen() != 1);
   m_pImpl->_hud.setHoveredEntity(m_pImpl->getHoveredEntity(m_pImpl->_mousePosInRoom));
   m_pImpl->updateHoveredEntity(isRightClick);
 
