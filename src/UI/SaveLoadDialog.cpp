@@ -279,12 +279,10 @@ struct SaveLoadDialog::Impl {
   }
 
   void update(const ngf::TimeSpan &elapsed) {
-    auto pos = m_pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
-                                                                                ngf::View(ngf::frect::fromPositionSize({0,
-                                                                                                                        0},
-                                                                                                                       {Screen::Width,
-
-                                                                                                                        Screen::Height})));
+    auto pos = m_pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(
+        ngf::Mouse::getPosition(),
+        ngf::View(ngf::frect::fromPositionSize(
+            {0, 0}, {Screen::Width, Screen::Height})));
     m_backButton.update(elapsed, pos);
     for (auto &slot : m_slots) {
       slot.update(elapsed, pos);

@@ -110,13 +110,8 @@ struct HelpDialog::Impl {
       : m_back{Ids::Back, {0, 0}, nullptr, true, HelpButton::Size::Medium},
         m_prev{Ids::Prev, {0, 0}, nullptr, true, HelpButton::Size::Medium},
         m_next{Ids::Next, {300, 0}, nullptr, true, HelpButton::Size::Medium} {
-    m_back.setCallback([this]() { backPage(); });
     m_prev.setCallback([this]() { prevPage(); });
     m_next.setCallback([this]() { nextPage(); });
-  }
-
-  void backPage() {
-
   }
 
   void nextPage() {
