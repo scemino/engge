@@ -64,9 +64,6 @@ public:
 
   [[nodiscard]] bool isInventoryObject() const final;
 
-  void setVolume(float volume);
-  [[nodiscard]] std::optional<float> getVolume() const final;
-
   void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const final;
 
   HSQOBJECT &getTable() final;

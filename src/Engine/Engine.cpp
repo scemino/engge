@@ -266,7 +266,7 @@ SQInteger Engine::setRoom(Room *pRoom) {
 
 SQInteger Engine::enterRoomFromDoor(Object *pDoor) {
   auto dir = pDoor->getUseDirection();
-  auto facing = _toFacing(dir);
+  auto facing = toFacing(dir);
   auto pRoom = pDoor->getRoom();
 
   // exit current room

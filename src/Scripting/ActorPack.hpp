@@ -180,7 +180,7 @@ private:
       pRoom = pObj->getRoom();
       pActor->setRoom(pRoom);
       pActor->setPosition(pos);
-      pActor->getCostume().setFacing(_toFacing(pObj->getUseDirection()));
+      pActor->getCostume().setFacing(toFacing(pObj->getUseDirection()));
       return 0;
     }
 
@@ -249,7 +249,7 @@ private:
       return sq_throwerror(v, _SC("failed to get color"));
     }
     auto alpha = actor->getColor().a;
-    auto color = _fromRgb(c);
+    auto color = fromRgb(c);
     color.a = alpha;
     actor->setColor(color);
     return 0;
@@ -637,7 +637,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 3, &color))) {
       return sq_throwerror(v, _SC("failed to get fps"));
     }
-    pEntity->setTalkColor(_fromRgb(color));
+    pEntity->setTalkColor(fromRgb(color));
     return 0;
   }
 
@@ -820,7 +820,7 @@ private:
         auto usePos = pObject->getUsePosition().value_or(glm::vec2());
         pos.x += usePos.x;
         pos.y += usePos.y;
-        pActor->walkTo(pos, _toFacing(pObject->getUseDirection()));
+        pActor->walkTo(pos, toFacing(pObject->getUseDirection()));
         return 0;
       }
 
@@ -985,7 +985,7 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 4, &c))) {
         return sq_throwerror(v, _SC("failed to get color"));
       }
-      auto color = _fromRgb(c);
+      auto color = fromRgb(c);
       SQFloat t;
       if (SQ_FAILED(sq_getfloat(v, 5, &t))) {
         return sq_throwerror(v, _SC("failed to get time"));
@@ -1133,17 +1133,17 @@ private:
     readFieldInt(v, _SC("dialogHighlight"), dialogHighlight);
 
     VerbUiColors colors;
-    colors.sentence = _fromRgb(sentence);
-    colors.verbNormal = _fromRgb(verbNormal);
-    colors.verbNormalTint = _fromRgb(verbNormalTint);
-    colors.verbHighlight = _fromRgb(verbHighlight);
-    colors.verbHighlightTint = _fromRgb(verbHighlightTint);
-    colors.dialogNormal = _fromRgb(dialogNormal);
-    colors.dialogHighlight = _fromRgb(dialogHighlight);
-    colors.inventoryFrame = _fromRgb(inventoryFrame);
-    colors.inventoryBackground = _fromRgb(inventoryBackground);
-    colors.retroNormal = _fromRgb(retroNormal);
-    colors.retroHighlight = _fromRgb(retroHighlight);
+    colors.sentence = fromRgb(sentence);
+    colors.verbNormal = fromRgb(verbNormal);
+    colors.verbNormalTint = fromRgb(verbNormalTint);
+    colors.verbHighlight = fromRgb(verbHighlight);
+    colors.verbHighlightTint = fromRgb(verbHighlightTint);
+    colors.dialogNormal = fromRgb(dialogNormal);
+    colors.dialogHighlight = fromRgb(dialogHighlight);
+    colors.inventoryFrame = fromRgb(inventoryFrame);
+    colors.inventoryBackground = fromRgb(inventoryBackground);
+    colors.retroNormal = fromRgb(retroNormal);
+    colors.retroHighlight = fromRgb(retroHighlight);
     g_pEngine->getHud().setVerbUiColors(static_cast<int>(actorSlot) - 1, colors);
     return 0;
   }

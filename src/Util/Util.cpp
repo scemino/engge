@@ -262,7 +262,7 @@ bool less(const glm::vec2 &p1, const glm::vec2 &p2) {
   return p1.x < p2.x - EPS || (fabs(p1.x - p2.x) < EPS && p1.y < p2.y - EPS);
 }
 
-Facing _toFacing(std::optional<UseDirection> direction) {
+Facing toFacing(std::optional<UseDirection> direction) {
   auto dir = direction.value_or(UseDirection::Front);
   switch (dir) {
   case UseDirection::Front:return Facing::FACE_FRONT;
@@ -281,7 +281,7 @@ Facing getOppositeFacing(Facing facing) {
   }
 }
 
-ngf::irect _toRect(const ngf::GGPackValue &json) {
+ngf::irect toRect(const ngf::GGPackValue &json) {
   auto x = json["x"].getInt();
   auto y = json["y"].getInt();
   auto w = json["w"].getInt();
@@ -289,14 +289,14 @@ ngf::irect _toRect(const ngf::GGPackValue &json) {
   return ngf::irect::fromPositionSize({x, y}, {w, h});
 }
 
-glm::ivec2 _toSize(const ngf::GGPackValue &json) {
+glm::ivec2 toSize(const ngf::GGPackValue &json) {
   glm::ivec2 v;
   v.x = json["w"].getInt();
   v.y = json["h"].getInt();
   return v;
 }
 
-UseDirection _toDirection(const std::string &text) {
+UseDirection toDirection(const std::string &text) {
   if (strcmp(text.c_str(), "DIR_FRONT") == 0) {
     return UseDirection::Front;
   }
@@ -312,14 +312,14 @@ UseDirection _toDirection(const std::string &text) {
   return UseDirection::Front;
 }
 
-glm::vec2 _parsePos(const std::string &text) {
+glm::vec2 parsePos(const std::string &text) {
   auto commaPos = text.find_first_of(',');
   auto x = std::strtof(text.substr(1, commaPos - 1).c_str(), nullptr);
   auto y = std::strtof(text.substr(commaPos + 1, text.length() - 1).c_str(), nullptr);
   return glm::vec2(x, y);
 }
 
-ngf::irect _parseRect(const std::string &text) {
+ngf::irect parseRect(const std::string &text) {
   auto re = std::regex(R"(\{\{(\-?\d+),(\-?\d+)\},\{(\-?\d+),(\-?\d+)\}\})");
   std::smatch matches;
   std::regex_search(text, matches, re);
@@ -330,7 +330,7 @@ ngf::irect _parseRect(const std::string &text) {
   return ngf::irect::fromPositionSize({left, top}, {right - left, bottom - top});
 }
 
-void _parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices) {
+void parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices) {
   int i = 1;
   int endPos;
   do {
@@ -343,18 +343,30 @@ void _parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices) {
   } while (static_cast<int>(text.length() - 1) != endPos);
 }
 
-ngf::Color _toColor(const std::string &color) {
+ngf::Color parseColor(const std::string &color) {
   auto c = std::strtol(color.c_str(), nullptr, 16);
-  return _fromRgb(c);
+  return fromRgb(c);
 }
 
-ngf::Color _toColor(SQInteger color) {
-  auto col = static_cast<int>(color);
-  ngf::Color c((col >> 16) & 255, (col >> 8) & 255, col & 255, (col >> 24) & 255);
+ngf::Color fromRgba(SQInteger color) {
+  auto col = static_cast<uint32_t>(color);
+  ngf::Color c(
+      static_cast<int>((col >> 16) & 255),
+      static_cast<int>((col >> 8) & 255),
+      static_cast<int>(col & 255),
+      static_cast<int>((col >> 24) & 255));
   return c;
 }
 
-ngf::Color _fromRgb(SQInteger color) {
+int toInteger(const ngf::Color &c) {
+  auto r = static_cast<uint32_t>(c.r * 255u);
+  auto g = static_cast<uint32_t>(c.g * 255u);
+  auto b = static_cast<uint32_t>(c.b * 255u);
+  auto a = static_cast<uint32_t>(c.a * 255u);
+  return static_cast<int>((r << 16) | (g << 8) | b | (a << 24));
+}
+
+ngf::Color fromRgb(SQInteger color) {
   auto col = static_cast<int>(color);
   ngf::Color c((col >> 16) & 255, (col >> 8) & 255, col & 255);
   return c;

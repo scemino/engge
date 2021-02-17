@@ -1049,7 +1049,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 2, &c))) {
       return sq_throwerror(v, _SC("failed to get color"));
     }
-    auto color = _fromRgb(c);
+    auto color = fromRgb(c);
     g_pEngine->getRoom()->setAmbientLight(color);
     return 0;
   }

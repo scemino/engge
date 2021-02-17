@@ -159,7 +159,7 @@ void ActorTools::showProperties(Actor *actor) {
   if (ImGui::InputInt("Inventory Offset", &inventoryOffset)) {
     actor->setInventoryOffset(inventoryOffset);
   }
-  auto volume = actor->getVolume().value_or(1.0f);
+  auto volume = actor->getVolume();
   if (ImGui::SliderFloat("Volume", &volume, 0.f, 1.0f)) {
     actor->setVolume(volume);
   }

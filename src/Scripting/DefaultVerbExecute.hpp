@@ -31,7 +31,7 @@ private:
       return getOppositeFacing(pActor->getCostume().getFacing());
     }
     const auto pObj = dynamic_cast<const Object *>(pEntity);
-    return _toFacing(pObj->getUseDirection());
+    return toFacing(pObj->getUseDirection());
   }
 
 private:

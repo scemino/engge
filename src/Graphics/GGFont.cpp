@@ -42,9 +42,9 @@ void GGFont::load(const std::string &path) {
   for (const auto &jFrame : m_json["frames"].items()) {
     auto sValue = jFrame.key();
     auto key = std::stoi(sValue);
-    auto frame = _toRect(m_json["frames"][sValue]["frame"]);
-    auto spriteSourceSize = _toRect(m_json["frames"][sValue]["spriteSourceSize"]);
-    auto sourceSize = _toSize(m_json["frames"][sValue]["sourceSize"]);
+    auto frame = toRect(m_json["frames"][sValue]["frame"]);
+    auto spriteSourceSize = toRect(m_json["frames"][sValue]["spriteSourceSize"]);
+    auto sourceSize = toSize(m_json["frames"][sValue]["sourceSize"]);
     Glyph glyph;
     glyph.advance = std::max(sourceSize.x - spriteSourceSize.getTopLeft().x - 4, 0);
     glyph.bounds = spriteSourceSize;

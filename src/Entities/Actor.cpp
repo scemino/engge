@@ -79,7 +79,6 @@ struct Actor::Impl {
   std::vector<Object *> _objects;
   WalkingState _walkingState;
   glm::ivec2 _speed{30, 15};
-  std::optional<float> _volume;
   std::shared_ptr<PathDrawable> _path;
   HSQOBJECT _table{};
   bool _hotspotVisible{false};
@@ -180,9 +179,6 @@ const glm::ivec2 &Actor::getWalkSpeed() const { return m_pImpl->_speed; }
 void Actor::stopWalking() { m_pImpl->_walkingState.stop(); }
 
 bool Actor::isWalking() const { return m_pImpl->_walkingState.isWalking(); }
-
-void Actor::setVolume(float volume) { m_pImpl->_volume = volume; }
-std::optional<float> Actor::getVolume() const { return m_pImpl->_volume; }
 
 HSQOBJECT &Actor::getTable() { return m_pImpl->_table; }
 HSQOBJECT &Actor::getTable() const { return m_pImpl->_table; }

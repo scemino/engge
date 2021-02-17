@@ -118,7 +118,7 @@ private:
       return sq_throwerror(v, _SC("failed to get y"));
     }
     auto pRoom = g_pEngine->getRoom();
-    auto pLight = pRoom->createLight(_toColor(color), {x, y});
+    auto pLight = pRoom->createLight(fromRgba(color), {x, y});
 
     ScriptEngine::pushObject(v, pLight);
     sq_getstackobj(v, -1, &pLight->table);
@@ -523,7 +523,7 @@ private:
       return sq_throwerror(v, _SC("failed to get startColor"));
     }
     auto pRoom = g_pEngine->getRoom();
-    pRoom->setOverlayColor(_toColor(startColor));
+    pRoom->setOverlayColor(fromRgba(startColor));
     if (numArgs == 4) {
       SQInteger endColor;
       if (SQ_FAILED(sq_getinteger(v, 3, &endColor))) {
@@ -534,8 +534,8 @@ private:
         return sq_throwerror(v, _SC("failed to get duration"));
       }
       auto fadeTo = std::make_unique<ChangeColor>(pRoom,
-                                                  _toColor(startColor),
-                                                  _toColor(endColor),
+                                                  fromRgba(startColor),
+                                                  fromRgba(endColor),
                                                   ngf::TimeSpan::seconds(duration),
                                                   Interpolations::linear,
                                                   false);

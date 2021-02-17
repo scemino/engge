@@ -73,7 +73,7 @@ public:
   [[nodiscard]] virtual float getScale() const;
 
   void setColor(const ngf::Color &color);
-  [[nodiscard]] const ngf::Color &getColor() const;
+  [[nodiscard]] ngf::Color getColor() const;
 
   void setTalkColor(ngf::Color color);
   [[nodiscard]] ngf::Color getTalkColor() const;
@@ -85,7 +85,9 @@ public:
   void removeTrigger(int triggerNumber);
   void trig(const std::string &name);
 
-  [[nodiscard]] virtual std::optional<float> getVolume() const { return std::nullopt; }
+  void setVolume(float volume);
+  [[nodiscard]] float getVolume() const;
+
   virtual void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const;
 
   virtual Room *getRoom() = 0;

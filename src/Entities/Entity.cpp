@@ -28,11 +28,8 @@ struct Entity::Impl {
   glm::vec2 m_shakeOffset{0, 0};
   float m_jiggleOffset{0.f};
   bool m_isLit{false};
-  bool m_isVisible{true};
-  bool m_isTouchable{true};
   glm::ivec2 m_renderOffset{0, 0};
   Motor m_offsetTo, m_scaleTo, m_rotateTo, m_moveTo, m_alphaTo, m_shake, m_jiggle;
-  ngf::Color m_color{ngf::Colors::White};
   bool m_objectBumperCycle{true};
   ngf::Color m_talkColor;
   glm::ivec2 m_talkOffset{0, 90};
@@ -98,11 +95,13 @@ bool Entity::isLit() const {
 }
 
 void Entity::setVisible(bool isVisible) {
-  m_pImpl->m_isVisible = isVisible;
+  ScriptEngine::set(getTable(), "_hidden", !isVisible);
 }
 
 bool Entity::isVisible() const {
-  return m_pImpl->m_isVisible;
+  auto hidden = false;
+  ScriptEngine::rawGet(getTable(), "_hidden", hidden);
+  return !hidden;
 }
 
 void Entity::setUsePosition(std::optional<glm::vec2> pos) {
@@ -150,12 +149,14 @@ float Entity::getRotation() const {
 }
 
 void Entity::setColor(const ngf::Color &color) {
-  m_pImpl->m_color = color;
+  ScriptEngine::set(getTable(), "_color", toInteger(color));
   m_pImpl->m_alphaTo.isEnabled = false;
 }
 
-const ngf::Color &Entity::getColor() const {
-  return m_pImpl->m_color;
+ngf::Color Entity::getColor() const {
+  auto color = toInteger(ngf::Colors::White);
+  ScriptEngine::rawGet(getTable(), "_color", color);
+  return fromRgba(color);
 }
 
 void Entity::setScale(float s) {
@@ -229,13 +230,17 @@ uint32_t Entity::getFlags() const {
 }
 
 void Entity::setTouchable(bool isTouchable) {
-  m_pImpl->m_isTouchable = isTouchable;
+  ScriptEngine::set(getTable(), "_touchable", isTouchable);
 }
 
 bool Entity::isTouchable() const {
   if (!isVisible())
     return false;
-  return m_pImpl->m_isTouchable;
+  int touchable = 1;
+  if (!ScriptEngine::rawGet(getTable(), "_touchable", touchable)) {
+    ScriptEngine::rawGet(getTable(), "initTouchable", touchable);
+  }
+  return touchable != 0;
 }
 
 void Entity::setRenderOffset(const glm::ivec2 &offset) {
@@ -261,8 +266,12 @@ void Entity::jiggle(float amount) {
 }
 
 void Entity::alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method) {
-  auto getAlpha = [this] { return m_pImpl->m_color.a; };
-  auto setAlpha = [this](const float &a) { m_pImpl->m_color.a = a; };
+  auto getAlpha = [this] { return getColor().a; };
+  auto setAlpha = [this](const float &a) {
+    auto color = getColor();
+    color.a = a;
+    ScriptEngine::set(getTable(), "_color", toInteger(color));
+  };
   auto alphaTo = std::make_unique<ChangeProperty<float>>(getAlpha, setAlpha, destination, time, method);
   m_pImpl->m_alphaTo.function = std::move(alphaTo);
   m_pImpl->m_alphaTo.isEnabled = true;
@@ -402,6 +411,16 @@ void Entity::setParent(Entity *pParent) {
 
 std::vector<Entity *> Entity::getChildren() const {
   return m_pImpl->m_children;
+}
+
+void Entity::setVolume(float volume) {
+  ScriptEngine::set(getTable(), "_volume", std::clamp(volume, 0.f, 1.f));
+}
+
+float Entity::getVolume() const {
+  float volume = 1.f;
+  ScriptEngine::rawGet(getTable(), "_volume", volume);
+  return volume;
 }
 
 } // namespace ng

@@ -132,7 +132,7 @@ struct Room::Impl {
         layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
       }
       if (jLayer["parallax"].isString()) {
-        auto parallax = _parsePos(jLayer["parallax"].getString());
+        auto parallax = parsePos(jLayer["parallax"].getString());
         layer->setParallax(parallax);
       } else {
         auto parallax = jLayer["parallax"].getDouble();
@@ -199,12 +199,12 @@ struct Room::Impl {
       // zsort
       object->setZOrder(jObject["zsort"].getInt());
       // position
-      auto pos = _parsePos(jObject["pos"].getString());
-      auto usePos = _parsePos(jObject["usepos"].getString());
-      auto useDir = _toDirection(jObject["usedir"].getString());
+      auto pos = parsePos(jObject["pos"].getString());
+      auto usePos = parsePos(jObject["usepos"].getString());
+      auto useDir = toDirection(jObject["usedir"].getString());
       object->setUseDirection(useDir);
       // hotspot
-      auto hotspot = _parseRect(jObject["hotspot"].getString());
+      auto hotspot = parseRect(jObject["hotspot"].getString());
       object->setHotspot(ngf::irect::fromPositionSize(hotspot.getTopLeft(), hotspot.getSize()));
       // prop
       bool isProp = jObject["prop"].isInteger() && jObject["prop"].getInt() == 1;
@@ -387,7 +387,7 @@ struct Room::Impl {
     for (auto jWalkbox : jWimpy["walkboxes"]) {
       std::vector<glm::ivec2> vertices;
       auto polygon = jWalkbox["polygon"].getString();
-      _parsePolygon(polygon, vertices);
+      parsePolygon(polygon, vertices);
       ngf::Walkbox walkbox(vertices);
       walkbox.setYAxisDirection(ngf::YAxisDirection::Up);
       if (jWalkbox["name"].isString()) {
@@ -532,7 +532,7 @@ void Room::load(const char *name) {
 
   m_pImpl->_sheet = hash["sheet"].getString();
   m_pImpl->_screenHeight = hash["height"].getInt();
-  m_pImpl->_roomSize = (glm::ivec2) _parsePos(hash["roomsize"].getString());
+  m_pImpl->_roomSize = (glm::ivec2) parsePos(hash["roomsize"].getString());
 
   // load json file
   m_pImpl->_spriteSheet.load(m_pImpl->_sheet);
@@ -556,7 +556,6 @@ TextObject &Room::createTextObject(const std::string &fontName) {
   const auto &font = m_pImpl->_textureManager.getFntFont(path);
   object->setFont(&font);
   auto &obj = *object;
-  obj.setVisible(true);
   obj.setRoom(this);
   std::ostringstream s;
   s << "TextObject #" << m_pImpl->_objects.size();

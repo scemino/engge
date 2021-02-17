@@ -74,7 +74,7 @@ void SoundId::updateVolume() {
   if (pEntity) {
     auto pRoom = m_soundManager.getEngine()->getRoom();
     auto at = m_soundManager.getEngine()->getCamera().getAt();
-    entityVolume = pRoom != pEntity->getRoom() ? 0 : pEntity->getVolume().value_or(1.f);
+    entityVolume = pRoom != pEntity->getRoom() ? 0 : pEntity->getVolume();
 
     if (pRoom == pEntity->getRoom()) {
       auto width = m_soundManager.getEngine()->getRoom()->getScreenSize().x;

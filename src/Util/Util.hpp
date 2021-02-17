@@ -43,20 +43,21 @@ float distance(const glm::vec2 &v1, const glm::vec2 &v2);
 
 float length(const glm::vec2 &v);
 
-Facing _toFacing(std::optional<UseDirection> direction);
-UseDirection _toDirection(const std::string &text);
+Facing toFacing(std::optional<UseDirection> direction);
+UseDirection toDirection(const std::string &text);
 Facing getOppositeFacing(Facing facing);
 
-ngf::irect _toRect(const ngf::GGPackValue &json);
-glm::ivec2 _toSize(const ngf::GGPackValue &json);
+ngf::irect toRect(const ngf::GGPackValue &json);
+glm::ivec2 toSize(const ngf::GGPackValue &json);
 
-glm::vec2 _parsePos(const std::string &text);
-ngf::irect _parseRect(const std::string &text);
-void _parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices);
+glm::vec2 parsePos(const std::string &text);
+ngf::irect parseRect(const std::string &text);
+void parsePolygon(const std::string &text, std::vector<glm::ivec2> &vertices);
 
-ngf::Color _toColor(const std::string &color);
-ngf::Color _toColor(SQInteger color);
-ngf::Color _fromRgb(SQInteger color);
+ngf::Color parseColor(const std::string &color);
+ngf::Color fromRgba(SQInteger color);
+ngf::Color fromRgb(SQInteger color);
+int toInteger(const ngf::Color& color);
 
 glm::vec2 toDefaultView(glm::ivec2 pos, glm::ivec2 fromSize);
 

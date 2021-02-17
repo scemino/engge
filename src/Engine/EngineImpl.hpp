@@ -66,16 +66,6 @@
 namespace fs = std::filesystem;
 
 namespace ng {
-namespace {
-uint32_t toInteger(const ngf::Color &c) {
-  auto r = static_cast<uint32_t>(c.r * 255u);
-  auto g = static_cast<uint32_t>(c.g * 255u);
-  auto b = static_cast<uint32_t>(c.b * 255u);
-  auto a = static_cast<uint32_t>(c.a * 255u);
-  return (r << 24) | (g << 16) | (b << 8) | a;
-}
-}
-
 static const char *const _objectKey = "_objectKey";
 static const char *const _roomKey = "_roomKey";
 static const char *const _actorKey = "_actorKey";
@@ -352,10 +342,6 @@ struct Engine::Impl {
     }
 
     void loadActor(Actor *pActor, const ngf::GGPackValue &actorHash) {
-      ngf::Color color{ngf::Colors::White};
-      getValue(actorHash, "_color", color);
-      pActor->setColor(color);
-
       glm::vec2 pos{0, 0};
       getValue(actorHash, "_pos", pos);
       pActor->setPosition(pos);
@@ -389,9 +375,6 @@ struct Engine::Impl {
                                         static_cast<Facing>(lockFacing),
                                         static_cast<Facing>(lockFacing));
       }
-      float volume = 0;
-      getValue(actorHash, "_volume", volume);
-      pActor->setVolume(volume);
 
       glm::vec2 usePos{0, 0};
       getValue(actorHash, "_usePos", usePos);
@@ -417,18 +400,18 @@ struct Engine::Impl {
                   pActor->getKey(),
                   property.key(),
                   static_cast<int>(property.value().type()), anims.size());
-          } else if ((property.key() == "_pos") || (property.key() == "_costume") || (property.key() == "_costumeSheet")
-              || (property.key() == _roomKey) ||
-              (property.key() == "_color") || (property.key() == "_dir") || (property.key() == "_useDir")
-              || (property.key() == "_lockFacing") || (property.key() == "_volume") || (property.key() == "_usePos")
-              || (property.key() == "_renderOffset") || (property.key() == "_offset")) {
+          } else if ((property.key() == "_pos")
+              || (property.key() == "_costume")
+              || (property.key() == "_costumeSheet")
+              || (property.key() == _roomKey)
+              || (property.key() == "_dir")
+              || (property.key() == "_useDir")
+              || (property.key() == "_lockFacing")
+              || (property.key() == "_usePos")
+              || (property.key() == "_renderOffset")
+              || (property.key() == "_offset")) {
           } else {
-            // TODO: other types
-            auto s = getValue(property.value());
-            trace("load: actor {} property '{}' not loaded (type={}): {}",
-                  pActor->getKey(),
-                  property.key(),
-                  static_cast<int>(property.value().type()), s);
+            _table(pActor->getTable())->Set(ScriptEngine::toSquirrel(property.key()), toSquirrel(property.value()));
           }
           continue;
         }
@@ -503,13 +486,13 @@ struct Engine::Impl {
 
     static void getValue(const ngf::GGPackValue &hash, const std::string &key, glm::vec2 &value) {
       if (!hash[key].isNull()) {
-        value = _parsePos(hash[key].getString());
+        value = parsePos(hash[key].getString());
       }
     }
 
     static void getValue(const ngf::GGPackValue &hash, const std::string &key, ngf::Color &value) {
       if (!hash[key].isNull()) {
-        value = _toColor(hash[key].getInt());
+        value = fromRgba(hash[key].getInt());
       }
     }
 
@@ -518,35 +501,19 @@ struct Engine::Impl {
       ScriptEngine::rawGet(pObj, "initState", state);
       getValue(hash, "_state", state);
       pObj->setStateAnimIndex(state);
-      auto touchable = true;
-      ScriptEngine::rawGet(pObj, "initTouchable", touchable);
-      getValue(hash, "_touchable", touchable);
-      pObj->setTouchable(touchable);
       glm::vec2 offset{0, 0};
       getValue(hash, "_offset", offset);
       pObj->setOffset(offset);
-      bool hidden = false;
-      getValue(hash, "_hidden", hidden);
-      pObj->setVisible(!hidden);
       float rotation = 0;
       getValue(hash, "_rotation", rotation);
       pObj->setRotation(rotation);
-      ngf::Color color{ngf::Colors::White};
-      getValue(hash, "_color", color);
-      pObj->setColor(color);
 
       for (auto &property :  hash.items()) {
         if (property.key().empty() || property.key()[0] == '_') {
-          if (property.key() == "_state" || property.key() == "_touchable" || property.key() == "_offset"
-              || property.key() == "_hidden" || property.key() == "_rotation" || property.key() == "_color")
+          if (property.key() == "_state" || property.key() == "_offset" || property.key() == "_rotation")
             continue;
 
-          // TODO: other types
-          auto s = getValue(property.value());
-          warn("load: object {} property '{}' not loaded (type={}): {}",
-               pObj->getKey(),
-               property.key(),
-               static_cast<int>(property.value().type()), s);
+          _table(pObj->getTable())->Set(ScriptEngine::toSquirrel(property.key()), toSquirrel(property.value()));
           continue;
         }
 
@@ -693,9 +660,6 @@ struct Engine::Impl {
         auto lockFacing = pActor->getCostume().getLockFacing();
         actorHash["_lockFacing"] = lockFacing.has_value() ? static_cast<int>(lockFacing.value()) : 0;
         actorHash["_pos"] = toString(pActor->getPosition());
-        if (pActor->getVolume().has_value()) {
-          actorHash["_volume"] = pActor->getVolume().value();
-        }
         auto useDir = pActor->getUseDirection();
         if (useDir.has_value()) {
           actorHash["_useDir"] = static_cast<int>(useDir.value());
@@ -707,9 +671,6 @@ struct Engine::Impl {
         auto renderOffset = pActor->getRenderOffset();
         if (renderOffset != glm::ivec2(0, 45)) {
           actorHash["_renderOffset"] = toString(renderOffset);
-        }
-        if (pActor->getColor() != ngf::Colors::White) {
-          actorHash["_color"] = static_cast<int>(toInteger(pActor->getColor()));
         }
         auto costumeSheet = pActor->getCostume().getSheet();
         if (!costumeSheet.empty()) {
@@ -859,7 +820,7 @@ struct Engine::Impl {
         hashObject["_state"] = pObject->getState();
       }
       if (!pObject->isTouchable()) {
-        hashObject["_touchable"] = pObject->isTouchable() ? 1 : 0;
+        hashObject["_touchable"] = 0;
       }
       // this is the way to compare 2 vectors... not so simple
       if (glm::any(glm::epsilonNotEqual(pObject->getOffset(), glm::vec2(0, 0), 1e-6f))) {

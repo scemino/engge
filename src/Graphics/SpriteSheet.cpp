@@ -33,11 +33,11 @@ void SpriteSheet::load(const std::string &name) {
 
   auto jFrames = json["frames"];
   for (auto &it : jFrames.items()) {
-    auto rect = _toRect(it.value()["frame"]);
+    auto rect = toRect(it.value()["frame"]);
     m_rects.insert(std::make_pair(it.key(), rect));
-    rect = _toRect(it.value()["spriteSourceSize"]);
+    rect = toRect(it.value()["spriteSourceSize"]);
     m_spriteSourceSize.insert(std::make_pair(it.key(), rect));
-    auto size = _toSize(it.value()["sourceSize"]);
+    auto size = toSize(it.value()["sourceSize"]);
     m_sourceSize.insert(std::make_pair(it.key(), size));
   }
 }
