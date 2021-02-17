@@ -22,6 +22,7 @@ set(SOURCES
         Engine/Camera.cpp
         Engine/Cutscene.cpp
         Engine/Engine.cpp
+        Engine/EngineImpl.cpp
         Engine/EngineSettings.cpp
         Engine/EntityManager.cpp
         Engine/Hud.cpp
