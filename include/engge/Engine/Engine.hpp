@@ -63,37 +63,34 @@ public:
   void setApplication(ngf::Application *app);
   [[nodiscard]] const ngf::Application *getApplication() const;
 
-  ResourceManager &getResourceManager();
-
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);
   SQInteger enterRoomFromDoor(Object *pDoor);
+
   [[nodiscard]] static std::wstring getText(int id);
   [[nodiscard]] static std::wstring getText(const std::string &text);
 
-  void addActor(std::unique_ptr<Actor> actor);
   void addRoom(std::unique_ptr<Room> room);
   std::vector<std::unique_ptr<Room>> &getRooms();
 
+  void addActor(std::unique_ptr<Actor> actor);
+  std::vector<std::unique_ptr<Actor>> &getActors();
+  void setCurrentActor(Actor *pCurrentActor, bool userSelected);
+  Actor *getCurrentActor();
+  Entity *getEntity(const std::string &name);
+
   void addCallback(std::unique_ptr<Callback> callback);
   void removeCallback(int id);
-  void addFunction(std::unique_ptr<Function> function);
-  void setSentence(std::unique_ptr<Sentence> sentence);
-  void stopSentence();
 
+  void addFunction(std::unique_ptr<Function> function);
   void cutscene(std::unique_ptr<Cutscene> function);
   [[nodiscard]] bool inCutscene() const;
   void cutsceneOverride();
   [[nodiscard]] Cutscene *getCutscene() const;
 
-  std::vector<std::unique_ptr<Actor>> &getActors();
-
   void update(const ngf::TimeSpan &elapsed);
   void draw(ngf::RenderTarget &target, bool screenshot = false) const;
   [[nodiscard]] int getFrameCounter() const;
-
-  void setCurrentActor(Actor *pCurrentActor, bool userSelected);
-  Actor *getCurrentActor();
 
   void setWalkboxesFlags(int flags);
   [[nodiscard]] int getWalkboxesFlags() const;
@@ -103,6 +100,8 @@ public:
   void setDefaultVerb();
   [[nodiscard]] const Verb *getActiveVerb() const;
   void pushSentence(int id, Entity *pObj1, Entity *pObj2);
+  void setSentence(std::unique_ptr<Sentence> sentence);
+  void stopSentence();
 
   void setInputActive(bool active);
   [[nodiscard]] bool getInputActive() const;
@@ -113,27 +112,28 @@ public:
   void setInputState(int state);
   [[nodiscard]] int getInputState() const;
 
-  void follow(Actor *pActor);
   void setScriptExecute(std::unique_ptr<ScriptExecute> scriptExecute);
 
   void addThread(std::unique_ptr<ThreadBase> thread);
-
   std::vector<std::unique_ptr<ThreadBase>> &getThreads();
 
   void startDialog(const std::string &dialog, const std::string &node);
   void execute(const std::string &code);
-  SoundDefinition *getSoundDefinition(const std::string &name);
   bool executeCondition(const std::string &code);
   std::string executeDollar(const std::string &code);
+
+  SoundDefinition *getSoundDefinition(const std::string &name);
 
   [[nodiscard]] glm::vec2 getMousePositionInRoom() const;
 
   Preferences &getPreferences();
   SoundManager &getSoundManager();
   DialogManager &getDialogManager();
-  Camera &getCamera();
+  ResourceManager &getResourceManager();
 
-  Entity *getEntity(const std::string &name);
+  Camera &getCamera();
+  void follow(Actor *pActor);
+
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
   void actorSlotSelectable(int index, bool selectable);

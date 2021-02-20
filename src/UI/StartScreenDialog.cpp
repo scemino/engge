@@ -21,47 +21,46 @@ struct StartScreenDialog::Impl {
     inline static const int Help = 99961;
   };
 
-  static constexpr float yPosStart = 84.f;
-  static constexpr float yPosLarge = 58.f;
-  static constexpr float yPosSmall = 54.f;
+  static constexpr float yPosStart = 155.f;
+  static constexpr float yStep = 80.f;
 
-  Engine *_pEngine{nullptr};
+  Engine *m_pEngine{nullptr};
 
-  std::vector<Button> _buttons;
-  QuitDialog _quit;
-  OptionsDialog _options;
-  SaveLoadDialog _saveload;
-  State _state{State::None};
-  State _nextstate{State::None};
-  Callback _newGameCallback;
+  std::vector<Button> m_buttons;
+  QuitDialog m_quit;
+  OptionsDialog m_options;
+  SaveLoadDialog m_saveload;
+  State m_state{State::None};
+  State m_nextState{State::None};
+  Callback m_newGameCallback;
 
-  inline static float getSlotPos(int slot) {
-    return yPosStart + yPosLarge + yPosSmall * slot;
+  inline static constexpr float getSlotPos(int slot) {
+    return yPosStart + yStep * static_cast<float>(slot - 1);
   }
 
   void setState(State state) {
-    _nextstate = state;
+    m_nextState = state;
   }
 
   void setEngine(Engine *pEngine) {
-    _pEngine = pEngine;
+    m_pEngine = pEngine;
     if (!pEngine)
       return;
 
-    _saveload.setEngine(pEngine);
-    _saveload.setCallback([this]() {
+    m_saveload.setEngine(pEngine);
+    m_saveload.setCallback([this]() {
       _showSaveLoad = false;
     });
 
-    _options.setEngine(pEngine);
-    _options.setCallback([this]() {
+    m_options.setEngine(pEngine);
+    m_options.setCallback([this]() {
       setState(State::Main);
     });
 
-    _quit.setEngine(pEngine);
-    _quit.setCallback([this](bool result) {
+    m_quit.setEngine(pEngine);
+    m_quit.setCallback([this](bool result) {
       if (result)
-        _pEngine->quit();
+        m_pEngine->quit();
       setState(State::Main);
     });
 
@@ -69,53 +68,53 @@ struct StartScreenDialog::Impl {
   }
 
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) {
-    switch (_state) {
+    switch (m_state) {
     case State::Main: {
       const auto view = target.getView();
       auto viewRect = ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height});
       target.setView(ngf::View(viewRect));
 
       // controls
-      for (auto &button : _buttons) {
+      for (auto &button : m_buttons) {
         button.draw(target, {});
       }
 
       target.setView(view);
 
       if (_showSaveLoad) {
-        _saveload.draw(target, states);
+        m_saveload.draw(target, states);
       }
       break;
     }
 
     case State::Options:
-    case State::Help:_options.draw(target, states);
+    case State::Help:m_options.draw(target, states);
       break;
 
-    case State::Quit:_quit.draw(target, states);
+    case State::Quit:m_quit.draw(target, states);
       break;
     case State::None:break;
     }
   }
 
   void onStateChanged() {
-    _buttons.clear();
-    switch (_state) {
-    case State::Main:_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() { _showSaveLoad = true; });
-      _buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
-        _saveload.updateLanguage();
-        _saveload.setSaveMode(false);
+    m_buttons.clear();
+    switch (m_state) {
+    case State::Main:m_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() { _showSaveLoad = true; });
+      m_buttons.emplace_back(Ids::LoadGame, getSlotPos(1), [this]() {
+        m_saveload.updateLanguage();
+        m_saveload.setSaveMode(false);
         _showSaveLoad = true;
       });
-      _buttons.emplace_back(Ids::NewGame, getSlotPos(2), [this]() {
-        if (_newGameCallback)
-          _newGameCallback();
+      m_buttons.emplace_back(Ids::NewGame, getSlotPos(2), [this]() {
+        if (m_newGameCallback)
+          m_newGameCallback();
       });
-      _buttons.emplace_back(Ids::Options, getSlotPos(3), [this]() { setState(State::Options); });
-      _buttons.emplace_back(Ids::Help, getSlotPos(4), [this]() { setState(State::Help); });
-      _buttons.emplace_back(Ids::Quit, getSlotPos(5), [this]() { setState(State::Quit); });
+      m_buttons.emplace_back(Ids::Options, getSlotPos(3), [this]() { setState(State::Options); });
+      m_buttons.emplace_back(Ids::Help, getSlotPos(4), [this]() { setState(State::Help); });
+      m_buttons.emplace_back(Ids::Quit, getSlotPos(5), [this]() { setState(State::Quit); });
       break;
-    case State::Help:_options.showHelp();
+    case State::Help:m_options.showHelp();
       break;
     case State::Options:break;
     case State::Quit:break;
@@ -123,38 +122,38 @@ struct StartScreenDialog::Impl {
       break;
     }
 
-    for (auto &button : _buttons) {
-      button.setEngine(_pEngine);
+    for (auto &button : m_buttons) {
+      button.setEngine(m_pEngine);
     }
   }
 
   void update(const ngf::TimeSpan &elapsed) {
-    if (_nextstate != _state) {
-      _state = _nextstate;
+    if (m_nextState != m_state) {
+      m_state = m_nextState;
       onStateChanged();
     }
 
-    switch (_state) {
-    case State::Quit:_quit.update(elapsed);
+    switch (m_state) {
+    case State::Quit:m_quit.update(elapsed);
       break;
 
     case State::Options:
-    case State::Help:_options.update(elapsed);
+    case State::Help:m_options.update(elapsed);
       break;
 
     default:
       if (_showSaveLoad) {
-        _saveload.update(elapsed);
+        m_saveload.update(elapsed);
         return;
       }
 
-      auto pos = _pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
-                                                                                 ngf::View(ngf::frect::fromPositionSize(
-                                                                                     {0,
-                                                                                      0},
-                                                                                     {Screen::Width,
-                                                                                      Screen::Height})));
-      for (auto &button : _buttons) {
+      auto pos = m_pEngine->getApplication()->getRenderTarget()->mapPixelToCoords(ngf::Mouse::getPosition(),
+                                                                                  ngf::View(ngf::frect::fromPositionSize(
+                                                                                      {0,
+                                                                                       0},
+                                                                                      {Screen::Width,
+                                                                                       Screen::Height})));
+      for (auto &button : m_buttons) {
         button.update(elapsed, pos);
       }
       break;
@@ -180,10 +179,10 @@ void StartScreenDialog::update(const ngf::TimeSpan &elapsed) {
 }
 
 void StartScreenDialog::setNewGameCallback(Callback callback) {
-  m_pImpl->_newGameCallback = std::move(callback);
+  m_pImpl->m_newGameCallback = std::move(callback);
 }
 
 void StartScreenDialog::setSlotCallback(SaveLoadDialog::SlotCallback callback) {
-  m_pImpl->_saveload.setSlotCallback(std::move(callback));
+  m_pImpl->m_saveload.setSlotCallback(std::move(callback));
 }
 }

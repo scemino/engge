@@ -794,6 +794,7 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
 void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   if (!_cursorVisible)
     return;
+
   if (!_showCursor || _state != EngineState::Game)
     return;
 
@@ -812,6 +813,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   if (currentActorIndex == -1)
     return;
 
+  auto textColor = _hud.getVerbUiColors(currentActorIndex).sentence;
   auto classicSentence = _pEngine->getPreferences().getUserPreference(PreferenceNames::ClassicSentence,
                                                                       PreferenceDefaultValues::ClassicSentence);
 
@@ -850,7 +852,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
 
   Text text;
   text.setFont(font);
-  text.setColor(_hud.getVerbUiColors(currentActorIndex).sentence);
+  text.setColor(textColor);
   text.setWideString(s);
 
   // do display cursor position:
@@ -862,19 +864,20 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
     text.setWideString(ss.str());
   }
 
-  auto screenSize = _pRoom->getScreenSize();
-  auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
-
+  // gets the position where to draw the cursor text
   auto bounds = getGlobalBounds(text);
   if (classicSentence) {
     auto y = Screen::Height - 210.f;
     auto x = Screen::HalfWidth - bounds.getWidth() / 2.f;
     text.getTransform().setPosition({x, y});
   } else {
+    auto screenSize = _pRoom->getScreenSize();
+    auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
     auto y = pos.y - 20 < 40 ? pos.y + 80 : pos.y - 40;
     auto x = std::clamp<float>(pos.x - bounds.getWidth() / 2.f, 20.f, Screen::Width - 20.f - bounds.getWidth());
     text.getTransform().setPosition({x, y - bounds.getHeight()});
   }
+
   text.draw(target, {});
   target.setView(view);
 }

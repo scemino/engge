@@ -8,6 +8,7 @@
 #include "Engine/DebugFeatures.hpp"
 #include "DebugControls.hpp"
 #include <squirrel.h>
+#include <Util/Util.hpp>
 #include "../../extlibs/squirrel/squirrel/sqvm.h"
 #include "../../extlibs/squirrel/squirrel/sqstate.h"
 #include "../../extlibs/squirrel/squirrel/sqstring.h"
@@ -43,7 +44,15 @@ void GeneralTools::render() {
               ((dialogState == DialogManagerState::Active)
                ? "yes"
                : (dialogState == DialogManagerState::WaitingForChoice ? "waiting for choice" : "no")));
+  ImGui::Separator();
 
+  auto mousePos = m_engine.getMousePositionInRoom();
+  ImGui::Text("Pos (room): (%.0f, %0.f)", mousePos.x, mousePos.y);
+  auto pRoom = m_engine.getRoom();
+  if (pRoom) {
+    auto pos = toDefaultView((glm::ivec2) mousePos, pRoom->getScreenSize());
+    ImGui::Text("Pos (screen): (%.0f, %0.f)", pos.x, pos.y);
+  }
   ImGui::Separator();
 
   auto gameSpeedFactor = m_engine.getPreferences().getUserPreference(PreferenceNames::EnggeGameSpeedFactor,
