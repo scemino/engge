@@ -8,63 +8,19 @@
 #include "engge/Scripting/ScriptEngine.hpp"
 
 namespace ng {
-SoundId::SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category)
-    : m_soundManager(soundManager), m_pSoundDefinition(pSoundDefinition), m_category(category) {
+SoundId::SoundId(SoundManager &soundManager,
+                 std::shared_ptr<SoundDefinition> soundDefinition,
+                 std::shared_ptr<ngf::SoundHandle> sound,
+                 SoundCategory category,
+                 int entityId)
+    : m_soundManager(soundManager), m_soundDefinition(soundDefinition), m_sound(sound), m_category(category),
+      m_entityId(entityId) {
   m_id = Locator<EntityManager>::get().getSoundId();
 }
 
 SoundId::~SoundId() {
   //trace("delete SoundId ({}) {}", (long)this, _pSoundDefinition->getPath());
-  stop();
-  m_pSoundDefinition = nullptr;
-}
-
-SoundDefinition *SoundId::getSoundDefinition() {
-  return m_pSoundDefinition;
-}
-
-bool SoundId::isPlaying() const {
-  return m_sound.getLoop() || m_sound.getStatus() == sf::SoundSource::Playing;
-}
-
-void SoundId::play(int loopTimes) {
-  m_loopTimes = loopTimes;
-  m_pSoundDefinition->load();
-  m_sound.setBuffer(m_pSoundDefinition->m_buffer);
-  m_sound.setLoop(loopTimes == -1);
-  updateVolume();
-  m_sound.play();
-}
-
-void SoundId::setVolume(float volume) {
-//  if (_pSoundDefinition) {
-//    auto path = _pSoundDefinition->getPath();
-//    trace("setVolume({},{})", path, volume);
-//  }
-  m_volume = volume;
-}
-
-float SoundId::getVolume() const {
-  return m_volume;
-}
-
-void SoundId::stop() {
-//  auto path = _pSoundDefinition->getPath();
-//  trace("stopSoundId({})", path);
-  m_loopTimes = 0;
-  m_sound.stop();
-}
-
-void SoundId::pause() {
-  auto path = m_pSoundDefinition->getPath();
-  trace("pause sound({})", path);
-  m_sound.pause();
-}
-
-void SoundId::resume() {
-  auto path = m_pSoundDefinition->getPath();
-  trace("resume sound({})", path);
-  m_sound.play();
+  m_sound.reset();
 }
 
 void SoundId::updateVolume() {
@@ -82,12 +38,8 @@ void SoundId::updateVolume() {
       entityVolume = (1.5f - (diff / width)) / 1.5f;
       if (entityVolume < 0)
         entityVolume = 0;
-      float pan = (pEntity->getPosition().x - at.x) / (width / 2);
-      if (pan > 1.f)
-        pan = 1.f;
-      if (pan < -1.f)
-        pan = -1.f;
-      m_sound.setPosition({pan, 0.f, pan < 0.f ? -pan - 1.f : pan - 1.f});
+      float pan = std::clamp((pEntity->getPosition().x - at.x) / (width / 2), -1.f, 1.f);
+      m_sound->get().setPanning(pan);
     }
   }
   float categoryVolume = 0;
@@ -100,43 +52,19 @@ void SoundId::updateVolume() {
     break;
   }
   auto masterVolume = m_soundManager.getMasterVolume();
-  float volume = masterVolume * m_volume * categoryVolume * entityVolume;
-  m_sound.setVolume(volume * 100.f);
+  float volume = masterVolume * categoryVolume * entityVolume;
+  m_sound->get().setVolume(volume);
 }
 
-void SoundId::update(const ngf::TimeSpan &elapsed) {
+void SoundId::update(const ngf::TimeSpan &) {
   updateVolume();
-  if (!isPlaying()) {
-    if (m_loopTimes > 1) {
-      m_loopTimes--;
-      m_sound.play();
-    } else {
-//      auto path = _pSoundDefinition->getPath();
-//      trace("Remove sound {} not playing anymore: {}", path, _sound.getStatus());
-      m_soundManager.stopSound(this);
-      return;
-    }
-  }
-
-  if (!m_fade)
-    return;
-
-  if (m_fade->isElapsed()) {
-    m_fade.reset();
-  } else {
-    (*m_fade)(elapsed);
-  }
 }
 
-void SoundId::fadeTo(float volume, const ngf::TimeSpan &duration) {
-  const auto get = [this] { return getVolume(); };
-  const auto set = [this](float v) { setVolume(v); };
-  auto fadeTo = std::make_unique<ChangeProperty<float>>(get, set, volume, duration);
-  m_fade = std::move(fadeTo);
+bool SoundId::isPlaying() const {
+  return m_sound->get().getStatus() == ngf::AudioChannel::Status::Playing;
 }
 
-void SoundId::setEntity(int id) {
-  m_entityId = id;
+void SoundId::stop(const ngf::TimeSpan &fadeOutTime) {
+  return m_sound->get().stop(fadeOutTime);
 }
-
 } // namespace ng

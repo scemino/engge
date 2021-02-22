@@ -1,6 +1,5 @@
 include("../appInfo.cmake")
 
-include_directories(${SFML_INCLUDE_DIR})
 include_directories(../include/ ../extlibs/squirrel/include/ ../extlibs/spdlog/include/ ./)
 link_directories(../extlibs/squirrel/squirrel/ ../extlibs/squirrel/sqstdlib/)
 
@@ -108,14 +107,8 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} squirrel_static sqstdlib_static)
 # clipper
 target_link_libraries(${PROJECT_NAME} clipper)
-# SFML
-target_link_libraries(${PROJECT_NAME} sfml-audio)
 # ngf
 target_link_libraries(${PROJECT_NAME} ngf)
-# SDL2
-if (WIN32)
-    target_link_libraries(${PROJECT_NAME} SDL2::SDL2main)
-endif ()
 # std::filesystem
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     target_link_libraries(${PROJECT_NAME} stdc++fs)

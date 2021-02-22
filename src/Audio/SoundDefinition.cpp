@@ -19,10 +19,8 @@ void SoundDefinition::load() {
   if (m_isLoaded)
     return;
   auto buffer = Locator<EngineSettings>::get().readBuffer(m_path);
-  m_isLoaded = m_buffer.loadFromMemory(buffer.data(), buffer.size());
-  if (!m_isLoaded) {
-    error("Can't load the sound {}", m_path);
-  }
+  m_buffer.loadFromMemory(buffer.data(), buffer.size());
+  m_isLoaded = true;
 }
 
 } // namespace ng

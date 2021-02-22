@@ -2,6 +2,7 @@
 #include "Checkbox.hpp"
 #include "Slider.hpp"
 #include "SwitchButton.hpp"
+#include <engge/EnggeApplication.hpp>
 #include "engge/Audio/SoundManager.hpp"
 #include "engge/Engine/Engine.hpp"
 #include "engge/Engine/Preferences.hpp"

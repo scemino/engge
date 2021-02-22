@@ -1,13 +1,14 @@
 #include "Button.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/UI/OptionsDialog.hpp"
-#include "engge/UI/SaveLoadDialog.hpp"
-#include "engge/UI/StartScreenDialog.hpp"
+#include <engge/EnggeApplication.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/UI/OptionsDialog.hpp>
+#include <engge/UI/SaveLoadDialog.hpp>
+#include <engge/UI/StartScreenDialog.hpp>
 #include <utility>
 #include <ngf/System/Mouse.h>
-#include "engge/UI/QuitDialog.hpp"
+#include <engge/UI/QuitDialog.hpp>
 
 namespace ng {
 struct StartScreenDialog::Impl {

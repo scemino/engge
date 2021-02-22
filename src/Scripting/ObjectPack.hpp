@@ -756,11 +756,7 @@ private:
     if (SQ_FAILED(sq_getinteger(v, 3, &color))) {
       return sq_throwerror(v, _SC("failed to get color"));
     }
-    sf::Uint8 r, g, b;
-    r = (color & 0x00FF0000) >> 16;
-    g = (color & 0x0000FF00) >> 8;
-    b = (color & 0x000000FF);
-    obj->setColor(ngf::Color(r, g, b));
+    obj->setColor(fromRgb(color));
     return 0;
   }
 

@@ -15,6 +15,7 @@ class Actor;
 class Camera;
 class Cutscene;
 class DialogManager;
+class EnggeApplication;
 class Entity;
 class Function;
 class Inventory;
@@ -60,8 +61,9 @@ public:
   Engine();
   ~Engine();
 
-  void setApplication(ngf::Application *app);
-  [[nodiscard]] const ngf::Application *getApplication() const;
+  void setApplication(ng::EnggeApplication *app);
+  [[nodiscard]] const ng::EnggeApplication *getApplication() const;
+  [[nodiscard]] ng::EnggeApplication *getApplication();
 
   Room *getRoom();
   SQInteger setRoom(Room *pRoom);

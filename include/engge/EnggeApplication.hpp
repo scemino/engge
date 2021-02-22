@@ -15,6 +15,9 @@ namespace ng {
 class Engine;
 
 class EnggeApplication final : public ngf::Application {
+public:
+  ngf::AudioSystem &getAudioSystem() { return m_audioSystem; }
+
 private:
   void onInit() final;
   void onEvent(ngf::Event &event) final;

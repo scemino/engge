@@ -60,7 +60,8 @@ public:
   static Room *getRoom(HSQUIRRELVM v, SQInteger index);
   static Actor *getActor(HSQUIRRELVM v, SQInteger index);
   static SoundId *getSound(HSQUIRRELVM v, SQInteger index);
-  static SoundDefinition *getSoundDefinition(HSQUIRRELVM v, SQInteger index);
+  static std::shared_ptr<SoundDefinition> getSoundDefinition(HSQUIRRELVM v, SQInteger index);
+  static std::shared_ptr<SoundDefinition> getSoundDefinition(HSQUIRRELVM v, const std::string &name);
 
   static bool tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light);
 

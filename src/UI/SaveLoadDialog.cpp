@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <string>
+#include <engge/EnggeApplication.hpp>
 #include <engge/UI/SaveLoadDialog.hpp>
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/Screen.hpp>

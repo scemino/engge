@@ -1,4 +1,5 @@
 #include "EngineImpl.hpp"
+#include <engge/EnggeApplication.hpp>
 
 namespace ng {
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs) {
@@ -891,7 +892,7 @@ void Engine::Impl::drawNoOverride(ngf::RenderTarget &target) const {
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   ngf::Color c(ngf::Colors::White);
-  c.a = static_cast<sf::Uint8>((2.f - _noOverrideElapsed.getTotalSeconds() / 2.f) * 255);
+  c.a = (2.f - _noOverrideElapsed.getTotalSeconds() / 2.f);
   ngf::Sprite spriteNo;
   spriteNo.setColor(c);
   spriteNo.getTransform().setPosition({8.f, 8.f});

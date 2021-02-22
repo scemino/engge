@@ -88,6 +88,11 @@ void EnggeApplication::onInit() {
 
 void EnggeApplication::onEvent(ngf::Event &event) {
   switch (event.type) {
+  case ngf::EventType::Quit:
+    ng::Locator<Engine>::reset();
+    ng::Locator<SoundManager>::reset();
+    m_engine = nullptr;
+    break;
   case ngf::EventType::WindowResized:
     getRenderTarget()->setView(ngf::View{
         ngf::frect::fromPositionSize({0, 0}, glm::vec2(event.resize.size) * ngf::Window::getDpiScale())});

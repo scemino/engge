@@ -140,7 +140,7 @@ void Entity::setRotation(float angle) {
 }
 
 float Entity::getRotation() const {
-  // SFML give rotation in degree between [0, 360]
+  // rotation is in degree between [0, 360]
   float angle = m_pImpl->m_transform.getRotation();
   // convert it to [-180, 180]
   if (angle > 180)
@@ -192,7 +192,7 @@ void Entity::trig(const std::string &name) {
   auto id = std::strtol(name.data() + 1, &end, 10);
   if (end == name.data() + 1) {
     // trig sound
-    auto soundId = m_pImpl->m_engine.getSoundDefinition(name.data() + 1);
+    auto soundId = EntityManager::getSoundDefinition(ScriptEngine::getVm(), name.data() + 1);
     if (!soundId)
       return;
     m_pImpl->m_engine.getSoundManager().playSound(soundId);
@@ -212,7 +212,7 @@ void Entity::drawForeground(ngf::RenderTarget &target, ngf::RenderStates s) cons
   m_pImpl->m_talkingState.draw(target, s);
 }
 
-SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds) {
+SoundTrigger *Entity::createSoundTrigger(Engine &engine, const std::vector<std::shared_ptr<SoundDefinition>> &sounds) {
   auto trigger = std::make_unique<SoundTrigger>(engine, sounds, this->getId());
   SoundTrigger *pTrigger = trigger.get();
   m_pImpl->m_soundTriggers.push_back(std::move(trigger));

@@ -7,7 +7,7 @@
 namespace ng {
 namespace {
 std::string getName(SoundId *soundId) {
-  const auto *sd = soundId ? soundId->getSoundDefinition() : nullptr;
+  auto sd = soundId ? soundId->getSoundDefinition() : nullptr;
   if (!sd)
     return {};
   return sd->getPath();
@@ -16,7 +16,7 @@ std::string getName(SoundId *soundId) {
 std::string getLoopTimes(SoundId *soundId) {
   if (!soundId)
     return {};
-  auto loopTimes = soundId->getLoopTimes();
+  auto loopTimes = soundId->getSoundHandle()->get().getNumLoops();
   if (loopTimes == -1)
     return "Inf.";
   return std::to_string(loopTimes);
@@ -44,6 +44,18 @@ ngf::Color getCategoryColor(SoundId *soundId) {
   default: return ngf::Colors::White;
   }
 }
+
+std::string getStatus(SoundId *soundId) {
+  if (!soundId)
+    return "Stopped";
+  switch (soundId->getSoundHandle().get()->get().getStatus()) {
+  case ngf::AudioChannel::Status::Playing:return "Playing";
+  case ngf::AudioChannel::Status::Stopped:return "Stopped";
+  case ngf::AudioChannel::Status::Paused:return "Paused";
+  default: return "?";
+  }
+}
+
 }
 
 SoundTools::SoundTools(Engine &engine) : m_engine(engine) {}
@@ -64,7 +76,7 @@ void SoundTools::render() {
   ImGui::Separator();
 
   if (ImGui::BeginTable("Sounds",
-                        6,
+                        7,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable
                             | ImGuiTableFlags_RowBg)) {
     ImGui::TableSetupColumn("");
@@ -73,21 +85,24 @@ void SoundTools::render() {
     ImGui::TableSetupColumn("Loops");
     ImGui::TableSetupColumn("Category");
     ImGui::TableSetupColumn("Volume");
+    ImGui::TableSetupColumn("Status");
     ImGui::TableHeadersRow();
 
     for (auto i = 0; i < static_cast<int>(sounds.size()); i++) {
       const auto &sound = sounds[i];
       const auto name = getName(sound.get());
       const auto loopTimes = getLoopTimes(sound.get());
-      const auto volume = sound ? sound->getVolume() : 0.f;
+      const auto volume = sound ? sound->getSoundHandle()->get().getVolume() : 0.f;
       const auto category = getCategory(sound.get());
       const auto catColor = getCategoryColor(sound.get());
+      const auto status = getStatus(sound.get());
 
       ImGui::TableNextRow();
       if (name.empty()) {
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         ImGui::Text("%2d", i);
+        ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
@@ -109,7 +124,9 @@ void SoundTools::render() {
       ImGui::TableNextColumn();
       ImGui::TextColored(ngf::ImGui::ImVec4(catColor), " %7s", category.data());
       ImGui::TableNextColumn();
-      ImGui::Text(" %.1f", volume);
+      ImGui::Text("%.1f", volume);
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", status.c_str());
     }
     ImGui::EndTable();
   }

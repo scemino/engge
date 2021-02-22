@@ -137,7 +137,7 @@ void TalkingState::loadActorSpeech(const std::string &name, bool hearVoice) {
     return;
   }
 
-  auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, _pEntity->getId());
+  auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, ngf::TimeSpan::Zero, _pEntity->getId());
   if (pSound) {
     _soundId = pSound->getId();
   }

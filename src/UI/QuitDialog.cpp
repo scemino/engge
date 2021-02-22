@@ -1,5 +1,6 @@
 #include "ControlConstants.hpp"
 #include "Button.hpp"
+#include <engge/EnggeApplication.hpp>
 #include <engge/Graphics/FntFont.h>
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/Screen.hpp>

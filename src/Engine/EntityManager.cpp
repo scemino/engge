@@ -56,12 +56,12 @@ Sound *EntityManager::getSoundFromId(int id) {
   if (!EntityManager::isSound(id))
     return nullptr;
 
-  for (auto &&sound : ng::Locator<ng::Engine>::get().getSoundManager().getSoundDefinitions()) {
+  for (auto sound : ng::Locator<ng::Engine>::get().getSoundManager().getSoundDefinitions()) {
     if (sound->getId() == id)
       return sound.get();
   }
 
-  for (auto &&sound : ng::Locator<ng::Engine>::get().getSoundManager().getSounds()) {
+  for (auto sound : ng::Locator<ng::Engine>::get().getSoundManager().getSounds()) {
     if (sound && sound->getId() == id)
       return sound.get();
   }
@@ -118,9 +118,52 @@ SoundId *EntityManager::getSound(HSQUIRRELVM v, SQInteger index) {
                                                  index);
 }
 
-SoundDefinition *EntityManager::getSoundDefinition(HSQUIRRELVM v,
-                                                   SQInteger index) {
-  return EntityManager::getScriptObject<SoundDefinition>(v, index);
+std::shared_ptr<SoundDefinition> EntityManager::getSoundDefinition(HSQUIRRELVM v,
+                                                                   SQInteger index) {
+  auto type = sq_gettype(v, index);
+  // is it a table?
+  if (type != OT_TABLE) {
+    return nullptr;
+  }
+
+  HSQOBJECT object;
+  sq_resetobject(&object);
+  if (SQ_FAILED(sq_getstackobj(v, index, &object))) {
+    return nullptr;
+  }
+
+  sq_pushobject(v, object);
+  sq_pushstring(v, _SC("_id"), -1);
+  if (SQ_FAILED(sq_rawget(v, -2))) {
+    return nullptr;
+  }
+
+  SQInteger id = 0;
+  if (SQ_FAILED(sq_getinteger(v, -1, &id))) {
+    return nullptr;
+  }
+  sq_pop(v, 2);
+
+  if (EntityManager::isSound(id)) {
+    for (auto sound : ng::Locator<ng::Engine>::get().getSoundManager().getSoundDefinitions()) {
+      if (sound->getId() == id) {
+        return sound;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+std::shared_ptr<SoundDefinition> EntityManager::getSoundDefinition(HSQUIRRELVM v, const std::string &name) {
+  auto top = sq_gettop(v);
+  sq_pushroottable(v);
+  sq_pushstring(v, name.data(), -1);
+  sq_get(v, -2);
+
+  auto sound = getSoundDefinition(v, -1);
+  sq_settop(v, top);
+  return sound;
 }
 
 bool EntityManager::tryGetLight(HSQUIRRELVM v, SQInteger index, Light *&light) {

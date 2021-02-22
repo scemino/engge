@@ -5,7 +5,7 @@
 #include "engge/Audio/SoundManager.hpp"
 
 namespace ng {
-SoundTrigger::SoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds, int id)
+SoundTrigger::SoundTrigger(Engine &engine, const std::vector<std::shared_ptr<SoundDefinition>> &sounds, int id)
     : m_engine(engine), m_id(id), m_distribution(0, sounds.size() - 1) {
   m_name = "SoundTrigger ";
   m_soundsDefinitions.resize(sounds.size());
@@ -24,7 +24,7 @@ SoundTrigger::~SoundTrigger() = default;
 
 void SoundTrigger::trigCore() {
   int i = m_distribution(m_defaultRandomEngine);
-  auto pSound = m_engine.getSoundManager().playSound(m_soundsDefinitions[i], 1, m_id);
+  auto pSound = m_engine.getSoundManager().playSound(m_soundsDefinitions[i], 1, ngf::TimeSpan::Zero, m_id);
   if (!pSound)
     return;
   m_sounds[i] = pSound->getId();

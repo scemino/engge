@@ -25,11 +25,9 @@ Look at the assets 😉
 * Buy [Thimbleweed park](https://thimbleweedpark.com)
 * Go to your installation folder and copy these files:  **ThimbleweedPark.ggpack1** and **ThimbleweedPark.ggpack2** to **engge** directory
 * **engge** has these following dependencies
-  * [ngf](https://github.com/scemino/EnggeFramework/): Engge Framework is a C++ framework based on SDL.
-  * [SFML](https://www.sfml-dev.org/): Simple and Fast Multimedia Library (SFML-Audio only)
+  * [ngf](https://github.com/scemino/EnggeFramework/): Engge Framework is a C++ framework based on **SDL2**.
   * [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
   * [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
-  * [clipper](https://sourceforge.net/projects/polyclipping/): Polygon and line clipping and offsetting library.
 
 ## Building
 

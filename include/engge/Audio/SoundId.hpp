@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+#include <ngf/Audio/SoundHandle.h>
 #include <engge/Engine/ChangeProperty.hpp>
 #include "SoundCategory.hpp"
 #include "SoundDefinition.hpp"
@@ -9,24 +11,19 @@ class SoundManager;
 
 class SoundId final : public Sound {
 public:
-  explicit SoundId(SoundManager &soundManager, SoundDefinition *pSoundDefinition, SoundCategory category);
+  explicit SoundId(SoundManager &soundManager,
+                   std::shared_ptr<SoundDefinition> soundDefinition,
+                   std::shared_ptr<ngf::SoundHandle> sound,
+                   SoundCategory category,
+                   int entityId = 0);
   ~SoundId() final;
 
-  void play(int loopTimes);
-  void stop();
-  void pause();
-  void resume();
-
-  void setVolume(float volume);
-  [[nodiscard]] float getVolume() const;
-
-  SoundDefinition *getSoundDefinition();
-  [[nodiscard]] bool isPlaying() const;
-  [[nodiscard]] int getLoopTimes() const { return m_loopTimes; }
+  std::shared_ptr<ng::SoundDefinition> getSoundDefinition() { return m_soundDefinition; }
+  std::shared_ptr<ngf::SoundHandle> getSoundHandle() { return m_sound; }
   [[nodiscard]] SoundCategory getSoundCategory() const { return m_category; }
-  void fadeTo(float volume, const ngf::TimeSpan &duration);
 
-  void setEntity(int id);
+  [[nodiscard]] bool isPlaying() const;
+  void stop(const ngf::TimeSpan &fadeOutTime = ngf::TimeSpan::Zero);
 
   void update(const ngf::TimeSpan &elapsed);
 
@@ -35,12 +32,9 @@ private:
 
 private:
   SoundManager &m_soundManager;
-  SoundDefinition *m_pSoundDefinition{nullptr};
-  sf::Sound m_sound;
-  std::unique_ptr<ChangeProperty<float>> m_fade;
+  std::shared_ptr<SoundDefinition> m_soundDefinition{};
+  std::shared_ptr<ngf::SoundHandle> m_sound{};
   SoundCategory m_category;
-  float m_volume{1.0f};
-  int m_loopTimes{0};
-  int m_entityId{0};
+  const int m_entityId{0};
 };
 } // namespace ng

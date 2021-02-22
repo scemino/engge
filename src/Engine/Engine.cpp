@@ -16,6 +16,7 @@
 #include <ngf/Graphics/Colors.h>
 #include <ngf/System/Mouse.h>
 #include <engge/Util/RandomNumberGenerator.hpp>
+#include <engge/EnggeApplication.hpp>
 #include <engge/Engine/Engine.hpp>
 #include <engge/Engine/ActorIcons.hpp>
 #include <engge/Engine/Camera.hpp>
@@ -93,9 +94,10 @@ Engine::~Engine() = default;
 
 int Engine::getFrameCounter() const { return m_pImpl->_frameCounter; }
 
-void Engine::setApplication(ngf::Application *app) { m_pImpl->_pApp = app; }
+void Engine::setApplication(ng::EnggeApplication *app) { m_pImpl->_pApp = app; }
 
-const ngf::Application *Engine::getApplication() const { return m_pImpl->_pApp; }
+const ng::EnggeApplication *Engine::getApplication() const { return m_pImpl->_pApp; }
+ng::EnggeApplication *Engine::getApplication() { return m_pImpl->_pApp; }
 
 ResourceManager &Engine::getResourceManager() { return m_pImpl->_textureManager; }
 
@@ -310,6 +312,8 @@ void Engine::inputSilentOff() { m_pImpl->_inputActive = false; }
 void Engine::setInputVerbs(bool on) { m_pImpl->_inputVerbsActive = on; }
 
 void Engine::update(const ngf::TimeSpan &el) {
+  if(m_pImpl->_state == EngineState::Quit) return;
+
   roomEffect.RandomValue[0] = Locator<RandomNumberGenerator>::get().generateFloat(0, 1.f);
   roomEffect.iGlobalTime = fmod(m_pImpl->_time.getTotalSeconds(), 1000.f);
   roomEffect.TimeLapse = roomEffect.iGlobalTime;
@@ -331,6 +335,8 @@ void Engine::update(const ngf::TimeSpan &el) {
     m_pImpl->_optionsDialog.update(elapsed);
   } else if (m_pImpl->_state == EngineState::StartScreen) {
     m_pImpl->_startScreenDialog.update(elapsed);
+    if(m_pImpl->_state == EngineState::Quit)
+      return;
   }
 
   if (m_pImpl->_state == EngineState::Paused) {
@@ -795,6 +801,7 @@ void Engine::showOptions(bool visible) {
 
 void Engine::quit() {
   m_pImpl->_pApp->quit();
+  m_pImpl->_state = EngineState::Quit;
 }
 
 void Engine::run() {

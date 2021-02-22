@@ -83,7 +83,7 @@ enum class CursorDirection : unsigned int {
 };
 
 enum class EngineState {
-  Game, Paused, Options, StartScreen
+  Game, Paused, Options, StartScreen, Quit
 };
 
 struct Engine::Impl {
@@ -893,7 +893,7 @@ struct Engine::Impl {
   std::vector<std::unique_ptr<Function>> _functions;
   std::vector<std::unique_ptr<Callback>> _callbacks;
   Cutscene *_pCutscene{nullptr};
-  ngf::Application *_pApp{nullptr};
+  ng::EnggeApplication *_pApp{nullptr};
   Actor *_pCurrentActor{nullptr};
   bool _inputHUD{false};
   bool _inputActive{false};

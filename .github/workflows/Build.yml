@@ -25,12 +25,9 @@ jobs:
             build-essential       \
             gcc-10                \
             g++-10                \
-            libsfml-dev           \
-            libxmu-dev            \
-            libxi-dev             \
-            libgl-dev             \
             libglew-dev           \
             libsdl2-dev           \
+            libsdl2-mixer-dev     \
             libglm-dev
 
       - name: Create Build Environment
@@ -80,7 +77,7 @@ jobs:
           submodules: true
 
       - name: ⬇️ Install dependencies
-        run: vcpkg install sfml:x64-windows freetype:x64-windows glew:x64-windows sdl2:x64-windows glm:x64-windows
+        run: vcpkg install freetype:x64-windows glew:x64-windows sdl2:x64-windows sdl2-mixer:x64-windows glm:x64-windows
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -123,7 +120,7 @@ jobs:
           submodules: true
 
       - name: ⬇️ Install dependencies
-        run: brew install glew sdl2 glm sfml
+        run: brew install glew sdl2 sdl2_mixer glm
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}/build

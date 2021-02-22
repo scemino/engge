@@ -102,7 +102,7 @@ public:
   Entity *getParent();
   [[nodiscard]] const Entity *getParent() const;
 
-  SoundTrigger *createSoundTrigger(Engine &engine, const std::vector<SoundDefinition *> &sounds);
+  SoundTrigger *createSoundTrigger(Engine &engine, const std::vector<std::shared_ptr<SoundDefinition>> &sounds);
 
   void alphaTo(float destination, ngf::TimeSpan time, InterpolationMethod method);
   void offsetTo(glm::vec2 destination, ngf::TimeSpan time, InterpolationMethod method);
