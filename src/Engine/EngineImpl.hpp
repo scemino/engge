@@ -51,7 +51,7 @@
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/Graphics/RenderTexture.h>
 #include <ngf/Graphics/RectangleShape.h>
-#include <engge/Graphics/Text.hpp>
+#include <ngf/Graphics/Text.h>
 #include <imgui.h>
 #include <engge/Engine/EngineSettings.hpp>
 #include <engge/Input/CommandManager.hpp>

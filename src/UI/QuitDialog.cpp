@@ -1,12 +1,12 @@
 #include "ControlConstants.hpp"
 #include "Button.hpp"
 #include <engge/EnggeApplication.hpp>
-#include <engge/Graphics/FntFont.h>
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/Screen.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
 #include <engge/UI/QuitDialog.hpp>
 #include <utility>
+#include <ngf/Graphics/FntFont.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
 #include <ngf/System/Mouse.h>
@@ -70,7 +70,7 @@ private:
   int m_id{0};
   bool m_value{false};
   Callback m_callback;
-  ng::Text m_text;
+  ngf::Text m_text;
 };
 
 struct QuitDialog::Impl {
@@ -82,7 +82,7 @@ struct QuitDialog::Impl {
 
   Engine *m_pEngine{nullptr};
   SpriteSheet m_saveLoadSheet;
-  ng::Text m_headingText;
+  ngf::Text m_headingText;
   std::vector<BackButton> m_buttons;
   Callback m_callback{nullptr};
 

@@ -1,16 +1,15 @@
 #pragma once
 #include <ngf/Graphics/Text.h>
-#include <engge/Graphics/Text.hpp>
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/EntityManager.hpp"
-#include "engge/Graphics/GGFont.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/EntityManager.hpp>
+#include <engge/Graphics/GGFont.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Audio/SoundId.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Audio/SoundManager.hpp>
 #include "LipAnimation.hpp"
 #include "Util/Util.hpp"
-#include "engge/Audio/SoundId.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Audio/SoundManager.hpp"
 
 namespace ng {
 class TalkingState final : public ngf::Drawable {

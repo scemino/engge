@@ -387,7 +387,7 @@ InterpolationMethod toInterpolationMethod(SQInteger interpolation) {
   return method;
 }
 
-ngf::frect getGlobalBounds(const ng::Text &text) {
+ngf::frect getGlobalBounds(const ngf::Text &text) {
   return ngf::transform(text.getTransform().getTransform(), text.getLocalBounds());
 }
 

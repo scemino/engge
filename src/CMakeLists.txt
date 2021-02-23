@@ -49,7 +49,6 @@ set(SOURCES
         Entities/WalkingState.cpp
         Graphics/AnimControl.cpp
         Graphics/AnimDrawable.cpp
-        Graphics/FntFont.cpp
         Graphics/GGFont.cpp
         Graphics/ResourceManager.cpp
         Graphics/SpriteSheet.cpp
@@ -57,7 +56,6 @@ set(SOURCES
         Graphics/LightingShader.cpp
         Graphics/WalkboxDrawable.cpp
         Graphics/PathDrawable.cpp
-        Graphics/Text.cpp
         Input/CommandManager.cpp
         Input/InputMappings.cpp
         main.cpp

@@ -3,19 +3,19 @@
 #include "Slider.hpp"
 #include "SwitchButton.hpp"
 #include <engge/EnggeApplication.hpp>
-#include "engge/Audio/SoundManager.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Graphics/Screen.hpp"
-#include "engge/Graphics/SpriteSheet.hpp"
-#include "engge/Graphics/FntFont.h"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/System/Logger.hpp"
-#include "engge/UI/OptionsDialog.hpp"
-#include "engge/UI/SaveLoadDialog.hpp"
-#include "engge/UI/QuitDialog.hpp"
+#include <engge/Audio/SoundManager.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Graphics/Screen.hpp>
+#include <engge/Graphics/SpriteSheet.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/System/Logger.hpp>
+#include <engge/UI/OptionsDialog.hpp>
+#include <engge/UI/SaveLoadDialog.hpp>
+#include <engge/UI/QuitDialog.hpp>
 #include "HelpDialog.hpp"
 #include <utility>
+#include <ngf/Graphics/FntFont.h>
 #include <ngf/Graphics/RectangleShape.h>
 #include <ngf/System/Mouse.h>
 
@@ -71,7 +71,7 @@ struct OptionsDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
 
-  ng::Text _headingText;
+  ngf::Text _headingText;
   std::vector<Button> _buttons;
   std::vector<SwitchButton> _switchButtons;
   std::vector<Checkbox> _checkboxes;

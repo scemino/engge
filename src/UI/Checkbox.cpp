@@ -1,8 +1,8 @@
 #include "Checkbox.hpp"
 #include <engge/Engine/Engine.hpp>
-#include <engge/Graphics/FntFont.h>
 #include "Util/Util.hpp"
 #include "ControlConstants.hpp"
+#include <ngf/Graphics/FntFont.h>
 #include <ngf/System/Mouse.h>
 
 namespace ng {

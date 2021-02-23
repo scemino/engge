@@ -3,9 +3,9 @@
 #include "Control.hpp"
 #include "ControlConstants.hpp"
 #include <engge/EnggeApplication.hpp>
-#include <engge/Graphics/FntFont.h>
 #include <engge/Engine/Engine.hpp>
 #include <engge/Graphics/Screen.hpp>
+#include <ngf/Graphics/FntFont.h>
 #include <ngf/System/Mouse.h>
 #include <utility>
 #include "Util/Util.hpp"
@@ -86,7 +86,7 @@ private:
   int m_id{0};
   glm::vec2 m_pos{0, 0};
   Callback m_callback{nullptr};
-  ng::Text m_text;
+  ngf::Text m_text;
   Size m_size{Size::Large};
   bool m_isVisible{true};
 };

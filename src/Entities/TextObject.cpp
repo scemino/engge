@@ -1,5 +1,5 @@
 #include <engge/Entities/TextObject.hpp>
-#include <engge/Graphics/Text.hpp>
+#include <ngf/Graphics/Text.h>
 #include <engge/Room/Room.hpp>
 #include "Util/Util.hpp"
 
@@ -36,7 +36,7 @@ void TextObject::draw(ngf::RenderTarget &target, ngf::RenderStates states) const
     target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
   }
 
-  Text txt;
+  ngf::Text txt;
   txt.setFont(*m_font);
   txt.setColor(getColor());
   txt.setWideString(m_text);

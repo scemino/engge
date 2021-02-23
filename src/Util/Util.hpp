@@ -3,11 +3,11 @@
 #include <regex>
 #include <ngf/IO/GGPackValue.h>
 #include <ngf/Graphics/Sprite.h>
+#include <ngf/Graphics/Text.h>
 #include <engge/Parsers/GGPackBufferStream.hpp>
 #include <engge/Entities/Costume.hpp>
 #include <engge/Entities/Object.hpp>
 #include <engge/Graphics/Screen.hpp>
-#include <engge/Graphics/Text.hpp>
 
 namespace ng {
 
@@ -63,7 +63,7 @@ glm::vec2 toDefaultView(glm::ivec2 pos, glm::ivec2 fromSize);
 
 InterpolationMethod toInterpolationMethod(SQInteger interpolation);
 
-ngf::frect getGlobalBounds(const ng::Text &text);
+ngf::frect getGlobalBounds(const ngf::Text &text);
 ngf::frect getGlobalBounds(const ngf::Sprite &sprite);
 
 ngf::GGPackValue toGGPackValue(HSQOBJECT obj);

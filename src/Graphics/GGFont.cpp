@@ -12,7 +12,7 @@ const std::shared_ptr<ngf::Texture> &GGFont::getTexture(unsigned int) const { re
 
 float GGFont::getKerning(unsigned int, unsigned int, unsigned int) const { return 0; }
 
-const Glyph &GGFont::getGlyph(unsigned int codePoint) const {
+const ngf::Glyph &GGFont::getGlyph(unsigned int codePoint) const {
   if (m_glyphs.find(codePoint) == m_glyphs.end())
     return m_glyphs.at(0x20);
   return m_glyphs.at(codePoint);
@@ -45,7 +45,7 @@ void GGFont::load(const std::string &path) {
     auto frame = toRect(m_json["frames"][sValue]["frame"]);
     auto spriteSourceSize = toRect(m_json["frames"][sValue]["spriteSourceSize"]);
     auto sourceSize = toSize(m_json["frames"][sValue]["sourceSize"]);
-    Glyph glyph;
+    ngf::Glyph glyph;
     glyph.advance = std::max(sourceSize.x - spriteSourceSize.getTopLeft().x - 4, 0);
     glyph.bounds = spriteSourceSize;
     glyph.textureRect = frame;

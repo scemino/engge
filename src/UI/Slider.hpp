@@ -1,7 +1,7 @@
 #pragma once
 #include <ngf/Graphics/Drawable.h>
 #include <ngf/Graphics/Sprite.h>
-#include <engge/Graphics/Text.hpp>
+#include <ngf/Graphics/Text.h>
 #include <engge/Graphics/SpriteSheet.hpp>
 #include <ngf/Graphics/RenderStates.h>
 #include <ngf/Graphics/RenderTarget.h>
@@ -32,7 +32,7 @@ private:
   bool m_isDragging{false};
   ngf::Sprite m_sprite;
   ngf::Sprite m_spriteHandle;
-  ng::Text m_text;
+  ngf::Text m_text;
   std::optional<Callback> m_onValueChanged;
 };
 }

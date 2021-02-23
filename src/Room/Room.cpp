@@ -7,7 +7,6 @@
 #include <engge/Room/RoomLayer.hpp>
 #include <engge/Room/RoomScaling.hpp>
 #include <engge/Graphics/SpriteSheet.hpp>
-#include <engge/Graphics/FntFont.h>
 #include <engge/Entities/TextObject.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <engge/Entities/AnimationLoader.hpp>
@@ -20,6 +19,7 @@
 #include <ngf/Math/PathFinding/PathFinder.h>
 #include <ngf/Math/PathFinding/Walkbox.h>
 #include <ngf/Graphics/RectangleShape.h>
+#include <ngf/Graphics/FntFont.h>
 
 namespace ng {
 

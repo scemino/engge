@@ -6,7 +6,7 @@
 #include <ngf/Graphics/RenderTarget.h>
 #include <ngf/Graphics/RenderStates.h>
 #include <ngf/Graphics/Drawable.h>
-#include <engge/Graphics/Text.hpp>
+#include <ngf/Graphics/Text.h>
 #include "UI/Control.hpp"
 
 namespace ng {
@@ -35,6 +35,6 @@ private:
   int m_index{0};
   float m_y{0};
   Callback m_callback{nullptr};
-  ng::Text m_text;
+  ngf::Text m_text;
 };
 }

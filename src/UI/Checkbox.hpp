@@ -2,7 +2,7 @@
 #include <utility>
 #include <ngf/Graphics/Drawable.h>
 #include <ngf/Graphics/Sprite.h>
-#include <engge/Graphics/Text.hpp>
+#include <ngf/Graphics/Text.h>
 #include "UI/Control.hpp"
 
 namespace ng {
@@ -31,7 +31,7 @@ private:
   int m_id{0};
   float m_y{0};
   bool m_isChecked{false};
-  ng::Text m_text;
+  ngf::Text m_text;
   ngf::Sprite m_sprite;
   SpriteSheet *m_pSpriteSheet{nullptr};
 };

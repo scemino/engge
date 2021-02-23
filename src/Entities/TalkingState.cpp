@@ -90,7 +90,7 @@ void TalkingState::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
                                                                  PreferenceDefaultValues::RetroFonts);
   auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  Text text;
+  ngf::Text text;
   text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));
   text.setFont(font);
   text.setColor(_talkColor);

@@ -1,11 +1,11 @@
 #include <regex>
 #include <ngf/System/Mouse.h>
-#include "engge/Dialog/DialogManager.hpp"
-#include "engge/Engine/Engine.hpp"
-#include "engge/Engine/Preferences.hpp"
-#include "engge/Scripting/ScriptEngine.hpp"
-#include "engge/Graphics/Text.hpp"
-#include "engge/Graphics/Screen.hpp"
+#include <ngf/Graphics/Text.h>
+#include <engge/Dialog/DialogManager.hpp>
+#include <engge/Engine/Engine.hpp>
+#include <engge/Engine/Preferences.hpp>
+#include <engge/Scripting/ScriptEngine.hpp>
+#include <engge/Graphics/Screen.hpp>
 
 namespace ng {
 namespace {
@@ -13,11 +13,10 @@ constexpr float DialogTop = 504.f;
 const wchar_t *const Bullet = L"\u25CF ";
 constexpr float SlidingSpeed = 25.f;
 
-ngf::frect getGlobalBounds(const ng::Text &text) {
+ngf::frect getGlobalBounds(const ngf::Text &text) {
   return ngf::transform(text.getTransform().getTransform(), text.getLocalBounds());
 }
 }
-
 
 void DialogManager::setEngine(Engine *pEngine) {
   m_pEngine = pEngine;
@@ -57,7 +56,7 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   auto dialogHighlight = m_pEngine->getVerbUiColors(actorName)->dialogHighlight;
   auto dialogNormal = m_pEngine->getVerbUiColors(actorName)->dialogNormal;
 
-  Text text;
+  ngf::Text text;
   text.setFont(font);
   auto hoverDone = false;
   for (const auto &slot : m_slots) {
@@ -134,7 +133,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
     std::wstring s;
     s = Bullet;
     s += dlg.text;
-    Text text;
+    ngf::Text text;
     text.setFont(font);
     text.getTransform().setPosition({dlg.pos.x, dlg.pos.y + y});
     text.setWideString(s);
@@ -174,7 +173,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
     std::wstring s;
     s = Bullet;
     s += slot.text;
-    Text text;
+    ngf::Text text;
     text.setFont(font);
     text.getTransform().setPosition({slot.pos.x, slot.pos.y + y});
     text.setWideString(s);

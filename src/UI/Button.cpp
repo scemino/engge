@@ -1,10 +1,10 @@
 #include "Button.hpp"
 #include <engge/Engine/Engine.hpp>
-#include <engge/Graphics/FntFont.h>
 #include <engge/Audio/SoundManager.hpp>
 #include <utility>
 #include <ngf/System/Mouse.h>
 #include <ngf/Graphics/RectangleShape.h>
+#include <ngf/Graphics/FntFont.h>
 #include "ControlConstants.hpp"
 #include "Util/Util.hpp"
 
