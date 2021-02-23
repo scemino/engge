@@ -5,79 +5,9 @@
 #include "engge/Graphics/SpriteSheet.hpp"
 #include "engge/Scripting/ScriptEngine.hpp"
 #include "engge/System/Locator.hpp"
+#include "Shaders.hpp"
 
 namespace ng {
-static const char *_vertexShaderSource =
-    R"(#version 100
-precision mediump float;
-attribute vec2 a_position;
-attribute vec4 a_color;
-attribute vec2 a_texCoords;
-
-uniform vec4 u_shadowColor;
-uniform vec4 u_normalColor;
-uniform vec4 u_highlightColor;
-uniform vec2 u_ranges;
-uniform mat3 u_transform;
-
-varying vec4 v_color;
-varying vec2 v_texCoords;
-varying vec4 v_shadowColor;
-varying vec4 v_normalColor;
-varying vec4 v_highlightColor;
-varying vec2 v_ranges;
-
-void main(void) {
-  v_color = a_color;
-  v_texCoords = a_texCoords;
-  v_shadowColor = u_shadowColor;
-  v_normalColor = u_normalColor;
-  v_highlightColor = u_highlightColor;
-  v_ranges = u_ranges;
-
-  vec3 worldPosition = vec3(a_position, 1);
-  vec3 normalizedPosition = worldPosition * u_transform;
-  gl_Position = vec4(normalizedPosition.xy, 0, 1);
-})";
-
-static const char *_verbShaderCode =
-    R"(#version 100
-#ifdef GL_ES
-precision highp float;
-#endif
-
-varying vec4 v_color;
-varying vec2 v_texCoords;
-varying vec4 v_shadowColor;
-varying vec4 v_normalColor;
-varying vec4 v_highlightColor;
-varying vec2 v_ranges;
-uniform sampler2D u_texture;
-
-void main(void)
-{
-    float shadows = v_ranges.x;
-    float highlights = v_ranges.y;
-
-    vec4 texColor = texture2D(u_texture, v_texCoords);
-
-    if ( texColor.g <= shadows)
-    {
-        texColor*=v_shadowColor;
-    }
-    else if (texColor.g >= highlights)
-    {
-        texColor*=v_highlightColor;
-    }
-    else
-    {
-        texColor*=v_normalColor;
-    }
-    texColor *= v_color;
-    gl_FragColor = texColor;
-}
-)";
-
 Hud::Hud() {
   glm::vec2 size(Screen::Width / 6.f, Screen::Height / 14.f);
   for (int i = 0; i < 9; i++) {
@@ -86,7 +16,7 @@ Hud::Hud() {
     m_verbRects.at(i) = ngf::irect::fromPositionSize({left, top}, {size.x, size.y});
   }
 
-  m_verbShader.load(_vertexShaderSource, _verbShaderCode);
+  m_verbShader.load(Shaders::verbVertexShaderCode, Shaders::verbFragmentShaderCode);
 }
 
 Hud::~Hud() = default;
@@ -272,5 +202,4 @@ void Hud::setActive(bool active) {
   }
   m_active = active;
 }
-
 }

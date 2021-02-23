@@ -9,5 +9,7 @@ struct Shaders {
   static const char *ghostFragmentShader;
   static const char *sepiaFragmentShader;
   static const char *vhsFragmentShader;
+  static const char *verbVertexShaderCode;
+  static const char *verbFragmentShaderCode;
 };
 }
