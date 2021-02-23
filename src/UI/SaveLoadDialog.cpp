@@ -294,8 +294,12 @@ struct SaveLoadDialog::Impl {
     if (!io.WantCaptureMouse && m_wasMouseDown && !isDown) {
       int i = 0;
       for (const auto &slot : m_slots) {
-        if (slot.contains(pos)) {
-          if ((m_saveMode || !slot.isEmpty()) && m_slotCallback) {
+        if (slot.contains(pos) && m_slotCallback) {
+          if (m_saveMode) {
+            if (i != 0) {
+              m_slotCallback(i + 1);
+            }
+          } else if (!slot.isEmpty()) {
             m_slotCallback(i + 1);
           }
           return;
