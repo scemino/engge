@@ -94,17 +94,10 @@ struct Engine::Impl {
     void saveGame(const std::filesystem::path &path) {
       ScriptEngine::call("preSave");
 
-      auto actorsHash = saveActors();
-      auto callbacksHash = saveCallbacks();
-      auto dialogHash = saveDialogs();
-      auto gameSceneHash = saveGameScene();
-      auto globalsHash = saveGlobals();
-      auto inventoryHash = saveInventory();
-      auto objectsHash = saveObjects();
-      auto roomsHash = saveRooms();
-
       time_t now;
       time(&now);
+
+      ngf::StopWatch watch;
 
       SQObjectPtr g;
       _table(ScriptEngine::getVm()->_roottable)->Get(ScriptEngine::toSquirrel("g"), g);
@@ -112,19 +105,19 @@ struct Engine::Impl {
       _table(g)->Get(ScriptEngine::toSquirrel("easy_mode"), easyMode);
 
       ngf::GGPackValue saveGameHash = {
-          {"actors", actorsHash},
-          {"callbacks", callbacksHash},
+          {"actors", saveActors()},
+          {"callbacks", saveCallbacks()},
           {"currentRoom", _pImpl->_pRoom->getName()},
-          {"dialog", dialogHash},
+          {"dialog", saveDialogs()},
           {"easy_mode", static_cast<int>(_integer(easyMode))},
           {"gameGUID", std::string()},
-          {"gameScene", gameSceneHash},
+          {"gameScene", saveGameScene()},
           {"gameTime", _pImpl->_time.getTotalSeconds()},
-          {"globals", globalsHash},
+          {"globals", saveGlobals()},
           {"inputState", _pImpl->_pEngine->getInputState()},
-          {"inventory", inventoryHash},
-          {"objects", objectsHash},
-          {"rooms", roomsHash},
+          {"inventory", saveInventory()},
+          {"objects", saveObjects()},
+          {"rooms", saveRooms()},
           {"savebuild", 958},
           {"savetime", static_cast<int>(now)},
           {"selectedActor", _pImpl->_pEngine->getCurrentActor()->getKey()},
@@ -132,6 +125,8 @@ struct Engine::Impl {
       };
 
       SavegameManager::saveGame(path, saveGameHash);
+
+      info("Save game in {} s", watch.getElapsedTime().getTotalSeconds());
 
       ScriptEngine::call("postSave");
     }
