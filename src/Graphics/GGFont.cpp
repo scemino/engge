@@ -23,9 +23,8 @@ void GGFont::setTextureManager(ResourceManager *textureManager) {
 }
 
 void GGFont::load(const std::string &path) {
-  m_path = path;
-  m_jsonFilename = path;
-  m_jsonFilename.append(".json");
+  m_path = path + ".png";
+  m_jsonFilename = path + ".json";
 
   auto buffer = Locator<EngineSettings>::get().readBuffer(m_jsonFilename);
   m_json = ngf::Json::parse(buffer.data());

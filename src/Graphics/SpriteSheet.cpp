@@ -9,7 +9,7 @@ void SpriteSheet::load(const std::string &name) {
   if (m_textureName == name)
     return;
 
-  m_textureName = name;
+  m_textureName = name + ".png";
 
   m_rects.clear();
   m_spriteSourceSize.clear();
@@ -17,9 +17,8 @@ void SpriteSheet::load(const std::string &name) {
 
   ngf::GGPackValue json;
 
-  std::string jsonFilename;
-  jsonFilename.append(name).append(".json");
   {
+    auto jsonFilename = name + ".json";
     auto buffer = Locator<EngineSettings>::get().readBuffer(jsonFilename);
 
 #if 0

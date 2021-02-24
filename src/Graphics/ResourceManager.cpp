@@ -13,9 +13,7 @@ ResourceManager::~ResourceManager() = default;
 
 void ResourceManager::load(const std::string &id) {
   info("Load texture {}", id);
-  std::string path;
-  path.append(id).append(".png");
-  auto data = Locator<EngineSettings>::get().readBuffer(path);
+  auto data = Locator<EngineSettings>::get().readBuffer(id);
 
 #if 0
   std::ofstream os(path, std::ios::out|std::ios::binary);
@@ -25,7 +23,7 @@ void ResourceManager::load(const std::string &id) {
 
   ngf::Image img;
   if (!img.loadFromMemory(data.data(), data.size())) {
-    error("Fail to load texture {}", path);
+    error("Fail to load texture {}", id);
   }
 
   auto texture = std::make_shared<ngf::Texture>(img);
@@ -47,7 +45,7 @@ void ResourceManager::loadFntFont(const std::string &id) {
   auto data = Locator<EngineSettings>::get().readBuffer(id);
   ngf::MemoryStream ms(data.data(), data.data() + data.size());
   font->load(id, ms, [](auto name) {
-    return Locator<ResourceManager>::get().getTexture(name);
+    return Locator<ResourceManager>::get().getTexture(name.string());
   });
 
   m_fntFontMap.insert(std::make_pair(id, font));
