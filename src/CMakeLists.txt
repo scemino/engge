@@ -56,6 +56,7 @@ set(SOURCES
         Graphics/LightingShader.cpp
         Graphics/WalkboxDrawable.cpp
         Graphics/PathDrawable.cpp
+        Graphics/Text.cpp
         Input/CommandManager.cpp
         Input/InputMappings.cpp
         main.cpp

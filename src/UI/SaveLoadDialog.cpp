@@ -74,7 +74,7 @@ struct SaveLoadDialog::Impl {
 
   private:
     Callback m_callback{nullptr};
-    ngf::Text m_text;
+    ng::Text m_text;
   };
 
   class Slot final : public Control {
@@ -181,8 +181,8 @@ struct SaveLoadDialog::Impl {
     bool m_isEmpty{true};
     ngf::Texture m_texture;
     ngf::Sprite m_sprite, m_spriteImg;
-    ngf::Text m_gameTimeText;
-    ngf::Text m_saveTimeText;
+    ng::Text m_gameTimeText;
+    ng::Text m_saveTimeText;
     ngf::Transform m_transform;
     ngf::frect m_rect = ngf::frect::fromPositionSize({0, 0}, {78 * 4, 44 * 4});
   };
@@ -192,7 +192,7 @@ struct SaveLoadDialog::Impl {
 
   Engine *m_pEngine{nullptr};
   SpriteSheet m_saveLoadSheet;
-  ngf::Text m_headingText;
+  ng::Text m_headingText;
   SaveLoadDialog::Impl::BackButton m_backButton;
   Callback m_callback{nullptr};
   SlotCallback m_slotCallback{nullptr};

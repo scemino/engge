@@ -86,7 +86,7 @@ private:
   int m_id{0};
   glm::vec2 m_pos{0, 0};
   Callback m_callback{nullptr};
-  ngf::Text m_text;
+  ng::Text m_text;
   Size m_size{Size::Large};
   bool m_isVisible{true};
 };

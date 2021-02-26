@@ -1,5 +1,6 @@
 #include "EngineImpl.hpp"
 #include <engge/EnggeApplication.hpp>
+#include <engge/Graphics/Text.hpp>
 
 namespace ng {
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs) {
@@ -689,7 +690,7 @@ void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
       _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
   auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  ngf::Text text;
+  ng::Text text;
   auto screen = target.getView().getSize();
   auto scale = screen.y / 512.f;
   text.getTransform().setScale({scale, scale});
@@ -851,7 +852,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
     s.append(L" ").append(getDisplayName(ng::Engine::getText(_pObj2->getName())));
   }
 
-  ngf::Text text;
+  ng::Text text;
   text.setFont(font);
   text.setColor(textColor);
   text.setWideString(s);

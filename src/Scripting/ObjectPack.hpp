@@ -944,15 +944,34 @@ private:
       if (SQ_FAILED(sq_getinteger(v, 4, &alignment))) {
         return sq_throwerror(v, _SC("failed to get alignment"));
       }
-      auto textAlignment = (TextAlignment) (alignment & (int) TextAlignment::All);
-      if (!(alignment & (int) TextAlignment::Vertical)) {
-        textAlignment |= TextAlignment::Top;
+      auto hAlign   = (uint64_t) (alignment & (uint64_t) 0x0000000070000000);
+      auto vAlign   = (uint64_t) (alignment & (uint64_t) 0xFFFFFFFFA1000000);
+      auto maxWidth = (uint64_t) (alignment & (uint64_t) 0x00000000000FFFFF);
+      TextAlignment align;
+      switch (hAlign) {
+      case 0x0000000010000000:
+        align = TextAlignment::Left;
+        break;
+      case 0x0000000020000000:
+        align = TextAlignment::Center;
+        break;
+      case 0x0000000040000000:
+        align = TextAlignment::Right;
+        break;
       }
-      obj.setAlignment(textAlignment);
-      int otherOptions = (alignment & ~(int) TextAlignment::All);
-      // TODO: auto lessSpacing = (otherOptions & 0x2000000);
-      auto maxWidth = (otherOptions & ~0x2000000);
-      obj.setMaxWidth(maxWidth);
+      switch (vAlign) {
+      case 0x0000000001000000:
+        align |= TextAlignment::Bottom;
+        break;
+      case 0x0000000020000000:
+        align |= TextAlignment::Center;
+        break;
+      default:
+        align |= TextAlignment::Top;
+        break;
+      }
+      obj.setAlignment(align);
+      obj.setMaxWidth(static_cast<int>(maxWidth));
     }
     ScriptEngine::push<Object *>(v, &obj);
     return 1;

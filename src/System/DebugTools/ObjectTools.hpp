@@ -22,7 +22,7 @@ public:
 
 private:
   Engine &m_engine;
-  Object *m_pSelectedObject{nullptr};
+  int m_objectId{0};
   ImGuiTextFilter m_textFilter;
   bool m_showProperties{false};
   bool m_showAnimations{false};

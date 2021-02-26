@@ -6,6 +6,7 @@
 #include <engge/Engine/Preferences.hpp>
 #include <engge/Scripting/ScriptEngine.hpp>
 #include <engge/Graphics/Screen.hpp>
+#include <engge/Graphics/Text.hpp>
 
 namespace ng {
 namespace {
@@ -56,7 +57,7 @@ void DialogManager::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
   auto dialogHighlight = m_pEngine->getVerbUiColors(actorName)->dialogHighlight;
   auto dialogNormal = m_pEngine->getVerbUiColors(actorName)->dialogNormal;
 
-  ngf::Text text;
+  ng::Text text;
   text.setFont(font);
   auto hoverDone = false;
   for (const auto &slot : m_slots) {
@@ -133,7 +134,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
     std::wstring s;
     s = Bullet;
     s += dlg.text;
-    ngf::Text text;
+    ng::Text text;
     text.setFont(font);
     text.getTransform().setPosition({dlg.pos.x, dlg.pos.y + y});
     text.setWideString(s);
@@ -173,7 +174,7 @@ void DialogManager::updateChoices(const ngf::TimeSpan &elapsed) {
     std::wstring s;
     s = Bullet;
     s += slot.text;
-    ngf::Text text;
+    ng::Text text;
     text.setFont(font);
     text.getTransform().setPosition({slot.pos.x, slot.pos.y + y});
     text.setWideString(s);

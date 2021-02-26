@@ -70,7 +70,7 @@ private:
   int m_id{0};
   bool m_value{false};
   Callback m_callback;
-  ngf::Text m_text;
+  ng::Text m_text;
 };
 
 struct QuitDialog::Impl {
@@ -82,7 +82,7 @@ struct QuitDialog::Impl {
 
   Engine *m_pEngine{nullptr};
   SpriteSheet m_saveLoadSheet;
-  ngf::Text m_headingText;
+  ng::Text m_headingText;
   std::vector<BackButton> m_buttons;
   Callback m_callback{nullptr};
 

@@ -71,7 +71,7 @@ struct OptionsDialog::Impl {
   Engine *_pEngine{nullptr};
   SpriteSheet _saveLoadSheet;
 
-  ngf::Text _headingText;
+  ng::Text _headingText;
   std::vector<Button> _buttons;
   std::vector<SwitchButton> _switchButtons;
   std::vector<Checkbox> _checkboxes;

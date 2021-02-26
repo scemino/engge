@@ -3,7 +3,7 @@
 #include <functional>
 #include <ngf/Graphics/RenderTarget.h>
 #include <ngf/Graphics/RenderStates.h>
-#include <ngf/Graphics/Text.h>
+#include <engge/Graphics/Text.hpp>
 #include "UI/Control.hpp"
 
 namespace ng {
@@ -30,7 +30,7 @@ private:
   Callback m_callback{nullptr};
   int m_id{0};
   float m_y{0};
-  ngf::Text m_text;
+  ng::Text m_text;
   Size m_size{Size::Large};
 };
 }

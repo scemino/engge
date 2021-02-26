@@ -2,12 +2,88 @@
 #include <engge/Engine/Engine.hpp>
 #include <engge/Room/Room.hpp>
 #include <engge/Entities/Object.hpp>
+#include <engge/Entities/TextObject.hpp>
 #include <engge/Engine/Trigger.hpp>
 #include <ngf/Graphics/ImGuiExtensions.h>
 #include <imgui.h>
+#include <imgui_stdlib.h>
+#include <engge/Engine/EntityManager.hpp>
 #include "Util/Util.hpp"
 
 namespace ng {
+namespace {
+std::string getName(Object *object) {
+  auto name = toUtf8(ng::Engine::getText(object->getKey()));
+  if (!name.empty())
+    return name;
+
+  auto textObj = dynamic_cast<TextObject *>(object);
+  if (textObj) {
+    name = textObj->getText();
+    if (name.size() > 10) {
+      name.erase(name.begin() + 10, name.end());
+      return name + "...";
+    }
+  }
+  name = "#" + std::to_string(object->getId());
+  return name;
+}
+
+std::string getType(Object *object) {
+  switch (object->getType()) {
+  case ObjectType::Object:return "object";
+  case ObjectType::Spot:return "spot";
+  case ObjectType::Trigger:return "trigger";
+  case ObjectType::Prop:return "prop";
+  }
+  return "?";
+}
+
+bool showHorizontalTextAlignment(TextAlignment *alignment) {
+  auto hAlign = *alignment & TextAlignment::Horizontal;
+  if (ImGui::RadioButton("Left", hAlign == TextAlignment::Left)) {
+    *alignment &= ~TextAlignment::Horizontal;
+    *alignment |= TextAlignment::Left;
+    return true;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Center", hAlign == TextAlignment::Center)) {
+    *alignment &= ~TextAlignment::Horizontal;
+    *alignment |= TextAlignment::Center;
+    return true;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Right", hAlign == TextAlignment::Right)) {
+    *alignment &= ~TextAlignment::Horizontal;
+    *alignment |= TextAlignment::Right;
+    return true;
+  }
+  return false;
+}
+
+bool showVerticalTextAlignment(TextAlignment *alignment) {
+  auto vTop = *alignment & TextAlignment::Top;
+  auto vBottom = *alignment & TextAlignment::Bottom;
+  if (ImGui::RadioButton("Top", vTop == ng::TextAlignment::Top)) {
+    *alignment &= ~TextAlignment::Vertical;
+    *alignment |= TextAlignment::Top;
+    return true;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Center##Vertical", vTop == ng::TextAlignment::None && vBottom == ng::TextAlignment::None)) {
+    *alignment &= ~TextAlignment::Vertical;
+    return true;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Bottom", vBottom == ng::TextAlignment::Bottom)) {
+    *alignment &= ~TextAlignment::Vertical;
+    *alignment |= TextAlignment::Bottom;
+    return true;
+  }
+  return false;
+}
+}
+
 ObjectTools::ObjectTools(Engine &engine) : m_engine(engine) {}
 
 void ObjectTools::render() {
@@ -25,30 +101,28 @@ void ObjectTools::render() {
   m_textFilter.Draw();
 
   for (auto &&object : objects) {
-    auto name = toUtf8(ng::Engine::getText(object->getKey()));
-    if (name.empty()) {
-      name = "#" + std::to_string(object->getId());
-    }
+    auto name = getName(object.get());
     if (!m_textFilter.PassFilter(name.c_str()))
       continue;
     ImGui::PushID(object.get());
-    bool isSelected = object.get() == m_pSelectedObject;
+    bool isSelected = object->getId() == m_objectId;
     auto visible = object->isVisible();
     if (ImGui::Checkbox("", &visible)) {
       object->setVisible(visible);
     }
     ImGui::SameLine();
     if (ImGui::Selectable(name.c_str(), isSelected)) {
-      m_pSelectedObject = object.get();
+      m_objectId = object->getId();
     }
     ImGui::PopID();
   }
 
   ImGui::Separator();
 
-  if (m_pSelectedObject) {
-    showProperties(m_pSelectedObject);
-    showAnimations(m_pSelectedObject);
+  auto pObj = EntityManager::getObjectFromId(m_objectId);
+  if (pObj) {
+    showProperties(pObj);
+    showAnimations(pObj);
   }
 
   ImGui::End();
@@ -81,20 +155,33 @@ void ObjectTools::showProperties(Object *object) {
   if (!m_showProperties)
     return;
 
+  auto textObject = dynamic_cast<TextObject *>(object);
+
   ImGui::Begin("Object Properties", &m_showProperties);
   auto name = object->getName();
   ImGui::LabelText("Name", "%s", name.c_str());
-  std::string type;
-  switch (object->getType()) {
-  case ObjectType::Object:type = "object";
-    break;
-  case ObjectType::Spot:type = "spot";
-    break;
-  case ObjectType::Trigger:type = "trigger";
-    break;
-  case ObjectType::Prop:type = "prop";
-    break;
+  ImGui::Separator();
+
+  if (textObject) {
+    auto text = textObject->getText();
+    if (ImGui::InputText("Text", &text)) {
+      textObject->setText(text);
+    }
+    auto alignment = textObject->getAlignment();
+    if (showHorizontalTextAlignment(&alignment)) {
+      textObject->setAlignment(alignment);
+    }
+    if (showVerticalTextAlignment(&alignment)) {
+      textObject->setAlignment(alignment);
+    }
+    auto maxWidth = textObject->getMaxWidth();
+    if (ImGui::InputInt("Max width", &maxWidth)) {
+      textObject->setMaxWidth(maxWidth);
+    }
+    ImGui::Separator();
   }
+
+  auto type = getType(object);
   ImGui::LabelText("Type", "%s", type.c_str());
   auto pOwner = object->getOwner();
   ImGui::LabelText("Owner", "%s", pOwner ? pOwner->getName().c_str() : "(none)");

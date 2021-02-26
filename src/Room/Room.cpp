@@ -599,13 +599,13 @@ Object &Room::createObject(const std::string &image) {
 
   const std::vector<std::string> anims{name};
   auto object = std::make_unique<Object>();
-  auto texture = Locator<ResourceManager>::get().getTexture(name);
+  auto texture = Locator<ResourceManager>::get().getTexture(name + ".png");
 
   Animation anim;
   auto size = texture->getSize();
   ngf::irect rect = ngf::irect::fromPositionSize({0, 0}, size);
   anim.name = "state0";
-  anim.texture = name;
+  anim.texture = name + ".png";
   anim.frames.push_back(SpriteSheetItem{"state0", rect, rect, size, false});
   object->getAnims().push_back(anim);
 

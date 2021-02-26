@@ -1,4 +1,5 @@
 #include <engge/Engine/EngineSettings.hpp>
+#include <engge/Graphics/Text.hpp>
 #include "TalkingState.hpp"
 
 namespace ng {
@@ -90,7 +91,7 @@ void TalkingState::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
                                                                  PreferenceDefaultValues::RetroFonts);
   auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
-  ngf::Text text;
+  ng::Text text;
   text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));
   text.setFont(font);
   text.setColor(_talkColor);
