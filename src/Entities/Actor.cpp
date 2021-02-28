@@ -1,7 +1,6 @@
 #include <engge/Entities/Actor.hpp>
 #include <engge/Engine/Engine.hpp>
 #include <engge/System/Locator.hpp>
-#include <engge/System/Logger.hpp>
 #include <engge/Engine/EntityManager.hpp>
 #include <engge/Entities/Costume.hpp>
 #include <engge/Entities/Object.hpp>
@@ -134,8 +133,10 @@ void Actor::pickupObject(Object *pObject) {
   pObject->setOwner(this);
   m_pImpl->_objects.push_back(pObject);
 
-  if (ScriptEngine::rawExists(pObject, "onPickup")) {
-    ScriptEngine::objCall(pObject, "onPickup", this);
+  ScriptEngine::call("onPickup", pObject, this);
+
+  if (ScriptEngine::rawExists(pObject, "onPickUp")) {
+    ScriptEngine::rawCall(pObject, "onPickUp", this);
   }
 }
 

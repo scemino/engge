@@ -82,7 +82,7 @@ void VerbExecuteFunction::onPickup() {
   if (m_pVerb->id != VerbConstants::VERB_PICKUP)
     return;
 
-  ScriptEngine::call("onPickup", &m_actor, m_pObject1);
+  ScriptEngine::call("onPickup", m_pObject1, &m_actor);
 }
 
 void VerbExecuteFunction::callDefaultObjectVerb() {
