@@ -27,7 +27,7 @@ bool frameContains(const SpriteSheetItem &frame, const glm::vec2 &pos) {
 }
 
 bool animContains(const Animation &anim, const glm::vec2 &pos) {
-  if (!anim.frames.empty() && frameContains(anim.frames[anim.frameIndex], pos))
+  if (!anim.frames.empty() && frameContains(anim.frames.at(anim.frameIndex), pos))
     return true;
 
   return std::any_of(anim.layers.cbegin(), anim.layers.cend(), [pos](const auto &layer) {

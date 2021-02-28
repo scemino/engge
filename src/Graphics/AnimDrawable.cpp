@@ -37,10 +37,10 @@ void AnimDrawable::draw(const glm::vec2 &pos,
     return;
 
   glm::ivec2 offset{0, 0};
-  if (!anim.offsets.empty()) {
-    offset = anim.offsets[anim.frameIndex];
+  if (!anim.offsets.empty() && anim.frameIndex < static_cast<int>(anim.offsets.size())) {
+    offset = anim.offsets.at(anim.frameIndex);
   }
-  const auto frame = anim.frames[anim.frameIndex];
+  const auto frame = anim.frames.at(anim.frameIndex);
   if (frame.isNull)
     return;
 
