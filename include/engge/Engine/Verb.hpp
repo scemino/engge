@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <ngf/Graphics/Color.h>
 
 namespace ng {
 namespace VerbConstants {

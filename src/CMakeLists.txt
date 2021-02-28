@@ -70,7 +70,13 @@ set(SOURCES
         Room/RoomScaling.cpp
         Room/RoomTrigger.cpp
         Room/RoomTriggerThread.cpp
+        Scripting/ActorWalk.cpp
+        Scripting/DefaultVerbExecute.cpp
+        Scripting/PostWalk.cpp
+        Scripting/ReachAnim.cpp
+        Scripting/SetDefaultVerb.cpp
         Scripting/ScriptEngine.cpp
+        Scripting/VerbExecuteFunction.cpp
         System/DebugTools/ActorTools.cpp
         System/DebugTools/CameraTools.cpp
         System/DebugTools/Console.cpp
