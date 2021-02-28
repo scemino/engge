@@ -481,7 +481,6 @@ struct Engine::Impl {
 
     void loadObject(Object *pObj, const ngf::GGPackValue &hash) {
       auto state = 0;
-      ScriptEngine::rawGet(pObj, "initState", state);
       getValue(hash, "_state", state);
       pObj->setStateAnimIndex(state);
       glm::vec2 offset{0, 0};
