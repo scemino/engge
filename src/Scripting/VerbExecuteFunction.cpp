@@ -29,20 +29,16 @@ bool VerbExecuteFunction::needToExecuteVerb() {
 }
 
 bool VerbExecuteFunction::callVerb() {
-  if (ScriptEngine::rawExists(&m_actor, m_pVerb->func.data())) {
-    if (m_pVerb->id == VerbConstants::VERB_GIVE) {
-      if (ScriptEngine::objCall(&m_actor, m_pVerb->func.data(), m_pObject1))
-        return true;
-    } else if (m_pVerb->id == VerbConstants::VERB_TALKTO) {
-      ScriptEngine::objCall(m_pObject1, m_pVerb->func.data());
+  if (m_pVerb->id == VerbConstants::VERB_GIVE && ScriptEngine::rawExists(&m_actor, m_pVerb->func.data())) {
+    auto handled = false;
+    if (ScriptEngine::rawCallFunc(handled, &m_actor, m_pVerb->func.data(), m_pObject1) && handled)
       return true;
-    }
   }
 
-  auto count = ScriptEngine::getParameterCount(m_pObject1, m_pVerb->func.data());
-  if (!ScriptEngine::rawExists(m_pObject1, m_pVerb->func.data())) {
+  if (!ScriptEngine::rawExists(m_pObject1, m_pVerb->func.data()))
     return false;
-  }
+
+  auto count = ScriptEngine::getParameterCount(m_pObject1, m_pVerb->func.data());
   if (count == 2) {
     return ScriptEngine::objCall(m_pObject1, m_pVerb->func.data(), m_pObject2);
   }
