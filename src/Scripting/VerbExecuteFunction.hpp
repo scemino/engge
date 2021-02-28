@@ -16,7 +16,10 @@ private:
   bool isElapsed() final;
   void operator()(const ngf::TimeSpan &) final;
   void onPickup();
+  bool callVerb();
+  bool callVerbGive();
   void callDefaultObjectVerb();
+  bool needToExecuteVerb();
   static bool callVerbDefault(Entity *pEntity);
 
 private:

@@ -15,8 +15,7 @@ VerbExecuteFunction::VerbExecuteFunction(Engine &engine,
 
 bool VerbExecuteFunction::isElapsed() { return m_done; }
 
-void VerbExecuteFunction::operator()(const ngf::TimeSpan &) {
-  m_done = true;
+bool VerbExecuteFunction::needToExecuteVerb() {
   auto executeVerb = true;
   if (m_pVerb->id == VerbConstants::VERB_GIVE && m_pObject2) {
     auto *pActor2 = dynamic_cast<Actor *>(m_pObject2);
@@ -26,50 +25,61 @@ void VerbExecuteFunction::operator()(const ngf::TimeSpan &) {
     ScriptEngine::rawGet(pActor2, "selectable", selectable);
     executeVerb = !selectable;
   }
+  return executeVerb;
+}
 
-  auto handled = false;
-  if (executeVerb) {
-    if (!ScriptEngine::rawExists(&m_actor, m_pVerb->func.data())) {
-      handled = false;
-    } else if (m_pVerb->id == VerbConstants::VERB_GIVE) {
-      handled = ScriptEngine::objCall(&m_actor, m_pVerb->func.data(), m_pObject1);
+bool VerbExecuteFunction::callVerb() {
+  if (ScriptEngine::rawExists(&m_actor, m_pVerb->func.data())) {
+    if (m_pVerb->id == VerbConstants::VERB_GIVE) {
+      if (ScriptEngine::objCall(&m_actor, m_pVerb->func.data(), m_pObject1))
+        return true;
     } else if (m_pVerb->id == VerbConstants::VERB_TALKTO) {
       ScriptEngine::objCall(m_pObject1, m_pVerb->func.data());
-      handled = true;
-    }
-
-    if (!handled) {
-      auto count = ScriptEngine::getParameterCount(m_pObject1, m_pVerb->func.data());
-      if (!ScriptEngine::rawExists(m_pObject1, m_pVerb->func.data())) {
-        handled = false;
-      } else if (count == 2) {
-        handled = ScriptEngine::objCall(m_pObject1, m_pVerb->func.data(), m_pObject2);
-      } else {
-        handled = ScriptEngine::objCall(m_pObject1, m_pVerb->func.data());
-      }
+      return true;
     }
   }
 
-  if (handled) {
-    onPickup();
-    return;
+  auto count = ScriptEngine::getParameterCount(m_pObject1, m_pVerb->func.data());
+  if (!ScriptEngine::rawExists(m_pObject1, m_pVerb->func.data())) {
+    return false;
+  }
+  if (count == 2) {
+    return ScriptEngine::objCall(m_pObject1, m_pVerb->func.data(), m_pObject2);
+  }
+  return ScriptEngine::objCall(m_pObject1, m_pVerb->func.data());
+}
+
+void VerbExecuteFunction::operator()(const ngf::TimeSpan &) {
+  m_done = true;
+
+  if (needToExecuteVerb()) {
+    if (callVerb()) {
+      onPickup();
+      return;
+    }
   }
 
-  if (m_pVerb->id == VerbConstants::VERB_GIVE) {
-    auto *pActor2 = dynamic_cast<Actor *>(m_pObject2);
-    if (!pActor2)
-      pActor2 = Entity::getActor(m_pObject2);
-    ScriptEngine::call("objectGive", m_pObject1, &m_actor, pActor2);
-
-    auto *pObject = dynamic_cast<Object *>(m_pObject1);
-    m_actor.giveTo(pObject, pActor2);
+  if (callVerbGive())
     return;
-  }
 
   if (callVerbDefault(m_pObject1))
     return;
 
   callDefaultObjectVerb();
+}
+
+bool VerbExecuteFunction::callVerbGive() {
+  if (m_pVerb->id != VerbConstants::VERB_GIVE)
+    return false;
+
+  auto *pActor2 = dynamic_cast<Actor *>(m_pObject2);
+  if (!pActor2)
+    pActor2 = Entity::getActor(m_pObject2);
+  ScriptEngine::call("objectGive", m_pObject1, &m_actor, pActor2);
+
+  auto *pObject = dynamic_cast<Object *>(m_pObject1);
+  m_actor.giveTo(pObject, pActor2);
+  return true;
 }
 
 void VerbExecuteFunction::onPickup() {
