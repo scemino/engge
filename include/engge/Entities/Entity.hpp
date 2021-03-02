@@ -62,6 +62,7 @@ public:
 
   void setPosition(const glm::vec2 &pos);
   [[nodiscard]] glm::vec2 getPosition() const;
+  [[nodiscard]] glm::vec2 getRealPosition() const;
 
   void setOffset(const glm::vec2 &offset);
   [[nodiscard]] glm::vec2 getOffset() const;

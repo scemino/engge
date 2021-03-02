@@ -285,7 +285,7 @@ private:
     if (!pObject) {
       return sq_throwerror(v, _SC("failed to get object"));
     }
-    auto posObj = pObject->getPosition() + pObject->getUsePosition().value_or(glm::vec2());
+    auto posObj = pObject->getRealPosition() + pObject->getUsePosition().value_or(glm::vec2());
     auto dist = _distance(pActor->getPosition(), posObj);
     sq_pushinteger(v, dist);
     return 1;

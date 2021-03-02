@@ -125,6 +125,10 @@ glm::vec2 Entity::getPosition() const {
   return m_pImpl->m_transform.getPosition();
 }
 
+glm::vec2 Entity::getRealPosition() const {
+  return m_pImpl->m_transform.getPosition() + m_pImpl->m_offset;
+}
+
 void Entity::setOffset(const glm::vec2 &offset) {
   m_pImpl->m_offset = offset;
   m_pImpl->m_offsetTo.isEnabled = false;
