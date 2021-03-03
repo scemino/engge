@@ -45,52 +45,52 @@ glm::vec2 toScreenPosition(Room *pRoom, const glm::vec2 &pos) {
 }
 
 struct Object::Impl {
-  std::vector<Animation> _anims;
-  Animation *_pAnim{nullptr};
-  std::wstring _name;
-  int _zorder{0};
-  ObjectType _type{ObjectType::Object};
-  ngf::irect _hotspot;
-  Room *_pRoom{nullptr};
-  int _state{0};
-  std::optional<std::shared_ptr<Trigger>> _trigger;
-  HSQOBJECT _table{};
-  bool _hotspotVisible{false};
-  bool _triggerEnabled{true};
+  std::vector<Animation> anims;
+  Animation *pAnim{nullptr};
+  std::wstring name;
+  int zorder{0};
+  ObjectType type{ObjectType::Object};
+  ngf::irect hotspot;
+  Room *pRoom{nullptr};
+  int state{0};
+  std::optional<std::shared_ptr<Trigger>> trigger;
+  HSQOBJECT table{};
+  bool hotspotVisible{false};
+  bool triggerEnabled{true};
   Object *pParentObject{nullptr};
   int dependentState{0};
-  Actor *_owner{nullptr};
-  int _fps{0};
-  std::vector<std::string> _icons;
-  ngf::TimeSpan _elapsed;
-  ngf::TimeSpan _popElapsed;
-  int _index{0};
-  ScreenSpace _screenSpace{ScreenSpace::Room};
-  bool _temporary{false};
-  bool _jiggle{false};
-  int _pop{0};
-  AnimControl _animControl;
+  Actor *owner{nullptr};
+  int fps{0};
+  std::vector<std::string> icons;
+  ngf::TimeSpan elapsed;
+  ngf::TimeSpan popElapsed;
+  int iconIndex{0};
+  ScreenSpace screenSpace{ScreenSpace::Room};
+  bool temporary{false};
+  bool jiggle{false};
+  int pop{0};
+  AnimControl animControl;
 
   Impl() {
     auto v = ScriptEngine::getVm();
-    sq_resetobject(&_table);
+    sq_resetobject(&table);
     sq_newtable(v);
-    sq_getstackobj(v, -1, &_table);
-    sq_addref(v, &_table);
+    sq_getstackobj(v, -1, &table);
+    sq_addref(v, &table);
     sq_pop(v, 1);
   }
 
   explicit Impl(HSQOBJECT obj) {
     auto v = ScriptEngine::getVm();
     sq_pushobject(v, obj);
-    sq_getstackobj(v, -1, &_table);
-    sq_addref(v, &_table);
+    sq_getstackobj(v, -1, &table);
+    sq_addref(v, &table);
     sq_pop(v, 1);
   }
 
   ~Impl() {
     auto v = ScriptEngine::getVm();
-    sq_release(v, &_table);
+    sq_release(v, &table);
   }
 };
 
@@ -106,27 +106,27 @@ Object::Object(HSQOBJECT obj) : pImpl(std::make_unique<Impl>(obj)) {
 
 Object::~Object() = default;
 
-void Object::setZOrder(int zorder) { pImpl->_zorder = zorder; }
+void Object::setZOrder(int zorder) { pImpl->zorder = zorder; }
 
-int Object::getZOrder() const { return pImpl->_zorder; }
+int Object::getZOrder() const { return pImpl->zorder; }
 
-void Object::setType(ObjectType type) { pImpl->_type = type; }
-ObjectType Object::getType() const { return pImpl->_type; }
+void Object::setType(ObjectType type) { pImpl->type = type; }
+ObjectType Object::getType() const { return pImpl->type; }
 
-void Object::setHotspot(const ngf::irect &hotspot) { pImpl->_hotspot = hotspot; }
-ngf::irect Object::getHotspot() const { return pImpl->_hotspot; }
+void Object::setHotspot(const ngf::irect &hotspot) { pImpl->hotspot = hotspot; }
+ngf::irect Object::getHotspot() const { return pImpl->hotspot; }
 
 void Object::setIcon(const std::string &icon) {
-  pImpl->_icons.clear();
-  pImpl->_fps = 0;
-  pImpl->_index = 0;
-  pImpl->_elapsed = ngf::TimeSpan::seconds(0);
-  pImpl->_icons.push_back(icon);
+  pImpl->icons.clear();
+  pImpl->fps = 0;
+  pImpl->iconIndex = 0;
+  pImpl->elapsed = ngf::TimeSpan::seconds(0);
+  pImpl->icons.push_back(icon);
 }
 
 std::string Object::getIcon() const {
-  if (!pImpl->_icons.empty())
-    return pImpl->_icons.at(pImpl->_index);
+  if (!pImpl->icons.empty())
+    return pImpl->icons.at(pImpl->iconIndex);
 
   auto v = ScriptEngine::getVm();
   auto top = sq_gettop(v);
@@ -136,65 +136,65 @@ std::string Object::getIcon() const {
     if (sq_gettype(v, -1) == OT_STRING) {
       const SQChar *icon = nullptr;
       sq_getstring(v, -1, &icon);
-      pImpl->_icons.emplace_back(icon);
+      pImpl->icons.emplace_back(icon);
     } else if (sq_gettype(v, -1) == OT_ARRAY) {
       SQInteger fps = 0;
-      pImpl->_index = 0;
+      pImpl->iconIndex = 0;
       const SQChar *icon = nullptr;
       sq_pushnull(v); // null iterator
       if (SQ_SUCCEEDED(sq_next(v, -2))) {
         sq_getinteger(v, -1, &fps);
         sq_pop(v, 2);
-        pImpl->_fps = static_cast<int>(fps);
+        pImpl->fps = static_cast<int>(fps);
       }
       while (SQ_SUCCEEDED(sq_next(v, -2))) {
         sq_getstring(v, -1, &icon);
-        pImpl->_icons.emplace_back(icon);
+        pImpl->icons.emplace_back(icon);
         sq_pop(v, 2);
       }
       sq_pop(v, 1); // pops the null iterator
     }
   }
   sq_settop(v, top);
-  return pImpl->_icons.at(pImpl->_index);
+  return pImpl->icons.at(pImpl->iconIndex);
 }
 
 void Object::setIcon(int fps, const std::vector<std::string> &icons) {
-  pImpl->_icons.clear();
-  pImpl->_fps = fps;
-  pImpl->_index = 0;
-  pImpl->_elapsed = ngf::TimeSpan::seconds(0);
-  std::copy(icons.begin(), icons.end(), std::back_inserter(pImpl->_icons));
+  pImpl->icons.clear();
+  pImpl->fps = fps;
+  pImpl->iconIndex = 0;
+  pImpl->elapsed = ngf::TimeSpan::seconds(0);
+  std::copy(icons.begin(), icons.end(), std::back_inserter(pImpl->icons));
 }
 
-void Object::setOwner(Actor *pActor) { pImpl->_owner = pActor; }
-Actor *Object::getOwner() const { return pImpl->_owner; }
+void Object::setOwner(Actor *pActor) { pImpl->owner = pActor; }
+Actor *Object::getOwner() const { return pImpl->owner; }
 
-HSQOBJECT &Object::getTable() { return pImpl->_table; }
-HSQOBJECT &Object::getTable() const { return pImpl->_table; }
+HSQOBJECT &Object::getTable() { return pImpl->table; }
+HSQOBJECT &Object::getTable() const { return pImpl->table; }
 bool Object::isInventoryObject() const { return getOwner() != nullptr; }
 
-std::vector<Animation> &Object::getAnims() { return pImpl->_anims; }
+std::vector<Animation> &Object::getAnims() { return pImpl->anims; }
 
-Room *Object::getRoom() { return pImpl->_pRoom; }
-const Room *Object::getRoom() const { return pImpl->_pRoom; }
-void Object::setRoom(Room *pRoom) { pImpl->_pRoom = pRoom; }
+Room *Object::getRoom() { return pImpl->pRoom; }
+const Room *Object::getRoom() const { return pImpl->pRoom; }
+void Object::setRoom(Room *pRoom) { pImpl->pRoom = pRoom; }
 
-void Object::addTrigger(const std::shared_ptr<Trigger> &trigger) { pImpl->_trigger = trigger; }
+void Object::addTrigger(const std::shared_ptr<Trigger> &trigger) { pImpl->trigger = trigger; }
 
 void Object::removeTrigger() {
-  if (pImpl->_trigger.has_value()) {
-    (*pImpl->_trigger)->disable();
+  if (pImpl->trigger.has_value()) {
+    (*pImpl->trigger)->disable();
   }
 }
 
-Trigger *Object::getTrigger() { return pImpl->_trigger.has_value() ? (*pImpl->_trigger).get() : nullptr; }
-void Object::enableTrigger(bool enabled) { pImpl->_triggerEnabled = enabled; }
+Trigger *Object::getTrigger() { return pImpl->trigger.has_value() ? (*pImpl->trigger).get() : nullptr; }
+void Object::enableTrigger(bool enabled) { pImpl->triggerEnabled = enabled; }
 
 bool Object::isTouchable() const {
   if (getType() != ObjectType::Object)
     return false;
-  if (pImpl->_state == ObjectStateConstants::GONE)
+  if (pImpl->state == ObjectStateConstants::GONE)
     return false;
   return Entity::isTouchable();
 }
@@ -208,59 +208,62 @@ ngf::irect Object::getRealHotspot() const {
 }
 
 void Object::setStateAnimIndex(int animIndex) {
-  if (animIndex < 0 || animIndex >= static_cast<int>(pImpl->_anims.size()))
+  std::string name = "state" + std::to_string(animIndex);
+  auto it = std::find_if(pImpl->anims.rbegin(), pImpl->anims.rend(), [&name](const auto &anim) {
+    return anim.name == name;
+  });
+  if (it == pImpl->anims.rend())
     return;
 
-  auto &anim = pImpl->_anims.at(animIndex);
-  pImpl->_pAnim = &anim;
-  pImpl->_animControl.setAnimation(&anim);
+  pImpl->pAnim = it.operator->();
+  pImpl->animControl.setAnimation(pImpl->pAnim);
 }
 
 void Object::playAnim(const std::string &anim, bool loop) {
   setAnimation(anim);
-  pImpl->_animControl.play(loop);
+  pImpl->animControl.play(loop);
 }
 
 void Object::playAnim(int animIndex, bool loop) {
   setStateAnimIndex(animIndex);
-  pImpl->_animControl.play(loop);
+  pImpl->animControl.play(loop);
 }
 
-int Object::getState() const { return pImpl->_state; }
+int Object::getState() const { return pImpl->state; }
 
 void Object::setAnimation(const std::string &name) {
-  auto it = std::find_if(pImpl->_anims.begin(), pImpl->_anims.end(),
+  auto it = std::find_if(pImpl->anims.begin(), pImpl->anims.end(),
                          [name](auto &animation) { return animation.name == name; });
-  if (it == pImpl->_anims.end()) {
-    pImpl->_pAnim = nullptr;
-    pImpl->_animControl.setAnimation(nullptr);
+  if (it == pImpl->anims.end()) {
+    pImpl->pAnim = nullptr;
+    pImpl->animControl.setAnimation(nullptr);
     return;
   }
 
   auto &anim = *it;
-  pImpl->_pAnim = &anim;
-  pImpl->_animControl.setAnimation(&anim);
+  pImpl->pAnim = &anim;
+  pImpl->animControl.setAnimation(&anim);
 }
 
-Animation *&Object::getAnimation() { return pImpl->_pAnim; }
+Animation *&Object::getAnimation() { return pImpl->pAnim; }
 
-AnimControl &Object::getAnimControl() { return pImpl->_animControl; }
+AnimControl &Object::getAnimControl() { return pImpl->animControl; }
 
 void Object::update(const ngf::TimeSpan &elapsed) {
   if (isInventoryObject()) {
-    if (pImpl->_pop > 0) {
-      pImpl->_popElapsed += elapsed;
-      if (pImpl->_popElapsed.getTotalSeconds() > 0.5f) {
-        pImpl->_pop--;
-        pImpl->_popElapsed -= ngf::TimeSpan::seconds(0.5);
+    if (pImpl->pop > 0) {
+      pImpl->popElapsed += elapsed;
+      if (pImpl->popElapsed.getTotalSeconds() > 0.5f) {
+        pImpl->pop--;
+        pImpl->popElapsed -= ngf::TimeSpan::seconds(0.5);
       }
     }
-    if (pImpl->_fps == 0)
+    if (pImpl->fps == 0)
       return;
-    pImpl->_elapsed += elapsed;
-    if (pImpl->_elapsed.getTotalSeconds() > (1.f / static_cast<float>(pImpl->_fps))) {
-      pImpl->_elapsed = ngf::TimeSpan::seconds(0);
-      pImpl->_index = static_cast<int>((pImpl->_index + 1) % pImpl->_icons.size());
+    pImpl->elapsed += elapsed;
+    if (pImpl->elapsed.getTotalSeconds() > (1.f / static_cast<float>(pImpl->fps))) {
+      pImpl->elapsed = ngf::TimeSpan::seconds(0);
+      pImpl->iconIndex = static_cast<int>((pImpl->iconIndex + 1) % pImpl->icons.size());
     }
     return;
   }
@@ -269,19 +272,19 @@ void Object::update(const ngf::TimeSpan &elapsed) {
   if (pImpl->pParentObject) {
     setVisible(pImpl->pParentObject->getState() == pImpl->dependentState);
   }
-  pImpl->_animControl.update(elapsed);
-  if (pImpl->_triggerEnabled && pImpl->_trigger.has_value()) {
-    (*pImpl->_trigger)->trig();
+  pImpl->animControl.update(elapsed);
+  if (pImpl->triggerEnabled && pImpl->trigger.has_value()) {
+    (*pImpl->trigger)->trig();
   }
 }
 
-void Object::showDebugHotspot(bool show) { pImpl->_hotspotVisible = show; }
+void Object::showDebugHotspot(bool show) { pImpl->hotspotVisible = show; }
 
-bool Object::isHotspotVisible() const { return pImpl->_hotspotVisible; }
+bool Object::isHotspotVisible() const { return pImpl->hotspotVisible; }
 
-void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->_screenSpace = screenSpace; }
+void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->screenSpace = screenSpace; }
 
-ScreenSpace Object::getScreenSpace() const { return pImpl->_screenSpace; }
+ScreenSpace Object::getScreenSpace() const { return pImpl->screenSpace; }
 
 void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!isTouchable())
@@ -301,17 +304,17 @@ void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) co
 }
 
 void Object::drawDebugHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  if (!pImpl->_hotspotVisible)
+  if (!pImpl->hotspotVisible)
     return;
 
   auto rect = getHotspot();
   auto color = toColor(getType());
 
   // draw a rectangle
-  auto size = toScreenPosition(pImpl->_pRoom, rect.getSize());
+  auto size = toScreenPosition(pImpl->pRoom, rect.getSize());
   auto topLeft = rect.getBottomLeft();
   topLeft.y = -topLeft.y;
-  topLeft = toScreenPosition(pImpl->_pRoom, topLeft);
+  topLeft = toScreenPosition(pImpl->pRoom, topLeft);
 
   ngf::RectangleShape s(size);
   s.getTransform().setPosition(topLeft);
@@ -322,7 +325,7 @@ void Object::drawDebugHotspot(ngf::RenderTarget &target, ngf::RenderStates state
 
   // draw a cross at the use position
   auto usePos = getUsePosition().value_or(glm::vec2());
-  usePos = toScreenPosition(pImpl->_pRoom, usePos);
+  usePos = toScreenPosition(pImpl->pRoom, usePos);
   usePos.y = -usePos.y;
   ngf::RectangleShape vl(glm::vec2(1, 7));
   vl.getTransform().setPosition({usePos.x, usePos.y - 3});
@@ -375,16 +378,16 @@ void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states)
 
   auto t = getTransform();
   auto pos = t.getPosition();
-  if (pImpl->_screenSpace == ScreenSpace::Object && pImpl->_pAnim) {
+  if (pImpl->screenSpace == ScreenSpace::Object && pImpl->pAnim) {
     t.setPosition({pos.x, Screen::Height - pos.y});
     states.transform = t.getTransform();
 
     AnimDrawable animDrawable;
-    animDrawable.setAnim(pImpl->_pAnim);
+    animDrawable.setAnim(pImpl->pAnim);
     animDrawable.setColor(getColor());
     animDrawable.draw(pos, target, states);
   } else {
-    pos = toScreenPosition(pImpl->_pRoom, pos);
+    pos = toScreenPosition(pImpl->pRoom, pos);
     t.setPosition({pos.x, Screen::Height - pos.y});
     t.setScale({1.f, 1.f});
     states.transform = t.getTransform() * states.transform;
@@ -400,20 +403,20 @@ void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!isVisible())
     return;
 
-  if (pImpl->_screenSpace == ScreenSpace::Object)
+  if (pImpl->screenSpace == ScreenSpace::Object)
     return;
 
   ngf::RenderStates initialStates = states;
   ngf::Transform t = getTransform();
 
-  if (pImpl->_pAnim) {
+  if (pImpl->pAnim) {
     auto pos = t.getPosition();
     auto scale = getScale();
-    t.setPosition({pos.x, pImpl->_pRoom->getScreenSize().y - pos.y - scale * getRenderOffset().y});
+    t.setPosition({pos.x, pImpl->pRoom->getScreenSize().y - pos.y - scale * getRenderOffset().y});
     states.transform = t.getTransform() * states.transform;
 
     AnimDrawable animDrawable;
-    animDrawable.setAnim(pImpl->_pAnim);
+    animDrawable.setAnim(pImpl->pAnim);
     animDrawable.setColor(getColor());
     animDrawable.draw(pos, target, states);
   }
@@ -431,28 +434,28 @@ void Object::dependentOn(Object *parentObject, int state) {
 }
 
 void Object::setFps(int fps) {
-  if (pImpl->_pAnim) {
-    pImpl->_pAnim->fps = fps;
+  if (pImpl->pAnim) {
+    pImpl->pAnim->fps = fps;
   }
 }
 
-void Object::setTemporary(bool isTemporary) { pImpl->_temporary = isTemporary; }
+void Object::setTemporary(bool isTemporary) { pImpl->temporary = isTemporary; }
 
-bool Object::isTemporary() const { return pImpl->_temporary; }
+bool Object::isTemporary() const { return pImpl->temporary; }
 
-void Object::setJiggle(bool enabled) { pImpl->_jiggle = enabled; }
+void Object::setJiggle(bool enabled) { pImpl->jiggle = enabled; }
 
-bool Object::getJiggle() const { return pImpl->_jiggle; }
+bool Object::getJiggle() const { return pImpl->jiggle; }
 
 void Object::setPop(int count) {
-  pImpl->_popElapsed = ngf::TimeSpan::seconds(0);
-  pImpl->_pop = count;
+  pImpl->popElapsed = ngf::TimeSpan::seconds(0);
+  pImpl->pop = count;
 }
 
-int Object::getPop() const { return pImpl->_pop; }
+int Object::getPop() const { return pImpl->pop; }
 
 float Object::getPopScale() const {
-  return 0.5f + 0.5f * sinf(static_cast<float>(-M_PI_2 + pImpl->_popElapsed.getTotalSeconds() * 4 * M_PI));
+  return 0.5f + 0.5f * sinf(static_cast<float>(-M_PI_2 + pImpl->popElapsed.getTotalSeconds() * 4 * M_PI));
 }
 
 std::wostream &operator<<(std::wostream &os, const Object &obj) {
