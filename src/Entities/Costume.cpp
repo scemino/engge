@@ -134,6 +134,7 @@ void Costume::loadCostume(const std::string &path, const std::string &sheet) {
   // load animations
   m_animations.clear();
   m_pCurrentAnimation = nullptr;
+  m_animControl.setAnimation(nullptr);
   setHeadIndex(m_headIndex);
 
   m_animations = AnimationLoader::parseAnimations(*m_pActor, hash["animations"], m_costumeSheet);
