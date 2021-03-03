@@ -208,12 +208,16 @@ ngf::irect Object::getRealHotspot() const {
 }
 
 void Object::setStateAnimIndex(int animIndex) {
+  pImpl->state = animIndex;
   std::string name = "state" + std::to_string(animIndex);
   auto it = std::find_if(pImpl->anims.rbegin(), pImpl->anims.rend(), [&name](const auto &anim) {
     return anim.name == name;
   });
-  if (it == pImpl->anims.rend())
+  if (it == pImpl->anims.rend()) {
+    pImpl->pAnim = nullptr;
+    pImpl->animControl.setAnimation(nullptr);
     return;
+  }
 
   pImpl->pAnim = it.operator->();
   pImpl->animControl.setAnimation(pImpl->pAnim);
