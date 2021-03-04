@@ -1,6 +1,7 @@
 #include "EngineImpl.hpp"
 #include <engge/EnggeApplication.hpp>
 #include <engge/Graphics/Text.hpp>
+#include "../Graphics/PathDrawable.hpp"
 
 namespace ng {
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs) {
@@ -629,6 +630,39 @@ bool Engine::Impl::clickedAt(const glm::vec2 &pos) const {
   return handled;
 }
 
+void Engine::Impl::drawActorHotspot(ngf::RenderTarget &target) const {
+  if (!_pCurrentActor)
+    return;
+
+  if (!_pCurrentActor->isHotspotVisible())
+    return;
+
+  auto at = _camera.getRect().getTopLeft();
+  auto rect = _pCurrentActor->getHotspot();
+  auto pos = _pCurrentActor->getPosition();
+  pos = {pos.x - at.x, at.y + _pRoom->getScreenSize().y - pos.y};
+
+  ngf::Transform t;
+  t.setPosition(pos);
+
+  ngf::RenderStates s;
+  s.transform = t.getTransform();
+
+  ngf::RectangleShape shape(rect.getSize());
+  shape.getTransform().setPosition(rect.getTopLeft());
+  shape.setOutlineThickness(1);
+  shape.setOutlineColor(ngf::Colors::Red);
+  shape.setColor(ngf::Colors::Transparent);
+  shape.draw(target, s);
+
+  // draw actor position
+  ngf::RectangleShape rectangle;
+  rectangle.setColor(ngf::Colors::Red);
+  rectangle.setSize(glm::vec2(2, 2));
+  rectangle.getTransform().setOrigin(glm::vec2(1, 1));
+  rectangle.draw(target, s);
+}
+
 void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
   if (!_pRoom || _showDrawWalkboxes == WalkboxesFlags::None)
     return;
@@ -664,6 +698,13 @@ void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
       d.draw(target, states);
     }
   }
+
+  if (!_pCurrentActor)
+    return;
+  auto path = _pCurrentActor->getPath();
+  if (!path)
+    return;
+  path->draw(target, states);
 }
 
 void Engine::Impl::drawPause(ngf::RenderTarget &target) const {

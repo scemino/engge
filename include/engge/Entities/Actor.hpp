@@ -11,6 +11,7 @@ class Costume;
 class Engine;
 class Lip;
 class Object;
+class PathDrawable;
 class Room;
 
 class Actor final : public Entity {
@@ -61,6 +62,7 @@ public:
   std::vector<glm::vec2> walkTo(const glm::vec2 &destination, std::optional<Facing> facing = std::nullopt);
   void stopWalking();
   [[nodiscard]] bool isWalking() const;
+  std::unique_ptr<PathDrawable> getPath();
 
   [[nodiscard]] bool isInventoryObject() const final;
 

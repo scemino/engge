@@ -639,6 +639,7 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   auto orgView = target.getView();
   target.setView(view);
   m_pImpl->drawWalkboxes(target);
+  m_pImpl->drawActorHotspot(target);
   m_pImpl->_talkingState.draw(target, {});
   m_pImpl->_pRoom->drawForeground(target, m_pImpl->_camera.getAt());
   target.setView(orgView);

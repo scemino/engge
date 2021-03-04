@@ -48,27 +48,6 @@ struct Actor::Impl {
     _costume.setActor(pActor);
   }
 
-  void drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
-    if (!_hotspotVisible)
-      return;
-
-    auto rect = _pActor->getHotspot();
-
-    ngf::RectangleShape s(rect.getSize());
-    s.getTransform().setPosition(rect.getTopLeft());
-    s.setOutlineThickness(1);
-    s.setOutlineColor(ngf::Colors::Red);
-    s.setColor(ngf::Colors::Transparent);
-    s.draw(target, states);
-
-    // draw actor position
-    ngf::RectangleShape rectangle;
-    rectangle.setColor(ngf::Colors::Red);
-    rectangle.setSize(glm::vec2(2, 2));
-    rectangle.getTransform().setOrigin(glm::vec2(1, 1));
-    rectangle.draw(target, states);
-  }
-
   Engine &_engine;
   Actor *_pActor{nullptr};
   Costume _costume;
@@ -78,7 +57,7 @@ struct Actor::Impl {
   std::vector<Object *> _objects;
   WalkingState _walkingState;
   glm::ivec2 _speed{30, 15};
-  std::shared_ptr<PathDrawable> _path;
+  std::unique_ptr<PathDrawable> _path;
   HSQOBJECT _table{};
   bool _hotspotVisible{false};
   int _inventoryOffset{0};
@@ -100,6 +79,8 @@ std::string Actor::getIcon() const {
 void Actor::useWalkboxes(bool useWalkboxes) { m_pImpl->_useWalkboxes = useWalkboxes; }
 
 bool Actor::useWalkboxes() const { return m_pImpl->_useWalkboxes; }
+
+std::unique_ptr<PathDrawable> Actor::getPath() { return std::move(m_pImpl->_path); }
 
 Costume &Actor::getCostume() { return m_pImpl->_costume; }
 
@@ -234,17 +215,6 @@ void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
 
 void Actor::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
   Entity::drawForeground(target, states);
-  if (m_pImpl->_path && m_pImpl->_pRoom && m_pImpl->_engine.getWalkboxesFlags() != WalkboxesFlags::None) {
-    m_pImpl->_path->draw(target, states);
-  }
-
-  auto scale = getScale();
-  auto transformable = getTransform();
-  transformable.setScale({scale, scale});
-  transformable.setPosition({transformable.getPosition().x,
-                             m_pImpl->_pRoom->getScreenSize().y - transformable.getPosition().y});
-  states.transform = transformable.getTransform() * states.transform;
-  m_pImpl->drawHotspot(target, states);
 }
 
 void Actor::update(const ngf::TimeSpan &elapsed) {

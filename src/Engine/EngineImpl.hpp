@@ -937,6 +937,7 @@ struct Engine::Impl {
   void drawCursor(ngf::RenderTarget &target) const;
   void drawCursorText(ngf::RenderTarget &target) const;
   void drawNoOverride(ngf::RenderTarget &target) const;
+  void drawActorHotspot(ngf::RenderTarget &target) const;
   int getCurrentActorIndex() const;
   ngf::irect getCursorRect() const;
   void appendUseFlag(std::wstring &sentence) const;
