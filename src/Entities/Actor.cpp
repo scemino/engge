@@ -234,7 +234,7 @@ void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
 
 void Actor::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
   Entity::drawForeground(target, states);
-  if (m_pImpl->_path && m_pImpl->_pRoom && m_pImpl->_engine.getWalkboxesFlags()) {
+  if (m_pImpl->_path && m_pImpl->_pRoom && m_pImpl->_engine.getWalkboxesFlags() != WalkboxesFlags::None) {
     m_pImpl->_path->draw(target, states);
   }
 

@@ -56,6 +56,13 @@ struct FadeEffectParameters {
   bool fadeToSepia{false};
 };
 
+enum class WalkboxesFlags {
+  None = 0,
+  Merged = 1,
+  Graph = 2,
+  Walkboxes = 4,
+};
+
 class Engine : public NonCopyable {
 public:
   Engine();
@@ -94,8 +101,8 @@ public:
   void draw(ngf::RenderTarget &target, bool screenshot = false) const;
   [[nodiscard]] int getFrameCounter() const;
 
-  void setWalkboxesFlags(int flags);
-  [[nodiscard]] int getWalkboxesFlags() const;
+  void setWalkboxesFlags(WalkboxesFlags flags);
+  [[nodiscard]] WalkboxesFlags getWalkboxesFlags() const;
 
   [[nodiscard]] const VerbUiColors *getVerbUiColors(const std::string &name) const;
   void setVerbExecute(std::unique_ptr<VerbExecute> verbExecute);
@@ -152,8 +159,8 @@ public:
   /// Fades the screen with the specified effect and duration.
   /// \param effect: Effect to use to fade the screen.
   /// \param duration: Duration of the effect.
-  void fadeTo(FadeEffect effect, const ngf::TimeSpan& duration);
-  FadeEffectParameters& getFadeParameters();
+  void fadeTo(FadeEffect effect, const ngf::TimeSpan &duration);
+  FadeEffectParameters &getFadeParameters();
 
   void keyDown(const Input &key);
   void keyUp(const Input &key);

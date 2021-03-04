@@ -630,30 +630,33 @@ bool Engine::Impl::clickedAt(const glm::vec2 &pos) const {
 }
 
 void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
-  if (!_pRoom || _showDrawWalkboxes == 0)
+  if (!_pRoom || _showDrawWalkboxes == WalkboxesFlags::None)
     return;
 
   auto at = _camera.getRect().getTopLeft();
   ngf::Transform t;
-  t.setPosition(-at);
+  t.setPosition({-at.x, at.y});
   ngf::RenderStates states;
   states.transform = t.getTransform();
 
-  if (_showDrawWalkboxes & 4) {
+  if ((_showDrawWalkboxes & WalkboxesFlags::Walkboxes) == WalkboxesFlags::Walkboxes) {
+    // draw walkboxes
     for (const auto &walkbox : _pRoom->getWalkboxes()) {
       WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
 
-  if (_showDrawWalkboxes & 1) {
+  if ((_showDrawWalkboxes & WalkboxesFlags::Merged) == WalkboxesFlags::Merged) {
+    // draw merged walkboxes
     for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
       WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
 
-  if (_showDrawWalkboxes & 2) {
+  if ((_showDrawWalkboxes & WalkboxesFlags::Graph) == WalkboxesFlags::Graph) {
+    // draw walkbox graph
     const auto *pGraph = _pRoom->getGraph();
     if (pGraph) {
       auto height = _pRoom->getRoomSize().y;

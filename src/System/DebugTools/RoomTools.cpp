@@ -47,17 +47,19 @@ void RoomTools::render() {
   auto &room = rooms[currentRoom];
 
   auto options = m_engine.getWalkboxesFlags();
-  auto showWalkboxes = (options & 4) != 0;
+  auto showWalkboxes = (options & WalkboxesFlags::Walkboxes) == WalkboxesFlags::Walkboxes;
   if (ImGui::Checkbox("Walkboxes", &showWalkboxes)) {
-    m_engine.setWalkboxesFlags(showWalkboxes ? (4 | options) : (options & ~4));
+    m_engine.setWalkboxesFlags(showWalkboxes ? (WalkboxesFlags::Walkboxes | options) : (options
+        & ~WalkboxesFlags::Walkboxes));
   }
-  auto showMergedWalkboxes = (options & 1) != 0;
+  auto showMergedWalkboxes = (options & WalkboxesFlags::Merged) == WalkboxesFlags::Merged;
   if (ImGui::Checkbox("Merged Walkboxes", &showMergedWalkboxes)) {
-    m_engine.setWalkboxesFlags(showMergedWalkboxes ? (1 | options) : (options & ~1));
+    m_engine.setWalkboxesFlags(showMergedWalkboxes ? (WalkboxesFlags::Merged | options) : (options
+        & ~WalkboxesFlags::Merged));
   }
-  auto showGraph = (options & 2) != 0;
+  auto showGraph = (options & WalkboxesFlags::Graph) == WalkboxesFlags::Graph;
   if (ImGui::Checkbox("Graph", &showGraph)) {
-    m_engine.setWalkboxesFlags(showGraph ? (2 | options) : (options & ~2));
+    m_engine.setWalkboxesFlags(showGraph ? (WalkboxesFlags::Graph | options) : (options & ~WalkboxesFlags::Graph));
   }
   updateWalkboxInfos(room.get());
   ImGui::Combo("##walkboxes", &m_selectedWalkbox, DebugControls::stringGetter, static_cast<void *>(&m_walkboxInfos),
@@ -131,7 +133,7 @@ void RoomTools::updateWalkboxInfos(Room *pRoom) {
   auto &walkboxes = pRoom->getWalkboxes();
   for (size_t i = 0; i < walkboxes.size(); ++i) {
     auto walkbox = walkboxes.at(i);
-    const auto& name = walkbox.getName();
+    const auto &name = walkbox.getName();
     std::ostringstream s;
     if (!name.empty()) {
       s << name;

@@ -663,9 +663,9 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   m_pImpl->drawNoOverride(target);
 }
 
-void Engine::setWalkboxesFlags(int show) { m_pImpl->_showDrawWalkboxes = show; }
+void Engine::setWalkboxesFlags(WalkboxesFlags show) { m_pImpl->_showDrawWalkboxes = show; }
 
-int Engine::getWalkboxesFlags() const { return m_pImpl->_showDrawWalkboxes; }
+WalkboxesFlags Engine::getWalkboxesFlags() const { return m_pImpl->_showDrawWalkboxes; }
 
 void Engine::startDialog(const std::string &dialog, const std::string &node) {
   std::string actor;

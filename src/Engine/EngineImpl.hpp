@@ -921,7 +921,7 @@ struct Engine::Impl {
   std::unordered_set<Input, InputHash> _newKeyDowns;
   EngineState _state{EngineState::StartScreen};
   TalkingState _talkingState;
-  int _showDrawWalkboxes{0};
+  WalkboxesFlags _showDrawWalkboxes{WalkboxesFlags::None};
   OptionsDialog _optionsDialog;
   StartScreenDialog _startScreenDialog;
   bool _run{false};
