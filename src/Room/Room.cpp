@@ -118,25 +118,15 @@ struct Room::Impl {
       layer->setZOrder(zsort);
       if (jLayer["name"].isArray()) {
         for (const auto &jName : jLayer["name"]) {
-          auto layerName = jName.getString();
-          auto frame = _spriteSheet.getRect(layerName);
-          auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
-          auto sourceSize = _spriteSheet.getSourceSize(layerName);
-          layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
+          layer->getBackgrounds().push_back(_spriteSheet.getItem(jName.getString()));
         }
       } else {
-        auto layerName = jLayer["name"].getString();
-        auto frame = _spriteSheet.getRect(layerName);
-        auto spriteSourceSize = _spriteSheet.getSpriteSourceSize(layerName);
-        auto sourceSize = _spriteSheet.getSourceSize(layerName);
-        layer->getBackgrounds().push_back(SpriteSheetItem{layerName, frame, spriteSourceSize, sourceSize, false});
+        layer->getBackgrounds().push_back(_spriteSheet.getItem(jLayer["name"].getString()));
       }
       if (jLayer["parallax"].isString()) {
-        auto parallax = parsePos(jLayer["parallax"].getString());
-        layer->setParallax(parallax);
+        layer->setParallax(parsePos(jLayer["parallax"].getString()));
       } else {
-        auto parallax = jLayer["parallax"].getDouble();
-        layer->setParallax({parallax, 1});
+        layer->setParallax({jLayer["parallax"].getDouble(), 1});
       }
     }
   }
@@ -328,19 +318,19 @@ struct Room::Impl {
     return 0;
   }
 
+  static Scaling parseScaling(std::string_view value) {
+    auto index = value.find('@');
+    auto scale = std::strtof(value.substr(0, index).data(), nullptr);
+    auto yPos = std::strtof(value.substr(index + 1).data(), nullptr);
+    return {scale, yPos};
+  }
+
   void loadScalings(const ngf::GGPackValue &jWimpy) {
     if (jWimpy["scaling"].isArray()) {
       if (jWimpy["scaling"][0].isString()) {
         RoomScaling scaling;
         for (const auto &jScaling : jWimpy["scaling"]) {
-          auto value = jScaling.getString();
-          auto index = value.find('@');
-          auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
-          auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
-          Scaling s{};
-          s.scale = scale;
-          s.yPos = yPos;
-          scaling.getScalings().push_back(s);
+          scaling.getScalings().push_back(parseScaling(jScaling.getString()));
         }
         _scalings.push_back(scaling);
       } else if (jWimpy["scaling"][0].isHash()) {
@@ -351,24 +341,10 @@ struct Room::Impl {
           }
           for (const auto &jSubScaling : jScaling["scaling"]) {
             if (jSubScaling.isString()) {
-              auto value = jSubScaling.getString();
-              auto index = value.find('@');
-              auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
-              auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
-              Scaling s{};
-              s.scale = scale;
-              s.yPos = yPos;
-              scaling.getScalings().push_back(s);
+              scaling.getScalings().push_back(parseScaling(jSubScaling.getString()));
             } else if (jSubScaling.isArray()) {
               for (const auto &jSubScalingScaling : jSubScaling) {
-                auto value = jSubScalingScaling.getString();
-                auto index = value.find('@');
-                auto scale = std::strtof(value.substr(0, index).c_str(), nullptr);
-                auto yPos = std::strtof(value.substr(index + 1).c_str(), nullptr);
-                Scaling s{};
-                s.scale = scale;
-                s.yPos = yPos;
-                scaling.getScalings().push_back(s);
+                scaling.getScalings().push_back(parseScaling(jSubScalingScaling.getString()));
               }
             }
           }
