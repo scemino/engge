@@ -66,8 +66,6 @@ public:
 
   [[nodiscard]] bool isInventoryObject() const final;
 
-  void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const final;
-
   HSQOBJECT &getTable() final;
   [[nodiscard]] HSQOBJECT &getTable() const final;
   [[nodiscard]] float getScale() const final;

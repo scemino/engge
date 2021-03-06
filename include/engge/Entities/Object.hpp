@@ -129,8 +129,6 @@ public:
 private:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
   void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
-  void drawDebugHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const;
-  void drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const;
 
 private:
   struct Impl;

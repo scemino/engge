@@ -312,7 +312,8 @@ void Engine::inputSilentOff() { m_pImpl->_inputActive = false; }
 void Engine::setInputVerbs(bool on) { m_pImpl->_inputVerbsActive = on; }
 
 void Engine::update(const ngf::TimeSpan &el) {
-  if(m_pImpl->_state == EngineState::Quit) return;
+  if (m_pImpl->_state == EngineState::Quit)
+    return;
 
   roomEffect.RandomValue[0] = Locator<RandomNumberGenerator>::get().generateFloat(0, 1.f);
   roomEffect.iGlobalTime = fmod(m_pImpl->_time.getTotalSeconds(), 1000.f);
@@ -335,7 +336,7 @@ void Engine::update(const ngf::TimeSpan &el) {
     m_pImpl->_optionsDialog.update(elapsed);
   } else if (m_pImpl->_state == EngineState::StartScreen) {
     m_pImpl->_startScreenDialog.update(elapsed);
-    if(m_pImpl->_state == EngineState::Quit)
+    if (m_pImpl->_state == EngineState::Quit)
       return;
   }
 
@@ -640,6 +641,12 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   target.setView(view);
   m_pImpl->drawWalkboxes(target);
   m_pImpl->drawActorHotspot(target);
+  const auto &objects = m_pImpl->_pRoom->getObjects();
+  std::for_each(objects.begin(), objects.end(), [this, &target](const auto &pObj) {
+    m_pImpl->drawObjectHotspot(*pObj, target);
+    m_pImpl->drawDebugHotspot(*pObj, target);
+  });
+
   m_pImpl->_talkingState.draw(target, {});
   m_pImpl->_pRoom->drawForeground(target, m_pImpl->_camera.getAt());
   target.setView(orgView);

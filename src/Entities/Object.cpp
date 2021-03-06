@@ -15,35 +15,10 @@
 #include <engge/Engine/Preferences.hpp>
 #include "Util/Util.hpp"
 #include <sstream>
-#include <ngf/Graphics/RectangleShape.h>
 #include <ngf/Graphics/Sprite.h>
 #include <engge/Graphics/AnimDrawable.hpp>
 
 namespace ng {
-
-namespace {
-
-ngf::Color toColor(const ObjectType &type) {
-  ngf::Color color;
-  switch (type) {
-  case ObjectType::Object:color = ngf::Colors::Red;
-    break;
-  case ObjectType::Spot:color = ngf::Colors::Green;
-    break;
-  case ObjectType::Trigger:color = ngf::Colors::Magenta;
-    break;
-  case ObjectType::Prop:color = ngf::Colors::Blue;
-    break;
-  }
-  return color;
-}
-
-glm::vec2 toScreenPosition(Room *pRoom, const glm::vec2 &pos) {
-  auto screenSize = pRoom->getScreenSize();
-  return glm::vec2(Screen::Width * pos.x / screenSize.x, Screen::Height * pos.y / screenSize.y);
-}
-}
-
 struct Object::Impl {
   std::vector<Animation> anims;
   Animation *pAnim{nullptr};
@@ -290,91 +265,6 @@ void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->screenSpace = scre
 
 ScreenSpace Object::getScreenSpace() const { return pImpl->screenSpace; }
 
-void Object::drawHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  if (!isTouchable())
-    return;
-
-  const auto showHotspot =
-      Locator<Preferences>::get().getTempPreference(TempPreferenceNames::ShowHotspot,
-                                                    TempPreferenceDefaultValues::ShowHotspot);
-  if (!showHotspot)
-    return;
-
-  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
-  ngf::Sprite s(*gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
-  s.setColor(ngf::Color(255, 165, 0));
-  s.getTransform().setOrigin({15.f, 15.f});
-  s.draw(target, states);
-}
-
-void Object::drawDebugHotspot(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  if (!pImpl->hotspotVisible)
-    return;
-
-  auto rect = getHotspot();
-  auto color = toColor(getType());
-
-  // draw a rectangle
-  auto size = toScreenPosition(pImpl->pRoom, rect.getSize());
-  auto topLeft = rect.getBottomLeft();
-  topLeft.y = -topLeft.y;
-  topLeft = toScreenPosition(pImpl->pRoom, topLeft);
-
-  ngf::RectangleShape s(size);
-  s.getTransform().setPosition(topLeft);
-  s.setOutlineThickness(3);
-  s.setOutlineColor(color);
-  s.setColor(ngf::Colors::Transparent);
-  s.draw(target, states);
-
-  // draw a cross at the use position
-  auto usePos = getUsePosition().value_or(glm::vec2());
-  usePos = toScreenPosition(pImpl->pRoom, usePos);
-  usePos.y = -usePos.y;
-  ngf::RectangleShape vl(glm::vec2(1, 7));
-  vl.getTransform().setPosition({usePos.x, usePos.y - 3});
-  vl.setColor(color);
-  vl.draw(target, states);
-
-  ngf::RectangleShape hl(glm::vec2(7, 1));
-  hl.getTransform().setPosition({usePos.x - 3, usePos.y});
-  hl.setColor(color);
-  hl.draw(target, states);
-
-  // draw direction
-  auto useDir = getUseDirection().value_or(UseDirection::Front);
-  switch (useDir) {
-  case UseDirection::Front: {
-    ngf::RectangleShape dirShape(glm::vec2(3, 1));
-    dirShape.getTransform().setPosition({usePos.x - 1, usePos.y + 2});
-    dirShape.setColor(color);
-    dirShape.draw(target, states);
-  }
-    break;
-  case UseDirection::Back: {
-    ngf::RectangleShape dirShape(glm::vec2(3, 1));
-    dirShape.getTransform().setPosition({usePos.x - 1, usePos.y - 2});
-    dirShape.setColor(color);
-    dirShape.draw(target, states);
-  }
-    break;
-  case UseDirection::Left: {
-    ngf::RectangleShape dirShape(glm::vec2(1, 3));
-    dirShape.getTransform().setPosition({usePos.x - 2, usePos.y - 1});
-    dirShape.setColor(color);
-    dirShape.draw(target, states);
-  }
-    break;
-  case UseDirection::Right: {
-    ngf::RectangleShape dirShape(glm::vec2(1, 3));
-    dirShape.getTransform().setPosition({usePos.x + 2, usePos.y - 1});
-    dirShape.setColor(color);
-    dirShape.draw(target, states);
-  }
-    break;
-  }
-}
-
 void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
   Entity::drawForeground(target, states);
   const auto view = target.getView();
@@ -390,15 +280,7 @@ void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states)
     animDrawable.setAnim(pImpl->pAnim);
     animDrawable.setColor(getColor());
     animDrawable.draw(pos, target, states);
-  } else {
-    pos = toScreenPosition(pImpl->pRoom, pos);
-    t.setPosition({pos.x, Screen::Height - pos.y});
-    t.setScale({1.f, 1.f});
-    states.transform = t.getTransform() * states.transform;
   }
-
-  drawHotspot(target, states);
-  drawDebugHotspot(target, states);
 
   target.setView(view);
 }

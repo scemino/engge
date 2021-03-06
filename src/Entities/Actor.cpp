@@ -213,10 +213,6 @@ void Actor::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   m_pImpl->_costume.draw(target, states);
 }
 
-void Actor::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  Entity::drawForeground(target, states);
-}
-
 void Actor::update(const ngf::TimeSpan &elapsed) {
   Entity::update(elapsed);
 

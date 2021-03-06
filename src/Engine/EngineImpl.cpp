@@ -4,6 +4,21 @@
 #include "../Graphics/PathDrawable.hpp"
 
 namespace ng {
+ngf::Color toColor(const ObjectType &type) {
+  ngf::Color color;
+  switch (type) {
+  case ObjectType::Object:color = ngf::Colors::Red;
+    break;
+  case ObjectType::Spot:color = ngf::Colors::Green;
+    break;
+  case ObjectType::Trigger:color = ngf::Colors::Magenta;
+    break;
+  case ObjectType::Prop:color = ngf::Colors::Blue;
+    break;
+  }
+  return color;
+}
+
 CursorDirection operator|=(CursorDirection &lhs, CursorDirection rhs) {
   lhs = static_cast<CursorDirection>(static_cast<std::underlying_type<CursorDirection>::type>(lhs) |
       static_cast<std::underlying_type<CursorDirection>::type>(rhs));
@@ -661,6 +676,158 @@ void Engine::Impl::drawActorHotspot(ngf::RenderTarget &target) const {
   rectangle.setSize(glm::vec2(2, 2));
   rectangle.getTransform().setOrigin(glm::vec2(1, 1));
   rectangle.draw(target, s);
+}
+
+glm::vec2 Engine::Impl::roomToScreen(const glm::vec2 &pos) const {
+  auto at = _camera.getRect().getTopLeft();
+  return toDefaultView((glm::ivec2) (pos - at), _pRoom->getScreenSize());
+}
+
+ngf::irect Engine::Impl::roomToScreen(const ngf::irect &rect) const {
+  auto min = toDefaultView((glm::ivec2) rect.getSize(), _pRoom->getScreenSize());
+  auto max = toDefaultView((glm::ivec2) rect.max, _pRoom->getScreenSize());
+  return ngf::irect::fromMinMax(min, max);
+}
+
+void Engine::Impl::drawObjectHotspot(const Object &object, ngf::RenderTarget &target) const {
+  if (!object.isTouchable())
+    return;
+
+  const auto showHotspot =
+      Locator<Preferences>::get().getTempPreference(TempPreferenceNames::ShowHotspot,
+                                                    TempPreferenceDefaultValues::ShowHotspot);
+  if (!showHotspot)
+    return;
+
+  auto pos = object.getPosition();
+  pos = roomToScreen(pos);
+  pos = {pos.x, Screen::Height - pos.y};
+
+  ngf::Transform t;
+  t.setPosition(pos);
+
+  ngf::RenderStates s;
+  s.transform = t.getTransform();
+
+  const auto &view = target.getView();
+  target.setView(ngf::View{ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})});
+
+  auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
+  ngf::Sprite sprite(*gameSheet.getTexture(), gameSheet.getRect("hotspot_marker"));
+  sprite.setColor(ngf::Color(255, 165, 0));
+  sprite.getTransform().setOrigin({15.f, 15.f});
+  sprite.draw(target, s);
+
+  target.setView(view);
+}
+
+class ArrowShape final : public ngf::Drawable {
+public:
+  ArrowShape(UseDirection dir, const ngf::Color &color) : m_dir(dir), m_color(color) {}
+
+  void draw(ngf::RenderTarget &target, ngf::RenderStates s) const final {
+    const auto headPos = size / 3.f;
+    switch (m_dir) {
+    case UseDirection::Front: {
+      ngf::RectangleShape dirShape({size, 1});
+      dirShape.getTransform().setPosition({-headPos, size - headPos});
+      dirShape.setColor(m_color);
+      dirShape.draw(target, s);
+    }
+      break;
+    case UseDirection::Back: {
+      ngf::RectangleShape dirShape(glm::vec2(size, 1));
+      dirShape.getTransform().setPosition({-headPos, headPos - size});
+      dirShape.setColor(m_color);
+      dirShape.draw(target, s);
+    }
+      break;
+    case UseDirection::Left: {
+      ngf::RectangleShape dirShape(glm::vec2(1, size));
+      dirShape.getTransform().setPosition({headPos - size, -headPos});
+      dirShape.setColor(m_color);
+      dirShape.draw(target, s);
+    }
+      break;
+    case UseDirection::Right: {
+      ngf::RectangleShape dirShape(glm::vec2(1, size));
+      dirShape.getTransform().setPosition({size - headPos, -headPos});
+      dirShape.setColor(m_color);
+      dirShape.draw(target, s);
+    }
+      break;
+    }
+  }
+
+private:
+  const float size = 3.f;
+  UseDirection m_dir;
+  ngf::Color m_color;
+};
+
+class CrossShape final : public ngf::Drawable {
+public:
+  explicit CrossShape(const ngf::Color &color) : m_color(color) {}
+
+  void draw(ngf::RenderTarget &target, ngf::RenderStates s) const final {
+    ngf::RectangleShape vl(glm::vec2(1, 7));
+    vl.getTransform().setPosition({0, -3});
+    vl.setColor(m_color);
+    vl.draw(target, s);
+
+    ngf::RectangleShape hl(glm::vec2(7, 1));
+    hl.getTransform().setPosition({-3, 0});
+    hl.setColor(m_color);
+    hl.draw(target, s);
+  }
+
+private:
+  ngf::Color m_color;
+};
+
+void Engine::Impl::drawDebugHotspot(const Object &object, ngf::RenderTarget &target) const {
+  if (!object.isHotspotVisible())
+    return;
+
+  auto pos = object.getPosition();
+  auto at = _camera.getRect().getTopLeft();
+  pos = {pos.x - at.x, _pRoom->getScreenSize().y - pos.y + at.y};
+
+  ngf::Transform t;
+  t.setPosition(pos);
+  ngf::RenderStates s;
+  s.transform = t.getTransform();
+
+  // fix hotspot
+  auto rect = object.getHotspot();
+  auto min = rect.min;
+  auto max = rect.max;
+  min.y = -min.y;
+  max.y = -max.y;
+  rect = ngf::irect::fromMinMax(min, max);
+
+  auto color = toColor(object.getType());
+  std::array<ngf::Vertex, 4> hotspotVertices = {
+      ngf::Vertex{rect.getTopLeft(), color},
+      ngf::Vertex{rect.getBottomLeft(), color},
+      ngf::Vertex{rect.getBottomRight(), color},
+      ngf::Vertex{rect.getTopRight(), color}};
+
+  // draw a rectangle
+  target.draw(ngf::PrimitiveType::LineLoop, hotspotVertices, s);
+
+  // draw a cross at the use position
+  auto usePos = object.getUsePosition().value_or(glm::vec2());
+  usePos.y = -usePos.y;
+  t.setPosition(usePos);
+  s.transform = t.getTransform() * s.transform;
+  CrossShape cross(color);
+  cross.draw(target, s);
+
+  // draw direction
+  const auto useDir = object.getUseDirection().value_or(UseDirection::Front);
+  ArrowShape arrow(useDir, color);
+  arrow.draw(target, s);
 }
 
 void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
