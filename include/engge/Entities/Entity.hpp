@@ -63,6 +63,7 @@ public:
   void setPosition(const glm::vec2 &pos);
   [[nodiscard]] glm::vec2 getPosition() const;
   [[nodiscard]] glm::vec2 getRealPosition() const;
+  [[nodiscard]] ngf::Transform getTransform() const;
 
   void setOffset(const glm::vec2 &offset);
   [[nodiscard]] glm::vec2 getOffset() const;
@@ -127,7 +128,6 @@ private:
 
 protected:
   [[nodiscard]] std::vector<Entity *> getChildren() const;
-  [[nodiscard]] ngf::Transform getTransform() const;
 
 private:
   struct Impl;

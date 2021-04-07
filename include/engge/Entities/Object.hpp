@@ -90,7 +90,8 @@ public:
   void playAnim(const std::string &anim, bool loop);
   [[nodiscard]] int getState() const;
   void setAnimation(const std::string &name);
-  Animation *&getAnimation();
+  Animation *getAnimation();
+  const Animation *getAnimation() const;
   AnimControl &getAnimControl();
 
   Room *getRoom() override;
@@ -128,7 +129,6 @@ public:
 
 private:
   void draw(ngf::RenderTarget &target, ngf::RenderStates states) const override;
-  void drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const override;
 
 private:
   struct Impl;

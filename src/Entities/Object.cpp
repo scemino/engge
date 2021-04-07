@@ -224,7 +224,8 @@ void Object::setAnimation(const std::string &name) {
   pImpl->animControl.setAnimation(&anim);
 }
 
-Animation *&Object::getAnimation() { return pImpl->pAnim; }
+Animation *Object::getAnimation() { return pImpl->pAnim; }
+const Animation *Object::getAnimation() const { return pImpl->pAnim; }
 
 AnimControl &Object::getAnimControl() { return pImpl->animControl; }
 
@@ -264,26 +265,6 @@ bool Object::isHotspotVisible() const { return pImpl->hotspotVisible; }
 void Object::setScreenSpace(ScreenSpace screenSpace) { pImpl->screenSpace = screenSpace; }
 
 ScreenSpace Object::getScreenSpace() const { return pImpl->screenSpace; }
-
-void Object::drawForeground(ngf::RenderTarget &target, ngf::RenderStates states) const {
-  Entity::drawForeground(target, states);
-  const auto view = target.getView();
-  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
-
-  auto t = getTransform();
-  auto pos = t.getPosition();
-  if (pImpl->screenSpace == ScreenSpace::Object && pImpl->pAnim) {
-    t.setPosition({pos.x, Screen::Height - pos.y});
-    states.transform = t.getTransform();
-
-    AnimDrawable animDrawable;
-    animDrawable.setAnim(pImpl->pAnim);
-    animDrawable.setColor(getColor());
-    animDrawable.draw(pos, target, states);
-  }
-
-  target.setView(view);
-}
 
 void Object::draw(ngf::RenderTarget &target, ngf::RenderStates states) const {
   if (!isVisible())

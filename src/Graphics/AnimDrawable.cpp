@@ -7,7 +7,7 @@
 #include <engge/System/Locator.hpp>
 
 namespace ng {
-void AnimDrawable::setAnim(Animation *anim) { m_anim = anim; }
+void AnimDrawable::setAnim(const Animation *anim) { m_anim = anim; }
 
 void AnimDrawable::setFlipX(bool flipX) { m_flipX = flipX; }
 

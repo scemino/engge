@@ -1,6 +1,7 @@
 #include "EngineImpl.hpp"
 #include <engge/EnggeApplication.hpp>
 #include <engge/Graphics/Text.hpp>
+#include <engge/Graphics/AnimDrawable.hpp>
 #include "../Graphics/PathDrawable.hpp"
 
 namespace ng {
@@ -828,6 +829,32 @@ void Engine::Impl::drawDebugHotspot(const Object &object, ngf::RenderTarget &tar
   const auto useDir = object.getUseDirection().value_or(UseDirection::Front);
   ArrowShape arrow(useDir, color);
   arrow.draw(target, s);
+}
+
+void Engine::Impl::drawScreenSpace(const Object &object, ngf::RenderTarget &target) {
+  if (object.getScreenSpace() != ScreenSpace::Object)
+    return;
+
+  const auto *anim = object.getAnimation();
+  if (!anim)
+    return;
+
+  const auto view = target.getView();
+  target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
+
+  auto t = object.getTransform();
+  auto pos = t.getPosition();
+  ngf::RenderStates s;
+
+  t.setPosition({pos.x, Screen::Height - pos.y});
+  s.transform = t.getTransform();
+
+  AnimDrawable animDrawable;
+  animDrawable.setAnim(anim);
+  animDrawable.setColor(object.getColor());
+  animDrawable.draw(pos, target, s);
+
+  target.setView(view);
 }
 
 void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {

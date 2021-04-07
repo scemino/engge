@@ -710,6 +710,8 @@ Light *Room::createLight(ngf::Color color, glm::ivec2 pos) {
 
 int Room::getNumberLights() const { return m_pImpl->_numLights; }
 
+LightingShader& Room::getLightingShader() { return m_pImpl->_lightingShader; }
+
 void Room::exit() {
   m_pImpl->_numLights = 0;
   for (auto &obj : m_pImpl->_objects) {

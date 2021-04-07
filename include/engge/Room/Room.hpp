@@ -50,6 +50,7 @@ public:
   [[nodiscard]] const std::vector<std::unique_ptr<Object>> &getObjects() const;
   [[nodiscard]] std::array<Light, LightingShader::MaxLights> &getLights();
   [[nodiscard]] int getNumberLights() const;
+  LightingShader& getLightingShader();
 
   void update(const ngf::TimeSpan &elapsed);
   void draw(ngf::RenderTarget &target, const glm::vec2 &cameraPos) const;

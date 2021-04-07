@@ -647,6 +647,15 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
     m_pImpl->drawDebugHotspot(*pObj, target);
   });
 
+  ngf::RenderStates statesObjects;
+  auto& lightingShader = m_pImpl->_pRoom->getLightingShader();
+  statesObjects.shader = &lightingShader;
+  lightingShader.setNumberLights(0);
+  lightingShader.setAmbientColor(ngf::Colors::White);
+  std::for_each(objects.begin(), objects.end(), [this, &target](const auto &pObj) {
+    m_pImpl->drawScreenSpace(*pObj, target);
+  });
+
   m_pImpl->_talkingState.draw(target, {});
   m_pImpl->_pRoom->drawForeground(target, m_pImpl->_camera.getAt());
   target.setView(orgView);

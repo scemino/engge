@@ -8,7 +8,7 @@ struct Animation;
 
 class AnimDrawable {
 public:
-  void setAnim(Animation *anim);
+  void setAnim(const Animation *anim);
   void setFlipX(bool flipX);
   void setColor(const ngf::Color &color);
 
@@ -21,7 +21,7 @@ private:
             ngf::RenderStates states) const;
 
 private:
-  Animation *m_anim{nullptr};
+  const Animation *m_anim{nullptr};
   bool m_flipX{false};
   ngf::Color m_color{ngf::Colors::White};
 };
