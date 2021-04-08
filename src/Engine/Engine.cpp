@@ -652,8 +652,8 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   statesObjects.shader = &lightingShader;
   lightingShader.setNumberLights(0);
   lightingShader.setAmbientColor(ngf::Colors::White);
-  std::for_each(objects.begin(), objects.end(), [this, &target](const auto &pObj) {
-    m_pImpl->drawScreenSpace(*pObj, target);
+  std::for_each(objects.begin(), objects.end(), [this, &target, statesObjects](const auto &pObj) {
+    m_pImpl->drawScreenSpace(*pObj, target, statesObjects);
   });
 
   m_pImpl->_talkingState.draw(target, {});

@@ -831,7 +831,7 @@ void Engine::Impl::drawDebugHotspot(const Object &object, ngf::RenderTarget &tar
   arrow.draw(target, s);
 }
 
-void Engine::Impl::drawScreenSpace(const Object &object, ngf::RenderTarget &target) {
+void Engine::Impl::drawScreenSpace(const Object &object, ngf::RenderTarget &target, ngf::RenderStates states) {
   if (object.getScreenSpace() != ScreenSpace::Object)
     return;
 
@@ -848,6 +848,7 @@ void Engine::Impl::drawScreenSpace(const Object &object, ngf::RenderTarget &targ
 
   t.setPosition({pos.x, Screen::Height - pos.y});
   s.transform = t.getTransform();
+  s.shader = states.shader;
 
   AnimDrawable animDrawable;
   animDrawable.setAnim(anim);

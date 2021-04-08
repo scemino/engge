@@ -940,7 +940,7 @@ struct Engine::Impl {
   void drawActorHotspot(ngf::RenderTarget &target) const;
   void drawObjectHotspot(const Object &obj, ngf::RenderTarget &target) const;
   void drawDebugHotspot(const Object &object, ngf::RenderTarget &target) const;
-  static void drawScreenSpace(const Object &object, ngf::RenderTarget &target) ;
+  static void drawScreenSpace(const Object &object, ngf::RenderTarget &target, ngf::RenderStates states);
   glm::vec2 roomToScreen(const glm::vec2 &pos) const;
   ngf::irect roomToScreen(const ngf::irect &rect) const;
   int getCurrentActorIndex() const;
