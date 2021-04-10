@@ -71,6 +71,7 @@ set(SOURCES
         Room/RoomTrigger.cpp
         Room/RoomTriggerThread.cpp
         Scripting/ActorWalk.cpp
+        Scripting/DefaultScriptExecute.cpp
         Scripting/DefaultVerbExecute.cpp
         Scripting/PostWalk.cpp
         Scripting/ReachAnim.cpp
