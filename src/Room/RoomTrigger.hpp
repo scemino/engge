@@ -13,8 +13,8 @@ public:
   RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQOBJECT outside);
   ~RoomTrigger() override;
 
-  HSQOBJECT &getInside() { return _inside; }
-  HSQOBJECT &getOutside() { return _outside; }
+  HSQOBJECT &getInside() { return m_inside; }
+  HSQOBJECT &getOutside() { return m_outside; }
 
   std::string getName() override;
 
@@ -24,17 +24,17 @@ private:
   void callTrigger(std::vector<HSQOBJECT> &params, const std::string &name);
 
 private:
-  Engine &_engine;
-  HSQUIRRELVM _vm{};
-  Object &_object;
-  HSQOBJECT _inside{};
-  HSQOBJECT _outside{};
-  bool _isInside{false};
-  SQInteger _insideParamsCount{0};
-  SQInteger _outsideParamsCount{0};
-  std::string _insideName;
-  std::string _outsideName;
-  std::string _name;
-  int _id{0};
+  Engine &m_engine;
+  HSQUIRRELVM m_vm{};
+  Object &m_object;
+  HSQOBJECT m_inside{};
+  HSQOBJECT m_outside{};
+  bool m_isInside{false};
+  SQInteger m_insideParamsCount{0};
+  SQInteger m_outsideParamsCount{0};
+  std::string m_insideName;
+  std::string m_outsideName;
+  std::string m_name;
+  int m_id{0};
 };
 } // namespace ng

@@ -16,10 +16,10 @@
 namespace ng {
 
 namespace {
-constexpr const char *_objectKey = "_objectKey";
-constexpr const char *_roomKey = "_roomKey";
-constexpr const char *_actorKey = "_actorKey";
-constexpr const char *_idKey = "_id";
+constexpr const char *objectKey = "_objectKey";
+constexpr const char *roomKey = "_roomKey";
+constexpr const char *actorKey = "_actorKey";
+constexpr const char *idKey = "_id";
 
 ngf::GGPackValue toGGPackValue(SQObject obj, bool checkId, const std::string &tableKey = "");
 
@@ -54,11 +54,11 @@ ngf::GGPackValue toArray(HSQOBJECT obj) {
 ngf::GGPackValue toTable(HSQOBJECT table, bool checkId, const std::string &tableKey = "") {
   ngf::GGPackValue hash;
   int id;
-  if (checkId && ng::ScriptEngine::get(table, _idKey, id)) {
+  if (checkId && ng::ScriptEngine::get(table, idKey, id)) {
     if (ng::EntityManager::isActor(id)) {
       auto pActor = ng::EntityManager::getActorFromId(id);
       if (pActor && pActor->getKey() != tableKey) {
-        hash[_actorKey] = pActor->getKey();
+        hash[actorKey] = pActor->getKey();
         return hash;
       }
       return nullptr;
@@ -68,9 +68,9 @@ ngf::GGPackValue toTable(HSQOBJECT table, bool checkId, const std::string &table
       if (pObj && pObj->getKey() != tableKey) {
         auto pRoom = pObj->getRoom();
         if (pRoom && pRoom->isPseudoRoom()) {
-          hash[_roomKey] = pRoom->getName();
+          hash[roomKey] = pRoom->getName();
         }
-        hash[_objectKey] = pObj->getKey();
+        hash[objectKey] = pObj->getKey();
         return hash;
       }
       return nullptr;
@@ -78,7 +78,7 @@ ngf::GGPackValue toTable(HSQOBJECT table, bool checkId, const std::string &table
     if (ng::EntityManager::isRoom(id)) {
       auto pRoom = ng::EntityManager::getRoomFromId(id);
       if (pRoom && pRoom->getName() != tableKey) {
-        hash[_roomKey] = pRoom->getName();
+        hash[roomKey] = pRoom->getName();
         return hash;
       }
       return nullptr;

@@ -26,13 +26,13 @@
 namespace ng {
 class BreakFunction : public Function {
 protected:
-  Engine &_engine;
-  int _threadId;
-  bool _done;
+  Engine &m_engine;
+  int m_threadId;
+  bool m_done{false};
 
 public:
   explicit BreakFunction(Engine &engine, int id)
-      : _engine(engine), _threadId(id), _done(false) {
+      : m_engine(engine), m_threadId(id) {
   }
 
   [[nodiscard]] virtual std::string getName() const {
@@ -40,14 +40,14 @@ public:
   }
 
   void operator()(const ngf::TimeSpan &) override {
-    if (_done)
+    if (m_done)
       return;
 
     if (!isElapsed())
       return;
 
-    _done = true;
-    auto pThread = EntityManager::getThreadFromId(_threadId);
+    m_done = true;
+    auto pThread = EntityManager::getThreadFromId(m_threadId);
     if (!pThread)
       return;
     pThread->resume();
@@ -57,11 +57,11 @@ public:
 class BreakHereFunction final : public BreakFunction {
 public:
   explicit BreakHereFunction(Engine &engine, int id, int numFrames)
-      : BreakFunction(engine, id), _fc(engine.getFrameCounter()), _numFrames(numFrames) {
+      : BreakFunction(engine, id), m_fc(engine.getFrameCounter()), m_numFrames(numFrames) {
   }
 
   bool isElapsed() override {
-    return _engine.getFrameCounter() >= (_fc + _numFrames);
+    return m_engine.getFrameCounter() >= (m_fc + m_numFrames);
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -69,40 +69,40 @@ public:
   }
 
 private:
-  int _fc;
-  int _numFrames;
+  int m_fc;
+  int m_numFrames;
 };
 
 class BreakWhileAnimatingFunction final : public BreakFunction {
 private:
-  std::string _name;
-  Actor &_actor;
-  Animation *_pAnimation;
+  std::string m_name;
+  Actor &m_actor;
+  Animation *m_pAnimation;
 
 public:
   BreakWhileAnimatingFunction(Engine &engine, int id, Actor &actor)
-      : BreakFunction(engine, id), _actor(actor), _pAnimation(actor.getCostume().getAnimation()) {
-    _name = _pAnimation->name;
+      : BreakFunction(engine, id), m_actor(actor), m_pAnimation(actor.getCostume().getAnimation()) {
+    m_name = m_pAnimation->name;
   }
 
   [[nodiscard]] std::string getName() const override {
-    return "_BreakWhileAnimatingFunction " + _name;
+    return "_BreakWhileAnimatingFunction " + m_name;
   }
 
   bool isElapsed() override {
-    auto animControl = _actor.getCostume().getAnimControl();
-    return animControl.getAnimation() != _pAnimation || animControl.getState() != AnimState::Play;
+    auto animControl = m_actor.getCostume().getAnimControl();
+    return animControl.getAnimation() != m_pAnimation || animControl.getState() != AnimState::Play;
   }
 };
 
 class BreakWhileAnimatingObjectFunction final : public BreakFunction {
 private:
-  Object &_object;
-  std::optional<Animation *> _animation;
+  Object &m_object;
+  std::optional<Animation *> m_animation;
 
 public:
   BreakWhileAnimatingObjectFunction(Engine &engine, int id, Object &object)
-      : BreakFunction(engine, id), _object(object), _animation(object.getAnimation()) {
+      : BreakFunction(engine, id), m_object(object), m_animation(object.getAnimation()) {
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -110,17 +110,17 @@ public:
   }
 
   bool isElapsed() override {
-    return !_animation.has_value() || _object.getAnimControl().getState() != AnimState::Play;
+    return !m_animation.has_value() || m_object.getAnimControl().getState() != AnimState::Play;
   }
 };
 
 class BreakWhileWalkingFunction final : public BreakFunction {
 private:
-  Actor &_actor;
+  Actor &m_actor;
 
 public:
   explicit BreakWhileWalkingFunction(Engine &engine, int id, Actor &actor)
-      : BreakFunction(engine, id), _actor(actor) {
+      : BreakFunction(engine, id), m_actor(actor) {
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -128,17 +128,17 @@ public:
   }
 
   bool isElapsed() override {
-    return !_actor.isWalking();
+    return !m_actor.isWalking();
   }
 };
 
 class BreakWhileTalkingFunction final : public BreakFunction {
 private:
-  Entity &_entity;
+  Entity &m_entity;
 
 public:
   explicit BreakWhileTalkingFunction(Engine &engine, int id, Entity &entity)
-      : BreakFunction(engine, id), _entity(entity) {
+      : BreakFunction(engine, id), m_entity(entity) {
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -146,7 +146,7 @@ public:
   }
 
   bool isElapsed() override {
-    return !_entity.isTalking();
+    return !m_entity.isTalking();
   }
 };
 
@@ -161,7 +161,7 @@ public:
   }
 
   bool isElapsed() override {
-    for (auto &&actor : _engine.getActors()) {
+    for (auto &&actor : m_engine.getActors()) {
       if (actor->isTalking())
         return false;
     }
@@ -171,11 +171,11 @@ public:
 
 class BreakWhileSoundFunction final : public BreakFunction {
 private:
-  int _soundId;
+  int m_soundId;
 
 public:
   BreakWhileSoundFunction(Engine &engine, int id, int soundId)
-      : BreakFunction(engine, id), _soundId(soundId) {
+      : BreakFunction(engine, id), m_soundId(soundId) {
   }
 
   [[nodiscard]] std::string getName() const override {
@@ -183,37 +183,37 @@ public:
   }
 
   bool isElapsed() override {
-    auto pSoundId = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(_soundId));
+    auto pSoundId = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(m_soundId));
     return !pSoundId || !pSoundId->isPlaying();
   }
 };
 
 class BreakWhileRunningFunction final : public Function {
 private:
-  int _currentThreadId, _threadId;
-  bool _done;
+  int m_currentThreadId, m_threadId;
+  bool m_done;
 
 public:
   BreakWhileRunningFunction(int currentThreadId, int threadId)
-      : _currentThreadId(currentThreadId), _threadId(threadId), _done(false) {
+      : m_currentThreadId(currentThreadId), m_threadId(threadId), m_done(false) {
   }
 
   void operator()(const ngf::TimeSpan &) override {
-    if (_done)
+    if (m_done)
       return;
 
-    auto pThread = EntityManager::getThreadFromId(_threadId);
+    auto pThread = EntityManager::getThreadFromId(m_threadId);
     if (!pThread || pThread->isStopped()) {
-      auto pCurrentThread = EntityManager::getThreadFromId(_currentThreadId);
+      auto pCurrentThread = EntityManager::getThreadFromId(m_currentThreadId);
       if (pCurrentThread) {
         pCurrentThread->resume();
       }
-      _done = true;
+      m_done = true;
     }
   }
 
   bool isElapsed() override {
-    return _done;
+    return m_done;
   }
 };
 
@@ -228,7 +228,7 @@ public:
   }
 
   bool isElapsed() override {
-    return _engine.getDialogManager().getState() == DialogManagerState::None;
+    return m_engine.getDialogManager().getState() == DialogManagerState::None;
   }
 };
 
@@ -243,7 +243,7 @@ public:
   }
 
   bool isElapsed() override {
-    return !_engine.inCutscene();
+    return !m_engine.inCutscene();
   }
 };
 
@@ -258,7 +258,7 @@ public:
   }
 
   bool isElapsed() override {
-    return !_engine.getCamera().isMoving();
+    return !m_engine.getCamera().isMoving();
   }
 };
 
@@ -273,17 +273,17 @@ public:
   }
 
   bool isElapsed() override {
-    return _engine.getInputActive();
+    return m_engine.getInputActive();
   }
 };
 
 class BreakTimeFunction final : public TimeFunction {
 private:
-  int _threadId;
+  int m_threadId;
 
 public:
   BreakTimeFunction(int id, const ngf::TimeSpan &time)
-      : TimeFunction(time), _threadId(id) {
+      : TimeFunction(time), m_threadId(id) {
   }
 
   void operator()(const ngf::TimeSpan &elapsed) override {
@@ -292,7 +292,7 @@ public:
     TimeFunction::operator()(elapsed);
     if (isElapsed()) {
       m_done = true;
-      auto pThread = EntityManager::getThreadFromId(_threadId);
+      auto pThread = EntityManager::getThreadFromId(m_threadId);
       if (!pThread)
         return;
       pThread->resume();

@@ -121,13 +121,13 @@ private:
 private:
   ngf::GGPackValue m_values;
   ngf::GGPackValue m_tempValues;
-  std::vector<std::function<void(const std::string &)>> _functions;
+  std::vector<std::function<void(const std::string &)>> m_functions;
 };
 
 template<typename T>
 void Preferences::setUserPreference(const std::string &name, T value) {
   m_values[name] = value;
-  for (auto &&func : _functions) {
+  for (auto &&func : m_functions) {
     func(name);
   }
 }

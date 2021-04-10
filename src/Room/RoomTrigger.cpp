@@ -8,108 +8,108 @@
 
 namespace ng {
 RoomTrigger::RoomTrigger(Engine &engine, Object &object, HSQOBJECT inside, HSQOBJECT outside)
-    : _engine(engine), _object(object), _inside(inside), _outside(outside) {
-  _vm = ScriptEngine::getVm();
-  sq_addref(_vm, &inside);
-  sq_addref(_vm, &outside);
+    : m_engine(engine), m_object(object), m_inside(inside), m_outside(outside) {
+  m_vm = ScriptEngine::getVm();
+  sq_addref(m_vm, &inside);
+  sq_addref(m_vm, &outside);
 
-  SQInteger top = sq_gettop(_vm);
+  SQInteger top = sq_gettop(m_vm);
 
   const SQChar *insideName{nullptr};
   SQInteger nfreevars;
-  sq_pushobject(_vm, _inside);
-  sq_getclosureinfo(_vm, -1, &_insideParamsCount, &nfreevars);
-  if (SQ_SUCCEEDED(sq_getclosurename(_vm, -1))) {
-    sq_getstring(_vm, -1, &insideName);
+  sq_pushobject(m_vm, m_inside);
+  sq_getclosureinfo(m_vm, -1, &m_insideParamsCount, &nfreevars);
+  if (SQ_SUCCEEDED(sq_getclosurename(m_vm, -1))) {
+    sq_getstring(m_vm, -1, &insideName);
     if (insideName)
-      _insideName = insideName;
+      m_insideName = insideName;
   }
 
   const SQChar *outsideName{nullptr};
-  sq_pushobject(_vm, _outside);
-  sq_getclosureinfo(_vm, -1, &_outsideParamsCount, &nfreevars);
-  if (SQ_SUCCEEDED(sq_getclosurename(_vm, -1))) {
-    sq_getstring(_vm, -1, &outsideName);
+  sq_pushobject(m_vm, m_outside);
+  sq_getclosureinfo(m_vm, -1, &m_outsideParamsCount, &nfreevars);
+  if (SQ_SUCCEEDED(sq_getclosurename(m_vm, -1))) {
+    sq_getstring(m_vm, -1, &outsideName);
     if (outsideName)
-      _outsideName = outsideName;
+      m_outsideName = outsideName;
   }
-  sq_settop(_vm, top);
-  _name.append(_object.getName())
+  sq_settop(m_vm, top);
+  m_name.append(m_object.getName())
       .append(" [")
-      .append(_insideName)
+      .append(m_insideName)
       .append(",")
-      .append(_outsideName)
+      .append(m_outsideName)
       .append("]");
 
-  trace("add trigger: {}", _name);
+  trace("add trigger: {}", m_name);
 }
 
 RoomTrigger::~RoomTrigger() {
-  trace("end room trigger thread: {}", _id);
-  sq_release(_vm, &_inside);
-  sq_release(_vm, &_outside);
+  trace("end room trigger thread: {}", m_id);
+  sq_release(m_vm, &m_inside);
+  sq_release(m_vm, &m_outside);
 }
 
 HSQUIRRELVM RoomTrigger::createThread() {
   HSQOBJECT thread_obj{};
   sq_resetobject(&thread_obj);
 
-  HSQUIRRELVM thread = sq_newthread(_vm, 1024);
-  if (SQ_FAILED(sq_getstackobj(_vm, -1, &thread_obj))) {
+  HSQUIRRELVM thread = sq_newthread(m_vm, 1024);
+  if (SQ_FAILED(sq_getstackobj(m_vm, -1, &thread_obj))) {
     error("Couldn't get coroutine thread from stack");
     return {};
   }
 
-  auto pUniquethread = std::make_unique<RoomTriggerThread>(_vm, _name, thread_obj);
-  sq_pop(_vm ,1); // pop thread
-  _id = pUniquethread->getId();
-  trace("start room trigger thread: {}", _id);
-  _engine.addThread(std::move(pUniquethread));
+  auto pUniquethread = std::make_unique<RoomTriggerThread>(m_vm, m_name, thread_obj);
+  sq_pop(m_vm , 1); // pop thread
+  m_id = pUniquethread->getId();
+  trace("start room trigger thread: {}", m_id);
+  m_engine.addThread(std::move(pUniquethread));
   return thread;
 }
 
 void RoomTrigger::trigCore() {
-  auto actor = _engine.getCurrentActor();
+  auto actor = m_engine.getCurrentActor();
   if (!actor)
     return;
 
-  auto inObjectHotspot = _object.getRealHotspot().contains(actor->getPosition());
-  if (!_isInside && inObjectHotspot) {
-    _isInside = true;
+  auto inObjectHotspot = m_object.getRealHotspot().contains(actor->getPosition());
+  if (!m_isInside && inObjectHotspot) {
+    m_isInside = true;
 
     std::vector<HSQOBJECT> params;
-    if (_insideParamsCount == 2) {
-      params.push_back(_inside);
-      params.push_back(_object.getTable());
+    if (m_insideParamsCount == 2) {
+      params.push_back(m_inside);
+      params.push_back(m_object.getTable());
       params.push_back(actor->getTable());
     } else {
-      params.push_back(_inside);
-      params.push_back(_object.getTable());
+      params.push_back(m_inside);
+      params.push_back(m_object.getTable());
     }
 
     std::string name;
     name.append("inside");
-    if (!_insideName.empty()) {
-      name.append(" ").append(_insideName);
+    if (!m_insideName.empty()) {
+      name.append(" ").append(m_insideName);
     }
     callTrigger(params, name);
-  } else if (_isInside && !inObjectHotspot) {
-    _isInside = false;
-    if (_outside._type != SQObjectType::OT_NULL) {
+  } else if (m_isInside && !inObjectHotspot) {
+    m_isInside = false;
+    if (m_outside._type != SQObjectType::OT_NULL) {
       std::vector<HSQOBJECT> params;
-      if (_outsideParamsCount == 2) {
-        params.push_back(_outside);
-        params.push_back(_object.getTable());
+      if (m_outsideParamsCount == 2) {
+        params.push_back(m_outside);
+        params.push_back(m_object.getTable());
         params.push_back(actor->getTable());
       } else {
-        params.push_back(_outside);
-        params.push_back(_object.getTable());
+        params.push_back(m_outside);
+        params.push_back(m_object.getTable());
       }
 
       std::string name;
       name.append("outside");
-      if (!_outsideName.empty()) {
-        name.append(" ").append(_outsideName);
+      if (!m_outsideName.empty()) {
+        name.append(" ").append(m_outsideName);
       }
       callTrigger(params, "outside");
     }
@@ -122,12 +122,12 @@ void RoomTrigger::callTrigger(std::vector<HSQOBJECT> &params, const std::string 
     sq_pushobject(thread, param);
   }
 
-  trace("call room {} trigger ({})", name, _id);
+  trace("call room {} trigger ({})", name, m_id);
   if (SQ_FAILED(sq_call(thread, params.size() - 1, SQFalse, SQTrue))) {
     error("failed to call room {} trigger", name);
     return;
   }
 }
 
-std::string RoomTrigger::getName() { return _name; }
+std::string RoomTrigger::getName() { return m_name; }
 } // namespace ng

@@ -8,69 +8,69 @@ void TalkingState::setPosition(glm::vec2 pos) {
 }
 
 void TalkingState::setEngine(Engine *pEngine) {
-  _pEngine = pEngine;
+  m_pEngine = pEngine;
 }
 
 void TalkingState::update(const ngf::TimeSpan &elapsed) {
-  if (!_isTalking)
+  if (!m_isTalking)
     return;
 
   bool end;
-  _elapsed += elapsed;
-  auto pSound = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(_soundId));
+  m_elapsed += elapsed;
+  auto pSound = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(m_soundId));
   if (pSound) {
     end = !pSound->isPlaying();
   } else {
-    end = _elapsed > _duration;
+    end = m_elapsed > m_duration;
   }
 
   if (end) {
-    if (_ids.empty()) {
-      _isTalking = false;
-      _lipAnim.end();
+    if (m_ids.empty()) {
+      m_isTalking = false;
+      m_lipAnim.end();
       return;
     }
-    auto[id, text, mumble] = _ids.front();
+    auto[id, text, mumble] = m_ids.front();
     loadId(id, text, mumble);
-    _ids.erase(_ids.begin());
+    m_ids.erase(m_ids.begin());
   }
-  _lipAnim.update(elapsed);
+  m_lipAnim.update(elapsed);
 }
 
 void TalkingState::stop() {
-  _ids.clear();
-  _isTalking = false;
-  if (_soundId) {
-    auto pSound = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(_soundId));
+  m_ids.clear();
+  m_isTalking = false;
+  if (m_soundId) {
+    auto pSound = dynamic_cast<SoundId *>(EntityManager::getSoundFromId(m_soundId));
     if (pSound) {
       pSound->stop();
     }
-    _soundId = 0;
+    m_soundId = 0;
   }
 }
 
-bool TalkingState::isTalking() const { return _isTalking; }
+bool TalkingState::isTalking() const { return m_isTalking; }
 
-void TalkingState::setTalkColor(ngf::Color color) { _talkColor = color; }
+void TalkingState::setTalkColor(ngf::Color color) { m_talkColor = color; }
 
 void TalkingState::setDuration(ngf::TimeSpan duration) {
-  _isTalking = true;
-  _duration = duration;
-  trace("Talk duration: {}", _duration.getTotalSeconds());
-  _elapsed = ngf::TimeSpan::seconds(0);
+  m_isTalking = true;
+  m_duration = duration;
+  trace("Talk duration: {}", m_duration.getTotalSeconds());
+  m_elapsed = ngf::TimeSpan::seconds(0);
 }
 
-void TalkingState::setText(const std::wstring &text) { _sayText = text; }
+void TalkingState::setText(const std::wstring &text) { m_sayText = text; }
 
 void TalkingState::loadLip(const std::string &text, Entity *pEntity, bool mumble) {
-  _pEntity = pEntity;
+  m_pEntity = pEntity;
   setTalkColor(pEntity->getTalkColor());
 
   // load lip data
   auto id = std::strtol(text.c_str() + 1, nullptr, 10);
 
-  if (_isTalking) {
-    _ids.emplace_back(id, text, mumble);
+  if (m_isTalking) {
+    m_ids.emplace_back(id, text, mumble);
     return;
   }
 
@@ -78,24 +78,24 @@ void TalkingState::loadLip(const std::string &text, Entity *pEntity, bool mumble
 }
 
 void TalkingState::draw(ngf::RenderTarget &target, ngf::RenderStates) const {
-  if (!_isTalking)
+  if (!m_isTalking)
     return;
 
-  if (!_pEngine->getPreferences().getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText))
+  if (!m_pEngine->getPreferences().getUserPreference(PreferenceNames::DisplayText, PreferenceDefaultValues::DisplayText))
     return;
 
   auto view = target.getView();
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
-  auto retroFonts = _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
-                                                                 PreferenceDefaultValues::RetroFonts);
-  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+  auto retroFonts = m_pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts,
+                                                                  PreferenceDefaultValues::RetroFonts);
+  auto &font = m_pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   ng::Text text;
   text.setMaxWidth(static_cast<int>((Screen::Width * 3) / 4));
   text.setFont(font);
-  text.setColor(_talkColor);
-  text.setWideString(_sayText);
+  text.setColor(m_talkColor);
+  text.setWideString(m_sayText);
 
   auto bounds = text.getLocalBounds();
   auto pos = m_transform.getPosition();
@@ -132,34 +132,34 @@ void TalkingState::loadActorSpeech(const std::string &name, bool hearVoice) {
   if (!hearVoice)
     return;
 
-  auto soundDefinition = _pEngine->getSoundManager().defineSound(name + ".ogg");
+  auto soundDefinition = m_pEngine->getSoundManager().defineSound(name + ".ogg");
   if (!soundDefinition) {
     error("File {}.ogg not found", name);
     return;
   }
 
-  auto pSound = _pEngine->getSoundManager().playTalkSound(soundDefinition, 1, ngf::TimeSpan::Zero, _pEntity->getId());
+  auto pSound = m_pEngine->getSoundManager().playTalkSound(soundDefinition, 1, ngf::TimeSpan::Zero, m_pEntity->getId());
   if (pSound) {
-    _soundId = pSound->getId();
+    m_soundId = pSound->getId();
   }
 }
 
 void TalkingState::loadId(int id, const std::string &text, bool mumble) {
-  ScriptEngine::callFunc(id, "onTalkieID", _pEntity, id);
+  ScriptEngine::callFunc(id, "onTalkieID", m_pEntity, id);
   auto sayText = id != 0 ? Engine::getText(id) : towstring(text);
   setText(sayText);
 
   const char *key = nullptr;
-  if (!ScriptEngine::rawGet(_pEntity, "_talkieKey", key)) {
-    ScriptEngine::rawGet(_pEntity, "_key", key);
+  if (!ScriptEngine::rawGet(m_pEntity, "_talkieKey", key)) {
+    ScriptEngine::rawGet(m_pEntity, "_key", key);
   }
   auto name = str_toupper(key).append("_").append(std::to_string(id));
   std::string path;
   path.append(name).append(".lip");
 
-  auto pActor = dynamic_cast<Actor *>(_pEntity);
+  auto pActor = dynamic_cast<Actor *>(m_pEntity);
   if (pActor) {
-    _lipAnim.setActor(pActor);
+    m_lipAnim.setActor(pActor);
   }
 
   // actor animation
@@ -167,9 +167,9 @@ void TalkingState::loadId(int id, const std::string &text, bool mumble) {
   std::wsmatch matches;
   std::string anim;
 
-  if (std::regex_search(_sayText, matches, re)) {
+  if (std::regex_search(m_sayText, matches, re)) {
     anim = tostring(matches[1].str());
-    _sayText = matches.suffix();
+    m_sayText = matches.suffix();
     if (!pActor || anim == "notalk") {
       mumble = true;
     } else {
@@ -183,35 +183,35 @@ void TalkingState::loadId(int id, const std::string &text, bool mumble) {
   }
 
   if (pActor && !mumble) {
-    _lipAnim.load(path);
+    m_lipAnim.load(path);
   } else {
-    _lipAnim.clear();
+    m_lipAnim.clear();
   }
 
-  auto hearVoice = (id != 0) && (_pEngine->getPreferences().getTempPreference(TempPreferenceNames::ForceTalkieText,
-                                                                              TempPreferenceDefaultValues::ForceTalkieText)
-      || _pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice,
-                                                      PreferenceDefaultValues::HearVoice));
+  auto hearVoice = (id != 0) && (m_pEngine->getPreferences().getTempPreference(TempPreferenceNames::ForceTalkieText,
+                                                                               TempPreferenceDefaultValues::ForceTalkieText)
+      || m_pEngine->getPreferences().getUserPreference(PreferenceNames::HearVoice,
+                                                       PreferenceDefaultValues::HearVoice));
   if (hearVoice) {
-    setDuration(_lipAnim.getDuration());
+    setDuration(m_lipAnim.getDuration());
   } else {
-    auto sayLineBaseTime = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineBaseTime,
-                                                                        PreferenceDefaultValues::SayLineBaseTime);
-    auto sayLineCharTime = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineCharTime,
-                                                                        PreferenceDefaultValues::SayLineCharTime);
-    auto sayLineMinTime = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineMinTime,
-                                                                       PreferenceDefaultValues::SayLineMinTime);
-    auto sayLineSpeed = _pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineSpeed,
-                                                                     PreferenceDefaultValues::SayLineSpeed);
-    auto speed = (sayLineBaseTime + sayLineCharTime * _sayText.length()) / (0.2f + sayLineSpeed);
+    auto sayLineBaseTime = m_pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineBaseTime,
+                                                                         PreferenceDefaultValues::SayLineBaseTime);
+    auto sayLineCharTime = m_pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineCharTime,
+                                                                         PreferenceDefaultValues::SayLineCharTime);
+    auto sayLineMinTime = m_pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineMinTime,
+                                                                        PreferenceDefaultValues::SayLineMinTime);
+    auto sayLineSpeed = m_pEngine->getPreferences().getUserPreference(PreferenceNames::SayLineSpeed,
+                                                                      PreferenceDefaultValues::SayLineSpeed);
+    auto speed = (sayLineBaseTime + sayLineCharTime * m_sayText.length()) / (0.2f + sayLineSpeed);
     if (speed < sayLineMinTime)
       speed = sayLineMinTime;
     setDuration(ngf::TimeSpan::seconds(speed));
   }
 
-  auto sayLine = tostring(_sayText);
+  auto sayLine = tostring(m_sayText);
   const char *pAnim = anim.empty() ? nullptr : anim.data();
-  ScriptEngine::rawCall(_pEntity, "sayingLine", pAnim, sayLine);
+  ScriptEngine::rawCall(m_pEntity, "sayingLine", pAnim, sayLine);
 
   loadActorSpeech(name, hearVoice);
 }

@@ -65,8 +65,8 @@ void DebugTools::showPerformance() {
   if (!ImGui::CollapsingHeader("Performance"))
     return;
 
-  renderTimes("Rendering (ms)", m_renderTimes, []() { return DebugFeatures::_renderTime; });
-  renderTimes("Update (ms)", m_updateTimes, []() { return DebugFeatures::_updateTime; });
+  renderTimes("Rendering (ms)", m_renderTimes, []() { return DebugFeatures::renderTime; });
+  renderTimes("Update (ms)", m_updateTimes, []() { return DebugFeatures::updateTime; });
 }
 
 void DebugTools::renderTimes(const char *label, Plot &plot, const std::function<ngf::TimeSpan()> &func) {

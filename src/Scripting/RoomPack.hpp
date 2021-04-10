@@ -18,55 +18,55 @@ public:
               std::function<float(float)> anim = Interpolations::linear,
               bool isLooping = false)
       : TimeFunction(time),
-        _pRoom(pRoom),
-        _isLooping(isLooping),
-        _anim(std::move(anim)),
-        _a(endColor.a - startColor.a),
-        _r(endColor.r - startColor.r),
-        _g(endColor.g - startColor.g),
-        _b(endColor.b - startColor.b),
-        _startColor(startColor),
-        _endColor(endColor),
-        _current(startColor) {
+        m_pRoom(pRoom),
+        m_isLooping(isLooping),
+        m_anim(std::move(anim)),
+        m_a(endColor.a - startColor.a),
+        m_r(endColor.r - startColor.r),
+        m_g(endColor.g - startColor.g),
+        m_b(endColor.b - startColor.b),
+        m_startColor(startColor),
+        m_endColor(endColor),
+        m_current(startColor) {
   }
 
   void operator()(const ngf::TimeSpan &elapsed) override {
     TimeFunction::operator()(elapsed);
-    _pRoom->setOverlayColor(_current);
+    m_pRoom->setOverlayColor(m_current);
     if (!isElapsed()) {
       auto t = m_elapsed.getTotalSeconds() / m_time.getTotalSeconds();
-      auto f = _anim(t);
-      _current = plusColor(_startColor, f);
+      auto f = m_anim(t);
+      m_current = plusColor(m_startColor, f);
     }
   }
 
   bool isElapsed() override {
-    if (!_isLooping)
+    if (!m_isLooping)
       return TimeFunction::isElapsed();
     return false;
   }
 
   void onElapsed() override {
-    _pRoom->setOverlayColor(_endColor);
+    m_pRoom->setOverlayColor(m_endColor);
   }
 
 private:
   [[nodiscard]] ngf::Color plusColor(const ngf::Color &color1, float f) const {
-    auto a = color1.a + f * _a;
-    auto r = color1.r + f * _r;
-    auto g = color1.g + f * _g;
-    auto b = color1.b + f * _b;
+    auto a = color1.a + f * m_a;
+    auto r = color1.r + f * m_r;
+    auto g = color1.g + f * m_g;
+    auto b = color1.b + f * m_b;
     return ngf::Color(r, g, b, a);
   }
 
 private:
-  Room *_pRoom{nullptr};
-  bool _isLooping;
-  std::function<float(float)> _anim;
-  float _a, _r, _g, _b;
-  ngf::Color _startColor;
-  ngf::Color _endColor;
-  ngf::Color _current;
+  Room *m_pRoom{nullptr};
+  bool m_isLooping;
+  std::function<float(float)> m_anim;
+  float m_a, m_r, m_g, m_b;
+  ngf::Color m_startColor;
+  ngf::Color m_endColor;
+  ngf::Color m_current;
 };
 
 class RoomPack final : public Pack {

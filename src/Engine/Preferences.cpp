@@ -31,7 +31,7 @@ void Preferences::removeUserPreference(const std::string &name) {
 }
 
 void Preferences::subscribe(const std::function<void(const std::string &)> &function) {
-  _functions.emplace_back(function);
+  m_functions.emplace_back(function);
 }
 
 ngf::GGPackValue Preferences::getUserPreferenceCore(const std::string &name,

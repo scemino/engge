@@ -33,12 +33,12 @@ bool operator&(CursorDirection lhs, CursorDirection rhs) {
 }
 
 Engine::Impl::Impl()
-    : _textureManager(Locator<ResourceManager>::get()),
-      _preferences(Locator<Preferences>::get()),
-      _soundManager(Locator<SoundManager>::get()),
-      _actorIcons(_actorsIconSlots, _hud, _pCurrentActor) {
-  _hud.setTextureManager(&_textureManager);
-  sq_resetobject(&_pDefaultObject);
+    : m_resourceManager(Locator<ResourceManager>::get()),
+      m_preferences(Locator<Preferences>::get()),
+      m_soundManager(Locator<SoundManager>::get()),
+      m_actorIcons(m_actorsIconSlots, m_hud, m_pCurrentActor) {
+  m_hud.setTextureManager(&m_resourceManager);
+  sq_resetobject(&m_pDefaultObject);
 
   Locator<CommandManager>::get().registerCommands(
       {
@@ -53,72 +53,72 @@ Engine::Impl::Impl()
           {EngineCommands::SelectActor6, [this] { selectActor(6); }},
           {EngineCommands::SelectPreviousActor, [this] { selectPreviousActor(); }},
           {EngineCommands::SelectNextActor, [this] { selectNextActor(); }},
-          {EngineCommands::SelectChoice1, [this] { _dialogManager.choose(1); }},
-          {EngineCommands::SelectChoice2, [this] { _dialogManager.choose(2); }},
-          {EngineCommands::SelectChoice3, [this] { _dialogManager.choose(3); }},
-          {EngineCommands::SelectChoice4, [this] { _dialogManager.choose(4); }},
-          {EngineCommands::SelectChoice5, [this] { _dialogManager.choose(5); }},
-          {EngineCommands::SelectChoice6, [this] { _dialogManager.choose(6); }},
-          {EngineCommands::ShowOptions, [this] { _pEngine->showOptions(true); }},
+          {EngineCommands::SelectChoice1, [this] { m_dialogManager.choose(1); }},
+          {EngineCommands::SelectChoice2, [this] { m_dialogManager.choose(2); }},
+          {EngineCommands::SelectChoice3, [this] { m_dialogManager.choose(3); }},
+          {EngineCommands::SelectChoice4, [this] { m_dialogManager.choose(4); }},
+          {EngineCommands::SelectChoice5, [this] { m_dialogManager.choose(5); }},
+          {EngineCommands::SelectChoice6, [this] { m_dialogManager.choose(6); }},
+          {EngineCommands::ShowOptions, [this] { m_pEngine->showOptions(true); }},
           {EngineCommands::ToggleHud, [this] {
-            _hud.setVisible(!_cursorVisible);
-            _actorIcons.setVisible(!_cursorVisible);
-            _cursorVisible = !_cursorVisible;
+            m_hud.setVisible(!m_cursorVisible);
+            m_actorIcons.setVisible(!m_cursorVisible);
+            m_cursorVisible = !m_cursorVisible;
           }}
       });
   Locator<CommandManager>::get().registerPressedCommand(EngineCommands::ShowHotspots, [this](bool down) {
-    _preferences.setTempPreference(TempPreferenceNames::ShowHotspot, down);
+    m_preferences.setTempPreference(TempPreferenceNames::ShowHotspot, down);
   });
 
-  _fadeShader.load(Shaders::vertexShader, Shaders::fadeFragmentShader);
+  m_fadeShader.load(Shaders::vertexShader, Shaders::fadeFragmentShader);
   uint32_t pixels[4]{0x000000FF, 0x000000FF, 0x000000FF, 0x000000FF};
-  _blackTexture.loadFromMemory({2, 2}, pixels);
+  m_blackTexture.loadFromMemory({2, 2}, pixels);
 }
 
 void Engine::Impl::pauseGame() {
-  _state = _state == EngineState::Game ? EngineState::Paused : EngineState::Game;
-  if (_state == EngineState::Paused) {
+  m_state = m_state == EngineState::Game ? EngineState::Paused : EngineState::Game;
+  if (m_state == EngineState::Paused) {
     // pause all pauseable threads
-    for (auto &thread : _threads) {
+    for (auto &thread : m_threads) {
       if (thread->isPauseable() && !thread->isStopped()) {
         thread->pause();
       }
     }
-    _soundManager.pauseAllSounds();
+    m_soundManager.pauseAllSounds();
   } else {
     // resume all pauseable threads
-    for (auto &thread : _threads) {
+    for (auto &thread : m_threads) {
       if (thread->isPauseable() && !thread->isStopped()) {
         thread->resume();
       }
     }
-    _soundManager.resumeAllSounds();
+    m_soundManager.resumeAllSounds();
   }
 }
 
 void Engine::Impl::selectActor(int index) {
-  if (index <= 0 || index > static_cast<int>(_actorsIconSlots.size()))
+  if (index <= 0 || index > static_cast<int>(m_actorsIconSlots.size()))
     return;
-  const auto &slot = _actorsIconSlots[index - 1];
+  const auto &slot = m_actorsIconSlots[index - 1];
   if (!slot.selectable)
     return;
-  _pEngine->setCurrentActor(slot.pActor, true);
+  m_pEngine->setCurrentActor(slot.pActor, true);
 }
 
 void Engine::Impl::selectPreviousActor() {
   auto currentActorIndex = getCurrentActorIndex();
   if (currentActorIndex == -1)
     return;
-  auto size = static_cast<int>(_actorsIconSlots.size());
+  auto size = static_cast<int>(m_actorsIconSlots.size());
   for (auto i = 0; i < size; i++) {
     auto index = currentActorIndex - i - 1;
     if (index < 0)
       index += size - 1;
     if (index == currentActorIndex)
       return;
-    const auto &slot = _actorsIconSlots[index];
+    const auto &slot = m_actorsIconSlots[index];
     if (slot.selectable) {
-      _pEngine->setCurrentActor(slot.pActor, true);
+      m_pEngine->setCurrentActor(slot.pActor, true);
       return;
     }
   }
@@ -128,31 +128,31 @@ void Engine::Impl::selectNextActor() {
   auto currentActorIndex = getCurrentActorIndex();
   if (currentActorIndex == -1)
     return;
-  auto size = static_cast<int>(_actorsIconSlots.size());
+  auto size = static_cast<int>(m_actorsIconSlots.size());
   for (auto i = 0; i < size; i++) {
     auto index = (currentActorIndex + i + 1) % size;
     if (index == currentActorIndex)
       return;
-    const auto &slot = _actorsIconSlots[index];
+    const auto &slot = m_actorsIconSlots[index];
     if (slot.selectable) {
-      _pEngine->setCurrentActor(slot.pActor, true);
+      m_pEngine->setCurrentActor(slot.pActor, true);
       return;
     }
   }
 }
 
 void Engine::Impl::skipCutscene() {
-  if (_pEngine->inCutscene()) {
-    if (_pCutscene && _pCutscene->hasCutsceneOverride()) {
-      _pEngine->cutsceneOverride();
+  if (m_pEngine->inCutscene()) {
+    if (m_pCutscene && m_pCutscene->hasCutsceneOverride()) {
+      m_pEngine->cutsceneOverride();
     } else {
-      _noOverrideElapsed = ngf::TimeSpan::seconds(0);
+      m_noOverrideElapsed = ngf::TimeSpan::seconds(0);
     }
   }
 }
 
 void Engine::Impl::skipText() const {
-  if (_dialogManager.getState() == DialogManagerState::Active) {
+  if (m_dialogManager.getState() == DialogManagerState::Active) {
     stopTalking();
   }
 }
@@ -166,13 +166,13 @@ void Engine::Impl::onLanguageChange(const std::string &lang) {
 }
 
 SQInteger Engine::Impl::exitRoom(Object *pObject) {
-  _pEngine->setDefaultVerb();
-  _talkingState.stop();
+  m_pEngine->setDefaultVerb();
+  m_talkingState.stop();
 
-  if (!_pRoom)
+  if (!m_pRoom)
     return 0;
 
-  auto pOldRoom = _pRoom;
+  auto pOldRoom = m_pRoom;
 
   actorExit();
 
@@ -192,7 +192,7 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
   ScriptEngine::rawCall("exitedRoom", pOldRoom);
 
   // stop all local threads
-  std::for_each(_threads.begin(), _threads.end(), [](auto &pThread) {
+  std::for_each(m_threads.begin(), m_threads.end(), [](auto &pThread) {
     if (!pThread->isGlobal())
       pThread->stop();
   });
@@ -201,26 +201,26 @@ SQInteger Engine::Impl::exitRoom(Object *pObject) {
 }
 
 void Engine::Impl::actorEnter() const {
-  if (!_pCurrentActor)
+  if (!m_pCurrentActor)
     return;
 
-  _pCurrentActor->stopWalking();
-  ScriptEngine::rawCall("actorEnter", _pCurrentActor);
+  m_pCurrentActor->stopWalking();
+  ScriptEngine::rawCall("actorEnter", m_pCurrentActor);
 
-  if (!_pRoom)
+  if (!m_pRoom)
     return;
 
-  if (ScriptEngine::rawExists(_pRoom, "actorEnter")) {
-    ScriptEngine::rawCall(_pRoom, "actorEnter", _pCurrentActor);
+  if (ScriptEngine::rawExists(m_pRoom, "actorEnter")) {
+    ScriptEngine::rawCall(m_pRoom, "actorEnter", m_pCurrentActor);
   }
 }
 
 void Engine::Impl::actorExit() const {
-  if (!_pCurrentActor || !_pRoom)
+  if (!m_pCurrentActor || !m_pRoom)
     return;
 
-  if (ScriptEngine::rawExists(_pRoom, "actorExit")) {
-    ScriptEngine::rawCall(_pRoom, "actorExit", _pCurrentActor);
+  if (ScriptEngine::rawExists(m_pRoom, "actorExit")) {
+    ScriptEngine::rawCall(m_pRoom, "actorExit", m_pCurrentActor);
   }
 }
 
@@ -266,61 +266,61 @@ SQInteger Engine::Impl::enterRoom(Room *pRoom, Object *pObject) const {
 }
 
 void Engine::Impl::run(bool state) {
-  if (_run != state) {
-    _run = state;
-    if (_pCurrentActor) {
-      ScriptEngine::objCall(_pCurrentActor, "run", state);
+  if (m_run != state) {
+    m_run = state;
+    if (m_pCurrentActor) {
+      ScriptEngine::objCall(m_pCurrentActor, "run", state);
     }
   }
 }
 
 void Engine::Impl::setCurrentRoom(Room *pRoom) {
   // reset fade effect if we change the room except for wobble effect
-  if (_fadeEffect.effect != FadeEffect::Wobble) {
-    _fadeEffect.effect = FadeEffect::None;
+  if (m_fadeEffect.effect != FadeEffect::Wobble) {
+    m_fadeEffect.effect = FadeEffect::None;
   }
 
   if (pRoom) {
     ScriptEngine::set("currentRoom", pRoom);
   }
-  _camera.resetBounds();
-  _pRoom = pRoom;
-  _camera.at(glm::vec2(0, 0));
+  m_camera.resetBounds();
+  m_pRoom = pRoom;
+  m_camera.at(glm::vec2(0, 0));
 }
 
 void Engine::Impl::updateCutscene(const ngf::TimeSpan &elapsed) {
-  if (_pCutscene) {
-    (*_pCutscene)(elapsed);
-    if (_pCutscene->isElapsed()) {
-      _pCutscene = nullptr;
+  if (m_pCutscene) {
+    (*m_pCutscene)(elapsed);
+    if (m_pCutscene->isElapsed()) {
+      m_pCutscene = nullptr;
     }
   }
 }
 
 void Engine::Impl::updateSentence(const ngf::TimeSpan &elapsed) const {
-  if (!_pSentence)
+  if (!m_pSentence)
     return;
-  (*_pSentence)(elapsed);
-  if (!_pSentence->isElapsed())
+  (*m_pSentence)(elapsed);
+  if (!m_pSentence->isElapsed())
     return;
-  _pEngine->stopSentence();
+  m_pEngine->stopSentence();
 }
 
 void Engine::Impl::updateFunctions(const ngf::TimeSpan &elapsed) {
-  for (auto &function : _newFunctions) {
-    _functions.push_back(std::move(function));
+  for (auto &function : m_newFunctions) {
+    m_functions.push_back(std::move(function));
   }
-  _newFunctions.clear();
-  for (auto &function : _functions) {
+  m_newFunctions.clear();
+  for (auto &function : m_functions) {
     (*function)(elapsed);
   }
-  _functions.erase(std::remove_if(_functions.begin(), _functions.end(),
-                                  [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
-                   _functions.end());
+  m_functions.erase(std::remove_if(m_functions.begin(), m_functions.end(),
+                                   [](std::unique_ptr<Function> &f) { return f->isElapsed(); }),
+                    m_functions.end());
 
   std::vector<std::unique_ptr<Callback>> callbacks;
-  std::move(_callbacks.begin(), _callbacks.end(), std::back_inserter(callbacks));
-  _callbacks.clear();
+  std::move(m_callbacks.begin(), m_callbacks.end(), std::back_inserter(callbacks));
+  m_callbacks.clear();
   for (auto &callback : callbacks) {
     (*callback)(elapsed);
   }
@@ -328,41 +328,41 @@ void Engine::Impl::updateFunctions(const ngf::TimeSpan &elapsed) {
                                  callbacks.end(),
                                  [](auto &f) { return f->isElapsed(); }),
                   callbacks.end());
-  std::move(callbacks.begin(), callbacks.end(), std::back_inserter(_callbacks));
+  std::move(callbacks.begin(), callbacks.end(), std::back_inserter(m_callbacks));
 }
 
 void Engine::Impl::updateActorIcons(const ngf::TimeSpan &elapsed) {
-  auto screenSize = _pRoom->getScreenSize();
-  auto screenMouse = toDefaultView((glm::ivec2) _mousePos, screenSize);
-  _actorIcons.setMousePosition(screenMouse);
-  _actorIcons.update(elapsed);
+  auto screenSize = m_pRoom->getScreenSize();
+  auto screenMouse = toDefaultView((glm::ivec2) m_mousePos, screenSize);
+  m_actorIcons.setMousePosition(screenMouse);
+  m_actorIcons.update(elapsed);
 }
 
 void Engine::Impl::updateMouseCursor() {
-  auto flags = getFlags(_objId1);
-  auto screen = _pApp->getRenderTarget()->getView().getSize();
-  _cursorDirection = CursorDirection::None;
-  if ((_mousePos.x < 20) || (flags & ObjectFlagConstants::DOOR_LEFT) == ObjectFlagConstants::DOOR_LEFT)
-    _cursorDirection |= CursorDirection::Left;
-  else if ((_mousePos.x > screen.x - 20) ||
+  auto flags = getFlags(m_objId1);
+  auto screen = m_pApp->getRenderTarget()->getView().getSize();
+  m_cursorDirection = CursorDirection::None;
+  if ((m_mousePos.x < 20) || (flags & ObjectFlagConstants::DOOR_LEFT) == ObjectFlagConstants::DOOR_LEFT)
+    m_cursorDirection |= CursorDirection::Left;
+  else if ((m_mousePos.x > screen.x - 20) ||
       (flags & ObjectFlagConstants::DOOR_RIGHT) == ObjectFlagConstants::DOOR_RIGHT)
-    _cursorDirection |= CursorDirection::Right;
+    m_cursorDirection |= CursorDirection::Right;
   if ((flags & ObjectFlagConstants::DOOR_FRONT) == ObjectFlagConstants::DOOR_FRONT)
-    _cursorDirection |= CursorDirection::Down;
+    m_cursorDirection |= CursorDirection::Down;
   else if ((flags & ObjectFlagConstants::DOOR_BACK) == ObjectFlagConstants::DOOR_BACK)
-    _cursorDirection |= CursorDirection::Up;
-  if ((_cursorDirection == CursorDirection::None) && _objId1)
-    _cursorDirection |= CursorDirection::Hotspot;
+    m_cursorDirection |= CursorDirection::Up;
+  if ((m_cursorDirection == CursorDirection::None) && m_objId1)
+    m_cursorDirection |= CursorDirection::Hotspot;
 }
 
 Entity *Engine::Impl::getHoveredEntity(const glm::vec2 &mousPos) {
   Entity *pCurrentObject = nullptr;
 
   // mouse on actor ?
-  for (auto &&actor : _actors) {
-    if (actor.get() == _pCurrentActor)
+  for (auto &&actor : m_actors) {
+    if (actor.get() == m_pCurrentActor)
       continue;
-    if (actor->getRoom() != _pRoom)
+    if (actor->getRoom() != m_pRoom)
       continue;
 
     if (actor->contains(mousPos)) {
@@ -373,7 +373,7 @@ Entity *Engine::Impl::getHoveredEntity(const glm::vec2 &mousPos) {
   }
 
   // mouse on object ?
-  const auto &objects = _pRoom->getObjects();
+  const auto &objects = m_pRoom->getObjects();
   std::for_each(objects.cbegin(), objects.cend(), [mousPos, &pCurrentObject](const auto &pObj) {
     if (!pObj->isTouchable())
       return;
@@ -384,72 +384,72 @@ Entity *Engine::Impl::getHoveredEntity(const glm::vec2 &mousPos) {
       pCurrentObject = pObj.get();
   });
 
-  if (!pCurrentObject && _pRoom && _pRoom->getFullscreen() != 1) {
+  if (!pCurrentObject && m_pRoom && m_pRoom->getFullscreen() != 1) {
     // mouse on inventory object ?
-    pCurrentObject = _hud.getInventory().getCurrentInventoryObject();
+    pCurrentObject = m_hud.getInventory().getCurrentInventoryObject();
   }
 
   return pCurrentObject;
 }
 
 void Engine::Impl::updateHoveredEntity(bool isRightClick) {
-  _hud.setVerbOverride(nullptr);
-  if (!_hud.getCurrentVerb()) {
-    _hud.setCurrentVerb(_hud.getVerb(VerbConstants::VERB_WALKTO));
+  m_hud.setVerbOverride(nullptr);
+  if (!m_hud.getCurrentVerb()) {
+    m_hud.setCurrentVerb(m_hud.getVerb(VerbConstants::VERB_WALKTO));
   }
 
-  if (_pUseObject) {
-    _objId1 = _pUseObject ? _pUseObject->getId() : 0;
-    _pObj2 = _hud.getHoveredEntity();
+  if (m_pUseObject) {
+    m_objId1 = m_pUseObject ? m_pUseObject->getId() : 0;
+    m_pObj2 = m_hud.getHoveredEntity();
   } else {
-    _objId1 = _hud.getHoveredEntity() ? _hud.getHoveredEntity()->getId() : 0;
-    _pObj2 = nullptr;
+    m_objId1 = m_hud.getHoveredEntity() ? m_hud.getHoveredEntity()->getId() : 0;
+    m_pObj2 = nullptr;
   }
 
   // abort some invalid actions
-  if (!_objId1 || !_hud.getCurrentVerb()) {
+  if (!m_objId1 || !m_hud.getCurrentVerb()) {
     return;
   }
 
-  if (_pObj2 && _pObj2->getId() == _objId1) {
-    _pObj2 = nullptr;
+  if (m_pObj2 && m_pObj2->getId() == m_objId1) {
+    m_pObj2 = nullptr;
   }
 
-  if (_objId1 && isRightClick) {
-    _hud.setVerbOverride(_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(
+  if (m_objId1 && isRightClick) {
+    m_hud.setVerbOverride(m_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(m_objId1)->getDefaultVerb(
         VerbConstants::VERB_LOOKAT)));
   }
 
-  auto verbId = _hud.getCurrentVerb()->id;
+  auto verbId = m_hud.getCurrentVerb()->id;
   switch (verbId) {
   case VerbConstants::VERB_WALKTO: {
-    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
+    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(m_objId1);
     if (pObj1 && pObj1->isInventoryObject()) {
-      _hud.setVerbOverride(_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(_objId1)->getDefaultVerb(
+      m_hud.setVerbOverride(m_hud.getVerb(EntityManager::getScriptObjectFromId<Entity>(m_objId1)->getDefaultVerb(
           VerbConstants::VERB_LOOKAT)));
     }
     break;
   }
   case VerbConstants::VERB_TALKTO:
     // select actor/object only if talkable flag is set
-    if (!hasFlag(_objId1, ObjectFlagConstants::TALKABLE)) {
-      _objId1 = 0;
+    if (!hasFlag(m_objId1, ObjectFlagConstants::TALKABLE)) {
+      m_objId1 = 0;
     }
     break;
   case VerbConstants::VERB_GIVE: {
-    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
+    auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(m_objId1);
     if (!pObj1->isInventoryObject())
-      _objId1 = 0;
+      m_objId1 = 0;
 
     // select actor/object only if giveable flag is set
-    if (_pObj2 && !hasFlag(_pObj2->getId(), ObjectFlagConstants::GIVEABLE))
-      _pObj2 = nullptr;
+    if (m_pObj2 && !hasFlag(m_pObj2->getId(), ObjectFlagConstants::GIVEABLE))
+      m_pObj2 = nullptr;
     break;
   }
   default: {
-    auto pActor = EntityManager::getScriptObjectFromId<Actor>(_objId1);
+    auto pActor = EntityManager::getScriptObjectFromId<Actor>(m_objId1);
     if (pActor) {
-      _objId1 = 0;
+      m_objId1 = 0;
     }
     break;
   }
@@ -461,10 +461,10 @@ Entity *Engine::Impl::getEntity(Entity *pEntity) const {
     return nullptr;
 
   // if an actor has the same name then get its flags
-  auto itActor = std::find_if(_actors.begin(), _actors.end(), [pEntity](const auto &pActor) -> bool {
+  auto itActor = std::find_if(m_actors.begin(), m_actors.end(), [pEntity](const auto &pActor) -> bool {
     return pActor->getName() == pEntity->getName();
   });
-  if (itActor != _actors.end()) {
+  if (itActor != m_actors.end()) {
     return itActor->get();
   }
   return pEntity;
@@ -492,12 +492,12 @@ uint32_t Engine::Impl::getFlags(Entity *pEntity) const {
 }
 
 void Engine::Impl::updateRoomScalings() const {
-  auto actor = _pCurrentActor;
+  auto actor = m_pCurrentActor;
   if (!actor)
     return;
 
-  auto &scalings = _pRoom->getScalings();
-  auto &objects = _pRoom->getObjects();
+  auto &scalings = m_pRoom->getScalings();
+  auto &objects = m_pRoom->getObjects();
   for (auto &&object : objects) {
     if (object->getType() != ObjectType::Trigger)
       continue;
@@ -506,42 +506,42 @@ void Engine::Impl::updateRoomScalings() const {
         return s.getName() == object->getName();
       });
       if (it != scalings.end()) {
-        _pRoom->setRoomScaling(*it);
+        m_pRoom->setRoomScaling(*it);
         return;
       }
     }
   }
   if (!scalings.empty()) {
-    _pRoom->setRoomScaling(scalings[0]);
+    m_pRoom->setRoomScaling(scalings[0]);
   }
 }
 
 const Verb *Engine::Impl::getHoveredVerb() const {
-  if (!_hud.getActive())
+  if (!m_hud.getActive())
     return nullptr;
-  if (_pRoom && _pRoom->getFullscreen() == 1)
+  if (m_pRoom && m_pRoom->getFullscreen() == 1)
     return nullptr;
 
-  return _hud.getHoveredVerb();
+  return m_hud.getHoveredVerb();
 }
 
 void Engine::Impl::stopTalking() const {
-  for (auto &&a : _pEngine->getActors()) {
+  for (auto &&a : m_pEngine->getActors()) {
     a->stopTalking();
   }
-  for (auto &&a : _pEngine->getRoom()->getObjects()) {
+  for (auto &&a : m_pEngine->getRoom()->getObjects()) {
     a->stopTalking();
   }
 }
 
 void Engine::Impl::stopTalkingExcept(Entity *pEntity) const {
-  for (auto &&a : _pEngine->getActors()) {
+  for (auto &&a : m_pEngine->getActors()) {
     if (a.get() == pEntity)
       continue;
     a->stopTalking();
   }
 
-  for (auto &&a : _pEngine->getRoom()->getObjects()) {
+  for (auto &&a : m_pEngine->getRoom()->getObjects()) {
     if (a.get() == pEntity)
       continue;
     a->stopTalking();
@@ -554,28 +554,28 @@ void Engine::Impl::updateKeys() {
     return;
 
   const auto &cmdMgr = Locator<CommandManager>::get();
-  for (auto &key : _oldKeyDowns) {
+  for (auto &key : m_oldKeyDowns) {
     if (isKeyPressed(key)) {
       cmdMgr.execute(key);
       cmdMgr.execute(key, false);
     }
   }
 
-  for (auto &key : _newKeyDowns) {
-    if (_oldKeyDowns.find(key) != _oldKeyDowns.end()) {
+  for (auto &key : m_newKeyDowns) {
+    if (m_oldKeyDowns.find(key) != m_oldKeyDowns.end()) {
       cmdMgr.execute(key, true);
     }
   }
 
-  _oldKeyDowns.clear();
-  for (auto key : _newKeyDowns) {
-    _oldKeyDowns.insert(key);
+  m_oldKeyDowns.clear();
+  for (auto key : m_newKeyDowns) {
+    m_oldKeyDowns.insert(key);
   }
 }
 
 bool Engine::Impl::isKeyPressed(const Input &key) {
-  auto wasDown = _oldKeyDowns.find(key) != _oldKeyDowns.end();
-  auto isDown = _newKeyDowns.find(key) != _newKeyDowns.end();
+  auto wasDown = m_oldKeyDowns.find(key) != m_oldKeyDowns.end();
+  auto isDown = m_newKeyDowns.find(key) != m_newKeyDowns.end();
   return wasDown && !isDown;
 }
 
@@ -587,13 +587,13 @@ InputConstants Engine::Impl::toKey(const std::string &keyText) {
 }
 
 void Engine::Impl::updateKeyboard() {
-  if (_oldKeyDowns.empty())
+  if (m_oldKeyDowns.empty())
     return;
 
-  if (_pRoom) {
-    for (auto key : _oldKeyDowns) {
-      if (isKeyPressed(key) && ScriptEngine::rawExists(_pRoom, "pressedKey")) {
-        ScriptEngine::rawCall(_pRoom, "pressedKey", static_cast<int>(key.input));
+  if (m_pRoom) {
+    for (auto key : m_oldKeyDowns) {
+      if (isKeyPressed(key) && ScriptEngine::rawExists(m_pRoom, "pressedKey")) {
+        ScriptEngine::rawCall(m_pRoom, "pressedKey", static_cast<int>(key.input));
       }
     }
   }
@@ -602,7 +602,7 @@ void Engine::Impl::updateKeyboard() {
   if (currentActorIndex == -1)
     return;
 
-  const auto &verbSlot = _hud.getVerbSlot(currentActorIndex);
+  const auto &verbSlot = m_hud.getVerbSlot(currentActorIndex);
   for (auto i = 0; i < 10; i++) {
     const auto &verb = verbSlot.getVerb(i);
     if (verb.key.length() == 0)
@@ -616,47 +616,47 @@ void Engine::Impl::updateKeyboard() {
 }
 
 void Engine::Impl::onVerbClick(const Verb *pVerb) {
-  _hud.setCurrentVerb(pVerb);
-  _useFlag = UseFlag::None;
-  _pUseObject = nullptr;
-  _objId1 = 0;
-  _pObj2 = nullptr;
+  m_hud.setCurrentVerb(pVerb);
+  m_useFlag = UseFlag::None;
+  m_pUseObject = nullptr;
+  m_objId1 = 0;
+  m_pObj2 = nullptr;
 
   ScriptEngine::rawCall("onVerbClick");
 }
 
 bool Engine::Impl::clickedAt(const glm::vec2 &pos) const {
-  if (!_pRoom)
+  if (!m_pRoom)
     return false;
 
   bool handled = false;
-  if (ScriptEngine::rawExists(_pRoom, _clickedAtCallback)) {
-    ScriptEngine::rawCallFunc(handled, _pRoom, _clickedAtCallback, pos.x, pos.y);
+  if (ScriptEngine::rawExists(m_pRoom, clickedAtCallback)) {
+    ScriptEngine::rawCallFunc(handled, m_pRoom, clickedAtCallback, pos.x, pos.y);
     if (handled)
       return true;
   }
 
-  if (!_pCurrentActor)
+  if (!m_pCurrentActor)
     return false;
 
-  if (!ScriptEngine::rawExists(_pCurrentActor, _clickedAtCallback))
+  if (!ScriptEngine::rawExists(m_pCurrentActor, clickedAtCallback))
     return false;
 
-  ScriptEngine::rawCallFunc(handled, _pCurrentActor, _clickedAtCallback, pos.x, pos.y);
+  ScriptEngine::rawCallFunc(handled, m_pCurrentActor, clickedAtCallback, pos.x, pos.y);
   return handled;
 }
 
 void Engine::Impl::drawActorHotspot(ngf::RenderTarget &target) const {
-  if (!_pCurrentActor)
+  if (!m_pCurrentActor)
     return;
 
-  if (!_pCurrentActor->isHotspotVisible())
+  if (!m_pCurrentActor->isHotspotVisible())
     return;
 
-  auto at = _camera.getRect().getTopLeft();
-  auto rect = _pCurrentActor->getHotspot();
-  auto pos = _pCurrentActor->getPosition();
-  pos = {pos.x - at.x, at.y + _pRoom->getScreenSize().y - pos.y};
+  auto at = m_camera.getRect().getTopLeft();
+  auto rect = m_pCurrentActor->getHotspot();
+  auto pos = m_pCurrentActor->getPosition();
+  pos = {pos.x - at.x, at.y + m_pRoom->getScreenSize().y - pos.y};
 
   ngf::Transform t;
   t.setPosition(pos);
@@ -680,13 +680,13 @@ void Engine::Impl::drawActorHotspot(ngf::RenderTarget &target) const {
 }
 
 glm::vec2 Engine::Impl::roomToScreen(const glm::vec2 &pos) const {
-  auto at = _camera.getRect().getTopLeft();
-  return toDefaultView((glm::ivec2) (pos - at), _pRoom->getScreenSize());
+  auto at = m_camera.getRect().getTopLeft();
+  return toDefaultView((glm::ivec2) (pos - at), m_pRoom->getScreenSize());
 }
 
 ngf::irect Engine::Impl::roomToScreen(const ngf::irect &rect) const {
-  auto min = toDefaultView((glm::ivec2) rect.getSize(), _pRoom->getScreenSize());
-  auto max = toDefaultView((glm::ivec2) rect.max, _pRoom->getScreenSize());
+  auto min = toDefaultView((glm::ivec2) rect.getSize(), m_pRoom->getScreenSize());
+  auto max = toDefaultView((glm::ivec2) rect.max, m_pRoom->getScreenSize());
   return ngf::irect::fromMinMax(min, max);
 }
 
@@ -791,8 +791,8 @@ void Engine::Impl::drawDebugHotspot(const Object &object, ngf::RenderTarget &tar
     return;
 
   auto pos = object.getPosition();
-  auto at = _camera.getRect().getTopLeft();
-  pos = {pos.x - at.x, _pRoom->getScreenSize().y - pos.y + at.y};
+  auto at = m_camera.getRect().getTopLeft();
+  pos = {pos.x - at.x, m_pRoom->getScreenSize().y - pos.y + at.y};
 
   ngf::Transform t;
   t.setPosition(pos);
@@ -859,51 +859,51 @@ void Engine::Impl::drawScreenSpace(const Object &object, ngf::RenderTarget &targ
 }
 
 void Engine::Impl::drawWalkboxes(ngf::RenderTarget &target) const {
-  if (!_pRoom || _showDrawWalkboxes == WalkboxesFlags::None)
+  if (!m_pRoom || m_showDrawWalkboxes == WalkboxesFlags::None)
     return;
 
-  auto at = _camera.getRect().getTopLeft();
+  auto at = m_camera.getRect().getTopLeft();
   ngf::Transform t;
   t.setPosition({-at.x, at.y});
   ngf::RenderStates states;
   states.transform = t.getTransform();
 
-  if ((_showDrawWalkboxes & WalkboxesFlags::Walkboxes) == WalkboxesFlags::Walkboxes) {
+  if ((m_showDrawWalkboxes & WalkboxesFlags::Walkboxes) == WalkboxesFlags::Walkboxes) {
     // draw walkboxes
-    for (const auto &walkbox : _pRoom->getWalkboxes()) {
-      WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
+    for (const auto &walkbox : m_pRoom->getWalkboxes()) {
+      WalkboxDrawable wd(walkbox, m_pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
 
-  if ((_showDrawWalkboxes & WalkboxesFlags::Merged) == WalkboxesFlags::Merged) {
+  if ((m_showDrawWalkboxes & WalkboxesFlags::Merged) == WalkboxesFlags::Merged) {
     // draw merged walkboxes
-    for (const auto &walkbox : _pRoom->getGraphWalkboxes()) {
-      WalkboxDrawable wd(walkbox, _pRoom->getScreenSize().y);
+    for (const auto &walkbox : m_pRoom->getGraphWalkboxes()) {
+      WalkboxDrawable wd(walkbox, m_pRoom->getScreenSize().y);
       wd.draw(target, states);
     }
   }
 
-  if ((_showDrawWalkboxes & WalkboxesFlags::Graph) == WalkboxesFlags::Graph) {
+  if ((m_showDrawWalkboxes & WalkboxesFlags::Graph) == WalkboxesFlags::Graph) {
     // draw walkbox graph
-    const auto *pGraph = _pRoom->getGraph();
+    const auto *pGraph = m_pRoom->getGraph();
     if (pGraph) {
-      auto height = _pRoom->getRoomSize().y;
+      auto height = m_pRoom->getRoomSize().y;
       ng::GraphDrawable d(*pGraph, height);
       d.draw(target, states);
     }
   }
 
-  if (!_pCurrentActor)
+  if (!m_pCurrentActor)
     return;
-  auto path = _pCurrentActor->getPath();
+  auto path = m_pCurrentActor->getPath();
   if (!path)
     return;
   path->draw(target, states);
 }
 
 void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
-  if (_state != EngineState::Paused)
+  if (m_state != EngineState::Paused)
     return;
 
   const auto view = target.getView();
@@ -926,8 +926,8 @@ void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
   target.setView(ngf::View(viewRect));
 
   auto retroFonts =
-      _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+      m_pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+  auto &font = m_pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   ng::Text text;
   auto screen = target.getView().getSize();
@@ -945,15 +945,15 @@ void Engine::Impl::drawPause(ngf::RenderTarget &target) const {
 }
 
 void Engine::Impl::stopThreads() {
-  _threads.erase(std::remove_if(_threads.begin(), _threads.end(), [](const auto &t) -> bool {
+  m_threads.erase(std::remove_if(m_threads.begin(), m_threads.end(), [](const auto &t) -> bool {
     return !t || t->isStopped();
-  }), _threads.end());
+  }), m_threads.end());
 }
 
 void Engine::Impl::drawCursor(ngf::RenderTarget &target) const {
-  if (!_cursorVisible)
+  if (!m_cursorVisible)
     return;
-  if (!_showCursor && _dialogManager.getState() != DialogManagerState::WaitingForChoice)
+  if (!m_showCursor && m_dialogManager.getState() != DialogManagerState::WaitingForChoice)
     return;
 
   auto cursorSize = glm::vec2(68.f, 68.f);
@@ -962,8 +962,8 @@ void Engine::Impl::drawCursor(ngf::RenderTarget &target) const {
   const auto view = target.getView();
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
-  auto screenSize = _pRoom->getScreenSize();
-  auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
+  auto screenSize = m_pRoom->getScreenSize();
+  auto pos = toDefaultView((glm::ivec2) m_mousePos, screenSize);
 
   ngf::RectangleShape shape;
   shape.getTransform().setPosition(pos);
@@ -978,36 +978,36 @@ void Engine::Impl::drawCursor(ngf::RenderTarget &target) const {
 
 ngf::irect Engine::Impl::getCursorRect() const {
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
-  if (_state == EngineState::Paused)
+  if (m_state == EngineState::Paused)
     return gameSheet.getRect("cursor_pause");
 
-  if (_state == EngineState::Options)
+  if (m_state == EngineState::Options)
     return gameSheet.getRect("cursor");
 
-  if (_dialogManager.getState() != DialogManagerState::None)
+  if (m_dialogManager.getState() != DialogManagerState::None)
     return gameSheet.getRect("cursor");
 
-  if (_pRoom->getFullscreen() == 1)
+  if (m_pRoom->getFullscreen() == 1)
     return gameSheet.getRect("cursor");
 
-  if (_cursorDirection & CursorDirection::Left) {
-    return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_left")
-                                                       : gameSheet.getRect("cursor_left");
+  if (m_cursorDirection & CursorDirection::Left) {
+    return m_cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_left")
+                                                        : gameSheet.getRect("cursor_left");
   }
-  if (_cursorDirection & CursorDirection::Right) {
-    return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_right")
-                                                       : gameSheet.getRect("cursor_right");
+  if (m_cursorDirection & CursorDirection::Right) {
+    return m_cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_right")
+                                                        : gameSheet.getRect("cursor_right");
   }
-  if (_cursorDirection & CursorDirection::Up) {
-    return _cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_back")
-                                                       : gameSheet.getRect("cursor_back");
+  if (m_cursorDirection & CursorDirection::Up) {
+    return m_cursorDirection & CursorDirection::Hotspot ? gameSheet.getRect("hotspot_cursor_back")
+                                                        : gameSheet.getRect("cursor_back");
   }
-  if (_cursorDirection & CursorDirection::Down) {
-    return (_cursorDirection & CursorDirection::Hotspot) ? gameSheet.getRect("hotspot_cursor_front")
-                                                         : gameSheet.getRect("cursor_front");
+  if (m_cursorDirection & CursorDirection::Down) {
+    return (m_cursorDirection & CursorDirection::Hotspot) ? gameSheet.getRect("hotspot_cursor_front")
+                                                          : gameSheet.getRect("cursor_front");
   }
-  return (_cursorDirection & CursorDirection::Hotspot) ? gameSheet.getRect("hotspot_cursor")
-                                                       : gameSheet.getRect("cursor");
+  return (m_cursorDirection & CursorDirection::Hotspot) ? gameSheet.getRect("hotspot_cursor")
+                                                        : gameSheet.getRect("cursor");
 }
 
 std::wstring Engine::Impl::getDisplayName(const std::wstring &name) {
@@ -1026,25 +1026,25 @@ const Verb *Engine::Impl::overrideVerb(const Verb *pVerb) const {
   if (!pVerb || pVerb->id != VerbConstants::VERB_WALKTO)
     return pVerb;
 
-  auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
+  auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(m_objId1);
   if (!pObj1)
     return pVerb;
-  return _hud.getVerb(pObj1->getDefaultVerb(VerbConstants::VERB_WALKTO));
+  return m_hud.getVerb(pObj1->getDefaultVerb(VerbConstants::VERB_WALKTO));
 }
 
 void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
-  if (!_cursorVisible)
+  if (!m_cursorVisible)
     return;
 
-  if (!_showCursor || _state != EngineState::Game)
+  if (!m_showCursor || m_state != EngineState::Game)
     return;
 
-  if (_dialogManager.getState() != DialogManagerState::None)
+  if (m_dialogManager.getState() != DialogManagerState::None)
     return;
 
-  auto pVerb = _hud.getVerbOverride();
+  auto pVerb = m_hud.getVerbOverride();
   if (!pVerb)
-    pVerb = _hud.getCurrentVerb();
+    pVerb = m_hud.getCurrentVerb();
   if (!pVerb)
     return;
 
@@ -1054,24 +1054,24 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   if (currentActorIndex == -1)
     return;
 
-  auto textColor = _hud.getVerbUiColors(currentActorIndex).sentence;
-  auto classicSentence = _pEngine->getPreferences().getUserPreference(PreferenceNames::ClassicSentence,
-                                                                      PreferenceDefaultValues::ClassicSentence);
+  auto textColor = m_hud.getVerbUiColors(currentActorIndex).sentence;
+  auto classicSentence = m_pEngine->getPreferences().getUserPreference(PreferenceNames::ClassicSentence,
+                                                                       PreferenceDefaultValues::ClassicSentence);
 
   const auto view = target.getView();
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   auto retroFonts =
-      _pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
-  auto &font = _pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
+      m_pEngine->getPreferences().getUserPreference(PreferenceNames::RetroFonts, PreferenceDefaultValues::RetroFonts);
+  auto &font = m_pEngine->getResourceManager().getFont(retroFonts ? "FontRetroSheet" : "FontModernSheet");
 
   std::wstring s;
   // draw verb
-  if ((_pRoom->getFullscreen() != 1) && (pVerb->id != VerbConstants::VERB_WALKTO || _hud.getHoveredEntity())) {
+  if ((m_pRoom->getFullscreen() != 1) && (pVerb->id != VerbConstants::VERB_WALKTO || m_hud.getHoveredEntity())) {
     auto id = std::strtol(pVerb->text.substr(1).data(), nullptr, 10);
     s.append(ng::Engine::getText(id));
   }
-  auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(_objId1);
+  auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(m_objId1);
   // draw object 1 name
   if (pObj1) {
     if (!s.empty()) {
@@ -1087,8 +1087,8 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   // draw use flags if any
   appendUseFlag(s);
   // draw object 2 name
-  if (_pObj2) {
-    s.append(L" ").append(getDisplayName(ng::Engine::getText(_pObj2->getName())));
+  if (m_pObj2) {
+    s.append(L" ").append(getDisplayName(ng::Engine::getText(m_pObj2->getName())));
   }
 
   ng::Text text;
@@ -1100,7 +1100,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
   if (DebugFeatures::showCursorPosition) {
     std::wstringstream ss;
     std::wstring txt = text.getWideString();
-    ss << txt << L" (" << std::fixed << std::setprecision(0) << _mousePosInRoom.x << L"," << _mousePosInRoom.y
+    ss << txt << L" (" << std::fixed << std::setprecision(0) << m_mousePosInRoom.x << L"," << m_mousePosInRoom.y
        << L")";
     text.setWideString(ss.str());
   }
@@ -1112,8 +1112,8 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
     auto x = Screen::HalfWidth - bounds.getWidth() / 2.f;
     text.getTransform().setPosition({x, y});
   } else {
-    auto screenSize = _pRoom->getScreenSize();
-    auto pos = toDefaultView((glm::ivec2) _mousePos, screenSize);
+    auto screenSize = m_pRoom->getScreenSize();
+    auto pos = toDefaultView((glm::ivec2) m_mousePos, screenSize);
     auto y = pos.y - 20 < 40 ? pos.y + 80 : pos.y - 40;
     auto x = std::clamp<float>(pos.x - bounds.getWidth() / 2.f, 20.f, Screen::Width - 20.f - bounds.getWidth());
     text.getTransform().setPosition({x, y - bounds.getHeight()});
@@ -1124,7 +1124,7 @@ void Engine::Impl::drawCursorText(ngf::RenderTarget &target) const {
 }
 
 void Engine::Impl::drawNoOverride(ngf::RenderTarget &target) const {
-  if (_noOverrideElapsed > ngf::TimeSpan::seconds(2))
+  if (m_noOverrideElapsed > ngf::TimeSpan::seconds(2))
     return;
 
   auto &gameSheet = Locator<ResourceManager>::get().getSpriteSheet("GameSheet");
@@ -1132,7 +1132,7 @@ void Engine::Impl::drawNoOverride(ngf::RenderTarget &target) const {
   target.setView(ngf::View(ngf::frect::fromPositionSize({0, 0}, {Screen::Width, Screen::Height})));
 
   ngf::Color c(ngf::Colors::White);
-  c.a = (2.f - _noOverrideElapsed.getTotalSeconds() / 2.f);
+  c.a = (2.f - m_noOverrideElapsed.getTotalSeconds() / 2.f);
   ngf::Sprite spriteNo;
   spriteNo.setColor(c);
   spriteNo.getTransform().setPosition({8.f, 8.f});
@@ -1145,7 +1145,7 @@ void Engine::Impl::drawNoOverride(ngf::RenderTarget &target) const {
 }
 
 void Engine::Impl::appendUseFlag(std::wstring &sentence) const {
-  switch (_useFlag) {
+  switch (m_useFlag) {
   case UseFlag::UseWith:sentence.append(L" ").append(ng::Engine::getText(10000));
     break;
   case UseFlag::UseOn:sentence.append(L" ").append(ng::Engine::getText(10001));
@@ -1159,9 +1159,9 @@ void Engine::Impl::appendUseFlag(std::wstring &sentence) const {
 }
 
 int Engine::Impl::getCurrentActorIndex() const {
-  for (int i = 0; i < static_cast<int>(_actorsIconSlots.size()); i++) {
-    const auto &selectableActor = _actorsIconSlots.at(i);
-    if (selectableActor.pActor == _pCurrentActor) {
+  for (int i = 0; i < static_cast<int>(m_actorsIconSlots.size()); i++) {
+    const auto &selectableActor = m_actorsIconSlots.at(i);
+    if (selectableActor.pActor == m_pCurrentActor) {
       return i;
     }
   }
@@ -1169,15 +1169,15 @@ int Engine::Impl::getCurrentActorIndex() const {
 }
 
 void Engine::Impl::drawHud(ngf::RenderTarget &target) const {
-  if (_state != EngineState::Game)
+  if (m_state != EngineState::Game)
     return;
 
-  _hud.draw(target, {});
+  m_hud.draw(target, {});
 }
 
 void Engine::Impl::captureScreen(const std::string &path) const {
   ngf::RenderTexture target({320, 180});
-  _pEngine->draw(target, true);
+  m_pEngine->draw(target, true);
   target.display();
 
   auto screenshot = target.capture();

@@ -5,26 +5,26 @@
 namespace ng {
 class DefaultScriptExecute final : public ScriptExecute {
 public:
-  explicit DefaultScriptExecute(HSQUIRRELVM vm) : _vm(vm) {}
+  explicit DefaultScriptExecute(HSQUIRRELVM vm) : m_vm(vm) {}
 
 public:
   void execute(const std::string &code) override {
-    sq_resetobject(&_result);
-    auto top = sq_gettop(_vm);
+    sq_resetobject(&m_result);
+    auto top = sq_gettop(m_vm);
     // compile
-    sq_pushroottable(_vm);
-    if (SQ_FAILED(sq_compilebuffer(_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue))) {
+    sq_pushroottable(m_vm);
+    if (SQ_FAILED(sq_compilebuffer(m_vm, code.data(), code.size(), _SC("_DefaultScriptExecute"), SQTrue))) {
       error("Error executing code {}", code);
       return;
     }
-    sq_push(_vm, -2);
+    sq_push(m_vm, -2);
     // call
-    if (SQ_FAILED(sq_call(_vm, 1, SQTrue, SQTrue))) {
+    if (SQ_FAILED(sq_call(m_vm, 1, SQTrue, SQTrue))) {
       error("Error calling code {}", code);
       return;
     }
-    sq_getstackobj(_vm, -1, &_result);
-    sq_settop(_vm, top);
+    sq_getstackobj(m_vm, -1, &m_result);
+    sq_settop(m_vm, top);
   }
 
   bool executeCondition(const std::string &code) override {
@@ -33,14 +33,14 @@ public:
     c.append(code);
 
     execute(c);
-    if (_result._type == OT_BOOL) {
-      trace("{} returns {}", code, sq_objtobool(&_result));
-      return sq_objtobool(&_result);
+    if (m_result._type == OT_BOOL) {
+      trace("{} returns {}", code, sq_objtobool(&m_result));
+      return sq_objtobool(&m_result);
     }
 
-    if (_result._type == OT_INTEGER) {
-      trace("{} return {}", code, sq_objtointeger(&_result));
-      return sq_objtointeger(&_result) != 0;
+    if (m_result._type == OT_INTEGER) {
+      trace("{} return {}", code, sq_objtointeger(&m_result));
+      return sq_objtointeger(&m_result) != 0;
     }
 
     error("Error getting result {}", code);
@@ -54,27 +54,27 @@ public:
 
     execute(c);
     // get the result
-    if (_result._type != OT_STRING) {
+    if (m_result._type != OT_STRING) {
       error("Error getting result {}", code);
       return "";
     }
-    trace("{} returns {}", code, sq_objtostring(&_result));
-    return sq_objtostring(&_result);
+    trace("{} returns {}", code, sq_objtostring(&m_result));
+    return sq_objtostring(&m_result);
   }
 
   SoundDefinition *getSoundDefinition(const std::string &name) override {
-    auto top = sq_gettop(_vm);
-    sq_pushroottable(_vm);
-    sq_pushstring(_vm, name.data(), -1);
-    sq_get(_vm, -2);
+    auto top = sq_gettop(m_vm);
+    sq_pushroottable(m_vm);
+    sq_pushstring(m_vm, name.data(), -1);
+    sq_get(m_vm, -2);
 
-    auto sound = EntityManager::getSoundDefinition(_vm, -1);
-    sq_settop(_vm, top);
+    auto sound = EntityManager::getSoundDefinition(m_vm, -1);
+    sq_settop(m_vm, top);
     return sound.get();
   }
 
 private:
-  HSQUIRRELVM _vm{};
-  HSQOBJECT _result{};
+  HSQUIRRELVM m_vm{};
+  HSQOBJECT m_result{};
 };
 }

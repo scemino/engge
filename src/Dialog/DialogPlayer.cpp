@@ -16,7 +16,7 @@ class ConditionStateVisitor : public Ast::AstVisitor {
 public:
   explicit ConditionStateVisitor(DialogPlayer& dialogPlayer, DialogSelectMode selectMode);
   ~ConditionStateVisitor() override = default;
-  [[nodiscard]] std::optional<DialogConditionState> getState() const { return _state; }
+  [[nodiscard]] std::optional<DialogConditionState> getState() const { return m_state; }
 
 private:
   void visit(const Ast::OnceCondition &node) override;
@@ -27,35 +27,35 @@ private:
   void setState(int32_t line, DialogConditionMode mode);
 
 private:
-  DialogPlayer& _dialogPlayer;
-  DialogSelectMode _selectMode;
-  std::optional<DialogConditionState> _state;
+  DialogPlayer& m_dialogPlayer;
+  DialogSelectMode m_selectMode;
+  std::optional<DialogConditionState> m_state;
 };
 
 ConditionStateVisitor::ConditionStateVisitor(DialogPlayer &dialogPlayer, DialogSelectMode selectMode)
-    : _dialogPlayer(dialogPlayer), _selectMode(selectMode) {
+    : m_dialogPlayer(dialogPlayer), m_selectMode(selectMode) {
 }
 
 void ConditionStateVisitor::visit(const Ast::OnceCondition &condition) {
-  if (_selectMode == DialogSelectMode::Choose) {
+  if (m_selectMode == DialogSelectMode::Choose) {
     setState(condition.getLine(), DialogConditionMode::Once);
   }
 }
 
 void ConditionStateVisitor::visit(const Ast::ShowOnceCondition &condition) {
-  if (_selectMode == DialogSelectMode::Show) {
+  if (m_selectMode == DialogSelectMode::Show) {
     setState(condition.getLine(), DialogConditionMode::ShowOnce);
   }
 }
 
 void ConditionStateVisitor::visit(const Ast::OnceEverCondition &condition) {
-  if (_selectMode == DialogSelectMode::Choose) {
+  if (m_selectMode == DialogSelectMode::Choose) {
     setState(condition.getLine(), DialogConditionMode::OnceEver);
   }
 }
 
 void ConditionStateVisitor::visit(const Ast::TempOnceCondition &condition) {
-  if (_selectMode == DialogSelectMode::Show) {
+  if (m_selectMode == DialogSelectMode::Show) {
     setState(condition.getLine(), DialogConditionMode::TempOnce);
   }
 }
@@ -64,9 +64,9 @@ void ConditionStateVisitor::setState(int32_t line, DialogConditionMode mode) {
   DialogConditionState state;
   state.mode = mode;
   state.line = line;
-  state.dialog = _dialogPlayer.getDialogName();
-  state.actorKey = _dialogPlayer.getActor();
-  _state = state;
+  state.dialog = m_dialogPlayer.getDialogName();
+  state.actorKey = m_dialogPlayer.getActor();
+  m_state = state;
 }
 
 DialogPlayer::DialogPlayer(DialogScriptAbstract &script) : _script(script) {}
@@ -275,8 +275,8 @@ void DialogPlayer::addChoice(const Ast::Statement *pStatement, const Ast::Choice
 }
 
 void DialogPlayer::clearChoices() {
-  for (auto &_choice : m_choices) {
-    _choice = nullptr;
+  for (auto &choice : m_choices) {
+    choice = nullptr;
   }
 }
 

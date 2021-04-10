@@ -151,7 +151,7 @@ void EnggeApplication::onRender(ngf::RenderTarget &target) {
   if (m_engine)
     m_engine->draw(target);
   Application::onRender(target);
-  ng::DebugFeatures::_renderTime = clock.getElapsedTime();
+  ng::DebugFeatures::renderTime = clock.getElapsedTime();
 }
 
 void EnggeApplication::onImGuiRender() {
@@ -165,7 +165,7 @@ void EnggeApplication::onUpdate(const ngf::TimeSpan &elapsed) {
   }
   ngf::StopWatch clock;
   m_engine->update(elapsed);
-  ng::DebugFeatures::_updateTime = clock.getElapsedTime();
+  ng::DebugFeatures::updateTime = clock.getElapsedTime();
 }
 
 void EnggeApplication::onQuit() {

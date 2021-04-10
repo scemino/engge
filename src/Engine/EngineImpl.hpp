@@ -66,12 +66,12 @@
 namespace fs = std::filesystem;
 
 namespace ng {
-static const char *const _objectKey = "_objectKey";
-static const char *const _roomKey = "_roomKey";
-static const char *const _actorKey = "_actorKey";
-static const char *const _idKey = "_id";
-static const char *const _pseudoObjectsKey = "_pseudoObjects";
-static const auto _clickedAtCallback = "clickedAt";
+static const char *const objectKey = "_objectKey";
+static const char *const roomKey = "_roomKey";
+static const char *const actorKey = "_actorKey";
+static const char *const idKey = "_id";
+static const char *const pseudoObjectsKey = "_pseudoObjects";
+static const auto clickedAtCallback = "clickedAt";
 
 enum class CursorDirection : unsigned int {
   None = 0,
@@ -89,7 +89,7 @@ enum class EngineState {
 struct Engine::Impl {
   class SaveGameSystem {
   public:
-    explicit SaveGameSystem(Engine::Impl *pImpl) : _pImpl(pImpl) {}
+    explicit SaveGameSystem(Engine::Impl *pImpl) : m_pImpl(pImpl) {}
 
     void saveGame(const std::filesystem::path &path) {
       ScriptEngine::call("preSave");
@@ -107,20 +107,20 @@ struct Engine::Impl {
       ngf::GGPackValue saveGameHash = {
           {"actors", saveActors()},
           {"callbacks", saveCallbacks()},
-          {"currentRoom", _pImpl->_pRoom->getName()},
+          {"currentRoom", m_pImpl->m_pRoom->getName()},
           {"dialog", saveDialogs()},
           {"easy_mode", static_cast<int>(_integer(easyMode))},
           {"gameGUID", std::string()},
           {"gameScene", saveGameScene()},
-          {"gameTime", _pImpl->_time.getTotalSeconds()},
+          {"gameTime", m_pImpl->m_time.getTotalSeconds()},
           {"globals", saveGlobals()},
-          {"inputState", _pImpl->_pEngine->getInputState()},
+          {"inputState", m_pImpl->m_pEngine->getInputState()},
           {"inventory", saveInventory()},
           {"objects", saveObjects()},
           {"rooms", saveRooms()},
           {"savebuild", 958},
           {"savetime", static_cast<int>(now)},
-          {"selectedActor", _pImpl->_pEngine->getCurrentActor()->getKey()},
+          {"selectedActor", m_pImpl->m_pEngine->getCurrentActor()->getKey()},
           {"version", 2},
       };
 
@@ -188,13 +188,13 @@ struct Engine::Impl {
         return array;
       }
       if (value.isHash()) {
-        auto actor = value[_actorKey];
+        auto actor = value[actorKey];
         if (!actor.isNull()) {
           auto pActor = getActor(actor.getString());
           return pActor->getTable();
         }
-        auto object = value[_objectKey];
-        auto room = value[_roomKey];
+        auto object = value[objectKey];
+        auto room = value[roomKey];
         if (!object.isNull()) {
           Object *pObject;
           if (!room.isNull()) {
@@ -238,18 +238,18 @@ struct Engine::Impl {
       if (actorsTempUnselectable) {
         mode |= ActorSlotSelectableMode::TemporaryUnselectable;
       }
-      _pImpl->_pEngine->setActorSlotSelectable(mode);
+      m_pImpl->m_pEngine->setActorSlotSelectable(mode);
       auto forceTalkieText = hash["forceTalkieText"].getInt() != 0;
-      _pImpl->_pEngine->getPreferences().setTempPreference(TempPreferenceNames::ForceTalkieText, forceTalkieText);
+      m_pImpl->m_pEngine->getPreferences().setTempPreference(TempPreferenceNames::ForceTalkieText, forceTalkieText);
       for (const auto &selectableActor : hash["selectableActors"]) {
-        auto pActor = getActor(selectableActor[_actorKey].getString());
+        auto pActor = getActor(selectableActor[actorKey].getString());
         auto selectable = selectableActor["selectable"].getInt() != 0;
-        _pImpl->_pEngine->actorSlotSelectable(pActor, selectable);
+        m_pImpl->m_pEngine->actorSlotSelectable(pActor, selectable);
       }
     }
 
     void loadDialog(const ngf::GGPackValue &hash) {
-      auto &states = _pImpl->_dialogManager.getStates();
+      auto &states = m_pImpl->m_dialogManager.getStates();
       states.clear();
       for (auto &property : hash.items()) {
         const auto &dialog = property.key();
@@ -302,20 +302,20 @@ struct Engine::Impl {
     }
 
     void loadCallbacks(const ngf::GGPackValue &hash) {
-      _pImpl->_callbacks.clear();
+      m_pImpl->m_callbacks.clear();
       for (auto &callBackHash : hash["callbacks"]) {
         auto name = callBackHash["function"].getString();
         auto id = callBackHash["guid"].getInt();
         auto time = ngf::TimeSpan::seconds(static_cast<float>(callBackHash["time"].getInt()) / 1000.f);
         auto arg = toSquirrel(callBackHash["param"]);
         auto callback = std::make_unique<Callback>(id, time, name, arg);
-        _pImpl->_callbacks.push_back(std::move(callback));
+        m_pImpl->m_callbacks.push_back(std::move(callback));
       }
       Locator<EntityManager>::get().setCallbackId(hash["nextGuid"].getInt());
     }
 
     void loadActors(const ngf::GGPackValue &hash) {
-      for (auto &pActor : _pImpl->_actors) {
+      for (auto &pActor : m_pImpl->m_actors) {
         if (pActor->getKey().empty())
           continue;
 
@@ -336,7 +336,7 @@ struct Engine::Impl {
       pActor->getCostume().loadCostume(costume, costumesheet);
 
       std::string room;
-      getValue(actorHash, _roomKey, room);
+      getValue(actorHash, roomKey, room);
       auto *pRoom = getRoom(room.empty() ? "Void" : room);
       pActor->setRoom(pRoom);
 
@@ -386,7 +386,7 @@ struct Engine::Impl {
           } else if ((property.key() == "_pos")
               || (property.key() == "_costume")
               || (property.key() == "_costumeSheet")
-              || (property.key() == _roomKey)
+              || (property.key() == roomKey)
               || (property.key() == "_dir")
               || (property.key() == "_useDir")
               || (property.key() == "_lockFacing")
@@ -407,8 +407,8 @@ struct Engine::Impl {
     }
 
     void loadInventory(const ngf::GGPackValue &hash) {
-      for (auto i = 0; i < static_cast<int>(_pImpl->_actorsIconSlots.size()); ++i) {
-        auto *pActor = _pImpl->_actorsIconSlots[i].pActor;
+      for (auto i = 0; i < static_cast<int>(m_pImpl->m_actorsIconSlots.size()); ++i) {
+        auto *pActor = m_pImpl->m_actorsIconSlots[i].pActor;
         if (!pActor)
           continue;
         auto &slot = hash["slots"].at(i);
@@ -525,7 +525,7 @@ struct Engine::Impl {
 
         for (auto &property : roomHash.value().items()) {
           if (property.key().empty() || property.key()[0] == '_') {
-            if (property.key() == _pseudoObjectsKey) {
+            if (property.key() == pseudoObjectsKey) {
               loadPseudoObjects(pRoom, property.value());
             } else {
               trace("load: room '{}' property '{}' (type={}) not loaded",
@@ -561,8 +561,8 @@ struct Engine::Impl {
       loadInventory(hash["inventory"]);
       loadRooms(hash["rooms"]);
 
-      _pImpl->_time = ngf::TimeSpan::seconds(static_cast<float>(hash["gameTime"].getDouble()));
-      _pImpl->_pEngine->setInputState(hash["inputState"].getInt());
+      m_pImpl->m_time = ngf::TimeSpan::seconds(static_cast<float>(hash["gameTime"].getDouble()));
+      m_pImpl->m_pEngine->setInputState(hash["inputState"].getInt());
 
       loadObjects(hash["objects"]);
       setActor(hash["selectedActor"].getString());
@@ -575,15 +575,15 @@ struct Engine::Impl {
 
     void setActor(const std::string &name) {
       auto *pActor = getActor(name);
-      _pImpl->_pEngine->setCurrentActor(pActor, false);
+      m_pImpl->m_pEngine->setCurrentActor(pActor, false);
     }
 
     Actor *getActor(const std::string &name) {
-      return dynamic_cast<Actor *>(_pImpl->_pEngine->getEntity(name));
+      return dynamic_cast<Actor *>(m_pImpl->m_pEngine->getEntity(name));
     }
 
     Room *getRoom(const std::string &name) {
-      auto &rooms = _pImpl->_pEngine->getRooms();
+      auto &rooms = m_pImpl->m_pEngine->getRooms();
       auto it = std::find_if(rooms.begin(), rooms.end(), [&name](auto &pRoom) { return pRoom->getName() == name; });
       if (it != rooms.end())
         return it->get();
@@ -597,14 +597,14 @@ struct Engine::Impl {
         return nullptr;
       }
       SQObjectPtr id;
-      if (!_table(obj)->Get(ScriptEngine::toSquirrel(_idKey), id)) {
+      if (!_table(obj)->Get(ScriptEngine::toSquirrel(idKey), id)) {
         return nullptr;
       }
       return EntityManager::getObjectFromId(static_cast<int>(_integer(id)));
     }
 
     Object *getObject(const std::string &name) {
-      for (auto &pRoom : _pImpl->_rooms) {
+      for (auto &pRoom : m_pImpl->m_rooms) {
         for (auto &pObj : pRoom->getObjects()) {
           if (pObj->getKey() == name)
             return pObj.get();
@@ -622,12 +622,12 @@ struct Engine::Impl {
     }
 
     void setCurrentRoom(const std::string &name) {
-      _pImpl->_pEngine->setRoom(getRoom(name));
+      m_pImpl->m_pEngine->setRoom(getRoom(name));
     }
 
     [[nodiscard]] ngf::GGPackValue saveActors() const {
       ngf::GGPackValue actorsHash;
-      for (auto &pActor : _pImpl->_actors) {
+      for (auto &pActor : m_pImpl->m_actors) {
         // TODO: find why this entry exists...
         if (pActor->getKey().empty())
           continue;
@@ -659,9 +659,9 @@ struct Engine::Impl {
           actorHash["_costumeSheet"] = costumeSheet;
         }
         if (pActor->getRoom()) {
-          actorHash[_roomKey] = pActor->getRoom()->getName();
+          actorHash[roomKey] = pActor->getRoom()->getName();
         } else {
-          actorHash[_roomKey] = nullptr;
+          actorHash[roomKey] = nullptr;
         }
 
         actorsHash[pActor->getKey()] = actorHash;
@@ -685,7 +685,7 @@ struct Engine::Impl {
 
     [[nodiscard]] ngf::GGPackValue saveDialogs() const {
       ngf::GGPackValue hash;
-      const auto &states = _pImpl->_dialogManager.getStates();
+      const auto &states = m_pImpl->m_dialogManager.getStates();
       for (const auto &state : states) {
         std::ostringstream s;
         switch (state.mode) {
@@ -708,16 +708,16 @@ struct Engine::Impl {
 
     [[nodiscard]] ngf::GGPackValue saveGameScene() const {
       auto actorsSelectable =
-          ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
-      auto actorsTempUnselectable = ((_pImpl->_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
+          ((m_pImpl->m_actorIcons.getMode() & ActorSlotSelectableMode::On) == ActorSlotSelectableMode::On);
+      auto actorsTempUnselectable = ((m_pImpl->m_actorIcons.getMode() & ActorSlotSelectableMode::TemporaryUnselectable)
           == ActorSlotSelectableMode::TemporaryUnselectable);
 
       ngf::GGPackValue selectableActors;
-      for (auto &slot : _pImpl->_actorsIconSlots) {
+      for (auto &slot : m_pImpl->m_actorsIconSlots) {
         ngf::GGPackValue selectableActor;
         if (slot.pActor) {
           selectableActor = {
-              {_actorKey, slot.pActor->getKey()},
+              {actorKey, slot.pActor->getKey()},
               {"selectable", slot.selectable ? 1 : 0},
           };
         } else {
@@ -726,7 +726,7 @@ struct Engine::Impl {
         selectableActors.push_back(selectableActor);
       }
 
-      auto forceTalkieText = _pImpl->_pEngine->getPreferences()
+      auto forceTalkieText = m_pImpl->m_pEngine->getPreferences()
           .getTempPreference(TempPreferenceNames::ForceTalkieText,
                              TempPreferenceDefaultValues::ForceTalkieText);
       return {
@@ -739,7 +739,7 @@ struct Engine::Impl {
 
     [[nodiscard]] ngf::GGPackValue saveInventory() const {
       ngf::GGPackValue slots;
-      for (auto &slot : _pImpl->_actorsIconSlots) {
+      for (auto &slot : m_pImpl->m_actorsIconSlots) {
         ngf::GGPackValue actorSlot;
         if (slot.pActor) {
           std::vector<int> jiggleArray(slot.pActor->getObjects().size());
@@ -775,7 +775,7 @@ struct Engine::Impl {
 
     [[nodiscard]] ngf::GGPackValue saveObjects() const {
       ngf::GGPackValue hash;
-      for (auto &room : _pImpl->_rooms) {
+      for (auto &room : m_pImpl->m_rooms) {
         for (auto &object : room->getObjects()) {
           if (object->getType() != ObjectType::Object)
             continue;
@@ -813,10 +813,10 @@ struct Engine::Impl {
 
     [[nodiscard]] ngf::GGPackValue saveRooms() const {
       ngf::GGPackValue hash;
-      for (auto &room : _pImpl->_rooms) {
+      for (auto &room : m_pImpl->m_rooms) {
         auto hashRoom = ng::toGGPackValue(room->getTable());
         if (room->isPseudoRoom()) {
-          hashRoom[_pseudoObjectsKey] = savePseudoObjects(room.get());
+          hashRoom[pseudoObjectsKey] = savePseudoObjects(room.get());
         }
         hash[room->getName()] = hashRoom;
       }
@@ -825,7 +825,7 @@ struct Engine::Impl {
 
     [[nodiscard]] ngf::GGPackValue saveCallbacks() const {
       ngf::GGPackValue callbacksArray;
-      for (auto &callback : _pImpl->_callbacks) {
+      for (auto &callback : m_pImpl->m_callbacks) {
         ngf::GGPackValue callbackHash{
             {"function", callback->getMethod()},
             {"guid", callback->getId()},
@@ -871,65 +871,65 @@ struct Engine::Impl {
     }
 
   private:
-    Impl *_pImpl{nullptr};
+    Impl *m_pImpl{nullptr};
   };
 
-  Engine *_pEngine{nullptr};
-  ResourceManager &_textureManager;
-  Room *_pRoom{nullptr};
-  int _roomEffect{0};
-  ngf::Shader _roomShader;
-  ngf::Shader _fadeShader;
-  ngf::Texture _blackTexture;
-  std::vector<std::unique_ptr<Actor>> _actors;
-  std::vector<std::unique_ptr<Room>> _rooms;
-  std::vector<std::unique_ptr<Function>> _newFunctions;
-  std::vector<std::unique_ptr<Function>> _functions;
-  std::vector<std::unique_ptr<Callback>> _callbacks;
-  Cutscene *_pCutscene{nullptr};
-  ng::EnggeApplication *_pApp{nullptr};
-  Actor *_pCurrentActor{nullptr};
-  bool _inputHUD{false};
-  bool _inputActive{false};
-  bool _showCursor{true};
-  bool _inputVerbsActive{false};
-  Actor *_pFollowActor{nullptr};
-  Entity *_pUseObject{nullptr};
-  int _objId1{0};
-  Entity *_pObj2{nullptr};
-  glm::vec2 _mousePos{0, 0};
-  glm::vec2 _mousePosInRoom{0, 0};
-  std::unique_ptr<VerbExecute> _pVerbExecute;
-  std::unique_ptr<ScriptExecute> _pScriptExecute;
-  std::vector<std::unique_ptr<ThreadBase>> _threads;
-  DialogManager _dialogManager;
-  Preferences &_preferences;
-  SoundManager &_soundManager;
-  CursorDirection _cursorDirection{CursorDirection::None};
-  std::array<ActorIconSlot, 6> _actorsIconSlots;
-  UseFlag _useFlag{UseFlag::None};
-  ActorIcons _actorIcons;
-  ngf::TimeSpan _time;
-  bool _isMouseDown{false};
-  ngf::TimeSpan _mouseDownTime;
-  bool _isMouseRightDown{false};
-  int _frameCounter{0};
-  HSQOBJECT _pDefaultObject{};
-  Camera _camera;
-  std::unique_ptr<Sentence> _pSentence{};
-  std::unordered_set<Input, InputHash> _oldKeyDowns;
-  std::unordered_set<Input, InputHash> _newKeyDowns;
-  EngineState _state{EngineState::StartScreen};
-  TalkingState _talkingState;
-  WalkboxesFlags _showDrawWalkboxes{WalkboxesFlags::None};
-  OptionsDialog _optionsDialog;
-  StartScreenDialog _startScreenDialog;
-  bool _run{false};
-  ngf::TimeSpan _noOverrideElapsed{ngf::TimeSpan::seconds(2)};
-  Hud _hud;
-  bool _autoSave{true};
-  bool _cursorVisible{true};
-  FadeEffectParameters _fadeEffect;
+  Engine *m_pEngine{nullptr};
+  ResourceManager &m_resourceManager;
+  Room *m_pRoom{nullptr};
+  int m_roomEffect{0};
+  ngf::Shader m_roomShader;
+  ngf::Shader m_fadeShader;
+  ngf::Texture m_blackTexture;
+  std::vector<std::unique_ptr<Actor>> m_actors;
+  std::vector<std::unique_ptr<Room>> m_rooms;
+  std::vector<std::unique_ptr<Function>> m_newFunctions;
+  std::vector<std::unique_ptr<Function>> m_functions;
+  std::vector<std::unique_ptr<Callback>> m_callbacks;
+  Cutscene *m_pCutscene{nullptr};
+  ng::EnggeApplication *m_pApp{nullptr};
+  Actor *m_pCurrentActor{nullptr};
+  bool m_inputHUD{false};
+  bool m_inputActive{false};
+  bool m_showCursor{true};
+  bool m_inputVerbsActive{false};
+  Actor *m_pFollowActor{nullptr};
+  Entity *m_pUseObject{nullptr};
+  int m_objId1{0};
+  Entity *m_pObj2{nullptr};
+  glm::vec2 m_mousePos{0, 0};
+  glm::vec2 m_mousePosInRoom{0, 0};
+  std::unique_ptr<VerbExecute> m_pVerbExecute;
+  std::unique_ptr<ScriptExecute> m_pScriptExecute;
+  std::vector<std::unique_ptr<ThreadBase>> m_threads;
+  DialogManager m_dialogManager;
+  Preferences &m_preferences;
+  SoundManager &m_soundManager;
+  CursorDirection m_cursorDirection{CursorDirection::None};
+  std::array<ActorIconSlot, 6> m_actorsIconSlots;
+  UseFlag m_useFlag{UseFlag::None};
+  ActorIcons m_actorIcons;
+  ngf::TimeSpan m_time;
+  bool m_isMouseDown{false};
+  ngf::TimeSpan m_mouseDownTime;
+  bool m_isMouseRightDown{false};
+  int m_frameCounter{0};
+  HSQOBJECT m_pDefaultObject{};
+  Camera m_camera;
+  std::unique_ptr<Sentence> m_pSentence{};
+  std::unordered_set<Input, InputHash> m_oldKeyDowns;
+  std::unordered_set<Input, InputHash> m_newKeyDowns;
+  EngineState m_state{EngineState::StartScreen};
+  TalkingState m_talkingState;
+  WalkboxesFlags m_showDrawWalkboxes{WalkboxesFlags::None};
+  OptionsDialog m_optionsDialog;
+  StartScreenDialog m_startScreenDialog;
+  bool m_run{false};
+  ngf::TimeSpan m_noOverrideElapsed{ngf::TimeSpan::seconds(2)};
+  Hud m_hud;
+  bool m_autoSave{true};
+  bool m_cursorVisible{true};
+  FadeEffectParameters m_fadeEffect;
 
   Impl();
 

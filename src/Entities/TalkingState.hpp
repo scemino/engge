@@ -42,16 +42,16 @@ private:
   void loadId(int id, const std::string &text, bool mumble);
 
 private:
-  Engine *_pEngine{nullptr};
-  Entity *_pEntity{nullptr};
-  bool _isTalking{false};
-  std::wstring _sayText;
-  ngf::Color _talkColor{ngf::Colors::White};
-  ngf::TimeSpan _elapsed;
-  ngf::TimeSpan _duration;
-  LipAnimation _lipAnim;
-  int _soundId{0};
-  std::vector<std::tuple<int, std::string, bool>> _ids;
+  Engine *m_pEngine{nullptr};
+  Entity *m_pEntity{nullptr};
+  bool m_isTalking{false};
+  std::wstring m_sayText;
+  ngf::Color m_talkColor{ngf::Colors::White};
+  ngf::TimeSpan m_elapsed;
+  ngf::TimeSpan m_duration;
+  LipAnimation m_lipAnim;
+  int m_soundId{0};
+  std::vector<std::tuple<int, std::string, bool>> m_ids;
   ngf::Transform m_transform;
 };
 }
