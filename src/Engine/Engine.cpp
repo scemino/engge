@@ -192,20 +192,20 @@ int Engine::getInputState() const {
 }
 
 void Engine::follow(Actor *pActor) {
-  auto panCamera =
-      (m_pImpl->m_pFollowActor && pActor && m_pImpl->m_pFollowActor != pActor && m_pImpl->m_pFollowActor->getRoom() &&
-          pActor->getRoom() && m_pImpl->m_pFollowActor->getRoom()->getId() == pActor->getRoom()->getId());
   m_pImpl->m_pFollowActor = pActor;
   if (!pActor)
     return;
 
   auto pos = pActor->getPosition();
+  auto pOldRoom = getRoom();
   setRoom(pActor->getRoom());
-  if (panCamera) {
-    m_pImpl->m_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
-    return;
+  if (pOldRoom != pActor->getRoom()) {
+    m_pImpl->m_camera.at(pos);
   }
-  m_pImpl->m_camera.at(pos);
+}
+
+const Actor *Engine::getFollowActor() const {
+  return m_pImpl->m_pFollowActor;
 }
 
 void Engine::setVerbExecute(std::unique_ptr<VerbExecute> verbExecute) {
@@ -390,17 +390,6 @@ void Engine::update(const ngf::TimeSpan &el) {
     pActor->update(elapsed);
   }
 
-  if (m_pImpl->m_pFollowActor && m_pImpl->m_pFollowActor->isVisible() && m_pImpl->m_pFollowActor->getRoom() == getRoom()) {
-    auto screen = m_pImpl->m_pRoom->getScreenSize();
-    auto pos = m_pImpl->m_pFollowActor->getPosition();
-    auto margin = glm::vec2(screen.x / 4, screen.y / 4);
-    auto cameraPos = m_pImpl->m_camera.getAt();
-    if (m_pImpl->m_camera.isMoving() || (cameraPos.x > pos.x + margin.x) || (cameraPos.x < pos.x - margin.x) ||
-        (cameraPos.y > pos.y + margin.y) || (cameraPos.y < pos.y - margin.y)) {
-      m_pImpl->m_camera.panTo(pos, ngf::TimeSpan::seconds(4), InterpolationMethod::EaseOut);
-    }
-  }
-
   m_pImpl->updateActorIcons(elapsed);
 
   if (m_pImpl->m_state == EngineState::Options)
@@ -415,8 +404,9 @@ void Engine::update(const ngf::TimeSpan &el) {
 
   m_pImpl->m_dialogManager.update(elapsed);
 
-  m_pImpl->m_hud.setActive(m_pImpl->m_inputVerbsActive && m_pImpl->m_dialogManager.getState() == DialogManagerState::None
-                              && m_pImpl->m_pRoom->getFullscreen() != 1);
+  m_pImpl->m_hud.setActive(
+      m_pImpl->m_inputVerbsActive && m_pImpl->m_dialogManager.getState() == DialogManagerState::None
+          && m_pImpl->m_pRoom->getFullscreen() != 1);
   m_pImpl->m_hud.setHoveredEntity(m_pImpl->getHoveredEntity(m_pImpl->m_mousePosInRoom));
   m_pImpl->updateHoveredEntity(isRightClick);
 
@@ -482,7 +472,8 @@ void Engine::update(const ngf::TimeSpan &el) {
     pVerbOverride = m_pImpl->overrideVerb(pVerbOverride);
     auto pObj1 = EntityManager::getScriptObjectFromId<Entity>(m_pImpl->m_objId1);
     pObj1 = pVerbOverride->id == VerbConstants::VERB_TALKTO ? m_pImpl->getEntity(pObj1) : pObj1;
-    auto pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? m_pImpl->getEntity(m_pImpl->m_pObj2) : m_pImpl->m_pObj2;
+    auto
+        pObj2 = pVerbOverride->id == VerbConstants::VERB_GIVE ? m_pImpl->getEntity(m_pImpl->m_pObj2) : m_pImpl->m_pObj2;
     if (pObj1) {
       m_pImpl->m_pVerbExecute->execute(pVerbOverride, pObj1, pObj2);
     }
@@ -648,7 +639,7 @@ void Engine::draw(ngf::RenderTarget &target, bool screenshot) const {
   });
 
   ngf::RenderStates statesObjects;
-  auto& lightingShader = m_pImpl->m_pRoom->getLightingShader();
+  auto &lightingShader = m_pImpl->m_pRoom->getLightingShader();
   statesObjects.shader = &lightingShader;
   lightingShader.setNumberLights(0);
   lightingShader.setAmbientColor(ngf::Colors::White);

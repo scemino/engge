@@ -142,6 +142,7 @@ public:
 
   Camera &getCamera();
   void follow(Actor *pActor);
+  const Actor *getFollowActor() const;
 
   void addSelectableActor(int index, Actor *pActor);
   void actorSlotSelectable(Actor *pActor, bool selectable);
