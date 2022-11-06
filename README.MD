@@ -4,6 +4,8 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/scemino/engge/badge)](https://www.codefactor.io/repository/github/scemino/engge)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fengge_the_game)](https://twitter.com/engge_the_game)
 
+:warning: This project is not supported anymore, but no worries I created a new project [engge2](https://github.com/scemino/engge2) :warning:
+
 engge is an adventure game engine able to run Thimbleweed Park.
 
 It's an open source remake of Thimbleweed Park's engine.
